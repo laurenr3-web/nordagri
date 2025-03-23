@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import { useIsMobile } from "@/hooks/use-mobile"
 
@@ -112,15 +113,19 @@ export const SidebarProvider = React.forwardRef<
       [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
     )
 
+    // Create a properly typed style object with CSS custom properties
+    const sidebarStyles = {
+      ...style,
+      // Use type assertion for custom CSS properties
+      '--sidebar-width': SIDEBAR_WIDTH,
+      '--sidebar-width-icon': SIDEBAR_WIDTH_ICON,
+    } as React.CSSProperties
+
     return (
       <SidebarContext.Provider value={contextValue}>
         <div
           ref={ref}
-          style={{
-            "--sidebar-width": SIDEBAR_WIDTH,
-            "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
-            ...(style as React.CSSProperties),
-          }}
+          style={sidebarStyles}
           className={`group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar ${className || ''}`}
           {...props}
         >
