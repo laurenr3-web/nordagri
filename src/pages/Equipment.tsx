@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Search, 
   Plus, 
@@ -16,9 +16,11 @@ import {
   Cog, 
   BarChart
 } from 'lucide-react';
+import EquipmentForm from '@/components/equipment/EquipmentForm';
+import { toast } from '@/hooks/use-toast';
 
 // Sample data
-const equipmentData = [
+const initialEquipmentData = [
   {
     id: 1,
     name: 'John Deere 8R 410',
@@ -127,6 +129,8 @@ const Equipment = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentView, setCurrentView] = useState('grid');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [equipmentData, setEquipmentData] = useState(initialEquipmentData);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   
   // Filter equipment based on search term and category
   const filteredEquipment = equipmentData.filter(equipment => {
@@ -138,6 +142,33 @@ const Equipment = () => {
     
     return matchesSearch && matchesCategory;
   });
+
+  const handleAddEquipment = (data: any) => {
+    const newEquipment = {
+      id: equipmentData.length + 1,
+      name: data.name,
+      type: data.type,
+      category: data.category,
+      manufacturer: data.manufacturer,
+      model: data.model,
+      year: parseInt(data.year),
+      status: data.status,
+      location: data.location,
+      lastMaintenance: new Date().toISOString().split('T')[0],
+      image: data.image,
+      usage: { hours: 0, target: 500 },
+      serialNumber: data.serialNumber,
+      purchaseDate: data.purchaseDate,
+      nextService: { type: 'First Service', due: 'In 1 month' }
+    };
+    
+    setEquipmentData([...equipmentData, newEquipment]);
+    setIsAddDialogOpen(false);
+    toast({
+      title: "Equipment added",
+      description: `${data.name} has been added to your equipment list.`,
+    });
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -195,7 +226,7 @@ const Equipment = () => {
               </div>
               
               <div className="mt-4 sm:mt-0">
-                <Button className="gap-2">
+                <Button className="gap-2" onClick={() => setIsAddDialogOpen(true)}>
                   <Plus size={16} />
                   <span>Add Equipment</span>
                 </Button>
@@ -384,6 +415,19 @@ const Equipment = () => {
           )}
         </div>
       </div>
+
+      {/* Add Equipment Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Add New Equipment</DialogTitle>
+          </DialogHeader>
+          <EquipmentForm 
+            onSubmit={handleAddEquipment}
+            onCancel={() => setIsAddDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
