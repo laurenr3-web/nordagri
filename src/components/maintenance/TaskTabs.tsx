@@ -12,7 +12,6 @@ import { MaintenanceCalendar } from '@/components/dashboard/MaintenanceCalendar'
 import TaskCard from './TaskCard';
 import TaskDetailsDialog from './dialogs/TaskDetailsDialog';
 import { getUpcomingTasks, getActiveTasks, getCompletedTasks } from './MaintenanceUtils';
-import { useTasksManager } from '@/hooks/maintenance/useTasksManager';
 
 interface TaskTabsProps {
   tasks: MaintenanceTask[];

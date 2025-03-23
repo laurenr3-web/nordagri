@@ -58,7 +58,7 @@ const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
   if (!task) return null;
 
   const handleStatusChange = (value: string) => {
-    if (onStatusChange) {
+    if (onStatusChange && task) {
       onStatusChange(task.id, value as MaintenanceStatus);
       toast({
         title: "Status updated",
@@ -68,7 +68,7 @@ const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
   };
 
   const handlePriorityChange = (value: string) => {
-    if (onPriorityChange) {
+    if (onPriorityChange && task) {
       onPriorityChange(task.id, value as MaintenancePriority);
       toast({
         title: "Priority updated",
@@ -78,10 +78,14 @@ const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
   };
 
   const handleDeleteConfirm = () => {
-    if (onDeleteTask) {
+    if (onDeleteTask && task) {
       onDeleteTask(task.id);
       onOpenChange(false);
       setShowDeleteDialog(false);
+      toast({
+        title: "Task deleted",
+        description: "The maintenance task has been deleted",
+      });
     }
   };
 
@@ -174,7 +178,7 @@ const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
               <div>
                 <label className="text-sm text-muted-foreground mb-2 block">Status</label>
                 <Select 
-                  value={task.status} 
+                  defaultValue={task.status} 
                   onValueChange={handleStatusChange}
                 >
                   <SelectTrigger>
@@ -192,7 +196,7 @@ const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
               <div>
                 <label className="text-sm text-muted-foreground mb-2 block">Priority</label>
                 <Select 
-                  value={task.priority} 
+                  defaultValue={task.priority} 
                   onValueChange={handlePriorityChange}
                 >
                   <SelectTrigger>
