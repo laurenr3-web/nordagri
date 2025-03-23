@@ -55,7 +55,7 @@ const MainDashboardView: React.FC<MainDashboardViewProps> = ({ currentMonth }) =
 
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {statsData.map((stat, index) => (
           <StatsCard 
             key={index} 
@@ -79,12 +79,12 @@ const MainDashboardView: React.FC<MainDashboardViewProps> = ({ currentMonth }) =
             title="Equipment Status" 
             subtitle="Monitor your fleet performance" 
             action={
-              <Button variant="outline" size="sm" onClick={handleEquipmentViewAllClick}>
+              <Button variant="outline" size="sm" onClick={handleEquipmentViewAllClick} className="hover:bg-primary/5">
                 View All
               </Button>
             }
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 p-1">
               {equipmentData.map((equipment, index) => (
                 <EquipmentCard 
                   key={equipment.id} 
@@ -108,16 +108,18 @@ const MainDashboardView: React.FC<MainDashboardViewProps> = ({ currentMonth }) =
             title="Maintenance Schedule" 
             subtitle="Plan ahead for equipment servicing" 
             action={
-              <Button variant="outline" size="sm" onClick={handleMaintenanceCalendarClick}>
+              <Button variant="outline" size="sm" onClick={handleMaintenanceCalendarClick} className="hover:bg-primary/5">
                 Full Calendar
               </Button>
             }
           >
-            <MaintenanceCalendar 
-              events={maintenanceEvents} 
-              month={currentMonth} 
-              className="animate-scale-in" 
-            />
+            <BlurContainer className="p-4 rounded-xl border border-border/50">
+              <MaintenanceCalendar 
+                events={maintenanceEvents} 
+                month={currentMonth} 
+                className="animate-scale-in" 
+              />
+            </BlurContainer>
           </DashboardSection>
         </div>
         
@@ -126,17 +128,17 @@ const MainDashboardView: React.FC<MainDashboardViewProps> = ({ currentMonth }) =
             title="System Alerts" 
             subtitle="Recent notifications" 
             action={
-              <Button variant="outline" size="sm" onClick={() => {}}>
+              <Button variant="outline" size="sm" onClick={() => {}} className="hover:bg-primary/5">
                 Clear All
               </Button>
             }
           >
-            <BlurContainer className="divide-y animate-fade-in">
+            <BlurContainer className="divide-y animate-fade-in rounded-xl border border-border/50">
               {alertItems.map(alert => (
-                <div key={alert.id} className="p-3 hover:bg-secondary/40 transition-colors">
+                <div key={alert.id} className="p-4 hover:bg-secondary/40 transition-colors first:rounded-t-xl last:rounded-b-xl">
                   <div className="flex items-start space-x-3">
                     <div className={cn(
-                      "mt-0.5 h-2 w-2 rounded-full flex-shrink-0", 
+                      "mt-0.5 h-3 w-3 rounded-full flex-shrink-0", 
                       alert.severity === 'high' ? "bg-destructive" : 
                       alert.severity === 'medium' ? "bg-harvest-500" : "bg-agri-500"
                     )} />
@@ -156,14 +158,14 @@ const MainDashboardView: React.FC<MainDashboardViewProps> = ({ currentMonth }) =
             title="Upcoming Tasks" 
             subtitle="Scheduled maintenance" 
             action={
-              <Button variant="outline" size="sm" onClick={handleTasksAddClick}>
+              <Button variant="outline" size="sm" onClick={handleTasksAddClick} className="hover:bg-primary/5">
                 Add Task
               </Button>
             }
           >
-            <BlurContainer className="divide-y animate-fade-in delay-100">
+            <BlurContainer className="divide-y animate-fade-in delay-100 rounded-xl border border-border/50">
               {upcomingTasks.map(task => (
-                <div key={task.id} className="p-4 hover:bg-secondary/40 transition-colors">
+                <div key={task.id} className="p-4 hover:bg-secondary/40 transition-colors first:rounded-t-xl last:rounded-b-xl">
                   <div className="mb-2 flex items-center justify-between">
                     <h4 className="font-medium text-sm">{task.title}</h4>
                     <span className={cn(
