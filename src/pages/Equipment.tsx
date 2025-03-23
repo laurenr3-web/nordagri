@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { BlurContainer } from '@/components/ui/blur-container';
@@ -16,11 +17,28 @@ import {
   Cog, 
   BarChart,
   ChevronRight,
-  ExternalLink
+  ExternalLink,
+  Check,
+  X
 } from 'lucide-react';
 import EquipmentForm from '@/components/equipment/EquipmentForm';
 import EquipmentDetails from '@/components/equipment/EquipmentDetails';
 import { toast } from '@/hooks/use-toast';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Sample data
 const initialEquipmentData = [
@@ -135,17 +153,96 @@ const Equipment = () => {
   const [equipmentData, setEquipmentData] = useState(initialEquipmentData);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedEquipment, setSelectedEquipment] = useState<typeof initialEquipmentData[0] | null>(null);
+  const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
   
-  // Filter equipment based on search term and category
+  // Filter state
+  const [filters, setFilters] = useState({
+    status: [] as string[],
+    type: [] as string[],
+    manufacturer: [] as string[],
+    year: [] as number[],
+  });
+  
+  // Get unique values for filter options
+  const statusOptions = Array.from(new Set(equipmentData.map(item => item.status)));
+  const typeOptions = Array.from(new Set(equipmentData.map(item => item.type)));
+  const manufacturerOptions = Array.from(new Set(equipmentData.map(item => item.manufacturer)));
+  const yearOptions = Array.from(new Set(equipmentData.map(item => item.year))).sort((a, b) => b - a);
+  
+  // Sort options
+  const [sortBy, setSortBy] = useState('name');
+  const [sortOrder, setSortOrder] = useState('asc');
+  
+  // Toggle filter value
+  const toggleFilter = (type: 'status' | 'type' | 'manufacturer' | 'year', value: string | number) => {
+    setFilters(prev => {
+      const existing = prev[type];
+      if (existing.includes(value as never)) {
+        return { ...prev, [type]: existing.filter(item => item !== value) };
+      } else {
+        return { ...prev, [type]: [...existing, value as never] };
+      }
+    });
+  };
+  
+  // Check if a filter is active
+  const isFilterActive = (type: 'status' | 'type' | 'manufacturer' | 'year', value: string | number) => {
+    return filters[type].includes(value as never);
+  };
+  
+  // Clear all filters
+  const clearFilters = () => {
+    setFilters({
+      status: [],
+      type: [],
+      manufacturer: [],
+      year: [],
+    });
+  };
+  
+  // Filter equipment based on search term, category, and filters
   const filteredEquipment = equipmentData.filter(equipment => {
+    // Search term filtering
     const matchesSearch = equipment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          equipment.manufacturer.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          equipment.model.toLowerCase().includes(searchTerm.toLowerCase());
     
+    // Category filtering
     const matchesCategory = selectedCategory === 'all' || equipment.category === selectedCategory;
     
-    return matchesSearch && matchesCategory;
+    // Status filtering
+    const matchesStatus = filters.status.length === 0 || filters.status.includes(equipment.status);
+    
+    // Type filtering
+    const matchesType = filters.type.length === 0 || filters.type.includes(equipment.type);
+    
+    // Manufacturer filtering
+    const matchesManufacturer = filters.manufacturer.length === 0 || filters.manufacturer.includes(equipment.manufacturer);
+    
+    // Year filtering
+    const matchesYear = filters.year.length === 0 || filters.year.includes(equipment.year);
+    
+    return matchesSearch && matchesCategory && matchesStatus && matchesType && matchesManufacturer && matchesYear;
+  }).sort((a, b) => {
+    // Sort by selected property
+    let comparison = 0;
+    
+    if (sortBy === 'name') {
+      comparison = a.name.localeCompare(b.name);
+    } else if (sortBy === 'year') {
+      comparison = a.year - b.year;
+    } else if (sortBy === 'manufacturer') {
+      comparison = a.manufacturer.localeCompare(b.manufacturer);
+    } else if (sortBy === 'status') {
+      comparison = a.status.localeCompare(b.status);
+    }
+    
+    // Apply sort order
+    return sortOrder === 'asc' ? comparison : -comparison;
   });
+
+  // Count active filters
+  const activeFilterCount = Object.values(filters).reduce((count, filterArray) => count + filterArray.length, 0);
 
   const handleAddEquipment = (data: any) => {
     const newEquipment = {
@@ -255,14 +352,127 @@ const Equipment = () => {
               </div>
               
               <div className="flex items-center gap-2">
-                <Button variant="outline" className="gap-2" size="sm">
-                  <Filter size={16} />
-                  <span>Filter</span>
-                </Button>
-                <Button variant="outline" className="gap-2" size="sm">
-                  <SlidersHorizontal size={16} />
-                  <span>Sort</span>
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="gap-2" size="sm">
+                      <Filter size={16} />
+                      <span>Filter</span>
+                      {activeFilterCount > 0 && (
+                        <span className="ml-1 rounded-full bg-primary text-primary-foreground w-5 h-5 text-xs flex items-center justify-center">
+                          {activeFilterCount}
+                        </span>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56">
+                    <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+                    {statusOptions.map(status => (
+                      <DropdownMenuCheckboxItem
+                        key={status}
+                        checked={isFilterActive('status', status)}
+                        onCheckedChange={() => toggleFilter('status', status)}
+                      >
+                        <span className={`inline-block w-2 h-2 rounded-full mr-2 ${getStatusColor(status)}`}></span>
+                        {getStatusText(status)}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                    
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel>Filter by Type</DropdownMenuLabel>
+                    {typeOptions.map(type => (
+                      <DropdownMenuCheckboxItem
+                        key={type}
+                        checked={isFilterActive('type', type)}
+                        onCheckedChange={() => toggleFilter('type', type)}
+                      >
+                        {type}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                    
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel>Filter by Manufacturer</DropdownMenuLabel>
+                    {manufacturerOptions.map(manufacturer => (
+                      <DropdownMenuCheckboxItem
+                        key={manufacturer}
+                        checked={isFilterActive('manufacturer', manufacturer)}
+                        onCheckedChange={() => toggleFilter('manufacturer', manufacturer)}
+                      >
+                        {manufacturer}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                    
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel>Filter by Year</DropdownMenuLabel>
+                    {yearOptions.map(year => (
+                      <DropdownMenuCheckboxItem
+                        key={year}
+                        checked={isFilterActive('year', year)}
+                        onCheckedChange={() => toggleFilter('year', year)}
+                      >
+                        {year}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                    
+                    <DropdownMenuSeparator />
+                    <div className="px-2 py-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full" 
+                        onClick={clearFilters}
+                      >
+                        Clear All Filters
+                      </Button>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="gap-2" size="sm">
+                      <SlidersHorizontal size={16} />
+                      <span>Sort</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56">
+                    <DropdownMenuLabel>Sort By</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <div className="p-2">
+                      <Select value={sortBy} onValueChange={setSortBy}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a field to sort by" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="name">Name</SelectItem>
+                          <SelectItem value="manufacturer">Manufacturer</SelectItem>
+                          <SelectItem value="year">Year</SelectItem>
+                          <SelectItem value="status">Status</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel>Order</DropdownMenuLabel>
+                    <div className="flex p-2 gap-2">
+                      <Button 
+                        variant={sortOrder === 'asc' ? 'default' : 'outline'} 
+                        size="sm" 
+                        className="flex-1 gap-1"
+                        onClick={() => setSortOrder('asc')}
+                      >
+                        {sortOrder === 'asc' && <Check size={14} />} Ascending
+                      </Button>
+                      <Button 
+                        variant={sortOrder === 'desc' ? 'default' : 'outline'} 
+                        size="sm" 
+                        className="flex-1 gap-1"
+                        onClick={() => setSortOrder('desc')}
+                      >
+                        {sortOrder === 'desc' && <Check size={14} />} Descending
+                      </Button>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                
                 <Button variant="outline" size="icon" className={currentView === 'grid' ? 'bg-secondary' : ''} onClick={() => setCurrentView('grid')}>
                   <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M2 2H6.5V6.5H2V2ZM2 8.5H6.5V13H2V8.5ZM8.5 2H13V6.5H8.5V2ZM8.5 8.5H13V13H8.5V8.5Z" fill="currentColor"/>
@@ -275,6 +485,74 @@ const Equipment = () => {
                 </Button>
               </div>
             </div>
+            
+            {activeFilterCount > 0 && (
+              <div className="mt-4 flex items-center flex-wrap gap-2">
+                <span className="text-sm text-muted-foreground">Active filters:</span>
+                
+                {filters.status.map(status => (
+                  <Button 
+                    key={`status-${status}`} 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-7 text-xs gap-1"
+                    onClick={() => toggleFilter('status', status)}
+                  >
+                    <span className={`inline-block w-2 h-2 rounded-full ${getStatusColor(status)}`}></span>
+                    {getStatusText(status)}
+                    <X size={12} />
+                  </Button>
+                ))}
+                
+                {filters.type.map(type => (
+                  <Button 
+                    key={`type-${type}`} 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-7 text-xs gap-1"
+                    onClick={() => toggleFilter('type', type)}
+                  >
+                    {type}
+                    <X size={12} />
+                  </Button>
+                ))}
+                
+                {filters.manufacturer.map(manufacturer => (
+                  <Button 
+                    key={`manufacturer-${manufacturer}`} 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-7 text-xs gap-1"
+                    onClick={() => toggleFilter('manufacturer', manufacturer)}
+                  >
+                    {manufacturer}
+                    <X size={12} />
+                  </Button>
+                ))}
+                
+                {filters.year.map(year => (
+                  <Button 
+                    key={`year-${year}`} 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-7 text-xs gap-1"
+                    onClick={() => toggleFilter('year', year)}
+                  >
+                    {year}
+                    <X size={12} />
+                  </Button>
+                ))}
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-7 text-xs"
+                  onClick={clearFilters}
+                >
+                  Clear all
+                </Button>
+              </div>
+            )}
           </BlurContainer>
           
           <Tabs defaultValue="all" className="mb-6" value={selectedCategory} onValueChange={setSelectedCategory}>
@@ -431,7 +709,7 @@ const Equipment = () => {
           {filteredEquipment.length === 0 && (
             <div className="mt-10 text-center">
               <p className="text-muted-foreground">No equipment found matching your criteria.</p>
-              <Button variant="link" onClick={() => { setSearchTerm(''); setSelectedCategory('all'); }}>
+              <Button variant="link" onClick={() => { setSearchTerm(''); setSelectedCategory('all'); clearFilters(); }}>
                 Reset filters
               </Button>
             </div>
