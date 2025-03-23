@@ -1,8 +1,8 @@
 
 declare global {
   interface Window {
-    google: typeof google;
-    initMap: () => google.maps.Map | undefined;
+    google: any;
+    initMap: () => any;
   }
 }
 

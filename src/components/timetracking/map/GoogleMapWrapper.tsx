@@ -2,14 +2,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Activity } from '@/hooks/timetracking/useTimeTracking';
 
-// Declare the Google Maps types we need to use
-declare global {
-  interface Window {
-    google: typeof google;
-    initMap: () => google.maps.Map | undefined;
-  }
-}
-
 interface GoogleMapWrapperProps {
   children?: React.ReactNode;
   activities: Activity[];
