@@ -125,15 +125,12 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ onSubmit, onCancel }) => 
   const handleSubmit = (data: EquipmentFormValues) => {
     try {
       onSubmit(data);
-      toast({
-        title: "Equipment added",
-        description: `${data.name} has been added successfully.`,
+      toast.success("Equipment added successfully.", {
+        description: `${data.name} has been added successfully.`
       });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to add equipment. Please try again.",
-        variant: "destructive",
+      toast.error("Failed to add equipment", {
+        description: "Please try again."
       });
     }
   };
@@ -144,9 +141,8 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ onSubmit, onCancel }) => 
       form.setValue('category', newCategory.trim());
       setNewCategory('');
       setIsAddCategoryDialogOpen(false);
-      toast({
-        title: "Category added",
-        description: `"${newCategory.trim()}" has been added as a category.`,
+      toast.success("Category added", {
+        description: `"${newCategory.trim()}" has been added as a category.`
       });
     }
   };
