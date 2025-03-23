@@ -1,12 +1,14 @@
 
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { toast } from 'sonner';
+import { Camera, Image } from 'lucide-react';
 
 export interface PartFormValues {
   name: string;
@@ -27,6 +29,11 @@ interface AddPartFormProps {
 }
 
 export function AddPartForm({ onSuccess, onCancel }: AddPartFormProps) {
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [streamActive, setStreamActive] = useState(false);
+  
   const form = useForm<PartFormValues>({
     defaultValues: {
       name: '',
@@ -42,6 +49,58 @@ export function AddPartForm({ onSuccess, onCancel }: AddPartFormProps) {
     }
   });
 
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment' } 
+      });
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        setStreamActive(true);
+      }
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      toast.error('Could not access camera. Please check permissions.');
+    }
+  };
+
+  const stopCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+      tracks.forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+      setStreamActive(false);
+    }
+  };
+
+  const captureImage = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const context = canvas.getContext('2d');
+      
+      if (context) {
+        // Set canvas dimensions to match video
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        // Draw the video frame to the canvas
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Convert canvas content to data URL
+        const imageDataUrl = canvas.toDataURL('image/jpeg');
+        setCapturedImage(imageDataUrl);
+        
+        // Update form
+        form.setValue('image', imageDataUrl);
+        
+        // Stop the camera stream
+        stopCamera();
+      }
+    }
+  };
+
   function onSubmit(data: PartFormValues) {
     try {
       // Here you would typically send this data to a backend API
@@ -56,6 +115,13 @@ export function AddPartForm({ onSuccess, onCancel }: AddPartFormProps) {
       console.error(error);
     }
   }
+
+  // Clean up camera stream when component unmounts
+  React.useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
 
   return (
     <Form {...form}>
@@ -239,14 +305,75 @@ export function AddPartForm({ onSuccess, onCancel }: AddPartFormProps) {
           name="image"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Image URL</FormLabel>
-              <FormControl>
-                <Input placeholder="https://example.com/image.jpg" {...field} />
-              </FormControl>
-              <FormDescription>
-                Enter a URL for the part image
-              </FormDescription>
-              <FormMessage />
+              <FormLabel>Image</FormLabel>
+              <div className="flex flex-col space-y-3">
+                <div className="flex items-center space-x-2">
+                  <FormControl>
+                    <Input placeholder="https://example.com/image.jpg" {...field} />
+                  </FormControl>
+                  
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="icon" type="button">
+                        <Camera className="h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 p-0">
+                      <div className="p-4 space-y-4">
+                        <h4 className="font-medium">Take Photo</h4>
+                        
+                        {/* Video preview for camera */}
+                        <div className="relative bg-muted rounded-md overflow-hidden">
+                          <video 
+                            ref={videoRef} 
+                            autoPlay 
+                            playsInline
+                            className="w-full aspect-square object-cover"
+                          />
+                          {/* Hidden canvas for image capture */}
+                          <canvas ref={canvasRef} className="hidden" />
+                        </div>
+
+                        <div className="flex justify-between">
+                          {!streamActive ? (
+                            <Button type="button" onClick={startCamera} className="w-full">
+                              <Camera className="mr-2 h-4 w-4" />
+                              Start Camera
+                            </Button>
+                          ) : (
+                            <div className="flex space-x-2 w-full">
+                              <Button type="button" onClick={captureImage} variant="secondary" className="flex-1">
+                                Take Photo
+                              </Button>
+                              <Button type="button" onClick={stopCamera} variant="outline" className="flex-1">
+                                Cancel
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                
+                {/* Image preview */}
+                {field.value && (
+                  <div className="mt-2 relative bg-muted rounded-md overflow-hidden w-full">
+                    <div className="aspect-square w-full max-w-xs mx-auto">
+                      <img
+                        src={field.value}
+                        alt="Part preview"
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                  </div>
+                )}
+                
+                <FormDescription>
+                  Enter a URL for the part image or take a photo
+                </FormDescription>
+                <FormMessage />
+              </div>
             </FormItem>
           )}
         />
