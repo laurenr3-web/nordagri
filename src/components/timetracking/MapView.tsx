@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import { Activity, ActiveTracking } from '@/hooks/timetracking/useTimeTracking';
 import { Button } from '@/components/ui/button';
@@ -68,20 +67,13 @@ const MapView: React.FC<MapViewProps> = ({
         return;
       }
 
-      // Otherwise load it
-      // In a real implementation, this would use your Google Maps API key
+      // Otherwise load it with the provided API key
       window.initMap = initializeMap;
       const script = document.createElement('script');
-      script.src = 'https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap';
+      script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyDYNpssW98FUa34qBKCD6JdI7iWYnzFxyI&callback=initMap';
       script.async = true;
       script.defer = true;
       document.head.appendChild(script);
-
-      // Show a temporary toast for the demo
-      toast({
-        title: "Map Integration",
-        description: "In a production environment, this would use your Google Maps API key.",
-      });
 
       return () => {
         window.initMap = null;
