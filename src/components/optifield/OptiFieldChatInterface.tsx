@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { Card } from '@/components/ui/card';
-import { useChatLogic, ChatMessage as ChatMessageType } from './chat/useChatLogic';
+import { useChatLogic } from './chat/useChatLogic';
+import type { ChatMessage } from './chat/types';
 import { QUICK_REPLIES } from './chat/constants';
 import ChatHeader from './chat/ChatHeader';
 import MessagesContainer from './chat/MessagesContainer';
@@ -43,7 +44,7 @@ const OptiFieldChatInterface: React.FC<OptiFieldChatInterfaceProps> = ({
         <Card className="rounded-t-none border-t-0 h-[calc(70vh-48px)]">
           <div className="flex flex-col h-full">
             <MessagesContainer 
-              messages={messages as ChatMessageType[]} 
+              messages={messages as ChatMessage[]} 
               isLoading={isLoading} 
             />
             

@@ -6,7 +6,8 @@ import { useMessages } from './hooks/useMessages';
 import { sendMessageToClaude } from './services/claudeService';
 import { ChatMessage } from './types';
 
-export { ChatMessage };
+// Export the type properly
+export type { ChatMessage };
 
 export const useChatLogic = (
   trackingActive: boolean,
@@ -54,7 +55,7 @@ export const useChatLogic = (
         userMessage, 
         contextData,
         trackingActive,
-        startTracking,
+        () => startTracking('', undefined, undefined, undefined), // Fix the function signature mismatch
         stopTracking, 
         setTrackingActive
       );
