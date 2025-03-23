@@ -37,15 +37,15 @@ const NavbarContent = () => {
   };
 
   return (
-    <div className="fixed inset-y-0 left-0 z-40 flex w-64 flex-col">
+    <div className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col transform transition-transform duration-200 ease-in-out ${open ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:transition-none`}>
       <div className="flex h-14 items-center border-b px-4">
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setOpen(!open)}
-          className="mr-2"
+          className="mr-2 md:hidden"
         >
-          {open ? <ChevronLeft /> : <Menu />}
+          <ChevronLeft />
         </Button>
         <Link to="/" className="font-semibold">
           OptiTractor

@@ -1,7 +1,7 @@
 
 import * as React from "react"
 import { Button } from "@/components/ui/button"
-import { PanelLeft } from "lucide-react"
+import { PanelLeft, Menu } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useSidebar } from "./sidebar-context"
 
@@ -30,6 +30,33 @@ const SidebarTrigger = React.forwardRef<
   )
 })
 SidebarTrigger.displayName = "SidebarTrigger"
+
+// Add a new MenuButton component that will be fixed in the top-right corner
+const SidebarMenuButton = React.forwardRef<
+  React.ElementRef<typeof Button>,
+  React.ComponentProps<typeof Button>
+>(({ className, onClick, ...props }, ref) => {
+  const { toggleSidebar } = useSidebar()
+
+  return (
+    <Button
+      ref={ref}
+      data-sidebar="menu-button"
+      variant="ghost"
+      size="icon"
+      className={cn("fixed top-2 right-2 z-50 md:hidden", className)}
+      onClick={(event) => {
+        onClick?.(event)
+        toggleSidebar()
+      }}
+      {...props}
+    >
+      <Menu />
+      <span className="sr-only">Toggle Menu</span>
+    </Button>
+  )
+})
+SidebarMenuButton.displayName = "SidebarMenuButton"
 
 const SidebarRail = React.forwardRef<
   HTMLButtonElement,
@@ -78,4 +105,4 @@ const SidebarInset = React.forwardRef<
 })
 SidebarInset.displayName = "SidebarInset"
 
-export { SidebarTrigger, SidebarRail, SidebarInset }
+export { SidebarTrigger, SidebarMenuButton, SidebarRail, SidebarInset }

@@ -5,6 +5,7 @@ export { useSidebar, SidebarProvider } from "./sidebar-context"
 export { Sidebar } from "./sidebar"
 export { 
   SidebarTrigger, 
+  SidebarMenuButton,
   SidebarRail, 
   SidebarInset 
 } from "./sidebar-controls"
