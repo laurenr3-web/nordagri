@@ -1,132 +1,87 @@
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { UserMenu } from "./UserMenu";
 import { 
-  Home, 
   Tractor, 
-  Tool, 
-  Wrench, 
+  Package, 
+  Hammer, 
   AlertTriangle, 
-  Map, 
-  Settings as SettingsIcon, 
-  Menu, 
-  X
+  Map,
+  Settings as SettingsIcon,
+  Menu,
+  ChevronLeft
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { UserMenu } from "@/components/layout/UserMenu";
 import { useSidebar } from "@/components/ui/sidebar";
 
 const Navbar = () => {
   const location = useLocation();
-  const { isSidebarOpen, toggleSidebar } = useSidebar();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { open, setOpen } = useSidebar();
+  const [mounted, setMounted] = useState(false);
 
-  // Close mobile menu when route changes
   useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [location.pathname]);
+    setMounted(true);
+  }, []);
 
-  const isActive = (path: string) => {
-    return location.pathname === path;
-  };
+  if (!mounted) return null;
 
-  const navItems = [
-    { path: "/", icon: <Home />, label: "Dashboard" },
-    { path: "/equipment", icon: <Tractor />, label: "Equipment" },
-    { path: "/parts", icon: <Tool />, label: "Parts" },
-    { path: "/maintenance", icon: <Wrench />, label: "Maintenance" },
-    { path: "/interventions", icon: <AlertTriangle />, label: "Interventions" },
-    { path: "/optifield", icon: <Map />, label: "OptiField" },
-    { path: "/settings", icon: <SettingsIcon />, label: "Settings" },
-  ];
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
+  const getItemClassName = (path: string) => {
+    const active = location.pathname === path;
+    return `flex items-center rounded-md px-3 py-2 text-sm transition-colors ${
+      active 
+        ? "bg-accent text-accent-foreground" 
+        : "hover:bg-muted"
+    }`;
   };
 
   return (
-    <>
-      {/* Mobile header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-background border-b z-50 px-4 flex items-center justify-between">
-        <Link to="/" className="font-bold text-lg">OptiTractor</Link>
-        <div className="flex items-center gap-2">
-          <UserMenu />
-          <Button variant="ghost" size="icon" onClick={toggleMobileMenu}>
-            {isMobileMenuOpen ? <X /> : <Menu />}
-          </Button>
-        </div>
+    <div className="fixed inset-y-0 left-0 z-40 flex w-64 flex-col">
+      <div className="flex h-14 items-center border-b px-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setOpen(!open)}
+          className="mr-2"
+        >
+          {open ? <ChevronLeft /> : <Menu />}
+        </Button>
+        <Link to="/" className="font-semibold">
+          OptiTractor
+        </Link>
       </div>
-
-      {/* Mobile menu */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden fixed top-14 left-0 right-0 bottom-0 bg-background z-40 overflow-auto">
-          <div className="flex flex-col p-4 space-y-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-md",
-                  isActive(item.path)
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-muted"
-                )}
-              >
-                {item.icon}
-                {item.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Desktop sidebar */}
-      <aside
-        className={cn(
-          "fixed top-0 left-0 z-30 h-full w-64 bg-background border-r transition-transform duration-300 ease-in-out hidden md:block",
-          !isSidebarOpen && "-translate-x-full"
-        )}
-      >
-        <div className="p-6">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="font-bold text-lg">OptiTractor</span>
+      <div className="flex-1 overflow-auto py-2">
+        <nav className="grid gap-1 px-2">
+          <Link to="/equipment" className={getItemClassName("/equipment")}>
+            <Tractor className="mr-2 h-4 w-4" />
+            Equipment
           </Link>
-        </div>
-        <div className="px-3 py-2">
-          <nav className="flex flex-col gap-1">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-md",
-                  isActive(item.path)
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-muted"
-                )}
-              >
-                {item.icon}
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-        <div className="absolute bottom-8 left-0 right-0 px-6">
-          <UserMenu />
-        </div>
-      </aside>
-
-      {/* Toggle button */}
-      <Button
-        variant="outline"
-        size="icon"
-        className="fixed bottom-4 right-4 z-50 rounded-full shadow-md md:hidden"
-        onClick={toggleSidebar}
-      >
-        <Menu />
-      </Button>
-    </>
+          <Link to="/parts" className={getItemClassName("/parts")}>
+            <Package className="mr-2 h-4 w-4" />
+            Parts
+          </Link>
+          <Link to="/maintenance" className={getItemClassName("/maintenance")}>
+            <Hammer className="mr-2 h-4 w-4" />
+            Maintenance
+          </Link>
+          <Link to="/interventions" className={getItemClassName("/interventions")}>
+            <AlertTriangle className="mr-2 h-4 w-4" />
+            Interventions
+          </Link>
+          <Link to="/optifield" className={getItemClassName("/optifield")}>
+            <Map className="mr-2 h-4 w-4" />
+            OptiField
+          </Link>
+          <Link to="/settings" className={getItemClassName("/settings")}>
+            <SettingsIcon className="mr-2 h-4 w-4" />
+            Settings
+          </Link>
+        </nav>
+      </div>
+      <div className="border-t p-4">
+        <UserMenu />
+      </div>
+    </div>
   );
 };
 

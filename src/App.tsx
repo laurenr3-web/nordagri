@@ -16,45 +16,73 @@ import OptiField from "./pages/OptiField";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import { supabase } from "./integrations/supabase/client";
+import { Loader2 } from "lucide-react";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 15 * 60 * 1000, // 15 minutes
+      retry: 2,
+    },
+  },
+});
 
 const App = () => {
   const [session, setSession] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [authAttempts, setAuthAttempts] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    // Check for an existing session
+    // Set up auth state listener FIRST
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log("Auth event:", event);
+        setSession(session);
+        setUser(session?.user || null);
+        
+        // Log auth events
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          console.log(`Auth event ${event} at ${new Date().toISOString()}`);
+        }
+      }
+    );
+    
+    // THEN check for existing session
     const getSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      
-      if (data) {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          throw error;
+        }
+        
         setSession(data.session);
         setUser(data.session?.user || null);
+      } catch (error) {
+        console.error("Session retrieval error:", error);
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
     };
     
     getSession();
-    
-    // Listen for auth changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user || null);
-      }
-    );
     
     return () => {
       authListener.subscription.unsubscribe();
     };
   }, []);
 
-  // Protected route component
+  // Protected route component with loading state
   const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-    if (loading) return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center h-screen flex-col gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-lg">Verifying your session...</p>
+        </div>
+      );
+    }
     
     if (!session) {
       return <Navigate to="/auth" replace />;

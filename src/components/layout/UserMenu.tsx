@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Settings, LogOut, User } from "lucide-react";
+import { Settings, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -19,14 +19,22 @@ export const UserMenu = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [profileName, setProfileName] = useState('');
+  const [sessionLoading, setSessionLoading] = useState(true);
 
   useEffect(() => {
     const getSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      
-      if (data?.session) {
-        setUser(data.session.user);
-        fetchProfile(data.session.user.id);
+      try {
+        setSessionLoading(true);
+        const { data } = await supabase.auth.getSession();
+        
+        if (data?.session) {
+          setUser(data.session.user);
+          fetchProfile(data.session.user.id);
+        }
+      } catch (error) {
+        console.error('Session error:', error);
+      } finally {
+        setSessionLoading(false);
       }
     };
 
@@ -89,6 +97,9 @@ export const UserMenu = () => {
 
   const handleLogout = async () => {
     try {
+      // Log the logout attempt
+      console.log(`Logout attempt: ${new Date().toISOString()}`);
+      
       const { error } = await supabase.auth.signOut();
       
       if (error) throw error;
@@ -100,6 +111,16 @@ export const UserMenu = () => {
       toast.error(error.message || 'Logout failed');
     }
   };
+
+  if (sessionLoading) {
+    return (
+      <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full" disabled>
+        <Avatar className="h-8 w-8">
+          <AvatarFallback>...</AvatarFallback>
+        </Avatar>
+      </Button>
+    );
+  }
 
   if (!user) {
     return (
