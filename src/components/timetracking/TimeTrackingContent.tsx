@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Activity, ActiveTracking, Equipment } from '@/hooks/timetracking/useTimeTracking';
 import ActivityList from './ActivityList';
 import MapView from './MapView';
 import AddActivityDialog from './AddActivityDialog';
+import ActivityDetailsDialog from './ActivityDetailsDialog';
 
 interface TimeTrackingContentProps {
   activities: Activity[];
@@ -30,6 +31,14 @@ const TimeTrackingContent: React.FC<TimeTrackingContentProps> = ({
   setIsAddActivityDialogOpen,
   onAddActivity
 }) => {
+  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
+  const handleViewDetails = (activity: Activity) => {
+    setSelectedActivity(activity);
+    setIsDetailsOpen(true);
+  };
+
   return (
     <div className="flex-1 p-6 pt-8">
       {isMapViewActive ? (
@@ -50,6 +59,7 @@ const TimeTrackingContent: React.FC<TimeTrackingContentProps> = ({
             startTracking={startTracking}
             pauseTracking={pauseTracking}
             stopTracking={stopTracking}
+            onViewDetails={handleViewDetails}
           />
         </div>
       )}
@@ -59,6 +69,12 @@ const TimeTrackingContent: React.FC<TimeTrackingContentProps> = ({
         onOpenChange={setIsAddActivityDialogOpen}
         equipments={equipments}
         onAddActivity={onAddActivity}
+      />
+
+      <ActivityDetailsDialog
+        activity={selectedActivity}
+        open={isDetailsOpen}
+        onOpenChange={setIsDetailsOpen}
       />
     </div>
   );
