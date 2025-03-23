@@ -134,7 +134,9 @@ const maintenanceEvents = maintenanceTasks.map(task => ({
   title: task.title,
   date: task.dueDate,
   duration: task.estimatedDuration,
-  priority: task.priority === 'critical' ? 'high' : task.priority === 'low' ? 'low' : 'medium',
+  priority: task.priority === 'critical' ? 'high' : 
+           task.priority === 'low' ? 'low' : 
+           'medium' as 'high' | 'medium' | 'low', // Explicitly cast to the allowed literal types
   equipment: task.equipment
 }));
 
