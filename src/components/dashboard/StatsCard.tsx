@@ -14,6 +14,7 @@ interface StatsCardProps {
   };
   className?: string;
   style?: React.CSSProperties;
+  onClick?: () => void;
 }
 
 export function StatsCard({ 
@@ -23,7 +24,8 @@ export function StatsCard({
   description, 
   trend, 
   className,
-  style
+  style,
+  onClick
 }: StatsCardProps) {
   return (
     <BlurContainer 
@@ -31,6 +33,7 @@ export function StatsCard({
       intensity="light"
       raised
       style={style}
+      onClick={onClick}
     >
       <div className="flex items-start justify-between">
         <div>

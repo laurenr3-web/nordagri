@@ -9,6 +9,7 @@ import { BlurContainer } from '@/components/ui/blur-container';
 import { cn } from '@/lib/utils';
 import { Tractor, Wrench, Package, ClipboardCheck, AlertTriangle, Clock, CalendarClock, LayoutDashboard } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useNavigate } from 'react-router-dom';
 
 // Sample data
 const statsData = [{
@@ -169,10 +170,30 @@ const upcomingTasks = [{
   priority: 'low',
   assignee: 'David Chen'
 }];
+
 const Index = () => {
   // Current month for calendar
   const [currentMonth] = useState(new Date());
   const [currentView, setCurrentView] = useState<'main' | 'calendar' | 'alerts'>('main');
+  const navigate = useNavigate();
+
+  const handleStatsCardClick = (type: string) => {
+    switch (type) {
+      case 'Active Equipment':
+        navigate('/equipment');
+        break;
+      case 'Maintenance Tasks':
+        navigate('/maintenance');
+        break;
+      case 'Parts Inventory':
+        navigate('/parts');
+        break;
+      case 'Field Interventions':
+        navigate('/interventions');
+        break;
+    }
+  };
+
   return <div className="min-h-screen bg-background">
       <Navbar />
       
@@ -210,9 +231,21 @@ const Index = () => {
           <Tabs value={currentView} className="space-y-8">
             <TabsContent value="main" className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                {statsData.map((stat, index) => <StatsCard key={index} title={stat.title} value={stat.value} icon={stat.icon} description={stat.description} trend={stat.trend} className="animate-fade-in" style={{
-                animationDelay: `${index * 0.1}s`
-              } as React.CSSProperties} />)}
+                {statsData.map((stat, index) => (
+                  <StatsCard 
+                    key={index} 
+                    title={stat.title} 
+                    value={stat.value} 
+                    icon={stat.icon} 
+                    description={stat.description} 
+                    trend={stat.trend} 
+                    className="animate-fade-in cursor-pointer" 
+                    style={{
+                      animationDelay: `${index * 0.1}s`
+                    } as React.CSSProperties}
+                    onClick={() => handleStatsCardClick(stat.title)}
+                  />
+                ))}
               </div>
               
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
