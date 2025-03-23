@@ -77,10 +77,15 @@ const AddActivityDialog: React.FC<AddActivityDialogProps> = ({
       field: selectedField.name,
       fieldSize: parseFloat(fieldSize),
       duration: 0,
+      location: {
+        lat: 48.864716 + (Math.random() * 0.1 - 0.05), // Random coordinates near Paris for demo
+        lng: 2.349014 + (Math.random() * 0.1 - 0.05)
+      },
       coordinates: {
         lat: 48.864716 + (Math.random() * 0.1 - 0.05), // Random coordinates near Paris for demo
         lng: 2.349014 + (Math.random() * 0.1 - 0.05)
       },
+      description: taskName,
       notes
     });
     

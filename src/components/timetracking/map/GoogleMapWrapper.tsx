@@ -16,7 +16,7 @@ const GoogleMapWrapper: React.FC<GoogleMapWrapperProps> = ({ children, activitie
     window.initMap = () => {
       if (!mapRef.current) return;
       
-      const mapOptions = {
+      const mapOptions: google.maps.MapOptions = {
         center: { lat: 48.8566, lng: 2.3522 }, // Default to Paris
         zoom: 12,
       };

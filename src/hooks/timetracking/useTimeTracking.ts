@@ -18,6 +18,10 @@ export interface Activity {
     lat: number;
     lng: number;
   };
+  coordinates?: {  // Add this back for backward compatibility
+    lat: number;
+    lng: number;
+  };
   description?: string;
   notes?: string;
 }
@@ -75,6 +79,7 @@ export const useTimeTracking = () => {
         duration: 0,
         createdAt: new Date(Date.now() - 3600000), // 1 hour ago
         location: { lat: 48.874716, lng: 2.359014 },
+        coordinates: { lat: 48.874716, lng: 2.359014 }, // Keep for backward compatibility
         description: 'Plowing North Field',
         notes: 'Prepare field for spring planting'
       },
@@ -90,6 +95,7 @@ export const useTimeTracking = () => {
         duration: 5.5 * 3600, // 5.5 hours in seconds
         createdAt: new Date(Date.now() - 86400000), // 1 day ago
         location: { lat: 48.854716, lng: 2.339014 },
+        coordinates: { lat: 48.854716, lng: 2.339014 }, // Keep for backward compatibility
         description: 'Harvesting South Field',
         notes: 'Completed harvesting winter wheat'
       }
