@@ -46,6 +46,15 @@ const MaintenanceNavigation: React.FC<MaintenanceNavigationProps> = ({
     },
   ];
 
+  const handleCardClick = (view: string) => {
+    setCurrentView(view);
+    // Set the tab selection to match the view
+    const tabsElement = document.querySelector(`[value="${view}"]`) as HTMLElement;
+    if (tabsElement) {
+      tabsElement.click();
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       {navigationItems.map((item) => (
@@ -54,7 +63,7 @@ const MaintenanceNavigation: React.FC<MaintenanceNavigationProps> = ({
           className={`p-4 cursor-pointer hover:shadow-md transition-shadow border ${
             currentView === item.view ? 'border-primary bg-primary/5' : ''
           }`}
-          onClick={() => setCurrentView(item.view)}
+          onClick={() => handleCardClick(item.view)}
         >
           <div className="flex items-start">
             <div className={`p-2 rounded-full ${
