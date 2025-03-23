@@ -113,8 +113,23 @@ export const sendMessageToClaude = async (
       throw new Error(error.message);
     }
 
-    // Process Claude's response
-    const assistantResponse = data.content[0].text;
+    // Check if response has expected structure
+    if (!data || !data.content) {
+      // Handle API error responses
+      if (data && data.error) {
+        console.error('Erreur API Claude:', data.error);
+        throw new Error(`Erreur API Claude: ${data.error.message || data.error.type || 'Erreur inconnue'}`);
+      }
+      
+      // If no specific error but unexpected response format
+      console.error('Réponse Claude non valide:', data);
+      throw new Error('Format de réponse non valide de Claude');
+    }
+
+    // Safely extract the response content
+    const assistantResponse = data.content && Array.isArray(data.content) && data.content.length > 0 
+      ? data.content[0].text 
+      : 'Je suis désolé, je n\'ai pas pu générer une réponse.';
     
     // Process action commands in response
     const cleanedResponse = processActionCommands(
