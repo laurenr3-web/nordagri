@@ -12,6 +12,8 @@ import { MaintenanceCalendar } from '@/components/dashboard/MaintenanceCalendar'
 import TaskCard from './TaskCard';
 import TaskDetailsDialog from './dialogs/TaskDetailsDialog';
 import { getUpcomingTasks, getActiveTasks, getCompletedTasks } from './MaintenanceUtils';
+import MaintenanceByType from './views/MaintenanceByType';
+import MaintenanceByPriority from './views/MaintenanceByPriority';
 
 interface TaskTabsProps {
   tasks: MaintenanceTask[];
@@ -65,6 +67,8 @@ const TaskTabs: React.FC<TaskTabsProps> = ({
           <TabsTrigger value="upcoming">Upcoming ({upcomingTasks.length})</TabsTrigger>
           <TabsTrigger value="active">Active ({activeTasks.length})</TabsTrigger>
           <TabsTrigger value="completed">Completed ({completedTasks.length})</TabsTrigger>
+          <TabsTrigger value="by-type">By Type</TabsTrigger>
+          <TabsTrigger value="by-priority">By Priority</TabsTrigger>
           <TabsTrigger value="calendar">Calendar</TabsTrigger>
         </TabsList>
         
@@ -117,6 +121,20 @@ const TaskTabs: React.FC<TaskTabsProps> = ({
               <p className="text-muted-foreground">No completed maintenance tasks yet.</p>
             </BlurContainer>
           )}
+        </TabsContent>
+
+        <TabsContent value="by-type" className="mt-6">
+          <MaintenanceByType 
+            tasks={tasks} 
+            onViewDetails={handleViewDetails} 
+          />
+        </TabsContent>
+
+        <TabsContent value="by-priority" className="mt-6">
+          <MaintenanceByPriority 
+            tasks={tasks} 
+            onViewDetails={handleViewDetails} 
+          />
         </TabsContent>
         
         <TabsContent value="calendar" className="mt-6">

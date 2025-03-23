@@ -7,6 +7,7 @@ import {
 } from '@/hooks/maintenance/maintenanceSlice';
 import TaskTabs from './TaskTabs';
 import MaintenanceStats from './MaintenanceStats';
+import MaintenanceNavigation from './MaintenanceNavigation';
 import { getUpcomingTasks } from './MaintenanceUtils';
 
 interface MaintenanceContentProps {
@@ -33,25 +34,32 @@ const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
   const upcomingTasks = getUpcomingTasks(tasks);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div className="lg:col-span-2">
-        <TaskTabs 
+    <>
+      <MaintenanceNavigation
+        currentView={currentView}
+        setCurrentView={setCurrentView}
+      />
+    
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          <TaskTabs 
+            tasks={tasks}
+            currentView={currentView}
+            setCurrentView={setCurrentView}
+            currentMonth={currentMonth}
+            setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
+            updateTaskStatus={updateTaskStatus}
+            updateTaskPriority={updateTaskPriority}
+            deleteTask={deleteTask}
+          />
+        </div>
+        
+        <MaintenanceStats 
           tasks={tasks}
-          currentView={currentView}
-          setCurrentView={setCurrentView}
-          currentMonth={currentMonth}
-          setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
-          updateTaskStatus={updateTaskStatus}
-          updateTaskPriority={updateTaskPriority}
-          deleteTask={deleteTask}
+          upcomingTasks={upcomingTasks}
         />
       </div>
-      
-      <MaintenanceStats 
-        tasks={tasks}
-        upcomingTasks={upcomingTasks}
-      />
-    </div>
+    </>
   );
 };
 
