@@ -29,7 +29,7 @@ export function StatsCard({
 }: StatsCardProps) {
   return (
     <BlurContainer 
-      className={cn("p-6 animate-fade-in rounded-xl border border-border/50 hover:shadow-md transition-all duration-300", className)}
+      className={cn("p-6 animate-fade-in", className)}
       intensity="light"
       raised
       style={style}
@@ -38,22 +38,23 @@ export function StatsCard({
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm font-medium text-muted-foreground mb-1">{title}</p>
-          <h3 className="text-3xl font-semibold tracking-tight mb-1">{value}</h3>
+          <h3 className="text-2xl font-semibold tracking-tight mb-1">{value}</h3>
           {description && (
             <p className="text-sm text-muted-foreground">{description}</p>
           )}
           {trend && (
             <div className="flex items-center mt-2">
               <span className={cn(
-                "text-xs font-medium px-2 py-0.5 rounded-full",
-                trend.isPositive ? "bg-agri-100 text-agri-800" : "bg-destructive/10 text-destructive"
+                "text-xs font-medium",
+                trend.isPositive ? "text-agri-600" : "text-destructive"
               )}>
-                {trend.isPositive ? '+' : ''}{trend.value}% vs last season
+                {trend.isPositive ? '+' : ''}{trend.value}%
               </span>
+              <span className="text-xs text-muted-foreground ml-1">vs last season</span>
             </div>
           )}
         </div>
-        <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center shadow-sm">
+        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
           {icon}
         </div>
       </div>

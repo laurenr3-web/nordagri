@@ -4,7 +4,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Layout from "./components/layout/Layout";
 import Index from "./pages/Index";
 import Equipment from "./pages/Equipment";
 import EquipmentDetail from "./pages/EquipmentDetail";
@@ -23,15 +22,13 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route element={<Layout />}>
-            <Route path="/" element={<Index />} />
-            <Route path="/equipment" element={<Equipment />} />
-            <Route path="/equipment/:id" element={<EquipmentDetail />} />
-            <Route path="/parts" element={<Parts />} />
-            <Route path="/maintenance" element={<Maintenance />} />
-            <Route path="/interventions" element={<Interventions />} />
-            <Route path="/optifield" element={<OptiField />} />
-          </Route>
+          <Route path="/" element={<Index />} />
+          <Route path="/equipment" element={<Equipment />} />
+          <Route path="/equipment/:id" element={<EquipmentDetail />} />
+          <Route path="/parts" element={<Parts />} />
+          <Route path="/maintenance" element={<Maintenance />} />
+          <Route path="/interventions" element={<Interventions />} />
+          <Route path="/optifield" element={<OptiField />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

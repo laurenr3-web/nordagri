@@ -132,6 +132,15 @@ const Navbar = () => {
           </nav>
         </div>
       </div>
+      
+      <div className={cn(
+        "transition-all duration-300 ease-in-out",
+        isMobile ? (
+          isOpen ? "ml-0 opacity-50" : "ml-0 opacity-100"
+        ) : "ml-64"
+      )}>
+        {/* Content wrapper for page content */}
+      </div>
     </>
   );
 };

@@ -24,7 +24,7 @@ const OptiField = () => {
           onValueChange={setSelectedView}
           className="my-6"
         >
-          <TabsList className="grid w-full grid-cols-3 mb-6 mx-auto">
+          <TabsList className="grid w-full grid-cols-3 mb-6">
             <TabsTrigger value="map">Carte</TabsTrigger>
             <TabsTrigger value="summary">Analyses</TabsTrigger>
             <TabsTrigger value="timeline">Historique</TabsTrigger>

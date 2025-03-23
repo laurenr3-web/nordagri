@@ -26,21 +26,20 @@ export function EquipmentCard({ name, type, image, status, usage, nextService, c
   return (
     <BlurContainer 
       className={cn(
-        "overflow-hidden animate-scale-in rounded-xl border border-border/50", 
+        "overflow-hidden animate-scale-in", 
         className,
-        onClick ? "cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all duration-300" : ""
+        onClick ? "cursor-pointer hover:shadow-md transition-shadow" : ""
       )}
       style={style}
       onClick={onClick}
     >
-      <div className="relative h-48">
+      <div className="relative h-40">
         <img src={image} alt={name} className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-        <div className="absolute top-4 right-4">
+        <div className="absolute top-2 right-2">
           <div className={cn(
-            "px-3 py-1.5 rounded-full text-xs font-medium shadow-sm backdrop-blur-sm",
-            status === 'operational' ? "bg-agri-100/90 text-agri-800" : 
-            status === 'maintenance' ? "bg-harvest-100/90 text-harvest-800" : 
+            "px-2 py-1 rounded-md text-xs font-medium",
+            status === 'operational' ? "bg-agri-100 text-agri-800" : 
+            status === 'maintenance' ? "bg-harvest-100 text-harvest-800" : 
             "bg-destructive/20 text-destructive"
           )}>
             {status === 'operational' ? 'Operational' : 
@@ -48,33 +47,28 @@ export function EquipmentCard({ name, type, image, status, usage, nextService, c
              'Repair Needed'}
           </div>
         </div>
-        <div className="absolute bottom-0 left-0 p-4 text-white">
-          <h3 className="font-semibold text-lg">{name}</h3>
-          <p className="text-white/80 text-sm">{type}</p>
-        </div>
       </div>
       
       <div className="p-4">
+        <h3 className="font-medium mb-1">{name}</h3>
+        <p className="text-sm text-muted-foreground mb-4">{type}</p>
+        
         <div className="space-y-4">
           <div>
-            <div className="flex justify-between text-sm mb-1.5">
-              <span className="font-medium">Usage</span>
-              <span className="font-semibold">{usage.hours} / {usage.target} hrs</span>
+            <div className="flex justify-between text-sm mb-1">
+              <span>Usage</span>
+              <span className="font-medium">{usage.hours} / {usage.target} hrs</span>
             </div>
-            <Progress value={(usage.hours / usage.target) * 100} className="h-2 bg-secondary" />
+            <Progress value={(usage.hours / usage.target) * 100} />
           </div>
           
           <div className="text-sm">
             <p className="text-muted-foreground mb-1">Next Service:</p>
-            <div className="flex justify-between items-center">
-              <p className="font-medium">{nextService.type}</p>
-              <p className={cn(
-                "px-2 py-0.5 rounded-full text-xs",
-                nextService.due.includes('Overdue') ? "bg-destructive/10 text-destructive" : 
-                nextService.due.includes('days') ? "bg-harvest-100 text-harvest-800" : 
-                "bg-agri-100 text-agri-800"
-              )}>{nextService.due}</p>
-            </div>
+            <p className="font-medium">{nextService.type}</p>
+            <p className={cn(
+              nextService.due.includes('Overdue') ? "text-destructive" : 
+              nextService.due.includes('days') ? "text-harvest-600" : ""
+            )}>{nextService.due}</p>
           </div>
         </div>
       </div>

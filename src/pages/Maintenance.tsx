@@ -1,17 +1,16 @@
 
 import React, { useState } from 'react';
+import Navbar from '@/components/layout/Navbar';
 import { useMaintenanceSlice } from '@/hooks/maintenance/maintenanceSlice';
 import { maintenanceTasks } from '@/data/maintenanceData';
 import NewTaskDialog from '@/components/maintenance/NewTaskDialog';
 import MaintenanceHeader from '@/components/maintenance/MaintenanceHeader';
 import MaintenanceContent from '@/components/maintenance/MaintenanceContent';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 const Maintenance = () => {
   const [currentView, setCurrentView] = useState('upcoming');
   const [currentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const isMobile = useIsMobile();
   
   const {
     tasks, 
@@ -33,9 +32,11 @@ const Maintenance = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background w-full">
-      <div className={`pt-6 pb-16 ${isMobile ? 'px-2' : 'px-8'} ml-0 md:ml-64 w-full`}>
-        <div className="w-full">
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      
+      <div className="pt-6 pb-16 pl-4 pr-4 sm:pl-8 sm:pr-8 md:pl-12 md:pr-12 ml-0 md:ml-64">
+        <div className="max-w-7xl mx-auto">
           <MaintenanceHeader 
             setIsNewTaskDialogOpen={setIsNewTaskDialogOpen} 
           />
@@ -49,7 +50,6 @@ const Maintenance = () => {
             updateTaskStatus={updateTaskStatus}
             updateTaskPriority={updateTaskPriority}
             deleteTask={deleteTask}
-            isMobile={isMobile}
           />
         </div>
       </div>
