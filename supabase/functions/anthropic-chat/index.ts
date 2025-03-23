@@ -1,129 +1,179 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 
-// This edge function will use an environment variable set in the Supabase dashboard 
-// and not hardcoded in the code for security reasons
+// API configuration
 const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY')
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages'
 
+// CORS headers for all responses
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-serve(async (req) => {
-  // Handle CORS preflight requests
+// Handle CORS preflight requests
+function handleCorsPreflightRequest(req: Request): Response | null {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
+  return null
+}
+
+// Validate API key configuration
+function validateApiKey(): Error | null {
+  if (!ANTHROPIC_API_KEY) {
+    return new Error('ANTHROPIC_API_KEY n\'est pas configuré')
+  }
+  return null
+}
+
+// Enhance system prompt with context data
+function enhanceSystemPrompt(basePrompt: string, contextData: any): string {
+  if (!contextData) {
+    return basePrompt || "Vous êtes un assistant agricole expert qui aide les utilisateurs d'OptiField, une application de gestion d'exploitation agricole. Vous êtes spécialisé dans les pratiques agricoles françaises, les équipements agricoles, la météo et la planification des cultures. Répondez toujours en français."
+  }
+
+  let enhancedPrompt = basePrompt || "Vous êtes un assistant agricole expert qui aide les utilisateurs d'OptiField, une application de gestion d'exploitation agricole. Vous êtes spécialisé dans les pratiques agricoles françaises, les équipements agricoles, la météo et la planification des cultures. Répondez toujours en français."
+  
+  enhancedPrompt += "\n\nInformations contextuelles:"
+  
+  if (contextData.trackingActive !== undefined) {
+    enhancedPrompt += `\n- Suivi d'activité: ${contextData.trackingActive ? 'ACTIF' : 'INACTIF'}`
+  }
+  
+  if (contextData.position) {
+    enhancedPrompt += `\n- Position actuelle: Latitude ${contextData.position.lat.toFixed(6)}, Longitude ${contextData.position.lng.toFixed(6)}`
+  }
+  
+  if (contextData.fields) {
+    enhancedPrompt += `\n- Nombre de champs: ${contextData.fields.length}`
+    if (contextData.fields.length > 0) {
+      enhancedPrompt += "\n- Champs principaux: " + contextData.fields.slice(0, 3).map(f => f.name).join(", ")
+    }
+  }
+  
+  if (contextData.equipment) {
+    enhancedPrompt += `\n- Équipements disponibles: ${contextData.equipment.length}`
+    if (contextData.equipment.length > 0) {
+      enhancedPrompt += "\n- Équipements principaux: " + contextData.equipment.slice(0, 3).map(e => e.name).join(", ")
+    }
+  }
+  
+  if (contextData.weather) {
+    enhancedPrompt += `\n- Météo actuelle: ${contextData.weather.current}`
+    enhancedPrompt += `\n- Prévisions: ${contextData.weather.forecast}`
+  }
+
+  enhancedPrompt += `\n- Date actuelle: ${new Date().toLocaleDateString('fr-FR')}`
+  enhancedPrompt += `\n- Heure actuelle: ${new Date().toLocaleTimeString('fr-FR')}`
+  
+  // Instructions for action commands
+  enhancedPrompt += "\n\nInstructions pour les actions:"
+  enhancedPrompt += "\n- Si l'utilisateur demande de démarrer une activité et que le suivi n'est pas actif, incluez [ACTION:START_TRACKING] dans votre réponse."
+  enhancedPrompt += "\n- Si l'utilisateur demande d'arrêter une activité et que le suivi est actif, incluez [ACTION:STOP_TRACKING] dans votre réponse."
+  enhancedPrompt += "\n- Si l'utilisateur demande des informations météo, incluez [ACTION:WEATHER_INFO] dans votre réponse."
+  enhancedPrompt += "\n- Si l'utilisateur demande des informations sur un champ spécifique, incluez [ACTION:FIELD_INFO:NOM_DU_CHAMP] dans votre réponse."
+
+  return enhancedPrompt
+}
+
+// Prepare the payload for Anthropic API
+function prepareAnthropicPayload(messages: any[], systemPrompt: string, contextData: any): any {
+  return {
+    model: contextData?.model || 'claude-3-haiku-20240307',
+    max_tokens: contextData?.maxTokens || 1000,
+    temperature: contextData?.temperature || 0.7,
+    system: systemPrompt,
+    messages: messages
+  }
+}
+
+// Call Anthropic API and return the response
+async function callAnthropicApi(payload: any): Promise<any> {
+  const response = await fetch(ANTHROPIC_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': ANTHROPIC_API_KEY!,
+      'anthropic-version': '2023-06-01'
+    },
+    body: JSON.stringify(payload)
+  })
+
+  return await response.json()
+}
+
+// Log the request and response data (truncated for brevity)
+function logRequestResponse(payload: any, responseData: any): void {
+  console.log('Envoi à Anthropic API:', JSON.stringify({
+    ...payload,
+    system: payload.system.substring(0, 100) + '...' // Truncate for logging
+  }))
+
+  console.log('Réponse d\'Anthropic reçue:', JSON.stringify({
+    id: responseData.id,
+    model: responseData.model,
+    type: responseData.type,
+    role: responseData.content?.[0]?.type
+  }))
+}
+
+// Create a success response with the data
+function createSuccessResponse(data: any): Response {
+  return new Response(
+    JSON.stringify(data),
+    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  )
+}
+
+// Create an error response
+function createErrorResponse(error: Error): Response {
+  console.error('Erreur lors de l\'appel à Anthropic:', error)
+  
+  return new Response(
+    JSON.stringify({ error: error.message }),
+    { 
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500 
+    }
+  )
+}
+
+// Main request handler
+async function handleRequest(req: Request): Promise<Response> {
+  // Handle CORS preflight
+  const corsResponse = handleCorsPreflightRequest(req)
+  if (corsResponse) return corsResponse
+
+  // Validate API key
+  const apiKeyError = validateApiKey()
+  if (apiKeyError) {
+    return createErrorResponse(apiKeyError)
+  }
 
   try {
-    // Vérifier que la clé API est configurée
-    if (!ANTHROPIC_API_KEY) {
-      return new Response(
-        JSON.stringify({ error: 'ANTHROPIC_API_KEY n\'est pas configuré' }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 500 
-        }
-      )
-    }
-
-    // Récupérer les messages et contexte de la requête
+    // Extract request data
     const { messages, systemPrompt, contextData } = await req.json()
 
-    // Enrichir le prompt système avec les données contextuelles
-    let enhancedSystemPrompt = systemPrompt || "Vous êtes un assistant agricole expert qui aide les utilisateurs d'OptiField, une application de gestion d'exploitation agricole. Vous êtes spécialisé dans les pratiques agricoles françaises, les équipements agricoles, la météo et la planification des cultures. Répondez toujours en français."
-    
-    // Ajouter des données contextuelles si elles sont fournies
-    if (contextData) {
-      enhancedSystemPrompt += "\n\nInformations contextuelles:"
-      
-      if (contextData.trackingActive !== undefined) {
-        enhancedSystemPrompt += `\n- Suivi d'activité: ${contextData.trackingActive ? 'ACTIF' : 'INACTIF'}`
-      }
-      
-      if (contextData.position) {
-        enhancedSystemPrompt += `\n- Position actuelle: Latitude ${contextData.position.lat.toFixed(6)}, Longitude ${contextData.position.lng.toFixed(6)}`
-      }
-      
-      if (contextData.fields) {
-        enhancedSystemPrompt += `\n- Nombre de champs: ${contextData.fields.length}`
-        if (contextData.fields.length > 0) {
-          enhancedSystemPrompt += "\n- Champs principaux: " + contextData.fields.slice(0, 3).map(f => f.name).join(", ")
-        }
-      }
-      
-      if (contextData.equipment) {
-        enhancedSystemPrompt += `\n- Équipements disponibles: ${contextData.equipment.length}`
-        if (contextData.equipment.length > 0) {
-          enhancedSystemPrompt += "\n- Équipements principaux: " + contextData.equipment.slice(0, 3).map(e => e.name).join(", ")
-        }
-      }
-      
-      if (contextData.weather) {
-        enhancedSystemPrompt += `\n- Météo actuelle: ${contextData.weather.current}`
-        enhancedSystemPrompt += `\n- Prévisions: ${contextData.weather.forecast}`
-      }
+    // Enhance system prompt with context
+    const enhancedSystemPrompt = enhanceSystemPrompt(systemPrompt, contextData)
 
-      enhancedSystemPrompt += `\n- Date actuelle: ${new Date().toLocaleDateString('fr-FR')}`
-      enhancedSystemPrompt += `\n- Heure actuelle: ${new Date().toLocaleTimeString('fr-FR')}`
-      
-      // Instructions pour les actions à effectuer
-      enhancedSystemPrompt += "\n\nInstructions pour les actions:"
-      enhancedSystemPrompt += "\n- Si l'utilisateur demande de démarrer une activité et que le suivi n'est pas actif, incluez [ACTION:START_TRACKING] dans votre réponse."
-      enhancedSystemPrompt += "\n- Si l'utilisateur demande d'arrêter une activité et que le suivi est actif, incluez [ACTION:STOP_TRACKING] dans votre réponse."
-      enhancedSystemPrompt += "\n- Si l'utilisateur demande des informations météo, incluez [ACTION:WEATHER_INFO] dans votre réponse."
-      enhancedSystemPrompt += "\n- Si l'utilisateur demande des informations sur un champ spécifique, incluez [ACTION:FIELD_INFO:NOM_DU_CHAMP] dans votre réponse."
-    }
+    // Prepare API payload
+    const payload = prepareAnthropicPayload(messages, enhancedSystemPrompt, contextData)
 
-    // Préparer les paramètres pour l'API Anthropic
-    const payload = {
-      model: contextData?.model || 'claude-3-haiku-20240307',
-      max_tokens: contextData?.maxTokens || 1000,
-      temperature: contextData?.temperature || 0.7,
-      system: enhancedSystemPrompt,
-      messages: messages
-    }
+    // Call Anthropic API
+    const responseData = await callAnthropicApi(payload)
 
-    console.log('Envoi à Anthropic API:', JSON.stringify({
-      ...payload,
-      system: payload.system.substring(0, 100) + '...' // Tronquer pour la journalisation
-    }))
+    // Log request and response
+    logRequestResponse(payload, responseData)
 
-    // Appeler l'API Anthropic
-    const response = await fetch(ANTHROPIC_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify(payload)
-    })
-
-    // Récupérer et retourner la réponse
-    const data = await response.json()
-    console.log('Réponse d\'Anthropic reçue:', JSON.stringify({
-      id: data.id,
-      model: data.model,
-      type: data.type,
-      role: data.content?.[0]?.type
-    }))
-
-    return new Response(
-      JSON.stringify(data),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    // Return success response
+    return createSuccessResponse(responseData)
   } catch (error) {
-    console.error('Erreur lors de l\'appel à Anthropic:', error)
-
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500 
-      }
-    )
+    // Handle errors
+    return createErrorResponse(error)
   }
-})
+}
+
+// Start server with the request handler
+serve(handleRequest)
