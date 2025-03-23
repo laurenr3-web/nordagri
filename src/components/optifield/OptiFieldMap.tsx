@@ -19,20 +19,12 @@ interface OptiFieldMapProps {
 
 const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [mapApiKey, setMapApiKey] = useState<string>('AIzaSyDYNpssW98FUa34qBKCD6JdI7iWYnzFxyI');
-  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const [mapApiKey] = useState<string>('AIzaSyDYNpssW98FUa34qBKCD6JdI7iWYnzFxyI');
   const [selectedMachines, setSelectedMachines] = useState<string[]>([]);
   const mapContainerRef = useRef<HTMLDivElement>(null);
 
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
-  };
-
-  const handleSaveApiKey = () => {
-    if (mapApiKey.trim()) {
-      localStorage.setItem('gmaps_api_key', mapApiKey);
-      setShowApiKeyInput(false);
-    }
   };
 
   const handleMachineSelected = (machineName: string) => {
@@ -46,16 +38,50 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
   };
 
   useEffect(() => {
-    const savedApiKey = localStorage.getItem('gmaps_api_key');
-    if (savedApiKey) {
-      setMapApiKey(savedApiKey);
+    // Store the API key in localStorage for persistence
+    localStorage.setItem('gmaps_api_key', mapApiKey);
+
+    // Initialize Google Maps
+    const initMap = () => {
+      if (window.google && mapContainerRef.current) {
+        // Create map instance
+        const mapOptions = {
+          center: { lat: 48.8566, lng: 2.3522 }, // Paris coordinates as default
+          zoom: 12,
+          mapTypeId: window.google.maps.MapTypeId.ROADMAP,
+          mapTypeControl: true,
+          fullscreenControl: false, // We have our own fullscreen control
+        };
+        
+        const map = new window.google.maps.Map(
+          mapContainerRef.current,
+          mapOptions
+        );
+        
+        // You can add more map initialization code here
+        // such as markers, polygons, etc.
+      }
+    };
+
+    // Load Google Maps API
+    if (!window.google) {
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${mapApiKey}&libraries=places,drawing&callback=initGoogleMaps`;
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+      
+      // Define the callback function
+      window.initGoogleMaps = initMap;
     } else {
-      // Save the default API key to localStorage
-      localStorage.setItem('gmaps_api_key', mapApiKey);
+      // If Google Maps API is already loaded
+      initMap();
     }
 
-    // This would be where we'd initialize the Google Maps API
-    // if we had a valid API key
+    return () => {
+      // Cleanup if needed
+      delete window.initGoogleMaps;
+    };
   }, [mapApiKey]);
 
   return (
@@ -109,36 +135,19 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
       )}
 
       <div ref={mapContainerRef} className="h-full w-full">
-        {showApiKeyInput ? (
-          <div className="h-full flex flex-col items-center justify-center p-8">
-            <h3 className="text-lg font-medium mb-4">Clé API Google Maps requise</h3>
-            <p className="text-muted-foreground mb-6 text-center max-w-md">
-              Pour utiliser la fonctionnalité de carte, veuillez entrer votre clé API Google Maps.
-              Cette clé sera sauvegardée localement.
-            </p>
-            <div className="w-full max-w-md space-y-4">
-              <input
-                type="text"
-                value={mapApiKey}
-                onChange={(e) => setMapApiKey(e.target.value)}
-                placeholder="Entrez votre clé API Google Maps"
-                className="w-full px-4 py-2 border rounded-md"
-              />
-              <Button 
-                className="w-full" 
-                onClick={handleSaveApiKey}
-                disabled={!mapApiKey.trim()}
-              >
-                Sauvegarder et afficher la carte
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <MapPlaceholder trackingActive={trackingActive} />
-        )}
+        {!window.google && <MapPlaceholder trackingActive={trackingActive} />}
       </div>
     </Card>
   );
 };
 
+// Add type definition for window object to include Google Maps
+declare global {
+  interface Window {
+    google: any;
+    initGoogleMaps: () => void;
+  }
+}
+
 export default OptiFieldMap;
+
