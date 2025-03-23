@@ -33,9 +33,9 @@ const Maintenance = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="pt-6 pb-16 px-4 sm:px-6 md:px-8 lg:px-10 ml-0 md:ml-64">
-        <div className="w-full">
+    <div className="min-h-screen bg-background w-full">
+      <div className="pt-6 pb-16 px-0 md:px-4 lg:px-6 ml-0 md:ml-64 w-full">
+        <div className="w-full px-4">
           <MaintenanceHeader 
             setIsNewTaskDialogOpen={setIsNewTaskDialogOpen} 
           />

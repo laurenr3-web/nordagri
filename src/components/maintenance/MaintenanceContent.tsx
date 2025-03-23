@@ -36,14 +36,14 @@ const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
   const upcomingTasks = getUpcomingTasks(tasks);
 
   return (
-    <>
+    <div className="w-full">
       <MaintenanceNavigation
         currentView={currentView}
         setCurrentView={setCurrentView}
         isMobile={isMobile}
       />
     
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full">
         <div className="lg:col-span-2">
           <TaskTabs 
             tasks={tasks}
@@ -62,7 +62,7 @@ const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
           upcomingTasks={upcomingTasks}
         />
       </div>
-    </>
+    </div>
   );
 };
 

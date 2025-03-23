@@ -17,7 +17,7 @@ const MaintenanceNavigation: React.FC<MaintenanceNavigationProps> = ({
   return (
     <div className="w-full mb-8">
       <Tabs value={currentView} onValueChange={setCurrentView} className="w-full">
-        <TabsList className={`flex w-full ${isMobile ? 'flex-wrap' : ''} border-b rounded-none p-0 h-auto bg-transparent`}>
+        <TabsList className={`w-full flex justify-between border-b rounded-none p-0 h-auto bg-transparent ${isMobile ? 'flex-wrap gap-1' : ''}`}>
           <TabsTrigger 
             value="upcoming" 
             className="flex-1 py-3 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
