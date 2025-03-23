@@ -1,10 +1,8 @@
-
 import React, { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MaintenanceCalendar } from '@/components/dashboard/MaintenanceCalendar';
 import { 
@@ -17,6 +15,9 @@ import {
   XCircle,
   User
 } from 'lucide-react';
+
+import NewTaskDialog from '@/components/maintenance/NewTaskDialog';
+import { useMaintenanceSlice, MaintenanceTask } from '@/hooks/maintenance/maintenanceSlice';
 
 // Sample maintenance tasks
 const maintenanceTasks = [
@@ -136,7 +137,7 @@ const maintenanceEvents = maintenanceTasks.map(task => ({
   duration: task.estimatedDuration,
   priority: task.priority === 'critical' ? 'high' : 
            task.priority === 'low' ? 'low' : 
-           'medium' as 'high' | 'medium' | 'low', // Explicitly cast to the allowed literal types
+           'medium' as 'high' | 'medium' | 'low',
   equipment: task.equipment
 }));
 
@@ -144,20 +145,28 @@ const Maintenance = () => {
   const [currentView, setCurrentView] = useState('upcoming');
   const [currentMonth] = useState(new Date());
   
+  const {
+    tasks, 
+    setTasks,
+    isNewTaskDialogOpen,
+    setIsNewTaskDialogOpen,
+    handleAddTask
+  } = useMaintenanceSlice(maintenanceTasks);
+  
   // Helper functions for task filtering
   const getUpcomingTasks = () => {
-    return maintenanceTasks.filter(task => 
+    return tasks.filter(task => 
       task.status === 'scheduled' || task.status === 'pending-parts'
     ).sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
   };
   
   const getActiveTasks = () => {
-    return maintenanceTasks.filter(task => task.status === 'in-progress')
+    return tasks.filter(task => task.status === 'in-progress')
       .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
   };
   
   const getCompletedTasks = () => {
-    return maintenanceTasks.filter(task => task.status === 'completed')
+    return tasks.filter(task => task.status === 'completed')
       .sort((a, b) => (b.completedDate?.getTime() || 0) - (a.completedDate?.getTime() || 0));
   };
   
@@ -243,7 +252,7 @@ const Maintenance = () => {
   };
   
   // Render task card
-  const renderTaskCard = (task: typeof maintenanceTasks[0]) => (
+  const renderTaskCard = (task: MaintenanceTask) => (
     <BlurContainer 
       key={task.id}
       className="mb-4 animate-fade-in overflow-hidden"
@@ -302,6 +311,18 @@ const Maintenance = () => {
     </BlurContainer>
   );
 
+  // Update the task events when tasks change
+  const taskEvents = tasks.map(task => ({
+    id: task.id.toString(),
+    title: task.title,
+    date: task.dueDate,
+    duration: task.estimatedDuration,
+    priority: task.priority === 'critical' ? 'high' : 
+             task.priority === 'low' ? 'low' : 
+             'medium' as 'high' | 'medium' | 'low',
+    equipment: task.equipment
+  }));
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -319,7 +340,7 @@ const Maintenance = () => {
               </div>
               
               <div className="mt-4 sm:mt-0">
-                <Button className="gap-2">
+                <Button className="gap-2" onClick={() => setIsNewTaskDialogOpen(true)}>
                   <Plus size={16} />
                   <span>New Task</span>
                 </Button>
@@ -343,7 +364,9 @@ const Maintenance = () => {
                   ) : (
                     <BlurContainer className="p-8 text-center">
                       <p className="text-muted-foreground">No upcoming maintenance tasks scheduled.</p>
-                      <Button variant="link" className="mt-2">Schedule new task</Button>
+                      <Button variant="link" className="mt-2" onClick={() => setIsNewTaskDialogOpen(true)}>
+                        Schedule new task
+                      </Button>
                     </BlurContainer>
                   )}
                 </TabsContent>
@@ -370,7 +393,7 @@ const Maintenance = () => {
                 
                 <TabsContent value="calendar" className="mt-6">
                   <MaintenanceCalendar 
-                    events={maintenanceEvents}
+                    events={taskEvents}
                     month={currentMonth}
                     className="animate-scale-in"
                   />
@@ -459,6 +482,12 @@ const Maintenance = () => {
           </div>
         </div>
       </div>
+      
+      <NewTaskDialog 
+        open={isNewTaskDialogOpen}
+        onOpenChange={setIsNewTaskDialogOpen}
+        onSubmit={handleAddTask}
+      />
     </div>
   );
 };
