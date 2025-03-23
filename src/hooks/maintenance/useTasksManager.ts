@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { MaintenanceTask, MaintenanceFormValues } from '@/hooks/maintenance/maintenanceSlice';
+import { MaintenanceTask, MaintenanceFormValues, MaintenancePriority, MaintenanceStatus } from '@/hooks/maintenance/maintenanceSlice';
 import { useToast } from '@/hooks/use-toast';
 
 export const useTasksManager = (initialTasks: MaintenanceTask[]) => {
@@ -24,14 +24,30 @@ export const useTasksManager = (initialTasks: MaintenanceTask[]) => {
     return newTask;
   };
   
-  const updateTaskStatus = (taskId: number, status: MaintenanceTask['status']) => {
+  const updateTaskStatus = (taskId: number, status: MaintenanceStatus) => {
     setTasks(tasks.map(task => 
-      task.id === taskId ? { ...task, status } : task
+      task.id === taskId ? { 
+        ...task, 
+        status,
+        // If status is completed, add completion date
+        ...(status === 'completed' ? { completedDate: new Date() } : {})
+      } : task
     ));
     
     toast({
       title: "Task updated",
       description: `Task status has been updated to ${status}`,
+    });
+  };
+  
+  const updateTaskPriority = (taskId: number, priority: MaintenancePriority) => {
+    setTasks(tasks.map(task => 
+      task.id === taskId ? { ...task, priority } : task
+    ));
+    
+    toast({
+      title: "Task updated",
+      description: `Task priority has been updated to ${priority}`,
     });
   };
   
@@ -49,6 +65,7 @@ export const useTasksManager = (initialTasks: MaintenanceTask[]) => {
     setTasks,
     addTask,
     updateTaskStatus,
+    updateTaskPriority,
     deleteTask
   };
 };

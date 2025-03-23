@@ -1,6 +1,10 @@
 
 import React from 'react';
-import { MaintenanceTask } from '@/hooks/maintenance/maintenanceSlice';
+import { 
+  MaintenanceTask, 
+  MaintenancePriority, 
+  MaintenanceStatus 
+} from '@/hooks/maintenance/maintenanceSlice';
 import TaskTabs from './TaskTabs';
 import MaintenanceStats from './MaintenanceStats';
 import { getUpcomingTasks } from './MaintenanceUtils';
@@ -11,6 +15,9 @@ interface MaintenanceContentProps {
   setCurrentView: (view: string) => void;
   currentMonth: Date;
   setIsNewTaskDialogOpen: (open: boolean) => void;
+  updateTaskStatus: (taskId: number, status: MaintenanceStatus) => void;
+  updateTaskPriority: (taskId: number, priority: MaintenancePriority) => void;
+  deleteTask: (taskId: number) => void;
 }
 
 const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
@@ -18,7 +25,10 @@ const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
   currentView,
   setCurrentView,
   currentMonth,
-  setIsNewTaskDialogOpen
+  setIsNewTaskDialogOpen,
+  updateTaskStatus,
+  updateTaskPriority,
+  deleteTask
 }) => {
   const upcomingTasks = getUpcomingTasks(tasks);
 
@@ -31,6 +41,9 @@ const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
           setCurrentView={setCurrentView}
           currentMonth={currentMonth}
           setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
+          updateTaskStatus={updateTaskStatus}
+          updateTaskPriority={updateTaskPriority}
+          deleteTask={deleteTask}
         />
       </div>
       

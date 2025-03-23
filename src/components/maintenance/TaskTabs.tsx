@@ -3,11 +3,16 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { Button } from '@/components/ui/button';
-import { MaintenanceTask } from '@/hooks/maintenance/maintenanceSlice';
+import { 
+  MaintenanceTask, 
+  MaintenancePriority, 
+  MaintenanceStatus 
+} from '@/hooks/maintenance/maintenanceSlice';
 import { MaintenanceCalendar } from '@/components/dashboard/MaintenanceCalendar';
 import TaskCard from './TaskCard';
 import TaskDetailsDialog from './dialogs/TaskDetailsDialog';
 import { getUpcomingTasks, getActiveTasks, getCompletedTasks } from './MaintenanceUtils';
+import { useTasksManager } from '@/hooks/maintenance/useTasksManager';
 
 interface TaskTabsProps {
   tasks: MaintenanceTask[];
@@ -15,6 +20,9 @@ interface TaskTabsProps {
   setCurrentView: (view: string) => void;
   currentMonth: Date;
   setIsNewTaskDialogOpen: (open: boolean) => void;
+  updateTaskStatus: (taskId: number, status: MaintenanceStatus) => void;
+  updateTaskPriority: (taskId: number, priority: MaintenancePriority) => void;
+  deleteTask: (taskId: number) => void;
 }
 
 const TaskTabs: React.FC<TaskTabsProps> = ({ 
@@ -22,7 +30,10 @@ const TaskTabs: React.FC<TaskTabsProps> = ({
   currentView, 
   setCurrentView,
   currentMonth,
-  setIsNewTaskDialogOpen
+  setIsNewTaskDialogOpen,
+  updateTaskStatus,
+  updateTaskPriority,
+  deleteTask
 }) => {
   const [selectedTask, setSelectedTask] = useState<MaintenanceTask | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
@@ -122,6 +133,9 @@ const TaskTabs: React.FC<TaskTabsProps> = ({
         task={selectedTask}
         open={isDetailsDialogOpen}
         onOpenChange={setIsDetailsDialogOpen}
+        onStatusChange={updateTaskStatus}
+        onPriorityChange={updateTaskPriority}
+        onDeleteTask={deleteTask}
       />
     </>
   );

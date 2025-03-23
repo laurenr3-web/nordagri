@@ -16,7 +16,10 @@ const Maintenance = () => {
     setTasks,
     isNewTaskDialogOpen,
     setIsNewTaskDialogOpen,
-    handleAddTask
+    handleAddTask,
+    updateTaskStatus,
+    updateTaskPriority,
+    deleteTask
   } = useMaintenanceSlice(maintenanceTasks);
 
   return (
@@ -35,6 +38,9 @@ const Maintenance = () => {
             setCurrentView={setCurrentView}
             currentMonth={currentMonth}
             setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
+            updateTaskStatus={updateTaskStatus}
+            updateTaskPriority={updateTaskPriority}
+            deleteTask={deleteTask}
           />
         </div>
       </div>

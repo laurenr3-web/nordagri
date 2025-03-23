@@ -36,7 +36,14 @@ export interface MaintenanceFormValues {
 
 export const useMaintenanceSlice = (initialTasks: MaintenanceTask[]) => {
   const [isNewTaskDialogOpen, setIsNewTaskDialogOpen] = useState(false);
-  const { tasks, setTasks, addTask } = useTasksManager(initialTasks);
+  const { 
+    tasks, 
+    setTasks, 
+    addTask, 
+    updateTaskStatus, 
+    updateTaskPriority, 
+    deleteTask 
+  } = useTasksManager(initialTasks);
 
   const handleAddTask = (formData: MaintenanceFormValues) => {
     const newTask = addTask(formData);
@@ -49,5 +56,8 @@ export const useMaintenanceSlice = (initialTasks: MaintenanceTask[]) => {
     isNewTaskDialogOpen,
     setIsNewTaskDialogOpen,
     handleAddTask,
+    updateTaskStatus,
+    updateTaskPriority,
+    deleteTask
   };
 };
