@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { DashboardSection } from '@/components/dashboard/DashboardSection';
@@ -16,6 +17,7 @@ import {
   Clock,
   CalendarClock
 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Sample data
 const statsData = [
@@ -176,6 +178,7 @@ const upcomingTasks = [
 const Index = () => {
   // Current month for calendar
   const [currentMonth] = useState(new Date());
+  const [currentView, setCurrentView] = useState<'main' | 'calendar' | 'alerts'>('main');
 
   return (
     <div className="min-h-screen bg-background">
@@ -193,148 +196,207 @@ const Index = () => {
                 </p>
               </div>
               
-              <div className="mt-4 sm:mt-0 flex items-center gap-2">
-                <Button variant="outline" className="gap-2">
-                  <CalendarClock size={16} />
-                  <span>June 2023</span>
-                </Button>
-                <Button className="gap-2">
-                  <AlertTriangle size={16} />
-                  <span>Alerts</span>
-                </Button>
-              </div>
+              <Tabs 
+                value={currentView} 
+                onValueChange={(value) => setCurrentView(value as 'main' | 'calendar' | 'alerts')}
+                className="mt-4 sm:mt-0"
+              >
+                <TabsList className="grid w-full grid-cols-2 md:w-auto">
+                  <TabsTrigger value="calendar" className="gap-2">
+                    <CalendarClock size={16} />
+                    <span>June 2023</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="alerts" className="gap-2">
+                    <AlertTriangle size={16} />
+                    <span>Alerts</span>
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
           </header>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {statsData.map((stat, index) => (
-              <StatsCard 
-                key={index}
-                title={stat.title}
-                value={stat.value}
-                icon={stat.icon}
-                description={stat.description}
-                trend={stat.trend}
-                className="animate-fade-in"
-                style={{ animationDelay: `${index * 0.1}s` } as React.CSSProperties}
-              />
-            ))}
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-8">
-              <DashboardSection 
-                title="Equipment Status" 
-                subtitle="Monitor your fleet performance"
-                action={
-                  <Button variant="outline" size="sm">
-                    View All
-                  </Button>
-                }
-              >
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {equipmentData.map((equipment, index) => (
-                    <EquipmentCard 
-                      key={equipment.id}
-                      name={equipment.name}
-                      type={equipment.type}
-                      image={equipment.image}
-                      status={equipment.status}
-                      usage={equipment.usage}
-                      nextService={equipment.nextService}
-                      className=""
-                      style={{ animationDelay: `${index * 0.15}s` } as React.CSSProperties}
+          <Tabs value={currentView} className="space-y-8">
+            <TabsContent value="main" className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                {statsData.map((stat, index) => (
+                  <StatsCard 
+                    key={index}
+                    title={stat.title}
+                    value={stat.value}
+                    icon={stat.icon}
+                    description={stat.description}
+                    trend={stat.trend}
+                    className="animate-fade-in"
+                    style={{ animationDelay: `${index * 0.1}s` } as React.CSSProperties}
+                  />
+                ))}
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 space-y-8">
+                  <DashboardSection 
+                    title="Equipment Status" 
+                    subtitle="Monitor your fleet performance"
+                    action={
+                      <Button variant="outline" size="sm">
+                        View All
+                      </Button>
+                    }
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {equipmentData.map((equipment, index) => (
+                        <EquipmentCard 
+                          key={equipment.id}
+                          name={equipment.name}
+                          type={equipment.type}
+                          image={equipment.image}
+                          status={equipment.status}
+                          usage={equipment.usage}
+                          nextService={equipment.nextService}
+                          className=""
+                          style={{ animationDelay: `${index * 0.15}s` } as React.CSSProperties}
+                        />
+                      ))}
+                    </div>
+                  </DashboardSection>
+                  
+                  <DashboardSection 
+                    title="Maintenance Schedule" 
+                    subtitle="Plan ahead for equipment servicing"
+                    action={
+                      <Button variant="outline" size="sm">
+                        Full Calendar
+                      </Button>
+                    }
+                  >
+                    <MaintenanceCalendar 
+                      events={maintenanceEvents}
+                      month={currentMonth}
+                      className="animate-scale-in"
                     />
-                  ))}
+                  </DashboardSection>
+                </div>
+                
+                <div className="space-y-8">
+                  <DashboardSection 
+                    title="System Alerts" 
+                    subtitle="Recent notifications"
+                    action={
+                      <Button variant="outline" size="sm">
+                        Clear All
+                      </Button>
+                    }
+                  >
+                    <BlurContainer className="divide-y animate-fade-in">
+                      {alertItems.map((alert) => (
+                        <div key={alert.id} className="p-3 hover:bg-secondary/40 transition-colors">
+                          <div className="flex items-start space-x-3">
+                            <div className={cn(
+                              "mt-0.5 h-2 w-2 rounded-full flex-shrink-0",
+                              alert.severity === 'high' ? "bg-destructive" : 
+                              alert.severity === 'medium' ? "bg-harvest-500" : 
+                              "bg-agri-500"
+                            )} />
+                            <div>
+                              <p className="text-sm font-medium">{alert.message}</p>
+                              <div className="flex items-center mt-1 text-xs text-muted-foreground">
+                                <span>{alert.equipment} • {alert.time}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </BlurContainer>
+                  </DashboardSection>
+                  
+                  <DashboardSection 
+                    title="Upcoming Tasks" 
+                    subtitle="Scheduled maintenance"
+                    action={
+                      <Button variant="outline" size="sm">
+                        Add Task
+                      </Button>
+                    }
+                  >
+                    <BlurContainer className="divide-y animate-fade-in delay-100">
+                      {upcomingTasks.map((task) => (
+                        <div key={task.id} className="p-4 hover:bg-secondary/40 transition-colors">
+                          <div className="mb-2 flex items-center justify-between">
+                            <h4 className="font-medium text-sm">{task.title}</h4>
+                            <span className={cn(
+                              "text-xs px-2 py-0.5 rounded-full",
+                              task.priority === 'high' ? "bg-red-100 text-red-800" :
+                              task.priority === 'medium' ? "bg-harvest-100 text-harvest-800" :
+                              "bg-agri-100 text-agri-800"
+                            )}>
+                              {task.priority}
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-2">{task.equipment}</p>
+                          <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center">
+                              <Clock size={14} className="mr-1" />
+                              <span>Due: {task.due}</span>
+                            </div>
+                            <span className="text-muted-foreground">{task.assignee}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </BlurContainer>
+                  </DashboardSection>
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="calendar" className="space-y-8">
+              <DashboardSection 
+                title="Maintenance Calendar" 
+                subtitle="Detailed view of all scheduled maintenance"
+              >
+                <div className="p-4">
+                  <MaintenanceCalendar 
+                    events={maintenanceEvents}
+                    month={currentMonth}
+                    className="animate-scale-in w-full"
+                  />
                 </div>
               </DashboardSection>
-              
-              <DashboardSection 
-                title="Maintenance Schedule" 
-                subtitle="Plan ahead for equipment servicing"
-                action={
-                  <Button variant="outline" size="sm">
-                    Full Calendar
-                  </Button>
-                }
-              >
-                <MaintenanceCalendar 
-                  events={maintenanceEvents}
-                  month={currentMonth}
-                  className="animate-scale-in"
-                />
-              </DashboardSection>
-            </div>
+            </TabsContent>
             
-            <div className="space-y-8">
+            <TabsContent value="alerts" className="space-y-8">
               <DashboardSection 
-                title="System Alerts" 
-                subtitle="Recent notifications"
+                title="All System Alerts" 
+                subtitle="Complete list of all notifications and warnings"
                 action={
                   <Button variant="outline" size="sm">
-                    Clear All
+                    Mark All as Read
                   </Button>
                 }
               >
                 <BlurContainer className="divide-y animate-fade-in">
-                  {alertItems.map((alert) => (
-                    <div key={alert.id} className="p-3 hover:bg-secondary/40 transition-colors">
+                  {alertItems.concat(alertItems).map((alert, index) => (
+                    <div key={`${alert.id}-${index}`} className="p-4 hover:bg-secondary/40 transition-colors">
                       <div className="flex items-start space-x-3">
                         <div className={cn(
-                          "mt-0.5 h-2 w-2 rounded-full flex-shrink-0",
+                          "mt-0.5 h-3 w-3 rounded-full flex-shrink-0",
                           alert.severity === 'high' ? "bg-destructive" : 
                           alert.severity === 'medium' ? "bg-harvest-500" : 
                           "bg-agri-500"
                         )} />
-                        <div>
-                          <p className="text-sm font-medium">{alert.message}</p>
-                          <div className="flex items-center mt-1 text-xs text-muted-foreground">
-                            <span>{alert.equipment} • {alert.time}</span>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium">{alert.message}</p>
+                            <span className="text-xs text-muted-foreground">{alert.time}</span>
                           </div>
+                          <p className="text-xs text-muted-foreground mt-1">{alert.equipment}</p>
                         </div>
                       </div>
                     </div>
                   ))}
                 </BlurContainer>
               </DashboardSection>
-              
-              <DashboardSection 
-                title="Upcoming Tasks" 
-                subtitle="Scheduled maintenance"
-                action={
-                  <Button variant="outline" size="sm">
-                    Add Task
-                  </Button>
-                }
-              >
-                <BlurContainer className="divide-y animate-fade-in delay-100">
-                  {upcomingTasks.map((task) => (
-                    <div key={task.id} className="p-4 hover:bg-secondary/40 transition-colors">
-                      <div className="mb-2 flex items-center justify-between">
-                        <h4 className="font-medium text-sm">{task.title}</h4>
-                        <span className={cn(
-                          "text-xs px-2 py-0.5 rounded-full",
-                          task.priority === 'high' ? "bg-red-100 text-red-800" :
-                          task.priority === 'medium' ? "bg-harvest-100 text-harvest-800" :
-                          "bg-agri-100 text-agri-800"
-                        )}>
-                          {task.priority}
-                        </span>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-2">{task.equipment}</p>
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center">
-                          <Clock size={14} className="mr-1" />
-                          <span>Due: {task.due}</span>
-                        </div>
-                        <span className="text-muted-foreground">{task.assignee}</span>
-                      </div>
-                    </div>
-                  ))}
-                </BlurContainer>
-              </DashboardSection>
-            </div>
-          </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>
