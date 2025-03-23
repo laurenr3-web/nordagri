@@ -2,6 +2,14 @@
 import React, { useEffect, useRef } from 'react';
 import { Activity } from '@/hooks/timetracking/useTimeTracking';
 
+// Declare the Google Maps types we need to use
+declare global {
+  interface Window {
+    google: typeof google;
+    initMap: () => google.maps.Map | undefined;
+  }
+}
+
 interface GoogleMapWrapperProps {
   children?: React.ReactNode;
   activities: Activity[];
@@ -16,17 +24,17 @@ const GoogleMapWrapper: React.FC<GoogleMapWrapperProps> = ({ children, activitie
     window.initMap = () => {
       if (!mapRef.current) return;
       
-      const mapOptions: google.maps.MapOptions = {
+      const mapOptions = {
         center: { lat: 48.8566, lng: 2.3522 }, // Default to Paris
         zoom: 12,
       };
       
-      const map = new google.maps.Map(mapRef.current, mapOptions);
+      const map = new window.google.maps.Map(mapRef.current, mapOptions);
       
       // Add markers for each activity
       activities.forEach((activity) => {
         if (activity.location) {
-          new google.maps.Marker({
+          new window.google.maps.Marker({
             position: { lat: activity.location.lat, lng: activity.location.lng },
             map,
             title: activity.description || activity.taskName,

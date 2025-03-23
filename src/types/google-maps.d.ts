@@ -1,11 +1,12 @@
 
 declare global {
   interface Window {
+    google: typeof google;
     initMap: () => google.maps.Map | undefined;
   }
 }
 
-namespace google.maps {
+declare namespace google.maps {
   class Map {
     constructor(mapDiv: HTMLElement, opts?: MapOptions);
     setCenter(latLng: LatLng | LatLngLiteral): void;
