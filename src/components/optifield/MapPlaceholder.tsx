@@ -4,13 +4,20 @@ import { Tractor, Navigation, CheckCircle2 } from 'lucide-react';
 
 interface MapPlaceholderProps {
   trackingActive: boolean;
+  onMachineSelected?: (machineName: string) => void;
 }
 
-const MapPlaceholder: React.FC<MapPlaceholderProps> = ({ trackingActive }) => {
+const MapPlaceholder: React.FC<MapPlaceholderProps> = ({ trackingActive, onMachineSelected }) => {
   const [selectedMachine, setSelectedMachine] = useState<string | null>(null);
   
   const handleMachineClick = (machineName: string) => {
-    setSelectedMachine(machineName === selectedMachine ? null : machineName);
+    const newSelection = machineName === selectedMachine ? null : machineName;
+    setSelectedMachine(newSelection);
+    
+    // Call the parent component's handler if provided
+    if (onMachineSelected && newSelection) {
+      onMachineSelected(machineName);
+    }
   };
   
   return (

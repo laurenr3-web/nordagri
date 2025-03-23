@@ -80,7 +80,10 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
       />
 
       {/* Selected Machines */}
-      <SelectedMachines selectedMachines={selectedMachines} />
+      <SelectedMachines 
+        selectedMachines={selectedMachines} 
+        onMachineSelected={handleMachineSelected}
+      />
 
       {/* Map Container */}
       <div ref={mapRef} className="h-full w-full bg-sidebar-accent/30 relative">
@@ -90,7 +93,12 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
           </div>
         )}
         
-        {!isLoaded && !isLoading && <MapPlaceholder trackingActive={trackingActive} />}
+        {!isLoaded && !isLoading && (
+          <MapPlaceholder 
+            trackingActive={trackingActive} 
+            onMachineSelected={handleMachineSelected}
+          />
+        )}
         
         {(error || isError) && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/95 z-10 p-4">
@@ -104,7 +112,7 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
             
             <Button 
               onClick={handleReload}
-              className="px-4 py-2 bg-primary gap-2 flex items-center"
+              className="px-4 py-2 bg-primary gap-2 flex items-center text-primary-foreground"
             >
               <RefreshCw className="h-4 w-4" />
               Recharger la page
