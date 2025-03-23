@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { BlurContainer } from '@/components/ui/blur-container';
@@ -337,9 +336,9 @@ const Parts = () => {
           </BlurContainer>
           
           <Tabs defaultValue="all" className="mb-6" value={selectedCategory} onValueChange={setSelectedCategory}>
-            <TabsList className="flex flex-wrap">
+            <TabsList className="flex flex-wrap h-auto p-1">
               {categories.map(category => (
-                <TabsTrigger key={category} value={category}>
+                <TabsTrigger key={category} value={category} className="mb-1 mr-1">
                   {category === 'all' ? 'All Parts' : 
                     category.charAt(0).toUpperCase() + category.slice(1)}
                 </TabsTrigger>
