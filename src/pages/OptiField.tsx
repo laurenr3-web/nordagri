@@ -12,7 +12,7 @@ const OptiField = () => {
   const [trackingActive, setTrackingActive] = useState<boolean>(false);
   
   return (
-    <div className="pt-6 pb-16 pl-4 pr-4 sm:pl-8 sm:pr-8 md:pl-12 md:pr-12 ml-0 md:ml-64">
+    <div className="container pt-6 pb-16 mx-auto">
       <div className="max-w-7xl mx-auto">
         <OptiFieldHeader 
           trackingActive={trackingActive}
