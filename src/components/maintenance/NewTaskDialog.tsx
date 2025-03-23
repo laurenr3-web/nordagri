@@ -241,18 +241,20 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({ open, onOpenChange, onSub
                 <div className="grid gap-2">
                   <Label htmlFor="assignedTo">Assign To</Label>
                   <div className="flex items-center gap-2">
-                    <Select value={assignedTo} onValueChange={setAssignedTo} required className="flex-1">
-                      <SelectTrigger id="assignedTo">
-                        <SelectValue placeholder="Select staff member" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {staffOptions.map((staff) => (
-                          <SelectItem key={staff} value={staff}>
-                            {staff}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex-1">
+                      <Select value={assignedTo} onValueChange={setAssignedTo} required>
+                        <SelectTrigger id="assignedTo">
+                          <SelectValue placeholder="Select staff member" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {staffOptions.map((staff) => (
+                            <SelectItem key={staff} value={staff}>
+                              {staff}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <Button 
                       type="button" 
                       size="icon" 
