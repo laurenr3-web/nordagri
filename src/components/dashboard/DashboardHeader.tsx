@@ -21,10 +21,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ currentView, setCurre
         </div>
         
         <Tabs value={currentView} onValueChange={value => setCurrentView(value as 'main' | 'calendar' | 'alerts')} className="mt-4 sm:mt-0">
-          <TabsList className="grid w-full grid-cols-3 md:w-auto mx-auto">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="main" className="gap-2">
               <LayoutDashboard size={16} />
-              <span className="px-[23px]">Dashboard</span>
+              <span>Dashboard</span>
             </TabsTrigger>
             <TabsTrigger value="calendar" className="gap-2">
               <CalendarClock size={16} />
