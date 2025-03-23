@@ -15,6 +15,9 @@ import {
 } from 'lucide-react';
 import { AddPartForm, PartFormValues } from '@/components/parts/AddPartForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // Sample parts data
 const partsData = [
@@ -129,9 +132,32 @@ const Parts = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [currentView, setCurrentView] = useState('grid');
   const [isAddPartDialogOpen, setIsAddPartDialogOpen] = useState(false);
+  const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
+  const [isSortDialogOpen, setIsSortDialogOpen] = useState(false);
   const [parts, setParts] = useState(partsData);
   
-  // Filter parts based on search term and category
+  // Filter states
+  const [filterManufacturers, setFilterManufacturers] = useState<string[]>([]);
+  const [filterMinPrice, setFilterMinPrice] = useState<string>('');
+  const [filterMaxPrice, setFilterMaxPrice] = useState<string>('');
+  const [filterInStock, setFilterInStock] = useState<boolean>(false);
+  
+  // Sort state
+  const [sortBy, setSortBy] = useState<string>('name-asc');
+  
+  // Get unique manufacturers for filter
+  const manufacturers = [...new Set(parts.map(part => part.manufacturer))];
+  
+  // Handle manufacturer filter toggle
+  const toggleManufacturerFilter = (manufacturer: string) => {
+    if (filterManufacturers.includes(manufacturer)) {
+      setFilterManufacturers(filterManufacturers.filter(m => m !== manufacturer));
+    } else {
+      setFilterManufacturers([...filterManufacturers, manufacturer]);
+    }
+  };
+  
+  // Apply filters
   const filteredParts = parts.filter(part => {
     const matchesSearch = 
       part.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -140,7 +166,33 @@ const Parts = () => {
     
     const matchesCategory = selectedCategory === 'all' || part.category === selectedCategory;
     
-    return matchesSearch && matchesCategory;
+    const matchesManufacturer = filterManufacturers.length === 0 || 
+      filterManufacturers.includes(part.manufacturer);
+    
+    const matchesPrice = 
+      (filterMinPrice === '' || part.price >= parseFloat(filterMinPrice)) &&
+      (filterMaxPrice === '' || part.price <= parseFloat(filterMaxPrice));
+    
+    const matchesStock = !filterInStock || part.stock > 0;
+    
+    return matchesSearch && matchesCategory && matchesManufacturer && matchesPrice && matchesStock;
+  }).sort((a, b) => {
+    switch (sortBy) {
+      case 'name-asc':
+        return a.name.localeCompare(b.name);
+      case 'name-desc':
+        return b.name.localeCompare(a.name);
+      case 'price-asc':
+        return a.price - b.price;
+      case 'price-desc':
+        return b.price - a.price;
+      case 'stock-asc':
+        return a.stock - b.stock;
+      case 'stock-desc':
+        return b.stock - a.stock;
+      default:
+        return 0;
+    }
   });
 
   const handleAddPart = (formData: PartFormValues) => {
@@ -160,6 +212,18 @@ const Parts = () => {
     
     setParts([...parts, newPart]);
     setIsAddPartDialogOpen(false);
+  };
+  
+  const applyFilters = () => {
+    setIsFilterDialogOpen(false);
+  };
+  
+  const resetFilters = () => {
+    setFilterManufacturers([]);
+    setFilterMinPrice('');
+    setFilterMaxPrice('');
+    setFilterInStock(false);
+    setIsFilterDialogOpen(false);
   };
 
   return (
@@ -200,11 +264,30 @@ const Parts = () => {
               </div>
               
               <div className="flex items-center gap-2">
-                <Button variant="outline" className="gap-2" size="sm">
+                <Button 
+                  variant="outline" 
+                  className="gap-2" 
+                  size="sm"
+                  onClick={() => setIsFilterDialogOpen(true)}
+                >
                   <Filter size={16} />
                   <span>Filter</span>
+                  {(filterManufacturers.length > 0 || filterMinPrice !== '' || 
+                    filterMaxPrice !== '' || filterInStock) && (
+                    <Badge variant="secondary" className="ml-1 h-5 px-1">
+                      {filterManufacturers.length + 
+                        (filterMinPrice !== '' ? 1 : 0) + 
+                        (filterMaxPrice !== '' ? 1 : 0) + 
+                        (filterInStock ? 1 : 0)}
+                    </Badge>
+                  )}
                 </Button>
-                <Button variant="outline" className="gap-2" size="sm">
+                <Button 
+                  variant="outline" 
+                  className="gap-2" 
+                  size="sm"
+                  onClick={() => setIsSortDialogOpen(true)}
+                >
                   <SlidersHorizontal size={16} />
                   <span>Sort</span>
                 </Button>
@@ -387,6 +470,108 @@ const Parts = () => {
                 onSuccess={handleAddPart}
                 onCancel={() => setIsAddPartDialogOpen(false)}
               />
+            </DialogContent>
+          </Dialog>
+          
+          {/* Filter Dialog */}
+          <Dialog
+            open={isFilterDialogOpen}
+            onOpenChange={setIsFilterDialogOpen}
+          >
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Filter Parts</DialogTitle>
+                <DialogDescription>
+                  Apply filters to narrow down your search
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium">Manufacturer</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {manufacturers.map((manufacturer) => (
+                      <div key={manufacturer} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`manufacturer-${manufacturer}`} 
+                          checked={filterManufacturers.includes(manufacturer)}
+                          onCheckedChange={() => toggleManufacturerFilter(manufacturer)}
+                        />
+                        <Label htmlFor={`manufacturer-${manufacturer}`}>{manufacturer}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium">Price Range</h3>
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      placeholder="Min"
+                      type="number"
+                      value={filterMinPrice}
+                      onChange={(e) => setFilterMinPrice(e.target.value)}
+                      className="w-20"
+                    />
+                    <span>to</span>
+                    <Input
+                      placeholder="Max"
+                      type="number"
+                      value={filterMaxPrice}
+                      onChange={(e) => setFilterMaxPrice(e.target.value)}
+                      className="w-20"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="in-stock"
+                    checked={filterInStock}
+                    onCheckedChange={(checked) => setFilterInStock(checked as boolean)}
+                  />
+                  <Label htmlFor="in-stock">In stock only</Label>
+                </div>
+              </div>
+              
+              <div className="flex justify-between">
+                <Button variant="outline" onClick={resetFilters}>Reset</Button>
+                <Button onClick={applyFilters}>Apply Filters</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+          
+          {/* Sort Dialog */}
+          <Dialog
+            open={isSortDialogOpen}
+            onOpenChange={setIsSortDialogOpen}
+          >
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Sort Parts</DialogTitle>
+                <DialogDescription>
+                  Choose how to sort the parts catalog
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="py-4">
+                <Select value={sortBy} onValueChange={(value) => {
+                  setSortBy(value);
+                  setIsSortDialogOpen(false);
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select sorting" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="name-asc">Name (A-Z)</SelectItem>
+                    <SelectItem value="name-desc">Name (Z-A)</SelectItem>
+                    <SelectItem value="price-asc">Price (Low to High)</SelectItem>
+                    <SelectItem value="price-desc">Price (High to Low)</SelectItem>
+                    <SelectItem value="stock-asc">Stock (Low to High)</SelectItem>
+                    <SelectItem value="stock-desc">Stock (High to Low)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </DialogContent>
           </Dialog>
         </div>
