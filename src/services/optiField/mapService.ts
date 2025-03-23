@@ -19,14 +19,13 @@ export const useMapService = () => {
         setMapApiKey(savedApiKey);
         setIsError(false);
       } else {
-        // Set default API key - consider moving this to an environment variable in production
+        // Use a default API key
         const defaultApiKey = 'AIzaSyDYNpssW98FUa34qBKCD6JdI7iWYnzFxyI';
         
-        // Ensure we have a valid key
         if (defaultApiKey && defaultApiKey.trim() !== '') {
           console.log('Using default API key');
-          setMapApiKey(defaultApiKey);
           localStorage.setItem(localStorageKey, defaultApiKey);
+          setMapApiKey(defaultApiKey);
           setIsError(false);
         } else {
           console.error('Clé API Google Maps non définie');
@@ -51,7 +50,7 @@ export const useMapService = () => {
         return;
       }
       
-      console.log('Saving new API key to localStorage:', key.substring(0, 8) + '...');
+      console.log('Saving new API key to localStorage');
       localStorage.setItem(localStorageKey, key);
       setMapApiKey(key);
       setIsError(false);

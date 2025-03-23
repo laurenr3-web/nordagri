@@ -38,7 +38,7 @@ const OptiField = () => {
     }
   };
   
-  // Initialiser automatiquement la clé API
+  // Initialize API key if necessary
   useEffect(() => {
     if (!mapApiKey && !isLoading) {
       console.log('Setting default API key automatically');
@@ -47,6 +47,7 @@ const OptiField = () => {
     }
   }, [mapApiKey, isLoading, setAndSaveMapApiKey]);
   
+  // Set loading state
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -54,6 +55,7 @@ const OptiField = () => {
     return () => clearTimeout(timer);
   }, []);
   
+  // Show success toast when everything is loaded correctly
   useEffect(() => {
     if (!isError && !isLoading && mapApiKey) {
       toast.success('OptiField chargé avec succès', {
@@ -63,7 +65,7 @@ const OptiField = () => {
     }
   }, [isError, isLoading, mapApiKey]);
   
-  // État de chargement
+  // Loading state
   if (isLoading) {
     return (
       <div className="flex min-h-screen">
@@ -79,7 +81,7 @@ const OptiField = () => {
     );
   }
   
-  // État d'erreur
+  // Error state
   if (isError) {
     return (
       <ErrorState 
@@ -89,7 +91,7 @@ const OptiField = () => {
     );
   }
   
-  // État normal - tout est chargé et fonctionnel
+  // Normal state - everything is loaded and functional
   return (
     <div className="flex min-h-screen overflow-x-hidden bg-background">
       <Navbar />

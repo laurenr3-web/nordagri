@@ -14,7 +14,7 @@ type UseGoogleMapsReturnType = {
 };
 
 export const useGoogleMaps = (): UseGoogleMapsReturnType => {
-  const { mapApiKey, isError } = useMapService();
+  const { mapApiKey } = useMapService();
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
@@ -39,7 +39,7 @@ export const useGoogleMaps = (): UseGoogleMapsReturnType => {
     }
 
     setIsLoading(true);
-    console.log('Loading Google Maps script with key:', mapApiKey ? `${mapApiKey.substring(0, 8)}...` : 'Missing');
+    console.log('Loading Google Maps script with key:', mapApiKey.substring(0, 8) + '...');
 
     // Set up the callback function
     window[callbackName] = () => {
@@ -129,25 +129,20 @@ export const useGoogleMaps = (): UseGoogleMapsReturnType => {
     }
   }, [loadGoogleMapsScript, mapApiKey]);
 
-  // Load Google Maps API when the component mounts
+  // Load Google Maps API when the component mounts or mapApiKey changes
   useEffect(() => {
-    if (window.google?.maps) {
-      console.log('Google Maps API already loaded');
-      setIsLoaded(true);
-      return;
-    }
-    
     if (!mapApiKey || mapApiKey.trim() === '') {
       console.error('Cannot load Google Maps: No API key provided');
       setError(new Error('Clé API Google Maps manquante'));
       return;
     }
     
-    if (isError) {
-      console.error('Map service reported an error, not loading Google Maps');
+    if (window.google?.maps) {
+      console.log('Google Maps API already loaded');
+      setIsLoaded(true);
       return;
     }
-    
+
     console.log('Attempting to load Google Maps on component mount');
     loadGoogleMapsScript();
 
@@ -169,7 +164,7 @@ export const useGoogleMaps = (): UseGoogleMapsReturnType => {
       // using the same API, but we do clean up our reference to it
       scriptRef.current = null;
     };
-  }, [loadGoogleMapsScript, mapInstance, isError, mapApiKey]);
+  }, [loadGoogleMapsScript, mapApiKey]);
 
   return {
     isLoaded,
