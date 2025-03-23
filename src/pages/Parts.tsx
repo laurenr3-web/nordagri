@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { BlurContainer } from '@/components/ui/blur-container';
@@ -17,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 
 // Sample parts data
 const partsData = [
@@ -127,6 +129,7 @@ const partsData = [
 ];
 
 const Parts = () => {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [currentView, setCurrentView] = useState('grid');
@@ -243,7 +246,10 @@ const Parts = () => {
       setSelectedCategory(category);
       setNewCategory('');
       setIsAddCategoryDialogOpen(false);
-      toast.success(`Category "${category}" added successfully`);
+      toast({
+        title: "Category added",
+        description: `Category "${category}" added successfully`,
+      });
     }
   };
 
