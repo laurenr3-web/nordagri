@@ -2,20 +2,7 @@
 import { useState } from 'react';
 import { PartFormValues } from '@/components/parts/AddPartForm';
 import { useToast } from '@/hooks/use-toast';
-
-export interface Part {
-  id: number;
-  name: string;
-  partNumber: string;
-  category: string;
-  compatibility: string[];
-  manufacturer: string;
-  price: number;
-  stock: number;
-  location: string;
-  reorderPoint: number;
-  image: string;
-}
+import { Part } from '@/types/Part';
 
 export const useParts = (initialParts: Part[]) => {
   const { toast } = useToast();
@@ -134,6 +121,39 @@ export const useParts = (initialParts: Part[]) => {
     
     setParts([...parts, newPart]);
     setIsAddPartDialogOpen(false);
+  };
+
+  // Handle editing a part
+  const handleEditPart = (updatedPart: Part) => {
+    setParts(parts.map(part => 
+      part.id === updatedPart.id ? updatedPart : part
+    ));
+    
+    // If this is a new category, add it to our custom categories
+    if (!categories.includes(updatedPart.category)) {
+      setCustomCategories([...customCategories, updatedPart.category]);
+    }
+    
+    setIsPartDetailsDialogOpen(false);
+    
+    toast({
+      title: "Pièce mise à jour",
+      description: `Les informations de "${updatedPart.name}" ont été mises à jour avec succès`,
+    });
+  };
+  
+  // Handle deleting a part
+  const handleDeletePart = (partId: number) => {
+    const partToDelete = parts.find(part => part.id === partId);
+    setParts(parts.filter(part => part.id !== partId));
+    setIsPartDetailsDialogOpen(false);
+    
+    if (partToDelete) {
+      toast({
+        title: "Pièce supprimée",
+        description: `La pièce "${partToDelete.name}" a été supprimée avec succès`,
+      });
+    }
   };
   
   const applyFilters = () => {
@@ -257,6 +277,8 @@ export const useParts = (initialParts: Part[]) => {
     openPartDetails,
     openOrderDialog,
     handleOrderSubmit,
-    toggleManufacturerFilter
+    toggleManufacturerFilter,
+    handleEditPart,
+    handleDeletePart
   };
 };

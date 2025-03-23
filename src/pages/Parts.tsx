@@ -79,7 +79,9 @@ const Parts = () => {
     openPartDetails,
     openOrderDialog,
     handleOrderSubmit,
-    toggleManufacturerFilter
+    toggleManufacturerFilter,
+    handleEditPart,
+    handleDeletePart
   } = useParts(initialPartsData);
 
   return (
@@ -154,7 +156,13 @@ const Parts = () => {
                   Detailed information about the selected part
                 </DialogDescription>
               </DialogHeader>
-              {selectedPart && <PartDetails part={selectedPart} />}
+              {selectedPart && (
+                <PartDetails 
+                  part={selectedPart} 
+                  onEdit={handleEditPart}
+                  onDelete={handleDeletePart}
+                />
+              )}
             </DialogContent>
           </Dialog>
           

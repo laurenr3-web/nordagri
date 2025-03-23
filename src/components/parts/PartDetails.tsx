@@ -1,32 +1,54 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
 import { 
   Tag, 
   Package,
   Factory,
   Warehouse,
-  AlertCircle
+  AlertCircle,
+  Trash,
+  Pencil
 } from 'lucide-react';
+import { Part } from '@/types/Part';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import EditPartDialog from './dialogs/EditPartDialog';
 
 interface PartDetailsProps {
-  part: {
-    id: number;
-    name: string;
-    partNumber: string;
-    category: string;
-    compatibility: string[];
-    manufacturer: string;
-    price: number;
-    stock: number;
-    location: string;
-    reorderPoint: number;
-    image: string;
-  };
+  part: Part;
+  onEdit?: (part: Part) => void;
+  onDelete?: (partId: number) => void;
 }
 
-const PartDetails: React.FC<PartDetailsProps> = ({ part }) => {
+const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete }) => {
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  const handleDelete = () => {
+    if (onDelete) {
+      onDelete(part.id);
+    }
+    setIsDeleteDialogOpen(false);
+  };
+
+  const handleEdit = (updatedPart: Part) => {
+    if (onEdit) {
+      onEdit(updatedPart);
+    }
+    setIsEditDialogOpen(false);
+  };
+
   return (
     <div className="space-y-6">
       <div className="relative aspect-video overflow-hidden rounded-md">
@@ -48,6 +70,27 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part }) => {
       <div>
         <h2 className="text-2xl font-semibold">{part.name}</h2>
         <p className="text-muted-foreground">{part.partNumber}</p>
+      </div>
+
+      <div className="flex justify-end gap-2">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="flex items-center gap-1"
+          onClick={() => setIsEditDialogOpen(true)}
+        >
+          <Pencil size={16} />
+          Modifier
+        </Button>
+        <Button 
+          variant="destructive" 
+          size="sm" 
+          className="flex items-center gap-1"
+          onClick={() => setIsDeleteDialogOpen(true)}
+        >
+          <Trash size={16} />
+          Supprimer
+        </Button>
       </div>
 
       <Separator />
@@ -134,6 +177,34 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part }) => {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Êtes-vous sûr?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action ne peut pas être annulée. Cette pièce sera supprimée définitivement de notre base de données.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Edit Part Dialog */}
+      {isEditDialogOpen && (
+        <EditPartDialog 
+          isOpen={isEditDialogOpen} 
+          onOpenChange={setIsEditDialogOpen}
+          part={part}
+          onSubmit={handleEdit}
+        />
+      )}
     </div>
   );
 };
