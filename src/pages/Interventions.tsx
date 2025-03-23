@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { BlurContainer } from '@/components/ui/blur-container';
@@ -33,8 +32,8 @@ const interventionsData = [
       lat: 34.052235,
       lng: -118.243683
     },
-    status: 'completed',
-    priority: 'high',
+    status: 'completed' as const,
+    priority: 'high' as const,
     date: new Date(2023, 5, 5),
     duration: 3.5,
     technician: 'Michael Torres',
@@ -55,8 +54,8 @@ const interventionsData = [
       lat: 34.056235,
       lng: -118.253683
     },
-    status: 'in-progress',
-    priority: 'medium',
+    status: 'in-progress' as const,
+    priority: 'medium' as const,
     date: new Date(2023, 5, 10),
     scheduledDuration: 4,
     technician: 'Sarah Johnson',
@@ -74,8 +73,8 @@ const interventionsData = [
       lat: 34.050235,
       lng: -118.233683
     },
-    status: 'scheduled',
-    priority: 'medium',
+    status: 'scheduled' as const,
+    priority: 'medium' as const,
     date: new Date(2023, 5, 12),
     scheduledDuration: 2,
     technician: 'David Chen',
@@ -93,8 +92,8 @@ const interventionsData = [
       lat: 34.048235,
       lng: -118.263683
     },
-    status: 'scheduled',
-    priority: 'low',
+    status: 'scheduled' as const,
+    priority: 'low' as const,
     date: new Date(2023, 5, 15),
     scheduledDuration: 2,
     technician: 'Sarah Johnson',
@@ -112,8 +111,8 @@ const interventionsData = [
       lat: 34.062235,
       lng: -118.273683
     },
-    status: 'completed',
-    priority: 'low',
+    status: 'completed' as const,
+    priority: 'low' as const,
     date: new Date(2023, 5, 8),
     duration: 1,
     technician: 'Michael Torres',
@@ -131,8 +130,8 @@ const interventionsData = [
       lat: 34.049235,
       lng: -118.253683
     },
-    status: 'canceled',
-    priority: 'high',
+    status: 'canceled' as const,
+    priority: 'high' as const,
     date: new Date(2023, 5, 7),
     scheduledDuration: 3,
     technician: 'David Chen',
@@ -150,8 +149,8 @@ const interventionsData = [
       lat: 34.058235,
       lng: -118.243683
     },
-    status: 'completed',
-    priority: 'medium',
+    status: 'completed' as const,
+    priority: 'medium' as const,
     date: new Date(2023, 5, 6),
     duration: 2.5,
     technician: 'Sarah Johnson',
@@ -172,8 +171,8 @@ const interventionsData = [
       lat: 34.052235,
       lng: -118.243683
     },
-    status: 'scheduled',
-    priority: 'medium',
+    status: 'scheduled' as const,
+    priority: 'medium' as const,
     date: new Date(2023, 5, 18),
     scheduledDuration: 3,
     technician: 'Michael Torres',
