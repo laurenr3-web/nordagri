@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -148,8 +147,12 @@ const Parts = () => {
           <Dialog
             open={isPartDetailsDialogOpen}
             onOpenChange={setIsPartDetailsDialogOpen}
+            onClick={e => e.stopPropagation()}
           >
-            <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+            <DialogContent 
+              className="sm:max-w-lg max-h-[90vh] overflow-y-auto"
+              onClick={e => e.stopPropagation()}
+            >
               <DialogHeader>
                 <DialogTitle>Part Details</DialogTitle>
                 <DialogDescription>
@@ -166,6 +169,7 @@ const Parts = () => {
             </DialogContent>
           </Dialog>
           
+          {/* Other dialogs */}
           <Dialog 
             open={isAddPartDialogOpen} 
             onOpenChange={setIsAddPartDialogOpen}

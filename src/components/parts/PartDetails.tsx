@@ -35,7 +35,10 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete }) => 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  const handleDelete = () => {
+  const handleDelete = (e: React.MouseEvent) => {
+    // Prevent event from bubbling up which might cause redirection
+    e.stopPropagation();
+    
     if (onDelete) {
       onDelete(part.id);
     }
@@ -47,6 +50,18 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete }) => 
       onEdit(updatedPart);
     }
     setIsEditDialogOpen(false);
+  };
+
+  const openEditDialog = (e: React.MouseEvent) => {
+    // Prevent event from bubbling up which might cause redirection
+    e.stopPropagation();
+    setIsEditDialogOpen(true);
+  };
+
+  const openDeleteDialog = (e: React.MouseEvent) => {
+    // Prevent event from bubbling up which might cause redirection
+    e.stopPropagation();
+    setIsDeleteDialogOpen(true);
   };
 
   return (
@@ -77,7 +92,7 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete }) => 
           variant="outline" 
           size="sm" 
           className="flex items-center gap-1"
-          onClick={() => setIsEditDialogOpen(true)}
+          onClick={openEditDialog}
         >
           <Pencil size={16} />
           Modifier
@@ -86,7 +101,7 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete }) => 
           variant="destructive" 
           size="sm" 
           className="flex items-center gap-1"
-          onClick={() => setIsDeleteDialogOpen(true)}
+          onClick={openDeleteDialog}
         >
           <Trash size={16} />
           Supprimer
@@ -180,7 +195,7 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete }) => 
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent onClick={e => e.stopPropagation()}>
           <AlertDialogHeader>
             <AlertDialogTitle>Êtes-vous sûr?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -188,7 +203,7 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete }) => 
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogCancel onClick={e => e.stopPropagation()}>Annuler</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Supprimer
             </AlertDialogAction>
