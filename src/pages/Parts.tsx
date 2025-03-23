@@ -10,10 +10,11 @@ import {
   Plus, 
   Filter, 
   SlidersHorizontal,
-  AlertCircle
+  AlertCircle,
+  Check
 } from 'lucide-react';
 import { AddPartForm, PartFormValues } from '@/components/parts/AddPartForm';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -142,6 +143,10 @@ const Parts = () => {
   const [newCategory, setNewCategory] = useState('');
   const [selectedPart, setSelectedPart] = useState<typeof partsData[0] | null>(null);
   const [isPartDetailsDialogOpen, setIsPartDetailsDialogOpen] = useState(false);
+  const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
+  const [orderQuantity, setOrderQuantity] = useState('1');
+  const [orderNote, setOrderNote] = useState('');
+  const [isOrderSuccess, setIsOrderSuccess] = useState(false);
   
   // Filter states
   const [filterManufacturers, setFilterManufacturers] = useState<string[]>([]);
@@ -258,6 +263,39 @@ const Parts = () => {
   const openPartDetails = (part: typeof partsData[0]) => {
     setSelectedPart(part);
     setIsPartDetailsDialogOpen(true);
+  };
+
+  const openOrderDialog = (part: typeof partsData[0]) => {
+    setSelectedPart(part);
+    setOrderQuantity('1');
+    setOrderNote('');
+    setIsOrderSuccess(false);
+    setIsOrderDialogOpen(true);
+  };
+
+  const handleOrderSubmit = () => {
+    // Here you would normally submit the order to your backend
+    // For now, we'll just show a success message
+    setIsOrderSuccess(true);
+    
+    // Update the part stock in our local state
+    if (selectedPart) {
+      const quantity = parseInt(orderQuantity);
+      setParts(parts.map(part => 
+        part.id === selectedPart.id 
+          ? { ...part, stock: part.stock + quantity } 
+          : part
+      ));
+    }
+    
+    // Show a toast notification
+    setTimeout(() => {
+      setIsOrderDialogOpen(false);
+      toast({
+        title: "Order placed successfully",
+        description: `Ordered ${orderQuantity} units of ${selectedPart?.name}`,
+      });
+    }, 1500);
   };
 
   return (
@@ -427,7 +465,7 @@ const Parts = () => {
                     
                     <div className="mt-4 pt-4 border-t border-border flex justify-between">
                       <Button variant="outline" size="sm" onClick={() => openPartDetails(part)}>Details</Button>
-                      <Button variant="default" size="sm">Order</Button>
+                      <Button variant="default" size="sm" onClick={() => openOrderDialog(part)}>Order</Button>
                     </div>
                   </div>
                 </BlurContainer>
@@ -479,7 +517,7 @@ const Parts = () => {
                         <td className="p-3">
                           <div className="flex gap-1">
                             <Button variant="outline" size="sm" className="h-8 px-2" onClick={() => openPartDetails(part)}>Details</Button>
-                            <Button variant="default" size="sm" className="h-8 px-2">Order</Button>
+                            <Button variant="default" size="sm" className="h-8 px-2" onClick={() => openOrderDialog(part)}>Order</Button>
                           </div>
                         </td>
                       </tr>
@@ -489,6 +527,8 @@ const Parts = () => {
               </div>
             </BlurContainer>
           )}
+          
+          {/* ... keep existing code (no parts found message) */}
           
           {filteredParts.length === 0 && (
             <div className="mt-10 text-center">
@@ -500,6 +540,8 @@ const Parts = () => {
           )}
           
           {/* Part Details Dialog */}
+          {/* ... keep existing code (part details dialog) */}
+          
           <Dialog
             open={isPartDetailsDialogOpen}
             onOpenChange={setIsPartDetailsDialogOpen}
@@ -516,6 +558,8 @@ const Parts = () => {
           </Dialog>
           
           {/* Add Part Dialog */}
+          {/* ... keep existing code (add part dialog) */}
+          
           <Dialog 
             open={isAddPartDialogOpen} 
             onOpenChange={setIsAddPartDialogOpen}
@@ -535,6 +579,8 @@ const Parts = () => {
           </Dialog>
           
           {/* Filter Dialog */}
+          {/* ... keep existing code (filter dialog) */}
+          
           <Dialog
             open={isFilterDialogOpen}
             onOpenChange={setIsFilterDialogOpen}
@@ -603,6 +649,8 @@ const Parts = () => {
           </Dialog>
           
           {/* Sort Dialog */}
+          {/* ... keep existing code (sort dialog) */}
+          
           <Dialog
             open={isSortDialogOpen}
             onOpenChange={setIsSortDialogOpen}
@@ -637,6 +685,8 @@ const Parts = () => {
           </Dialog>
 
           {/* Add Category Dialog */}
+          {/* ... keep existing code (add category dialog) */}
+          
           <Dialog open={isAddCategoryDialogOpen} onOpenChange={setIsAddCategoryDialogOpen}>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
@@ -662,10 +712,87 @@ const Parts = () => {
               </div>
             </DialogContent>
           </Dialog>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default Parts;
+          
+          {/* Order Dialog */}
+          <Dialog
+            open={isOrderDialogOpen}
+            onOpenChange={setIsOrderDialogOpen}
+          >
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Order Parts</DialogTitle>
+                <DialogDescription>
+                  {isOrderSuccess ? 'Order completed successfully!' : 'Specify the quantity and details for your order'}
+                </DialogDescription>
+              </DialogHeader>
+              
+              {isOrderSuccess ? (
+                <div className="py-6 flex flex-col items-center justify-center text-center space-y-4">
+                  <div className="rounded-full bg-green-100 p-3">
+                    <Check className="h-8 w-8 text-green-600" />
+                  </div>
+                  <h3 className="text-xl font-medium">Order Successful</h3>
+                  <p className="text-muted-foreground">
+                    Your order for {orderQuantity} units of {selectedPart?.name} has been placed.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="grid gap-4 py-4">
+                    {selectedPart && (
+                      <div className="flex items-center gap-4">
+                        <div className="h-16 w-16 rounded-md overflow-hidden flex-shrink-0">
+                          <img 
+                            src={selectedPart.image} 
+                            alt={selectedPart.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div>
+                          <h3 className="font-medium">{selectedPart.name}</h3>
+                          <p className="text-sm text-muted-foreground">{selectedPart.partNumber}</p>
+                          <p className="text-sm">${selectedPart.price.toFixed(2)} per unit</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="quantity">Quantity</Label>
+                      <Input 
+                        id="quantity" 
+                        type="number" 
+                        min="1" 
+                        value={orderQuantity} 
+                        onChange={(e) => setOrderQuantity(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="notes">Order Notes (Optional)</Label>
+                      <Input 
+                        id="notes" 
+                        placeholder="Any special instructions" 
+                        value={orderNote} 
+                        onChange={(e) => setOrderNote(e.target.value)}
+                      />
+                    </div>
+                    
+                    {selectedPart && (
+                      <div className="rounded-md bg-muted p-3 text-sm">
+                        <p className="font-medium">Order Summary:</p>
+                        <p>{selectedPart.name} x {orderQuantity}</p>
+                        <p className="font-medium mt-2">
+                          Total: ${(selectedPart.price * parseInt(orderQuantity || '0')).toFixed(2)}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsOrderDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={handleOrderSubmit}>Place Order</Button>
+                  </DialogFooter>
+                </>
+              )}
+            </DialogContent>
+          </Dialog>
