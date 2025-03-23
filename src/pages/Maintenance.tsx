@@ -34,8 +34,8 @@ const Maintenance = () => {
 
   return (
     <div className="min-h-screen bg-background w-full">
-      <div className="pt-6 pb-16 px-0 md:px-4 lg:px-6 ml-0 md:ml-64 w-full">
-        <div className="w-full px-4">
+      <div className={`pt-6 pb-16 ${isMobile ? 'px-2' : 'px-8'} ml-0 md:ml-64 w-full`}>
+        <div className="w-full">
           <MaintenanceHeader 
             setIsNewTaskDialogOpen={setIsNewTaskDialogOpen} 
           />

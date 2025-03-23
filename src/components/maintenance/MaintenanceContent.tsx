@@ -36,7 +36,7 @@ const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
   const upcomingTasks = getUpcomingTasks(tasks);
 
   return (
-    <div className="w-full">
+    <div className="w-full max-w-full">
       <MaintenanceNavigation
         currentView={currentView}
         setCurrentView={setCurrentView}
