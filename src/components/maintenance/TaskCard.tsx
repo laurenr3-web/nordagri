@@ -8,9 +8,10 @@ import { formatDate, getStatusBadge, getPriorityBadge } from './MaintenanceUtils
 
 interface TaskCardProps {
   task: MaintenanceTask;
+  onViewDetails: (task: MaintenanceTask) => void;
 }
 
-const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, onViewDetails }) => {
   return (
     <BlurContainer 
       key={task.id}
@@ -61,7 +62,11 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
         )}
         
         <div className="flex justify-end">
-          <Button variant="outline" className="gap-1">
+          <Button 
+            variant="outline" 
+            className="gap-1"
+            onClick={() => onViewDetails(task)}
+          >
             <span>Details</span>
             <ChevronRight size={16} />
           </Button>
