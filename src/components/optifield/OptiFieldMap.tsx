@@ -15,10 +15,10 @@ import MapPlaceholder from './MapPlaceholder';
 import { toast } from 'sonner';
 import { useMapService } from '@/services/optiField/mapService';
 
-// Add proper TypeScript declarations for Google Maps
+// Google Maps API proper TypeScript declarations
 declare global {
   interface Window {
-    google: typeof google;
+    google: any;
     initGoogleMaps: () => void;
   }
 }
@@ -27,20 +27,25 @@ interface OptiFieldMapProps {
   trackingActive: boolean;
 }
 
+interface FieldBoundary {
+  id: string;
+  path: Array<{lat: number; lng: number}>;
+}
+
 const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const { mapApiKey } = useMapService();
   const [selectedMachines, setSelectedMachines] = useState<string[]>([]);
-  const [userLocation, setUserLocation] = useState<google.maps.LatLngLiteral | null>(null);
+  const [userLocation, setUserLocation] = useState<{lat: number; lng: number} | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<google.maps.Map | null>(null);
-  const userMarkerRef = useRef<google.maps.Marker | null>(null);
-  const [fieldBoundaries, setFieldBoundaries] = useState<
-    { id: string; path: google.maps.LatLngLiteral[] }[]
-  >([]);
+  const mapRef = useRef<any>(null);
+  const userMarkerRef = useRef<any>(null);
+  const [fieldBoundaries, setFieldBoundaries] = useState<FieldBoundary[]>([]);
   const scriptRef = useRef<HTMLScriptElement | null>(null);
   const watchIdRef = useRef<number | null>(null);
+  const mapInitializedRef = useRef<boolean>(false);
+  const circleRef = useRef<any>(null);
 
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
@@ -93,7 +98,11 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
           });
           
           // Add circle around user position to indicate accuracy
-          new window.google.maps.Circle({
+          if (circleRef.current) {
+            circleRef.current.setMap(null);
+          }
+          
+          circleRef.current = new window.google.maps.Circle({
             map: mapRef.current,
             center: location,
             radius: 100, // in meters
@@ -105,6 +114,10 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
           });
         } else if (userMarkerRef.current) {
           userMarkerRef.current.setPosition(location);
+          
+          if (circleRef.current) {
+            circleRef.current.setCenter(location);
+          }
         }
         
         toast.success('Position localisée avec succès');
@@ -155,6 +168,10 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
         // Update user marker position
         if (userMarkerRef.current) {
           userMarkerRef.current.setPosition(location);
+          
+          if (circleRef.current) {
+            circleRef.current.setCenter(location);
+          }
         }
         
         // Center map on user location if tracking is active
@@ -176,86 +193,89 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
 
   // Initialize Google Maps
   const initMap = () => {
-    if (window.google && mapContainerRef.current) {
-      try {
-        // Create map instance
-        const mapOptions = {
-          center: { lat: 48.8566, lng: 2.3522 }, // Paris coordinates as default
-          zoom: 12,
-          mapTypeId: window.google.maps.MapTypeId.ROADMAP,
-          mapTypeControl: true,
-          fullscreenControl: false, // We have our own fullscreen control
-        };
+    if (!window.google || !mapContainerRef.current || mapInitializedRef.current) return;
+    
+    try {
+      // Create map instance
+      const mapOptions = {
+        center: { lat: 48.8566, lng: 2.3522 }, // Paris coordinates as default
+        zoom: 12,
+        mapTypeId: window.google.maps.MapTypeId.ROADMAP,
+        mapTypeControl: true,
+        fullscreenControl: false, // We have our own fullscreen control
+      };
+      
+      const map = new window.google.maps.Map(
+        mapContainerRef.current,
+        mapOptions
+      );
+      
+      // Store map reference
+      mapRef.current = map;
+      mapInitializedRef.current = true;
+      
+      // If we already have the user's location, center the map there
+      if (userLocation) {
+        map.setCenter(userLocation);
+        map.setZoom(15);
         
-        const map = new window.google.maps.Map(
-          mapContainerRef.current,
-          mapOptions
-        );
-        
-        // Store map reference
-        mapRef.current = map;
-        
-        // If we already have the user's location, center the map there
-        if (userLocation) {
-          map.setCenter(userLocation);
-          map.setZoom(15);
-          
-          // Create user marker
-          userMarkerRef.current = new window.google.maps.Marker({
-            position: userLocation,
-            map: map,
-            title: 'Votre position',
-            icon: {
-              path: window.google.maps.SymbolPath.CIRCLE,
-              fillColor: '#4285F4',
-              fillOpacity: 1,
-              strokeColor: '#FFFFFF',
-              strokeWeight: 2,
-              scale: 8,
-            },
-          });
-        }
-
-        // Define field boundaries (replace with your actual data)
-        const initialFieldBoundaries = [
-          {
-            id: 'field1',
-            path: [
-              { lat: 48.86472, lng: 2.34583 },
-              { lat: 48.86694, lng: 2.34861 },
-              { lat: 48.86583, lng: 2.35056 },
-              { lat: 48.86361, lng: 2.34778 },
-            ],
-          },
-          {
-            id: 'field2',
-            path: [
-              { lat: 48.85772, lng: 2.34383 },
-              { lat: 48.85994, lng: 2.34661 },
-              { lat: 48.85883, lng: 2.34856 },
-              { lat: 48.85661, lng: 2.34578 },
-            ],
-          },
-        ];
-
-        // Draw field boundaries on the map
-        initialFieldBoundaries.forEach((field) => {
-          const fieldPolygon = new window.google.maps.Polygon({
-            paths: field.path,
-            strokeColor: '#FF0000',
-            strokeOpacity: 0.8,
+        // Create user marker
+        userMarkerRef.current = new window.google.maps.Marker({
+          position: userLocation,
+          map: map,
+          title: 'Votre position',
+          icon: {
+            path: window.google.maps.SymbolPath.CIRCLE,
+            fillColor: '#4285F4',
+            fillOpacity: 1,
+            strokeColor: '#FFFFFF',
             strokeWeight: 2,
-            fillColor: '#FF0000',
-            fillOpacity: 0.35,
-            map: map,
-          });
+            scale: 8,
+          },
         });
-
-        setFieldBoundaries(initialFieldBoundaries);
-      } catch (error) {
-        console.error('Error initializing map:', error);
-        toast.error('Erreur lors de l\'initialisation de la carte');
       }
+
+      // Define field boundaries (replace with your actual data)
+      const initialFieldBoundaries = [
+        {
+          id: 'field1',
+          path: [
+            { lat: 48.86472, lng: 2.34583 },
+            { lat: 48.86694, lng: 2.34861 },
+            { lat: 48.86583, lng: 2.35056 },
+            { lat: 48.86361, lng: 2.34778 },
+          ],
+        },
+        {
+          id: 'field2',
+          path: [
+            { lat: 48.85772, lng: 2.34383 },
+            { lat: 48.85994, lng: 2.34661 },
+            { lat: 48.85883, lng: 2.34856 },
+            { lat: 48.85661, lng: 2.34578 },
+          ],
+        },
+      ];
+
+      // Draw field boundaries on the map
+      const polygons: any[] = [];
+      initialFieldBoundaries.forEach((field) => {
+        const fieldPolygon = new window.google.maps.Polygon({
+          paths: field.path,
+          strokeColor: '#FF0000',
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+          fillColor: '#FF0000',
+          fillOpacity: 0.35,
+          map: map,
+        });
+        polygons.push(fieldPolygon);
+      });
+
+      setFieldBoundaries(initialFieldBoundaries);
+    } catch (error) {
+      console.error('Error initializing map:', error);
+      toast.error('Erreur lors de l\'initialisation de la carte');
     }
   };
 
@@ -264,8 +284,10 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
     // Define the callback function
     window.initGoogleMaps = initMap;
 
-    if (!window.google && mapApiKey) {
+    // Only load the script if it doesn't exist and we have an API key
+    if (!window.google && mapApiKey && !document.getElementById('google-maps-script')) {
       const script = document.createElement('script');
+      script.id = 'google-maps-script';
       script.src = `https://maps.googleapis.com/maps/api/js?key=${mapApiKey}&libraries=places,drawing&callback=initGoogleMaps`;
       script.async = true;
       script.defer = true;
@@ -278,30 +300,35 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
       initMap();
     }
 
-    // Cleanup
     return () => {
+      // Cleanup function to prevent "removeChild" error
+      // Make sure to clear Google Maps resources
+      if (userMarkerRef.current) {
+        userMarkerRef.current.setMap(null);
+        userMarkerRef.current = null;
+      }
+      
+      if (circleRef.current) {
+        circleRef.current.setMap(null);
+        circleRef.current = null;
+      }
+      
       // Clear any existing geolocation watch
       if (watchIdRef.current !== null) {
         navigator.geolocation.clearWatch(watchIdRef.current);
         watchIdRef.current = null;
       }
       
-      // Clear map instance
-      if (mapRef.current) {
-        // No need to call remove() for Google Maps
-        mapRef.current = null;
+      // Don't remove the script in the cleanup function
+      // This prevents the "removeChild" DOM error
+      
+      // Instead, just reset initialization state
+      mapInitializedRef.current = false;
+      
+      // Remove the callback, but only if component is unmounting
+      if (window.initGoogleMaps === initMap) {
+        window.initGoogleMaps = () => {}; // Replace with no-op
       }
-      
-      // Clear marker reference
-      userMarkerRef.current = null;
-      
-      // Remove the script if we added it
-      if (scriptRef.current && document.head.contains(scriptRef.current)) {
-        document.head.removeChild(scriptRef.current);
-      }
-      
-      // Remove the callback
-      delete window.initGoogleMaps;
     };
   }, [mapApiKey]);
   

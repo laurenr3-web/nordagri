@@ -10,6 +10,11 @@ export const useMapService = () => {
     const savedApiKey = localStorage.getItem('gmaps_api_key');
     if (savedApiKey) {
       setMapApiKey(savedApiKey);
+    } else {
+      // Set default API key - consider moving this to an environment variable in production
+      const defaultApiKey = 'AIzaSyDYNpssW98FUa34qBKCD6JdI7iWYnzFxyI';
+      setMapApiKey(defaultApiKey);
+      localStorage.setItem('gmaps_api_key', defaultApiKey);
     }
   }, []);
 
