@@ -72,7 +72,7 @@ const MapPlaceholder: React.FC<MapPlaceholderProps> = ({ trackingActive, onMachi
         {trackingActive && (
           <svg className="absolute inset-0 w-full h-full" style={{ pointerEvents: 'none' }}>
             <path 
-              d="M200,200 C220,230 240,240 280,250 S320,270 340,290 S380,320 400,330" 
+              d="M33%,33% C36%,38% 40%,40% 46%,41% S53%,45% 56%,48% S63%,53% 66%,55%" 
               stroke="#3b82f6" 
               strokeWidth="3" 
               fill="none" 
