@@ -11,9 +11,10 @@ import {
   Plus, 
   Filter, 
   SlidersHorizontal,
-  Package,
   AlertCircle
 } from 'lucide-react';
+import { AddPartForm, PartFormValues } from '@/components/parts/AddPartForm';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 // Sample parts data
 const partsData = [
@@ -127,9 +128,11 @@ const Parts = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [currentView, setCurrentView] = useState('grid');
+  const [isAddPartDialogOpen, setIsAddPartDialogOpen] = useState(false);
+  const [parts, setParts] = useState(partsData);
   
   // Filter parts based on search term and category
-  const filteredParts = partsData.filter(part => {
+  const filteredParts = parts.filter(part => {
     const matchesSearch = 
       part.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       part.partNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -139,6 +142,25 @@ const Parts = () => {
     
     return matchesSearch && matchesCategory;
   });
+
+  const handleAddPart = (formData: PartFormValues) => {
+    const newPart = {
+      id: parts.length + 1,
+      name: formData.name,
+      partNumber: formData.partNumber,
+      category: formData.category,
+      compatibility: formData.compatibility.split(',').map(item => item.trim()),
+      manufacturer: formData.manufacturer,
+      price: parseFloat(formData.price),
+      stock: parseInt(formData.stock),
+      location: formData.location,
+      reorderPoint: parseInt(formData.reorderPoint),
+      image: formData.image
+    };
+    
+    setParts([...parts, newPart]);
+    setIsAddPartDialogOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -157,7 +179,7 @@ const Parts = () => {
               </div>
               
               <div className="mt-4 sm:mt-0">
-                <Button className="gap-2">
+                <Button className="gap-2" onClick={() => setIsAddPartDialogOpen(true)}>
                   <Plus size={16} />
                   <span>Add Parts</span>
                 </Button>
@@ -348,6 +370,25 @@ const Parts = () => {
               </Button>
             </div>
           )}
+          
+          {/* Add Part Dialog */}
+          <Dialog 
+            open={isAddPartDialogOpen} 
+            onOpenChange={setIsAddPartDialogOpen}
+          >
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Add New Part</DialogTitle>
+                <DialogDescription>
+                  Fill out the form below to add a new part to the inventory
+                </DialogDescription>
+              </DialogHeader>
+              <AddPartForm 
+                onSuccess={handleAddPart}
+                onCancel={() => setIsAddPartDialogOpen(false)}
+              />
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>
