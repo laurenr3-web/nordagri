@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,7 +16,9 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
+import { Plus } from 'lucide-react';
 
 const equipmentFormSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -41,6 +43,10 @@ interface EquipmentFormProps {
 }
 
 const EquipmentForm: React.FC<EquipmentFormProps> = ({ onSubmit, onCancel }) => {
+  const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
+  const [newCategory, setNewCategory] = useState('');
+  const [customCategories, setCustomCategories] = useState<string[]>([]);
+
   const form = useForm<EquipmentFormValues>({
     resolver: zodResolver(equipmentFormSchema),
     defaultValues: {
@@ -75,225 +81,282 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ onSubmit, onCancel }) => 
     }
   };
 
+  const addNewCategory = () => {
+    if (newCategory.trim() !== '') {
+      setCustomCategories([...customCategories, newCategory.trim()]);
+      form.setValue('category', newCategory.trim());
+      setNewCategory('');
+      setIsAddCategoryDialogOpen(false);
+      toast({
+        title: "Category added",
+        description: `"${newCategory.trim()}" has been added as a category.`,
+      });
+    }
+  };
+
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Equipment Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., John Deere 8R 410" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Type</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+    <>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Equipment Name</FormLabel>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
+                    <Input placeholder="e.g., John Deere 8R 410" {...field} />
                   </FormControl>
-                  <SelectContent>
-                    <SelectItem value="Tractor">Tractor</SelectItem>
-                    <SelectItem value="Harvester">Harvester</SelectItem>
-                    <SelectItem value="Truck">Truck</SelectItem>
-                    <SelectItem value="Implement">Implement</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="category"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Category</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <FormField
+              control={form.control}
+              name="type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Type</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Tractor">Tractor</SelectItem>
+                      <SelectItem value="Harvester">Harvester</SelectItem>
+                      <SelectItem value="Truck">Truck</SelectItem>
+                      <SelectItem value="Implement">Implement</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <div className="flex items-center gap-2">
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="heavy">Heavy Machinery</SelectItem>
+                        <SelectItem value="medium">Medium Machinery</SelectItem>
+                        <SelectItem value="light">Light Equipment</SelectItem>
+                        <SelectItem value="attachments">Attachments</SelectItem>
+                        {customCategories.map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => setIsAddCategoryDialogOpen(true)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="manufacturer"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Manufacturer</FormLabel>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
+                    <Input placeholder="e.g., John Deere" {...field} />
                   </FormControl>
-                  <SelectContent>
-                    <SelectItem value="heavy">Heavy Machinery</SelectItem>
-                    <SelectItem value="medium">Medium Machinery</SelectItem>
-                    <SelectItem value="light">Light Equipment</SelectItem>
-                    <SelectItem value="attachments">Attachments</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="manufacturer"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Manufacturer</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., John Deere" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="model"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Model</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., 8R 410" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="year"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Year</FormLabel>
-                <FormControl>
-                  <Input type="number" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="serialNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Serial Number</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., JD8R410-22-7834" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Status</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <FormField
+              control={form.control}
+              name="model"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Model</FormLabel>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
+                    <Input placeholder="e.g., 8R 410" {...field} />
                   </FormControl>
-                  <SelectContent>
-                    <SelectItem value="operational">Operational</SelectItem>
-                    <SelectItem value="maintenance">In Maintenance</SelectItem>
-                    <SelectItem value="repair">Needs Repair</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="year"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Year</FormLabel>
+                  <FormControl>
+                    <Input type="number" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="serialNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Serial Number</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., JD8R410-22-7834" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="operational">Operational</SelectItem>
+                      <SelectItem value="maintenance">In Maintenance</SelectItem>
+                      <SelectItem value="repair">Needs Repair</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Location</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., North Field" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="purchaseDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Purchase Date</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="image"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Image URL</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter image URL" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Enter a URL for the equipment image
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           <FormField
             control={form.control}
-            name="location"
+            name="notes"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Location</FormLabel>
+                <FormLabel>Notes</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., North Field" {...field} />
+                  <Textarea
+                    placeholder="Enter any additional information about this equipment"
+                    className="resize-none"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="purchaseDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Purchase Date</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+            <Button type="submit">Add Equipment</Button>
+          </div>
+        </form>
+      </Form>
 
-          <FormField
-            control={form.control}
-            name="image"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Image URL</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter image URL" {...field} />
-                </FormControl>
-                <FormDescription>
-                  Enter a URL for the equipment image
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <FormField
-          control={form.control}
-          name="notes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Notes</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Enter any additional information about this equipment"
-                  className="resize-none"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button type="submit">Add Equipment</Button>
-        </div>
-      </form>
-    </Form>
+      {/* Add Category Dialog */}
+      <Dialog open={isAddCategoryDialogOpen} onOpenChange={setIsAddCategoryDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add New Category</DialogTitle>
+            <DialogDescription>
+              Create a custom category for your equipment
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <Input 
+              placeholder="Enter new category name" 
+              value={newCategory} 
+              onChange={(e) => setNewCategory(e.target.value)} 
+            />
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsAddCategoryDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={addNewCategory}>
+                Add Category
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

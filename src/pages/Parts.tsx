@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { BlurContainer } from '@/components/ui/blur-container';
@@ -135,6 +134,9 @@ const Parts = () => {
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
   const [isSortDialogOpen, setIsSortDialogOpen] = useState(false);
   const [parts, setParts] = useState(partsData);
+  const [customCategories, setCustomCategories] = useState<string[]>([]);
+  const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
+  const [newCategory, setNewCategory] = useState('');
   
   // Filter states
   const [filterManufacturers, setFilterManufacturers] = useState<string[]>([]);
@@ -147,6 +149,9 @@ const Parts = () => {
   
   // Get unique manufacturers for filter
   const manufacturers = [...new Set(parts.map(part => part.manufacturer))];
+
+  // Get unique categories for tabs
+  const categories = [...new Set(['all', 'filters', 'engine', 'drive', 'hydraulic', 'electrical', 'brake', 'cooling', ...customCategories])];
   
   // Handle manufacturer filter toggle
   const toggleManufacturerFilter = (manufacturer: string) => {
@@ -210,6 +215,11 @@ const Parts = () => {
       image: formData.image
     };
     
+    // If this is a new category, add it to our custom categories
+    if (!categories.includes(formData.category)) {
+      setCustomCategories([...customCategories, formData.category]);
+    }
+    
     setParts([...parts, newPart]);
     setIsAddPartDialogOpen(false);
   };
@@ -224,6 +234,17 @@ const Parts = () => {
     setFilterMaxPrice('');
     setFilterInStock(false);
     setIsFilterDialogOpen(false);
+  };
+
+  const addNewCategory = () => {
+    if (newCategory.trim() !== '') {
+      const category = newCategory.trim();
+      setCustomCategories([...customCategories, category]);
+      setSelectedCategory(category);
+      setNewCategory('');
+      setIsAddCategoryDialogOpen(false);
+      toast.success(`Category "${category}" added successfully`);
+    }
   };
 
   return (
@@ -242,7 +263,11 @@ const Parts = () => {
                 </p>
               </div>
               
-              <div className="mt-4 sm:mt-0">
+              <div className="mt-4 sm:mt-0 flex gap-2">
+                <Button className="gap-2" onClick={() => setIsAddCategoryDialogOpen(true)}>
+                  <Plus size={16} />
+                  <span>Add Category</span>
+                </Button>
                 <Button className="gap-2" onClick={() => setIsAddPartDialogOpen(true)}>
                   <Plus size={16} />
                   <span>Add Parts</span>
@@ -306,16 +331,17 @@ const Parts = () => {
           </BlurContainer>
           
           <Tabs defaultValue="all" className="mb-6" value={selectedCategory} onValueChange={setSelectedCategory}>
-            <TabsList>
-              <TabsTrigger value="all">All Parts</TabsTrigger>
-              <TabsTrigger value="filters">Filters</TabsTrigger>
-              <TabsTrigger value="engine">Engine</TabsTrigger>
-              <TabsTrigger value="drive">Drive System</TabsTrigger>
-              <TabsTrigger value="hydraulic">Hydraulic</TabsTrigger>
-              <TabsTrigger value="electrical">Electrical</TabsTrigger>
+            <TabsList className="flex flex-wrap">
+              {categories.map(category => (
+                <TabsTrigger key={category} value={category}>
+                  {category === 'all' ? 'All Parts' : 
+                    category.charAt(0).toUpperCase() + category.slice(1)}
+                </TabsTrigger>
+              ))}
             </TabsList>
           </Tabs>
           
+          {/* Rest of existing code for displaying parts */}
           {currentView === 'grid' ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredParts.map((part, index) => (
@@ -571,6 +597,33 @@ const Parts = () => {
                     <SelectItem value="stock-desc">Stock (High to Low)</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Add Category Dialog */}
+          <Dialog open={isAddCategoryDialogOpen} onOpenChange={setIsAddCategoryDialogOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Add New Category</DialogTitle>
+                <DialogDescription>
+                  Create a custom category for your parts catalog
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                <Input 
+                  placeholder="Enter new category name" 
+                  value={newCategory} 
+                  onChange={(e) => setNewCategory(e.target.value)} 
+                />
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setIsAddCategoryDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={addNewCategory}>
+                    Add Category
+                  </Button>
+                </div>
               </div>
             </DialogContent>
           </Dialog>
