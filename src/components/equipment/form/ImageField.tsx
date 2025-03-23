@@ -33,10 +33,13 @@ const ImageField: React.FC<ImageFieldProps> = ({ form }) => {
               />
             </div>
             
-            <ImagePreview imageUrl={field.value} />
+            <ImagePreview 
+              imageUrl={field.value}
+              onReset={() => form.setValue('image', '')} 
+            />
             
             <FormDescription>
-              Enter a URL for the equipment image or take a photo
+              Entrez une URL pour l'image de l'équipement ou prenez une photo
             </FormDescription>
             <FormMessage />
           </div>

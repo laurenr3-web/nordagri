@@ -28,4 +28,4 @@ export type ActionCommand =
   | '[ACTION:START_TRACKING]' 
   | '[ACTION:STOP_TRACKING]' 
   | '[ACTION:WEATHER_INFO]' 
-  | string; // For dynamic commands like FIELD_INFO
+  | string; // Pour les commandes dynamiques comme FIELD_INFO
