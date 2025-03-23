@@ -4,8 +4,9 @@ import { Activity, ActiveTracking } from '@/hooks/timetracking/useTimeTracking';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Play, Pause, StopCircle, Timer, MapPin, Tractor } from 'lucide-react';
+import { Clock, Play, Pause, StopCircle, Timer, MapPin, Tractor, CalendarClock } from 'lucide-react';
 import { formatRelativeTime, formatDuration } from '@/lib/utils';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 
 interface ActivityListProps {
   activities: Activity[];
@@ -35,56 +36,57 @@ const ActivityList: React.FC<ActivityListProps> = ({
   }
 
   return (
-    <div className="space-y-4">
-      {activities.map(activity => (
-        <BlurContainer key={activity.id} className="animate-fade-in">
-          <div className="p-4 sm:p-5">
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
-              <div>
-                <h3 className="font-medium text-lg leading-tight mb-1">{activity.taskName}</h3>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Tractor size={14} />
-                  <span>{activity.equipment}</span>
-                  <span className="text-muted-foreground/50">•</span>
-                  <MapPin size={14} />
-                  <span>{activity.field}</span>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {getStatusBadge(activity.status)}
-              </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {activities.map((activity, index) => (
+        <BlurContainer 
+          key={activity.id} 
+          className="overflow-hidden animate-scale-in"
+          style={{ animationDelay: `${index * 0.05}s` } as React.CSSProperties}
+        >
+          <div className="p-4">
+            <div className="flex justify-between items-start mb-3">
+              <h3 className="font-medium text-lg leading-tight">{activity.taskName}</h3>
+              {getStatusBadge(activity.status)}
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Start Time</p>
-                <p className="font-medium">
-                  {new Date(activity.createdAt).toLocaleTimeString()} ({formatRelativeTime(activity.createdAt)})
+            <div className="flex items-center gap-2 text-muted-foreground mb-4">
+              <Tractor size={14} />
+              <span>{activity.equipment}</span>
+              <span className="text-muted-foreground/50">•</span>
+              <MapPin size={14} />
+              <span>{activity.field}</span>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="bg-secondary/30 rounded-md p-3">
+                <div className="flex items-center gap-1 text-sm text-muted-foreground mb-1">
+                  <CalendarClock size={14} />
+                  <span>Started</span>
+                </div>
+                <p className="font-medium text-sm">
+                  {formatRelativeTime(activity.createdAt)}
                 </p>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Duration</p>
-                <div className="flex items-center gap-2">
-                  <Timer size={16} className="text-muted-foreground" />
-                  <p className="font-medium">{formatDuration(activity.duration)}</p>
+              
+              <div className="bg-secondary/30 rounded-md p-3">
+                <div className="flex items-center gap-1 text-sm text-muted-foreground mb-1">
+                  <Timer size={14} />
+                  <span>Duration</span>
                 </div>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Field Size</p>
-                <p className="font-medium">
-                  {activity.fieldSize} ha
+                <p className="font-medium text-sm">
+                  {formatDuration(activity.duration)}
                 </p>
               </div>
             </div>
             
             {activity.notes && (
-              <div className="mb-4">
-                <p className="text-sm text-muted-foreground mb-1">Notes</p>
-                <p className="text-sm bg-secondary/50 p-3 rounded-md">{activity.notes}</p>
+              <div className="mb-4 bg-secondary/20 p-3 rounded-md text-sm">
+                <p className="text-xs text-muted-foreground mb-1">Notes</p>
+                <p className="line-clamp-2">{activity.notes}</p>
               </div>
             )}
             
-            <div className="flex justify-end gap-2">
+            <div className="mt-4 pt-4 border-t border-border flex justify-end gap-2">
               {activeTracking && activeTracking.activityId === activity.id ? (
                 <>
                   {activeTracking.status === 'active' ? (
@@ -127,7 +129,7 @@ const ActivityList: React.FC<ActivityListProps> = ({
                     onClick={() => startTracking(activity.equipmentId, activity.fieldId)}
                   >
                     <Play size={14} />
-                    <span>Start Tracking</span>
+                    <span>Start</span>
                   </Button>
                 )
               )}

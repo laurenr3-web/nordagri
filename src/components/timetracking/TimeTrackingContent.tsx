@@ -31,7 +31,7 @@ const TimeTrackingContent: React.FC<TimeTrackingContentProps> = ({
   onAddActivity
 }) => {
   return (
-    <div className="flex-1 p-4 mt-8">
+    <div className="flex-1 p-6 pt-8">
       {isMapViewActive ? (
         <div className="h-[calc(100vh-220px)] min-h-[500px]">
           <MapView 
@@ -43,7 +43,7 @@ const TimeTrackingContent: React.FC<TimeTrackingContentProps> = ({
           />
         </div>
       ) : (
-        <div className="mt-4">
+        <div className="mt-2">
           <ActivityList 
             activities={activities}
             activeTracking={activeTracking}
