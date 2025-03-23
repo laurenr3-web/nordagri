@@ -21,7 +21,7 @@ const MapView: React.FC<MapViewProps> = ({
   stopTracking
 }) => {
   const mapRef = useRef<any>(null);
-  const useRealMap = false; // Set to true to use the real Google Maps
+  const useRealMap = true; // Changed to true to use the real Google Maps
 
   // For demonstration purposes, we're conditionally rendering either
   // the real map implementation or a mock version

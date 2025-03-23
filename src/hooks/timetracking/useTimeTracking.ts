@@ -14,10 +14,11 @@ export interface Activity {
   status: 'pending' | 'active' | 'paused' | 'completed';
   duration: number;
   createdAt: Date;
-  coordinates?: {
+  location?: {
     lat: number;
     lng: number;
   };
+  description?: string;
   notes?: string;
 }
 
@@ -73,7 +74,8 @@ export const useTimeTracking = () => {
         status: 'pending',
         duration: 0,
         createdAt: new Date(Date.now() - 3600000), // 1 hour ago
-        coordinates: { lat: 48.874716, lng: 2.359014 },
+        location: { lat: 48.874716, lng: 2.359014 },
+        description: 'Plowing North Field',
         notes: 'Prepare field for spring planting'
       },
       {
@@ -87,7 +89,8 @@ export const useTimeTracking = () => {
         status: 'completed',
         duration: 5.5 * 3600, // 5.5 hours in seconds
         createdAt: new Date(Date.now() - 86400000), // 1 day ago
-        coordinates: { lat: 48.854716, lng: 2.339014 },
+        location: { lat: 48.854716, lng: 2.339014 },
+        description: 'Harvesting South Field',
         notes: 'Completed harvesting winter wheat'
       }
     ];

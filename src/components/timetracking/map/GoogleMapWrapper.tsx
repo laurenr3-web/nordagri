@@ -29,7 +29,7 @@ const GoogleMapWrapper: React.FC<GoogleMapWrapperProps> = ({ children, activitie
           new google.maps.Marker({
             position: { lat: activity.location.lat, lng: activity.location.lng },
             map,
-            title: activity.description,
+            title: activity.description || activity.taskName,
           });
         }
       });
@@ -45,8 +45,11 @@ const GoogleMapWrapper: React.FC<GoogleMapWrapperProps> = ({ children, activitie
     document.head.appendChild(script);
 
     return () => {
-      // Remove the script when component unmounts
-      document.head.removeChild(script);
+      // Clean up by removing the script when component unmounts
+      const existingScript = document.querySelector(`script[src*="maps.googleapis.com/maps/api/js"]`);
+      if (existingScript && existingScript.parentNode) {
+        existingScript.parentNode.removeChild(existingScript);
+      }
       // Clean up the global function
       delete window.initMap;
     };
