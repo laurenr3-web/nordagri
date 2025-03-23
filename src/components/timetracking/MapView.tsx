@@ -1,8 +1,43 @@
+
 import React, { useEffect, useRef } from 'react';
 import { Activity, ActiveTracking } from '@/hooks/timetracking/useTimeTracking';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, StopCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+
+// Add type definitions for Google Maps
+interface GoogleMapTypes {
+  Map: new (
+    mapDiv: HTMLElement, 
+    options?: google.maps.MapOptions
+  ) => google.maps.Map;
+  Marker: new (
+    opts?: google.maps.MarkerOptions
+  ) => google.maps.Marker;
+  MapTypeId: {
+    ROADMAP: string;
+    SATELLITE: string;
+    HYBRID: string;
+    TERRAIN: string;
+  };
+  Size: new (
+    width: number,
+    height: number,
+    widthUnit?: string,
+    heightUnit?: string
+  ) => google.maps.Size;
+}
+
+interface GoogleTypes {
+  maps: GoogleMapTypes;
+}
+
+declare global {
+  interface Window {
+    initMap: () => void;
+    google?: GoogleTypes;
+  }
+}
 
 interface MapViewProps {
   activities: Activity[];
@@ -20,8 +55,8 @@ const MapView: React.FC<MapViewProps> = ({
   stopTracking
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<google.maps.Map | null>(null);
-  const markersRef = useRef<google.maps.Marker[]>([]);
+  const mapRef = useRef<any>(null);
+  const markersRef = useRef<any[]>([]);
   const { toast } = useToast();
 
   // Load the Google Maps API dynamically
@@ -245,13 +280,5 @@ const MapView: React.FC<MapViewProps> = ({
     </div>
   );
 };
-
-// Add type definition for initMap callback
-declare global {
-  interface Window {
-    initMap: () => void;
-    google?: any;
-  }
-}
 
 export default MapView;

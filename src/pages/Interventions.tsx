@@ -21,8 +21,44 @@ import { useToast } from '@/hooks/use-toast';
 import InterventionDetailsDialog from '@/components/interventions/InterventionDetailsDialog';
 import NewInterventionDialog from '@/components/interventions/NewInterventionDialog';
 
-// Sample field interventions data
-const interventionsData = [
+// Define type for our intervention
+export interface Intervention {
+  id: number;
+  title: string;
+  equipment: string;
+  equipmentId: number;
+  location: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+  status: 'scheduled' | 'in-progress' | 'completed' | 'canceled';
+  priority: 'high' | 'medium' | 'low';
+  date: Date;
+  duration?: number;
+  scheduledDuration?: number;
+  technician: string;
+  description: string;
+  partsUsed: Array<{ id: number; name: string; quantity: number; }>;
+  notes: string;
+}
+
+// Define type for the form values
+interface InterventionFormValues {
+  title: string;
+  equipment: string;
+  equipmentId: number;
+  location: string;
+  priority: 'high' | 'medium' | 'low';
+  date: Date;
+  scheduledDuration: number;
+  technician: string;
+  description: string;
+  notes: string;
+}
+
+// Sample field interventions data with properly typed status
+const interventionsData: Intervention[] = [
   {
     id: 1,
     title: 'Emergency Repair - Hydraulic System',
@@ -182,42 +218,6 @@ const interventionsData = [
     notes: 'Part of seasonal maintenance program.'
   }
 ];
-
-// Define type for our intervention
-export interface Intervention {
-  id: number;
-  title: string;
-  equipment: string;
-  equipmentId: number;
-  location: string;
-  coordinates: {
-    lat: number;
-    lng: number;
-  };
-  status: 'scheduled' | 'in-progress' | 'completed' | 'canceled';
-  priority: 'high' | 'medium' | 'low';
-  date: Date;
-  duration?: number;
-  scheduledDuration?: number;
-  technician: string;
-  description: string;
-  partsUsed: Array<{ id: number; name: string; quantity: number; }>;
-  notes: string;
-}
-
-// Define type for the form values
-interface InterventionFormValues {
-  title: string;
-  equipment: string;
-  equipmentId: number;
-  location: string;
-  priority: 'high' | 'medium' | 'low';
-  date: Date;
-  scheduledDuration: number;
-  technician: string;
-  description: string;
-  notes: string;
-}
 
 const Interventions = () => {
   const { toast } = useToast();
