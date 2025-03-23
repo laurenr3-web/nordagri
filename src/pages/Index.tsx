@@ -15,7 +15,8 @@ import {
   ClipboardCheck,
   AlertTriangle,
   Clock,
-  CalendarClock
+  CalendarClock,
+  LayoutDashboard
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -201,7 +202,11 @@ const Index = () => {
                 onValueChange={(value) => setCurrentView(value as 'main' | 'calendar' | 'alerts')}
                 className="mt-4 sm:mt-0"
               >
-                <TabsList className="grid w-full grid-cols-2 md:w-auto">
+                <TabsList className="grid w-full grid-cols-3 md:w-auto">
+                  <TabsTrigger value="main" className="gap-2">
+                    <LayoutDashboard size={16} />
+                    <span>Dashboard</span>
+                  </TabsTrigger>
                   <TabsTrigger value="calendar" className="gap-2">
                     <CalendarClock size={16} />
                     <span>June 2023</span>
