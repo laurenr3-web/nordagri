@@ -81,7 +81,7 @@ const Auth = () => {
       async (event, session) => {
         if (session) {
           // Log successful login/signup events
-          if (event === 'SIGNED_IN' || event === 'SIGNED_UP') {
+          if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
             const timestamp = new Date().toISOString();
             console.log(`Auth event: ${event} at ${timestamp}`);
           }
