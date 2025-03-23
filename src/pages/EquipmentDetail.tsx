@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import EquipmentDetails from '@/components/equipment/EquipmentDetails';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { toast } from 'sonner';
 
 // Sample equipment data - in a real app, this would come from an API
 const equipmentData = [{
@@ -78,9 +79,18 @@ const equipmentData = [{
 const EquipmentDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [equipmentState, setEquipmentState] = useState<any[]>(equipmentData);
   
   // Find the equipment with the matching ID
-  const equipment = equipmentData.find(item => item.id === Number(id));
+  const equipmentIndex = equipmentState.findIndex(item => item.id === Number(id));
+  const equipment = equipmentState[equipmentIndex];
+  
+  const handleEquipmentUpdate = (updatedEquipment: any) => {
+    const newEquipmentState = [...equipmentState];
+    newEquipmentState[equipmentIndex] = updatedEquipment;
+    setEquipmentState(newEquipmentState);
+    toast.success('Equipment updated successfully');
+  };
   
   if (!equipment) {
     return (
@@ -123,7 +133,7 @@ const EquipmentDetail = () => {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Equipment
           </Button>
-          <EquipmentDetails equipment={equipment} />
+          <EquipmentDetails equipment={equipment} onUpdate={handleEquipmentUpdate} />
         </div>
       </div>
     </div>

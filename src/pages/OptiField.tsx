@@ -8,19 +8,37 @@ import OptiFieldSummary from '@/components/optifield/OptiFieldSummary';
 import OptiFieldChatInterface from '@/components/optifield/OptiFieldChatInterface';
 import Navbar from '@/components/layout/Navbar';
 import { toast } from 'sonner';
-import { Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Loader2, AlertTriangle, RefreshCw, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useMapService } from '@/services/optiField/mapService';
 
 const OptiField = () => {
   const [selectedView, setSelectedView] = useState<string>("map");
   const [trackingActive, setTrackingActive] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const { isError } = useMapService();
+  const [isApiKeyDialogOpen, setIsApiKeyDialogOpen] = useState<boolean>(false);
+  const [apiKeyInput, setApiKeyInput] = useState<string>('');
+  const { isError, mapApiKey, setAndSaveMapApiKey } = useMapService();
   
   const handleReload = () => {
     window.location.reload();
+  };
+  
+  const handleSaveApiKey = () => {
+    if (apiKeyInput.trim()) {
+      setAndSaveMapApiKey(apiKeyInput.trim());
+      setIsApiKeyDialogOpen(false);
+      // Small delay before reloading to allow state to update
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    } else {
+      toast.error('Please enter a valid API key');
+    }
   };
   
   useEffect(() => {
@@ -34,8 +52,10 @@ const OptiField = () => {
   
   useEffect(() => {
     // Show toast when component is mounted
-    toast.success('OptiField chargé avec succès');
-  }, []);
+    if (!isError) {
+      toast.success('OptiField chargé avec succès');
+    }
+  }, [isError]);
   
   if (isLoading) {
     return (
@@ -61,16 +81,26 @@ const OptiField = () => {
             <Alert variant="destructive" className="mb-2">
               <AlertTitle className="text-lg">Erreur dans le chargement de l'application</AlertTitle>
               <AlertDescription>
-                Nous avons rencontré un problème avec la clé API Google Maps. Veuillez vérifier votre configuration ou réessayer.
+                Nous avons rencontré un problème avec la clé API Google Maps. Veuillez configurer ou vérifier votre clé API.
               </AlertDescription>
             </Alert>
-            <Button 
-              onClick={handleReload} 
-              className="px-4 py-2 bg-primary gap-2 flex items-center"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Recharger la page
-            </Button>
+            <div className="flex gap-4">
+              <Button 
+                onClick={() => setIsApiKeyDialogOpen(true)} 
+                className="px-4 py-2 bg-primary gap-2 flex items-center"
+              >
+                <KeyRound className="h-4 w-4" />
+                Configurer la clé API
+              </Button>
+              <Button 
+                onClick={handleReload} 
+                variant="outline"
+                className="px-4 py-2 gap-2 flex items-center"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Recharger la page
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -120,6 +150,39 @@ const OptiField = () => {
           </div>
         </div>
       </div>
+      
+      {/* API Key Configuration Dialog */}
+      <Dialog open={isApiKeyDialogOpen} onOpenChange={setIsApiKeyDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Configurer la clé API Google Maps</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="api-key">Clé API Google Maps</Label>
+                <Input
+                  id="api-key"
+                  placeholder="Entrez votre clé API Google Maps"
+                  value={apiKeyInput}
+                  onChange={(e) => setApiKeyInput(e.target.value)}
+                />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Pour utiliser les cartes, vous devez fournir une clé API Google Maps valide avec les API Maps JavaScript et Geocoding activées.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsApiKeyDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button onClick={handleSaveApiKey}>
+              Enregistrer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

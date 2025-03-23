@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
 import { 
   Calendar, 
   MapPin, 
@@ -9,8 +10,10 @@ import {
   Tag, 
   BarChart3, 
   Wrench, 
-  AlertTriangle
+  AlertTriangle,
+  Pencil
 } from 'lucide-react';
+import EditEquipmentDialog from './dialogs/EditEquipmentDialog';
 
 interface EquipmentDetailsProps {
   equipment: {
@@ -30,9 +33,12 @@ interface EquipmentDetailsProps {
     purchaseDate: string;
     nextService?: { type: string; due: string };
   };
+  onUpdate?: (updatedEquipment: any) => void;
 }
 
-const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment }) => {
+const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate }) => {
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'operational':
@@ -70,6 +76,13 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment }) => {
 
   const usagePercentage = Math.round((equipment.usage.hours / equipment.usage.target) * 100);
 
+  const handleEquipmentUpdate = (updatedEquipment: any) => {
+    if (onUpdate) {
+      onUpdate(updatedEquipment);
+    }
+    setIsEditDialogOpen(false);
+  };
+
   return (
     <div className="space-y-6">
       <div className="relative aspect-video overflow-hidden rounded-md">
@@ -85,9 +98,20 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment }) => {
         </div>
       </div>
 
-      <div>
-        <h2 className="text-2xl font-semibold">{equipment.name}</h2>
-        <p className="text-muted-foreground">{equipment.manufacturer} • {equipment.model} • {equipment.year}</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-semibold">{equipment.name}</h2>
+          <p className="text-muted-foreground">{equipment.manufacturer} • {equipment.model} • {equipment.year}</p>
+        </div>
+        <Button 
+          onClick={() => setIsEditDialogOpen(true)} 
+          variant="outline" 
+          size="sm"
+          className="flex items-center gap-1"
+        >
+          <Pencil size={16} />
+          Modifier
+        </Button>
       </div>
 
       <Separator />
@@ -173,6 +197,16 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment }) => {
           </div>
         </div>
       </div>
+      
+      {/* Edit Equipment Dialog */}
+      {isEditDialogOpen && (
+        <EditEquipmentDialog
+          isOpen={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          equipment={equipment}
+          onSubmit={handleEquipmentUpdate}
+        />
+      )}
     </div>
   );
 };

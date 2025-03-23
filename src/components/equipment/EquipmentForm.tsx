@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,8 +17,9 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { toast } from '@/hooks/use-toast';
-import { Plus } from 'lucide-react';
+import { toast } from 'sonner';
+import { Camera, Plus } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const equipmentFormSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -46,6 +47,10 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ onSubmit, onCancel }) => 
   const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
   const [newCategory, setNewCategory] = useState('');
   const [customCategories, setCustomCategories] = useState<string[]>([]);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [streamActive, setStreamActive] = useState(false);
 
   const form = useForm<EquipmentFormValues>({
     resolver: zodResolver(equipmentFormSchema),
@@ -64,6 +69,58 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ onSubmit, onCancel }) => 
       image: 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=500&auto=format&fit=crop',
     },
   });
+
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment' } 
+      });
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        setStreamActive(true);
+      }
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      toast.error('Could not access camera. Please check permissions.');
+    }
+  };
+
+  const stopCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+      tracks.forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+      setStreamActive(false);
+    }
+  };
+
+  const captureImage = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const context = canvas.getContext('2d');
+      
+      if (context) {
+        // Set canvas dimensions to match video
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        // Draw the video frame to the canvas
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Convert canvas content to data URL
+        const imageDataUrl = canvas.toDataURL('image/jpeg');
+        setCapturedImage(imageDataUrl);
+        
+        // Update form
+        form.setValue('image', imageDataUrl);
+        
+        // Stop the camera stream
+        stopCamera();
+      }
+    }
+  };
 
   const handleSubmit = (data: EquipmentFormValues) => {
     try {
@@ -93,6 +150,13 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ onSubmit, onCancel }) => 
       });
     }
   };
+
+  // Clean up camera stream when component unmounts
+  React.useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
 
   return (
     <>
@@ -290,14 +354,75 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ onSubmit, onCancel }) => 
               name="image"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Image URL</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter image URL" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Enter a URL for the equipment image
-                  </FormDescription>
-                  <FormMessage />
+                  <FormLabel>Image</FormLabel>
+                  <div className="flex flex-col space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <FormControl>
+                        <Input placeholder="Enter image URL" {...field} />
+                      </FormControl>
+                      
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="icon" type="button">
+                            <Camera className="h-4 w-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80 p-0">
+                          <div className="p-4 space-y-4">
+                            <h4 className="font-medium">Take Photo</h4>
+                            
+                            {/* Video preview for camera */}
+                            <div className="relative bg-muted rounded-md overflow-hidden">
+                              <video 
+                                ref={videoRef} 
+                                autoPlay 
+                                playsInline
+                                className="w-full aspect-square object-cover"
+                              />
+                              {/* Hidden canvas for image capture */}
+                              <canvas ref={canvasRef} className="hidden" />
+                            </div>
+
+                            <div className="flex justify-between">
+                              {!streamActive ? (
+                                <Button type="button" onClick={startCamera} className="w-full">
+                                  <Camera className="mr-2 h-4 w-4" />
+                                  Start Camera
+                                </Button>
+                              ) : (
+                                <div className="flex space-x-2 w-full">
+                                  <Button type="button" onClick={captureImage} variant="secondary" className="flex-1">
+                                    Take Photo
+                                  </Button>
+                                  <Button type="button" onClick={stopCamera} variant="outline" className="flex-1">
+                                    Cancel
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    
+                    {/* Image preview */}
+                    {field.value && (
+                      <div className="mt-2 relative bg-muted rounded-md overflow-hidden w-full">
+                        <div className="aspect-square w-full max-w-xs mx-auto">
+                          <img
+                            src={field.value}
+                            alt="Equipment preview"
+                            className="object-cover w-full h-full"
+                          />
+                        </div>
+                      </div>
+                    )}
+                    
+                    <FormDescription>
+                      Enter a URL for the equipment image or take a photo
+                    </FormDescription>
+                    <FormMessage />
+                  </div>
                 </FormItem>
               )}
             />
