@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import OptiFieldMap from '@/components/optifield/OptiFieldMap';
@@ -15,19 +14,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMapService } from '@/services/optiField/mapService';
-
 const OptiField = () => {
   const [selectedView, setSelectedView] = useState<string>("map");
   const [trackingActive, setTrackingActive] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isApiKeyDialogOpen, setIsApiKeyDialogOpen] = useState<boolean>(false);
   const [apiKeyInput, setApiKeyInput] = useState<string>('');
-  const { isError, mapApiKey, setAndSaveMapApiKey } = useMapService();
-  
+  const {
+    isError,
+    mapApiKey,
+    setAndSaveMapApiKey
+  } = useMapService();
   const handleReload = () => {
     window.location.reload();
   };
-  
   const handleSaveApiKey = () => {
     if (apiKeyInput.trim()) {
       setAndSaveMapApiKey(apiKeyInput.trim());
@@ -40,26 +40,21 @@ const OptiField = () => {
       toast.error('Please enter a valid API key');
     }
   };
-  
   useEffect(() => {
     // Simulate loading to ensure components have time to initialize
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 1000);
-    
     return () => clearTimeout(timer);
   }, []);
-  
   useEffect(() => {
     // Show toast when component is mounted
     if (!isError) {
       toast.success('OptiField chargé avec succès');
     }
   }, [isError]);
-  
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen">
+    return <div className="flex min-h-screen">
         <Navbar />
         <div className="flex-1 md:ml-64 flex items-center justify-center">
           <div className="flex flex-col items-center justify-center gap-4">
@@ -67,13 +62,10 @@ const OptiField = () => {
             <p className="text-lg font-medium">Chargement d'OptiField...</p>
           </div>
         </div>
-      </div>
-    );
+      </div>;
   }
-  
   if (isError) {
-    return (
-      <div className="flex min-h-screen">
+    return <div className="flex min-h-screen">
         <Navbar />
         <div className="flex-1 md:ml-64 flex items-center justify-center p-4">
           <div className="flex flex-col items-center justify-center gap-6 max-w-md">
@@ -85,45 +77,28 @@ const OptiField = () => {
               </AlertDescription>
             </Alert>
             <div className="flex gap-4">
-              <Button 
-                onClick={() => setIsApiKeyDialogOpen(true)} 
-                className="px-4 py-2 bg-primary gap-2 flex items-center"
-              >
+              <Button onClick={() => setIsApiKeyDialogOpen(true)} className="px-4 py-2 bg-primary gap-2 flex items-center">
                 <KeyRound className="h-4 w-4" />
                 Configurer la clé API
               </Button>
-              <Button 
-                onClick={handleReload} 
-                variant="outline"
-                className="px-4 py-2 gap-2 flex items-center"
-              >
+              <Button onClick={handleReload} variant="outline" className="px-4 py-2 gap-2 flex items-center">
                 <RefreshCw className="h-4 w-4" />
                 Recharger la page
               </Button>
             </div>
           </div>
         </div>
-      </div>
-    );
+      </div>;
   }
-  
-  return (
-    <div className="flex min-h-screen">
+  return <div className="flex min-h-screen">
       <Navbar />
       
       <div className="flex-1 md:ml-64">
-        <div className="container pt-6 pb-16 mx-auto">
+        <div className="container pt-6 pb-16 py-[116px] my-0 px-[164px] mx-[159px]">
           <div className="max-w-7xl mx-auto">
-            <OptiFieldHeader 
-              trackingActive={trackingActive}
-              setTrackingActive={setTrackingActive}
-            />
+            <OptiFieldHeader trackingActive={trackingActive} setTrackingActive={setTrackingActive} />
             
-            <Tabs 
-              value={selectedView} 
-              onValueChange={setSelectedView}
-              className="my-6"
-            >
+            <Tabs value={selectedView} onValueChange={setSelectedView} className="my-6">
               <TabsList className="grid w-full grid-cols-3 mb-6">
                 <TabsTrigger value="map">Carte</TabsTrigger>
                 <TabsTrigger value="summary">Analyses</TabsTrigger>
@@ -143,10 +118,7 @@ const OptiField = () => {
               </TabsContent>
             </Tabs>
             
-            <OptiFieldChatInterface 
-              trackingActive={trackingActive}
-              setTrackingActive={setTrackingActive}
-            />
+            <OptiFieldChatInterface trackingActive={trackingActive} setTrackingActive={setTrackingActive} />
           </div>
         </div>
       </div>
@@ -161,12 +133,7 @@ const OptiField = () => {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="api-key">Clé API Google Maps</Label>
-                <Input
-                  id="api-key"
-                  placeholder="Entrez votre clé API Google Maps"
-                  value={apiKeyInput}
-                  onChange={(e) => setApiKeyInput(e.target.value)}
-                />
+                <Input id="api-key" placeholder="Entrez votre clé API Google Maps" value={apiKeyInput} onChange={e => setApiKeyInput(e.target.value)} />
               </div>
               <p className="text-sm text-muted-foreground">
                 Pour utiliser les cartes, vous devez fournir une clé API Google Maps valide avec les API Maps JavaScript et Geocoding activées.
@@ -183,8 +150,6 @@ const OptiField = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>;
 };
-
 export default OptiField;
