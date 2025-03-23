@@ -19,6 +19,7 @@ interface MaintenanceContentProps {
   updateTaskStatus: (taskId: number, status: MaintenanceStatus) => void;
   updateTaskPriority: (taskId: number, priority: MaintenancePriority) => void;
   deleteTask: (taskId: number) => void;
+  isMobile?: boolean;
 }
 
 const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
@@ -29,7 +30,8 @@ const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
   setIsNewTaskDialogOpen,
   updateTaskStatus,
   updateTaskPriority,
-  deleteTask
+  deleteTask,
+  isMobile = false
 }) => {
   const upcomingTasks = getUpcomingTasks(tasks);
 
@@ -38,6 +40,7 @@ const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
       <MaintenanceNavigation
         currentView={currentView}
         setCurrentView={setCurrentView}
+        isMobile={isMobile}
       />
     
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
