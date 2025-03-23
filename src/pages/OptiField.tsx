@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, Suspense } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navbar from '@/components/layout/Navbar';
@@ -234,7 +233,7 @@ const OptiField = () => {
                   autoComplete="off"
                 />
               </div>
-              <Alert variant="info" className="bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-900">
+              <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-900">
                 <AlertDescription className="text-sm text-muted-foreground">
                   Vous pouvez obtenir une clé API dans la <a href="https://console.developers.google.com/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Console Google Cloud</a>.
                   Activez les API Maps JavaScript et Geocoding.
