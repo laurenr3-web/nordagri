@@ -13,6 +13,7 @@ interface StatsCardProps {
     isPositive: boolean;
   };
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export function StatsCard({ 
@@ -21,13 +22,15 @@ export function StatsCard({
   icon, 
   description, 
   trend, 
-  className 
+  className,
+  style
 }: StatsCardProps) {
   return (
     <BlurContainer 
       className={cn("p-6 animate-fade-in", className)}
       intensity="light"
       raised
+      style={style}
     >
       <div className="flex items-start justify-between">
         <div>

@@ -19,6 +19,7 @@ interface EquipmentCardProps {
     due: string;
   };
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export function EquipmentCard({
@@ -28,7 +29,8 @@ export function EquipmentCard({
   status,
   usage,
   nextService,
-  className
+  className,
+  style
 }: EquipmentCardProps) {
   const statusColors = {
     operational: "bg-agri-100 text-agri-800",
@@ -48,6 +50,7 @@ export function EquipmentCard({
     <BlurContainer
       className={cn("overflow-hidden group animate-scale-in", className)}
       raised
+      style={style}
     >
       <div className="aspect-video relative overflow-hidden">
         <img 

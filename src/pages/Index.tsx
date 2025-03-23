@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { DashboardSection } from '@/components/dashboard/DashboardSection';
@@ -7,6 +6,7 @@ import { EquipmentCard } from '@/components/dashboard/EquipmentCard';
 import { MaintenanceCalendar } from '@/components/dashboard/MaintenanceCalendar';
 import { Button } from '@/components/ui/button';
 import { BlurContainer } from '@/components/ui/blur-container';
+import { cn } from '@/lib/utils';
 import { 
   Tractor, 
   Wrench, 
@@ -206,7 +206,7 @@ const Index = () => {
             </div>
           </header>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8" style={{ '--animation-delay': '0.1s' } as React.CSSProperties}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {statsData.map((stat, index) => (
               <StatsCard 
                 key={index}
