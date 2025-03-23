@@ -30,7 +30,6 @@ export const useGoogleMaps = (): UseGoogleMapsReturnType => {
     if (!mapApiKey || mapApiKey.trim() === '') {
       console.error('No Google Maps API key provided');
       setError(new Error('Clé API Google Maps manquante'));
-      toast.error('Clé API Google Maps manquante');
       return false;
     }
 
@@ -61,7 +60,6 @@ export const useGoogleMaps = (): UseGoogleMapsReturnType => {
         console.error('Error loading Google Maps script:', e);
         setError(err);
         setIsLoading(false);
-        toast.error('Erreur lors du chargement de l\'API Google Maps');
       };
       
       document.head.appendChild(script);
@@ -72,7 +70,6 @@ export const useGoogleMaps = (): UseGoogleMapsReturnType => {
       setError(error);
       setIsLoading(false);
       console.error('Error creating script element:', error);
-      toast.error('Erreur lors du chargement de l\'API Google Maps');
       return false;
     }
   }, [mapApiKey, isLoading]);
@@ -129,7 +126,6 @@ export const useGoogleMaps = (): UseGoogleMapsReturnType => {
       const error = err instanceof Error ? err : new Error('Error initializing map');
       setError(error);
       console.error('Error initializing map:', error);
-      toast.error('Erreur lors de l\'initialisation de la carte');
     }
   }, [loadGoogleMapsScript, mapApiKey]);
 
@@ -155,7 +151,6 @@ export const useGoogleMaps = (): UseGoogleMapsReturnType => {
     console.log('Attempting to load Google Maps on component mount');
     loadGoogleMapsScript();
 
-    // Cleanup function
     return () => {
       // Remove the callback
       if (window[callbackName]) {
@@ -164,7 +159,6 @@ export const useGoogleMaps = (): UseGoogleMapsReturnType => {
       
       // Reset map instance
       if (mapInstance) {
-        console.log('Cleaning up map instance');
         setMapInstance(null);
       }
       

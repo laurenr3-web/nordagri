@@ -6,12 +6,14 @@ export const useMapService = () => {
   const [mapApiKey, setMapApiKey] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
+  const localStorageKey = 'gmaps_api_key';
 
   // Initialize
   useEffect(() => {
     // Try to get API key from localStorage
     try {
-      const savedApiKey = localStorage.getItem('gmaps_api_key');
+      const savedApiKey = localStorage.getItem(localStorageKey);
+      
       if (savedApiKey && savedApiKey.trim() !== '') {
         console.log('Using saved API key from localStorage');
         setMapApiKey(savedApiKey);
@@ -24,18 +26,16 @@ export const useMapService = () => {
         if (defaultApiKey && defaultApiKey.trim() !== '') {
           console.log('Using default API key');
           setMapApiKey(defaultApiKey);
-          localStorage.setItem('gmaps_api_key', defaultApiKey);
+          localStorage.setItem(localStorageKey, defaultApiKey);
           setIsError(false);
         } else {
           console.error('Clé API Google Maps non définie');
           setIsError(true);
-          toast.error('Clé API Google Maps manquante');
         }
       }
     } catch (error) {
       console.error('Error initializing map service:', error);
       setIsError(true);
-      toast.error('Erreur lors de l\'initialisation du service de carte');
     } finally {
       setIsLoading(false);
     }
@@ -51,11 +51,11 @@ export const useMapService = () => {
         return;
       }
       
-      console.log('Saving new API key to localStorage');
+      console.log('Saving new API key to localStorage:', key.substring(0, 8) + '...');
+      localStorage.setItem(localStorageKey, key);
       setMapApiKey(key);
-      localStorage.setItem('gmaps_api_key', key);
-      toast.success('Clé API Google Maps mise à jour');
       setIsError(false);
+      toast.success('Clé API Google Maps mise à jour');
     } catch (error) {
       console.error('Error saving map API key:', error);
       setIsError(true);
