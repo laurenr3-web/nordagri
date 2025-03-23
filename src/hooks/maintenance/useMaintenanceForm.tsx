@@ -1,19 +1,30 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { MaintenanceFormValues, MaintenancePriority, MaintenanceType } from '@/hooks/maintenance/maintenanceSlice';
 
-export const useMaintenanceForm = (onSubmit: (values: MaintenanceFormValues) => void, onClose: (open: boolean) => void) => {
+export const useMaintenanceForm = (
+  onSubmit: (values: MaintenanceFormValues) => void, 
+  onClose: (open: boolean) => void,
+  initialDate?: Date
+) => {
   const { toast } = useToast();
   const [title, setTitle] = useState('');
   const [equipment, setEquipment] = useState('');
   const [equipmentId, setEquipmentId] = useState(1);
   const [type, setType] = useState<MaintenanceType>('preventive');
   const [priority, setPriority] = useState<MaintenancePriority>('medium');
-  const [dueDate, setDueDate] = useState<Date>(new Date());
+  const [dueDate, setDueDate] = useState<Date>(initialDate || new Date());
   const [estimatedDuration, setEstimatedDuration] = useState('2');
   const [assignedTo, setAssignedTo] = useState('');
   const [notes, setNotes] = useState('');
+  
+  // Update dueDate when initialDate changes
+  useEffect(() => {
+    if (initialDate) {
+      setDueDate(initialDate);
+    }
+  }, [initialDate]);
   
   // Staff management
   const [isAddStaffDialogOpen, setIsAddStaffDialogOpen] = useState(false);

@@ -38,6 +38,7 @@ const TaskTabs: React.FC<TaskTabsProps> = ({
 }) => {
   const [selectedTask, setSelectedTask] = useState<MaintenanceTask | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   
   const upcomingTasks = getUpcomingTasks(tasks);
   const activeTasks = getActiveTasks(tasks);
@@ -46,6 +47,11 @@ const TaskTabs: React.FC<TaskTabsProps> = ({
   const handleViewDetails = (task: MaintenanceTask) => {
     setSelectedTask(task);
     setIsDetailsDialogOpen(true);
+  };
+  
+  const handleAddTask = (date?: Date) => {
+    setSelectedDate(date);
+    setIsNewTaskDialogOpen(true);
   };
   
   // Convert tasks to calendar events
@@ -142,6 +148,7 @@ const TaskTabs: React.FC<TaskTabsProps> = ({
             events={taskEvents}
             month={currentMonth}
             className="animate-scale-in"
+            onAddTask={handleAddTask}
           />
         </TabsContent>
       </Tabs>

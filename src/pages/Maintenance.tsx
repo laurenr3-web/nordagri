@@ -10,6 +10,7 @@ import MaintenanceContent from '@/components/maintenance/MaintenanceContent';
 const Maintenance = () => {
   const [currentView, setCurrentView] = useState('upcoming');
   const [currentMonth] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   
   const {
     tasks, 
@@ -21,6 +22,14 @@ const Maintenance = () => {
     updateTaskPriority,
     deleteTask
   } = useMaintenanceSlice(maintenanceTasks);
+
+  // Handle opening dialog with a preselected date
+  const handleOpenNewTaskDialog = (open: boolean) => {
+    if (!open) {
+      setSelectedDate(undefined);
+    }
+    setIsNewTaskDialogOpen(open);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -47,8 +56,9 @@ const Maintenance = () => {
       
       <NewTaskDialog 
         open={isNewTaskDialogOpen}
-        onOpenChange={setIsNewTaskDialogOpen}
+        onOpenChange={handleOpenNewTaskDialog}
         onSubmit={handleAddTask}
+        initialDate={selectedDate}
       />
     </div>
   );

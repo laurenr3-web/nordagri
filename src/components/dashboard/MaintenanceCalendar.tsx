@@ -2,6 +2,8 @@
 import React from 'react';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Plus, CalendarPlus } from 'lucide-react';
 
 type MaintenanceEvent = {
   id: string;
@@ -16,12 +18,14 @@ interface MaintenanceCalendarProps {
   events: MaintenanceEvent[];
   month: Date;
   className?: string;
+  onAddTask?: (date?: Date) => void;
 }
 
 export function MaintenanceCalendar({
   events,
   month,
-  className
+  className,
+  onAddTask
 }: MaintenanceCalendarProps) {
   // Helper function to get days in month
   const getDaysInMonth = (year: number, month: number) => {
@@ -70,6 +74,14 @@ export function MaintenanceCalendar({
     return "bg-agri-50 dark:bg-agri-900/20";
   };
   
+  // Handle adding task on a specific date
+  const handleAddTaskOnDay = (day: number) => {
+    if (!onAddTask) return;
+    
+    const selectedDate = new Date(month.getFullYear(), month.getMonth(), day);
+    onAddTask(selectedDate);
+  };
+  
   // Format month name
   const monthName = month.toLocaleString('default', { month: 'long' });
   const year = month.getFullYear();
@@ -79,9 +91,22 @@ export function MaintenanceCalendar({
       className={cn("p-4", className)}
       raised
     >
-      <div className="mb-4">
-        <h3 className="font-medium">{monthName} {year}</h3>
-        <p className="text-sm text-muted-foreground">Maintenance Schedule</p>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="font-medium">{monthName} {year}</h3>
+          <p className="text-sm text-muted-foreground">Maintenance Schedule</p>
+        </div>
+        {onAddTask && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex items-center gap-1"
+            onClick={() => onAddTask()}
+          >
+            <CalendarPlus className="h-4 w-4" />
+            <span>Add Task</span>
+          </Button>
+        )}
       </div>
       
       <div className="grid grid-cols-7 gap-1 mb-2">
@@ -98,13 +123,29 @@ export function MaintenanceCalendar({
             key={index} 
             className={cn(
               "aspect-square rounded-md flex flex-col relative",
-              day ? "bg-secondary/50 hover:bg-secondary/80 transition-colors" : "",
+              day ? "bg-secondary/50 hover:bg-secondary/80 transition-colors cursor-pointer" : "",
               getCellColor(day)
             )}
+            onClick={() => day && handleAddTaskOnDay(day)}
           >
             {day && (
               <>
-                <span className="text-xs p-1">{day}</span>
+                <div className="flex justify-between items-center p-1">
+                  <span className="text-xs">{day}</span>
+                  {onAddTask && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100 hover:opacity-100 hover:bg-primary/10"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddTaskOnDay(day);
+                      }}
+                    >
+                      <Plus className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
                 {eventsByDay[day] && (
                   <div className="px-1 pb-1">
                     {eventsByDay[day].slice(0, 2).map((event, eventIndex) => (

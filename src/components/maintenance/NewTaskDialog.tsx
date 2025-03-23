@@ -19,9 +19,10 @@ interface NewTaskDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: MaintenanceFormValues) => void;
+  initialDate?: Date;
 }
 
-const NewTaskDialog: React.FC<NewTaskDialogProps> = ({ open, onOpenChange, onSubmit }) => {
+const NewTaskDialog: React.FC<NewTaskDialogProps> = ({ open, onOpenChange, onSubmit, initialDate }) => {
   const {
     // Form values
     title,
@@ -55,7 +56,7 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({ open, onOpenChange, onSub
     
     // Form submission
     handleSubmit,
-  } = useMaintenanceForm(onSubmit, onOpenChange);
+  } = useMaintenanceForm(onSubmit, onOpenChange, initialDate);
 
   return (
     <>
@@ -65,6 +66,11 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({ open, onOpenChange, onSub
             <DialogTitle>Create New Maintenance Task</DialogTitle>
             <DialogDescription>
               Fill in the details to schedule a new maintenance task.
+              {initialDate && (
+                <span className="block mt-1 text-sm font-medium">
+                  Scheduled for: {initialDate.toLocaleDateString()}
+                </span>
+              )}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
