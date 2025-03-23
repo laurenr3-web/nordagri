@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navbar from "@/components/layout/Navbar";
@@ -10,27 +9,26 @@ import { SettingsEquipment } from '@/components/settings/SettingsEquipment';
 import { SettingsSecurity } from '@/components/settings/SettingsSecurity';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { useLocation, useNavigate } from 'react-router-dom';
-
 const Settings = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
   const tabParam = searchParams.get('tab');
-  
+
   // Default to 'essentials' tab if none is specified
   const defaultTab = tabParam || 'essentials';
-  
+
   // Update URL when tab changes
   const handleTabChange = (value: string) => {
     searchParams.set('tab', value);
-    navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
+    navigate(`${location.pathname}?${searchParams.toString()}`, {
+      replace: true
+    });
   };
-
-  return (
-    <SidebarProvider>
+  return <SidebarProvider>
       <div className="min-h-screen bg-background flex">
         <Navbar />
-        <div className="flex-1 p-8 pl-72">
+        <div className="flex-1 p-8 pl-72 px-[239px] rounded-none mx-0 my-[72px]">
           <div className="max-w-5xl mx-auto">
             <h1 className="text-3xl font-bold mb-6">Settings</h1>
             
@@ -71,8 +69,6 @@ const Settings = () => {
           </div>
         </div>
       </div>
-    </SidebarProvider>
-  );
+    </SidebarProvider>;
 };
-
 export default Settings;
