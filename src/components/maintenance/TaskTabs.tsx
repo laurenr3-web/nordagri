@@ -1,0 +1,95 @@
+
+import React from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BlurContainer } from '@/components/ui/blur-container';
+import { Button } from '@/components/ui/button';
+import { MaintenanceTask } from '@/hooks/maintenance/maintenanceSlice';
+import { MaintenanceCalendar } from '@/components/dashboard/MaintenanceCalendar';
+import TaskCard from './TaskCard';
+import { getUpcomingTasks, getActiveTasks, getCompletedTasks } from './MaintenanceUtils';
+
+interface TaskTabsProps {
+  tasks: MaintenanceTask[];
+  currentView: string;
+  setCurrentView: (view: string) => void;
+  currentMonth: Date;
+  setIsNewTaskDialogOpen: (open: boolean) => void;
+}
+
+const TaskTabs: React.FC<TaskTabsProps> = ({ 
+  tasks, 
+  currentView, 
+  setCurrentView,
+  currentMonth,
+  setIsNewTaskDialogOpen
+}) => {
+  const upcomingTasks = getUpcomingTasks(tasks);
+  const activeTasks = getActiveTasks(tasks);
+  const completedTasks = getCompletedTasks(tasks);
+  
+  // Convert tasks to calendar events
+  const taskEvents = tasks.map(task => ({
+    id: task.id.toString(),
+    title: task.title,
+    date: task.dueDate,
+    duration: task.estimatedDuration,
+    priority: task.priority === 'critical' ? 'high' : 
+             task.priority === 'low' ? 'low' : 
+             'medium' as 'high' | 'medium' | 'low',
+    equipment: task.equipment
+  }));
+
+  return (
+    <Tabs defaultValue="upcoming" className="mb-6" value={currentView} onValueChange={setCurrentView}>
+      <TabsList>
+        <TabsTrigger value="upcoming">Upcoming ({upcomingTasks.length})</TabsTrigger>
+        <TabsTrigger value="active">Active ({activeTasks.length})</TabsTrigger>
+        <TabsTrigger value="completed">Completed ({completedTasks.length})</TabsTrigger>
+        <TabsTrigger value="calendar">Calendar</TabsTrigger>
+      </TabsList>
+      
+      <TabsContent value="upcoming" className="mt-6">
+        {upcomingTasks.length > 0 ? (
+          upcomingTasks.map(task => <TaskCard key={task.id} task={task} />)
+        ) : (
+          <BlurContainer className="p-8 text-center">
+            <p className="text-muted-foreground">No upcoming maintenance tasks scheduled.</p>
+            <Button variant="link" className="mt-2" onClick={() => setIsNewTaskDialogOpen(true)}>
+              Schedule new task
+            </Button>
+          </BlurContainer>
+        )}
+      </TabsContent>
+      
+      <TabsContent value="active" className="mt-6">
+        {activeTasks.length > 0 ? (
+          activeTasks.map(task => <TaskCard key={task.id} task={task} />)
+        ) : (
+          <BlurContainer className="p-8 text-center">
+            <p className="text-muted-foreground">No active maintenance tasks at the moment.</p>
+          </BlurContainer>
+        )}
+      </TabsContent>
+      
+      <TabsContent value="completed" className="mt-6">
+        {completedTasks.length > 0 ? (
+          completedTasks.map(task => <TaskCard key={task.id} task={task} />)
+        ) : (
+          <BlurContainer className="p-8 text-center">
+            <p className="text-muted-foreground">No completed maintenance tasks yet.</p>
+          </BlurContainer>
+        )}
+      </TabsContent>
+      
+      <TabsContent value="calendar" className="mt-6">
+        <MaintenanceCalendar 
+          events={taskEvents}
+          month={currentMonth}
+          className="animate-scale-in"
+        />
+      </TabsContent>
+    </Tabs>
+  );
+};
+
+export default TaskTabs;

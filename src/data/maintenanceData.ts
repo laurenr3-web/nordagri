@@ -1,0 +1,112 @@
+
+import { MaintenanceTask } from '@/hooks/maintenance/maintenanceSlice';
+
+// Sample maintenance tasks
+export const maintenanceTasks: MaintenanceTask[] = [
+  {
+    id: 1,
+    title: 'Oil and Filter Change',
+    equipment: 'John Deere 8R 410',
+    equipmentId: 1,
+    type: 'preventive',
+    status: 'scheduled',
+    priority: 'medium',
+    dueDate: new Date(2023, 5, 15),
+    estimatedDuration: 2,
+    assignedTo: 'Michael Torres',
+    notes: 'Use synthetic oil as specified in manual. Check fuel filters as well.'
+  },
+  {
+    id: 2,
+    title: 'Hydraulic System Inspection',
+    equipment: 'Case IH Axial-Flow',
+    equipmentId: 2,
+    type: 'preventive',
+    status: 'in-progress',
+    priority: 'high',
+    dueDate: new Date(2023, 5, 12),
+    estimatedDuration: 3,
+    assignedTo: 'David Chen',
+    notes: 'Previous inspection showed minor leak in rear hydraulic line. Check carefully.'
+  },
+  {
+    id: 3,
+    title: 'Engine Repair',
+    equipment: 'Kubota M7-172',
+    equipmentId: 3,
+    type: 'corrective',
+    status: 'in-progress',
+    priority: 'critical',
+    dueDate: new Date(2023, 5, 10),
+    estimatedDuration: 8,
+    assignedTo: 'Sarah Johnson',
+    notes: 'Engine overheating issue. Suspected damaged radiator and cooling system problems.'
+  },
+  {
+    id: 4,
+    title: 'Brake System Check',
+    equipment: 'New Holland T6.180',
+    equipmentId: 5,
+    type: 'preventive',
+    status: 'completed',
+    priority: 'medium',
+    dueDate: new Date(2023, 5, 8),
+    completedDate: new Date(2023, 5, 8),
+    estimatedDuration: 2,
+    actualDuration: 1.5,
+    assignedTo: 'Michael Torres',
+    notes: 'Routine inspection completed. Brake pads still in good condition.'
+  },
+  {
+    id: 5,
+    title: 'Transmission Service',
+    equipment: 'Fendt 942 Vario',
+    equipmentId: 6,
+    type: 'preventive',
+    status: 'scheduled',
+    priority: 'high',
+    dueDate: new Date(2023, 5, 14),
+    estimatedDuration: 4,
+    assignedTo: 'David Chen',
+    notes: 'Due to hours of operation. Follow service manual procedure F-942-TS.'
+  },
+  {
+    id: 6,
+    title: 'Tire Replacement',
+    equipment: 'Massey Ferguson 8S.245',
+    equipmentId: 4,
+    type: 'corrective',
+    status: 'scheduled',
+    priority: 'medium',
+    dueDate: new Date(2023, 5, 20),
+    estimatedDuration: 3,
+    assignedTo: 'Sarah Johnson',
+    notes: 'Replace worn rear tires. New tires ordered and expected to arrive on June 18.'
+  },
+  {
+    id: 7,
+    title: 'Annual Service',
+    equipment: 'John Deere 8R 410',
+    equipmentId: 1,
+    type: 'preventive',
+    status: 'scheduled',
+    priority: 'medium',
+    dueDate: new Date(2023, 6, 5),
+    estimatedDuration: 6,
+    assignedTo: 'Michael Torres',
+    notes: 'Complete annual service according to manufacturer specifications.'
+  },
+  {
+    id: 8,
+    title: 'Electrical System Repair',
+    equipment: 'Kubota M7-172',
+    equipmentId: 3,
+    type: 'corrective',
+    status: 'pending-parts',
+    priority: 'high',
+    dueDate: new Date(2023, 5, 16),
+    estimatedDuration: 4,
+    assignedTo: 'David Chen',
+    notes: 'Intermittent electrical issues. Waiting for diagnostic module to arrive.'
+  }
+];
