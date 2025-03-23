@@ -7,9 +7,11 @@ import {
   MapPin,
   Navigation,
   Maximize,
-  Minimize
+  Minimize,
+  Tractor
 } from 'lucide-react';
 import MapPlaceholder from './MapPlaceholder';
+import { toast } from 'sonner';
 
 interface OptiFieldMapProps {
   trackingActive: boolean;
@@ -19,6 +21,7 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [mapApiKey, setMapApiKey] = useState<string>('AIzaSyDYNpssW98FUa34qBKCD6JdI7iWYnzFxyI');
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const [selectedMachines, setSelectedMachines] = useState<string[]>([]);
   const mapContainerRef = useRef<HTMLDivElement>(null);
 
   const toggleFullscreen = () => {
@@ -30,6 +33,16 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
       localStorage.setItem('gmaps_api_key', mapApiKey);
       setShowApiKeyInput(false);
     }
+  };
+
+  const handleMachineSelected = (machineName: string) => {
+    // For demonstration, we'll use the toast to show the selection
+    toast.success(`Machine sélectionnée: ${machineName}`);
+    setSelectedMachines(prev => 
+      prev.includes(machineName) 
+        ? prev.filter(name => name !== machineName) 
+        : [...prev, machineName]
+    );
   };
 
   useEffect(() => {
@@ -78,6 +91,22 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
           {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
         </Button>
       </div>
+
+      {selectedMachines.length > 0 && (
+        <div className="absolute top-4 left-4 z-10">
+          <div className="bg-white/80 backdrop-blur-sm px-3 py-2 rounded-lg shadow-sm">
+            <div className="text-sm font-medium mb-1">Machines sélectionnées</div>
+            <div className="flex flex-col gap-1">
+              {selectedMachines.map(machine => (
+                <div key={machine} className="flex items-center gap-2 text-xs">
+                  <Tractor className="h-3 w-3" />
+                  <span>{machine}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div ref={mapContainerRef} className="h-full w-full">
         {showApiKeyInput ? (
