@@ -31,15 +31,17 @@ const TimeTrackingContent: React.FC<TimeTrackingContentProps> = ({
   onAddActivity
 }) => {
   return (
-    <div>
+    <div className="flex-1 p-4">
       {isMapViewActive ? (
-        <MapView 
-          activities={activities}
-          activeTracking={activeTracking}
-          startTracking={startTracking}
-          pauseTracking={pauseTracking}
-          stopTracking={stopTracking}
-        />
+        <div className="h-[70vh]">
+          <MapView 
+            activities={activities}
+            activeTracking={activeTracking}
+            startTracking={startTracking}
+            pauseTracking={pauseTracking}
+            stopTracking={stopTracking}
+          />
+        </div>
       ) : (
         <ActivityList 
           activities={activities}
