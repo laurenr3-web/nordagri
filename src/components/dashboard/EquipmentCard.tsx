@@ -33,8 +33,16 @@ export function EquipmentCard({ name, type, image, status, usage, nextService, c
       style={style}
       onClick={onClick}
     >
-      <div className="relative h-40">
-        <img src={image} alt={name} className="w-full h-full object-cover" />
+      <div className="relative h-40 bg-muted">
+        <img 
+          src={image} 
+          alt={name} 
+          className="w-full h-full object-contain p-2" 
+          onError={(e) => {
+            e.currentTarget.src = '/placeholder.svg';
+            e.currentTarget.classList.add('bg-muted-foreground/10');
+          }}
+        />
         <div className="absolute top-2 right-2">
           <div className={cn(
             "px-2 py-1 rounded-md text-xs font-medium",

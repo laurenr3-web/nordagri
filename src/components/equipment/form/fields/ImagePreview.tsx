@@ -14,7 +14,11 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({ imageUrl }) => {
         <img
           src={imageUrl}
           alt="Equipment preview"
-          className="object-cover w-full h-full"
+          className="object-contain w-full h-full p-2"
+          onError={(e) => {
+            e.currentTarget.src = '/placeholder.svg';
+            e.currentTarget.classList.add('bg-muted-foreground/10');
+          }}
         />
       </div>
     </div>
