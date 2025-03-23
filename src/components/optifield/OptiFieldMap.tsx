@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,27 @@ import {
 import MapPlaceholder from './MapPlaceholder';
 import { toast } from 'sonner';
 
+// Add TypeScript declarations for Google Maps
+interface GoogleMapWindow extends Window {
+  google?: {
+    maps: {
+      Map: new (element: HTMLElement, options: any) => any;
+      Marker: new (options: any) => any;
+      Circle: new (options: any) => any;
+      Polygon: new (options: any) => any;
+      SymbolPath: {
+        CIRCLE: number;
+      };
+      MapTypeId: {
+        ROADMAP: string;
+      };
+    };
+  };
+  initGoogleMaps?: () => void;
+}
+
+declare const window: GoogleMapWindow;
+
 interface OptiFieldMapProps {
   trackingActive: boolean;
 }
@@ -25,8 +45,11 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<google.maps.Map | null>(null);
-  const userMarkerRef = useRef<google.maps.Marker | null>(null);
+  const mapRef = useRef<any | null>(null);
+  const userMarkerRef = useRef<any | null>(null);
+  const [fieldBoundaries, setFieldBoundaries] = useState<
+    { id: string; path: google.maps.LatLngLiteral[] }[]
+  >([]);
 
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
@@ -63,13 +86,13 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
         }
         
         // Create or update user marker
-        if (!userMarkerRef.current && mapRef.current) {
-          userMarkerRef.current = new google.maps.Marker({
+        if (!userMarkerRef.current && mapRef.current && window.google) {
+          userMarkerRef.current = new window.google.maps.Marker({
             position: location,
             map: mapRef.current,
             title: 'Votre position',
             icon: {
-              path: google.maps.SymbolPath.CIRCLE,
+              path: window.google.maps.SymbolPath.CIRCLE,
               fillColor: '#4285F4',
               fillOpacity: 1,
               strokeColor: '#FFFFFF',
@@ -79,7 +102,7 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
           });
           
           // Add circle around user position to indicate accuracy
-          new google.maps.Circle({
+          new window.google.maps.Circle({
             map: mapRef.current,
             center: location,
             radius: 100, // in meters
@@ -181,12 +204,12 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
           map.setZoom(15);
           
           // Create user marker
-          userMarkerRef.current = new google.maps.Marker({
+          userMarkerRef.current = new window.google.maps.Marker({
             position: userLocation,
             map: map,
             title: 'Votre position',
             icon: {
-              path: google.maps.SymbolPath.CIRCLE,
+              path: window.google.maps.SymbolPath.CIRCLE,
               fillColor: '#4285F4',
               fillOpacity: 1,
               strokeColor: '#FFFFFF',
@@ -195,6 +218,43 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
             },
           });
         }
+
+        // Define field boundaries (replace with your actual data)
+        const initialFieldBoundaries = [
+          {
+            id: 'field1',
+            path: [
+              { lat: 48.86472, lng: 2.34583 },
+              { lat: 48.86694, lng: 2.34861 },
+              { lat: 48.86583, lng: 2.35056 },
+              { lat: 48.86361, lng: 2.34778 },
+            ],
+          },
+          {
+            id: 'field2',
+            path: [
+              { lat: 48.85772, lng: 2.34383 },
+              { lat: 48.85994, lng: 2.34661 },
+              { lat: 48.85883, lng: 2.34856 },
+              { lat: 48.85661, lng: 2.34578 },
+            ],
+          },
+        ];
+
+        // Draw field boundaries on the map
+        initialFieldBoundaries.forEach((field) => {
+          const fieldPolygon = new window.google.maps.Polygon({
+            paths: field.path,
+            strokeColor: '#FF0000',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            fillColor: '#FF0000',
+            fillOpacity: 0.35,
+            map: map,
+          });
+        });
+
+        setFieldBoundaries(initialFieldBoundaries);
       }
     };
 
@@ -322,13 +382,5 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
     </Card>
   );
 };
-
-// Add type definition for window object to include Google Maps
-declare global {
-  interface Window {
-    google: any;
-    initGoogleMaps: () => void;
-  }
-}
 
 export default OptiFieldMap;
