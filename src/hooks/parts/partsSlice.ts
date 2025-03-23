@@ -1,7 +1,6 @@
-
 import { useState } from 'react';
 import { Part } from '@/types/Part';
-import { PartFormValues } from '@/components/parts/AddPartForm';
+import { PartFormValues } from '@/components/parts/form/partFormTypes';
 import { useToast } from '@/hooks/use-toast';
 
 export const usePartsSlice = (initialParts: Part[]) => {
