@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { DashboardSection } from '@/components/dashboard/DashboardSection';
@@ -194,6 +195,22 @@ const Index = () => {
     }
   };
 
+  const handleEquipmentViewAllClick = () => {
+    navigate('/equipment');
+  };
+
+  const handleMaintenanceCalendarClick = () => {
+    navigate('/maintenance');
+  };
+
+  const handleAlertsViewAllClick = () => {
+    setCurrentView('alerts');
+  };
+
+  const handleTasksAddClick = () => {
+    navigate('/maintenance');
+  };
+
   return <div className="min-h-screen bg-background">
       <Navbar />
       
@@ -250,17 +267,30 @@ const Index = () => {
               
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-8">
-                  <DashboardSection title="Equipment Status" subtitle="Monitor your fleet performance" action={<Button variant="outline" size="sm">
+                  <DashboardSection title="Equipment Status" subtitle="Monitor your fleet performance" action={<Button variant="outline" size="sm" onClick={handleEquipmentViewAllClick}>
                         View All
                       </Button>}>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {equipmentData.map((equipment, index) => <EquipmentCard key={equipment.id} name={equipment.name} type={equipment.type} image={equipment.image} status={equipment.status} usage={equipment.usage} nextService={equipment.nextService} className="" style={{
-                      animationDelay: `${index * 0.15}s`
-                    } as React.CSSProperties} />)}
+                      {equipmentData.map((equipment, index) => (
+                        <EquipmentCard 
+                          key={equipment.id} 
+                          name={equipment.name} 
+                          type={equipment.type} 
+                          image={equipment.image} 
+                          status={equipment.status} 
+                          usage={equipment.usage} 
+                          nextService={equipment.nextService} 
+                          className="" 
+                          style={{
+                            animationDelay: `${index * 0.15}s`
+                          } as React.CSSProperties}
+                          onClick={() => navigate(`/equipment/${equipment.id}`)}
+                        />
+                      ))}
                     </div>
                   </DashboardSection>
                   
-                  <DashboardSection title="Maintenance Schedule" subtitle="Plan ahead for equipment servicing" action={<Button variant="outline" size="sm">
+                  <DashboardSection title="Maintenance Schedule" subtitle="Plan ahead for equipment servicing" action={<Button variant="outline" size="sm" onClick={handleMaintenanceCalendarClick}>
                         Full Calendar
                       </Button>}>
                     <MaintenanceCalendar events={maintenanceEvents} month={currentMonth} className="animate-scale-in" />
@@ -268,7 +298,7 @@ const Index = () => {
                 </div>
                 
                 <div className="space-y-8">
-                  <DashboardSection title="System Alerts" subtitle="Recent notifications" action={<Button variant="outline" size="sm">
+                  <DashboardSection title="System Alerts" subtitle="Recent notifications" action={<Button variant="outline" size="sm" onClick={handleAlertsViewAllClick}>
                         Clear All
                       </Button>}>
                     <BlurContainer className="divide-y animate-fade-in">
@@ -286,7 +316,7 @@ const Index = () => {
                     </BlurContainer>
                   </DashboardSection>
                   
-                  <DashboardSection title="Upcoming Tasks" subtitle="Scheduled maintenance" action={<Button variant="outline" size="sm">
+                  <DashboardSection title="Upcoming Tasks" subtitle="Scheduled maintenance" action={<Button variant="outline" size="sm" onClick={handleTasksAddClick}>
                         Add Task
                       </Button>}>
                     <BlurContainer className="divide-y animate-fade-in delay-100">
