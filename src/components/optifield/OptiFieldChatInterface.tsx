@@ -8,9 +8,11 @@ import {
   MicOff,
   ChevronUp, 
   ChevronDown,
-  Bot
+  Bot,
+  Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ChatMessage {
   id: string;
@@ -27,7 +29,7 @@ interface OptiFieldChatInterfaceProps {
 const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: '1',
-    content: 'Bonjour! Je suis votre assistant OptiField. Comment puis-je vous aider aujourd\'hui?',
+    content: 'Bonjour! Je suis Claude, votre assistant OptiField propulsé par Anthropic. Comment puis-je vous aider aujourd\'hui?',
     sender: 'system',
     timestamp: new Date(Date.now() - 60000)
   }
@@ -49,9 +51,10 @@ const OptiFieldChatInterface: React.FC<OptiFieldChatInterfaceProps> = ({
   const [inputValue, setInputValue] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
     
     // Add user message
@@ -64,73 +67,87 @@ const OptiFieldChatInterface: React.FC<OptiFieldChatInterfaceProps> = ({
     
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
-    
-    // Process message for commands
-    setTimeout(() => {
-      processMessage(inputValue);
-    }, 500);
-  };
-  
-  const processMessage = (message: string) => {
-    const lowerMessage = message.toLowerCase();
-    let response = '';
-    
-    // Handle different command types
-    if (lowerMessage.includes('démarrer') || lowerMessage.includes('commencer') || lowerMessage.includes('start')) {
-      if (!trackingActive) {
-        setTrackingActive(true);
-        
-        // Extract equipment info if present
-        let equipment = 'équipement';
-        if (lowerMessage.includes('john deere')) equipment = 'tracteur John Deere';
-        if (lowerMessage.includes('new holland')) equipment = 'tracteur New Holland';
-        if (lowerMessage.includes('fendt')) equipment = 'tracteur Fendt';
-        
-        response = `Suivi activé pour ${equipment} sur parcelle Les Grandes Terres (détectée par votre position). Bon travail!`;
-        
-        toast.success('Suivi des activités activé');
-      } else {
-        response = "Le suivi est déjà activé. Bon travail!";
+    setIsLoading(true);
+
+    try {
+      // Préparer les messages au format Anthropic
+      const formattedMessages = messages
+        .filter(msg => msg.id !== '1') // Filtrer le message d'accueil
+        .concat(userMessage)
+        .map(msg => ({
+          role: msg.sender === 'user' ? 'user' : 'assistant',
+          content: msg.content
+        }));
+
+      // Ajouter des informations contextuelles sur le statut du suivi
+      const systemPrompt = `Vous êtes un assistant agricole expert qui aide les utilisateurs d'OptiField, une application de gestion d'exploitation agricole. 
+      Vous êtes spécialisé dans les pratiques agricoles françaises, les équipements agricoles, la météo et la planification des cultures. 
+      Répondez toujours en français de manière concise et pratique.
+      
+      Informations contextuelles:
+      - Suivi d'activité: ${trackingActive ? 'ACTIF' : 'INACTIF'}
+      - Si l'utilisateur demande de démarrer une activité et que le suivi n'est pas actif, activez-le.
+      - Si l'utilisateur demande d'arrêter une activité et que le suivi est actif, désactivez-le.
+      - Date actuelle: ${new Date().toLocaleDateString('fr-FR')}
+      - Heure actuelle: ${new Date().toLocaleTimeString('fr-FR')}`;
+
+      // Appeler la fonction edge Supabase
+      const { data, error } = await supabase.functions.invoke('anthropic-chat', {
+        body: {
+          messages: formattedMessages,
+          systemPrompt: systemPrompt
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message);
       }
-    } 
-    else if (lowerMessage.includes('arrêter') || lowerMessage.includes('stopper') || lowerMessage.includes('stop')) {
-      if (trackingActive) {
-        setTrackingActive(false);
-        response = "Suivi désactivé. Vous avez travaillé 3h15 aujourd'hui.";
-        toast.info('Suivi des activités désactivé');
-      } else {
-        response = "Le suivi n'est pas actif actuellement.";
+
+      // Traiter la réponse de Claude
+      const assistantResponse = data.content[0].text;
+      
+      // Vérifier si la réponse contient des commandes pour activer/désactiver le suivi
+      if (assistantResponse.toLowerCase().includes('suivi activé') || 
+          assistantResponse.toLowerCase().includes('démarrer le suivi')) {
+        if (!trackingActive) {
+          setTrackingActive(true);
+          toast.success('Suivi des activités activé');
+        }
+      } else if (assistantResponse.toLowerCase().includes('suivi désactivé') || 
+                assistantResponse.toLowerCase().includes('arrêter le suivi')) {
+        if (trackingActive) {
+          setTrackingActive(false);
+          toast.info('Suivi des activités désactivé');
+        }
+      } else if (assistantResponse.toLowerCase().includes('pause') && trackingActive) {
+        toast.info('Suivi mis en pause');
       }
+
+      // Ajouter la réponse du système
+      const systemMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        content: assistantResponse,
+        sender: 'system',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, systemMessage]);
+    } catch (error) {
+      console.error('Erreur lors de la communication avec Claude:', error);
+      
+      // Message d'erreur en cas d'échec
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        content: "Désolé, je rencontre des difficultés de communication. Veuillez réessayer dans un instant.",
+        sender: 'system',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+      toast.error("Erreur de communication avec l'assistant");
+    } finally {
+      setIsLoading(false);
     }
-    else if (lowerMessage.includes('pause') || lowerMessage.includes('déjeuner')) {
-      response = "Suivi en pause. Vous avez travaillé 3h15 ce matin. La météo prévoit de la pluie dans 4 heures.";
-      toast.info('Suivi mis en pause');
-    }
-    else if (lowerMessage.includes('combien') && lowerMessage.includes('heure')) {
-      if (lowerMessage.includes('john deere')) {
-        response = "Le tracteur John Deere a travaillé 3.5 heures aujourd'hui et 27.5 heures cette semaine.";
-      } else if (lowerMessage.includes('fendt')) {
-        response = "Le tracteur Fendt a travaillé 0 heures aujourd'hui et 15.2 heures cette semaine.";
-      } else {
-        response = "Les équipements ont accumulé un total de 42.7 heures cette semaine.";
-      }
-    }
-    else if (lowerMessage.includes('météo')) {
-      response = "La météo prévoit un temps ensoleillé avec des passages nuageux cet après-midi. Température maximale de 24°C. Risque de pluie faible (10%) à partir de 16h.";
-    }
-    else {
-      response = "Je ne suis pas sûr de comprendre cette commande. Essayez de me demander le statut des équipements, de démarrer/arrêter le suivi, ou des informations sur la météo.";
-    }
-    
-    // Add system response
-    const systemMessage: ChatMessage = {
-      id: (Date.now() + 1).toString(),
-      content: response,
-      sender: 'system',
-      timestamp: new Date()
-    };
-    
-    setMessages(prev => [...prev, systemMessage]);
   };
   
   const handleQuickReply = (reply: string) => {
@@ -166,7 +183,7 @@ const OptiFieldChatInterface: React.FC<OptiFieldChatInterfaceProps> = ({
       >
         <div className="flex items-center gap-2">
           <Bot className="h-5 w-5" />
-          <span className="font-medium">Assistant OptiField</span>
+          <span className="font-medium">Assistant OptiField (Claude AI)</span>
         </div>
         <Button variant="ghost" size="icon" className="text-white">
           {isExpanded ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
@@ -196,6 +213,14 @@ const OptiFieldChatInterface: React.FC<OptiFieldChatInterfaceProps> = ({
                   </div>
                 </div>
               ))}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-secondary rounded-lg px-4 py-2 flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <p>Claude réfléchit...</p>
+                  </div>
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </div>
             
@@ -233,9 +258,10 @@ const OptiFieldChatInterface: React.FC<OptiFieldChatInterfaceProps> = ({
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') handleSendMessage();
                   }}
+                  disabled={isLoading}
                 />
-                <Button onClick={handleSendMessage}>
-                  <Send className="h-5 w-5" />
+                <Button onClick={handleSendMessage} disabled={isLoading || !inputValue.trim()}>
+                  {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
                 </Button>
               </div>
             </div>

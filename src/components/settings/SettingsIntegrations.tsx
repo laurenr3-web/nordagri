@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { SettingsSection } from './SettingsSection';
 import { Button } from '@/components/ui/button';
@@ -8,10 +7,18 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { Cloud, Link, Upload } from 'lucide-react';
+import { AISettingsSection } from './ai/AISettingsSection';
 
 export const SettingsIntegrations = () => {
   return (
     <div className="space-y-6">
+      <SettingsSection 
+        title="Intelligence Artificielle" 
+        description="Configurez l'assistant IA Claude d'Anthropic pour votre exploitation"
+      >
+        <AISettingsSection />
+      </SettingsSection>
+
       <SettingsSection 
         title="Weather Services" 
         description="Configure integration with weather forecast providers"
