@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { SettingsSection } from './SettingsSection';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -8,9 +8,62 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChevronDown, SunMoon, LayoutDashboard, Star } from 'lucide-react';
+import { toast } from 'sonner';
 
 export const SettingsInterface = () => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const [highContrast, setHighContrast] = useState(false);
+  const [animations, setAnimations] = useState(true);
+
+  // Initialize state based on existing document classes
+  useEffect(() => {
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    const isHighContrast = document.documentElement.classList.contains('high-contrast');
+    setDarkMode(isDarkMode);
+    setHighContrast(isHighContrast);
+  }, []);
+
+  // Handle dark mode toggle
+  const handleDarkModeToggle = (checked: boolean) => {
+    setDarkMode(checked);
+    if (checked) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    toast.success(`${checked ? 'Dark' : 'Light'} mode activated`);
+  };
+
+  // Handle high contrast toggle
+  const handleHighContrastToggle = (checked: boolean) => {
+    setHighContrast(checked);
+    if (checked) {
+      document.documentElement.classList.add('high-contrast');
+    } else {
+      document.documentElement.classList.remove('high-contrast');
+    }
+    toast.success(`High contrast ${checked ? 'enabled' : 'disabled'}`);
+  };
+
+  // Handle animations toggle
+  const handleAnimationsToggle = (checked: boolean) => {
+    setAnimations(checked);
+    if (checked) {
+      document.documentElement.classList.remove('reduce-motion');
+    } else {
+      document.documentElement.classList.add('reduce-motion');
+    }
+    toast.success(`Animations ${checked ? 'enabled' : 'disabled'}`);
+  };
+
+  // Handle save settings
+  const handleSaveSettings = () => {
+    localStorage.setItem('darkMode', darkMode.toString());
+    localStorage.setItem('highContrast', highContrast.toString());
+    localStorage.setItem('animations', animations.toString());
+    toast.success('Dashboard settings saved successfully');
+  };
 
   return (
     <div className="space-y-6">
@@ -30,7 +83,11 @@ export const SettingsInterface = () => {
                   Switch between light and dark theme
                 </p>
               </div>
-              <Switch id="dark-mode" />
+              <Switch 
+                id="dark-mode" 
+                checked={darkMode} 
+                onCheckedChange={handleDarkModeToggle}
+              />
             </div>
             
             <div className="flex items-center justify-between">
@@ -40,7 +97,11 @@ export const SettingsInterface = () => {
                   Increase contrast for better readability
                 </p>
               </div>
-              <Switch id="high-contrast" />
+              <Switch 
+                id="high-contrast" 
+                checked={highContrast}
+                onCheckedChange={handleHighContrastToggle}
+              />
             </div>
             
             <div className="flex items-center justify-between">
@@ -50,7 +111,11 @@ export const SettingsInterface = () => {
                   Enable or disable UI animations
                 </p>
               </div>
-              <Switch id="animations" defaultChecked />
+              <Switch 
+                id="animations" 
+                checked={animations}
+                onCheckedChange={handleAnimationsToggle}
+              />
             </div>
           </div>
         </div>
