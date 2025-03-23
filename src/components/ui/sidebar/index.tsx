@@ -5,7 +5,7 @@ export { useSidebar, SidebarProvider } from "./sidebar-context"
 export { Sidebar } from "./sidebar"
 export { 
   SidebarTrigger, 
-  SidebarMenuButton,
+  SidebarToggleButton,  // Renamed from SidebarMenuButton to fix duplicate export
   SidebarRail, 
   SidebarInset 
 } from "./sidebar-controls"
@@ -25,7 +25,7 @@ export {
 export { 
   SidebarMenu, 
   SidebarMenuItem, 
-  SidebarMenuButton,
+  SidebarMenuButton,  // Keep this one as SidebarMenuButton
   SidebarMenuAction, 
   SidebarMenuBadge,
   sidebarMenuButtonVariants

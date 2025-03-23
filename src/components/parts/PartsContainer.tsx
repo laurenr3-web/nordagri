@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { SidebarMenuButton } from '@/components/ui/sidebar';
+import { SidebarToggleButton } from '@/components/ui/sidebar';
 
 // Import components
 import PartsHeader from '@/components/parts/PartsHeader';
@@ -50,7 +49,7 @@ const PartsContainer = ({
   return (
     <div className="w-full">
       {/* Menu button for mobile */}
-      <SidebarMenuButton />
+      <SidebarToggleButton />
       
       <div className="pt-6 pb-16 pl-4 pr-4 sm:pl-8 sm:pr-8 md:pl-12 md:pr-12">
         <div className="max-w-7xl mx-auto">
