@@ -363,7 +363,10 @@ const Parts = () => {
                   className="overflow-hidden animate-scale-in"
                   style={{ animationDelay: `${index * 0.1}s` } as React.CSSProperties}
                 >
-                  <div className="aspect-square relative overflow-hidden">
+                  <div 
+                    className="aspect-square relative overflow-hidden cursor-pointer"
+                    onClick={() => openPartDetails(part)}  
+                  >
                     <img 
                       src={part.image} 
                       alt={part.name}
@@ -450,7 +453,10 @@ const Parts = () => {
                     {filteredParts.map((part) => (
                       <tr key={part.id} className="hover:bg-secondary/30">
                         <td className="p-3">
-                          <div className="h-12 w-12 rounded-md overflow-hidden flex-shrink-0">
+                          <div 
+                            className="h-12 w-12 rounded-md overflow-hidden flex-shrink-0 cursor-pointer" 
+                            onClick={() => openPartDetails(part)}
+                          >
                             <img 
                               src={part.image} 
                               alt={part.name}
