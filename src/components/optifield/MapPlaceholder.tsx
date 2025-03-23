@@ -24,7 +24,7 @@ const MapPlaceholder: React.FC<MapPlaceholderProps> = ({ trackingActive }) => {
         
         {/* Field Outlines */}
         <div className="absolute top-1/4 left-1/4 w-1/2 h-1/3 border-2 border-green-500 rounded-lg opacity-60"></div>
-        <div className="absolute top-1/2 left-1/8 w-1/4 h-1/4 border-2 border-green-700 rounded-lg opacity-60"></div>
+        <div className="absolute top-1/2 left-[12.5%] w-1/4 h-1/4 border-2 border-green-700 rounded-lg opacity-60"></div>
         
         {/* Tractor Position - Main Machine */}
         <div 
