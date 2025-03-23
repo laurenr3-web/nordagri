@@ -9,7 +9,8 @@ import {
   ClipboardCheck, 
   LayoutDashboard,
   Menu,
-  X
+  X,
+  Map
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -121,6 +122,12 @@ const Navbar = () => {
               icon={<ClipboardCheck size={20} />} 
               label="Interventions" 
               active={isActive("/interventions")} 
+            />
+            <NavItem 
+              to="/optifield" 
+              icon={<Map size={20} />} 
+              label="OptiField" 
+              active={isActive("/optifield")} 
             />
           </nav>
         </div>

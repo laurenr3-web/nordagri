@@ -10,6 +10,7 @@ import EquipmentDetail from "./pages/EquipmentDetail";
 import Parts from "./pages/Parts";
 import Maintenance from "./pages/Maintenance";
 import Interventions from "./pages/Interventions";
+import OptiField from "./pages/OptiField";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/parts" element={<Parts />} />
           <Route path="/maintenance" element={<Maintenance />} />
           <Route path="/interventions" element={<Interventions />} />
+          <Route path="/optifield" element={<OptiField />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
