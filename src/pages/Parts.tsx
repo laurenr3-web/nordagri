@@ -392,7 +392,6 @@ const Parts = () => {
             </TabsList>
           </Tabs>
           
-          {/* Rest of existing code for displaying parts */}
           {currentView === 'grid' ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredParts.map((part, index) => (
@@ -528,8 +527,6 @@ const Parts = () => {
             </BlurContainer>
           )}
           
-          {/* ... keep existing code (no parts found message) */}
-          
           {filteredParts.length === 0 && (
             <div className="mt-10 text-center">
               <p className="text-muted-foreground">No parts found matching your criteria.</p>
@@ -538,9 +535,6 @@ const Parts = () => {
               </Button>
             </div>
           )}
-          
-          {/* Part Details Dialog */}
-          {/* ... keep existing code (part details dialog) */}
           
           <Dialog
             open={isPartDetailsDialogOpen}
@@ -556,9 +550,6 @@ const Parts = () => {
               {selectedPart && <PartDetails part={selectedPart} />}
             </DialogContent>
           </Dialog>
-          
-          {/* Add Part Dialog */}
-          {/* ... keep existing code (add part dialog) */}
           
           <Dialog 
             open={isAddPartDialogOpen} 
@@ -577,9 +568,6 @@ const Parts = () => {
               />
             </DialogContent>
           </Dialog>
-          
-          {/* Filter Dialog */}
-          {/* ... keep existing code (filter dialog) */}
           
           <Dialog
             open={isFilterDialogOpen}
@@ -648,9 +636,6 @@ const Parts = () => {
             </DialogContent>
           </Dialog>
           
-          {/* Sort Dialog */}
-          {/* ... keep existing code (sort dialog) */}
-          
           <Dialog
             open={isSortDialogOpen}
             onOpenChange={setIsSortDialogOpen}
@@ -684,9 +669,6 @@ const Parts = () => {
             </DialogContent>
           </Dialog>
 
-          {/* Add Category Dialog */}
-          {/* ... keep existing code (add category dialog) */}
-          
           <Dialog open={isAddCategoryDialogOpen} onOpenChange={setIsAddCategoryDialogOpen}>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
@@ -713,7 +695,6 @@ const Parts = () => {
             </DialogContent>
           </Dialog>
           
-          {/* Order Dialog */}
           <Dialog
             open={isOrderDialogOpen}
             onOpenChange={setIsOrderDialogOpen}
@@ -796,3 +777,10 @@ const Parts = () => {
               )}
             </DialogContent>
           </Dialog>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Parts;
