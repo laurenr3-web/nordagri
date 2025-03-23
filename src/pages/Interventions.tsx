@@ -17,6 +17,9 @@ import {
   CalendarCheck,
   Wrench
 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import InterventionDetailsDialog from '@/components/interventions/InterventionDetailsDialog';
+import NewInterventionDialog from '@/components/interventions/NewInterventionDialog';
 
 // Sample field interventions data
 const interventionsData = [
@@ -180,12 +183,53 @@ const interventionsData = [
   }
 ];
 
+// Define type for our intervention
+export interface Intervention {
+  id: number;
+  title: string;
+  equipment: string;
+  equipmentId: number;
+  location: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+  status: 'scheduled' | 'in-progress' | 'completed' | 'canceled';
+  priority: 'high' | 'medium' | 'low';
+  date: Date;
+  duration?: number;
+  scheduledDuration?: number;
+  technician: string;
+  description: string;
+  partsUsed: Array<{ id: number; name: string; quantity: number; }>;
+  notes: string;
+}
+
+// Define type for the form values
+interface InterventionFormValues {
+  title: string;
+  equipment: string;
+  equipmentId: number;
+  location: string;
+  priority: 'high' | 'medium' | 'low';
+  date: Date;
+  scheduledDuration: number;
+  technician: string;
+  description: string;
+  notes: string;
+}
+
 const Interventions = () => {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [currentView, setCurrentView] = useState('all');
+  const [interventions, setInterventions] = useState<Intervention[]>(interventionsData);
+  const [selectedIntervention, setSelectedIntervention] = useState<Intervention | null>(null);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [isNewInterventionDialogOpen, setIsNewInterventionDialogOpen] = useState(false);
   
   // Filter interventions based on search term and current view
-  const filteredInterventions = interventionsData.filter(intervention => {
+  const filteredInterventions = interventions.filter(intervention => {
     const matchesSearch = 
       intervention.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       intervention.equipment.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -266,9 +310,58 @@ const Interventions = () => {
         );
     }
   };
+
+  // Handle viewing details
+  const handleViewDetails = (intervention: Intervention) => {
+    setSelectedIntervention(intervention);
+    setIsDetailsDialogOpen(true);
+  };
+
+  // Handle starting work on an intervention
+  const handleStartWork = (intervention: Intervention) => {
+    handleUpdateStatus(intervention.id, 'in-progress');
+  };
+
+  // Handle updating an intervention status
+  const handleUpdateStatus = (interventionId: number, status: 'scheduled' | 'in-progress' | 'completed' | 'canceled') => {
+    setInterventions(interventions.map(intervention => 
+      intervention.id === interventionId ? {
+        ...intervention,
+        status,
+        ...(status === 'completed' ? { duration: intervention.scheduledDuration } : {})
+      } : intervention
+    ));
+    
+    toast({
+      title: "Status updated",
+      description: `Intervention status has been updated to ${status}`,
+    });
+  };
+
+  // Handle creating a new intervention
+  const handleCreateIntervention = (formData: InterventionFormValues) => {
+    const newIntervention: Intervention = {
+      id: interventions.length > 0 ? Math.max(...interventions.map(i => i.id)) + 1 : 1,
+      ...formData,
+      coordinates: {
+        lat: 34.052235,
+        lng: -118.243683
+      },
+      status: 'scheduled',
+      partsUsed: [],
+    };
+    
+    setInterventions([newIntervention, ...interventions]);
+    setIsNewInterventionDialogOpen(false);
+    
+    toast({
+      title: "Intervention created",
+      description: `New intervention "${formData.title}" has been created`,
+    });
+  };
   
   // Intervention card component
-  const InterventionCard = ({ intervention }: { intervention: typeof interventionsData[0] }) => (
+  const InterventionCard = ({ intervention }: { intervention: Intervention }) => (
     <BlurContainer 
       key={intervention.id}
       className="mb-6 animate-fade-in overflow-hidden"
@@ -345,12 +438,19 @@ const Interventions = () => {
         
         <div className="flex justify-end gap-2">
           {intervention.status === 'scheduled' && (
-            <Button variant="outline" className="gap-1">
+            <Button 
+              variant="outline" 
+              className="gap-1"
+              onClick={() => handleStartWork(intervention)}
+            >
               <Wrench size={16} />
               <span>Start Work</span>
             </Button>
           )}
-          <Button className="gap-1">
+          <Button 
+            className="gap-1"
+            onClick={() => handleViewDetails(intervention)}
+          >
             <span>Details</span>
           </Button>
         </div>
@@ -375,7 +475,10 @@ const Interventions = () => {
               </div>
               
               <div className="mt-4 sm:mt-0">
-                <Button className="gap-2">
+                <Button 
+                  className="gap-2"
+                  onClick={() => setIsNewInterventionDialogOpen(true)}
+                >
                   <Plus size={16} />
                   <span>New Intervention</span>
                 </Button>
@@ -462,12 +565,16 @@ const Interventions = () => {
               <BlurContainer className="p-4">
                 <h3 className="font-medium mb-4">Upcoming Interventions</h3>
                 <div className="space-y-4">
-                  {interventionsData
+                  {interventions
                     .filter(intervention => intervention.status === 'scheduled')
                     .sort((a, b) => a.date.getTime() - b.date.getTime())
                     .slice(0, 3)
                     .map((intervention) => (
-                      <div key={intervention.id} className="flex items-start gap-3 pb-3 border-b last:border-0">
+                      <div 
+                        key={intervention.id} 
+                        className="flex items-start gap-3 pb-3 border-b last:border-0 cursor-pointer hover:bg-secondary/20 p-2 rounded-md transition-colors"
+                        onClick={() => handleViewDetails(intervention)}
+                      >
                         <div className={`h-10 w-10 rounded-full flex items-center justify-center
                           ${intervention.priority === 'high' ? 'bg-red-100 text-red-800' : 
                             intervention.priority === 'medium' ? 'bg-harvest-100 text-harvest-800' : 
@@ -483,7 +590,7 @@ const Interventions = () => {
                     ))
                   }
                   
-                  {interventionsData.filter(i => i.status === 'scheduled').length === 0 && (
+                  {interventions.filter(i => i.status === 'scheduled').length === 0 && (
                     <p className="text-sm text-muted-foreground">No upcoming interventions scheduled.</p>
                   )}
                 </div>
@@ -494,23 +601,23 @@ const Interventions = () => {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span>Total Interventions</span>
-                    <span className="font-medium">{interventionsData.length}</span>
+                    <span className="font-medium">{interventions.length}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Scheduled</span>
-                    <span className="font-medium">{interventionsData.filter(i => i.status === 'scheduled').length}</span>
+                    <span className="font-medium">{interventions.filter(i => i.status === 'scheduled').length}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>In Progress</span>
-                    <span className="font-medium">{interventionsData.filter(i => i.status === 'in-progress').length}</span>
+                    <span className="font-medium">{interventions.filter(i => i.status === 'in-progress').length}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Completed</span>
-                    <span className="font-medium">{interventionsData.filter(i => i.status === 'completed').length}</span>
+                    <span className="font-medium">{interventions.filter(i => i.status === 'completed').length}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Canceled</span>
-                    <span className="font-medium">{interventionsData.filter(i => i.status === 'canceled').length}</span>
+                    <span className="font-medium">{interventions.filter(i => i.status === 'canceled').length}</span>
                   </div>
                 </div>
               </BlurContainer>
@@ -519,7 +626,7 @@ const Interventions = () => {
                 <h3 className="font-medium mb-4">By Equipment</h3>
                 <div className="space-y-3">
                   {Object.entries(
-                    interventionsData.reduce((acc, intervention) => {
+                    interventions.reduce((acc, intervention) => {
                       acc[intervention.equipment] = (acc[intervention.equipment] || 0) + 1;
                       return acc;
                     }, {} as Record<string, number>)
@@ -535,6 +642,20 @@ const Interventions = () => {
           </div>
         </div>
       </div>
+      
+      {/* Dialogs */}
+      <InterventionDetailsDialog 
+        intervention={selectedIntervention}
+        open={isDetailsDialogOpen}
+        onOpenChange={setIsDetailsDialogOpen}
+        onStatusChange={handleUpdateStatus}
+      />
+      
+      <NewInterventionDialog 
+        open={isNewInterventionDialogOpen}
+        onOpenChange={setIsNewInterventionDialogOpen}
+        onSubmit={handleCreateIntervention}
+      />
     </div>
   );
 };
