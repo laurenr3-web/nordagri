@@ -28,7 +28,7 @@ export function EquipmentCard({ name, type, image, status, usage, nextService, c
       className={cn(
         "overflow-hidden animate-scale-in", 
         className,
-        onClick ? "cursor-pointer" : ""
+        onClick ? "cursor-pointer hover:shadow-md transition-shadow" : ""
       )}
       style={style}
       onClick={onClick}
