@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { PanelLeft, Menu } from "lucide-react"
@@ -30,8 +31,8 @@ const SidebarTrigger = React.forwardRef<
 })
 SidebarTrigger.displayName = "SidebarTrigger"
 
-// Add a new MenuButton component that will be fixed in the top-right corner
-const SidebarMenuButton = React.forwardRef<
+// Renamed from SidebarMenuButton to SidebarToggleButton to fix duplicate export
+const SidebarToggleButton = React.forwardRef<
   React.ElementRef<typeof Button>,
   React.ComponentProps<typeof Button>
 >(({ className, onClick, ...props }, ref) => {
@@ -55,7 +56,7 @@ const SidebarMenuButton = React.forwardRef<
     </Button>
   )
 })
-SidebarMenuButton.displayName = "SidebarMenuButton"
+SidebarToggleButton.displayName = "SidebarToggleButton"
 
 const SidebarRail = React.forwardRef<
   HTMLButtonElement,
@@ -104,4 +105,4 @@ const SidebarInset = React.forwardRef<
 })
 SidebarInset.displayName = "SidebarInset"
 
-export { SidebarTrigger, SidebarMenuButton, SidebarRail, SidebarInset }
+export { SidebarTrigger, SidebarToggleButton, SidebarRail, SidebarInset }
