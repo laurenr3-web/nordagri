@@ -3,6 +3,7 @@ import React from 'react';
 import { SettingsSection } from './SettingsSection';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { InputWithSuffix } from '@/components/ui/input-with-suffix';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from '@/components/ui/form';
@@ -46,7 +47,7 @@ export const SettingsEssentials = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="farm-size">Farm Size</Label>
-                  <Input id="farm-size" defaultValue="250" suffix="acres" />
+                  <InputWithSuffix id="farm-size" defaultValue="250" suffix="acres" />
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
