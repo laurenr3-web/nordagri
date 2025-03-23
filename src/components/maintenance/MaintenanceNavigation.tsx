@@ -7,7 +7,10 @@ import {
   Clock, 
   AlertOctagon, 
   Wrench, 
-  ArrowRight 
+  ArrowRight,
+  ListChecks,
+  Calendar,
+  AlertTriangle
 } from 'lucide-react';
 
 interface MaintenanceNavigationProps {
@@ -22,26 +25,26 @@ const MaintenanceNavigation: React.FC<MaintenanceNavigationProps> = ({
   const navigationItems = [
     {
       title: 'Upcoming Maintenance',
-      description: 'View all scheduled maintenance tasks',
-      icon: <CalendarDays className="h-5 w-5" />,
+      description: 'View scheduled tasks and deadlines',
+      icon: <ListChecks className="h-5 w-5" />,
       view: 'upcoming',
     },
     {
-      title: 'Maintenance by Type',
-      description: 'View tasks grouped by maintenance type',
+      title: 'Maintenance Types',
+      description: 'Browse tasks by category and type',
       icon: <Wrench className="h-5 w-5" />,
       view: 'by-type',
     },
     {
-      title: 'Maintenance by Priority',
-      description: 'View tasks grouped by priority level',
-      icon: <AlertOctagon className="h-5 w-5" />,
+      title: 'Priority Tasks',
+      description: 'Focus on critical and urgent work',
+      icon: <AlertTriangle className="h-5 w-5" />,
       view: 'by-priority',
     },
     {
       title: 'Calendar View',
-      description: 'View tasks on a monthly calendar',
-      icon: <Clock className="h-5 w-5" />,
+      description: 'Plan your maintenance schedule',
+      icon: <Calendar className="h-5 w-5" />,
       view: 'calendar',
     },
   ];
@@ -60,7 +63,7 @@ const MaintenanceNavigation: React.FC<MaintenanceNavigationProps> = ({
       {navigationItems.map((item) => (
         <Card 
           key={item.view}
-          className={`p-4 cursor-pointer hover:shadow-md transition-shadow border ${
+          className={`p-4 cursor-pointer hover:shadow-md transition-all hover:translate-y-[-2px] border ${
             currentView === item.view ? 'border-primary bg-primary/5' : ''
           }`}
           onClick={() => handleCardClick(item.view)}
@@ -72,15 +75,15 @@ const MaintenanceNavigation: React.FC<MaintenanceNavigationProps> = ({
               {item.icon}
             </div>
             <div className="ml-4">
-              <h3 className="font-medium">{item.title}</h3>
-              <p className="text-sm text-muted-foreground">{item.description}</p>
+              <h3 className="font-semibold text-base">{item.title}</h3>
+              <p className="text-sm text-muted-foreground mt-1">{item.description}</p>
             </div>
           </div>
           <div className="flex justify-end mt-3">
             <Button 
               variant="ghost" 
               size="sm" 
-              className={`${currentView === item.view ? 'text-primary' : 'text-muted-foreground'}`}
+              className={`${currentView === item.view ? 'text-primary font-medium' : 'text-muted-foreground'}`}
             >
               <span>View</span>
               <ArrowRight className="ml-1 h-4 w-4" />
