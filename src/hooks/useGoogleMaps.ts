@@ -14,7 +14,7 @@ type UseGoogleMapsReturnType = {
 };
 
 export const useGoogleMaps = (): UseGoogleMapsReturnType => {
-  const { mapApiKey } = useMapService();
+  const { mapApiKey, isError } = useMapService();
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
@@ -28,6 +28,7 @@ export const useGoogleMaps = (): UseGoogleMapsReturnType => {
   // Function to load the Google Maps script
   const loadGoogleMapsScript = useCallback(() => {
     if (!mapApiKey) {
+      console.error('No Google Maps API key provided');
       setError(new Error('Google Maps API key is missing'));
       toast.error('Clé API Google Maps manquante');
       return false;
@@ -39,9 +40,11 @@ export const useGoogleMaps = (): UseGoogleMapsReturnType => {
     }
 
     setIsLoading(true);
+    console.log('Loading Google Maps script with key:', mapApiKey.substring(0, 8) + '...');
 
     // Set up the callback function
     window[callbackName] = () => {
+      console.log('Google Maps script loaded successfully');
       setIsLoaded(true);
       setIsLoading(false);
     };
@@ -55,10 +58,10 @@ export const useGoogleMaps = (): UseGoogleMapsReturnType => {
       script.defer = true;
       script.onerror = (e) => {
         const err = new Error('Failed to load Google Maps API');
+        console.error('Error loading Google Maps script:', e);
         setError(err);
         setIsLoading(false);
         toast.error('Erreur lors du chargement de l\'API Google Maps');
-        console.error(err, e);
       };
       
       document.head.appendChild(script);
@@ -68,8 +71,8 @@ export const useGoogleMaps = (): UseGoogleMapsReturnType => {
       const error = err instanceof Error ? err : new Error('Unknown error loading Google Maps API');
       setError(error);
       setIsLoading(false);
+      console.error('Error creating script element:', error);
       toast.error('Erreur lors du chargement de l\'API Google Maps');
-      console.error(error);
       return false;
     }
   }, [mapApiKey, isLoading]);
@@ -77,13 +80,28 @@ export const useGoogleMaps = (): UseGoogleMapsReturnType => {
   // Function to initialize the map
   const initMap = useCallback((center: google.maps.LatLngLiteral = { lat: 48.8566, lng: 2.3522 }) => {
     if (!window.google?.maps) {
+      console.log('Google Maps not loaded yet, attempting to load script');
       const scriptLoaded = loadGoogleMapsScript();
       if (!scriptLoaded) return;
     }
     
-    if (!window.google?.maps || !mapRef.current || mapInitializedRef.current) return;
+    if (!window.google?.maps) {
+      console.error('Google Maps API still not available after loading attempt');
+      return;
+    }
+    
+    if (!mapRef.current) {
+      console.error('Map container reference is not available');
+      return;
+    }
+    
+    if (mapInitializedRef.current) {
+      console.log('Map already initialized, skipping');
+      return;
+    }
     
     try {
+      console.log('Initializing map with center:', center);
       // Create map instance
       const mapOptions = {
         center,
@@ -98,6 +116,7 @@ export const useGoogleMaps = (): UseGoogleMapsReturnType => {
         mapOptions
       );
       
+      console.log('Map initialized successfully');
       setMapInstance(map);
       mapInitializedRef.current = true;
     } catch (err) {
@@ -111,10 +130,17 @@ export const useGoogleMaps = (): UseGoogleMapsReturnType => {
   // Load Google Maps API when the component mounts
   useEffect(() => {
     if (window.google?.maps) {
+      console.log('Google Maps API already loaded');
       setIsLoaded(true);
       return;
     }
     
+    if (isError) {
+      console.error('Map service reported an error, not loading Google Maps');
+      return;
+    }
+    
+    console.log('Attempting to load Google Maps on component mount');
     loadGoogleMapsScript();
 
     // Cleanup function
@@ -126,6 +152,7 @@ export const useGoogleMaps = (): UseGoogleMapsReturnType => {
       
       // Reset map instance
       if (mapInstance) {
+        console.log('Cleaning up map instance');
         setMapInstance(null);
       }
       
@@ -136,7 +163,7 @@ export const useGoogleMaps = (): UseGoogleMapsReturnType => {
       // using the same API, but we do clean up our reference to it
       scriptRef.current = null;
     };
-  }, [loadGoogleMapsScript, mapInstance]);
+  }, [loadGoogleMapsScript, mapInstance, isError]);
 
   return {
     isLoaded,

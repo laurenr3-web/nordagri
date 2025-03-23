@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 export const useMapService = () => {
   const [mapApiKey, setMapApiKey] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
 
   // Initialize
   useEffect(() => {
@@ -21,6 +22,7 @@ export const useMapService = () => {
       }
     } catch (error) {
       console.error('Error initializing map service:', error);
+      setIsError(true);
       toast.error('Erreur lors de l\'initialisation du service de carte');
     } finally {
       setIsLoading(false);
@@ -33,8 +35,10 @@ export const useMapService = () => {
       setMapApiKey(key);
       localStorage.setItem('gmaps_api_key', key);
       toast.success('Clé API Google Maps mise à jour');
+      setIsError(false);
     } catch (error) {
       console.error('Error saving map API key:', error);
+      setIsError(true);
       toast.error('Erreur lors de la sauvegarde de la clé API');
     }
   };
@@ -42,6 +46,7 @@ export const useMapService = () => {
   return {
     mapApiKey,
     isLoading,
+    isError,
     setAndSaveMapApiKey
   };
 };

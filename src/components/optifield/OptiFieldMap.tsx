@@ -11,6 +11,7 @@ import LocationDisplay from './map/LocationDisplay';
 import FieldBoundaries from './map/FieldBoundaries';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMapService } from '@/services/optiField/mapService';
+import { AlertTriangle } from 'lucide-react';
 
 interface OptiFieldMapProps {
   trackingActive: boolean;
@@ -19,7 +20,7 @@ interface OptiFieldMapProps {
 const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedMachines, setSelectedMachines] = useState<string[]>([]);
-  const { mapApiKey } = useMapService();
+  const { mapApiKey, isError } = useMapService();
   
   // Initialize Google Maps
   const { isLoaded, isLoading, mapRef, mapInstance, error, initMap } = useGoogleMaps();
@@ -54,6 +55,7 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
   // Show error toast if there's an error
   useEffect(() => {
     if (error) {
+      console.error("Map loading error:", error);
       toast.error("Erreur dans le chargement de la carte");
     }
   }, [error]);
@@ -74,13 +76,30 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
       <SelectedMachines selectedMachines={selectedMachines} />
 
       {/* Map Container */}
-      <div ref={mapRef} className="h-full w-full bg-sidebar-accent/30">
+      <div ref={mapRef} className="h-full w-full bg-sidebar-accent/30 relative">
         {isLoading && (
           <div className="h-full w-full flex items-center justify-center bg-sidebar-accent/20">
             <Skeleton className="h-full w-full" />
           </div>
         )}
+        
         {!isLoaded && !isLoading && <MapPlaceholder trackingActive={trackingActive} />}
+        
+        {(error || isError) && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 z-10">
+            <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" />
+            <h3 className="text-lg font-medium mb-2">Problème de chargement de la carte</h3>
+            <p className="text-sm text-muted-foreground text-center max-w-md mb-4">
+              Nous n'avons pas pu charger Google Maps. Veuillez vérifier votre connexion internet et la clé API.
+            </p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium"
+            >
+              Recharger la page
+            </button>
+          </div>
+        )}
       </div>
       
       {/* Field Boundaries (non-visual component) */}
