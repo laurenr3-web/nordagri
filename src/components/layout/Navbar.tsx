@@ -9,7 +9,8 @@ import {
   ClipboardCheck, 
   LayoutDashboard,
   Menu,
-  X
+  X,
+  Clock
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -121,6 +122,12 @@ const Navbar = () => {
               icon={<ClipboardCheck size={20} />} 
               label="Interventions" 
               active={isActive("/interventions")} 
+            />
+            <NavItem 
+              to="/timetracking" 
+              icon={<Clock size={20} />} 
+              label="Time Tracking" 
+              active={isActive("/timetracking")} 
             />
           </nav>
         </div>
