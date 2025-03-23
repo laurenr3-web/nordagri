@@ -11,7 +11,9 @@ import LocationDisplay from './map/LocationDisplay';
 import FieldBoundaries from './map/FieldBoundaries';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMapService } from '@/services/optiField/mapService';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface OptiFieldMapProps {
   trackingActive: boolean;
@@ -45,9 +47,14 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
     );
   };
 
+  const handleReload = () => {
+    window.location.reload();
+  };
+
   // Initialize map when Google Maps API is loaded
   useEffect(() => {
     if (isLoaded && !mapInstance && mapApiKey) {
+      console.log("Initializing map with API key:", mapApiKey ? "Present" : "Missing");
       initMap();
     }
   }, [isLoaded, mapInstance, initMap, mapApiKey]);
@@ -86,18 +93,22 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
         {!isLoaded && !isLoading && <MapPlaceholder trackingActive={trackingActive} />}
         
         {(error || isError) && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 z-10">
-            <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" />
-            <h3 className="text-lg font-medium mb-2">Problème de chargement de la carte</h3>
-            <p className="text-sm text-muted-foreground text-center max-w-md mb-4">
-              Nous n'avons pas pu charger Google Maps. Veuillez vérifier votre connexion internet et la clé API.
-            </p>
-            <button 
-              onClick={() => window.location.reload()} 
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium"
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/95 z-10 p-4">
+            <Alert variant="destructive" className="mb-6 max-w-md">
+              <AlertTriangle className="h-5 w-5" />
+              <AlertTitle>Erreur dans le chargement de la carte</AlertTitle>
+              <AlertDescription>
+                Nous n'avons pas pu charger Google Maps. Veuillez vérifier votre connexion internet et la clé API.
+              </AlertDescription>
+            </Alert>
+            
+            <Button 
+              onClick={handleReload}
+              className="px-4 py-2 bg-primary gap-2 flex items-center"
             >
+              <RefreshCw className="h-4 w-4" />
               Recharger la page
-            </button>
+            </Button>
           </div>
         )}
       </div>

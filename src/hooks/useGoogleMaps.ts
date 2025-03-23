@@ -27,9 +27,9 @@ export const useGoogleMaps = (): UseGoogleMapsReturnType => {
 
   // Function to load the Google Maps script
   const loadGoogleMapsScript = useCallback(() => {
-    if (!mapApiKey) {
+    if (!mapApiKey || mapApiKey.trim() === '') {
       console.error('No Google Maps API key provided');
-      setError(new Error('Google Maps API key is missing'));
+      setError(new Error('Clé API Google Maps manquante'));
       toast.error('Clé API Google Maps manquante');
       return false;
     }
@@ -40,7 +40,7 @@ export const useGoogleMaps = (): UseGoogleMapsReturnType => {
     }
 
     setIsLoading(true);
-    console.log('Loading Google Maps script with key:', mapApiKey.substring(0, 8) + '...');
+    console.log('Loading Google Maps script with key:', mapApiKey ? `${mapApiKey.substring(0, 8)}...` : 'Missing');
 
     // Set up the callback function
     window[callbackName] = () => {
@@ -79,6 +79,12 @@ export const useGoogleMaps = (): UseGoogleMapsReturnType => {
 
   // Function to initialize the map
   const initMap = useCallback((center: google.maps.LatLngLiteral = { lat: 48.8566, lng: 2.3522 }) => {
+    if (!mapApiKey || mapApiKey.trim() === '') {
+      console.error('Cannot initialize map: No API key provided');
+      setError(new Error('Clé API Google Maps manquante'));
+      return;
+    }
+    
     if (!window.google?.maps) {
       console.log('Google Maps not loaded yet, attempting to load script');
       const scriptLoaded = loadGoogleMapsScript();
@@ -125,13 +131,19 @@ export const useGoogleMaps = (): UseGoogleMapsReturnType => {
       console.error('Error initializing map:', error);
       toast.error('Erreur lors de l\'initialisation de la carte');
     }
-  }, [loadGoogleMapsScript]);
+  }, [loadGoogleMapsScript, mapApiKey]);
 
   // Load Google Maps API when the component mounts
   useEffect(() => {
     if (window.google?.maps) {
       console.log('Google Maps API already loaded');
       setIsLoaded(true);
+      return;
+    }
+    
+    if (!mapApiKey || mapApiKey.trim() === '') {
+      console.error('Cannot load Google Maps: No API key provided');
+      setError(new Error('Clé API Google Maps manquante'));
       return;
     }
     
@@ -163,7 +175,7 @@ export const useGoogleMaps = (): UseGoogleMapsReturnType => {
       // using the same API, but we do clean up our reference to it
       scriptRef.current = null;
     };
-  }, [loadGoogleMapsScript, mapInstance, isError]);
+  }, [loadGoogleMapsScript, mapInstance, isError, mapApiKey]);
 
   return {
     isLoaded,
