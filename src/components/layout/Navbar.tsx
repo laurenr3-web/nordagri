@@ -10,7 +10,8 @@ import {
   LayoutDashboard,
   Menu,
   X,
-  Map
+  Map,
+  Settings
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -128,6 +129,12 @@ const Navbar = () => {
               icon={<Map size={20} />} 
               label="OptiField" 
               active={isActive("/optifield")} 
+            />
+            <NavItem 
+              to="/settings" 
+              icon={<Settings size={20} />} 
+              label="Settings" 
+              active={isActive("/settings")} 
             />
           </nav>
         </div>
