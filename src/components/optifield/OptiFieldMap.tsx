@@ -10,6 +10,7 @@ import SelectedMachines from './map/SelectedMachines';
 import LocationDisplay from './map/LocationDisplay';
 import FieldBoundaries from './map/FieldBoundaries';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useMapService } from '@/services/optiField/mapService';
 
 interface OptiFieldMapProps {
   trackingActive: boolean;
@@ -18,6 +19,7 @@ interface OptiFieldMapProps {
 const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedMachines, setSelectedMachines] = useState<string[]>([]);
+  const { mapApiKey } = useMapService();
   
   // Initialize Google Maps
   const { isLoaded, isLoading, mapRef, mapInstance, error, initMap } = useGoogleMaps();
@@ -34,7 +36,6 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
   };
 
   const handleMachineSelected = (machineName: string) => {
-    // For demonstration, we'll use the toast to show the selection
     toast.success(`Machine sélectionnée: ${machineName}`);
     setSelectedMachines(prev => 
       prev.includes(machineName) 
@@ -45,10 +46,10 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
 
   // Initialize map when Google Maps API is loaded
   useEffect(() => {
-    if (isLoaded && !mapInstance) {
+    if (isLoaded && !mapInstance && mapApiKey) {
       initMap();
     }
-  }, [isLoaded, mapInstance, initMap]);
+  }, [isLoaded, mapInstance, initMap, mapApiKey]);
 
   // Show error toast if there's an error
   useEffect(() => {
@@ -58,7 +59,7 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
   }, [error]);
 
   return (
-    <Card className={`overflow-hidden relative ${isFullscreen ? 'fixed inset-0 z-50 rounded-none' : 'h-[70vh]'}`}>
+    <Card className={`overflow-hidden relative rounded-xl shadow-md ${isFullscreen ? 'fixed inset-0 z-50 rounded-none' : 'h-[75vh]'}`}>
       {/* Map Controls */}
       <MapControls 
         isFullscreen={isFullscreen}
@@ -73,9 +74,9 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
       <SelectedMachines selectedMachines={selectedMachines} />
 
       {/* Map Container */}
-      <div ref={mapRef} className="h-full w-full">
+      <div ref={mapRef} className="h-full w-full bg-sidebar-accent/30">
         {isLoading && (
-          <div className="h-full w-full flex items-center justify-center bg-gray-100">
+          <div className="h-full w-full flex items-center justify-center bg-sidebar-accent/20">
             <Skeleton className="h-full w-full" />
           </div>
         )}
@@ -89,6 +90,14 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
       
       {/* Location Display */}
       <LocationDisplay userLocation={userLocation} />
+      
+      {/* Map Status Indicator */}
+      {isLoaded && (
+        <div className="absolute bottom-3 left-3 bg-white/90 dark:bg-sidebar/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-medium shadow-sm z-10 flex items-center gap-2">
+          <div className={`w-2 h-2 rounded-full ${trackingActive ? 'bg-green-500 animate-pulse' : 'bg-amber-500'}`}></div>
+          <span>{trackingActive ? 'Suivi actif' : 'Prêt'}</span>
+        </div>
+      )}
     </Card>
   );
 };
