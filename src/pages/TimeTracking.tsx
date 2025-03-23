@@ -22,24 +22,26 @@ const TimeTracking = () => {
 
   return (
     <Layout>
-      <TimeTrackingHeader 
-        isMapViewActive={isMapViewActive}
-        setIsMapViewActive={setIsMapViewActive}
-        onAddActivity={() => setIsAddActivityDialogOpen(true)}
-        activeTracking={activeTracking}
-      />
-      <TimeTrackingContent 
-        activities={activities}
-        activeTracking={activeTracking}
-        isMapViewActive={isMapViewActive}
-        startTracking={startTracking}
-        pauseTracking={pauseTracking}
-        stopTracking={stopTracking}
-        equipments={equipments}
-        isAddActivityDialogOpen={isAddActivityDialogOpen}
-        setIsAddActivityDialogOpen={setIsAddActivityDialogOpen}
-        onAddActivity={addActivity}
-      />
+      <div className="flex flex-col min-h-[calc(100vh-100px)]">
+        <TimeTrackingHeader 
+          isMapViewActive={isMapViewActive}
+          setIsMapViewActive={setIsMapViewActive}
+          onAddActivity={() => setIsAddActivityDialogOpen(true)}
+          activeTracking={activeTracking}
+        />
+        <TimeTrackingContent 
+          activities={activities}
+          activeTracking={activeTracking}
+          isMapViewActive={isMapViewActive}
+          startTracking={startTracking}
+          pauseTracking={pauseTracking}
+          stopTracking={stopTracking}
+          equipments={equipments}
+          isAddActivityDialogOpen={isAddActivityDialogOpen}
+          setIsAddActivityDialogOpen={setIsAddActivityDialogOpen}
+          onAddActivity={addActivity}
+        />
+      </div>
     </Layout>
   );
 };

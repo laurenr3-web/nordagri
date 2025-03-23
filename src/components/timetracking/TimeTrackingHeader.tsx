@@ -19,7 +19,7 @@ const TimeTrackingHeader: React.FC<TimeTrackingHeaderProps> = ({
   activeTracking
 }) => {
   return (
-    <div className="mb-6">
+    <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm pt-4 pb-2">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Time Tracking</h1>
