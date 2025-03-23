@@ -115,7 +115,7 @@ export const useOptiField = () => {
   // Pause tracking session
   const pauseTracking = () => {
     if (activeSession) {
-      const updatedSession = { ...activeSession, status: 'paused' };
+      const updatedSession = { ...activeSession, status: 'paused' as const };
       updateSession(updatedSession);
       setActiveSession(updatedSession);
     }
@@ -124,7 +124,7 @@ export const useOptiField = () => {
   // Resume tracking session
   const resumeTracking = () => {
     if (activeSession) {
-      const updatedSession = { ...activeSession, status: 'active' };
+      const updatedSession = { ...activeSession, status: 'active' as const };
       updateSession(updatedSession);
       setActiveSession(updatedSession);
     }
@@ -143,7 +143,7 @@ export const useOptiField = () => {
       
       const updatedSession = { 
         ...activeSession, 
-        status: 'completed', 
+        status: 'completed' as const, 
         endTime, 
         totalDuration,
         productiveTime

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Dialog, 
@@ -239,29 +238,25 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
                     </Button>
                   )}
                   
-                  {intervention.status !== 'completed' && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="gap-1"
-                      onClick={() => handleStatusChange('completed')}
-                    >
-                      <CheckCircle2 size={14} />
-                      <span>Mark as Completed</span>
-                    </Button>
-                  )}
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="gap-1"
+                    onClick={() => handleStatusChange('completed')}
+                  >
+                    <CheckCircle2 size={14} />
+                    <span>Mark as Completed</span>
+                  </Button>
                   
-                  {intervention.status !== 'canceled' && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="gap-1"
-                      onClick={() => handleStatusChange('canceled')}
-                    >
-                      <X size={14} />
-                      <span>Cancel</span>
-                    </Button>
-                  )}
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="gap-1"
+                    onClick={() => handleStatusChange('canceled')}
+                  >
+                    <X size={14} />
+                    <span>Cancel</span>
+                  </Button>
                 </div>
               </div>
             </div>
