@@ -147,7 +147,6 @@ const Parts = () => {
           <Dialog
             open={isPartDetailsDialogOpen}
             onOpenChange={setIsPartDetailsDialogOpen}
-            onClick={e => e.stopPropagation()}
           >
             <DialogContent 
               className="sm:max-w-lg max-h-[90vh] overflow-y-auto"
