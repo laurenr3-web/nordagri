@@ -1,4 +1,3 @@
-
 import React, { Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,49 +12,44 @@ const OptiFieldSummary = React.lazy(() => import('@/components/optifield/OptiFie
 const OptiFieldChatInterface = React.lazy(() => import('@/components/optifield/OptiFieldChatInterface'));
 
 // Fallback loader for Suspense
-const ComponentLoader = () => (
-  <div className="w-full h-64 rounded-lg bg-card flex items-center justify-center">
+const ComponentLoader = () => <div className="w-full h-64 rounded-lg bg-card flex items-center justify-center">
     <Skeleton className="h-full w-full rounded-lg" />
-  </div>
-);
-
+  </div>;
 interface OptiFieldContentProps {
   trackingActive: boolean;
   setTrackingActive: (active: boolean) => void;
 }
-
-const OptiFieldContent: React.FC<OptiFieldContentProps> = ({ 
-  trackingActive, 
-  setTrackingActive 
+const OptiFieldContent: React.FC<OptiFieldContentProps> = ({
+  trackingActive,
+  setTrackingActive
 }) => {
   const [selectedView, setSelectedView] = React.useState<string>("map");
-
   const tabIcons = {
     map: <MapPin className="h-4 w-4 mr-2" />,
     summary: <BarChart2 className="h-4 w-4 mr-2" />,
     timeline: <Clock className="h-4 w-4 mr-2" />
   };
-  
-  return (
-    <div className="container py-10 md:py-16 px-4 md:px-8 lg:px-16 max-w-7xl mx-auto">
+  return <div className="container py-10 md:py-16 md:px-8 lg:px-16 max-w-7xl mx-auto px-[138px]">
       <Suspense fallback={<ComponentLoader />}>
         <OptiFieldHeader trackingActive={trackingActive} setTrackingActive={setTrackingActive} />
       </Suspense>
       
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.1 }}
-        className="my-8"
-      >
+      <motion.div initial={{
+      opacity: 0,
+      y: 10
+    }} animate={{
+      opacity: 1,
+      y: 0
+    }} transition={{
+      duration: 0.3,
+      delay: 0.1
+    }} className="my-8">
         <Tabs value={selectedView} onValueChange={setSelectedView} className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-6">
-            {Object.entries(tabIcons).map(([key, icon]) => (
-              <TabsTrigger key={key} value={key} className="flex items-center">
+            {Object.entries(tabIcons).map(([key, icon]) => <TabsTrigger key={key} value={key} className="flex items-center">
                 {icon}
                 <span>{key === 'map' ? 'Carte' : key === 'summary' ? 'Analyses' : 'Historique'}</span>
-              </TabsTrigger>
-            ))}
+              </TabsTrigger>)}
           </TabsList>
           
           <div className="relative rounded-lg border bg-card">
@@ -80,18 +74,20 @@ const OptiFieldContent: React.FC<OptiFieldContentProps> = ({
         </Tabs>
       </motion.div>
       
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.3 }}
-        className="mt-8"
-      >
+      <motion.div initial={{
+      opacity: 0,
+      y: 20
+    }} animate={{
+      opacity: 1,
+      y: 0
+    }} transition={{
+      duration: 0.4,
+      delay: 0.3
+    }} className="mt-8">
         <Suspense fallback={<ComponentLoader />}>
           <OptiFieldChatInterface trackingActive={trackingActive} setTrackingActive={setTrackingActive} />
         </Suspense>
       </motion.div>
-    </div>
-  );
+    </div>;
 };
-
 export default OptiFieldContent;
