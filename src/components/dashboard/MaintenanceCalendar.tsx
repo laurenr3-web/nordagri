@@ -19,13 +19,15 @@ interface MaintenanceCalendarProps {
   month: Date;
   className?: string;
   onAddTask?: (date?: Date) => void;
+  onViewTask?: (taskId: string) => void;
 }
 
 export function MaintenanceCalendar({
   events,
   month,
   className,
-  onAddTask
+  onAddTask,
+  onViewTask
 }: MaintenanceCalendarProps) {
   // Helper function to get days in month
   const getDaysInMonth = (year: number, month: number) => {
@@ -80,6 +82,14 @@ export function MaintenanceCalendar({
     
     const selectedDate = new Date(month.getFullYear(), month.getMonth(), day);
     onAddTask(selectedDate);
+  };
+
+  // Handle clicking on an event
+  const handleEventClick = (event: MaintenanceEvent, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onViewTask) {
+      onViewTask(event.id);
+    }
   };
   
   // Format month name
@@ -152,11 +162,12 @@ export function MaintenanceCalendar({
                       <div 
                         key={eventIndex}
                         className={cn(
-                          "text-xs mb-0.5 truncate px-1 py-0.5 rounded-sm",
+                          "text-xs mb-0.5 truncate px-1 py-0.5 rounded-sm cursor-pointer hover:opacity-80",
                           event.priority === 'high' ? "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200" : "",
                           event.priority === 'medium' ? "bg-harvest-100 text-harvest-800 dark:bg-harvest-900/40 dark:text-harvest-200" : "",
                           event.priority === 'low' ? "bg-agri-100 text-agri-800 dark:bg-agri-900/40 dark:text-agri-200" : ""
                         )}
+                        onClick={(e) => handleEventClick(event, e)}
                       >
                         {event.title}
                       </div>

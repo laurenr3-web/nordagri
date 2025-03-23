@@ -54,6 +54,15 @@ const TaskTabs: React.FC<TaskTabsProps> = ({
     setIsNewTaskDialogOpen(true);
   };
   
+  // Handle viewing a task from the calendar
+  const handleViewTaskFromCalendar = (taskId: string) => {
+    const task = tasks.find(t => t.id.toString() === taskId);
+    if (task) {
+      setSelectedTask(task);
+      setIsDetailsDialogOpen(true);
+    }
+  };
+  
   // Convert tasks to calendar events
   const taskEvents = tasks.map(task => ({
     id: task.id.toString(),
@@ -149,6 +158,7 @@ const TaskTabs: React.FC<TaskTabsProps> = ({
             month={currentMonth}
             className="animate-scale-in"
             onAddTask={handleAddTask}
+            onViewTask={handleViewTaskFromCalendar}
           />
         </TabsContent>
       </Tabs>
