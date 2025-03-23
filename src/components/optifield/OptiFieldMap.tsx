@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,27 +13,15 @@ import {
 } from 'lucide-react';
 import MapPlaceholder from './MapPlaceholder';
 import { toast } from 'sonner';
+import { useMapService } from '@/services/optiField/mapService';
 
-// Add TypeScript declarations for Google Maps
-interface GoogleMapWindow extends Window {
-  google?: {
-    maps: {
-      Map: new (element: HTMLElement, options: any) => any;
-      Marker: new (options: any) => any;
-      Circle: new (options: any) => any;
-      Polygon: new (options: any) => any;
-      SymbolPath: {
-        CIRCLE: number;
-      };
-      MapTypeId: {
-        ROADMAP: string;
-      };
-    };
-  };
-  initGoogleMaps?: () => void;
+// Add proper TypeScript declarations for Google Maps
+declare global {
+  interface Window {
+    google: typeof google;
+    initGoogleMaps: () => void;
+  }
 }
-
-declare const window: GoogleMapWindow;
 
 interface OptiFieldMapProps {
   trackingActive: boolean;
@@ -40,16 +29,18 @@ interface OptiFieldMapProps {
 
 const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [mapApiKey] = useState<string>('AIzaSyDYNpssW98FUa34qBKCD6JdI7iWYnzFxyI');
+  const { mapApiKey } = useMapService();
   const [selectedMachines, setSelectedMachines] = useState<string[]>([]);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<google.maps.LatLngLiteral | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<any | null>(null);
-  const userMarkerRef = useRef<any | null>(null);
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const userMarkerRef = useRef<google.maps.Marker | null>(null);
   const [fieldBoundaries, setFieldBoundaries] = useState<
     { id: string; path: google.maps.LatLngLiteral[] }[]
   >([]);
+  const scriptRef = useRef<HTMLScriptElement | null>(null);
+  const watchIdRef = useRef<number | null>(null);
 
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
@@ -122,6 +113,8 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
         if (trackingActive) {
           startWatchingPosition();
         }
+        
+        setIsLocating(false);
       },
       (error) => {
         setIsLocating(false);
@@ -145,7 +138,13 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
   };
   
   const startWatchingPosition = () => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) return null;
+    
+    // Clear any existing watch
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
     
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
@@ -171,16 +170,14 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
     );
     
     // Store the watch ID for cleanup
+    watchIdRef.current = watchId;
     return watchId;
   };
 
-  useEffect(() => {
-    // Store the API key in localStorage for persistence
-    localStorage.setItem('gmaps_api_key', mapApiKey);
-
-    // Initialize Google Maps
-    const initMap = () => {
-      if (window.google && mapContainerRef.current) {
+  // Initialize Google Maps
+  const initMap = () => {
+    if (window.google && mapContainerRef.current) {
+      try {
         // Create map instance
         const mapOptions = {
           center: { lat: 48.8566, lng: 2.3522 }, // Paris coordinates as default
@@ -255,45 +252,77 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
         });
 
         setFieldBoundaries(initialFieldBoundaries);
+      } catch (error) {
+        console.error('Error initializing map:', error);
+        toast.error('Erreur lors de l\'initialisation de la carte');
       }
-    };
+    }
+  };
 
-    // Load Google Maps API
-    if (!window.google) {
+  // Load Google Maps API
+  useEffect(() => {
+    // Define the callback function
+    window.initGoogleMaps = initMap;
+
+    if (!window.google && mapApiKey) {
       const script = document.createElement('script');
       script.src = `https://maps.googleapis.com/maps/api/js?key=${mapApiKey}&libraries=places,drawing&callback=initGoogleMaps`;
       script.async = true;
       script.defer = true;
       document.head.appendChild(script);
       
-      // Define the callback function
-      window.initGoogleMaps = initMap;
-    } else {
+      // Store script reference for cleanup
+      scriptRef.current = script;
+    } else if (window.google) {
       // If Google Maps API is already loaded
       initMap();
     }
 
+    // Cleanup
     return () => {
-      // Cleanup if needed
+      // Clear any existing geolocation watch
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+      
+      // Clear map instance
+      if (mapRef.current) {
+        // No need to call remove() for Google Maps
+        mapRef.current = null;
+      }
+      
+      // Clear marker reference
+      userMarkerRef.current = null;
+      
+      // Remove the script if we added it
+      if (scriptRef.current && document.head.contains(scriptRef.current)) {
+        document.head.removeChild(scriptRef.current);
+      }
+      
+      // Remove the callback
       delete window.initGoogleMaps;
     };
-  }, [mapApiKey, userLocation]);
+  }, [mapApiKey]);
   
   // Effect for tracking user position when tracking mode changes
   useEffect(() => {
-    let watchId: number | null = null;
-    
     if (trackingActive && userLocation) {
-      watchId = startWatchingPosition();
+      startWatchingPosition();
       toast.success('Suivi de position activé');
+    } else if (!trackingActive && watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
     }
     
+    // Cleanup on unmount
     return () => {
-      if (watchId !== null) {
-        navigator.geolocation.clearWatch(watchId);
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
       }
     };
-  }, [trackingActive]);
+  }, [trackingActive, userLocation]);
 
   return (
     <Card className={`overflow-hidden relative ${isFullscreen ? 'fixed inset-0 z-50 rounded-none' : 'h-[70vh]'}`}>
