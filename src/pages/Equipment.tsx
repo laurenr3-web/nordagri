@@ -14,9 +14,12 @@ import {
   TractorIcon,
   Truck, 
   Cog, 
-  BarChart
+  BarChart,
+  ChevronRight,
+  ExternalLink
 } from 'lucide-react';
 import EquipmentForm from '@/components/equipment/EquipmentForm';
+import EquipmentDetails from '@/components/equipment/EquipmentDetails';
 import { toast } from '@/hooks/use-toast';
 
 // Sample data
@@ -131,6 +134,7 @@ const Equipment = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [equipmentData, setEquipmentData] = useState(initialEquipmentData);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [selectedEquipment, setSelectedEquipment] = useState<typeof initialEquipmentData[0] | null>(null);
   
   // Filter equipment based on search term and category
   const filteredEquipment = equipmentData.filter(equipment => {
@@ -209,6 +213,10 @@ const Equipment = () => {
     }
   };
 
+  const handleEquipmentClick = (equipment: typeof initialEquipmentData[0]) => {
+    setSelectedEquipment(equipment);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -284,9 +292,10 @@ const Equipment = () => {
               {filteredEquipment.map((equipment, index) => (
                 <BlurContainer 
                   key={equipment.id} 
-                  className="overflow-hidden animate-scale-in"
+                  className="overflow-hidden animate-scale-in cursor-pointer"
                   style={{ animationDelay: `${index * 0.1}s` } as React.CSSProperties}
                   raised
+                  onClick={() => handleEquipmentClick(equipment)}
                 >
                   <div className="aspect-video relative overflow-hidden">
                     <img 
@@ -338,7 +347,13 @@ const Equipment = () => {
                         <span className="font-medium text-foreground">Next:</span> {equipment.nextService.type}
                       </span>
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="h-8 px-2">Details</Button>
+                        <Button variant="outline" size="sm" className="h-8 px-2 gap-1" onClick={(e) => {
+                          e.stopPropagation();
+                          handleEquipmentClick(equipment);
+                        }}>
+                          <span>Details</span>
+                          <ChevronRight size={14} />
+                        </Button>
                         <Button variant="outline" size="sm" className="h-8 px-2">
                           <BarChart size={14} />
                         </Button>
@@ -391,7 +406,15 @@ const Equipment = () => {
                         <td className="p-3">{equipment.location}</td>
                         <td className="p-3">
                           <div className="flex gap-1">
-                            <Button variant="outline" size="sm" className="h-8 px-2">Details</Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="h-8 px-2 gap-1"
+                              onClick={() => handleEquipmentClick(equipment)}
+                            >
+                              <span>Details</span>
+                              <ExternalLink size={14} />
+                            </Button>
                             <Button variant="outline" size="sm" className="h-8 w-8 p-0">
                               <BarChart size={14} />
                             </Button>
@@ -426,6 +449,16 @@ const Equipment = () => {
             onSubmit={handleAddEquipment}
             onCancel={() => setIsAddDialogOpen(false)}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Equipment Details Dialog */}
+      <Dialog open={!!selectedEquipment} onOpenChange={(open) => !open && setSelectedEquipment(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Equipment Details</DialogTitle>
+          </DialogHeader>
+          {selectedEquipment && <EquipmentDetails equipment={selectedEquipment} />}
         </DialogContent>
       </Dialog>
     </div>
