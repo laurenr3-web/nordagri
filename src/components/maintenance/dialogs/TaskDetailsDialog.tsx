@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { MaintenanceTask } from '@/hooks/maintenance/maintenanceSlice';
 import { getStatusBadge, getPriorityBadge, formatDate } from '../MaintenanceUtils';
-import { Clock, Calendar, FileText, Tool, User } from 'lucide-react';
+import { Clock, Calendar, FileText, Wrench, User } from 'lucide-react';
 
 interface TaskDetailsDialogProps {
   task: MaintenanceTask | null;
@@ -41,7 +41,7 @@ const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div className="flex gap-2 items-start">
-              <Tool className="h-5 w-5 text-muted-foreground mt-0.5" />
+              <Wrench className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
                 <p className="text-sm text-muted-foreground">Equipment</p>
                 <p className="font-medium">{task.equipment} (ID: {task.equipmentId})</p>
