@@ -17,8 +17,8 @@ interface OptiFieldMapProps {
 
 const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [mapApiKey, setMapApiKey] = useState<string>('');
-  const [showApiKeyInput, setShowApiKeyInput] = useState(true);
+  const [mapApiKey, setMapApiKey] = useState<string>('AIzaSyDYNpssW98FUa34qBKCD6JdI7iWYnzFxyI');
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement>(null);
 
   const toggleFullscreen = () => {
@@ -36,12 +36,14 @@ const OptiFieldMap: React.FC<OptiFieldMapProps> = ({ trackingActive }) => {
     const savedApiKey = localStorage.getItem('gmaps_api_key');
     if (savedApiKey) {
       setMapApiKey(savedApiKey);
-      setShowApiKeyInput(false);
+    } else {
+      // Save the default API key to localStorage
+      localStorage.setItem('gmaps_api_key', mapApiKey);
     }
 
     // This would be where we'd initialize the Google Maps API
     // if we had a valid API key
-  }, []);
+  }, [mapApiKey]);
 
   return (
     <Card className={`overflow-hidden relative ${isFullscreen ? 'fixed inset-0 z-50 rounded-none' : 'h-[70vh]'}`}>
