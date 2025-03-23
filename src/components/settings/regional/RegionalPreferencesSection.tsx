@@ -1,69 +1,66 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { SettingsSection } from '../SettingsSection';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 
 export const RegionalPreferencesSection = () => {
-  const handleSaveRegionalPreferences = () => {
-    toast.success('Regional preferences saved successfully');
+  const [temperatureUnit, setTemperatureUnit] = useState('celsius');
+  const [dateFormat, setDateFormat] = useState('dd/mm/yyyy');
+  const [timeFormat, setTimeFormat] = useState('24h');
+  const [language, setLanguage] = useState('en');
+  const [loading, setLoading] = useState(false);
+
+  const handleSavePreferences = async () => {
+    try {
+      setLoading(true);
+      
+      // In a real app, we would save these preferences to the database
+      // For now, we'll just simulate a delay and show a success message
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Save to localStorage for now
+      localStorage.setItem('regionalPreferences', JSON.stringify({
+        temperatureUnit,
+        dateFormat,
+        timeFormat,
+        language
+      }));
+      
+      toast.success('Regional preferences saved');
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+      toast.error('Failed to save preferences');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <SettingsSection
       title="Regional Preferences"
-      description="Configure units of measurement, currency, and date formats"
+      description="Set your preferred units, date formats, and language"
     >
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div className="space-y-2">
-          <Label htmlFor="units">Measurement Units</Label>
-          <Select defaultValue="metric">
-            <SelectTrigger id="units">
-              <SelectValue placeholder="Select units" />
+          <label className="text-sm font-medium">Temperature Unit</label>
+          <Select value={temperatureUnit} onValueChange={setTemperatureUnit}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select temperature unit" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="metric">Metric (km, kg, ha)</SelectItem>
-              <SelectItem value="imperial">Imperial (mi, lb, acres)</SelectItem>
+              <SelectItem value="celsius">Celsius (°C)</SelectItem>
+              <SelectItem value="fahrenheit">Fahrenheit (°F)</SelectItem>
             </SelectContent>
           </Select>
         </div>
+        
         <div className="space-y-2">
-          <Label htmlFor="currency">Currency</Label>
-          <Select defaultValue="eur">
-            <SelectTrigger id="currency">
-              <SelectValue placeholder="Select currency" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="eur">Euro (€)</SelectItem>
-              <SelectItem value="usd">US Dollar ($)</SelectItem>
-              <SelectItem value="gbp">British Pound (£)</SelectItem>
-              <SelectItem value="cad">Canadian Dollar (C$)</SelectItem>
-              <SelectItem value="aud">Australian Dollar (A$)</SelectItem>
-              <SelectItem value="jpy">Japanese Yen (¥)</SelectItem>
-              <SelectItem value="chf">Swiss Franc (CHF)</SelectItem>
-              <SelectItem value="cny">Chinese Yuan (¥)</SelectItem>
-              <SelectItem value="inr">Indian Rupee (₹)</SelectItem>
-              <SelectItem value="brl">Brazilian Real (R$)</SelectItem>
-              <SelectItem value="rub">Russian Ruble (₽)</SelectItem>
-              <SelectItem value="zar">South African Rand (R)</SelectItem>
-              <SelectItem value="mxn">Mexican Peso (Mex$)</SelectItem>
-              <SelectItem value="sgd">Singapore Dollar (S$)</SelectItem>
-              <SelectItem value="nzd">New Zealand Dollar (NZ$)</SelectItem>
-              <SelectItem value="hkd">Hong Kong Dollar (HK$)</SelectItem>
-              <SelectItem value="sek">Swedish Krona (kr)</SelectItem>
-              <SelectItem value="nok">Norwegian Krone (kr)</SelectItem>
-              <SelectItem value="dkk">Danish Krone (kr)</SelectItem>
-              <SelectItem value="pln">Polish Złoty (zł)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="date-format">Date Format</Label>
-          <Select defaultValue="dd/mm/yyyy">
-            <SelectTrigger id="date-format">
-              <SelectValue placeholder="Select format" />
+          <label className="text-sm font-medium">Date Format</label>
+          <Select value={dateFormat} onValueChange={setDateFormat}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select date format" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="dd/mm/yyyy">DD/MM/YYYY</SelectItem>
@@ -72,10 +69,24 @@ export const RegionalPreferencesSection = () => {
             </SelectContent>
           </Select>
         </div>
+        
         <div className="space-y-2">
-          <Label htmlFor="language">Language</Label>
-          <Select defaultValue="en">
-            <SelectTrigger id="language">
+          <label className="text-sm font-medium">Time Format</label>
+          <Select value={timeFormat} onValueChange={setTimeFormat}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select time format" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="12h">12-hour (AM/PM)</SelectItem>
+              <SelectItem value="24h">24-hour</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Language</label>
+          <Select value={language} onValueChange={setLanguage}>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Select language" />
             </SelectTrigger>
             <SelectContent>
@@ -83,27 +94,14 @@ export const RegionalPreferencesSection = () => {
               <SelectItem value="fr">Français</SelectItem>
               <SelectItem value="es">Español</SelectItem>
               <SelectItem value="de">Deutsch</SelectItem>
-              <SelectItem value="it">Italiano</SelectItem>
-              <SelectItem value="pt">Português</SelectItem>
-              <SelectItem value="nl">Nederlands</SelectItem>
-              <SelectItem value="ru">Русский</SelectItem>
-              <SelectItem value="zh">中文</SelectItem>
-              <SelectItem value="ja">日本語</SelectItem>
-              <SelectItem value="ar">العربية</SelectItem>
-              <SelectItem value="hi">हिन्दी</SelectItem>
-              <SelectItem value="ko">한국어</SelectItem>
-              <SelectItem value="tr">Türkçe</SelectItem>
-              <SelectItem value="vi">Tiếng Việt</SelectItem>
-              <SelectItem value="th">ไทย</SelectItem>
-              <SelectItem value="pl">Polski</SelectItem>
-              <SelectItem value="uk">Українська</SelectItem>
-              <SelectItem value="sv">Svenska</SelectItem>
-              <SelectItem value="no">Norsk</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
-      <Button className="mt-4" onClick={handleSaveRegionalPreferences}>Save Regional Preferences</Button>
+      
+      <Button onClick={handleSavePreferences} disabled={loading}>
+        Save Preferences
+      </Button>
     </SettingsSection>
   );
 };

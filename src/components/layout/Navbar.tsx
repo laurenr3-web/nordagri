@@ -1,153 +1,131 @@
 
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { cn } from '@/lib/utils';
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { UserMenu } from "./UserMenu";
 import { 
+  Home, 
   Tractor, 
+  Tool, 
   Wrench, 
-  Package, 
-  ClipboardCheck, 
-  LayoutDashboard,
-  Menu,
-  X,
-  Map,
-  Settings
-} from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
-
-interface NavItemProps {
-  to: string;
-  icon: React.ReactNode;
-  label: string;
-  active: boolean;
-}
-
-const NavItem = ({ to, icon, label, active }: NavItemProps) => {
-  return (
-    <Link 
-      to={to} 
-      className={cn(
-        "flex items-center gap-2 px-4 py-3 rounded-lg transition-all duration-300",
-        "hover:bg-secondary/80",
-        active ? "bg-primary/10 text-primary font-medium" : "text-foreground/80"
-      )}
-    >
-      <span className={cn(
-        "transition-transform duration-300",
-        active ? "scale-110" : ""
-      )}>
-        {icon}
-      </span>
-      <span className={cn(
-        "transition-all duration-300",
-        active ? "translate-x-1" : ""
-      )}>
-        {label}
-      </span>
-    </Link>
-  );
-};
+  AlertTriangle, 
+  Map, 
+  Settings as SettingsIcon, 
+  Menu, 
+  X
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useSidebar } from "@/components/ui/sidebar";
 
 const Navbar = () => {
   const location = useLocation();
-  const isMobile = useIsMobile();
-  const [isOpen, setIsOpen] = useState(!isMobile);
+  const { isSidebarOpen, toggleSidebar } = useSidebar();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const isActive = (path: string) => location.pathname === path;
-
+  // Close mobile menu when route changes
   useEffect(() => {
-    if (isMobile) {
-      setIsOpen(false);
-    } else {
-      setIsOpen(true);
-    }
-  }, [isMobile]);
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
+
+  const navItems = [
+    { path: "/", icon: <Home />, label: "Dashboard" },
+    { path: "/equipment", icon: <Tractor />, label: "Equipment" },
+    { path: "/parts", icon: <Tool />, label: "Parts" },
+    { path: "/maintenance", icon: <Wrench />, label: "Maintenance" },
+    { path: "/interventions", icon: <AlertTriangle />, label: "Interventions" },
+    { path: "/optifield", icon: <Map />, label: "OptiField" },
+    { path: "/settings", icon: <SettingsIcon />, label: "Settings" },
+  ];
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
 
   return (
     <>
-      {isMobile && (
-        <div className="fixed top-4 right-4 z-50">
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="p-2 rounded-full bg-primary text-white shadow-lg"
-          >
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+      {/* Mobile header */}
+      <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-background border-b z-50 px-4 flex items-center justify-between">
+        <Link to="/" className="font-bold text-lg">OptiTractor</Link>
+        <div className="flex items-center gap-2">
+          <UserMenu />
+          <Button variant="ghost" size="icon" onClick={toggleMobileMenu}>
+            {isMobileMenuOpen ? <X /> : <Menu />}
+          </Button>
+        </div>
+      </div>
+
+      {/* Mobile menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden fixed top-14 left-0 right-0 bottom-0 bg-background z-40 overflow-auto">
+          <div className="flex flex-col p-4 space-y-2">
+            {navItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-md",
+                  isActive(item.path)
+                    ? "bg-primary text-primary-foreground"
+                    : "hover:bg-muted"
+                )}
+              >
+                {item.icon}
+                {item.label}
+              </Link>
+            ))}
+          </div>
         </div>
       )}
-      
-      <div className={cn(
-        "fixed top-0 left-0 h-full bg-white shadow-subtle z-40 transition-all duration-300 ease-in-out",
-        isMobile ? (
-          isOpen ? "w-64 translate-x-0" : "w-64 -translate-x-full"
-        ) : "w-64"
-      )}>
+
+      {/* Desktop sidebar */}
+      <aside
+        className={cn(
+          "fixed top-0 left-0 z-30 h-full w-64 bg-background border-r transition-transform duration-300 ease-in-out hidden md:block",
+          !isSidebarOpen && "-translate-x-full"
+        )}
+      >
         <div className="p-6">
-          <div className="flex items-center gap-3 mb-10">
-            <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
-              <Tractor className="text-primary h-6 w-6" />
-            </div>
-            <div>
-              <h2 className="font-medium text-lg">Agri-ERP</h2>
-              <p className="text-xs text-muted-foreground">Insight Platform</p>
-            </div>
-          </div>
-          
-          <nav className="space-y-1">
-            <NavItem 
-              to="/" 
-              icon={<LayoutDashboard size={20} />} 
-              label="Dashboard" 
-              active={isActive("/")} 
-            />
-            <NavItem 
-              to="/equipment" 
-              icon={<Tractor size={20} />} 
-              label="Equipment" 
-              active={isActive("/equipment")} 
-            />
-            <NavItem 
-              to="/parts" 
-              icon={<Package size={20} />} 
-              label="Parts Catalog" 
-              active={isActive("/parts")} 
-            />
-            <NavItem 
-              to="/maintenance" 
-              icon={<Wrench size={20} />} 
-              label="Maintenance" 
-              active={isActive("/maintenance")} 
-            />
-            <NavItem 
-              to="/interventions" 
-              icon={<ClipboardCheck size={20} />} 
-              label="Interventions" 
-              active={isActive("/interventions")} 
-            />
-            <NavItem 
-              to="/optifield" 
-              icon={<Map size={20} />} 
-              label="OptiField" 
-              active={isActive("/optifield")} 
-            />
-            <NavItem 
-              to="/settings" 
-              icon={<Settings size={20} />} 
-              label="Settings" 
-              active={isActive("/settings")} 
-            />
+          <Link to="/" className="flex items-center gap-2">
+            <span className="font-bold text-lg">OptiTractor</span>
+          </Link>
+        </div>
+        <div className="px-3 py-2">
+          <nav className="flex flex-col gap-1">
+            {navItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-md",
+                  isActive(item.path)
+                    ? "bg-primary text-primary-foreground"
+                    : "hover:bg-muted"
+                )}
+              >
+                {item.icon}
+                {item.label}
+              </Link>
+            ))}
           </nav>
         </div>
-      </div>
-      
-      <div className={cn(
-        "transition-all duration-300 ease-in-out",
-        isMobile ? (
-          isOpen ? "ml-0 opacity-50" : "ml-0 opacity-100"
-        ) : "ml-64"
-      )}>
-        {/* Content wrapper for page content */}
-      </div>
+        <div className="absolute bottom-8 left-0 right-0 px-6">
+          <UserMenu />
+        </div>
+      </aside>
+
+      {/* Toggle button */}
+      <Button
+        variant="outline"
+        size="icon"
+        className="fixed bottom-4 right-4 z-50 rounded-full shadow-md md:hidden"
+        onClick={toggleSidebar}
+      >
+        <Menu />
+      </Button>
     </>
   );
 };

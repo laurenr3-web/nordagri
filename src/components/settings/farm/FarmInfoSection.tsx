@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SettingsSection } from '../SettingsSection';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,16 +8,137 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Building } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from "@/integrations/supabase/client";
 
 export const FarmInfoSection = () => {
-  const [farmName, setFarmName] = useState('Green Valley Farm');
-  const [farmSize, setFarmSize] = useState('250');
+  const [farmName, setFarmName] = useState('');
+  const [farmSize, setFarmSize] = useState('');
   const [farmType, setFarmType] = useState('mixed');
-  const [farmLocation, setFarmLocation] = useState('Bordeaux, France');
+  const [farmLocation, setFarmLocation] = useState('');
+  const [farmId, setFarmId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const getSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session) {
+        setUser(data.session.user);
+        fetchFarmInfo(data.session.user.id);
+      } else {
+        setLoading(false);
+      }
+    };
+
+    getSession();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session) {
+          setUser(session.user);
+          fetchFarmInfo(session.user.id);
+        } else {
+          resetFarmData();
+          setLoading(false);
+        }
+      }
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const resetFarmData = () => {
+    setFarmName('');
+    setFarmSize('');
+    setFarmType('mixed');
+    setFarmLocation('');
+    setFarmId(null);
+  };
+
+  const fetchFarmInfo = async (userId: string) => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('farms')
+        .select('*')
+        .eq('owner_id', userId)
+        .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        setFarmId(data.id);
+        setFarmName(data.name || '');
+        setFarmSize(data.size ? data.size.toString() : '');
+        setFarmType(data.description || 'mixed');
+        setFarmLocation(data.location || '');
+      } else {
+        // If no farm exists yet, set default values
+        setFarmName('New Farm');
+        setFarmSize('0');
+        setFarmType('mixed');
+        setFarmLocation('');
+      }
+    } catch (error) {
+      console.error('Error fetching farm info:', error);
+      toast.error('Failed to load farm information');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Handle farm information save
-  const handleSaveFarmInfo = () => {
-    toast.success('Farm information saved successfully');
+  const handleSaveFarmInfo = async () => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
+      
+      const farmData = {
+        name: farmName,
+        size: parseFloat(farmSize) || 0,
+        size_unit: 'acres',
+        location: farmLocation,
+        description: farmType,
+        updated_at: new Date().toISOString(),
+      };
+      
+      let result;
+      
+      if (farmId) {
+        // Update existing farm
+        result = await supabase
+          .from('farms')
+          .update(farmData)
+          .eq('id', farmId);
+      } else {
+        // Create new farm
+        result = await supabase
+          .from('farms')
+          .insert({
+            ...farmData,
+            owner_id: user.id,
+          })
+          .select();
+          
+        if (result.data && result.data.length > 0) {
+          setFarmId(result.data[0].id);
+        }
+      }
+      
+      if (result.error) throw result.error;
+      
+      toast.success('Farm information saved successfully');
+    } catch (error) {
+      console.error('Error saving farm information:', error);
+      toast.error('Failed to save farm information');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -38,6 +159,7 @@ export const FarmInfoSection = () => {
                   id="farm-name" 
                   value={farmName} 
                   onChange={(e) => setFarmName(e.target.value)} 
+                  disabled={loading}
                 />
               </div>
               <div className="space-y-2">
@@ -47,6 +169,7 @@ export const FarmInfoSection = () => {
                   value={farmSize} 
                   onChange={(e) => setFarmSize(e.target.value)} 
                   suffix="acres" 
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -56,6 +179,7 @@ export const FarmInfoSection = () => {
                 <Select 
                   value={farmType} 
                   onValueChange={setFarmType}
+                  disabled={loading}
                 >
                   <SelectTrigger id="farm-type">
                     <SelectValue placeholder="Select type" />
@@ -74,12 +198,18 @@ export const FarmInfoSection = () => {
                   id="farm-location" 
                   value={farmLocation} 
                   onChange={(e) => setFarmLocation(e.target.value)} 
+                  disabled={loading}
                 />
               </div>
             </div>
           </div>
         </div>
-        <Button onClick={handleSaveFarmInfo}>Save Farm Information</Button>
+        <Button 
+          onClick={handleSaveFarmInfo} 
+          disabled={loading}
+        >
+          Save Farm Information
+        </Button>
       </div>
     </SettingsSection>
   );
