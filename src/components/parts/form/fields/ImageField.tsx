@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { PartFormValues } from '../partFormTypes';
 import CameraCapture from '@/components/equipment/form/CameraCapture';
 import { FormControl } from '@/components/ui/form';
+import ImagePreview from '@/components/equipment/form/fields/ImagePreview';
 
 interface ImageFieldProps {
   form: UseFormReturn<PartFormValues>;
@@ -32,18 +33,11 @@ const ImageField: React.FC<ImageFieldProps> = ({ form }) => {
               />
             </div>
             
-            {/* Image preview */}
-            {field.value && (
-              <div className="mt-2 relative bg-muted rounded-md overflow-hidden w-full">
-                <div className="aspect-square w-full max-w-xs mx-auto">
-                  <img
-                    src={field.value}
-                    alt="Part preview"
-                    className="object-cover w-full h-full"
-                  />
-                </div>
-              </div>
-            )}
+            {/* Use the ImagePreview component instead of duplicating the code */}
+            <ImagePreview 
+              imageUrl={field.value} 
+              onReset={() => form.setValue('image', '')}
+            />
             
             <FormDescription>
               Enter a URL for the part image or take a photo
