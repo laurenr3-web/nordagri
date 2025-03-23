@@ -18,6 +18,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import PartDetails from '@/components/parts/PartDetails';
 
 // Sample parts data
 const partsData = [
@@ -139,6 +140,8 @@ const Parts = () => {
   const [customCategories, setCustomCategories] = useState<string[]>([]);
   const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
   const [newCategory, setNewCategory] = useState('');
+  const [selectedPart, setSelectedPart] = useState<typeof partsData[0] | null>(null);
+  const [isPartDetailsDialogOpen, setIsPartDetailsDialogOpen] = useState(false);
   
   // Filter states
   const [filterManufacturers, setFilterManufacturers] = useState<string[]>([]);
@@ -250,6 +253,11 @@ const Parts = () => {
         description: `Category "${category}" added successfully`,
       });
     }
+  };
+
+  const openPartDetails = (part: typeof partsData[0]) => {
+    setSelectedPart(part);
+    setIsPartDetailsDialogOpen(true);
   };
 
   return (
@@ -415,7 +423,7 @@ const Parts = () => {
                     </div>
                     
                     <div className="mt-4 pt-4 border-t border-border flex justify-between">
-                      <Button variant="outline" size="sm">Details</Button>
+                      <Button variant="outline" size="sm" onClick={() => openPartDetails(part)}>Details</Button>
                       <Button variant="default" size="sm">Order</Button>
                     </div>
                   </div>
@@ -464,7 +472,7 @@ const Parts = () => {
                         <td className="p-3">{part.location}</td>
                         <td className="p-3">
                           <div className="flex gap-1">
-                            <Button variant="outline" size="sm" className="h-8 px-2">Details</Button>
+                            <Button variant="outline" size="sm" className="h-8 px-2" onClick={() => openPartDetails(part)}>Details</Button>
                             <Button variant="default" size="sm" className="h-8 px-2">Order</Button>
                           </div>
                         </td>
@@ -484,6 +492,22 @@ const Parts = () => {
               </Button>
             </div>
           )}
+          
+          {/* Part Details Dialog */}
+          <Dialog
+            open={isPartDetailsDialogOpen}
+            onOpenChange={setIsPartDetailsDialogOpen}
+          >
+            <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Part Details</DialogTitle>
+                <DialogDescription>
+                  Detailed information about the selected part
+                </DialogDescription>
+              </DialogHeader>
+              {selectedPart && <PartDetails part={selectedPart} />}
+            </DialogContent>
+          </Dialog>
           
           {/* Add Part Dialog */}
           <Dialog 
