@@ -11,3 +11,21 @@ export interface AISettings {
   temperature: number;
   enableContext: boolean;
 }
+
+export interface ContextData {
+  currentPosition?: { lat: number; lng: number };
+  fields?: Array<any>;
+  equipment?: Array<any>;
+  activeSession?: any;
+  activeField?: { name: string; [key: string]: any };
+  weather?: {
+    current?: string;
+    forecast?: string;
+  };
+}
+
+export type ActionCommand = 
+  | '[ACTION:START_TRACKING]' 
+  | '[ACTION:STOP_TRACKING]' 
+  | '[ACTION:WEATHER_INFO]' 
+  | string; // For dynamic commands like FIELD_INFO
