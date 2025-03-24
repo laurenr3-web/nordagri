@@ -6,6 +6,7 @@ import { maintenanceTasks } from '@/data/maintenanceData';
 import NewTaskDialog from '@/components/maintenance/NewTaskDialog';
 import MaintenanceHeader from '@/components/maintenance/MaintenanceHeader';
 import MaintenanceContent from '@/components/maintenance/MaintenanceContent';
+import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 
 const Maintenance = () => {
   const [currentView, setCurrentView] = useState('upcoming');
@@ -32,25 +33,31 @@ const Maintenance = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      
-      <div className="pt-6 pb-16 pl-4 pr-4 sm:pl-8 sm:pr-8 md:pl-12 md:pr-12 ml-0 md:ml-64">
-        <div className="max-w-7xl mx-auto">
-          <MaintenanceHeader 
-            setIsNewTaskDialogOpen={setIsNewTaskDialogOpen} 
-          />
-          
-          <MaintenanceContent 
-            tasks={tasks}
-            currentView={currentView}
-            setCurrentView={setCurrentView}
-            currentMonth={currentMonth}
-            setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
-            updateTaskStatus={updateTaskStatus}
-            updateTaskPriority={updateTaskPriority}
-            deleteTask={deleteTask}
-          />
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full bg-background">
+        <Sidebar className="border-r">
+          <Navbar />
+        </Sidebar>
+        
+        <div className="flex-1 w-full">
+          <div className="pt-6 pb-16 px-4 sm:px-8 md:px-12">
+            <div className="max-w-7xl mx-auto">
+              <MaintenanceHeader 
+                setIsNewTaskDialogOpen={setIsNewTaskDialogOpen} 
+              />
+              
+              <MaintenanceContent 
+                tasks={tasks}
+                currentView={currentView}
+                setCurrentView={setCurrentView}
+                currentMonth={currentMonth}
+                setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
+                updateTaskStatus={updateTaskStatus}
+                updateTaskPriority={updateTaskPriority}
+                deleteTask={deleteTask}
+              />
+            </div>
+          </div>
         </div>
       </div>
       
@@ -60,7 +67,7 @@ const Maintenance = () => {
         onSubmit={handleAddTask}
         initialDate={selectedDate}
       />
-    </div>
+    </SidebarProvider>
   );
 };
 

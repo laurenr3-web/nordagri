@@ -7,6 +7,7 @@ import { useMapService } from '@/services/optiField/mapService';
 import ApiKeyDialog from '@/components/optifield/dialogs/ApiKeyDialog';
 import ErrorState from '@/components/optifield/states/ErrorState';
 import OptiFieldContent from '@/components/optifield/OptiFieldContent';
+import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 
 const OptiField = () => {
   const [trackingActive, setTrackingActive] = useState<boolean>(false);
@@ -93,17 +94,21 @@ const OptiField = () => {
   
   // Normal state - everything is loaded and functional
   return (
-    <div className="flex min-h-screen overflow-x-hidden bg-background">
-      <Navbar />
-      
-      <main className="flex-1 md:ml-64">
-        <Suspense fallback={<div className="w-full h-full flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
-          <OptiFieldContent 
-            trackingActive={trackingActive}
-            setTrackingActive={setTrackingActive}
-          />
-        </Suspense>
-      </main>
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full bg-background">
+        <Sidebar className="border-r">
+          <Navbar />
+        </Sidebar>
+        
+        <main className="flex-1 w-full">
+          <Suspense fallback={<div className="w-full h-full flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+            <OptiFieldContent 
+              trackingActive={trackingActive}
+              setTrackingActive={setTrackingActive}
+            />
+          </Suspense>
+        </main>
+      </div>
       
       <ApiKeyDialog
         isOpen={isApiKeyDialogOpen}
@@ -112,7 +117,7 @@ const OptiField = () => {
         setApiKeyInput={setApiKeyInput}
         onSave={handleSaveApiKey}
       />
-    </div>
+    </SidebarProvider>
   );
 };
 
