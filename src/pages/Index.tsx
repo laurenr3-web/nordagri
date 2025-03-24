@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { DashboardSection } from '@/components/dashboard/DashboardSection';
@@ -11,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { Tractor, Wrench, Package, ClipboardCheck, AlertTriangle, Clock, CalendarClock, LayoutDashboard } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNavigate } from 'react-router-dom';
+import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 
 // Sample data
 const statsData = [{
@@ -211,41 +211,46 @@ const Index = () => {
     navigate('/maintenance');
   };
 
-  return <div className="min-h-screen bg-background">
-      <Navbar />
-      
-      <div className="pt-6 pb-16 pl-4 pr-4 sm:pl-8 sm:pr-8 md:pl-12 md:pr-12 ml-0 md:ml-64">
-        <div className="max-w-7xl mx-auto">
-          <header className="mb-8 animate-fade-in">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div className="chip chip-primary mb-2">Agricultural ERP Dashboard</div>
-                <h1 className="text-3xl font-medium tracking-tight mb-1">Welcome Back</h1>
-                <p className="text-muted-foreground">
-                  Here's what's happening with your agricultural equipment today
-                </p>
-              </div>
+  return (
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full bg-background">
+        <Sidebar className="border-r">
+          <Navbar />
+        </Sidebar>
+        
+        <div className="flex-1 w-full">
+          <div className="pt-6 pb-16 px-4 sm:px-8 md:px-12">
+            <div className="max-w-7xl mx-auto">
+              <header className="mb-8 animate-fade-in">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <div className="chip chip-primary mb-2">Agricultural ERP Dashboard</div>
+                    <h1 className="text-3xl font-medium tracking-tight mb-1">Welcome Back</h1>
+                    <p className="text-muted-foreground">
+                      Here's what's happening with your agricultural equipment today
+                    </p>
+                  </div>
+                  
+                  <Tabs value={currentView} onValueChange={value => setCurrentView(value as 'main' | 'calendar' | 'alerts')} className="mt-4 sm:mt-0">
+                    <TabsList className="grid w-full grid-cols-3 md:w-auto">
+                      <TabsTrigger value="main" className="gap-2">
+                        <LayoutDashboard size={16} />
+                        <span className="px-[23px]">Dashboard</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="calendar" className="gap-2">
+                        <CalendarClock size={16} />
+                        <span>June 2023</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="alerts" className="gap-2">
+                        <AlertTriangle size={16} />
+                        <span>Alerts</span>
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </div>
+              </header>
               
-              <Tabs value={currentView} onValueChange={value => setCurrentView(value as 'main' | 'calendar' | 'alerts')} className="mt-4 sm:mt-0">
-                <TabsList className="grid w-full grid-cols-3 md:w-auto">
-                  <TabsTrigger value="main" className="gap-2">
-                    <LayoutDashboard size={16} />
-                    <span className="px-[23px]">Dashboard</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="calendar" className="gap-2">
-                    <CalendarClock size={16} />
-                    <span>June 2023</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="alerts" className="gap-2">
-                    <AlertTriangle size={16} />
-                    <span>Alerts</span>
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-          </header>
-          
-          <Tabs value={currentView} className="space-y-8">
+              <Tabs value={currentView} className="space-y-8">
             <TabsContent value="main" className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 {statsData.map((stat, index) => (
@@ -373,6 +378,8 @@ const Index = () => {
           </Tabs>
         </div>
       </div>
-    </div>;
+    </SidebarProvider>
+  );
 };
+
 export default Index;

@@ -18,7 +18,7 @@ import { useSidebar, SidebarProvider } from "@/components/ui/sidebar";
 // Create a navbar content component that uses the useSidebar hook
 const NavbarContent = () => {
   const location = useLocation();
-  const { open, setOpen } = useSidebar();
+  const { openMobile, setOpenMobile } = useSidebar();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -37,12 +37,12 @@ const NavbarContent = () => {
   };
 
   return (
-    <div className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col transform transition-transform duration-200 ease-in-out ${open ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:transition-none`}>
+    <div className="h-full flex flex-col">
       <div className="flex h-14 items-center border-b px-4">
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => setOpen(!open)}
+          onClick={() => setOpenMobile(false)}
           className="mr-2 md:hidden"
         >
           <ChevronLeft />
@@ -89,9 +89,7 @@ const NavbarContent = () => {
 // The main Navbar component now ensures SidebarProvider exists
 const Navbar = () => {
   return (
-    <SidebarProvider>
-      <NavbarContent />
-    </SidebarProvider>
+    <NavbarContent />
   );
 };
 

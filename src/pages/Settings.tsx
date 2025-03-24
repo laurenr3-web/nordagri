@@ -1,5 +1,5 @@
 
-import React from 'react'; // Suppression de useEffect car il n'est pas utilisé
+import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navbar from "@/components/layout/Navbar";
 import { SettingsEssentials } from '@/components/settings/SettingsEssentials';
@@ -8,7 +8,7 @@ import { SettingsNotifications } from '@/components/settings/SettingsNotificatio
 import { SettingsIntegrations } from '@/components/settings/SettingsIntegrations';
 import { SettingsEquipment } from '@/components/settings/SettingsEquipment';
 import { SettingsSecurity } from '@/components/settings/SettingsSecurity';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const Settings = () => {
@@ -20,7 +20,7 @@ const Settings = () => {
   const defaultTab = tabParam || 'essentials';
   
   // Update URL when tab changes
-  const handleTabChange = (value) => { // Suppression de l'annotation ": string" si vous n'utilisez pas TypeScript
+  const handleTabChange = (value) => {
     searchParams.set('tab', value);
     navigate(`${location.pathname}?${searchParams.toString()}`, {
       replace: true
@@ -29,10 +29,12 @@ const Settings = () => {
   
   return (
     <SidebarProvider>
-      <div className="min-h-screen bg-background flex">
-        <Navbar />
-        {/* Correction des classes de padding contradictoires */}
-        <div className="flex-1 pl-72 pr-8 pt-8 pb-8 mx-0 my-[72px]">
+      <div className="flex min-h-screen w-full bg-background">
+        <Sidebar className="border-r">
+          <Navbar />
+        </Sidebar>
+        
+        <div className="flex-1 p-8">
           <div className="max-w-5xl mx-auto">
             <h1 className="text-3xl font-bold mb-6">Settings</h1>
             
