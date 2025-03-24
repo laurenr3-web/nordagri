@@ -13,10 +13,10 @@ import {
   ChevronLeft
 } from "lucide-react";
 import { UserMenu } from "@/components/layout/UserMenu";
-import { useSidebar, SidebarProvider } from "@/components/ui/sidebar";
+import { useSidebar } from "@/components/ui/sidebar";
 
 // Create a navbar content component that uses the useSidebar hook
-const NavbarContent = () => {
+const Navbar = () => {
   const location = useLocation();
   const { openMobile, setOpenMobile } = useSidebar();
   const [mounted, setMounted] = useState(false);
@@ -83,13 +83,6 @@ const NavbarContent = () => {
         <UserMenu />
       </div>
     </div>
-  );
-};
-
-// The main Navbar component now ensures SidebarProvider exists
-const Navbar = () => {
-  return (
-    <NavbarContent />
   );
 };
 
