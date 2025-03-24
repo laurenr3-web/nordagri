@@ -13,13 +13,12 @@ import {
   ChevronLeft
 } from "lucide-react";
 import { UserMenu } from "@/components/layout/UserMenu";
-import { useSidebar } from "@/components/ui/sidebar";
 
-// Create a navbar content component that uses the useSidebar hook
+// Create a navbar content component that doesn't use the useSidebar hook
 const Navbar = () => {
   const location = useLocation();
-  const { openMobile, setOpenMobile } = useSidebar();
   const [mounted, setMounted] = useState(false);
+  const [openMobile, setOpenMobile] = useState(false);
 
   useEffect(() => {
     setMounted(true);
