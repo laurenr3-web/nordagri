@@ -2,7 +2,7 @@
 import React from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { SidebarToggleButton } from '@/components/ui/sidebar';
+import { Menu } from 'lucide-react';
 
 // Import components
 import PartsHeader from '@/components/parts/PartsHeader';
@@ -49,9 +49,6 @@ const PartsContainer = ({
 }) => {
   return (
     <div className="flex-1 w-full">
-      {/* Menu button for mobile */}
-      <SidebarToggleButton className="fixed top-2 left-2 z-50 md:hidden" />
-      
       <div className="pt-6 pb-16 px-4 sm:px-8 md:px-12">
         <div className="max-w-7xl mx-auto">
           {/* Header */}

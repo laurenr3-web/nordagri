@@ -3,6 +3,7 @@ import React from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { partsData } from '@/data/partsData';
 import { useParts } from '@/hooks/useParts';
+import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 
 // Import main container
 import PartsContainer from '@/components/parts/PartsContainer';
@@ -14,10 +15,14 @@ const Parts = () => {
   const partsHookData = useParts(initialPartsData);
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <PartsContainer {...partsHookData} />
-    </div>
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full bg-background">
+        <Sidebar className="border-r">
+          <Navbar />
+        </Sidebar>
+        <PartsContainer {...partsHookData} />
+      </div>
+    </SidebarProvider>
   );
 };
 
