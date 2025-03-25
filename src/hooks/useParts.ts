@@ -17,16 +17,16 @@ export const useParts = (initialParts: Part[] = []) => {
   const [sortBy, setSortBy] = useState('name-asc');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedPart, setSelectedPart] = useState<Part | null>(null);
+  const [currentView, setCurrentView] = useState<'grid' | 'list'>('grid');
 
   // State for part details and dialogs
-  const [selectedPart, setSelectedPart] = useState<Part | null>(null);
   const [isPartDetailsDialogOpen, setIsPartDetailsDialogOpen] = useState(false);
   const [isAddPartDialogOpen, setIsAddPartDialogOpen] = useState(false);
   const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
   const [isSortDialogOpen, setIsSortDialogOpen] = useState(false);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
-  const [currentView, setCurrentView] = useState<'grid' | 'list'>('grid');
 
   // State for add category dialog
   const [newCategory, setNewCategory] = useState('');
@@ -41,10 +41,10 @@ export const useParts = (initialParts: Part[] = []) => {
   const { data: supabaseParts, isLoading, isError } = useQuery({
     queryKey: ['parts'],
     queryFn: () => partsService.getParts(),
-    onSuccess: (data) => {
-      if (data.length > 0) {
+    onSettled: (data) => {
+      if (data && data.length > 0) {
         setParts(data);
-      } else if (initialParts.length > 0 && data.length === 0) {
+      } else if (initialParts.length > 0 && (!data || data.length === 0)) {
         // If Supabase has no data but we have initial data, use initial data
         console.log('No parts in Supabase, using initial data');
         setParts(initialParts);
@@ -54,7 +54,7 @@ export const useParts = (initialParts: Part[] = []) => {
 
   // Add part mutation
   const addPartMutation = useMutation({
-    mutationFn: (part: Omit<Part, 'id' | 'createdAt' | 'updatedAt'>) => 
+    mutationFn: (part: Omit<Part, 'id'>) => 
       partsService.addPart(part),
     onSuccess: (newPart) => {
       queryClient.invalidateQueries({ queryKey: ['parts'] });
@@ -144,11 +144,11 @@ export const useParts = (initialParts: Part[] = []) => {
     // Price filter
     const minPrice = filterMinPrice ? parseFloat(filterMinPrice) : 0;
     const maxPrice = filterMaxPrice ? parseFloat(filterMaxPrice) : Infinity;
-    const price = parseFloat(part.price);
-    const matchesPrice = !isNaN(price) && price >= minPrice && price <= maxPrice;
+    const partPrice = typeof part.price === 'number' ? part.price : parseFloat(part.price.toString());
+    const matchesPrice = !isNaN(partPrice) && partPrice >= minPrice && partPrice <= maxPrice;
     
     // In stock filter
-    const matchesStock = !filterInStock || part.quantity > 0;
+    const matchesStock = !filterInStock || part.stock > 0;
     
     return matchesSearch && matchesCategory && matchesManufacturer && matchesPrice && matchesStock;
   }).sort((a, b) => {
@@ -160,10 +160,12 @@ export const useParts = (initialParts: Part[] = []) => {
         comparison = a.name.localeCompare(b.name);
         break;
       case 'price':
-        comparison = parseFloat(a.price) - parseFloat(b.price);
+        const aPrice = typeof a.price === 'number' ? a.price : parseFloat(a.price.toString());
+        const bPrice = typeof b.price === 'number' ? b.price : parseFloat(b.price.toString());
+        comparison = aPrice - bPrice;
         break;
       case 'quantity':
-        comparison = a.quantity - b.quantity;
+        comparison = a.stock - b.stock;
         break;
       default:
         comparison = 0;
@@ -179,17 +181,16 @@ export const useParts = (initialParts: Part[] = []) => {
   };
 
   const handleAddPart = (partData: any) => {
-    const newPart: Omit<Part, 'id' | 'createdAt' | 'updatedAt'> = {
+    const newPart: Omit<Part, 'id'> = {
       name: partData.name,
       partNumber: partData.partNumber || '',
       category: partData.category || '',
       manufacturer: partData.manufacturer || '',
-      compatibleWith: partData.compatibleWith || [],
-      quantity: parseInt(partData.quantity) || 0,
-      price: partData.price || '0',
+      compatibility: partData.compatibility || [],
+      stock: parseInt(partData.stock) || 0,
+      price: partData.price ? parseFloat(partData.price) : 0,
       location: partData.location || '',
-      lastOrdered: partData.lastOrdered ? new Date(partData.lastOrdered) : undefined,
-      reorderThreshold: parseInt(partData.reorderThreshold) || 5,
+      reorderPoint: parseInt(partData.reorderPoint) || 5,
       image: partData.image || 'https://placehold.co/100x100/png'
     };
     
@@ -229,9 +230,27 @@ export const useParts = (initialParts: Part[] = []) => {
     }, 1500);
   };
 
+  // Calculate filter count
+  const filterCount = 
+    (filterManufacturers.length > 0 ? 1 : 0) + 
+    (filterMinPrice || filterMaxPrice ? 1 : 0) + 
+    (filterInStock ? 1 : 0) + 
+    (categoryFilter !== 'all' ? 1 : 0);
+
+  // Additional functions for Part component props
+  const openPartDetails = (part: Part) => handleViewPart(part);
+  const openOrderDialog = (part: Part) => {
+    setSelectedPart(part);
+    setIsOrderDialogOpen(true);
+  };
+
+  const selectedCategory = categoryFilter;
+  const setSelectedCategory = setCategoryFilter;
+
   // Return all the state and functions needed by the components
   return {
     parts: filteredParts,
+    filteredParts,
     isLoading,
     isError,
     currentView,
@@ -240,6 +259,9 @@ export const useParts = (initialParts: Part[] = []) => {
     setSearchTerm,
     categoryFilter,
     setCategoryFilter,
+    selectedCategory,
+    setSelectedCategory,
+    filterCount,
     categories,
     manufacturers,
     filterManufacturers,
@@ -269,6 +291,8 @@ export const useParts = (initialParts: Part[] = []) => {
     resetFilters,
     applyFilters,
     handleViewPart,
+    openPartDetails,
+    openOrderDialog,
     handleAddPart,
     handleEditPart,
     handleDeletePart,

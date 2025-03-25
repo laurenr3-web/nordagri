@@ -14,12 +14,11 @@ export const useTasksManager = (initialTasks: MaintenanceTask[] = []) => {
   const { data: supabaseTasks, isLoading, isError } = useQuery({
     queryKey: ['maintenanceTasks'],
     queryFn: () => maintenanceService.getTasks(),
-    onSuccess: (data) => {
-      if (data.length > 0) {
+    onSettled: (data) => {
+      if (data && data.length > 0) {
         setTasks(data);
-      } else if (initialTasks.length > 0 && data.length === 0) {
+      } else if (initialTasks.length > 0 && (!data || data.length === 0)) {
         // If Supabase has no data but we have initial data, we could seed it
-        // This is optional and depends on your requirements
         console.log('No tasks in Supabase, using initial data');
         setTasks(initialTasks);
       }

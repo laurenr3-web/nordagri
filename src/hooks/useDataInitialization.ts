@@ -77,7 +77,7 @@ export const useDataInitialization = () => {
       const taskData = maintenanceTasks.map(task => ({
         title: task.title,
         equipment: task.equipment,
-        equipment_id: 1, // Default ID
+        equipment_id: task.equipmentId || 1, // Default ID
         type: task.type,
         status: task.status,
         priority: task.priority,
@@ -104,12 +104,12 @@ export const useDataInitialization = () => {
         part_number: part.partNumber,
         category: part.category,
         supplier: part.manufacturer,
-        compatible_with: part.compatibleWith,
-        quantity: part.quantity,
-        unit_price: part.price ? parseFloat(part.price) : null,
+        compatible_with: part.compatibility,
+        quantity: part.stock,
+        unit_price: part.price ? parseFloat(String(part.price)) : null,
         location: part.location,
         last_ordered: part.lastOrdered?.toISOString(),
-        reorder_threshold: part.reorderThreshold
+        reorder_threshold: part.reorderPoint
       }));
       
       const { error } = await supabase

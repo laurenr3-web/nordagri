@@ -21,6 +21,8 @@ export const maintenanceService = {
       completedDate: task.completed_date ? new Date(task.completed_date) : undefined,
       estimatedDuration: task.estimated_duration?.toString() || '0',
       actualDuration: task.actual_duration?.toString(),
+      equipmentId: task.equipment_id,
+      assignedTo: task.assigned_to,
       id: task.id
     }));
   },
@@ -30,7 +32,7 @@ export const maintenanceService = {
     const supabaseTask = {
       title: task.title,
       equipment: task.equipment,
-      equipment_id: 1, // Default value if not provided
+      equipment_id: task.equipmentId || 1, // Default value if not provided
       type: task.type,
       status: task.status,
       priority: task.priority,
@@ -59,6 +61,8 @@ export const maintenanceService = {
       completedDate: data.completed_date ? new Date(data.completed_date) : undefined,
       estimatedDuration: data.estimated_duration?.toString() || '0',
       actualDuration: data.actual_duration?.toString(),
+      equipmentId: data.equipment_id,
+      assignedTo: data.assigned_to,
       id: data.id
     };
   },

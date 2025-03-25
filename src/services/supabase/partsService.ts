@@ -21,31 +21,27 @@ export const partsService = {
       partNumber: part.part_number || '',
       category: part.category || '',
       manufacturer: part.supplier || '',
-      compatibleWith: part.compatible_with || [],
-      quantity: part.quantity,
-      price: part.unit_price?.toString() || '0',
+      compatibility: part.compatible_with || [],
+      stock: part.quantity,
+      price: part.unit_price !== null ? part.unit_price : 0,
       location: part.location || '',
-      lastOrdered: part.last_ordered ? new Date(part.last_ordered) : undefined,
-      reorderThreshold: part.reorder_threshold || 5,
-      image: 'https://placehold.co/100x100/png',
-      createdAt: part.created_at ? new Date(part.created_at) : new Date(),
-      updatedAt: part.updated_at ? new Date(part.updated_at) : new Date()
+      reorderPoint: part.reorder_threshold || 5,
+      image: 'https://placehold.co/100x100/png'
     }));
   },
   
   // Add a new part to the database
-  async addPart(part: Omit<Part, 'id' | 'createdAt' | 'updatedAt'>): Promise<Part> {
+  async addPart(part: Omit<Part, 'id'>): Promise<Part> {
     const partData = {
       name: part.name,
       part_number: part.partNumber,
       category: part.category,
       supplier: part.manufacturer,
-      compatible_with: part.compatibleWith,
-      quantity: part.quantity,
-      unit_price: part.price ? parseFloat(part.price) : null,
+      compatible_with: part.compatibility,
+      quantity: part.stock,
+      unit_price: part.price,
       location: part.location,
-      last_ordered: part.lastOrdered?.toISOString(),
-      reorder_threshold: part.reorderThreshold
+      reorder_threshold: part.reorderPoint
     };
     
     const { data, error } = await supabase
@@ -65,15 +61,12 @@ export const partsService = {
       partNumber: data.part_number || '',
       category: data.category || '',
       manufacturer: data.supplier || '',
-      compatibleWith: data.compatible_with || [],
-      quantity: data.quantity,
-      price: data.unit_price?.toString() || '0',
+      compatibility: data.compatible_with || [],
+      stock: data.quantity,
+      price: data.unit_price !== null ? data.unit_price : 0,
       location: data.location || '',
-      lastOrdered: data.last_ordered ? new Date(data.last_ordered) : undefined,
-      reorderThreshold: data.reorder_threshold || 5,
-      image: 'https://placehold.co/100x100/png',
-      createdAt: data.created_at ? new Date(data.created_at) : new Date(),
-      updatedAt: data.updated_at ? new Date(data.updated_at) : new Date()
+      reorderPoint: data.reorder_threshold || 5,
+      image: 'https://placehold.co/100x100/png'
     };
   },
   
@@ -84,12 +77,11 @@ export const partsService = {
       part_number: part.partNumber,
       category: part.category,
       supplier: part.manufacturer,
-      compatible_with: part.compatibleWith,
-      quantity: part.quantity,
-      unit_price: part.price ? parseFloat(part.price) : null,
+      compatible_with: part.compatibility,
+      quantity: part.stock,
+      unit_price: part.price,
       location: part.location,
-      last_ordered: part.lastOrdered?.toISOString(),
-      reorder_threshold: part.reorderThreshold,
+      reorder_threshold: part.reorderPoint,
       updated_at: new Date().toISOString()
     };
     
@@ -107,7 +99,7 @@ export const partsService = {
     
     return {
       ...part,
-      updatedAt: new Date()
+      // No need to add updatedAt as it doesn't exist in the Part type
     };
   },
   
