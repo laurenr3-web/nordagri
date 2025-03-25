@@ -38,13 +38,15 @@ export const useParts = (initialParts: Part[] = []) => {
   const [isAddPartDialogOpen, setIsAddPartDialogOpen] = useState(false);
   const [isEditPartDialogOpen, setIsEditPartDialogOpen] = useState(false);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
+  const [isPartDetailsDialogOpen, setIsPartDetailsDialogOpen] = useState(false);
+  const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
   const [selectedPart, setSelectedPart] = useState<Part | null>(null);
   
   // Fetch parts from Supabase
   const { data: supabaseParts, isLoading, isError } = useQuery({
     queryKey: ['parts'],
     queryFn: () => partsService.getParts(),
-    onSuccess: (data) => {
+    onSettled: (data) => {
       if (data && data.length > 0) {
         setParts(data);
       } else if (initialParts.length > 0 && (!data || data.length === 0)) {
@@ -241,6 +243,10 @@ export const useParts = (initialParts: Part[] = []) => {
     setIsAddPartDialogOpen,
     isEditPartDialogOpen,
     setIsEditPartDialogOpen,
+    isPartDetailsDialogOpen,
+    setIsPartDetailsDialogOpen,
+    isAddCategoryDialogOpen,
+    setIsAddCategoryDialogOpen,
     selectedPart,
     setSelectedPart,
     handleAddPart,

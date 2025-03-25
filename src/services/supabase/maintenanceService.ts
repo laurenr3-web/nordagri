@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { MaintenanceTask, MaintenanceStatus, MaintenancePriority } from '@/hooks/maintenance/maintenanceSlice';
+import { MaintenanceTask, MaintenanceStatus, MaintenancePriority, MaintenanceType } from '@/hooks/maintenance/maintenanceSlice';
 
 export const maintenanceService = {
   // Récupérer toutes les tâches
@@ -20,7 +20,7 @@ export const maintenanceService = {
       title: task.title,
       equipment: task.equipment,
       equipmentId: task.equipment_id,
-      type: task.type,
+      type: task.type as MaintenanceType,
       status: task.status as MaintenanceStatus,
       priority: task.priority as MaintenancePriority,
       dueDate: task.due_date ? new Date(task.due_date) : new Date(),
@@ -42,11 +42,11 @@ export const maintenanceService = {
       status: task.status,
       priority: task.priority,
       due_date: task.dueDate.toISOString(),
-      estimated_duration: task.estimatedDuration ? parseFloat(task.estimatedDuration) : 0,
+      estimated_duration: task.estimatedDuration ? Number(task.estimatedDuration) : 0,
       assigned_to: task.assignedTo || '',
       notes: task.notes,
       completed_date: task.completedDate ? task.completedDate.toISOString() : null,
-      actual_duration: task.actualDuration ? parseFloat(task.actualDuration) : null
+      actual_duration: task.actualDuration ? Number(task.actualDuration) : null
     };
     
     const { data, error } = await supabase
@@ -65,7 +65,7 @@ export const maintenanceService = {
       title: data.title,
       equipment: data.equipment,
       equipmentId: data.equipment_id,
-      type: data.type,
+      type: data.type as MaintenanceType,
       status: data.status as MaintenanceStatus,
       priority: data.priority as MaintenancePriority,
       dueDate: new Date(data.due_date),
