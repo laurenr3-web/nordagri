@@ -9,6 +9,57 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      equipment: {
+        Row: {
+          created_at: string | null
+          current_location: string | null
+          id: number
+          last_maintenance: string | null
+          manufacturer: string | null
+          model: string | null
+          name: string
+          next_maintenance: string | null
+          notes: string | null
+          purchase_date: string | null
+          purchase_price: number | null
+          status: string | null
+          updated_at: string | null
+          year: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_location?: string | null
+          id?: number
+          last_maintenance?: string | null
+          manufacturer?: string | null
+          model?: string | null
+          name: string
+          next_maintenance?: string | null
+          notes?: string | null
+          purchase_date?: string | null
+          purchase_price?: number | null
+          status?: string | null
+          updated_at?: string | null
+          year?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          current_location?: string | null
+          id?: number
+          last_maintenance?: string | null
+          manufacturer?: string | null
+          model?: string | null
+          name?: string
+          next_maintenance?: string | null
+          notes?: string | null
+          purchase_date?: string | null
+          purchase_price?: number | null
+          status?: string | null
+          updated_at?: string | null
+          year?: number | null
+        }
+        Relationships: []
+      }
       farms: {
         Row: {
           created_at: string
@@ -42,6 +93,108 @@ export type Database = {
           size?: number | null
           size_unit?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      maintenance_tasks: {
+        Row: {
+          actual_duration: number | null
+          assigned_to: string | null
+          completed_date: string | null
+          created_at: string | null
+          due_date: string | null
+          equipment: string
+          equipment_id: number
+          estimated_duration: number | null
+          id: number
+          notes: string | null
+          priority: string
+          status: string
+          title: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          actual_duration?: number | null
+          assigned_to?: string | null
+          completed_date?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          equipment: string
+          equipment_id: number
+          estimated_duration?: number | null
+          id?: number
+          notes?: string | null
+          priority: string
+          status: string
+          title: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          actual_duration?: number | null
+          assigned_to?: string | null
+          completed_date?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          equipment?: string
+          equipment_id?: number
+          estimated_duration?: number | null
+          id?: number
+          notes?: string | null
+          priority?: string
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      parts_inventory: {
+        Row: {
+          category: string | null
+          compatible_with: string[] | null
+          created_at: string | null
+          id: number
+          last_ordered: string | null
+          location: string | null
+          name: string
+          part_number: string | null
+          quantity: number
+          reorder_threshold: number | null
+          supplier: string | null
+          unit_price: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          compatible_with?: string[] | null
+          created_at?: string | null
+          id?: number
+          last_ordered?: string | null
+          location?: string | null
+          name: string
+          part_number?: string | null
+          quantity: number
+          reorder_threshold?: number | null
+          supplier?: string | null
+          unit_price?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          compatible_with?: string[] | null
+          created_at?: string | null
+          id?: number
+          last_ordered?: string | null
+          location?: string | null
+          name?: string
+          part_number?: string | null
+          quantity?: number
+          reorder_threshold?: number | null
+          supplier?: string | null
+          unit_price?: number | null
+          updated_at?: string | null
         }
         Relationships: []
       }
