@@ -82,11 +82,11 @@ export const useDataInitialization = () => {
         status: task.status,
         priority: task.priority,
         due_date: task.dueDate.toISOString(),
-        estimated_duration: parseFloat(task.estimatedDuration),
+        estimated_duration: parseFloat(task.estimatedDuration || '0'),
         assigned_to: task.assignedTo,
         notes: task.notes,
         completed_date: task.completedDate ? task.completedDate.toISOString() : null,
-        actual_duration: task.actualDuration ? parseFloat(task.actualDuration) : null
+        actual_duration: task.actualDuration ? parseFloat(task.actualDuration || '0') : null
       }));
       
       const { error } = await supabase
@@ -108,7 +108,6 @@ export const useDataInitialization = () => {
         quantity: part.stock,
         unit_price: part.price ? parseFloat(String(part.price)) : null,
         location: part.location,
-        last_ordered: part.lastOrdered?.toISOString(),
         reorder_threshold: part.reorderPoint
       }));
       

@@ -14,7 +14,7 @@ export const useTasksManager = (initialTasks: MaintenanceTask[] = []) => {
   const { data: supabaseTasks, isLoading, isError } = useQuery({
     queryKey: ['maintenanceTasks'],
     queryFn: () => maintenanceService.getTasks(),
-    onSettled: (data) => {
+    onSuccess: (data) => {
       if (data && data.length > 0) {
         setTasks(data);
       } else if (initialTasks.length > 0 && (!data || data.length === 0)) {

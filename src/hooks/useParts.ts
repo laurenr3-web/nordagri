@@ -1,309 +1,255 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
 import { Part } from '@/types/Part';
+import { useToast } from '@/hooks/use-toast';
 import { partsService } from '@/services/supabase/partsService';
 
+type PartsView = 'grid' | 'list';
+
+// Filter function that takes the search term and selected category
+const filterParts = (parts: Part[], searchTerm: string, selectedCategory: string) => {
+  return parts.filter((part) => {
+    // Filter by search term
+    const matchesSearchTerm = searchTerm === '' || 
+      part.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      part.partNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (part.manufacturer && part.manufacturer.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    // Filter by category
+    const matchesCategory = selectedCategory === '' || part.category === selectedCategory;
+    
+    return matchesSearchTerm && matchesCategory;
+  });
+};
+
+// Hook to manage the parts data
 export const useParts = (initialParts: Part[] = []) => {
+  const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // State for parts and UI options
   const [parts, setParts] = useState<Part[]>(initialParts);
-
-  // State for filtering and sorting
-  const [filterManufacturers, setFilterManufacturers] = useState<string[]>([]);
-  const [filterMinPrice, setFilterMinPrice] = useState('');
-  const [filterMaxPrice, setFilterMaxPrice] = useState('');
-  const [filterInStock, setFilterInStock] = useState(false);
-  const [sortBy, setSortBy] = useState('name-asc');
-  const [categoryFilter, setCategoryFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedPart, setSelectedPart] = useState<Part | null>(null);
-  const [currentView, setCurrentView] = useState<'grid' | 'list'>('grid');
-
-  // State for part details and dialogs
-  const [isPartDetailsDialogOpen, setIsPartDetailsDialogOpen] = useState(false);
-  const [isAddPartDialogOpen, setIsAddPartDialogOpen] = useState(false);
-  const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [currentView, setCurrentView] = useState<PartsView>('grid');
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
   const [isSortDialogOpen, setIsSortDialogOpen] = useState(false);
+  const [isAddPartDialogOpen, setIsAddPartDialogOpen] = useState(false);
+  const [isEditPartDialogOpen, setIsEditPartDialogOpen] = useState(false);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
-
-  // State for add category dialog
-  const [newCategory, setNewCategory] = useState('');
-  const [customCategories, setCustomCategories] = useState<string[]>([]);
-
-  // State for order dialog
-  const [orderQuantity, setOrderQuantity] = useState('1');
-  const [orderNote, setOrderNote] = useState('');
-  const [isOrderSuccess, setIsOrderSuccess] = useState(false);
-
+  const [selectedPart, setSelectedPart] = useState<Part | null>(null);
+  
   // Fetch parts from Supabase
   const { data: supabaseParts, isLoading, isError } = useQuery({
     queryKey: ['parts'],
     queryFn: () => partsService.getParts(),
-    onSettled: (data) => {
+    onSuccess: (data) => {
       if (data && data.length > 0) {
         setParts(data);
       } else if (initialParts.length > 0 && (!data || data.length === 0)) {
-        // If Supabase has no data but we have initial data, use initial data
-        console.log('No parts in Supabase, using initial data');
+        console.log('No parts in the database, using initial data');
         setParts(initialParts);
       }
     }
   });
-
+  
+  // Get all unique categories from parts
+  const categories = Array.from(new Set(parts.map(part => part.category).filter(Boolean)));
+  
+  // Filtered parts based on search term and selected category
+  const filteredParts = filterParts(parts, searchTerm, selectedCategory);
+  
+  // Get the count of active filters
+  const filterCount = (searchTerm ? 1 : 0) + (selectedCategory ? 1 : 0);
+  
   // Add part mutation
   const addPartMutation = useMutation({
-    mutationFn: (part: Omit<Part, 'id'>) => 
-      partsService.addPart(part),
+    mutationFn: (part: Omit<Part, 'id'>) => partsService.addPart(part),
     onSuccess: (newPart) => {
       queryClient.invalidateQueries({ queryKey: ['parts'] });
       setParts([...parts, newPart]);
-      toast.success(`Part '${newPart.name}' added successfully`);
+      
+      toast({
+        title: "Part Added",
+        description: `${newPart.name} has been added to inventory`,
+      });
+      
+      setIsAddPartDialogOpen(false);
     },
     onError: (error) => {
       console.error('Error adding part:', error);
-      toast.error('Failed to add part');
+      toast({
+        title: "Error",
+        description: "Failed to add part",
+        variant: "destructive",
+      });
     }
   });
-
+  
   // Update part mutation
   const updatePartMutation = useMutation({
     mutationFn: (part: Part) => partsService.updatePart(part),
     onSuccess: (updatedPart) => {
       queryClient.invalidateQueries({ queryKey: ['parts'] });
-      setParts(parts.map(part => part.id === updatedPart.id ? updatedPart : part));
-      toast.success(`Part '${updatedPart.name}' updated successfully`);
+      setParts(parts.map(p => p.id === updatedPart.id ? updatedPart : p));
+      
+      toast({
+        title: "Part Updated",
+        description: `${updatedPart.name} has been updated`,
+      });
+      
+      setIsEditPartDialogOpen(false);
+      setSelectedPart(null);
     },
     onError: (error) => {
       console.error('Error updating part:', error);
-      toast.error('Failed to update part');
+      toast({
+        title: "Error",
+        description: "Failed to update part",
+        variant: "destructive",
+      });
     }
   });
-
+  
   // Delete part mutation
   const deletePartMutation = useMutation({
     mutationFn: (partId: number) => partsService.deletePart(partId),
     onSuccess: (_, partId) => {
       queryClient.invalidateQueries({ queryKey: ['parts'] });
-      setParts(parts.filter(part => part.id !== partId));
-      toast.success('Part deleted successfully');
+      setParts(parts.filter(p => p.id !== partId));
+      
+      toast({
+        title: "Part Deleted",
+        description: "The part has been removed from inventory",
+      });
+      
+      setSelectedPart(null);
     },
     onError: (error) => {
       console.error('Error deleting part:', error);
-      toast.error('Failed to delete part');
+      toast({
+        title: "Error",
+        description: "Failed to delete part",
+        variant: "destructive",
+      });
     }
   });
-
-  // Filter and sort functions
-  const toggleManufacturerFilter = (manufacturer: string) => {
-    if (filterManufacturers.includes(manufacturer)) {
-      setFilterManufacturers(filterManufacturers.filter(m => m !== manufacturer));
-    } else {
-      setFilterManufacturers([...filterManufacturers, manufacturer]);
+  
+  // Order parts mutation
+  const orderPartMutation = useMutation({
+    mutationFn: (part: Part) => {
+      const updatedPart = {
+        ...part,
+        stock: part.stock + 10,  // Order 10 more
+      };
+      return partsService.updatePart(updatedPart);
+    },
+    onSuccess: (updatedPart) => {
+      queryClient.invalidateQueries({ queryKey: ['parts'] });
+      setParts(parts.map(p => p.id === updatedPart.id ? updatedPart : p));
+      
+      toast({
+        title: "Order Placed",
+        description: `Order for ${updatedPart.name} has been placed`,
+      });
+      
+      setIsOrderDialogOpen(false);
+      setSelectedPart(null);
+    },
+    onError: (error) => {
+      console.error('Error ordering part:', error);
+      toast({
+        title: "Error",
+        description: "Failed to place order",
+        variant: "destructive",
+      });
     }
-  };
-
-  const resetFilters = () => {
-    setFilterManufacturers([]);
-    setFilterMinPrice('');
-    setFilterMaxPrice('');
-    setFilterInStock(false);
-    setCategoryFilter('all');
-    setSearchTerm('');
-  };
-
-  const applyFilters = () => {
-    setIsFilterDialogOpen(false);
-  };
-
-  // Get all distinct manufacturers for filtering
-  const manufacturers = Array.from(new Set((supabaseParts || parts).map(part => part.manufacturer))).filter(Boolean);
-
-  // Get all distinct categories for filtering
-  const categories = Array.from(new Set([
-    ...(supabaseParts || parts).map(part => part.category),
-    ...customCategories
-  ])).filter(Boolean);
-
-  // Filter and sort parts
-  const filteredParts = (supabaseParts || parts).filter(part => {
-    // Search term filter
-    const matchesSearch = searchTerm === '' || 
-      part.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      part.partNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      part.manufacturer.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    // Category filter
-    const matchesCategory = categoryFilter === 'all' || part.category === categoryFilter;
-    
-    // Manufacturer filter
-    const matchesManufacturer = filterManufacturers.length === 0 || 
-      filterManufacturers.includes(part.manufacturer);
-    
-    // Price filter
-    const minPrice = filterMinPrice ? parseFloat(filterMinPrice) : 0;
-    const maxPrice = filterMaxPrice ? parseFloat(filterMaxPrice) : Infinity;
-    const partPrice = typeof part.price === 'number' ? part.price : parseFloat(part.price.toString());
-    const matchesPrice = !isNaN(partPrice) && partPrice >= minPrice && partPrice <= maxPrice;
-    
-    // In stock filter
-    const matchesStock = !filterInStock || part.stock > 0;
-    
-    return matchesSearch && matchesCategory && matchesManufacturer && matchesPrice && matchesStock;
-  }).sort((a, b) => {
-    const [field, direction] = sortBy.split('-');
-    let comparison = 0;
-    
-    switch (field) {
-      case 'name':
-        comparison = a.name.localeCompare(b.name);
-        break;
-      case 'price':
-        const aPrice = typeof a.price === 'number' ? a.price : parseFloat(a.price.toString());
-        const bPrice = typeof b.price === 'number' ? b.price : parseFloat(b.price.toString());
-        comparison = aPrice - bPrice;
-        break;
-      case 'quantity':
-        comparison = a.stock - b.stock;
-        break;
-      default:
-        comparison = 0;
-    }
-    
-    return direction === 'asc' ? comparison : -comparison;
   });
-
-  // Functions for handling part operations
-  const handleViewPart = (part: Part) => {
-    setSelectedPart(part);
-    setIsPartDetailsDialogOpen(true);
+  
+  // Function to add a part
+  const handleAddPart = (part: Omit<Part, 'id'>) => {
+    addPartMutation.mutate(part);
   };
-
-  const handleAddPart = (partData: any) => {
-    const newPart: Omit<Part, 'id'> = {
-      name: partData.name,
-      partNumber: partData.partNumber || '',
-      category: partData.category || '',
-      manufacturer: partData.manufacturer || '',
-      compatibility: partData.compatibility || [],
-      stock: parseInt(partData.stock) || 0,
-      price: partData.price ? parseFloat(partData.price) : 0,
-      location: partData.location || '',
-      reorderPoint: parseInt(partData.reorderPoint) || 5,
-      image: partData.image || 'https://placehold.co/100x100/png'
-    };
-    
-    addPartMutation.mutate(newPart);
-    setIsAddPartDialogOpen(false);
+  
+  // Function to update a part
+  const handleUpdatePart = (part: Part) => {
+    updatePartMutation.mutate(part);
   };
-
-  const handleEditPart = (updatedPart: Part) => {
-    updatePartMutation.mutate(updatedPart);
-    setIsPartDetailsDialogOpen(false);
-  };
-
+  
+  // Function to delete a part
   const handleDeletePart = (partId: number) => {
     deletePartMutation.mutate(partId);
-    setIsPartDetailsDialogOpen(false);
   };
-
-  const addNewCategory = () => {
-    if (newCategory && !categories.includes(newCategory)) {
-      setCustomCategories([...customCategories, newCategory]);
-      toast.success(`Category '${newCategory}' added`);
-      setNewCategory('');
-      setIsAddCategoryDialogOpen(false);
-    } else {
-      toast.error('Category already exists or is invalid');
-    }
+  
+  // Function to order a part
+  const handleOrderPart = (part: Part) => {
+    orderPartMutation.mutate(part);
   };
-
-  const handleOrderSubmit = () => {
-    setIsOrderSuccess(true);
-    setTimeout(() => {
-      setIsOrderDialogOpen(false);
-      setIsOrderSuccess(false);
-      setOrderQuantity('1');
-      setOrderNote('');
-      toast.success('Order placed successfully');
-    }, 1500);
+  
+  // Function to open edit dialog with selected part
+  const handleEditPart = (part: Part) => {
+    setSelectedPart(part);
+    setIsEditPartDialogOpen(true);
   };
-
-  // Calculate filter count
-  const filterCount = 
-    (filterManufacturers.length > 0 ? 1 : 0) + 
-    (filterMinPrice || filterMaxPrice ? 1 : 0) + 
-    (filterInStock ? 1 : 0) + 
-    (categoryFilter !== 'all' ? 1 : 0);
-
-  // Additional functions for Part component props
-  const openPartDetails = (part: Part) => handleViewPart(part);
-  const openOrderDialog = (part: Part) => {
+  
+  // Function to open order dialog with selected part
+  const handleOrderClick = (part: Part) => {
     setSelectedPart(part);
     setIsOrderDialogOpen(true);
   };
+  
+  // Function to clear all filters
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSelectedCategory('');
+  };
+  
+  // Function to handle submitting an order
+  const handleOrderSubmit = () => {
+    if (selectedPart) {
+      handleOrderPart(selectedPart);
+    }
+  };
 
-  const selectedCategory = categoryFilter;
-  const setSelectedCategory = setCategoryFilter;
-
-  // Return all the state and functions needed by the components
+  // Use the data from supabase if available, otherwise use the local state
+  useEffect(() => {
+    if (supabaseParts) {
+      setParts(supabaseParts);
+    }
+  }, [supabaseParts]);
+  
   return {
-    parts: filteredParts,
-    filteredParts,
+    parts,
     isLoading,
     isError,
     currentView,
     setCurrentView,
     searchTerm,
     setSearchTerm,
-    categoryFilter,
-    setCategoryFilter,
     selectedCategory,
     setSelectedCategory,
-    filterCount,
     categories,
-    manufacturers,
-    filterManufacturers,
-    toggleManufacturerFilter,
-    filterMinPrice,
-    setFilterMinPrice,
-    filterMaxPrice,
-    setFilterMaxPrice,
-    filterInStock,
-    setFilterInStock,
-    sortBy,
-    setSortBy,
-    selectedPart,
-    setSelectedPart,
-    isPartDetailsDialogOpen,
-    setIsPartDetailsDialogOpen,
-    isAddPartDialogOpen,
-    setIsAddPartDialogOpen,
-    isAddCategoryDialogOpen,
-    setIsAddCategoryDialogOpen,
+    filteredParts,
+    filterCount,
+    clearFilters,
     isFilterDialogOpen,
     setIsFilterDialogOpen,
     isSortDialogOpen,
     setIsSortDialogOpen,
+    isAddPartDialogOpen,
+    setIsAddPartDialogOpen,
+    isEditPartDialogOpen,
+    setIsEditPartDialogOpen,
+    selectedPart,
+    setSelectedPart,
+    handleAddPart,
+    handleUpdatePart,
+    handleDeletePart,
+    handleEditPart,
     isOrderDialogOpen,
     setIsOrderDialogOpen,
-    resetFilters,
-    applyFilters,
-    handleViewPart,
-    openPartDetails,
-    openOrderDialog,
-    handleAddPart,
-    handleEditPart,
-    handleDeletePart,
-    newCategory,
-    setNewCategory,
-    addNewCategory,
-    orderQuantity,
-    setOrderQuantity,
-    orderNote,
-    setOrderNote,
-    isOrderSuccess,
+    handleOrderClick,
     handleOrderSubmit
   };
 };

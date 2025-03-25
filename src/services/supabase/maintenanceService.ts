@@ -16,14 +16,19 @@ export const maintenanceService = {
     
     // Convert Supabase date strings to Date objects
     return (data || []).map(task => ({
-      ...task,
+      id: task.id,
+      title: task.title,
+      equipment: task.equipment,
+      equipmentId: task.equipment_id,
+      type: task.type,
+      status: task.status as MaintenanceStatus,
+      priority: task.priority as MaintenancePriority,
       dueDate: task.due_date ? new Date(task.due_date) : new Date(),
       completedDate: task.completed_date ? new Date(task.completed_date) : undefined,
       estimatedDuration: task.estimated_duration?.toString() || '0',
       actualDuration: task.actual_duration?.toString(),
-      equipmentId: task.equipment_id,
-      assignedTo: task.assigned_to,
-      id: task.id
+      assignedTo: task.assigned_to || '',
+      notes: task.notes || ''
     }));
   },
   
@@ -32,13 +37,13 @@ export const maintenanceService = {
     const supabaseTask = {
       title: task.title,
       equipment: task.equipment,
-      equipment_id: task.equipmentId || 1, // Default value if not provided
+      equipment_id: task.equipmentId,
       type: task.type,
       status: task.status,
       priority: task.priority,
       due_date: task.dueDate.toISOString(),
-      estimated_duration: parseFloat(task.estimatedDuration),
-      assigned_to: task.assignedTo,
+      estimated_duration: task.estimatedDuration ? parseFloat(task.estimatedDuration) : 0,
+      assigned_to: task.assignedTo || '',
       notes: task.notes,
       completed_date: task.completedDate ? task.completedDate.toISOString() : null,
       actual_duration: task.actualDuration ? parseFloat(task.actualDuration) : null
@@ -56,14 +61,19 @@ export const maintenanceService = {
     }
     
     return {
-      ...data,
+      id: data.id,
+      title: data.title,
+      equipment: data.equipment,
+      equipmentId: data.equipment_id,
+      type: data.type,
+      status: data.status as MaintenanceStatus,
+      priority: data.priority as MaintenancePriority,
       dueDate: new Date(data.due_date),
       completedDate: data.completed_date ? new Date(data.completed_date) : undefined,
       estimatedDuration: data.estimated_duration?.toString() || '0',
       actualDuration: data.actual_duration?.toString(),
-      equipmentId: data.equipment_id,
-      assignedTo: data.assigned_to,
-      id: data.id
+      assignedTo: data.assigned_to || '',
+      notes: data.notes || ''
     };
   },
   

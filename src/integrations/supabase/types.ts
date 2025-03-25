@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       equipment: {
         Row: {
+          category: string | null
           created_at: string | null
           current_location: string | null
           id: number
@@ -23,10 +24,12 @@ export type Database = {
           purchase_date: string | null
           purchase_price: number | null
           status: string | null
+          type: string | null
           updated_at: string | null
           year: number | null
         }
         Insert: {
+          category?: string | null
           created_at?: string | null
           current_location?: string | null
           id?: number
@@ -39,10 +42,12 @@ export type Database = {
           purchase_date?: string | null
           purchase_price?: number | null
           status?: string | null
+          type?: string | null
           updated_at?: string | null
           year?: number | null
         }
         Update: {
+          category?: string | null
           created_at?: string | null
           current_location?: string | null
           id?: number
@@ -55,6 +60,7 @@ export type Database = {
           purchase_date?: string | null
           purchase_price?: number | null
           status?: string | null
+          type?: string | null
           updated_at?: string | null
           year?: number | null
         }

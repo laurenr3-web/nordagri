@@ -98,8 +98,7 @@ export const partsService = {
     }
     
     return {
-      ...part,
-      // No need to add updatedAt as it doesn't exist in the Part type
+      ...part
     };
   },
   
