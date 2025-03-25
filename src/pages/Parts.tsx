@@ -12,6 +12,7 @@ import PartsContainer from '@/components/parts/PartsContainer';
 const initialPartsData = partsData;
 
 const Parts = () => {
+  // The main hook still provides the same interface, but is now composed of smaller hooks
   const partsHookData = useParts(initialPartsData);
 
   return (
