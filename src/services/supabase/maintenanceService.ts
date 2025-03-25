@@ -34,6 +34,8 @@ export const maintenanceService = {
   
   // Ajouter une tâche
   async addTask(task: Omit<MaintenanceTask, 'id'>): Promise<MaintenanceTask> {
+    console.log('Adding task to Supabase:', task);
+    
     const supabaseTask = {
       title: task.title,
       equipment: task.equipment,
@@ -42,11 +44,11 @@ export const maintenanceService = {
       status: task.status,
       priority: task.priority,
       due_date: task.dueDate.toISOString(),
-      estimated_duration: Number(task.estimatedDuration),
+      estimated_duration: task.estimatedDuration,
       assigned_to: task.assignedTo || '',
       notes: task.notes,
       completed_date: task.completedDate ? task.completedDate.toISOString() : null,
-      actual_duration: task.actualDuration ? Number(task.actualDuration) : null
+      actual_duration: task.actualDuration || null
     };
     
     const { data, error } = await supabase
@@ -70,7 +72,7 @@ export const maintenanceService = {
       priority: data.priority as MaintenancePriority,
       dueDate: new Date(data.due_date),
       completedDate: data.completed_date ? new Date(data.completed_date) : undefined,
-      estimatedDuration: data.estimated_duration ? Number(data.estimated_duration) : 0,
+      estimatedDuration: Number(data.estimated_duration),
       actualDuration: data.actual_duration ? Number(data.actual_duration) : undefined,
       assignedTo: data.assigned_to || '',
       notes: data.notes || ''
@@ -79,6 +81,8 @@ export const maintenanceService = {
   
   // Mettre à jour le statut d'une tâche
   async updateTaskStatus(taskId: number, status: MaintenanceStatus): Promise<void> {
+    console.log('Updating task status in Supabase:', taskId, status);
+    
     const updates = { 
       status,
       ...(status === 'completed' ? { completed_date: new Date().toISOString() } : {})
@@ -97,6 +101,8 @@ export const maintenanceService = {
   
   // Mettre à jour la priorité d'une tâche
   async updateTaskPriority(taskId: number, priority: MaintenancePriority): Promise<void> {
+    console.log('Updating task priority in Supabase:', taskId, priority);
+    
     const { error } = await supabase
       .from('maintenance_tasks')
       .update({ priority })
@@ -110,6 +116,8 @@ export const maintenanceService = {
   
   // Supprimer une tâche
   async deleteTask(taskId: number): Promise<void> {
+    console.log('Deleting task from Supabase:', taskId);
+    
     const { error } = await supabase
       .from('maintenance_tasks')
       .delete()

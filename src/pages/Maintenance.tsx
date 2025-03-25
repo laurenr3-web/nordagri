@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
-import { useMaintenanceSlice } from '@/hooks/maintenance/maintenanceSlice';
+import { useTasksManager } from '@/hooks/maintenance/useTasksManager';
 import { maintenanceTasks } from '@/data/maintenanceData';
 import NewTaskDialog from '@/components/maintenance/NewTaskDialog';
 import MaintenanceHeader from '@/components/maintenance/MaintenanceHeader';
@@ -15,14 +15,15 @@ const Maintenance = () => {
   
   const {
     tasks, 
-    setTasks,
-    isNewTaskDialogOpen,
-    setIsNewTaskDialogOpen,
-    handleAddTask,
+    isLoading,
+    isError,
+    addTask,
     updateTaskStatus,
     updateTaskPriority,
     deleteTask
-  } = useMaintenanceSlice(maintenanceTasks);
+  } = useTasksManager(maintenanceTasks);
+
+  const [isNewTaskDialogOpen, setIsNewTaskDialogOpen] = useState(false);
 
   // Handle opening dialog with a preselected date
   const handleOpenNewTaskDialog = (open: boolean) => {
@@ -30,6 +31,11 @@ const Maintenance = () => {
       setSelectedDate(undefined);
     }
     setIsNewTaskDialogOpen(open);
+  };
+
+  const handleAddTask = (formData: any) => {
+    console.log('Adding task in Maintenance component:', formData);
+    return addTask(formData);
   };
 
   return (

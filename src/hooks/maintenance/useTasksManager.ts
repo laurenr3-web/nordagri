@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MaintenanceTask, MaintenanceFormValues, MaintenancePriority, MaintenanceStatus } from '@/hooks/maintenance/maintenanceSlice';
 import { useToast } from '@/hooks/use-toast';
@@ -14,18 +14,20 @@ export const useTasksManager = (initialTasks: MaintenanceTask[] = []) => {
   const { data: supabaseTasks, isLoading, isError } = useQuery({
     queryKey: ['maintenanceTasks'],
     queryFn: () => maintenanceService.getTasks(),
-    meta: {
-      onSuccess: (data: MaintenanceTask[]) => {
-        if (data && data.length > 0) {
-          setTasks(data);
-        }
-      },
-      onError: () => {
-        if (initialTasks.length > 0) {
-          // If Supabase has no data but we have initial data, we could seed it
-          console.log('No tasks in Supabase or error occurred, using initial data');
-          setTasks(initialTasks);
-        }
+    onSuccess: (data) => {
+      if (data && data.length > 0) {
+        setTasks(data);
+      } else if (initialTasks.length > 0) {
+        // If Supabase has no data but we have initial data, we could seed it
+        console.log('No tasks in Supabase, using initial data');
+        setTasks(initialTasks);
+      }
+    },
+    onError: (error) => {
+      console.error('Error fetching tasks:', error);
+      if (initialTasks.length > 0) {
+        console.log('Error occurred when fetching from Supabase, using initial data');
+        setTasks(initialTasks);
       }
     }
   });
@@ -41,18 +43,18 @@ export const useTasksManager = (initialTasks: MaintenanceTask[] = []) => {
     },
     onSuccess: (newTask) => {
       queryClient.invalidateQueries({ queryKey: ['maintenanceTasks'] });
-      setTasks([...tasks, newTask]);
+      setTasks(prevTasks => [...prevTasks, newTask]);
       
       toast({
-        title: "Task created",
-        description: `Maintenance task "${newTask.title}" has been created successfully`,
+        title: "Tâche créée",
+        description: `La tâche de maintenance "${newTask.title}" a été créée avec succès`,
       });
     },
     onError: (error) => {
       console.error('Error adding task:', error);
       toast({
-        title: "Error",
-        description: "Failed to add maintenance task",
+        title: "Erreur",
+        description: "Impossible d'ajouter la tâche de maintenance",
         variant: "destructive",
       });
     }
@@ -64,7 +66,7 @@ export const useTasksManager = (initialTasks: MaintenanceTask[] = []) => {
       maintenanceService.updateTaskStatus(taskId, status),
     onSuccess: (_, { taskId, status }) => {
       queryClient.invalidateQueries({ queryKey: ['maintenanceTasks'] });
-      setTasks(tasks.map(task => 
+      setTasks(prevTasks => prevTasks.map(task => 
         task.id === taskId ? { 
           ...task, 
           status,
@@ -73,15 +75,15 @@ export const useTasksManager = (initialTasks: MaintenanceTask[] = []) => {
       ));
       
       toast({
-        title: "Task updated",
-        description: `Task status has been updated to ${status}`,
+        title: "Tâche mise à jour",
+        description: `Le statut de la tâche a été mis à jour à ${status}`,
       });
     },
     onError: (error) => {
       console.error('Error updating task status:', error);
       toast({
-        title: "Error",
-        description: "Failed to update task status",
+        title: "Erreur",
+        description: "Impossible de mettre à jour le statut de la tâche",
         variant: "destructive",
       });
     }
@@ -93,20 +95,20 @@ export const useTasksManager = (initialTasks: MaintenanceTask[] = []) => {
       maintenanceService.updateTaskPriority(taskId, priority),
     onSuccess: (_, { taskId, priority }) => {
       queryClient.invalidateQueries({ queryKey: ['maintenanceTasks'] });
-      setTasks(tasks.map(task => 
+      setTasks(prevTasks => prevTasks.map(task => 
         task.id === taskId ? { ...task, priority } : task
       ));
       
       toast({
-        title: "Task updated",
-        description: `Task priority has been updated to ${priority}`,
+        title: "Tâche mise à jour",
+        description: `La priorité de la tâche a été mise à jour à ${priority}`,
       });
     },
     onError: (error) => {
       console.error('Error updating task priority:', error);
       toast({
-        title: "Error",
-        description: "Failed to update task priority",
+        title: "Erreur",
+        description: "Impossible de mettre à jour la priorité de la tâche",
         variant: "destructive",
       });
     }
@@ -117,41 +119,53 @@ export const useTasksManager = (initialTasks: MaintenanceTask[] = []) => {
     mutationFn: (taskId: number) => maintenanceService.deleteTask(taskId),
     onSuccess: (_, taskId) => {
       queryClient.invalidateQueries({ queryKey: ['maintenanceTasks'] });
-      setTasks(tasks.filter(task => task.id !== taskId));
+      setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
       
       toast({
-        title: "Task deleted",
-        description: "The maintenance task has been removed",
+        title: "Tâche supprimée",
+        description: "La tâche de maintenance a été supprimée",
       });
     },
     onError: (error) => {
       console.error('Error deleting task:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete task",
+        title: "Erreur",
+        description: "Impossible de supprimer la tâche",
         variant: "destructive",
       });
     }
   });
 
+  // Use effect to update tasks when supabaseTasks changes
+  useEffect(() => {
+    if (supabaseTasks && supabaseTasks.length > 0) {
+      setTasks(supabaseTasks);
+    }
+  }, [supabaseTasks]);
+
   // Function to add a task
   const addTask = (formData: MaintenanceFormValues) => {
+    console.log('Adding task:', formData);
     addTaskMutation.mutate(formData);
-    return { id: 0, ...formData, status: 'scheduled' as MaintenanceStatus };
+    // Return task with temp ID for optimistic UI updates
+    return { id: Date.now(), ...formData, status: 'scheduled' as MaintenanceStatus };
   };
 
   // Function to update task status
   const updateTaskStatus = (taskId: number, status: MaintenanceStatus) => {
+    console.log('Updating task status:', taskId, status);
     updateTaskStatusMutation.mutate({ taskId, status });
   };
 
   // Function to update task priority
   const updateTaskPriority = (taskId: number, priority: MaintenancePriority) => {
+    console.log('Updating task priority:', taskId, priority);
     updateTaskPriorityMutation.mutate({ taskId, priority });
   };
 
   // Function to delete a task
   const deleteTask = (taskId: number) => {
+    console.log('Deleting task:', taskId);
     deleteTaskMutation.mutate(taskId);
   };
 

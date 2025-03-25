@@ -46,17 +46,20 @@ export const useParts = (initialParts: Part[] = []) => {
   const { data: supabaseParts, isLoading, isError } = useQuery({
     queryKey: ['parts'],
     queryFn: () => partsService.getParts(),
-    meta: {
-      onSuccess: (data: Part[]) => {
-        if (data && data.length > 0) {
-          setParts(data);
-        }
-      },
-      onError: () => {
-        if (initialParts.length > 0) {
-          console.log('No parts in the database or error occurred, using initial data');
-          setParts(initialParts);
-        }
+    onSuccess: (data) => {
+      console.log('Fetched parts from Supabase:', data);
+      if (data && data.length > 0) {
+        setParts(data);
+      } else if (initialParts.length > 0) {
+        console.log('No parts in Supabase, using initial data');
+        setParts(initialParts);
+      }
+    },
+    onError: (error) => {
+      console.error('Error fetching parts:', error);
+      if (initialParts.length > 0) {
+        console.log('Error occurred when fetching from Supabase, using initial data');
+        setParts(initialParts);
       }
     }
   });
@@ -72,14 +75,17 @@ export const useParts = (initialParts: Part[] = []) => {
   
   // Add part mutation
   const addPartMutation = useMutation({
-    mutationFn: (part: Omit<Part, 'id'>) => partsService.addPart(part),
+    mutationFn: (part: Omit<Part, 'id'>) => {
+      console.log('Adding part to Supabase:', part);
+      return partsService.addPart(part);
+    },
     onSuccess: (newPart) => {
       queryClient.invalidateQueries({ queryKey: ['parts'] });
-      setParts([...parts, newPart]);
+      setParts(prevParts => [...prevParts, newPart]);
       
       toast({
-        title: "Part Added",
-        description: `${newPart.name} has been added to inventory`,
+        title: "Pièce ajoutée",
+        description: `${newPart.name} a été ajouté à l'inventaire`,
       });
       
       setIsAddPartDialogOpen(false);
@@ -87,8 +93,8 @@ export const useParts = (initialParts: Part[] = []) => {
     onError: (error) => {
       console.error('Error adding part:', error);
       toast({
-        title: "Error",
-        description: "Failed to add part",
+        title: "Erreur",
+        description: "Impossible d'ajouter la pièce",
         variant: "destructive",
       });
     }
@@ -96,14 +102,17 @@ export const useParts = (initialParts: Part[] = []) => {
   
   // Update part mutation
   const updatePartMutation = useMutation({
-    mutationFn: (part: Part) => partsService.updatePart(part),
+    mutationFn: (part: Part) => {
+      console.log('Updating part in Supabase:', part);
+      return partsService.updatePart(part);
+    },
     onSuccess: (updatedPart) => {
       queryClient.invalidateQueries({ queryKey: ['parts'] });
-      setParts(parts.map(p => p.id === updatedPart.id ? updatedPart : p));
+      setParts(prevParts => prevParts.map(p => p.id === updatedPart.id ? updatedPart : p));
       
       toast({
-        title: "Part Updated",
-        description: `${updatedPart.name} has been updated`,
+        title: "Pièce mise à jour",
+        description: `${updatedPart.name} a été mis à jour`,
       });
       
       setIsEditPartDialogOpen(false);
@@ -112,8 +121,8 @@ export const useParts = (initialParts: Part[] = []) => {
     onError: (error) => {
       console.error('Error updating part:', error);
       toast({
-        title: "Error",
-        description: "Failed to update part",
+        title: "Erreur",
+        description: "Impossible de mettre à jour la pièce",
         variant: "destructive",
       });
     }
@@ -121,14 +130,17 @@ export const useParts = (initialParts: Part[] = []) => {
   
   // Delete part mutation
   const deletePartMutation = useMutation({
-    mutationFn: (partId: number) => partsService.deletePart(partId),
+    mutationFn: (partId: number) => {
+      console.log('Deleting part from Supabase:', partId);
+      return partsService.deletePart(partId);
+    },
     onSuccess: (_, partId) => {
       queryClient.invalidateQueries({ queryKey: ['parts'] });
-      setParts(parts.filter(p => p.id !== partId));
+      setParts(prevParts => prevParts.filter(p => p.id !== partId));
       
       toast({
-        title: "Part Deleted",
-        description: "The part has been removed from inventory",
+        title: "Pièce supprimée",
+        description: "La pièce a été supprimée de l'inventaire",
       });
       
       setSelectedPart(null);
@@ -136,8 +148,8 @@ export const useParts = (initialParts: Part[] = []) => {
     onError: (error) => {
       console.error('Error deleting part:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete part",
+        title: "Erreur",
+        description: "Impossible de supprimer la pièce",
         variant: "destructive",
       });
     }
@@ -146,6 +158,7 @@ export const useParts = (initialParts: Part[] = []) => {
   // Order parts mutation
   const orderPartMutation = useMutation({
     mutationFn: (part: Part) => {
+      console.log('Ordering more of part in Supabase:', part);
       const updatedPart = {
         ...part,
         stock: part.stock + 10,  // Order 10 more
@@ -154,11 +167,11 @@ export const useParts = (initialParts: Part[] = []) => {
     },
     onSuccess: (updatedPart) => {
       queryClient.invalidateQueries({ queryKey: ['parts'] });
-      setParts(parts.map(p => p.id === updatedPart.id ? updatedPart : p));
+      setParts(prevParts => prevParts.map(p => p.id === updatedPart.id ? updatedPart : p));
       
       toast({
-        title: "Order Placed",
-        description: `Order for ${updatedPart.name} has been placed`,
+        title: "Commande passée",
+        description: `La commande pour ${updatedPart.name} a été passée`,
       });
       
       setIsOrderDialogOpen(false);
@@ -167,8 +180,8 @@ export const useParts = (initialParts: Part[] = []) => {
     onError: (error) => {
       console.error('Error ordering part:', error);
       toast({
-        title: "Error",
-        description: "Failed to place order",
+        title: "Erreur",
+        description: "Impossible de passer la commande",
         variant: "destructive",
       });
     }
@@ -176,21 +189,25 @@ export const useParts = (initialParts: Part[] = []) => {
   
   // Function to add a part
   const handleAddPart = (part: Omit<Part, 'id'>) => {
+    console.log('Adding part:', part);
     addPartMutation.mutate(part);
   };
   
   // Function to update a part
   const handleUpdatePart = (part: Part) => {
+    console.log('Updating part:', part);
     updatePartMutation.mutate(part);
   };
   
   // Function to delete a part
   const handleDeletePart = (partId: number) => {
+    console.log('Deleting part:', partId);
     deletePartMutation.mutate(partId);
   };
   
   // Function to order a part
   const handleOrderPart = (part: Part) => {
+    console.log('Ordering part:', part);
     orderPartMutation.mutate(part);
   };
   
@@ -219,9 +236,9 @@ export const useParts = (initialParts: Part[] = []) => {
     }
   };
 
-  // Use the data from supabase if available, otherwise use the local state
+  // Use effect to update parts when supabaseParts changes
   useEffect(() => {
-    if (supabaseParts) {
+    if (supabaseParts && supabaseParts.length > 0) {
       setParts(supabaseParts);
     }
   }, [supabaseParts]);
