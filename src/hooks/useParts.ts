@@ -1,9 +1,11 @@
 
 import { Part } from '@/types/Part';
 import { usePartsData } from './parts/usePartsData';
-import { usePartsFilter, PartsView } from './parts/usePartsFilter';
+import { usePartsFilter } from './parts/usePartsFilter';
 import { useOrderParts } from './parts/useOrderParts';
 import { usePartsDialogs } from './parts/usePartsDialogs';
+import { usePartsCategories } from './parts/usePartsCategories';
+import { usePartsActions } from './parts/usePartsActions';
 
 // Main hook that composes all parts-related functionality
 export const useParts = (initialParts: Part[] = []) => {
@@ -12,43 +14,11 @@ export const useParts = (initialParts: Part[] = []) => {
   const partsFilter = usePartsFilter();
   const orderParts = useOrderParts();
   const partsDialogs = usePartsDialogs();
-
-  // Get all unique categories from parts
-  const categories = Array.from(
-    new Set(['all', ...partsData.parts.map(part => part.category).filter(Boolean)])
-  );
+  const partsCategories = usePartsCategories(partsData.parts);
+  const partsActions = usePartsActions(partsDialogs, orderParts);
   
-  // Get all unique manufacturers for filter
-  const manufacturers = Array.from(
-    new Set(partsData.parts.map(part => part.manufacturer).filter(Boolean))
-  );
-
   // Apply filters to get filtered parts
   const filteredParts = partsFilter.filterParts(partsData.parts);
-  
-  // Function to clear all filters
-  const clearFilters = () => {
-    partsFilter.resetFilters();
-  };
-
-  // Function to handle submitting an order
-  const handleOrderSubmit = () => {
-    if (partsDialogs.selectedPart) {
-      orderParts.handleOrderSubmit(partsDialogs.selectedPart);
-    }
-  };
-
-  // Function to open part details
-  const openPartDetails = (part: Part) => {
-    partsDialogs.setSelectedPart(part);
-    partsDialogs.setIsPartDetailsDialogOpen(true);
-  };
-
-  // Function to open order dialog
-  const openOrderDialog = (part: Part) => {
-    partsDialogs.setSelectedPart(part);
-    partsDialogs.setIsOrderDialogOpen(true);
-  };
   
   return {
     // Parts data
@@ -67,13 +37,13 @@ export const useParts = (initialParts: Part[] = []) => {
     setSelectedCategory: partsFilter.setSelectedCategory,
     
     // Categories and manufacturers lists
-    categories,
-    manufacturers,
+    categories: partsCategories.categories,
+    manufacturers: partsCategories.manufacturers,
     
     // Filtered parts
     filteredParts,
     filterCount: partsFilter.getFilterCount(),
-    clearFilters,
+    clearFilters: partsFilter.resetFilters,
     
     // Filter state
     filterManufacturers: partsFilter.filterManufacturers,
@@ -97,8 +67,8 @@ export const useParts = (initialParts: Part[] = []) => {
     handleAddPart: partsData.handleAddPart,
     handleUpdatePart: partsData.handleUpdatePart,
     handleDeletePart: partsData.handleDeletePart,
-    handleOrderSubmit,
-    openPartDetails,
-    openOrderDialog
+    handleOrderSubmit: partsActions.handleOrderSubmit,
+    openPartDetails: partsActions.openPartDetails,
+    openOrderDialog: partsActions.openOrderDialog
   };
 };
