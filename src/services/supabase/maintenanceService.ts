@@ -25,8 +25,8 @@ export const maintenanceService = {
       priority: task.priority as MaintenancePriority,
       dueDate: task.due_date ? new Date(task.due_date) : new Date(),
       completedDate: task.completed_date ? new Date(task.completed_date) : undefined,
-      estimatedDuration: task.estimated_duration?.toString() || '0',
-      actualDuration: task.actual_duration?.toString(),
+      estimatedDuration: task.estimated_duration ? Number(task.estimated_duration) : 0,
+      actualDuration: task.actual_duration ? Number(task.actual_duration) : undefined,
       assignedTo: task.assigned_to || '',
       notes: task.notes || ''
     }));
@@ -42,7 +42,7 @@ export const maintenanceService = {
       status: task.status,
       priority: task.priority,
       due_date: task.dueDate.toISOString(),
-      estimated_duration: task.estimatedDuration ? Number(task.estimatedDuration) : 0,
+      estimated_duration: Number(task.estimatedDuration),
       assigned_to: task.assignedTo || '',
       notes: task.notes,
       completed_date: task.completedDate ? task.completedDate.toISOString() : null,
@@ -70,8 +70,8 @@ export const maintenanceService = {
       priority: data.priority as MaintenancePriority,
       dueDate: new Date(data.due_date),
       completedDate: data.completed_date ? new Date(data.completed_date) : undefined,
-      estimatedDuration: data.estimated_duration?.toString() || '0',
-      actualDuration: data.actual_duration?.toString(),
+      estimatedDuration: data.estimated_duration ? Number(data.estimated_duration) : 0,
+      actualDuration: data.actual_duration ? Number(data.actual_duration) : undefined,
       assignedTo: data.assigned_to || '',
       notes: data.notes || ''
     };

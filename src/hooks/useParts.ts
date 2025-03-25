@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Part } from '@/types/Part';
@@ -46,11 +45,14 @@ export const useParts = (initialParts: Part[] = []) => {
   const { data: supabaseParts, isLoading, isError } = useQuery({
     queryKey: ['parts'],
     queryFn: () => partsService.getParts(),
-    onSettled: (data) => {
+    onSuccess: (data) => {
       if (data && data.length > 0) {
         setParts(data);
-      } else if (initialParts.length > 0 && (!data || data.length === 0)) {
-        console.log('No parts in the database, using initial data');
+      }
+    },
+    onError: () => {
+      if (initialParts.length > 0) {
+        console.log('No parts in the database or error occurred, using initial data');
         setParts(initialParts);
       }
     }
