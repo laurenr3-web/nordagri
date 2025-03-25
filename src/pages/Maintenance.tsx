@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { useTasksManager } from '@/hooks/maintenance/useTasksManager';
 import { maintenanceTasks } from '@/data/maintenanceData';
@@ -37,6 +37,10 @@ const Maintenance = () => {
     console.log('Adding task in Maintenance component:', formData);
     return addTask(formData);
   };
+
+  useEffect(() => {
+    console.log('Maintenance component loaded with tasks:', tasks);
+  }, [tasks]);
 
   return (
     <SidebarProvider>

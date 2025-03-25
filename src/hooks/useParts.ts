@@ -46,20 +46,22 @@ export const useParts = (initialParts: Part[] = []) => {
   const { data: supabaseParts, isLoading, isError } = useQuery({
     queryKey: ['parts'],
     queryFn: () => partsService.getParts(),
-    onSuccess: (data) => {
-      console.log('Fetched parts from Supabase:', data);
-      if (data && data.length > 0) {
-        setParts(data);
-      } else if (initialParts.length > 0) {
-        console.log('No parts in Supabase, using initial data');
-        setParts(initialParts);
-      }
-    },
-    onError: (error) => {
-      console.error('Error fetching parts:', error);
-      if (initialParts.length > 0) {
-        console.log('Error occurred when fetching from Supabase, using initial data');
-        setParts(initialParts);
+    meta: {
+      onSuccess: (data: Part[]) => {
+        console.log('Fetched parts from Supabase:', data);
+        if (data && data.length > 0) {
+          setParts(data);
+        } else if (initialParts.length > 0) {
+          console.log('No parts in Supabase, using initial data');
+          setParts(initialParts);
+        }
+      },
+      onError: (error: Error) => {
+        console.error('Error fetching parts:', error);
+        if (initialParts.length > 0) {
+          console.log('Error occurred when fetching from Supabase, using initial data');
+          setParts(initialParts);
+        }
       }
     }
   });
@@ -240,6 +242,7 @@ export const useParts = (initialParts: Part[] = []) => {
   useEffect(() => {
     if (supabaseParts && supabaseParts.length > 0) {
       setParts(supabaseParts);
+      console.log('Updated parts state with Supabase data:', supabaseParts);
     }
   }, [supabaseParts]);
   

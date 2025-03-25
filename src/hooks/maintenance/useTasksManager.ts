@@ -14,20 +14,23 @@ export const useTasksManager = (initialTasks: MaintenanceTask[] = []) => {
   const { data: supabaseTasks, isLoading, isError } = useQuery({
     queryKey: ['maintenanceTasks'],
     queryFn: () => maintenanceService.getTasks(),
-    onSuccess: (data) => {
-      if (data && data.length > 0) {
-        setTasks(data);
-      } else if (initialTasks.length > 0) {
-        // If Supabase has no data but we have initial data, we could seed it
-        console.log('No tasks in Supabase, using initial data');
-        setTasks(initialTasks);
-      }
-    },
-    onError: (error) => {
-      console.error('Error fetching tasks:', error);
-      if (initialTasks.length > 0) {
-        console.log('Error occurred when fetching from Supabase, using initial data');
-        setTasks(initialTasks);
+    meta: {
+      onSuccess: (data: MaintenanceTask[]) => {
+        console.log('Successfully fetched maintenance tasks:', data);
+        if (data && data.length > 0) {
+          setTasks(data);
+        } else if (initialTasks.length > 0) {
+          // If Supabase has no data but we have initial data, we could seed it
+          console.log('No tasks in Supabase, using initial data');
+          setTasks(initialTasks);
+        }
+      },
+      onError: (error: Error) => {
+        console.error('Error fetching tasks:', error);
+        if (initialTasks.length > 0) {
+          console.log('Error occurred when fetching from Supabase, using initial data');
+          setTasks(initialTasks);
+        }
       }
     }
   });
@@ -140,6 +143,7 @@ export const useTasksManager = (initialTasks: MaintenanceTask[] = []) => {
   useEffect(() => {
     if (supabaseTasks && supabaseTasks.length > 0) {
       setTasks(supabaseTasks);
+      console.log('Updated tasks state with Supabase data:', supabaseTasks);
     }
   }, [supabaseTasks]);
 

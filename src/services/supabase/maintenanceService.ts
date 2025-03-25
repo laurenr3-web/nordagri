@@ -14,7 +14,7 @@ export const maintenanceService = {
       throw error;
     }
     
-    // Convert Supabase date strings to Date objects
+    // Convert Supabase date strings to Date objects and ensure numeric values
     return (data || []).map(task => ({
       id: task.id,
       title: task.title,
