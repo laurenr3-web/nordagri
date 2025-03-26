@@ -41,9 +41,15 @@ export function useUpdatePart() {
   
   return useMutation({
     mutationFn: updatePart,
+    onMutate: (updatedPart) => {
+      console.log('⏳ onMutate avec:', updatedPart);
+      // Add optimistic update logic here if needed
+    },
     onSuccess: (data) => {
+      console.log('✅ onSuccess avec:', data);
       queryClient.invalidateQueries({ queryKey: ['parts'] });
       queryClient.invalidateQueries({ queryKey: ['parts', data.id] });
+      console.log('🔄 Cache invalidé pour ["parts"]');
       
       toast({
         title: "Pièce mise à jour",
@@ -51,11 +57,16 @@ export function useUpdatePart() {
       });
     },
     onError: (error: any) => {
+      console.error('❌ onError:', error);
       toast({
         title: "Erreur de modification",
         description: error.message || "Impossible de mettre à jour la pièce",
         variant: "destructive",
       });
+    },
+    onSettled: () => {
+      console.log('🏁 onSettled appelé - fin de la mutation');
+      queryClient.invalidateQueries({ queryKey: ['parts'] });
     },
   });
 }

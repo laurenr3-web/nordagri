@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Part } from '@/types/Part';
 
@@ -39,10 +38,12 @@ export const createPart = async (part: Omit<Part, 'id'>) => {
 };
 
 export const updatePart = async (part: Part) => {
-  console.log('Service: Tentative de mise à jour de la pièce:', part);
+  console.log('🔍 Données entrantes pour mise à jour:', part);
   
-  // Vérifiez que vous séparez bien l'ID du reste des données
   const { id, ...updateData } = part;
+  
+  console.log('🔢 ID pour mise à jour:', id, 'Type:', typeof id);
+  console.log('📦 Données pour mise à jour:', updateData);
   
   // Mapping des données pour correspondre au schéma de la base de données
   const partData = {
@@ -57,10 +58,8 @@ export const updatePart = async (part: Part) => {
     reorder_threshold: updateData.reorderPoint
   };
   
-  // Log pour vérifier les données exactes envoyées à Supabase
-  console.log('Service: Données envoyées à Supabase:', { id, partData });
-  
   try {
+    console.log('🚀 Envoi de la requête à Supabase...');
     const { data, error } = await supabase
       .from('parts_inventory')
       .update(partData)
@@ -69,16 +68,15 @@ export const updatePart = async (part: Part) => {
       .single();
     
     if (error) {
-      console.error('Service: Erreur Supabase:', error);
+      console.error('❌ Erreur Supabase:', error);
       throw error;
     }
     
-    console.log('Service: Réponse Supabase réussie:', data);
-    
+    console.log('✅ Réponse Supabase:', data);
     // On retourne l'objet part complet pour avoir toutes les données
     return part;
   } catch (err) {
-    console.error('Service: Exception capturée:', err);
+    console.error('💥 Exception:', err);
     throw err;
   }
 };
