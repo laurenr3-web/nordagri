@@ -50,7 +50,7 @@ export const navItems: NavItem[] = [
 ];
 
 const Navbar: React.FC = () => {
-  const { isOpen, close } = useSidebar();
+  const { openMobile, setOpenMobile } = useSidebar();
 
   return (
     <nav className="flex flex-col space-y-0.5">
@@ -65,7 +65,7 @@ const Navbar: React.FC = () => {
                 : 'text-muted-foreground'
             }`
           }
-          onClick={() => isOpen ? close() : null}
+          onClick={() => openMobile ? setOpenMobile(false) : null}
         >
           <item.icon className="h-4 w-4" />
           <span>{item.title}</span>

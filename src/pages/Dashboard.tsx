@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
@@ -134,19 +133,19 @@ const maintenanceEvents = [{
 
 const alertItems = [{
   id: 1,
-  severity: 'high',
+  severity: 'high' as const,
   message: 'Harvester engine overheating detected',
   time: '2 hours ago',
   equipment: 'Case IH Axial-Flow'
 }, {
   id: 2,
-  severity: 'medium',
+  severity: 'medium' as const,
   message: 'Low oil pressure warning on Tractor #3',
   time: '1 day ago',
   equipment: 'Kubota M7-172'
 }, {
   id: 3,
-  severity: 'low',
+  severity: 'low' as const,
   message: 'Maintenance interval approaching for Tractor #1',
   time: '2 days ago',
   equipment: 'John Deere 8R 410'
@@ -259,7 +258,7 @@ const DashboardPage = () => {
                 </TabsContent>
                 
                 <TabsContent value="alerts">
-                  <AllAlertsSection alerts={alertItems.concat(alertItems)} />
+                  <AllAlertsSection alerts={alertItems.concat(alertItems.map(alert => ({...alert, id: alert.id + 100})))} />
                 </TabsContent>
               </Tabs>
             </div>
