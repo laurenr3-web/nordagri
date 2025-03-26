@@ -1,87 +1,77 @@
+import React from 'react';
+import {
+  LayoutDashboard,
+  Tractor,
+  Wrench,
+  Package,
+  ClipboardList,
+} from 'lucide-react';
+import { NavLink } from 'react-router-dom';
+import { useSidebar } from '@/components/ui/sidebar';
 
-import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { 
-  Tractor, 
-  Package, 
-  Hammer, 
-  AlertTriangle, 
-  Map,
-  Settings as SettingsIcon,
-  Menu,
-  ChevronLeft
-} from "lucide-react";
-import { UserMenu } from "@/components/layout/UserMenu";
+interface NavItem {
+  title: string;
+  href: string;
+  icon: React.ForwardRefExoticComponent<
+    React.PropsWithoutRef<React.SVGProps<SVGSVGElement>> & {
+      title?: string | undefined;
+      titleId?: string | undefined;
+    } & React.RefAttributes<SVGSVGElement>
+  >;
+}
 
-// Create a navbar content component that doesn't use the useSidebar hook
-const Navbar = () => {
-  const location = useLocation();
-  const [mounted, setMounted] = useState(false);
-  const [openMobile, setOpenMobile] = useState(false);
+// Dans le tableau de navigation, supprimons l'entrée OptiField
+export const navItems: NavItem[] = [
+  {
+    title: "Tableau de bord",
+    href: "/",
+    icon: LayoutDashboard,
+  },
+  {
+    title: "Équipements",
+    href: "/equipment",
+    icon: Tractor,
+  },
+  {
+    title: "Maintenance",
+    href: "/maintenance",
+    icon: Wrench,
+  },
+  {
+    title: "Pièces",
+    href: "/parts",
+    icon: Package,
+  },
+  {
+    title: "Interventions",
+    href: "/interventions",
+    icon: ClipboardList,
+  },
+];
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
-  const getItemClassName = (path: string) => {
-    const active = location.pathname === path;
-    return `flex items-center rounded-md px-3 py-2 text-sm transition-colors ${
-      active 
-        ? "bg-accent text-accent-foreground" 
-        : "hover:bg-muted"
-    }`;
-  };
+const Navbar: React.FC = () => {
+  const { isOpen, close } = useSidebar();
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex h-14 items-center border-b px-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setOpenMobile(false)}
-          className="mr-2 md:hidden"
+    <nav className="flex flex-col space-y-0.5">
+      {navItems.map((item) => (
+        <NavLink
+          key={item.href}
+          to={item.href}
+          className={({ isActive }) =>
+            `group flex items-center space-x-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-secondary hover:text-foreground ${
+              isActive
+                ? 'bg-secondary text-foreground font-bold'
+                : 'text-muted-foreground'
+            }`
+          }
+          onClick={() => isOpen ? close() : null}
         >
-          <ChevronLeft />
-        </Button>
-        <Link to="/" className="font-semibold">
-          OptiTractor
-        </Link>
-      </div>
-      <div className="flex-1 overflow-auto py-2">
-        <nav className="grid gap-1 px-2">
-          <Link to="/equipment" className={getItemClassName("/equipment")}>
-            <Tractor className="mr-2 h-4 w-4" />
-            Equipment
-          </Link>
-          <Link to="/parts" className={getItemClassName("/parts")}>
-            <Package className="mr-2 h-4 w-4" />
-            Parts
-          </Link>
-          <Link to="/maintenance" className={getItemClassName("/maintenance")}>
-            <Hammer className="mr-2 h-4 w-4" />
-            Maintenance
-          </Link>
-          <Link to="/interventions" className={getItemClassName("/interventions")}>
-            <AlertTriangle className="mr-2 h-4 w-4" />
-            Interventions
-          </Link>
-          <Link to="/optifield" className={getItemClassName("/optifield")}>
-            <Map className="mr-2 h-4 w-4" />
-            OptiField
-          </Link>
-          <Link to="/settings" className={getItemClassName("/settings")}>
-            <SettingsIcon className="mr-2 h-4 w-4" />
-            Settings
-          </Link>
-        </nav>
-      </div>
-      <div className="border-t p-4">
-        <UserMenu />
-      </div>
-    </div>
+          <item.icon className="h-4 w-4" />
+          <span>{item.title}</span>
+        </NavLink>
+      ))}
+    </nav>
   );
 };
 
