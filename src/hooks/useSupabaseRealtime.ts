@@ -17,8 +17,8 @@ export function useSupabaseRealtime() {
     parts,
     maintenance,
     allSubscribed: 
-      equipment.status === 'SUBSCRIBED' && 
-      parts.status === 'SUBSCRIBED' && 
-      maintenance.status === 'SUBSCRIBED'
+      equipment.isSubscribed && 
+      parts.isSubscribed && 
+      maintenance.isSubscribed
   };
 }
