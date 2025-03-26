@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { RealtimeChannel } from '@supabase/supabase-js';
+import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
 type SubscriptionEvent = 'INSERT' | 'UPDATE' | 'DELETE' | '*';
@@ -64,32 +64,32 @@ export function useRealtimeSubscription<T>({
           table: table,
           filter: filter,
         },
-        (payload: any) => {
+        (payload: RealtimePostgresChangesPayload<T>) => {
           console.log(`Received ${event} event for ${table}:`, payload);
           
-          // Cast payload to our expected structure
-          const realTimePayload = payload as unknown as RealtimePayload<T>;
+          // Extract event type from payload
+          const eventType = payload.eventType as SubscriptionEvent;
           
           if (event === '*' || event === 'INSERT') {
-            if (onInsert && realTimePayload.eventType === 'INSERT') {
-              onInsert({ new: realTimePayload.new });
+            if (onInsert && eventType === 'INSERT' && payload.new) {
+              onInsert({ new: payload.new });
             }
           }
           
           if (event === '*' || event === 'UPDATE') {
-            if (onUpdate && realTimePayload.eventType === 'UPDATE' && realTimePayload.old) {
-              onUpdate({ new: realTimePayload.new, old: realTimePayload.old });
+            if (onUpdate && eventType === 'UPDATE' && payload.new && payload.old) {
+              onUpdate({ new: payload.new, old: payload.old });
             }
           }
           
           if (event === '*' || event === 'DELETE') {
-            if (onDelete && realTimePayload.eventType === 'DELETE' && realTimePayload.old) {
-              onDelete({ old: realTimePayload.old });
+            if (onDelete && eventType === 'DELETE' && payload.old) {
+              onDelete({ old: payload.old });
             }
           }
           
           if (onAll) {
-            onAll(realTimePayload, realTimePayload.eventType);
+            onAll(payload, eventType);
           }
         }
       );
