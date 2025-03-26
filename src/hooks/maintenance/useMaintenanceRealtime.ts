@@ -35,7 +35,9 @@ export function useMaintenanceRealtime() {
       
       if (payload.new && 'id' in payload.new) {
         // Update the task in the cache
-        queryClient.setQueryData(['maintenanceTasks', payload.new.id], payload.new);
+        queryClient.setQueryData(['maintenanceTasks', payload.new.id], (oldData) => {
+          return { ...(oldData as object || {}), ...payload.new };
+        });
         
         // Check if status changed to completed
         if (payload.new && 'status' in payload.new && payload.old && 'status' in payload.old) {
@@ -81,6 +83,11 @@ export function useMaintenanceRealtime() {
     },
     onDelete: (payload: RealtimePostgresChangesPayload<MaintenanceTask>) => {
       console.log('Maintenance task deleted:', payload.old);
+      
+      if (payload.old && 'id' in payload.old) {
+        // Remove from cache if exists
+        queryClient.removeQueries({ queryKey: ['maintenanceTasks', payload.old.id] });
+      }
       
       // Invalidate maintenance queries
       queryClient.invalidateQueries({ queryKey: ['maintenanceTasks'] });

@@ -35,7 +35,9 @@ export function useEquipmentRealtime() {
       
       if (payload.new && 'id' in payload.new) {
         // Update the equipment in the cache
-        queryClient.setQueryData(['equipment', payload.new.id], payload.new);
+        queryClient.setQueryData(['equipment', payload.new.id], (oldData) => {
+          return { ...(oldData as object || {}), ...payload.new };
+        });
         
         // Invalidate the list query
         queryClient.invalidateQueries({ queryKey: ['equipment'] });
@@ -50,6 +52,11 @@ export function useEquipmentRealtime() {
     },
     onDelete: (payload: RealtimePostgresChangesPayload<Equipment>) => {
       console.log('Equipment deleted:', payload.old);
+      
+      if (payload.old && 'id' in payload.old) {
+        // Remove from cache if exists
+        queryClient.removeQueries({ queryKey: ['equipment', payload.old.id] });
+      }
       
       // Invalidate equipment queries
       queryClient.invalidateQueries({ queryKey: ['equipment'] });

@@ -61,6 +61,8 @@ export function useRealtimeSubscription<T extends Record<string, any>>({
         'postgres_changes' as any, 
         filterConfig,
         (payload: RealtimePostgresChangesPayload<T>) => {
+          console.log(`Received ${payload.eventType} event for ${tableName}:`, payload);
+          
           // Process based on event type
           if (payload.eventType === 'INSERT') {
             if (onInsert) onInsert(payload);
@@ -92,11 +94,20 @@ export function useRealtimeSubscription<T extends Record<string, any>>({
       );
     }
 
-    // Subscribe to the channel
+    // Subscribe to the channel with reconnection handling
     subscription.subscribe((status) => {
       if (status === 'SUBSCRIBED') {
         setIsSubscribed(true);
         console.log(`Successfully subscribed to ${tableName} table changes`);
+      } else if (status === 'CHANNEL_ERROR') {
+        console.error(`Subscription error for ${tableName}: ${status}`);
+        setError(new Error(`Failed to subscribe to ${tableName}`));
+        
+        // Attempt to reconnect after a delay
+        setTimeout(() => {
+          console.log(`Attempting to reconnect to ${tableName}...`);
+          subscription.subscribe();
+        }, 5000);
       } else {
         console.log(`Subscription status for ${tableName}: ${status}`);
       }
@@ -107,8 +118,8 @@ export function useRealtimeSubscription<T extends Record<string, any>>({
 
     // Clean up on component unmount
     return () => {
+      console.log(`Unsubscribing from ${tableName} table changes`);
       supabase.removeChannel(subscription);
-      console.log(`Unsubscribed from ${tableName} table changes`);
     };
   }, [tableName, JSON.stringify(eventTypes), schema, filter, showNotifications, toast]);
 

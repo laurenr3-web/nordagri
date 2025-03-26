@@ -35,11 +35,13 @@ export function usePartsRealtime() {
       
       if (payload.new && 'id' in payload.new) {
         // Update the part in the cache
-        queryClient.setQueryData(['parts', payload.new.id], payload.new);
+        queryClient.setQueryData(['parts', payload.new.id], (oldData) => {
+          return { ...(oldData as object || {}), ...payload.new };
+        });
         
         // Check if stock level is below reorder point
-        if (payload.new && 'stock' in payload.new && 'reorderPoint' in payload.new) {
-          if (payload.new.stock <= payload.new.reorderPoint) {
+        if (payload.new && 'quantity' in payload.new && 'reorder_threshold' in payload.new) {
+          if (payload.new.quantity <= payload.new.reorder_threshold) {
             toast({
               title: 'Alerte de stock',
               description: payload.new && 'name' in payload.new ? 
@@ -63,6 +65,11 @@ export function usePartsRealtime() {
     },
     onDelete: (payload: RealtimePostgresChangesPayload<Part>) => {
       console.log('Part deleted:', payload.old);
+      
+      if (payload.old && 'id' in payload.old) {
+        // Remove from cache if exists
+        queryClient.removeQueries({ queryKey: ['parts', payload.old.id] });
+      }
       
       // Invalidate parts queries
       queryClient.invalidateQueries({ queryKey: ['parts'] });
