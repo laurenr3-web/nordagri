@@ -5,6 +5,17 @@ import { supabase } from '@/integrations/supabase/client';
 
 type SubscriptionEvent = 'INSERT' | 'UPDATE' | 'DELETE' | '*';
 
+// Define the structure of the payload from Supabase
+interface RealtimePayload<T> {
+  schema: string;
+  table: string;
+  commit_timestamp: string;
+  eventType: SubscriptionEvent;
+  new: T;
+  old: T | null;
+  errors: any | null;
+}
+
 interface UseRealtimeSubscriptionOptions<T> {
   table: string;
   events?: SubscriptionEvent[];
@@ -46,7 +57,7 @@ export function useRealtimeSubscription<T>({
     // Handle different events
     events.forEach((event) => {
       newChannel.on(
-        'postgres_changes' as any, // Type cast to fix the error
+        'postgres_changes',
         {
           event: event,
           schema: schema,
@@ -56,26 +67,29 @@ export function useRealtimeSubscription<T>({
         (payload) => {
           console.log(`Received ${event} event for ${table}:`, payload);
           
+          // Cast payload to our expected structure
+          const realTimePayload = payload as unknown as RealtimePayload<T>;
+          
           if (event === '*' || event === 'INSERT') {
-            if (onInsert && payload.eventType === 'INSERT') {
-              onInsert(payload as { new: T });
+            if (onInsert && realTimePayload.eventType === 'INSERT') {
+              onInsert({ new: realTimePayload.new });
             }
           }
           
           if (event === '*' || event === 'UPDATE') {
-            if (onUpdate && payload.eventType === 'UPDATE') {
-              onUpdate(payload as { new: T; old: T });
+            if (onUpdate && realTimePayload.eventType === 'UPDATE' && realTimePayload.old) {
+              onUpdate({ new: realTimePayload.new, old: realTimePayload.old });
             }
           }
           
           if (event === '*' || event === 'DELETE') {
-            if (onDelete && payload.eventType === 'DELETE') {
-              onDelete(payload as { old: T });
+            if (onDelete && realTimePayload.eventType === 'DELETE' && realTimePayload.old) {
+              onDelete({ old: realTimePayload.old });
             }
           }
           
           if (onAll) {
-            onAll(payload, payload.eventType as SubscriptionEvent);
+            onAll(realTimePayload, realTimePayload.eventType);
           }
         }
       );
