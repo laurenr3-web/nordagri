@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Part } from '@/types/Part';
 
@@ -73,8 +74,20 @@ export const updatePart = async (part: Part) => {
     }
     
     console.log('✅ Réponse Supabase:', data);
-    // On retourne l'objet part complet pour avoir toutes les données
-    return part;
+    // Transformer la réponse de la base de données en objet Part
+    return {
+      id: data.id,
+      name: data.name,
+      partNumber: data.part_number || '',
+      category: data.category || '',
+      manufacturer: data.supplier || '',
+      compatibility: data.compatible_with || [],
+      stock: data.quantity,
+      price: data.unit_price !== null ? data.unit_price : 0,
+      location: data.location || '',
+      reorderPoint: data.reorder_threshold || 5,
+      image: part.image || 'https://placehold.co/100x100/png'
+    };
   } catch (err) {
     console.error('💥 Exception:', err);
     throw err;
