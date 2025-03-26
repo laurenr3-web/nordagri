@@ -64,7 +64,7 @@ export function useRealtimeSubscription<T>({
           table: table,
           filter: filter,
         },
-        (payload) => {
+        (payload: any) => {
           console.log(`Received ${event} event for ${table}:`, payload);
           
           // Cast payload to our expected structure
