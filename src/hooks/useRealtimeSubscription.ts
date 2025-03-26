@@ -45,7 +45,7 @@ export function useRealtimeSubscription<T extends Record<string, any>>({
     // Configure the subscription for each event type
     for (const eventType of eventTypes) {
       // Set up base filter configuration
-      const filterConfig = {
+      const filterConfig: any = {
         schema: schema,
         table: tableName,
         event: eventType,
@@ -58,7 +58,7 @@ export function useRealtimeSubscription<T extends Record<string, any>>({
       
       // Subscribe to PostgreSQL changes
       subscription = subscription.on(
-        'postgres_changes', 
+        'postgres_changes' as any, 
         filterConfig,
         (payload: RealtimePostgresChangesPayload<T>) => {
           // Process based on event type

@@ -85,10 +85,17 @@ export function useMaintenanceRealtime() {
       // Invalidate maintenance queries
       queryClient.invalidateQueries({ queryKey: ['maintenanceTasks'] });
       
-      toast({
-        title: 'Tâche supprimée',
-        description: `Une tâche de maintenance a été supprimée`,
-      });
+      if (payload.old && 'title' in payload.old) {
+        toast({
+          title: 'Tâche supprimée',
+          description: `${payload.old.title} a été supprimée`,
+        });
+      } else {
+        toast({
+          title: 'Tâche supprimée',
+          description: `Une tâche de maintenance a été supprimée`,
+        });
+      }
     }
   });
   

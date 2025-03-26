@@ -54,10 +54,17 @@ export function useEquipmentRealtime() {
       // Invalidate equipment queries
       queryClient.invalidateQueries({ queryKey: ['equipment'] });
       
-      toast({
-        title: 'Équipement supprimé',
-        description: `Un équipement a été supprimé de l'inventaire`,
-      });
+      if (payload.old && 'name' in payload.old) {
+        toast({
+          title: 'Équipement supprimé',
+          description: `${payload.old.name} a été supprimé de l'inventaire`,
+        });
+      } else {
+        toast({
+          title: 'Équipement supprimé',
+          description: `Un équipement a été supprimé de l'inventaire`,
+        });
+      }
     }
   });
   
