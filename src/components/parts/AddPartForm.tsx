@@ -10,11 +10,14 @@ import InventoryInfoFields from './form/fields/InventoryInfoFields';
 import CompatibilityField from './form/fields/CompatibilityField';
 import ImageField from './form/fields/ImageField';
 import AddCategoryDialog from './form/AddCategoryDialog';
+import { useCreatePart } from '@/hooks/usePartsMutations';
+import { Part } from '@/types/Part';
 
 export function AddPartForm({ onSuccess, onCancel }: AddPartFormProps) {
   const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
   const [newCategory, setNewCategory] = useState('');
   const [customCategories, setCustomCategories] = useState<string[]>([]);
+  const createPartMutation = useCreatePart();
   
   const form = useForm<PartFormValues>({
     defaultValues: {
@@ -43,15 +46,30 @@ export function AddPartForm({ onSuccess, onCancel }: AddPartFormProps) {
 
   function onSubmit(data: PartFormValues) {
     try {
-      // Here you would typically send this data to a backend API
-      // For now we'll just simulate success
-      toast.success('Part added successfully');
+      // Convert form values to Part format (without id) for the API
+      const partData: Omit<Part, 'id'> = {
+        name: data.name,
+        partNumber: data.partNumber,
+        category: data.category,
+        manufacturer: data.manufacturer,
+        compatibility: data.compatibility ? data.compatibility.split(',').map(item => item.trim()) : [],
+        stock: parseInt(data.stock) || 0,
+        price: parseFloat(data.price) || 0,
+        reorderPoint: parseInt(data.reorderPoint) || 5,
+        location: data.location,
+        image: data.image
+      };
       
-      if (onSuccess) {
-        onSuccess(data);
-      }
+      // Use the mutation hook to save the part
+      createPartMutation.mutate(partData, {
+        onSuccess: () => {
+          if (onSuccess) {
+            onSuccess(data);
+          }
+        }
+      });
     } catch (error) {
-      toast.error('Failed to add part');
+      // Error handling is managed by the mutation hook
       console.error(error);
     }
   }
@@ -76,8 +94,8 @@ export function AddPartForm({ onSuccess, onCancel }: AddPartFormProps) {
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancel
             </Button>
-            <Button type="submit">
-              Add Part
+            <Button type="submit" disabled={createPartMutation.isPending}>
+              {createPartMutation.isPending ? 'Adding...' : 'Add Part'}
             </Button>
           </div>
         </form>
