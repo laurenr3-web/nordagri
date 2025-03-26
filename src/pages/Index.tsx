@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
-import Navbar from '@/components/layout/Navbar';
-import { DashboardSection } from '@/components/dashboard/DashboardSection';
-import { StatsCard } from '@/components/dashboard/StatsCard';
-import { EquipmentCard } from '@/components/dashboard/EquipmentCard';
-import { MaintenanceCalendar } from '@/components/dashboard/MaintenanceCalendar';
-import { Button } from '@/components/ui/button';
-import { BlurContainer } from '@/components/ui/blur-container';
-import { cn } from '@/lib/utils';
-import { Tractor, Wrench, Package, ClipboardCheck, AlertTriangle, Clock, CalendarClock, LayoutDashboard } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNavigate } from 'react-router-dom';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
+import Navbar from '@/components/layout/Navbar';
+import { Tractor, Wrench, Package, ClipboardCheck } from 'lucide-react';
+
+// Nouveaux composants refactorisés
+import Header from '@/components/index/Header';
+import Dashboard from '@/components/index/Dashboard';
+import CalendarView from '@/components/index/CalendarView';
+import AllAlertsSection from '@/components/index/AllAlertsSection';
 
 // Sample data
 const statsData = [{
@@ -49,6 +48,7 @@ const statsData = [{
     isPositive: true
   }
 }];
+
 const equipmentData = [{
   id: 1,
   name: 'John Deere 8R 410',
@@ -210,6 +210,10 @@ const Index = () => {
   const handleTasksAddClick = () => {
     navigate('/maintenance');
   };
+  
+  const handleEquipmentClick = (id: number) => {
+    navigate(`/equipment/${id}`);
+  };
 
   return (
     <SidebarProvider>
@@ -221,159 +225,38 @@ const Index = () => {
         <div className="flex-1 w-full">
           <div className="pt-6 pb-16 px-4 sm:px-8 md:px-12">
             <div className="max-w-7xl mx-auto">
-              <header className="mb-8 animate-fade-in">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <div className="chip chip-primary mb-2">Agricultural ERP Dashboard</div>
-                    <h1 className="text-3xl font-medium tracking-tight mb-1">Welcome Back</h1>
-                    <p className="text-muted-foreground">
-                      Here's what's happening with your agricultural equipment today
-                    </p>
-                  </div>
-                  
-                  <Tabs value={currentView} onValueChange={value => setCurrentView(value as 'main' | 'calendar' | 'alerts')} className="mt-4 sm:mt-0">
-                    <TabsList className="grid w-full grid-cols-3 md:w-auto">
-                      <TabsTrigger value="main" className="gap-2">
-                        <LayoutDashboard size={16} />
-                        <span className="px-[23px]">Dashboard</span>
-                      </TabsTrigger>
-                      <TabsTrigger value="calendar" className="gap-2">
-                        <CalendarClock size={16} />
-                        <span>June 2023</span>
-                      </TabsTrigger>
-                      <TabsTrigger value="alerts" className="gap-2">
-                        <AlertTriangle size={16} />
-                        <span>Alerts</span>
-                      </TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                </div>
-              </header>
+              <Header 
+                currentView={currentView}
+                setCurrentView={setCurrentView}
+              />
               
               <Tabs value={currentView} className="space-y-8">
-                <TabsContent value="main" className="space-y-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                    {statsData.map((stat, index) => (
-                      <StatsCard 
-                        key={index} 
-                        title={stat.title} 
-                        value={stat.value} 
-                        icon={stat.icon} 
-                        description={stat.description} 
-                        trend={stat.trend} 
-                        className="animate-fade-in cursor-pointer" 
-                        style={{
-                          animationDelay: `${index * 0.1}s`
-                        } as React.CSSProperties}
-                        onClick={() => handleStatsCardClick(stat.title)}
-                      />
-                    ))}
-                  </div>
-                  
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-2 space-y-8">
-                      <DashboardSection title="Equipment Status" subtitle="Monitor your fleet performance" action={<Button variant="outline" size="sm" onClick={handleEquipmentViewAllClick}>
-                            View All
-                          </Button>}>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {equipmentData.map((equipment, index) => (
-                            <EquipmentCard 
-                              key={equipment.id} 
-                              name={equipment.name} 
-                              type={equipment.type} 
-                              image={equipment.image} 
-                              status={equipment.status} 
-                              usage={equipment.usage} 
-                              nextService={equipment.nextService} 
-                              className="" 
-                              style={{
-                                animationDelay: `${index * 0.15}s`
-                              } as React.CSSProperties}
-                              onClick={() => navigate(`/equipment/${equipment.id}`)}
-                            />
-                          ))}
-                        </div>
-                      </DashboardSection>
-                      
-                      <DashboardSection title="Maintenance Schedule" subtitle="Plan ahead for equipment servicing" action={<Button variant="outline" size="sm" onClick={handleMaintenanceCalendarClick}>
-                            Full Calendar
-                          </Button>}>
-                        <MaintenanceCalendar events={maintenanceEvents} month={currentMonth} className="animate-scale-in" />
-                      </DashboardSection>
-                    </div>
-                    
-                    <div className="space-y-8">
-                      <DashboardSection title="System Alerts" subtitle="Recent notifications" action={<Button variant="outline" size="sm" onClick={handleAlertsViewAllClick}>
-                            Clear All
-                          </Button>}>
-                        <BlurContainer className="divide-y animate-fade-in">
-                          {alertItems.map(alert => <div key={alert.id} className="p-3 hover:bg-secondary/40 transition-colors">
-                              <div className="flex items-start space-x-3">
-                                <div className={cn("mt-0.5 h-2 w-2 rounded-full flex-shrink-0", alert.severity === 'high' ? "bg-destructive" : alert.severity === 'medium' ? "bg-harvest-500" : "bg-agri-500")} />
-                                <div>
-                                  <p className="text-sm font-medium">{alert.message}</p>
-                                  <div className="flex items-center mt-1 text-xs text-muted-foreground">
-                                    <span>{alert.equipment} • {alert.time}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>)}
-                        </BlurContainer>
-                      </DashboardSection>
-                      
-                      <DashboardSection title="Upcoming Tasks" subtitle="Scheduled maintenance" action={<Button variant="outline" size="sm" onClick={handleTasksAddClick}>
-                            Add Task
-                          </Button>}>
-                        <BlurContainer className="divide-y animate-fade-in delay-100">
-                          {upcomingTasks.map(task => <div key={task.id} className="p-4 hover:bg-secondary/40 transition-colors">
-                              <div className="mb-2 flex items-center justify-between">
-                                <h4 className="font-medium text-sm">{task.title}</h4>
-                                <span className={cn("text-xs px-2 py-0.5 rounded-full", task.priority === 'high' ? "bg-red-100 text-red-800" : task.priority === 'medium' ? "bg-harvest-100 text-harvest-800" : "bg-agri-100 text-agri-800")}>
-                                  {task.priority}
-                                </span>
-                              </div>
-                              <p className="text-sm text-muted-foreground mb-2">{task.equipment}</p>
-                              <div className="flex items-center justify-between text-xs">
-                                <div className="flex items-center">
-                                  <Clock size={14} className="mr-1" />
-                                  <span>Due: {task.due}</span>
-                                </div>
-                                <span className="text-muted-foreground">{task.assignee}</span>
-                              </div>
-                            </div>)}
-                        </BlurContainer>
-                      </DashboardSection>
-                    </div>
-                  </div>
+                <TabsContent value="main">
+                  <Dashboard 
+                    statsData={statsData}
+                    equipmentData={equipmentData}
+                    maintenanceEvents={maintenanceEvents}
+                    alertItems={alertItems}
+                    upcomingTasks={upcomingTasks}
+                    currentMonth={currentMonth}
+                    handleStatsCardClick={handleStatsCardClick}
+                    handleEquipmentViewAllClick={handleEquipmentViewAllClick}
+                    handleMaintenanceCalendarClick={handleMaintenanceCalendarClick}
+                    handleAlertsViewAllClick={handleAlertsViewAllClick}
+                    handleTasksAddClick={handleTasksAddClick}
+                    handleEquipmentClick={handleEquipmentClick}
+                  />
                 </TabsContent>
                 
-                <TabsContent value="calendar" className="space-y-8">
-                  <DashboardSection title="Maintenance Calendar" subtitle="Detailed view of all scheduled maintenance">
-                    <div className="p-4">
-                      <MaintenanceCalendar events={maintenanceEvents} month={currentMonth} className="animate-scale-in w-full" />
-                    </div>
-                  </DashboardSection>
+                <TabsContent value="calendar">
+                  <CalendarView 
+                    events={maintenanceEvents} 
+                    month={currentMonth} 
+                  />
                 </TabsContent>
                 
-                <TabsContent value="alerts" className="space-y-8">
-                  <DashboardSection title="All System Alerts" subtitle="Complete list of all notifications and warnings" action={<Button variant="outline" size="sm">
-                        Mark All as Read
-                      </Button>}>
-                    <BlurContainer className="divide-y animate-fade-in">
-                      {alertItems.concat(alertItems).map((alert, index) => <div key={`${alert.id}-${index}`} className="p-4 hover:bg-secondary/40 transition-colors">
-                          <div className="flex items-start space-x-3">
-                            <div className={cn("mt-0.5 h-3 w-3 rounded-full flex-shrink-0", alert.severity === 'high' ? "bg-destructive" : alert.severity === 'medium' ? "bg-harvest-500" : "bg-agri-500")} />
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between">
-                                <p className="text-sm font-medium">{alert.message}</p>
-                                <span className="text-xs text-muted-foreground">{alert.time}</span>
-                              </div>
-                              <p className="text-xs text-muted-foreground mt-1">{alert.equipment}</p>
-                            </div>
-                          </div>
-                        </div>)}
-                    </BlurContainer>
-                  </DashboardSection>
+                <TabsContent value="alerts">
+                  <AllAlertsSection alerts={alertItems.concat(alertItems)} />
                 </TabsContent>
               </Tabs>
             </div>
