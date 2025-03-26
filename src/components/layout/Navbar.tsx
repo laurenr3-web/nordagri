@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   LayoutDashboard,
@@ -20,7 +21,6 @@ interface NavItem {
   >;
 }
 
-// Dans le tableau de navigation, supprimons l'entrée OptiField
 export const navItems: NavItem[] = [
   {
     title: "Tableau de bord",
