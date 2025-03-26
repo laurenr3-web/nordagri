@@ -23,7 +23,7 @@ export function usePartsRealtime() {
       queryClient.invalidateQueries({ queryKey: ['parts'] });
       
       // Show a toast notification
-      if (payload.new) {
+      if (payload.new && 'name' in payload.new) {
         toast({
           title: 'Nouvelle pièce ajoutée',
           description: `${payload.new.name} a été ajoutée à l'inventaire`,
@@ -33,26 +33,32 @@ export function usePartsRealtime() {
     onUpdate: (payload: RealtimePostgresChangesPayload<Part>) => {
       console.log('Part updated:', payload.new);
       
-      if (payload.new) {
+      if (payload.new && 'id' in payload.new) {
         // Update the part in the cache
         queryClient.setQueryData(['parts', payload.new.id], payload.new);
         
         // Check if stock level is below reorder point
-        if (payload.new.stock <= payload.new.reorderPoint) {
-          toast({
-            title: 'Alerte de stock',
-            description: `${payload.new.name} est en dessous du seuil de réapprovisionnement`,
-            variant: 'destructive',
-          });
+        if (payload.new && 'stock' in payload.new && 'reorderPoint' in payload.new) {
+          if (payload.new.stock <= payload.new.reorderPoint) {
+            toast({
+              title: 'Alerte de stock',
+              description: payload.new && 'name' in payload.new ? 
+                `${payload.new.name} est en dessous du seuil de réapprovisionnement` :
+                `Une pièce est en dessous du seuil de réapprovisionnement`,
+              variant: 'destructive',
+            });
+          }
         }
         
         // Invalidate the list query
         queryClient.invalidateQueries({ queryKey: ['parts'] });
         
-        toast({
-          title: 'Pièce mise à jour',
-          description: `${payload.new.name} a été mise à jour`,
-        });
+        if (payload.new && 'name' in payload.new) {
+          toast({
+            title: 'Pièce mise à jour',
+            description: `${payload.new.name} a été mise à jour`,
+          });
+        }
       }
     },
     onDelete: (payload: RealtimePostgresChangesPayload<Part>) => {
@@ -61,10 +67,10 @@ export function usePartsRealtime() {
       // Invalidate parts queries
       queryClient.invalidateQueries({ queryKey: ['parts'] });
       
-      if (payload.old) {
+      if (payload.old && 'name' in payload.old) {
         toast({
           title: 'Pièce supprimée',
-          description: `${payload.old.name || 'Une pièce'} a été supprimée de l'inventaire`,
+          description: `${payload.old.name} a été supprimée de l'inventaire`,
         });
       } else {
         toast({

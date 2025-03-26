@@ -23,7 +23,7 @@ export function useEquipmentRealtime() {
       queryClient.invalidateQueries({ queryKey: ['equipment'] });
       
       // Show a toast notification
-      if (payload.new) {
+      if (payload.new && 'name' in payload.new) {
         toast({
           title: 'Nouvel équipement ajouté',
           description: `${payload.new.name} a été ajouté à l'inventaire`,
@@ -33,17 +33,19 @@ export function useEquipmentRealtime() {
     onUpdate: (payload: RealtimePostgresChangesPayload<Equipment>) => {
       console.log('Equipment updated:', payload.new);
       
-      if (payload.new) {
+      if (payload.new && 'id' in payload.new) {
         // Update the equipment in the cache
         queryClient.setQueryData(['equipment', payload.new.id], payload.new);
         
         // Invalidate the list query
         queryClient.invalidateQueries({ queryKey: ['equipment'] });
         
-        toast({
-          title: 'Équipement mis à jour',
-          description: `${payload.new.name} a été mis à jour`,
-        });
+        if ('name' in payload.new) {
+          toast({
+            title: 'Équipement mis à jour',
+            description: `${payload.new.name} a été mis à jour`,
+          });
+        }
       }
     },
     onDelete: (payload: RealtimePostgresChangesPayload<Equipment>) => {

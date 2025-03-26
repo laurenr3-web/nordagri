@@ -4,10 +4,10 @@ import { RealtimeChannel, RealtimePostgresChangesPayload, RealtimePostgresChange
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-// Types d'événements valides pour Supabase Realtime
+// Valid Supabase realtime event types
 type SupabaseEventType = 'INSERT' | 'UPDATE' | 'DELETE' | '*';
 
-// Interface générique pour les données de la table
+// Interface for table subscription configuration
 interface SubscriptionConfig<T extends Record<string, any>> {
   tableName: string;
   eventTypes?: SupabaseEventType[];
@@ -20,7 +20,7 @@ interface SubscriptionConfig<T extends Record<string, any>> {
 }
 
 /**
- * Hook personnalisé pour s'abonner aux changements en temps réel d'une table Supabase
+ * Custom hook to subscribe to Supabase table realtime changes
  */
 export function useRealtimeSubscription<T extends Record<string, any>>({
   tableName,
@@ -38,30 +38,30 @@ export function useRealtimeSubscription<T extends Record<string, any>>({
   const { toast } = useToast();
 
   useEffect(() => {
-    // Création d'un nouveau canal
-    let subscription = supabase.channel(`table-changes-${tableName}`);
+    // Create a new channel
+    const subscription = supabase.channel(`table-changes-${tableName}`);
     
-    // Configuration des filtres de base
-    const filterConfig: RealtimePostgresChangesFilter<"INSERT" | "UPDATE" | "DELETE" | "*"> = {
+    // Set up base filter configuration
+    const filterConfig: RealtimePostgresChangesFilter<SupabaseEventType> = {
       schema: schema,
       table: tableName,
-      event: eventTypes.length === 1 ? eventTypes[0] : eventTypes,
+      event: eventTypes.length === 1 ? eventTypes[0] : '*',
     };
     
-    // Ajout du filtre optionnel
+    // Add optional filter
     if (filter) {
       filterConfig.filter = filter;
     }
     
-    // Abonnement aux changements PostgreSQL
-    subscription = subscription.on(
+    // Subscribe to PostgreSQL changes
+    const configuredChannel = subscription.on(
       'postgres_changes',
       filterConfig,
       (payload: RealtimePostgresChangesPayload<T>) => {
-        // Traitement selon le type d'événement
+        // Process based on event type
         if (payload.eventType === 'INSERT') {
           if (onInsert) onInsert(payload);
-          if (showNotifications) {
+          if (showNotifications && payload.new) {
             toast({
               title: `Nouvel élément ajouté`,
               description: `Un nouvel élément a été ajouté dans ${tableName}`,
@@ -69,7 +69,7 @@ export function useRealtimeSubscription<T extends Record<string, any>>({
           }
         } else if (payload.eventType === 'UPDATE') {
           if (onUpdate) onUpdate(payload);
-          if (showNotifications) {
+          if (showNotifications && payload.new) {
             toast({
               title: `Élément mis à jour`,
               description: `Un élément a été mis à jour dans ${tableName}`,
@@ -77,7 +77,7 @@ export function useRealtimeSubscription<T extends Record<string, any>>({
           }
         } else if (payload.eventType === 'DELETE') {
           if (onDelete) onDelete(payload);
-          if (showNotifications) {
+          if (showNotifications && payload.old) {
             toast({
               title: `Élément supprimé`,
               description: `Un élément a été supprimé de ${tableName}`,
@@ -88,26 +88,23 @@ export function useRealtimeSubscription<T extends Record<string, any>>({
       }
     );
 
-    // Subscribe au canal et configuration des callbacks
-    subscription.subscribe()
-      .then((status) => {
-        if (status === 'SUBSCRIBED') {
-          setIsSubscribed(true);
-          console.log(`Abonné aux changements de la table ${tableName}`);
-        }
-      })
-      .catch((err: Error) => {
-        console.error(`Erreur d'abonnement à la table ${tableName}:`, err);
-        setError(err);
-      });
+    // Subscribe to the channel with callback
+    const subscribed = configuredChannel.subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        setIsSubscribed(true);
+        console.log(`Successfully subscribed to ${tableName} table changes`);
+      } else {
+        console.log(`Subscription status for ${tableName}: ${status}`);
+      }
+    });
 
-    // Stockage du canal pour accès ultérieur
-    setChannel(subscription);
+    // Store the channel for later access
+    setChannel(subscribed);
 
-    // Nettoyage à la destruction du composant
+    // Clean up on component unmount
     return () => {
       supabase.removeChannel(subscription);
-      console.log(`Désabonnement des changements de la table ${tableName}`);
+      console.log(`Unsubscribed from ${tableName} table changes`);
     };
   }, [tableName, JSON.stringify(eventTypes), schema, filter, showNotifications, toast]);
 

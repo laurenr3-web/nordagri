@@ -23,7 +23,7 @@ export function useMaintenanceRealtime() {
       queryClient.invalidateQueries({ queryKey: ['maintenanceTasks'] });
       
       // Show a toast notification
-      if (payload.new) {
+      if (payload.new && 'title' in payload.new) {
         toast({
           title: 'Nouvelle tâche de maintenance',
           description: `${payload.new.title} a été ajoutée au calendrier`,
@@ -33,40 +33,50 @@ export function useMaintenanceRealtime() {
     onUpdate: (payload: RealtimePostgresChangesPayload<MaintenanceTask>) => {
       console.log('Maintenance task updated:', payload.new);
       
-      if (payload.new && payload.new.id) {
+      if (payload.new && 'id' in payload.new) {
         // Update the task in the cache
         queryClient.setQueryData(['maintenanceTasks', payload.new.id], payload.new);
         
         // Check if status changed to completed
-        if (payload.new.status === 'completed' && payload.old && payload.old.status !== 'completed') {
-          toast({
-            title: 'Tâche terminée',
-            description: `La tâche ${payload.new.title} a été marquée comme terminée`,
-          });
+        if (payload.new && 'status' in payload.new && payload.old && 'status' in payload.old) {
+          if (payload.new.status === 'completed' && payload.old.status !== 'completed') {
+            toast({
+              title: 'Tâche terminée',
+              description: payload.new && 'title' in payload.new ? 
+                `La tâche ${payload.new.title} a été marquée comme terminée` : 
+                'Une tâche a été marquée comme terminée',
+            });
+          }
         }
         
         // Check if due date is approaching for high priority tasks
-        if (payload.new.priority === 'high') {
-          const dueDate = new Date(payload.new.dueDate);
-          const today = new Date();
-          const diffDays = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-          
-          if (diffDays <= 2 && diffDays > 0) {
-            toast({
-              title: 'Rappel de maintenance',
-              description: `La tâche prioritaire ${payload.new.title} est due dans ${diffDays} jour(s)`,
-              variant: 'destructive',
-            });
+        if (payload.new && 'priority' in payload.new && payload.new.priority === 'high') {
+          if (payload.new && 'dueDate' in payload.new) {
+            const dueDate = new Date(payload.new.dueDate);
+            const today = new Date();
+            const diffDays = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            
+            if (diffDays <= 2 && diffDays > 0) {
+              toast({
+                title: 'Rappel de maintenance',
+                description: payload.new && 'title' in payload.new ? 
+                  `La tâche prioritaire ${payload.new.title} est due dans ${diffDays} jour(s)` :
+                  `Une tâche prioritaire est due dans ${diffDays} jour(s)`,
+                variant: 'destructive',
+              });
+            }
           }
         }
         
         // Invalidate the list query
         queryClient.invalidateQueries({ queryKey: ['maintenanceTasks'] });
         
-        toast({
-          title: 'Tâche mise à jour',
-          description: `${payload.new.title} a été mise à jour`,
-        });
+        if (payload.new && 'title' in payload.new) {
+          toast({
+            title: 'Tâche mise à jour',
+            description: `${payload.new.title} a été mise à jour`,
+          });
+        }
       }
     },
     onDelete: (payload: RealtimePostgresChangesPayload<MaintenanceTask>) => {
