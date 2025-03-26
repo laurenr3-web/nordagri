@@ -4,12 +4,20 @@ import { AuthForm } from '@/components/ui/auth/AuthForm';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from 'lucide-react';
+import { useAuthContext } from '@/providers/AuthProvider';
 
 const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [verifyingEmail, setVerifyingEmail] = useState(false);
+  const { isAuthenticated } = useAuthContext();
+  
+  // Récupérer la destination de redirection depuis les query params
+  const getReturnPath = () => {
+    const searchParams = new URLSearchParams(location.search);
+    return searchParams.get('returnTo') || '/';
+  };
 
   // Check if the user is coming from a verification email
   useEffect(() => {
@@ -41,7 +49,7 @@ const Auth = () => {
           if (!error) {
             // User has verified their email and is now logged in
             setVerifyingEmail(false);
-            navigate('/settings');
+            navigate(getReturnPath());
           }
         } catch (error) {
           console.error('Email verification error:', error);
@@ -54,53 +62,19 @@ const Auth = () => {
   }, [location, navigate]);
 
   useEffect(() => {
-    // Check if user is already authenticated
-    const checkUser = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          throw error;
-        }
-        
-        if (data.session) {
-          // User is already signed in, redirect to settings
-          navigate('/settings');
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    checkUser();
-    
-    // Listen for auth changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session) {
-          // Log successful login/signup events
-          if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
-            const timestamp = new Date().toISOString();
-            console.log(`Auth event: ${event} at ${timestamp}`);
-          }
-          navigate('/settings');
-        }
-      }
-    );
-    
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, [navigate]);
+    // Si l'utilisateur est déjà authentifié, rediriger vers la page de retour
+    if (isAuthenticated) {
+      navigate(getReturnPath());
+    }
+    setLoading(false);
+  }, [isAuthenticated, navigate]);
 
   if (loading || verifyingEmail) {
     return (
       <div className="flex items-center justify-center h-screen flex-col gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
         <p className="text-lg">
-          {verifyingEmail ? 'Verifying your email...' : 'Loading...'}
+          {verifyingEmail ? 'Vérification de votre email...' : 'Chargement...'}
         </p>
       </div>
     );
@@ -110,9 +84,9 @@ const Auth = () => {
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold mb-2">OptiTractor</h1>
-        <p className="text-muted-foreground">Farm equipment management system</p>
+        <p className="text-muted-foreground">Système de gestion d'équipement agricole</p>
       </div>
-      <AuthForm onSuccess={() => navigate('/settings')} />
+      <AuthForm onSuccess={() => navigate(getReturnPath())} />
     </div>
   );
 };

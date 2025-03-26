@@ -1,5 +1,4 @@
 
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,80 +11,18 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Settings, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuthContext } from "@/providers/AuthProvider";
 
 export const UserMenu = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
-  const [profileName, setProfileName] = useState('');
-  const [sessionLoading, setSessionLoading] = useState(true);
-
-  useEffect(() => {
-    const getSession = async () => {
-      try {
-        setSessionLoading(true);
-        const { data } = await supabase.auth.getSession();
-        
-        if (data?.session) {
-          setUser(data.session.user);
-          fetchProfile(data.session.user.id);
-        }
-      } catch (error) {
-        console.error('Session error:', error);
-      } finally {
-        setSessionLoading(false);
-      }
-    };
-
-    getSession();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session) {
-          setUser(session.user);
-          fetchProfile(session.user.id);
-        } else {
-          setUser(null);
-          setProfileName('');
-        }
-      }
-    );
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
-
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('first_name, last_name')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      if (data) {
-        const fullName = [data.first_name, data.last_name].filter(Boolean).join(' ');
-        setProfileName(fullName || 'User');
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    }
-  };
+  const { user, profileData, isAuthenticated, loading, signOut } = useAuthContext();
 
   const getInitials = () => {
-    if (profileName) {
-      return profileName
-        .split(' ')
-        .map(name => name[0])
-        .join('')
-        .toUpperCase()
-        .substring(0, 2);
+    if (profileData?.first_name || profileData?.last_name) {
+      const firstInitial = profileData.first_name ? profileData.first_name[0] : '';
+      const lastInitial = profileData.last_name ? profileData.last_name[0] : '';
+      return (firstInitial + lastInitial).toUpperCase();
     }
     
     if (user?.email) {
@@ -100,19 +37,17 @@ export const UserMenu = () => {
       // Log the logout attempt
       console.log(`Logout attempt: ${new Date().toISOString()}`);
       
-      const { error } = await supabase.auth.signOut();
+      await signOut();
       
-      if (error) throw error;
-      
-      toast.success('Logged out successfully');
+      toast.success('Déconnexion réussie');
       navigate('/auth');
     } catch (error: any) {
       console.error('Logout error:', error);
-      toast.error(error.message || 'Logout failed');
+      toast.error(error.message || 'Déconnexion échouée');
     }
   };
 
-  if (sessionLoading) {
+  if (loading) {
     return (
       <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full" disabled>
         <Avatar className="h-8 w-8">
@@ -122,13 +57,17 @@ export const UserMenu = () => {
     );
   }
 
-  if (!user) {
+  if (!isAuthenticated) {
     return (
       <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>
-        Login
+        Connexion
       </Button>
     );
   }
+
+  const displayName = profileData 
+    ? [profileData.first_name, profileData.last_name].filter(Boolean).join(' ') 
+    : user?.email;
 
   return (
     <DropdownMenu>
@@ -140,15 +79,15 @@ export const UserMenu = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuLabel>{profileName || user.email}</DropdownMenuLabel>
+        <DropdownMenuLabel>{displayName}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => navigate('/settings')}>
           <Settings className="mr-2 h-4 w-4" />
-          <span>Settings</span>
+          <span>Paramètres</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleLogout}>
           <LogOut className="mr-2 h-4 w-4" />
-          <span>Logout</span>
+          <span>Déconnexion</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

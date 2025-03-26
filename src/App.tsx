@@ -4,6 +4,8 @@ import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { RealtimeCacheProvider } from '@/providers/RealtimeCacheProvider';
+import { AuthProvider } from '@/providers/AuthProvider';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 // Pages
 import Index from '@/pages/Index';
@@ -26,18 +28,48 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <RealtimeCacheProvider>
           <Router>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/equipment" element={<Equipment />} />
-              <Route path="/equipment/:id" element={<EquipmentDetail />} />
-              <Route path="/maintenance" element={<Maintenance />} />
-              <Route path="/parts" element={<Parts />} />
-              <Route path="/interventions" element={<Interventions />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <AuthProvider>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/equipment" element={
+                  <ProtectedRoute>
+                    <Equipment />
+                  </ProtectedRoute>
+                } />
+                <Route path="/equipment/:id" element={
+                  <ProtectedRoute>
+                    <EquipmentDetail />
+                  </ProtectedRoute>
+                } />
+                <Route path="/maintenance" element={
+                  <ProtectedRoute>
+                    <Maintenance />
+                  </ProtectedRoute>
+                } />
+                <Route path="/parts" element={
+                  <ProtectedRoute>
+                    <Parts />
+                  </ProtectedRoute>
+                } />
+                <Route path="/interventions" element={
+                  <ProtectedRoute>
+                    <Interventions />
+                  </ProtectedRoute>
+                } />
+                <Route path="/settings" element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                } />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AuthProvider>
           </Router>
           <Toaster />
         </RealtimeCacheProvider>
