@@ -1,19 +1,22 @@
 
 import { useEffect, useState } from 'react';
-import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { RealtimeChannel, RealtimePostgresChangesFilter, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
 type SubscriptionEvent = 'INSERT' | 'UPDATE' | 'DELETE' | '*';
 
-// Define the structure of the payload from Supabase
-interface RealtimePayload<T> {
-  schema: string;
-  table: string;
-  commit_timestamp: string;
-  eventType: SubscriptionEvent;
+// Define interfaces for the callback payloads
+interface InsertPayload<T> {
   new: T;
-  old: T | null;
-  errors: any | null;
+}
+
+interface UpdatePayload<T> {
+  new: T;
+  old: T;
+}
+
+interface DeletePayload<T> {
+  old: T;
 }
 
 interface UseRealtimeSubscriptionOptions<T> {
@@ -22,10 +25,10 @@ interface UseRealtimeSubscriptionOptions<T> {
   schema?: string;
   filter?: string;
   filterValues?: any[];
-  onInsert?: (payload: { new: T }) => void;
-  onUpdate?: (payload: { new: T; old: T }) => void;
-  onDelete?: (payload: { old: T }) => void;
-  onAll?: (payload: any, event: SubscriptionEvent) => void;
+  onInsert?: (payload: InsertPayload<T>) => void;
+  onUpdate?: (payload: UpdatePayload<T>) => void;
+  onDelete?: (payload: DeletePayload<T>) => void;
+  onAll?: (payload: RealtimePostgresChangesPayload<T>, event: SubscriptionEvent) => void;
 }
 
 /**
@@ -33,7 +36,7 @@ interface UseRealtimeSubscriptionOptions<T> {
  * @param options Configuration for the realtime subscription
  * @returns An object containing the channel and subscription status
  */
-export function useRealtimeSubscription<T>({
+export function useRealtimeSubscription<T extends Record<string, any>>({
   table,
   events = ['*'],
   schema = 'public',
@@ -56,35 +59,44 @@ export function useRealtimeSubscription<T>({
     
     // Handle different events
     events.forEach((event) => {
+      // Create filter for the postgres_changes event
+      const filterOptions: RealtimePostgresChangesFilter<T> = {
+        event: event === '*' ? '*' : event,
+        schema: schema,
+        table: table,
+      };
+      
+      if (filter) {
+        filterOptions.filter = filter;
+      }
+      
       newChannel.on(
         'postgres_changes',
-        {
-          event: event,
-          schema: schema,
-          table: table,
-          filter: filter,
-        },
+        filterOptions,
         (payload: RealtimePostgresChangesPayload<T>) => {
           console.log(`Received ${event} event for ${table}:`, payload);
           
           // Extract event type from payload
           const eventType = payload.eventType as SubscriptionEvent;
           
-          if (event === '*' || event === 'INSERT') {
-            if (onInsert && eventType === 'INSERT' && payload.new) {
-              onInsert({ new: payload.new });
+          if ((event === '*' || event === 'INSERT') && eventType === 'INSERT') {
+            if (onInsert && payload.new) {
+              onInsert({ new: payload.new as T });
             }
           }
           
-          if (event === '*' || event === 'UPDATE') {
-            if (onUpdate && eventType === 'UPDATE' && payload.new && payload.old) {
-              onUpdate({ new: payload.new, old: payload.old });
+          if ((event === '*' || event === 'UPDATE') && eventType === 'UPDATE') {
+            if (onUpdate && payload.new && payload.old) {
+              onUpdate({ 
+                new: payload.new as T, 
+                old: payload.old as T 
+              });
             }
           }
           
-          if (event === '*' || event === 'DELETE') {
-            if (onDelete && eventType === 'DELETE' && payload.old) {
-              onDelete({ old: payload.old });
+          if ((event === '*' || event === 'DELETE') && eventType === 'DELETE') {
+            if (onDelete && payload.old) {
+              onDelete({ old: payload.old as T });
             }
           }
           
