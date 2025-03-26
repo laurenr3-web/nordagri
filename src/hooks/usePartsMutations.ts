@@ -1,6 +1,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createPart } from '@/services/partsService';
+import { updatePart, deletePart } from '@/services/supabase/partsService';
 import { useToast } from '@/hooks/use-toast';
 import { Part } from '@/types/Part';
 
@@ -40,10 +41,7 @@ export function useUpdatePart() {
   const { toast } = useToast();
   
   return useMutation({
-    mutationFn: async (part: Part) => {
-      const { updatePart } = await import('@/services/supabase/partsService');
-      return updatePart(part);
-    },
+    mutationFn: updatePart,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['parts'] });
       queryClient.invalidateQueries({ queryKey: ['parts', data.id] });
@@ -72,10 +70,7 @@ export function useDeletePart() {
   const { toast } = useToast();
   
   return useMutation({
-    mutationFn: async (partId: number) => {
-      const { deletePart } = await import('@/services/supabase/partsService');
-      return deletePart(partId);
-    },
+    mutationFn: deletePart,
     onSuccess: (_, partId) => {
       // Remove the deleted part from the cache
       queryClient.removeQueries({ queryKey: ['parts', partId] });
