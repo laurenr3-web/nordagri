@@ -6,7 +6,7 @@ import React from 'react';
 export const statsData = [{
   title: 'Active Equipment',
   value: '24',
-  icon: <Tractor className="text-primary h-5 w-5" />,
+  icon: React.createElement(Tractor, { className: "text-primary h-5 w-5" }),
   trend: {
     value: 4,
     isPositive: true
@@ -14,7 +14,7 @@ export const statsData = [{
 }, {
   title: 'Maintenance Tasks',
   value: '12',
-  icon: <Wrench className="text-primary h-5 w-5" />,
+  icon: React.createElement(Wrench, { className: "text-primary h-5 w-5" }),
   description: '3 high priority',
   trend: {
     value: 2,
@@ -23,7 +23,7 @@ export const statsData = [{
 }, {
   title: 'Parts Inventory',
   value: '1,204',
-  icon: <Package className="text-primary h-5 w-5" />,
+  icon: React.createElement(Package, { className: "text-primary h-5 w-5" }),
   description: '8 items low stock',
   trend: {
     value: 12,
@@ -32,7 +32,7 @@ export const statsData = [{
 }, {
   title: 'Field Interventions',
   value: '8',
-  icon: <ClipboardCheck className="text-primary h-5 w-5" />,
+  icon: React.createElement(ClipboardCheck, { className: "text-primary h-5 w-5" }),
   description: 'This week',
   trend: {
     value: 15,
