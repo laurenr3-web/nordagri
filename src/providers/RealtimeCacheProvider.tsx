@@ -7,9 +7,9 @@ import { useToast } from '@/hooks/use-toast';
 interface RealtimeCacheContextType {
   isRealtimeEnabled: boolean;
   realtimeStatus: {
-    equipment: { status: string | null };
-    parts: { status: string | null };
-    maintenance: { status: string | null };
+    equipment: { isSubscribed: boolean; error: Error | null };
+    parts: { isSubscribed: boolean; error: Error | null };
+    maintenance: { isSubscribed: boolean; error: Error | null };
     allSubscribed: boolean;
   };
 }

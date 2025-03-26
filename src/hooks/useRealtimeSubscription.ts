@@ -1,14 +1,14 @@
 
 import { useEffect, useState } from 'react';
-import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { RealtimeChannel, RealtimePostgresChangesPayload, RealtimePostgresChangesFilter } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 // Types d'événements valides pour Supabase Realtime
 type SupabaseEventType = 'INSERT' | 'UPDATE' | 'DELETE' | '*';
 
 // Interface générique pour les données de la table
-interface SubscriptionConfig<T> {
+interface SubscriptionConfig<T extends Record<string, any>> {
   tableName: string;
   eventTypes?: SupabaseEventType[];
   schema?: string;
@@ -35,19 +35,14 @@ export function useRealtimeSubscription<T extends Record<string, any>>({
   const [channel, setChannel] = useState<RealtimeChannel | null>(null);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const { toast: showToast } = toast();
+  const { toast } = useToast();
 
   useEffect(() => {
     // Création d'un nouveau canal
     let subscription = supabase.channel(`table-changes-${tableName}`);
     
     // Configuration des filtres de base
-    const filterConfig: {
-      schema: string;
-      table: string;
-      event: SupabaseEventType | SupabaseEventType[];
-      filter?: string;
-    } = {
+    const filterConfig: RealtimePostgresChangesFilter<"INSERT" | "UPDATE" | "DELETE" | "*"> = {
       schema: schema,
       table: tableName,
       event: eventTypes.length === 1 ? eventTypes[0] : eventTypes,
@@ -67,7 +62,7 @@ export function useRealtimeSubscription<T extends Record<string, any>>({
         if (payload.eventType === 'INSERT') {
           if (onInsert) onInsert(payload);
           if (showNotifications) {
-            showToast({
+            toast({
               title: `Nouvel élément ajouté`,
               description: `Un nouvel élément a été ajouté dans ${tableName}`,
             });
@@ -75,7 +70,7 @@ export function useRealtimeSubscription<T extends Record<string, any>>({
         } else if (payload.eventType === 'UPDATE') {
           if (onUpdate) onUpdate(payload);
           if (showNotifications) {
-            showToast({
+            toast({
               title: `Élément mis à jour`,
               description: `Un élément a été mis à jour dans ${tableName}`,
             });
@@ -83,7 +78,7 @@ export function useRealtimeSubscription<T extends Record<string, any>>({
         } else if (payload.eventType === 'DELETE') {
           if (onDelete) onDelete(payload);
           if (showNotifications) {
-            showToast({
+            toast({
               title: `Élément supprimé`,
               description: `Un élément a été supprimé de ${tableName}`,
               variant: "destructive",
@@ -94,8 +89,7 @@ export function useRealtimeSubscription<T extends Record<string, any>>({
     );
 
     // Subscribe au canal et configuration des callbacks
-    subscription
-      .subscribe()
+    subscription.subscribe()
       .then((status) => {
         if (status === 'SUBSCRIBED') {
           setIsSubscribed(true);
@@ -115,7 +109,7 @@ export function useRealtimeSubscription<T extends Record<string, any>>({
       supabase.removeChannel(subscription);
       console.log(`Désabonnement des changements de la table ${tableName}`);
     };
-  }, [tableName, JSON.stringify(eventTypes), schema, filter, showNotifications]);
+  }, [tableName, JSON.stringify(eventTypes), schema, filter, showNotifications, toast]);
 
   return { channel, isSubscribed, error };
 }
