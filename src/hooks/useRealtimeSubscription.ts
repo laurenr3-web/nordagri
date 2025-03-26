@@ -46,7 +46,7 @@ export function useRealtimeSubscription<T>({
     // Handle different events
     events.forEach((event) => {
       newChannel.on(
-        'postgres_changes',
+        'postgres_changes' as any, // Type cast to fix the error
         {
           event: event,
           schema: schema,
