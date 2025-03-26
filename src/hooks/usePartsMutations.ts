@@ -1,7 +1,6 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createPart } from '@/services/partsService';
-import { updatePart, deletePart } from '@/services/supabase/partsService';
+import { createPart, updatePart, deletePart } from '@/services/partsService';
 import { useToast } from '@/hooks/use-toast';
 import { Part } from '@/types/Part';
 
