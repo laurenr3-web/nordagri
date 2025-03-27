@@ -18,7 +18,7 @@ import InventoryFields from './InventoryFields';
 import CompatibilityField from './CompatibilityField';
 import FormActions from './FormActions';
 import ImageField from './ImageField';
-import { formSchema } from './editPartFormTypes';
+import { partFormSchema } from './editPartFormTypes';
 
 interface EditPartFormProps {
   part: Part;
@@ -27,8 +27,8 @@ interface EditPartFormProps {
 }
 
 const EditPartForm: React.FC<EditPartFormProps> = ({ part, onSubmit, onCancel }) => {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof partFormSchema>>({
+    resolver: zodResolver(partFormSchema),
     defaultValues: {
       name: part.name,
       partNumber: part.partNumber,
@@ -43,7 +43,7 @@ const EditPartForm: React.FC<EditPartFormProps> = ({ part, onSubmit, onCancel })
     },
   });
 
-  const handleSubmit = (values: z.infer<typeof formSchema>) => {
+  const handleSubmit = (values: z.infer<typeof partFormSchema>) => {
     const updatedPart: Part = {
       ...part,
       name: values.name,
@@ -69,7 +69,7 @@ const EditPartForm: React.FC<EditPartFormProps> = ({ part, onSubmit, onCancel })
             <InventoryFields form={form} />
             <CompatibilityField form={form} />
           </div>
-          <ImageField form={form} currentImage={part.image} />
+          <ImageField form={form} />
         </div>
         <FormActions onCancel={onCancel} isSubmitting={form.formState.isSubmitting} />
       </form>
