@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import EquipmentForm from '@/components/equipment/EquipmentForm';
 import EquipmentDetails from '@/components/equipment/EquipmentDetails';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
-import { useAddEquipment } from '@/hooks/useAddEquipment';
+import { useAddEquipment } from '@/hooks/equipment/useAddEquipment';
 import { EquipmentFormValues } from '../form/equipmentFormTypes';
 import { toast } from 'sonner';
 import { equipmentService } from '@/services/supabase/equipmentService';
