@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
@@ -9,7 +8,7 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useQueryClient } from '@tanstack/react-query';
-import { getEquipmentById, updateEquipment } from '@/services/supabase/equipmentService';
+import { equipmentService } from '@/services/supabase/equipmentService';
 
 const EquipmentDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -25,7 +24,7 @@ const EquipmentDetail = () => {
       
       try {
         setLoading(true);
-        const data = await getEquipmentById(Number(id));
+        const data = await equipmentService.getEquipmentById(Number(id));
         setEquipment(data);
         setError(null);
       } catch (err: any) {
@@ -42,7 +41,7 @@ const EquipmentDetail = () => {
   
   const handleEquipmentUpdate = async (updatedEquipment: any) => {
     try {
-      const result = await updateEquipment(updatedEquipment);
+      const result = await equipmentService.updateEquipment(updatedEquipment);
       setEquipment(result);
       queryClient.invalidateQueries({ queryKey: ['equipment'] });
       toast.success('Équipement mis à jour avec succès');
