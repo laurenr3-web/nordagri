@@ -14,10 +14,10 @@ export interface EquipmentItem {
   location: string;
   lastMaintenance: string;
   image: string;
-  usage?: { hours: number; target: number };
+  usage: { hours: number; target: number };
   serialNumber: string;
   purchaseDate: string;
-  nextService?: { type: string; due: string };
+  nextService: { type: string; due: string };
 }
 
 export const useEquipmentFilters = (equipmentData: EquipmentItem[]) => {

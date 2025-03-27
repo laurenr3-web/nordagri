@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from 'react';
 import { useEquipmentFilters, EquipmentItem } from '@/components/equipment/hooks/useEquipmentFilters';
 import { Equipment } from '@/services/supabase/equipmentService';
@@ -24,8 +25,9 @@ export const useEquipmentState = (equipment: Equipment[] | null) => {
       image: item.image || '',
       serialNumber: item.serialNumber || '',
       purchaseDate: item.purchaseDate ? item.purchaseDate.toString() : '',
-      usage: item.usage || { hours: 0, target: 500 }, // Default values
-      nextService: item.nextService || { type: 'Regular maintenance', due: 'In 30 days' } // Default values
+      // Define default values for usage and nextService which don't exist in Equipment type
+      usage: { hours: 0, target: 500 }, 
+      nextService: { type: 'Regular maintenance', due: 'In 30 days' }
     }));
   }, [equipment]);
 
