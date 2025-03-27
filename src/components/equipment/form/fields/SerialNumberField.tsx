@@ -13,8 +13,8 @@ interface SerialNumberFieldProps {
 
 const SerialNumberField: React.FC<SerialNumberFieldProps> = ({ 
   form,
-  label = "Serial Number",
-  placeholder = "e.g., JD8R410-22-7834" 
+  label = "Numéro de série",
+  placeholder = "ex: JD8R410-22-7834" 
 }) => {
   return (
     <FormField
@@ -24,7 +24,16 @@ const SerialNumberField: React.FC<SerialNumberFieldProps> = ({
         <FormItem>
           <FormLabel>{label}</FormLabel>
           <FormControl>
-            <Input placeholder={placeholder} {...field} />
+            <Input 
+              placeholder={placeholder} 
+              {...field} 
+              value={field.value || ''} 
+              onChange={(e) => {
+                // Handle empty string correctly
+                const value = e.target.value.trim() === '' ? null : e.target.value;
+                field.onChange(value);
+              }}
+            />
           </FormControl>
           <FormMessage />
         </FormItem>

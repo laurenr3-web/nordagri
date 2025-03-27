@@ -28,11 +28,14 @@ export const useAddEquipment = () => {
         newEquipment.image = undefined;
       }
       
-      // Make sure serialNumber is properly handled
+      // Make sure serialNumber is properly handled (null, not empty string)
       if (newEquipment.serialNumber === '') {
         console.log('Serial number is empty, setting to null');
         newEquipment.serialNumber = null;
       }
+
+      // Log the final equipment data being sent to the API
+      console.log('Sending equipment data to API:', JSON.stringify(newEquipment, null, 2));
       
       return equipmentService.addEquipment(newEquipment, imageFile);
     },
@@ -46,6 +49,13 @@ export const useAddEquipment = () => {
     },
     onError: (error: any) => {
       console.error('Erreur lors de l\'ajout d\'équipement:', error);
+      // Add more detailed error logging to help debug the issue
+      if (error.message) {
+        console.error('Message d\'erreur:', error.message);
+      }
+      if (error.details) {
+        console.error('Détails de l\'erreur:', error.details);
+      }
       toast.error(`Erreur: ${error.message || 'Impossible d\'ajouter l\'équipement'}`);
     }
   });

@@ -63,8 +63,19 @@ const EquipmentDialogs: React.FC = () => {
           setIsAddDialogOpen(false);
           toast.success("Équipement ajouté avec succès");
         },
-        onError: (error) => {
+        onError: (error: any) => {
           console.error("Erreur lors de l'ajout de l'équipement:", error);
+          // Add detailed error logging
+          if (error.code) {
+            console.error("Code d'erreur:", error.code);
+          }
+          if (error.details) {
+            console.error("Détails de l'erreur:", error.details);
+          }
+          if (error.hint) {
+            console.error("Suggestion:", error.hint);
+          }
+          
           toast.error("Erreur lors de l'ajout de l'équipement", { 
             description: error.message || "Une erreur s'est produite" 
           });
