@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -25,7 +24,7 @@ import {
 import { Part } from '@/types/Part';
 import { Loader2, Camera } from 'lucide-react';
 import { toast } from 'sonner';
-import { updatePart } from '@/services/supabase/partsService';
+import { updatePart } from '@/services/supabase/parts';
 import ImagePreview from '@/components/equipment/form/fields/ImagePreview';
 import CameraCapture from '@/components/equipment/form/CameraCapture';
 

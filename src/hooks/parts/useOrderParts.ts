@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Part } from '@/types/Part';
 import { useToast } from '@/hooks/use-toast';
-import { partsService } from '@/services/supabase/partsService';
+import { updatePart } from '@/services/supabase/parts';
 
 export const useOrderParts = () => {
   const { toast } = useToast();
@@ -20,7 +20,7 @@ export const useOrderParts = () => {
         ...part,
         stock: part.stock + parseInt(orderQuantity),  // Order more based on quantity
       };
-      return partsService.updatePart(updatedPart);
+      return updatePart(updatedPart);
     },
     onSuccess: (updatedPart) => {
       queryClient.invalidateQueries({ queryKey: ['parts'] });
@@ -32,7 +32,7 @@ export const useOrderParts = () => {
       
       setIsOrderSuccess(true);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error ordering part:', error);
       toast({
         title: "Erreur",
