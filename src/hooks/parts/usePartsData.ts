@@ -10,29 +10,29 @@ export const usePartsData = (initialParts: Part[] = []) => {
   const queryClient = useQueryClient();
   const [parts, setParts] = useState<Part[]>(initialParts);
 
-  // Fetch parts from Supabase with corrected query options
+  // Fetch parts using React Query
   const { data: supabaseParts, isLoading, isError } = useQuery({
     queryKey: ['parts'],
     queryFn: () => partsService.getParts(),
-    staleTime: 0, // Consider data stale immediately
-    refetchOnWindowFocus: true, // Refetch when window regains focus
+    staleTime: 0,
+    refetchOnWindowFocus: true
   });
 
-  // Use effect to handle data updates instead of onSuccess callback
+  // Handle data updates
   useEffect(() => {
     if (supabaseParts && supabaseParts.length > 0) {
-      console.log('Fetched parts from Supabase:', supabaseParts);
+      console.log('📥 Setting parts from Supabase:', supabaseParts);
       setParts(supabaseParts);
     } else if (supabaseParts && supabaseParts.length === 0 && initialParts.length > 0) {
-      console.log('No parts in Supabase, using initial data');
+      console.log('ℹ️ Using initial data as Supabase returned empty');
       setParts(initialParts);
     }
   }, [supabaseParts, initialParts]);
 
-  // Handle error case with useEffect
+  // Handle error cases
   useEffect(() => {
     if (isError && initialParts.length > 0) {
-      console.log('Error occurred when fetching from Supabase, using initial data');
+      console.log('⚠️ Using initial data due to Supabase error');
       setParts(initialParts);
     }
   }, [isError, initialParts]);
@@ -40,7 +40,7 @@ export const usePartsData = (initialParts: Part[] = []) => {
   // Add part mutation
   const addPartMutation = useMutation({
     mutationFn: (part: Omit<Part, 'id'>) => {
-      console.log('Adding part to Supabase:', part);
+      console.log('➕ Adding new part:', part);
       return partsService.addPart(part);
     },
     onSuccess: (newPart) => {
@@ -53,7 +53,7 @@ export const usePartsData = (initialParts: Part[] = []) => {
       });
     },
     onError: (error) => {
-      console.error('Error adding part:', error);
+      console.error('❌ Error adding part:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'ajouter la pièce",
@@ -61,21 +61,20 @@ export const usePartsData = (initialParts: Part[] = []) => {
       });
     }
   });
-  
+
   // Update part mutation
   const updatePartMutation = useMutation({
     mutationFn: (part: Part) => {
-      console.log('Updating part in Supabase:', part);
+      console.log('✏️ Updating part:', part);
       return partsService.updatePart(part);
     },
     onSuccess: (updatedPart) => {
-      // Invalidate and refetch to ensure data consistency
-      queryClient.refetchQueries({ queryKey: ['parts'], type: 'all' });
-      
-      // If we have the individual part query, also refetch that
-      if (updatedPart.id) {
-        queryClient.refetchQueries({ queryKey: ['parts', updatedPart.id], type: 'all' });
-      }
+      // Force refetch to ensure consistency
+      queryClient.refetchQueries({ 
+        queryKey: ['parts'],
+        type: 'all',
+        exact: false
+      });
       
       setParts(prevParts => prevParts.map(p => p.id === updatedPart.id ? updatedPart : p));
       
@@ -85,7 +84,7 @@ export const usePartsData = (initialParts: Part[] = []) => {
       });
     },
     onError: (error) => {
-      console.error('Error updating part:', error);
+      console.error('❌ Error updating part:', error);
       toast({
         title: "Erreur",
         description: "Impossible de mettre à jour la pièce",
@@ -93,11 +92,11 @@ export const usePartsData = (initialParts: Part[] = []) => {
       });
     }
   });
-  
+
   // Delete part mutation
   const deletePartMutation = useMutation({
     mutationFn: (partId: number) => {
-      console.log('Deleting part from Supabase:', partId);
+      console.log('🗑️ Deleting part:', partId);
       return partsService.deletePart(partId);
     },
     onSuccess: (_, partId) => {
@@ -110,7 +109,7 @@ export const usePartsData = (initialParts: Part[] = []) => {
       });
     },
     onError: (error) => {
-      console.error('Error deleting part:', error);
+      console.error('❌ Error deleting part:', error);
       toast({
         title: "Erreur",
         description: "Impossible de supprimer la pièce",
@@ -119,21 +118,19 @@ export const usePartsData = (initialParts: Part[] = []) => {
     }
   });
 
-  // Function to add a part
+  // Action handlers
   const handleAddPart = (part: Omit<Part, 'id'>) => {
-    console.log('Adding part:', part);
+    console.log('👉 Adding part:', part);
     addPartMutation.mutate(part);
   };
   
-  // Function to update a part
   const handleUpdatePart = (part: Part) => {
-    console.log('Updating part:', part);
+    console.log('👉 Updating part:', part);
     updatePartMutation.mutate(part);
   };
   
-  // Function to delete a part
   const handleDeletePart = (partId: number) => {
-    console.log('Deleting part:', partId);
+    console.log('👉 Deleting part:', partId);
     deletePartMutation.mutate(partId);
   };
 

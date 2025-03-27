@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { addPart, updatePart, deletePart } from '@/services/supabase/partsService';
 import { useToast } from '@/hooks/use-toast';
@@ -42,15 +41,15 @@ export function useUpdatePart() {
   return useMutation({
     mutationFn: updatePart,
     onMutate: async (updatedPart) => {
-      console.log('⏳ onMutate with:', updatedPart);
+      console.log('⏳ Starting update mutation for part:', updatedPart);
       
-      // Cancel any outgoing refetches to avoid them overwriting our optimistic update
+      // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['parts'] });
       
       // Snapshot the previous value
       const previousParts = queryClient.getQueryData(['parts']);
       
-      // Perform an optimistic update to the part in the cache
+      // Optimistically update the cache
       if (updatedPart.id) {
         queryClient.setQueryData(['parts'], (oldData: Part[] | undefined) => {
           if (!oldData) return [updatedPart];
@@ -60,31 +59,27 @@ export function useUpdatePart() {
         });
       }
       
-      // Return a rollback context
       return { previousParts };
     },
-    onSuccess: (data) => {
-      console.log('✅ onSuccess with:', data);
+    onSuccess: (updatedPart) => {
+      console.log('✅ Update successful:', updatedPart);
       
-      // Invalidate and refetch to ensure data consistency
-      queryClient.refetchQueries({ queryKey: ['parts'], type: 'all' });
-      
-      // If we have the individual part query, also refetch that
-      if (data.id) {
-        queryClient.refetchQueries({ queryKey: ['parts', data.id], type: 'all' });
-      }
-      
-      console.log('🔄 Complete refetch for ["parts"]');
+      // Force a complete refetch to ensure data consistency
+      queryClient.refetchQueries({ 
+        queryKey: ['parts'],
+        type: 'all',
+        exact: false
+      });
       
       toast({
         title: "Pièce mise à jour",
-        description: `${data.name} a été mise à jour avec succès.`,
+        description: `${updatedPart.name} a été mise à jour avec succès.`,
       });
     },
     onError: (error: any, _variables, context) => {
-      console.error('❌ onError:', error);
+      console.error('❌ Update failed:', error);
       
-      // Roll back to the previous value on error
+      // Revert optimistic update
       if (context?.previousParts) {
         queryClient.setQueryData(['parts'], context.previousParts);
       }
@@ -96,8 +91,8 @@ export function useUpdatePart() {
       });
     },
     onSettled: () => {
-      console.log('🏁 onSettled called - mutation complete');
-    },
+      console.log('🏁 Update mutation completed');
+    }
   });
 }
 
