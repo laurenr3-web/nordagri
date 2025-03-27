@@ -16,6 +16,7 @@ const PartActions: React.FC<PartActionsProps> = ({ onEdit, onDelete }) => {
         size="sm" 
         className="flex items-center gap-1"
         onClick={onEdit}
+        aria-label="Modifier la pièce"
       >
         <Pencil size={16} />
         Modifier
@@ -25,6 +26,7 @@ const PartActions: React.FC<PartActionsProps> = ({ onEdit, onDelete }) => {
         size="sm" 
         className="flex items-center gap-1"
         onClick={onDelete}
+        aria-label="Supprimer la pièce"
       >
         <Trash size={16} />
         Supprimer

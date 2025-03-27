@@ -11,11 +11,20 @@ interface FormActionsProps {
 const FormActions: React.FC<FormActionsProps> = ({ onCancel, isSubmitting = false }) => {
   return (
     <DialogFooter>
-      <Button type="button" variant="outline" onClick={onCancel}>
+      <Button 
+        type="button" 
+        variant="outline" 
+        onClick={onCancel}
+        aria-label="Annuler les modifications"
+      >
         Annuler
       </Button>
-      <Button type="submit" disabled={isSubmitting}>
-        Enregistrer les modifications
+      <Button 
+        type="submit" 
+        disabled={isSubmitting}
+        aria-label="Enregistrer les modifications"
+      >
+        {isSubmitting ? 'Enregistrement...' : 'Enregistrer les modifications'}
       </Button>
     </DialogFooter>
   );

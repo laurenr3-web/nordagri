@@ -16,11 +16,17 @@ const CompatibilityField: React.FC<CompatibilityFieldProps> = ({ form }) => {
       name="compatibility"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Équipements compatibles (séparés par des virgules)</FormLabel>
+          <FormLabel htmlFor="compatibility">Équipements compatibles</FormLabel>
           <FormControl>
-            <Textarea className="min-h-[80px]" {...field} />
+            <Textarea 
+              id="compatibility"
+              className="min-h-[80px]" 
+              placeholder="Exemple: John Deere 8R 410, John Deere 7R Series"
+              aria-describedby="compatibility-description"
+              {...field} 
+            />
           </FormControl>
-          <FormDescription>
+          <FormDescription id="compatibility-description">
             Listez les modèles d'équipement séparés par des virgules
           </FormDescription>
           <FormMessage />

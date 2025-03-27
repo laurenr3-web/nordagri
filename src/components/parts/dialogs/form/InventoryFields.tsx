@@ -17,9 +17,9 @@ const InventoryFields: React.FC<InventoryFieldsProps> = ({ form }) => {
         name="price"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Prix</FormLabel>
+            <FormLabel htmlFor="price">Prix</FormLabel>
             <FormControl>
-              <Input {...field} type="number" step="0.01" />
+              <Input id="price" placeholder="0.00" type="number" step="0.01" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -31,9 +31,9 @@ const InventoryFields: React.FC<InventoryFieldsProps> = ({ form }) => {
         name="stock"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Stock</FormLabel>
+            <FormLabel htmlFor="stock">Stock</FormLabel>
             <FormControl>
-              <Input {...field} type="number" />
+              <Input id="stock" placeholder="0" type="number" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -45,9 +45,9 @@ const InventoryFields: React.FC<InventoryFieldsProps> = ({ form }) => {
         name="location"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Emplacement</FormLabel>
+            <FormLabel htmlFor="location">Emplacement</FormLabel>
             <FormControl>
-              <Input {...field} />
+              <Input id="location" placeholder="Ex: Warehouse A" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -59,9 +59,9 @@ const InventoryFields: React.FC<InventoryFieldsProps> = ({ form }) => {
         name="reorderPoint"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Point de réapprovisionnement</FormLabel>
+            <FormLabel htmlFor="reorder-point">Point de réapprovisionnement</FormLabel>
             <FormControl>
-              <Input {...field} type="number" />
+              <Input id="reorder-point" placeholder="0" type="number" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>

@@ -54,7 +54,7 @@ const EditPartForm: React.FC<EditPartFormProps> = ({ part, onSubmit, onCancel })
       stock: parseInt(values.stock),
       reorderPoint: parseInt(values.reorderPoint),
       location: values.location,
-      compatibility: values.compatibility.split(',').map(item => item.trim()), // Convert back to array
+      compatibility: values.compatibility.split(',').map(item => item.trim()).filter(item => item), // Convert back to array and remove empty items
       image: values.image
     };
     onSubmit(updatedPart);
@@ -62,7 +62,7 @@ const EditPartForm: React.FC<EditPartFormProps> = ({ part, onSubmit, onCancel })
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6" aria-label="Formulaire de modification de pièce">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-6">
             <BasicInfoFields form={form} />

@@ -17,9 +17,9 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({ form }) => {
         name="name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Nom de la pièce</FormLabel>
+            <FormLabel htmlFor="part-name">Nom de la pièce</FormLabel>
             <FormControl>
-              <Input {...field} />
+              <Input id="part-name" placeholder="Entrez le nom" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -31,9 +31,9 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({ form }) => {
         name="partNumber"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Numéro de pièce</FormLabel>
+            <FormLabel htmlFor="part-number">Numéro de pièce</FormLabel>
             <FormControl>
-              <Input {...field} />
+              <Input id="part-number" placeholder="Ex: AF-JD-4290" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -45,9 +45,9 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({ form }) => {
         name="manufacturer"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Fabricant</FormLabel>
+            <FormLabel htmlFor="manufacturer">Fabricant</FormLabel>
             <FormControl>
-              <Input {...field} />
+              <Input id="manufacturer" placeholder="Ex: John Deere" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -59,9 +59,9 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({ form }) => {
         name="category"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Catégorie</FormLabel>
+            <FormLabel htmlFor="category">Catégorie</FormLabel>
             <FormControl>
-              <Input {...field} />
+              <Input id="category" placeholder="Ex: filters" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
