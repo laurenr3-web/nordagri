@@ -1,5 +1,6 @@
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createPart, updatePart, deletePart } from '@/services/partsService';
+import { addPart, updatePart, deletePart } from '@/services/supabase/partsService';
 import { useToast } from '@/hooks/use-toast';
 import { Part } from '@/types/Part';
 
@@ -12,7 +13,7 @@ export function useCreatePart() {
   const { toast } = useToast();
   
   return useMutation({
-    mutationFn: createPart,
+    mutationFn: addPart,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['parts'] });
       toast({
@@ -40,24 +41,44 @@ export function useUpdatePart() {
   
   return useMutation({
     mutationFn: updatePart,
-    onMutate: (updatedPart) => {
-      console.log('⏳ onMutate avec:', updatedPart);
-      // Add optimistic update logic here if needed
+    onMutate: async (updatedPart) => {
+      console.log('⏳ onMutate with:', updatedPart);
+      
+      // Cancel any outgoing refetches to avoid them overwriting our optimistic update
+      await queryClient.cancelQueries({ queryKey: ['parts'] });
+      
+      // Snapshot the previous value
+      const previousParts = queryClient.getQueryData(['parts']);
+      
+      // Return a rollback context
+      return { previousParts };
     },
     onSuccess: (data) => {
-      console.log('✅ onSuccess avec:', data);
-      // Force a complete refetch instead of just invalidating
+      console.log('✅ onSuccess with:', data);
+      
+      // Invalidate and refetch to ensure data consistency
       queryClient.refetchQueries({ queryKey: ['parts'], type: 'all' });
-      queryClient.refetchQueries({ queryKey: ['parts', data.id], type: 'all' });
-      console.log('🔄 Refetch complet pour ["parts"]');
+      
+      // If we have the individual part query, also refetch that
+      if (data.id) {
+        queryClient.refetchQueries({ queryKey: ['parts', data.id], type: 'all' });
+      }
+      
+      console.log('🔄 Complete refetch for ["parts"]');
       
       toast({
         title: "Pièce mise à jour",
         description: `${data.name} a été mise à jour avec succès.`,
       });
     },
-    onError: (error: any) => {
+    onError: (error: any, _variables, context) => {
       console.error('❌ onError:', error);
+      
+      // Roll back to the previous value on error
+      if (context?.previousParts) {
+        queryClient.setQueryData(['parts'], context.previousParts);
+      }
+      
       toast({
         title: "Erreur de modification",
         description: error.message || "Impossible de mettre à jour la pièce",
@@ -65,7 +86,7 @@ export function useUpdatePart() {
       });
     },
     onSettled: () => {
-      console.log('🏁 onSettled appelé - fin de la mutation');
+      console.log('🏁 onSettled called - mutation complete');
     },
   });
 }

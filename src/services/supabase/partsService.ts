@@ -71,6 +71,8 @@ export const partsService = {
 
   // Update an existing part in the database
   async updatePart(part: Part): Promise<Part> {
+    console.log('🔍 Updating part with ID:', part.id, 'Type:', typeof part.id);
+    
     const partData = {
       name: part.name,
       part_number: part.partNumber,
@@ -84,21 +86,41 @@ export const partsService = {
       updated_at: new Date().toISOString()
     };
     
-    const { data, error } = await supabase
-      .from('parts_inventory')
-      .update(partData)
-      .eq('id', part.id)
-      .select()
-      .single();
-    
-    if (error) {
-      console.error('Error updating part:', error);
-      throw error;
+    try {
+      console.log('🚀 Sending update request to Supabase...');
+      
+      const { data, error } = await supabase
+        .from('parts_inventory')
+        .update(partData)
+        .eq('id', part.id)
+        .select('*')
+        .single();
+      
+      if (error) {
+        console.error('❌ Supabase update error:', error);
+        throw error;
+      }
+      
+      console.log('✅ Supabase update successful:', data);
+      
+      // Return the updated part with all fields
+      return {
+        id: data.id,
+        name: data.name,
+        partNumber: data.part_number || '',
+        category: data.category || '',
+        manufacturer: data.supplier || '',
+        compatibility: data.compatible_with || [],
+        stock: data.quantity,
+        price: data.unit_price !== null ? data.unit_price : 0,
+        location: data.location || '',
+        reorderPoint: data.reorder_threshold || 5,
+        image: part.image || 'https://placehold.co/100x100/png'
+      };
+    } catch (err) {
+      console.error('💥 Exception in updatePart:', err);
+      throw err;
     }
-    
-    return {
-      ...part
-    };
   },
   
   // Delete a part from the database
@@ -116,5 +138,4 @@ export const partsService = {
 };
 
 // Add individual function exports for direct imports
-export const updatePart = partsService.updatePart;
-export const deletePart = partsService.deletePart;
+export const { getParts, addPart, updatePart, deletePart } = partsService;

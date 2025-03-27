@@ -16,22 +16,20 @@ export const usePartsData = (initialParts: Part[] = []) => {
     queryFn: () => partsService.getParts(),
     staleTime: 0, // Consider data stale immediately
     refetchOnWindowFocus: true, // Refetch when window regains focus
-    meta: {
-      onSuccess: (data: Part[]) => {
-        console.log('Fetched parts from Supabase:', data);
-        if (data && data.length > 0) {
-          setParts(data);
-        } else if (initialParts.length > 0) {
-          console.log('No parts in Supabase, using initial data');
-          setParts(initialParts);
-        }
-      },
-      onError: (error: Error) => {
-        console.error('Error fetching parts:', error);
-        if (initialParts.length > 0) {
-          console.log('Error occurred when fetching from Supabase, using initial data');
-          setParts(initialParts);
-        }
+    onSuccess: (data: Part[]) => {
+      console.log('Fetched parts from Supabase:', data);
+      if (data && data.length > 0) {
+        setParts(data);
+      } else if (initialParts.length > 0) {
+        console.log('No parts in Supabase, using initial data');
+        setParts(initialParts);
+      }
+    },
+    onError: (error: Error) => {
+      console.error('Error fetching parts:', error);
+      if (initialParts.length > 0) {
+        console.log('Error occurred when fetching from Supabase, using initial data');
+        setParts(initialParts);
       }
     }
   });
@@ -68,7 +66,9 @@ export const usePartsData = (initialParts: Part[] = []) => {
       return partsService.updatePart(part);
     },
     onSuccess: (updatedPart) => {
-      queryClient.invalidateQueries({ queryKey: ['parts'] });
+      // Invalidate and refetch to ensure data consistency
+      queryClient.refetchQueries({ queryKey: ['parts'], type: 'all' });
+      
       setParts(prevParts => prevParts.map(p => p.id === updatedPart.id ? updatedPart : p));
       
       toast({
