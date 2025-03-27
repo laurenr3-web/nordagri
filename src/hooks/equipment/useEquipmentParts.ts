@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { Equipment } from '@/services/supabase/equipmentService';
 import { Part } from '@/types/Part';
 import { getPartsForEquipment } from '@/services/supabase/parts';
-import { useUpdatePart } from '@/hooks/usePartsMutations';
+import { useUpdatePart } from '@/hooks/parts';
 import { useToast } from '@/hooks/use-toast';
 
 export function useEquipmentParts(equipment: Equipment) {

@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Part } from '@/types/Part';
 import { useToast } from '@/hooks/use-toast';
 import { getParts } from '@/services/supabase/parts';
-import { useCreatePart, useUpdatePart, useDeletePart } from '@/hooks/usePartsMutations';
+import { useCreatePart, useUpdatePart, useDeletePart } from '@/hooks/parts';
 
 export const usePartsData = (initialParts: Part[] = []) => {
   const { toast } = useToast();

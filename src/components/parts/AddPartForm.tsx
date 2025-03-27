@@ -10,7 +10,7 @@ import InventoryInfoFields from './form/fields/InventoryInfoFields';
 import CompatibilityField from './form/fields/CompatibilityField';
 import ImageField from './form/fields/ImageField';
 import AddCategoryDialog from './form/AddCategoryDialog';
-import { useCreatePart } from '@/hooks/usePartsMutations';
+import { useCreatePart } from '@/hooks/parts';
 import { Part } from '@/types/Part';
 
 export function AddPartForm({ onSuccess, onCancel }: AddPartFormProps) {
