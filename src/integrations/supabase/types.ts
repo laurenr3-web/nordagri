@@ -23,6 +23,7 @@ export type Database = {
           notes: string | null
           purchase_date: string | null
           purchase_price: number | null
+          serial_number: string | null
           status: string | null
           type: string | null
           updated_at: string | null
@@ -41,6 +42,7 @@ export type Database = {
           notes?: string | null
           purchase_date?: string | null
           purchase_price?: number | null
+          serial_number?: string | null
           status?: string | null
           type?: string | null
           updated_at?: string | null
@@ -59,6 +61,7 @@ export type Database = {
           notes?: string | null
           purchase_date?: string | null
           purchase_price?: number | null
+          serial_number?: string | null
           status?: string | null
           type?: string | null
           updated_at?: string | null
