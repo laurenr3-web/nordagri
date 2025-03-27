@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createPart, updatePart, deletePart } from '@/services/partsService';
 import { useToast } from '@/hooks/use-toast';
@@ -47,9 +46,10 @@ export function useUpdatePart() {
     },
     onSuccess: (data) => {
       console.log('✅ onSuccess avec:', data);
-      queryClient.invalidateQueries({ queryKey: ['parts'] });
-      queryClient.invalidateQueries({ queryKey: ['parts', data.id] });
-      console.log('🔄 Cache invalidé pour ["parts"]');
+      // Force a complete refetch instead of just invalidating
+      queryClient.refetchQueries({ queryKey: ['parts'], type: 'all' });
+      queryClient.refetchQueries({ queryKey: ['parts', data.id], type: 'all' });
+      console.log('🔄 Refetch complet pour ["parts"]');
       
       toast({
         title: "Pièce mise à jour",
@@ -66,7 +66,6 @@ export function useUpdatePart() {
     },
     onSettled: () => {
       console.log('🏁 onSettled appelé - fin de la mutation');
-      queryClient.invalidateQueries({ queryKey: ['parts'] });
     },
   });
 }
