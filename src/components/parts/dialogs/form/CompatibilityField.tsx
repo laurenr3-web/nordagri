@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { UseFormReturn } from 'react-hook-form';
 import { PartFormValues } from './editPartFormTypes';
@@ -20,6 +20,9 @@ const CompatibilityField: React.FC<CompatibilityFieldProps> = ({ form }) => {
           <FormControl>
             <Textarea className="min-h-[80px]" {...field} />
           </FormControl>
+          <FormDescription>
+            Listez les modèles d'équipement séparés par des virgules
+          </FormDescription>
           <FormMessage />
         </FormItem>
       )}

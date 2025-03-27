@@ -38,7 +38,7 @@ const EditPartForm: React.FC<EditPartFormProps> = ({ part, onSubmit, onCancel })
       stock: part.stock.toString(),
       reorderPoint: part.reorderPoint.toString(),
       location: part.location,
-      compatibility: part.compatibility,
+      compatibility: part.compatibility.join(', '), // Convert array to comma-separated string
       image: part.image
     },
   });
@@ -54,7 +54,7 @@ const EditPartForm: React.FC<EditPartFormProps> = ({ part, onSubmit, onCancel })
       stock: parseInt(values.stock),
       reorderPoint: parseInt(values.reorderPoint),
       location: values.location,
-      compatibility: values.compatibility,
+      compatibility: values.compatibility.split(',').map(item => item.trim()), // Convert back to array
       image: values.image
     };
     onSubmit(updatedPart);
