@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { RealtimeCacheProvider } from '@/providers/RealtimeCacheProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import MobileMenu from '@/components/layout/MobileMenu';
 
 // Pages
 import Index from '@/pages/Index';
@@ -29,6 +30,7 @@ function App() {
         <RealtimeCacheProvider>
           <Router>
             <AuthProvider>
+              <MobileMenu />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
