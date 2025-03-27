@@ -16,10 +16,12 @@ const EquipmentDialogs: React.FC = () => {
   useEffect(() => {
     // Listen for custom events to open the dialogs
     const handleOpenAddDialog = () => {
+      console.log('Opening add equipment dialog');
       setIsAddDialogOpen(true);
     };
 
     const handleEquipmentSelected = (event: CustomEvent<EquipmentItem>) => {
+      console.log('Equipment selected event received:', event.detail);
       setSelectedEquipment(event.detail);
     };
 
@@ -33,6 +35,12 @@ const EquipmentDialogs: React.FC = () => {
         handleEquipmentSelected as EventListener);
     };
   }, []);
+
+  const handleEquipmentUpdate = (updatedEquipment: any) => {
+    console.log('Equipment updated:', updatedEquipment);
+    setSelectedEquipment(null); // Close the dialog after update
+    toast.success("Équipement mis à jour avec succès");
+  };
 
   const handleAddEquipment = (data: EquipmentFormValues) => {
     // Log form data for debugging
@@ -108,13 +116,21 @@ const EquipmentDialogs: React.FC = () => {
       {/* Equipment Details Dialog */}
       <Dialog 
         open={!!selectedEquipment} 
-        onOpenChange={(open) => !open && setSelectedEquipment(null)}
+        onOpenChange={(open) => {
+          console.log('Equipment dialog open state changed to:', open);
+          if (!open) setSelectedEquipment(null);
+        }}
       >
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Détails de l'équipement</DialogTitle>
           </DialogHeader>
-          {selectedEquipment && <EquipmentDetails equipment={selectedEquipment} />}
+          {selectedEquipment && (
+            <EquipmentDetails 
+              equipment={selectedEquipment} 
+              onUpdate={handleEquipmentUpdate}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </>

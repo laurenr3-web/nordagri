@@ -50,15 +50,25 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
     filteredEquipment
   } = filterState;
 
+  const openAddDialog = () => {
+    console.log('Triggering add equipment dialog');
+    const event = new CustomEvent('open-add-equipment-dialog');
+    window.dispatchEvent(event);
+  };
+
+  const handleEquipmentItemClick = (item: EquipmentItem) => {
+    console.log('Equipment item clicked:', item);
+    // Dispatch custom event to open the equipment details dialog
+    const event = new CustomEvent('equipment-selected', { detail: item });
+    window.dispatchEvent(event);
+    
+    // Also call the passed handler
+    handleEquipmentClick(item);
+  };
+
   return (
     <>
-      <EquipmentHeader 
-        openAddDialog={() => {
-          if (window.dispatchEvent) {
-            window.dispatchEvent(new CustomEvent('open-add-equipment-dialog'));
-          }
-        }} 
-      />
+      <EquipmentHeader openAddDialog={openAddDialog} />
       
       <SearchToolbar
         searchTerm={searchTerm}
@@ -96,14 +106,14 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
           equipment={filteredEquipment}
           getStatusColor={getStatusColor}
           getStatusText={getStatusText}
-          handleEquipmentClick={handleEquipmentClick}
+          handleEquipmentClick={handleEquipmentItemClick}
         />
       ) : (
         <EquipmentList 
           equipment={filteredEquipment}
           getStatusColor={getStatusColor}
           getStatusText={getStatusText}
-          handleEquipmentClick={handleEquipmentClick}
+          handleEquipmentClick={handleEquipmentItemClick}
         />
       )}
       

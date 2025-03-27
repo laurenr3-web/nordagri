@@ -41,19 +41,31 @@ export async function searchEquipment(searchTerm: string): Promise<Equipment[]> 
 }
 
 // Get equipment by ID
-export async function getEquipmentById(equipmentId: number): Promise<Equipment> {
-  const { data, error } = await supabase
-    .from('equipment')
-    .select('*')
-    .eq('id', equipmentId)
-    .single();
-  
-  if (error) {
-    console.error('Error fetching equipment by ID:', error);
+export async function getEquipmentById(equipmentId: number): Promise<Equipment | null> {
+  try {
+    console.log(`Fetching equipment with ID ${equipmentId} from Supabase`);
+    const { data, error } = await supabase
+      .from('equipment')
+      .select('*')
+      .eq('id', equipmentId)
+      .maybeSingle();
+    
+    if (error) {
+      console.error('Error fetching equipment by ID:', error);
+      throw error;
+    }
+    
+    if (!data) {
+      console.log(`No equipment found with ID ${equipmentId}`);
+      return null;
+    }
+    
+    console.log('Equipment data from DB:', data);
+    return mapEquipmentFromDatabase(data);
+  } catch (error) {
+    console.error('Exception in getEquipmentById:', error);
     throw error;
   }
-  
-  return mapEquipmentFromDatabase(data);
 }
 
 // Get equipment statistics

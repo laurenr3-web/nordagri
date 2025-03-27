@@ -4,6 +4,7 @@ import { BlurContainer } from '@/components/ui/blur-container';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, BarChart } from 'lucide-react';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
+import { useNavigate } from 'react-router-dom';
 
 interface EquipmentListProps {
   equipment: EquipmentItem[];
@@ -18,6 +19,18 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
   getStatusText,
   handleEquipmentClick
 }) => {
+  const navigate = useNavigate();
+
+  const handleViewDetails = (item: EquipmentItem) => {
+    console.log('Viewing details for:', item.id);
+    handleEquipmentClick(item);
+  };
+
+  const handleNavigateToDetail = (id: number) => {
+    console.log('Navigating to equipment detail page:', id);
+    navigate(`/equipment/${id}`);
+  };
+
   return (
     <BlurContainer className="overflow-hidden rounded-lg animate-fade-in">
       <div className="overflow-x-auto">
@@ -39,14 +52,22 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
               <tr key={item.id} className="hover:bg-secondary/30">
                 <td className="p-3">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-md overflow-hidden flex-shrink-0">
+                    <div 
+                      className="h-10 w-10 rounded-md overflow-hidden flex-shrink-0 cursor-pointer"
+                      onClick={() => handleNavigateToDetail(item.id)}
+                    >
                       <img 
                         src={item.image} 
                         alt={item.name}
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <span className="font-medium">{item.name}</span>
+                    <span 
+                      className="font-medium cursor-pointer hover:text-primary"
+                      onClick={() => handleNavigateToDetail(item.id)}
+                    >
+                      {item.name}
+                    </span>
                   </div>
                 </td>
                 <td className="p-3">{item.type}</td>
@@ -65,19 +86,21 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
                       variant="outline" 
                       size="sm" 
                       className="h-8 px-2 gap-1"
-                      onClick={() => handleEquipmentClick(item)}
-                      aria-label="Voir les détails de l'équipement"
+                      onClick={() => handleViewDetails(item)}
+                      aria-label="Voir les détails de l'équipement dans une boîte de dialogue"
                     >
-                      <span>Details</span>
+                      <span>Dialogue</span>
                       <ExternalLink size={14} />
                     </Button>
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="h-8 w-8 p-0"
-                      aria-label="Voir les statistiques de l'équipement"
+                      className="h-8 px-2 gap-1"
+                      onClick={() => handleNavigateToDetail(item.id)}
+                      aria-label="Voir la page de détails de l'équipement"
                     >
-                      <BarChart size={14} />
+                      <span>Page</span>
+                      <ExternalLink size={14} />
                     </Button>
                   </div>
                 </td>

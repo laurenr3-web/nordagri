@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
@@ -27,6 +28,11 @@ const EquipmentDetail = () => {
         console.log('Fetching equipment with ID:', id);
         const data = await equipmentService.getEquipmentById(Number(id));
         console.log('Fetched equipment data:', data);
+        
+        if (!data) {
+          throw new Error('Équipement non trouvé');
+        }
+        
         setEquipment(data);
         setError(null);
       } catch (err: any) {
@@ -43,6 +49,7 @@ const EquipmentDetail = () => {
   
   const handleEquipmentUpdate = async (updatedEquipment: any) => {
     try {
+      console.log('Updating equipment:', updatedEquipment);
       const result = await equipmentService.updateEquipment(updatedEquipment);
       setEquipment(result);
       queryClient.invalidateQueries({ queryKey: ['equipment'] });
