@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Part } from '@/types/Part';
 import { useToast } from '@/hooks/use-toast';
-import { updatePart } from '@/services/supabase/parts';
+import { updatePart } from '@/services/supabase/partsService';
 
 export const useOrderParts = () => {
   const { toast } = useToast();
