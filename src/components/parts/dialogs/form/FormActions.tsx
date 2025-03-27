@@ -26,11 +26,12 @@ const FormActions: React.FC<FormActionsProps> = ({
       </Button>
       <Button 
         type="submit" 
+        className="bg-primary"
         disabled={isSubmitting}
         variant={isError ? "destructive" : "default"}
         aria-label="Enregistrer les modifications"
       >
-        {isSubmitting ? 'Enregistrement...' : 'Enregistrer les modifications'}
+        {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
       </Button>
     </DialogFooter>
   );
