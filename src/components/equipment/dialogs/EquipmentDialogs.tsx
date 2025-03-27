@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import EquipmentForm from '@/components/equipment/EquipmentForm';
@@ -61,10 +60,10 @@ const EquipmentDialogs: React.FC = () => {
           // Convert potential Date objects to strings for type compatibility
           lastMaintenance: typeof result.lastMaintenance === 'object' && result.lastMaintenance instanceof Date 
             ? result.lastMaintenance.toISOString() 
-            : result.lastMaintenance?.toString() || prev.lastMaintenance,
+            : result.lastMaintenance?.toString?.() || prev.lastMaintenance || '',
           purchaseDate: typeof result.purchaseDate === 'object' && result.purchaseDate instanceof Date 
             ? result.purchaseDate.toISOString() 
-            : result.purchaseDate?.toString() || prev.purchaseDate,
+            : result.purchaseDate?.toString?.() || prev.purchaseDate || '',
           // Keep UI properties
           usage: prev.usage,
           nextService: prev.nextService
