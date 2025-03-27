@@ -11,12 +11,18 @@ interface CategoryFieldProps {
   form: UseFormReturn<EquipmentFormValues>;
   customCategories: string[];
   onAddCategoryClick: () => void;
+  label?: string;
+  placeholder?: string;
+  addButtonText?: string;
 }
 
 const CategoryField: React.FC<CategoryFieldProps> = ({ 
   form, 
   customCategories, 
-  onAddCategoryClick 
+  onAddCategoryClick,
+  label = "Category",
+  placeholder = "Select category",
+  addButtonText = "Add Category"
 }) => {
   return (
     <FormField
@@ -24,12 +30,12 @@ const CategoryField: React.FC<CategoryFieldProps> = ({
       name="category"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Category</FormLabel>
+          <FormLabel>{label}</FormLabel>
           <div className="flex items-center gap-2">
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue placeholder={placeholder} />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
