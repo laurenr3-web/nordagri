@@ -65,11 +65,12 @@ export function useUpdatePart() {
     onSuccess: (updatedPart) => {
       console.log('✅ Mise à jour réussie:', updatedPart);
       
-      // Forcer une récupération complète pour assurer la cohérence des données
+      // Invalider les queries pour forcer un rafraîchissement
       queryClient.invalidateQueries({ 
         queryKey: ['parts']
       });
       
+      // Afficher une notification de succès
       toast({
         title: "Pièce mise à jour",
         description: `${updatedPart.name} a été mise à jour avec succès.`,
@@ -83,6 +84,7 @@ export function useUpdatePart() {
         queryClient.setQueryData(['parts'], context.previousParts);
       }
       
+      // Afficher une notification d'erreur
       toast({
         title: "Erreur de modification",
         description: error.message || "Impossible de mettre à jour la pièce",
@@ -91,7 +93,7 @@ export function useUpdatePart() {
     },
     onSettled: () => {
       console.log('🏁 Mutation de mise à jour terminée');
-      // Effectuer une nouvelle requête pour rafraîchir les données
+      // Refetch pour s'assurer que les données sont à jour
       queryClient.refetchQueries({ queryKey: ['parts'] });
     }
   });
@@ -108,9 +110,9 @@ export function useDeletePart() {
   return useMutation({
     mutationFn: deletePart,
     onSuccess: (_, partId) => {
-      // Remove the deleted part from the cache
+      // Supprimer la pièce du cache
       queryClient.removeQueries({ queryKey: ['parts', partId] });
-      // Invalidate the parts list to refresh it
+      // Invalider la liste pour la rafraîchir
       queryClient.invalidateQueries({ queryKey: ['parts'] });
       
       toast({

@@ -76,6 +76,13 @@ export const partsService = {
   async updatePart(part: Part): Promise<Part> {
     console.log('🔄 Début de la mise à jour de pièce avec ID:', part.id, 'Type:', typeof part.id, 'Données:', part);
     
+    // Assurons-nous que l'ID est un nombre valide
+    const numericId = typeof part.id === 'string' ? parseInt(part.id) : part.id;
+    
+    if (isNaN(numericId)) {
+      throw new Error(`ID invalide: ${part.id}`);
+    }
+    
     // Structure correcte pour Supabase
     const partData = {
       name: part.name,
@@ -91,15 +98,7 @@ export const partsService = {
     };
     
     try {
-      console.log('🚀 Envoi de la requête de mise à jour à Supabase avec données:', partData);
-      
-      // Vérification supplémentaire pour l'ID
-      if (!part.id || isNaN(Number(part.id))) {
-        throw new Error(`ID invalide: ${part.id}`);
-      }
-      
-      // S'assurer que l'ID est bien un nombre
-      const numericId = Number(part.id);
+      console.log('🚀 Envoi de la requête de mise à jour à Supabase pour ID:', numericId, 'Données:', partData);
       
       const { data, error } = await supabase
         .from('parts_inventory')

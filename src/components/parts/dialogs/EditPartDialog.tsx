@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,22 +50,44 @@ const EditPartDialog: React.FC<EditPartDialogProps> = ({
     },
   });
 
+  // Réinitialiser le formulaire quand la pièce change ou quand la boîte de dialogue s'ouvre
+  useEffect(() => {
+    if (isOpen) {
+      form.reset({
+        name: part.name,
+        partNumber: part.partNumber,
+        category: part.category,
+        compatibility: part.compatibility.join(', '),
+        manufacturer: part.manufacturer,
+        price: part.price.toString(),
+        stock: part.stock.toString(),
+        location: part.location,
+        reorderPoint: part.reorderPoint.toString(),
+        image: part.image,
+      });
+    }
+  }, [isOpen, part, form]);
+
   const handleSubmit = (values: Record<string, string>) => {
+    console.log('Valeurs soumises:', values);
+    
     const updatedPart: Part = {
       ...part,
       name: values.name,
       partNumber: values.partNumber,
       category: values.category,
-      compatibility: values.compatibility.split(',').map(item => item.trim()),
+      compatibility: values.compatibility.split(',').map(item => item.trim()).filter(Boolean),
       manufacturer: values.manufacturer,
-      price: parseFloat(values.price),
-      stock: parseInt(values.stock),
+      price: parseFloat(values.price) || 0,
+      stock: parseInt(values.stock) || 0,
       location: values.location,
-      reorderPoint: parseInt(values.reorderPoint),
+      reorderPoint: parseInt(values.reorderPoint) || 5,
       image: values.image,
     };
     
+    console.log('Pièce mise à jour:', updatedPart);
     onSubmit(updatedPart);
+    onOpenChange(false);
   };
 
   return (
