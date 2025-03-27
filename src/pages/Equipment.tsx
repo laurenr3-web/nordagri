@@ -40,10 +40,21 @@ const EquipmentPage = () => {
     if (!equipment) return [];
     
     return equipment.map((item: Equipment) => ({
-      ...item,
-      usage: { hours: 0, target: 0 }, // Provide default values
-      lastMaintenance: item.last_maintenance?.toString() || 'N/A',
-      nextService: { type: 'Regular maintenance', due: 'In 30 days' } // Provide default values
+      id: item.id,
+      name: item.name,
+      type: item.type || 'Unknown',
+      category: item.category || 'Uncategorized',
+      manufacturer: item.manufacturer || '',
+      model: item.model || '',
+      year: item.year || 0,
+      status: item.status || 'unknown',
+      location: item.location || '',
+      lastMaintenance: item.lastMaintenance ? item.lastMaintenance.toString() : 'N/A',
+      image: item.image || '',
+      serialNumber: item.serialNumber || '',
+      purchaseDate: item.purchaseDate ? item.purchaseDate.toString() : '',
+      usage: { hours: 0, target: 500 }, // Default values
+      nextService: { type: 'Regular maintenance', due: 'In 30 days' } // Default values
     }));
   }, [equipment]);
 

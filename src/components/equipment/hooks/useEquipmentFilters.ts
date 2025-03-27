@@ -2,10 +2,22 @@
 import { useState, useMemo } from 'react';
 import { Equipment } from '@/services/supabase/equipmentService';
 
-export interface EquipmentItem extends Equipment {
-  usage: { hours: number; target: number };
+export interface EquipmentItem {
+  id: number;
+  name: string;
+  type: string;
+  category: string;
+  manufacturer: string;
+  model: string;
+  year: number;
+  status: string;
+  location: string;
   lastMaintenance: string;
-  nextService: { type: string; due: string };
+  image: string;
+  usage?: { hours: number; target: number };
+  serialNumber: string;
+  purchaseDate: string;
+  nextService?: { type: string; due: string };
 }
 
 export const useEquipmentFilters = (equipmentData: EquipmentItem[]) => {

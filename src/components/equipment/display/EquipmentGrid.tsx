@@ -16,10 +16,10 @@ interface EquipmentItem {
   location: string;
   lastMaintenance: string;
   image: string;
-  usage: { hours: number; target: number };
+  usage?: { hours: number; target: number };
   serialNumber: string;
   purchaseDate: string;
-  nextService: { type: string; due: string };
+  nextService?: { type: string; due: string };
 }
 
 interface EquipmentGridProps {
@@ -46,6 +46,16 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({
       default:
         return <Cog className="h-5 w-5" />;
     }
+  };
+
+  // Function to safely get usage hours
+  const getUsageHours = (item: EquipmentItem) => {
+    return item.usage?.hours !== undefined ? item.usage.hours : 0;
+  };
+
+  // Function to safely get next service type
+  const getNextServiceType = (item: EquipmentItem) => {
+    return item.nextService?.type || 'N/A';
   };
 
   return (
@@ -99,13 +109,13 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({
               </div>
               <div>
                 <p className="text-muted-foreground">Usage</p>
-                <p className="font-medium">{item.usage?.hours || 0} hrs</p>
+                <p className="font-medium">{getUsageHours(item)} hrs</p>
               </div>
             </div>
             
             <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
               <span className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">Next:</span> {item.nextService?.type || 'N/A'}
+                <span className="font-medium text-foreground">Next:</span> {getNextServiceType(item)}
               </span>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" className="h-8 px-2 gap-1" onClick={(e) => {
