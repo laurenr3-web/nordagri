@@ -1,9 +1,11 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Part } from '@/types/Part';
 
 export const partsService = {
   // Fetch all parts from the database
   async getParts(): Promise<Part[]> {
+    console.log('🔍 Fetching all parts from Supabase...');
     const { data, error } = await supabase
       .from('parts_inventory')
       .select('*');
@@ -31,6 +33,7 @@ export const partsService = {
   
   // Add a new part to the database
   async addPart(part: Omit<Part, 'id'>): Promise<Part> {
+    console.log('➕ Adding new part:', part);
     const partData = {
       name: part.name,
       part_number: part.partNumber,
@@ -71,7 +74,7 @@ export const partsService = {
 
   // Update an existing part in the database
   async updatePart(part: Part): Promise<Part> {
-    console.log('🔍 Updating part with ID:', part.id, 'Type:', typeof part.id);
+    console.log('🔄 Updating part with ID:', part.id, 'Type:', typeof part.id, 'Data:', part);
     
     const partData = {
       name: part.name,
@@ -87,7 +90,7 @@ export const partsService = {
     };
     
     try {
-      console.log('🚀 Sending update request to Supabase...');
+      console.log('🚀 Sending update request to Supabase with data:', partData);
       
       const { data, error } = await supabase
         .from('parts_inventory')
@@ -101,7 +104,7 @@ export const partsService = {
         throw error;
       }
       
-      console.log('✅ Supabase update successful:', data);
+      console.log('✅ Supabase update successful, response:', data);
       
       // Return the updated part with all fields
       return {
@@ -125,6 +128,7 @@ export const partsService = {
   
   // Delete a part from the database
   async deletePart(partId: number): Promise<void> {
+    console.log('🗑️ Deleting part with ID:', partId);
     const { error } = await supabase
       .from('parts_inventory')
       .delete()
@@ -139,3 +143,8 @@ export const partsService = {
 
 // Add individual function exports for direct imports
 export const { getParts, addPart, updatePart, deletePart } = partsService;
+
+// Explicitly expose for browser console testing
+if (typeof window !== 'undefined') {
+  (window as any).partsService = partsService;
+}

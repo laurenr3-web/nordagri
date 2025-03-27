@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { addPart, updatePart, deletePart } from '@/services/supabase/partsService';
 import { useToast } from '@/hooks/use-toast';
@@ -65,18 +66,25 @@ export function useUpdatePart() {
       console.log('✅ Update successful:', updatedPart);
       
       // Force a complete refetch to ensure data consistency
-      queryClient.refetchQueries({ 
-        queryKey: ['parts'],
-        type: 'all',
-        exact: false
+      queryClient.invalidateQueries({ 
+        queryKey: ['parts']
       });
+      
+      // Additionally perform a full refetch to be extra safe
+      setTimeout(() => {
+        queryClient.refetchQueries({ 
+          queryKey: ['parts'],
+          type: 'all',
+          exact: false
+        });
+      }, 300);
       
       toast({
         title: "Pièce mise à jour",
         description: `${updatedPart.name} a été mise à jour avec succès.`,
       });
     },
-    onError: (error: any, _variables, context) => {
+    onError: (error: any, variables, context) => {
       console.error('❌ Update failed:', error);
       
       // Revert optimistic update
