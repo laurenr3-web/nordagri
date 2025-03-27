@@ -39,3 +39,8 @@ export const checkAuthStatus = async () => {
     };
   }
 };
+
+// Exposer la fonction pour les tests via la console
+if (typeof window !== 'undefined') {
+  (window as any).checkAuthStatus = checkAuthStatus;
+}

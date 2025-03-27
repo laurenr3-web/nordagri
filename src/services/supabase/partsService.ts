@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Part } from '@/types/Part';
 
@@ -71,7 +70,7 @@ export const partsService = {
       image: 'https://placehold.co/100x100/png'
     };
   },
-
+  
   // Update an existing part in the database
   async updatePart(part: Part): Promise<Part> {
     console.log('🔄 Updating part with ID:', part.id, 'Type:', typeof part.id, 'Data:', part);
