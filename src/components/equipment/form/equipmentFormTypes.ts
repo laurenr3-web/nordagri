@@ -1,6 +1,7 @@
 
 import { z } from 'zod';
 
+// Define the validation schema for equipment form values
 export const equipmentFormSchema = z.object({
   name: z.string().min(2, {
     message: "Le nom doit contenir au moins 2 caractères",
@@ -23,16 +24,8 @@ export const equipmentFormSchema = z.object({
   serialNumber: z.string().optional(),
   purchaseDate: z.date().optional(),
   notes: z.string().optional(),
-  image: z.string().url({
-    message: "Veuillez entrer une URL valide.",
-  }),
+  image: z.string().optional(),
 });
 
+// Derive TypeScript type from zod schema
 export type EquipmentFormValues = z.infer<typeof equipmentFormSchema>;
-
-export interface EquipmentFormProps {
-  onSubmit: (data: EquipmentFormValues) => void;
-  onCancel: () => void;
-  isSubmitting?: boolean;
-  defaultValues?: Partial<EquipmentFormValues>;
-}

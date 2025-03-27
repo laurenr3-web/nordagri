@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 
 interface AddCategoryDialogProps {
@@ -19,37 +19,38 @@ const AddCategoryDialog: React.FC<AddCategoryDialogProps> = ({
   const [newCategory, setNewCategory] = useState('');
 
   const handleAddCategory = () => {
-    if (newCategory.trim() !== '') {
-      onAddCategory(newCategory.trim());
-      toast.success("Category added", {
-        description: `"${newCategory.trim()}" has been added as a category.`
-      });
-      setNewCategory('');
-      onOpenChange(false);
+    if (newCategory.trim() === '') {
+      toast.error("Le nom de la catégorie ne peut pas être vide");
+      return;
     }
+    
+    onAddCategory(newCategory.trim());
+    setNewCategory('');
+    onOpenChange(false);
+    toast.success(`Catégorie "${newCategory.trim()}" ajoutée avec succès`);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add New Category</DialogTitle>
+          <DialogTitle>Ajouter une nouvelle catégorie</DialogTitle>
           <DialogDescription>
-            Create a custom category for your equipment
+            Créez une catégorie personnalisée pour votre équipement
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 pt-4">
           <Input 
-            placeholder="Enter new category name" 
+            placeholder="Entrez le nom de la catégorie" 
             value={newCategory} 
             onChange={(e) => setNewCategory(e.target.value)} 
           />
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              Annuler
             </Button>
             <Button onClick={handleAddCategory}>
-              Add Category
+              Ajouter
             </Button>
           </div>
         </div>
