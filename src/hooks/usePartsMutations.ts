@@ -50,6 +50,16 @@ export function useUpdatePart() {
       // Snapshot the previous value
       const previousParts = queryClient.getQueryData(['parts']);
       
+      // Perform an optimistic update to the part in the cache
+      if (updatedPart.id) {
+        queryClient.setQueryData(['parts'], (oldData: Part[] | undefined) => {
+          if (!oldData) return [updatedPart];
+          return oldData.map(part => 
+            part.id === updatedPart.id ? updatedPart : part
+          );
+        });
+      }
+      
       // Return a rollback context
       return { previousParts };
     },

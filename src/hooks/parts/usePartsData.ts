@@ -10,29 +10,32 @@ export const usePartsData = (initialParts: Part[] = []) => {
   const queryClient = useQueryClient();
   const [parts, setParts] = useState<Part[]>(initialParts);
 
-  // Fetch parts from Supabase with updated query options
+  // Fetch parts from Supabase with corrected query options
   const { data: supabaseParts, isLoading, isError } = useQuery({
     queryKey: ['parts'],
     queryFn: () => partsService.getParts(),
     staleTime: 0, // Consider data stale immediately
     refetchOnWindowFocus: true, // Refetch when window regains focus
-    onSuccess: (data: Part[]) => {
-      console.log('Fetched parts from Supabase:', data);
-      if (data && data.length > 0) {
-        setParts(data);
-      } else if (initialParts.length > 0) {
-        console.log('No parts in Supabase, using initial data');
-        setParts(initialParts);
-      }
-    },
-    onError: (error: Error) => {
-      console.error('Error fetching parts:', error);
-      if (initialParts.length > 0) {
-        console.log('Error occurred when fetching from Supabase, using initial data');
-        setParts(initialParts);
-      }
-    }
   });
+
+  // Use effect to handle data updates instead of onSuccess callback
+  useEffect(() => {
+    if (supabaseParts && supabaseParts.length > 0) {
+      console.log('Fetched parts from Supabase:', supabaseParts);
+      setParts(supabaseParts);
+    } else if (supabaseParts && supabaseParts.length === 0 && initialParts.length > 0) {
+      console.log('No parts in Supabase, using initial data');
+      setParts(initialParts);
+    }
+  }, [supabaseParts, initialParts]);
+
+  // Handle error case with useEffect
+  useEffect(() => {
+    if (isError && initialParts.length > 0) {
+      console.log('Error occurred when fetching from Supabase, using initial data');
+      setParts(initialParts);
+    }
+  }, [isError, initialParts]);
 
   // Add part mutation
   const addPartMutation = useMutation({
@@ -68,6 +71,11 @@ export const usePartsData = (initialParts: Part[] = []) => {
     onSuccess: (updatedPart) => {
       // Invalidate and refetch to ensure data consistency
       queryClient.refetchQueries({ queryKey: ['parts'], type: 'all' });
+      
+      // If we have the individual part query, also refetch that
+      if (updatedPart.id) {
+        queryClient.refetchQueries({ queryKey: ['parts', updatedPart.id], type: 'all' });
+      }
       
       setParts(prevParts => prevParts.map(p => p.id === updatedPart.id ? updatedPart : p));
       
@@ -128,14 +136,6 @@ export const usePartsData = (initialParts: Part[] = []) => {
     console.log('Deleting part:', partId);
     deletePartMutation.mutate(partId);
   };
-
-  // Use effect to update parts when supabaseParts changes
-  useEffect(() => {
-    if (supabaseParts && supabaseParts.length > 0) {
-      setParts(supabaseParts);
-      console.log('Updated parts state with Supabase data:', supabaseParts);
-    }
-  }, [supabaseParts]);
 
   return {
     parts,
