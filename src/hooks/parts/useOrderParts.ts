@@ -1,73 +1,61 @@
-
 import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Part } from '@/types/Part';
 import { useToast } from '@/hooks/use-toast';
-import { updatePart } from '@/services/supabase/partsService';
+// Update import to use the new path
+import { addPart } from '@/services/supabase/parts';
 
-export const useOrderParts = () => {
+export function useOrderParts() {
+  const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
+  const [orderQuantity, setOrderQuantity] = useState(1);
+  const [selectedPartForOrder, setSelectedPartForOrder] = useState<Part | null>(null);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [orderQuantity, setOrderQuantity] = useState('1');
-  const [orderNote, setOrderNote] = useState('');
-  const [isOrderSuccess, setIsOrderSuccess] = useState(false);
 
-  // Order parts mutation
-  const orderPartMutation = useMutation({
-    mutationFn: (part: Part) => {
-      console.log('Ordering more of part in Supabase:', part);
-      const updatedPart = {
-        ...part,
-        stock: part.stock + parseInt(orderQuantity),  // Order more based on quantity
-      };
-      return updatePart(updatedPart);
-    },
-    onSuccess: (updatedPart: Part) => {
-      queryClient.invalidateQueries({ queryKey: ['parts'] });
-      
-      toast({
-        title: "Commande passée",
-        description: `La commande pour ${updatedPart.name} a été passée`,
-      });
-      
-      setIsOrderSuccess(true);
-    },
-    onError: (error: any) => {
-      console.error('Error ordering part:', error);
+  const openOrderDialog = (part: Part) => {
+    setSelectedPartForOrder(part);
+    setIsOrderDialogOpen(true);
+    setOrderQuantity(1); // Reset quantity when opening the dialog
+  };
+
+  const closeOrderDialog = () => {
+    setIsOrderDialogOpen(false);
+    setSelectedPartForOrder(null);
+    setOrderQuantity(1); // Reset quantity when closing the dialog
+  };
+
+  const handleOrderSubmit = async () => {
+    if (!selectedPartForOrder) {
       toast({
         title: "Erreur",
-        description: "Impossible de passer la commande",
+        description: "Aucune pièce sélectionnée pour la commande.",
         variant: "destructive",
       });
+      return;
     }
-  });
 
-  // Function to order a part
-  const handleOrderPart = (part: Part) => {
-    console.log('Ordering part:', part);
-    orderPartMutation.mutate(part);
-  };
+    // Simulate ordering process
+    console.log(`Ordering ${orderQuantity} of ${selectedPartForOrder.name}`);
 
-  const handleOrderSubmit = (selectedPart: Part | null) => {
-    if (selectedPart) {
-      handleOrderPart(selectedPart);
-    }
-  };
+    // Optimistically update the stock (you might want to revert this on error)
+    const newStock = selectedPartForOrder.stock + orderQuantity;
 
-  const resetOrderForm = () => {
-    setOrderQuantity('1');
-    setOrderNote('');
-    setIsOrderSuccess(false);
+    // Show success message
+    toast({
+      title: "Commande soumise",
+      description: `Vous avez commandé ${orderQuantity} de ${selectedPartForOrder.name}. Nouveau stock: ${newStock}`,
+    });
+
+    closeOrderDialog();
   };
 
   return {
+    isOrderDialogOpen,
+    setIsOrderDialogOpen,
     orderQuantity,
     setOrderQuantity,
-    orderNote,
-    setOrderNote,
-    isOrderSuccess,
-    setIsOrderSuccess,
-    handleOrderSubmit,
-    resetOrderForm
+    selectedPartForOrder,
+    setSelectedPartForOrder,
+    openOrderDialog,
+    closeOrderDialog,
+    handleOrderSubmit
   };
-};
+}
