@@ -1,26 +1,23 @@
 
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
 } from '@/components/ui/dialog';
 import {
   Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
 } from '@/components/ui/form';
 import { Part } from '@/types/Part';
+import BasicInfoFields from './form/BasicInfoFields';
+import InventoryFields from './form/InventoryFields';
+import CompatibilityField from './form/CompatibilityField';
+import ImageField from './form/ImageField';
+import FormActions from './form/FormActions';
+import { PartFormValues } from './form/editPartFormTypes';
 
 interface EditPartDialogProps {
   isOpen: boolean;
@@ -35,7 +32,7 @@ const EditPartDialog: React.FC<EditPartDialogProps> = ({
   part,
   onSubmit,
 }) => {
-  const form = useForm({
+  const form = useForm<PartFormValues>({
     defaultValues: {
       name: part.name,
       partNumber: part.partNumber,
@@ -68,7 +65,7 @@ const EditPartDialog: React.FC<EditPartDialogProps> = ({
     }
   }, [isOpen, part, form]);
 
-  const handleSubmit = (values: Record<string, string>) => {
+  const handleSubmit = (values: PartFormValues) => {
     console.log('Valeurs soumises:', values);
     
     const updatedPart: Part = {
@@ -102,154 +99,11 @@ const EditPartDialog: React.FC<EditPartDialogProps> = ({
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nom de la pièce</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="partNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Numéro de pièce</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="manufacturer"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Fabricant</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Catégorie</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Prix</FormLabel>
-                    <FormControl>
-                      <Input {...field} type="number" step="0.01" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="stock"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Stock</FormLabel>
-                    <FormControl>
-                      <Input {...field} type="number" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Emplacement</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="reorderPoint"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Point de réapprovisionnement</FormLabel>
-                    <FormControl>
-                      <Input {...field} type="number" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-            <FormField
-              control={form.control}
-              name="compatibility"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Équipements compatibles (séparés par des virgules)</FormLabel>
-                  <FormControl>
-                    <Textarea className="min-h-[80px]" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="image"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>URL de l'image</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Annuler
-              </Button>
-              <Button type="submit">Enregistrer les modifications</Button>
-            </DialogFooter>
+            <BasicInfoFields form={form} />
+            <InventoryFields form={form} />
+            <CompatibilityField form={form} />
+            <ImageField form={form} />
+            <FormActions onCancel={() => onOpenChange(false)} isSubmitting={form.formState.isSubmitting} />
           </form>
         </Form>
       </DialogContent>
