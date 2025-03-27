@@ -28,6 +28,12 @@ export const useAddEquipment = () => {
         newEquipment.image = undefined;
       }
       
+      // Make sure serialNumber is properly handled
+      if (newEquipment.serialNumber === '') {
+        console.log('Serial number is empty, setting to null');
+        newEquipment.serialNumber = null;
+      }
+      
       return equipmentService.addEquipment(newEquipment, imageFile);
     },
     onSuccess: (data) => {

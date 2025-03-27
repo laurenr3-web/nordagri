@@ -23,7 +23,7 @@ const EquipmentPage = () => {
     if (error) {
       console.error('Error loading equipment data:', error);
       toast.error('Erreur de chargement des données', {
-        description: 'Impossible de charger les équipements'
+        description: error.message || 'Impossible de charger les équipements'
       });
     }
   }, [error]);

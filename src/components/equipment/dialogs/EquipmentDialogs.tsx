@@ -38,37 +38,44 @@ const EquipmentDialogs: React.FC = () => {
     // Log form data for debugging
     console.log('Form data received:', data);
     
-    // Create new equipment object from form data
-    const newEquipment = {
-      name: data.name,
-      type: data.type,
-      category: data.category.charAt(0).toUpperCase() + data.category.slice(1),
-      manufacturer: data.manufacturer,
-      model: data.model || '',
-      year: parseInt(data.year),
-      status: data.status,
-      location: data.location || '',
-      serialNumber: data.serialNumber || '',
-      purchaseDate: data.purchaseDate,
-      notes: data.notes || '',
-      image: data.image || '',
-    };
-    
-    console.log('Adding new equipment:', newEquipment);
-    
-    // Add equipment using the hook's mutate function
-    mutate(newEquipment, {
-      onSuccess: () => {
-        setIsAddDialogOpen(false);
-        toast.success("Équipement ajouté avec succès");
-      },
-      onError: (error) => {
-        console.error("Erreur lors de l'ajout de l'équipement:", error);
-        toast.error("Erreur lors de l'ajout de l'équipement", { 
-          description: error.message || "Une erreur s'est produite" 
-        });
-      }
-    });
+    try {
+      // Create new equipment object from form data
+      const newEquipment = {
+        name: data.name,
+        type: data.type,
+        category: data.category.charAt(0).toUpperCase() + data.category.slice(1),
+        manufacturer: data.manufacturer,
+        model: data.model || '',
+        year: data.year ? parseInt(data.year) : null,
+        status: data.status,
+        location: data.location || '',
+        serialNumber: data.serialNumber || null,  // Handle null case explicitly
+        purchaseDate: data.purchaseDate,
+        notes: data.notes || '',
+        image: data.image || '',
+      };
+      
+      console.log('Adding new equipment:', newEquipment);
+      
+      // Add equipment using the hook's mutate function
+      mutate(newEquipment, {
+        onSuccess: () => {
+          setIsAddDialogOpen(false);
+          toast.success("Équipement ajouté avec succès");
+        },
+        onError: (error) => {
+          console.error("Erreur lors de l'ajout de l'équipement:", error);
+          toast.error("Erreur lors de l'ajout de l'équipement", { 
+            description: error.message || "Une erreur s'est produite" 
+          });
+        }
+      });
+    } catch (error: any) {
+      console.error("Exception lors de l'ajout de l'équipement:", error);
+      toast.error("Erreur lors de l'ajout de l'équipement", { 
+        description: error.message || "Une erreur s'est produite"
+      });
+    }
   };
 
   return (
