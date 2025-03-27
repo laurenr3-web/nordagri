@@ -1,98 +1,58 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import EquipmentDetails from '@/components/equipment/EquipmentDetails';
+import EquipmentParts from '@/components/equipment/tabs/EquipmentParts';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-
-// Sample equipment data - in a real app, this would come from an API
-const equipmentData = [{
-  id: 1,
-  name: 'John Deere 8R 410',
-  type: 'Tractor',
-  category: 'Heavy Equipment',
-  manufacturer: 'John Deere',
-  model: '8R 410',
-  year: 2022,
-  status: 'operational',
-  location: 'North Field',
-  lastMaintenance: '2023-05-15',
-  image: 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=500&auto=format&fit=crop',
-  usage: {
-    hours: 342,
-    target: 500
-  },
-  serialNumber: 'JD8R410-2022-1234',
-  purchaseDate: '2022-02-10',
-  nextService: {
-    type: 'Filter Change',
-    due: 'In 3 weeks'
-  }
-}, {
-  id: 2,
-  name: 'Case IH Axial-Flow',
-  type: 'Combine Harvester',
-  category: 'Harvesting Equipment',
-  manufacturer: 'Case IH',
-  model: 'Axial-Flow 250',
-  year: 2021,
-  status: 'maintenance',
-  location: 'Equipment Shed',
-  lastMaintenance: '2023-04-20',
-  image: 'https://images.unsplash.com/photo-1599033329459-cc8c31c7eb6c?q=80&w=500&auto=format&fit=crop',
-  usage: {
-    hours: 480,
-    target: 500
-  },
-  serialNumber: 'CASE-AF250-2021-5678',
-  purchaseDate: '2021-07-15',
-  nextService: {
-    type: 'Full Service',
-    due: 'In 2 days'
-  }
-}, {
-  id: 3,
-  name: 'Kubota M7-172',
-  type: 'Tractor',
-  category: 'Medium Equipment',
-  manufacturer: 'Kubota',
-  model: 'M7-172',
-  year: 2020,
-  status: 'repair',
-  location: 'Workshop',
-  lastMaintenance: '2023-03-10',
-  image: 'https://images.unsplash.com/photo-1585911171167-1f66ea3de00c?q=80&w=500&auto=format&fit=crop',
-  usage: {
-    hours: 620,
-    target: 500
-  },
-  serialNumber: 'KUB-M7172-2020-9012',
-  purchaseDate: '2020-05-22',
-  nextService: {
-    type: 'Engine Check',
-    due: 'Overdue'
-  }
-}];
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useQueryClient } from '@tanstack/react-query';
+import { getEquipmentById, updateEquipment } from '@/services/supabase/equipmentService';
 
 const EquipmentDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [equipmentState, setEquipmentState] = useState<any[]>(equipmentData);
+  const queryClient = useQueryClient();
+  const [equipment, setEquipment] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
-  // Find the equipment with the matching ID
-  const equipmentIndex = equipmentState.findIndex(item => item.id === Number(id));
-  const equipment = equipmentState[equipmentIndex];
+  useEffect(() => {
+    const fetchEquipment = async () => {
+      if (!id) return;
+      
+      try {
+        setLoading(true);
+        const data = await getEquipmentById(Number(id));
+        setEquipment(data);
+        setError(null);
+      } catch (err: any) {
+        console.error('Error fetching equipment:', err);
+        setError(err.message || 'Failed to load equipment');
+        toast.error('Erreur lors du chargement de l\'équipement');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchEquipment();
+  }, [id]);
   
-  const handleEquipmentUpdate = (updatedEquipment: any) => {
-    const newEquipmentState = [...equipmentState];
-    newEquipmentState[equipmentIndex] = updatedEquipment;
-    setEquipmentState(newEquipmentState);
-    toast.success('Equipment updated successfully');
+  const handleEquipmentUpdate = async (updatedEquipment: any) => {
+    try {
+      const result = await updateEquipment(updatedEquipment);
+      setEquipment(result);
+      queryClient.invalidateQueries({ queryKey: ['equipment'] });
+      toast.success('Équipement mis à jour avec succès');
+    } catch (error: any) {
+      console.error('Error updating equipment:', error);
+      toast.error(`Erreur lors de la mise à jour : ${error.message}`);
+    }
   };
   
-  if (!equipment) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -105,13 +65,43 @@ const EquipmentDetail = () => {
               onClick={() => navigate('/equipment')}
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Equipment
+              Retour aux équipements
+            </Button>
+            <div className="flex justify-center items-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="ml-2">Chargement de l'équipement...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  if (error || !equipment) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="pt-6 pb-16 pl-4 pr-4 sm:pl-8 sm:pr-8 md:pl-12 md:pr-12 ml-0 md:ml-64">
+          <div className="max-w-7xl mx-auto">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mb-4"
+              onClick={() => navigate('/equipment')}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Retour aux équipements
             </Button>
             <div className="p-8 text-center">
-              <h2 className="text-2xl font-semibold mb-4">Equipment Not Found</h2>
+              <h2 className="text-2xl font-semibold mb-4">Équipement non trouvé</h2>
               <p className="text-muted-foreground">
-                The equipment with ID {id} could not be found.
+                L'équipement avec l'ID {id} n'a pas pu être trouvé.
               </p>
+              {error && (
+                <p className="text-destructive mt-2">
+                  Erreur: {error}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -131,9 +121,46 @@ const EquipmentDetail = () => {
             onClick={() => navigate('/equipment')}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Equipment
+            Retour aux équipements
           </Button>
-          <EquipmentDetails equipment={equipment} onUpdate={handleEquipmentUpdate} />
+          
+          <Tabs defaultValue="details" className="w-full">
+            <TabsList className="mb-6">
+              <TabsTrigger value="details">Détails</TabsTrigger>
+              <TabsTrigger value="parts">Pièces</TabsTrigger>
+              <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
+              <TabsTrigger value="history">Historique</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="details">
+              <EquipmentDetails 
+                equipment={equipment} 
+                onUpdate={handleEquipmentUpdate} 
+              />
+            </TabsContent>
+            
+            <TabsContent value="parts">
+              <EquipmentParts equipment={equipment} />
+            </TabsContent>
+            
+            <TabsContent value="maintenance">
+              <div className="p-8 text-center bg-card border rounded-lg">
+                <h3 className="text-xl font-medium mb-2">Maintenance</h3>
+                <p className="text-muted-foreground">
+                  Le module de maintenance sera disponible prochainement.
+                </p>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="history">
+              <div className="p-8 text-center bg-card border rounded-lg">
+                <h3 className="text-xl font-medium mb-2">Historique</h3>
+                <p className="text-muted-foreground">
+                  L'historique d'utilisation sera disponible prochainement.
+                </p>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>
