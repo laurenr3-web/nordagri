@@ -27,6 +27,7 @@ interface EditPartFormProps {
 }
 
 const EditPartForm: React.FC<EditPartFormProps> = ({ part, onSubmit, onCancel }) => {
+  // Initialiser le formulaire avec les valeurs de la pièce existante
   const form = useForm<z.infer<typeof partFormSchema>>({
     resolver: zodResolver(partFormSchema),
     defaultValues: {
@@ -38,25 +39,48 @@ const EditPartForm: React.FC<EditPartFormProps> = ({ part, onSubmit, onCancel })
       stock: part.stock.toString(),
       reorderPoint: part.reorderPoint.toString(),
       location: part.location,
-      compatibility: part.compatibility.join(', '), // Convert array to comma-separated string
+      compatibility: Array.isArray(part.compatibility) ? part.compatibility.join(', ') : '', // Sécuriser la conversion array → string
       image: part.image
     },
   });
 
+  console.log('Form initialized with values:', form.getValues());
+
+  // Gérer la soumission du formulaire
   const handleSubmit = (values: z.infer<typeof partFormSchema>) => {
+    console.log('Form submitted with values:', values);
+    
+    // Convertir les chaînes en nombres pour les champs numériques
+    const price = parseFloat(values.price);
+    const stock = parseInt(values.stock);
+    const reorderPoint = parseInt(values.reorderPoint);
+    
+    // Vérifier que les conversions sont valides
+    if (isNaN(price) || isNaN(stock) || isNaN(reorderPoint)) {
+      console.error('Invalid number conversions:', { price, stock, reorderPoint });
+      return;
+    }
+    
+    // Convertir la chaîne de compatibilité en tableau
+    const compatibility = values.compatibility
+      ? values.compatibility.split(',').map(item => item.trim()).filter(Boolean)
+      : [];
+    
     const updatedPart: Part = {
-      ...part,
+      ...part, // Conserver l'ID et autres propriétés inchangées
       name: values.name,
       partNumber: values.partNumber,
       category: values.category,
       manufacturer: values.manufacturer,
-      price: parseFloat(values.price),
-      stock: parseInt(values.stock),
-      reorderPoint: parseInt(values.reorderPoint),
+      price: price,
+      stock: stock,
+      reorderPoint: reorderPoint,
       location: values.location,
-      compatibility: values.compatibility.split(',').map(item => item.trim()).filter(item => item), // Convert back to array and remove empty items
-      image: values.image
+      compatibility: compatibility,
+      image: values.image || part.image // Conserver l'image existante si aucune nouvelle n'est fournie
     };
+    
+    console.log('Sending updated part to parent:', updatedPart);
     onSubmit(updatedPart);
   };
 

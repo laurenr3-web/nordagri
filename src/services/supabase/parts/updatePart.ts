@@ -2,29 +2,55 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Part } from '@/types/Part';
 
-export async function updatePart(part: Part): Promise<Part> {
-  console.log('🔄 Début de la mise à jour de pièce avec ID:', part.id, 'Type:', typeof part.id, 'Données:', part);
-  
-  // Assurons-nous que l'ID est un nombre valide
-  const numericId = typeof part.id === 'string' ? parseInt(part.id) : part.id;
+/**
+ * Convertit un ID de pièce en nombre si nécessaire
+ * @param id L'ID de la pièce qui peut être une chaîne ou un nombre
+ * @returns L'ID numérique ou lance une erreur si invalide
+ */
+function ensureNumericId(id: string | number): number {
+  const numericId = typeof id === 'string' ? parseInt(id) : id;
   
   if (isNaN(numericId)) {
-    throw new Error(`ID invalide: ${part.id}`);
+    throw new Error(`ID invalide: ${id}`);
   }
   
+  return numericId;
+}
+
+/**
+ * Prépare les données de la pièce pour la mise à jour dans Supabase
+ * @param part L'objet pièce à mettre à jour
+ * @returns Les données formatées pour Supabase
+ */
+function preparePartDataForUpdate(part: Part): any {
   // Structure correcte pour Supabase
-  const partData = {
+  return {
     name: part.name,
     part_number: part.partNumber,
     category: part.category,
     supplier: part.manufacturer,
-    compatible_with: part.compatibility,
-    quantity: part.stock,
-    unit_price: part.price,
+    compatible_with: Array.isArray(part.compatibility) ? part.compatibility : [],
+    quantity: parseInt(String(part.stock)),
+    unit_price: parseFloat(String(part.price)),
     location: part.location,
-    reorder_threshold: part.reorderPoint,
+    reorder_threshold: parseInt(String(part.reorderPoint)),
     updated_at: new Date().toISOString()
   };
+}
+
+/**
+ * Met à jour une pièce existante dans la base de données
+ * @param part La pièce avec les valeurs mises à jour
+ * @returns Promise résolvant vers la pièce mise à jour
+ */
+export async function updatePart(part: Part): Promise<Part> {
+  console.log('🔄 Début de la mise à jour de pièce avec ID:', part.id, 'Type:', typeof part.id, 'Données:', part);
+  
+  // Conversion de l'ID en nombre
+  const numericId = ensureNumericId(part.id);
+  
+  // Préparation des données
+  const partData = preparePartDataForUpdate(part);
   
   try {
     console.log('🚀 Envoi de la requête de mise à jour à Supabase pour ID:', numericId, 'Données:', partData);

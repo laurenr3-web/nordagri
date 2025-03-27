@@ -5,8 +5,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Part } from '@/types/Part';
 
 /**
- * Hook for creating a new part with React Query mutations
- * Provides proper toast notifications and cache invalidation
+ * Hook pour créer une nouvelle pièce avec les mutations React Query
+ * Fournit des notifications toast appropriées et l'invalidation du cache
  */
 export function useCreatePart() {
   const queryClient = useQueryClient();
@@ -32,8 +32,8 @@ export function useCreatePart() {
 }
 
 /**
- * Hook for updating an existing part with React Query mutations
- * Provides proper toast notifications and cache invalidation
+ * Hook pour mettre à jour une pièce existante avec les mutations React Query
+ * Fournit des notifications toast appropriées et l'invalidation du cache
  */
 export function useUpdatePart() {
   const queryClient = useQueryClient();
@@ -100,8 +100,8 @@ export function useUpdatePart() {
 }
 
 /**
- * Hook for deleting a part with React Query mutations
- * Provides proper toast notifications and cache invalidation
+ * Hook pour supprimer une pièce avec les mutations React Query
+ * Fournit des notifications toast appropriées et l'invalidation du cache
  */
 export function useDeletePart() {
   const queryClient = useQueryClient();
