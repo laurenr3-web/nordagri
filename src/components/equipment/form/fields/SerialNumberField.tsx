@@ -30,7 +30,7 @@ const SerialNumberField: React.FC<SerialNumberFieldProps> = ({
               value={field.value || ''} 
               onChange={(e) => {
                 // Handle empty string correctly
-                const value = e.target.value.trim() === '' ? null : e.target.value;
+                const value = e.target.value === '' ? null : e.target.value;
                 field.onChange(value);
               }}
             />

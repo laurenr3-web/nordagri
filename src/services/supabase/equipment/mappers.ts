@@ -9,7 +9,7 @@ export function mapEquipmentFromDatabase(item: any): Equipment {
     model: item.model,
     manufacturer: item.manufacturer,
     year: item.year,
-    serialNumber: item.serialnumber, // Fixed: using the actual column name from DB
+    serialNumber: item.serial_number, // Using the actual column name from DB
     purchaseDate: item.purchase_date ? new Date(item.purchase_date) : undefined,
     purchasePrice: item.purchase_price,
     status: item.status || 'operational',
@@ -31,7 +31,7 @@ export function mapEquipmentToDatabase(equipment: Omit<Equipment, 'id' | 'image'
     model: equipment.model,
     manufacturer: equipment.manufacturer,
     year: equipment.year,
-    serialnumber: equipment.serialNumber, // Fixed: using the actual column name in DB
+    serial_number: equipment.serialNumber, // Using the actual column name in DB
     purchase_date: equipment.purchaseDate?.toISOString(),
     purchase_price: equipment.purchasePrice,
     status: equipment.status || 'operational',

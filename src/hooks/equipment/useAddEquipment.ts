@@ -34,8 +34,11 @@ export const useAddEquipment = () => {
         newEquipment.serialNumber = null;
       }
 
+      // Create a clean copy of the equipment for debugging
+      const cleanEquipment = { ...newEquipment };
+      
       // Log the final equipment data being sent to the API
-      console.log('Sending equipment data to API:', JSON.stringify(newEquipment, null, 2));
+      console.log('Sending equipment data to API:', JSON.stringify(cleanEquipment, null, 2));
       
       return equipmentService.addEquipment(newEquipment, imageFile);
     },
@@ -56,6 +59,13 @@ export const useAddEquipment = () => {
       if (error.details) {
         console.error('Détails de l\'erreur:', error.details);
       }
+      if (error.code) {
+        console.error('Code d\'erreur:', error.code);
+      }
+      if (error.hint) {
+        console.error('Suggestion:', error.hint);
+      }
+      
       toast.error(`Erreur: ${error.message || 'Impossible d\'ajouter l\'équipement'}`);
     }
   });
