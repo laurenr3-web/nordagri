@@ -46,7 +46,14 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
     if (onEdit) {
       onEdit(updatedPart);
     }
+    
+    // Fermer d'abord le dialogue d'édition
     setIsEditDialogOpen(false);
+    
+    // Puis fermer le dialogue principal après confirmation de la mise à jour
+    if (onDialogClose) {
+      setTimeout(() => onDialogClose(), 300);
+    }
   };
 
   const openEditDialog = (e: React.MouseEvent) => {
