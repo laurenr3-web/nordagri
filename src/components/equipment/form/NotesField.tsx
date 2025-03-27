@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { EquipmentFormValues } from './equipmentFormTypes';
 
@@ -9,12 +9,14 @@ interface NotesFieldProps {
   form: UseFormReturn<EquipmentFormValues>;
   label?: string;
   placeholder?: string;
+  description?: string;
 }
 
 const NotesField: React.FC<NotesFieldProps> = ({ 
   form,
   label = "Notes",
-  placeholder = "Enter any additional information about this equipment"
+  placeholder = "Entrez des informations supplémentaires sur cet équipement",
+  description
 }) => {
   return (
     <FormField
@@ -30,6 +32,7 @@ const NotesField: React.FC<NotesFieldProps> = ({
               {...field}
             />
           </FormControl>
+          {description && <FormDescription>{description}</FormDescription>}
           <FormMessage />
         </FormItem>
       )}

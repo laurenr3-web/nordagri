@@ -12,28 +12,68 @@ interface BasicInfoFieldsProps {
   form: UseFormReturn<EquipmentFormValues>;
   customCategories: string[];
   onAddCategoryClick: () => void;
+  language?: 'en' | 'fr';
 }
 
 const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({ 
   form, 
   customCategories, 
-  onAddCategoryClick 
+  onAddCategoryClick,
+  language = 'fr'
 }) => {
+  const labels = {
+    name: language === 'fr' ? "Nom de l'équipement*" : "Equipment Name*",
+    type: language === 'fr' ? "Type*" : "Type*",
+    category: language === 'fr' ? "Catégorie*" : "Category*",
+    manufacturer: language === 'fr' ? "Fabricant*" : "Manufacturer*",
+    model: language === 'fr' ? "Modèle" : "Model",
+  };
+
+  const placeholders = {
+    name: language === 'fr' ? "John Deere 8R 410" : "John Deere 8R 410",
+    type: language === 'fr' ? "Sélectionner un type" : "Select type",
+    category: language === 'fr' ? "Sélectionner une catégorie" : "Select category",
+    manufacturer: language === 'fr' ? "John Deere" : "John Deere",
+    model: language === 'fr' ? "8R 410" : "8R 410",
+  };
+
+  const addButtonText = language === 'fr' ? "Ajouter une catégorie" : "Add Category";
+
   return (
-    <>
-      <NameField form={form} label="Nom de l'équipement*" placeholder="John Deere 8R 410" />
-      <TypeField form={form} label="Type*" placeholder="Sélectionner un type" />
+    <div className="space-y-4">
+      <NameField 
+        form={form} 
+        label={labels.name} 
+        placeholder={placeholders.name} 
+      />
+      
+      <TypeField 
+        form={form} 
+        label={labels.type} 
+        placeholder={placeholders.type} 
+      />
+      
       <CategoryField 
         form={form} 
         customCategories={customCategories} 
-        onAddCategoryClick={onAddCategoryClick} 
-        label="Catégorie*"
-        placeholder="Sélectionner une catégorie"
-        addButtonText="+ Ajouter une catégorie"
+        onAddCategoryClick={onAddCategoryClick}
+        label={labels.category}
+        placeholder={placeholders.category}
+        addButtonText={addButtonText}
       />
-      <ManufacturerField form={form} label="Fabricant*" placeholder="John Deere" />
-      <ModelField form={form} label="Modèle" placeholder="8R 410" />
-    </>
+
+      <ManufacturerField 
+        form={form} 
+        label={labels.manufacturer} 
+        placeholder={placeholders.manufacturer} 
+      />
+      
+      <ModelField 
+        form={form} 
+        label={labels.model} 
+        placeholder={placeholders.model} 
+      />
+    </div>
   );
 };
 

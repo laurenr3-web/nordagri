@@ -15,7 +15,7 @@ interface AdditionalInfoFieldsProps {
 
 const AdditionalInfoFields: React.FC<AdditionalInfoFieldsProps> = ({ 
   form,
-  language = 'en'
+  language = 'fr'
 }) => {
   const labels = {
     year: language === 'fr' ? 'Année*' : 'Year*',
@@ -29,6 +29,8 @@ const AdditionalInfoFields: React.FC<AdditionalInfoFieldsProps> = ({
     year: language === 'fr' ? '2023' : '2023',
     serialNumber: language === 'fr' ? 'JD8R410-2022-1234' : 'JD8R410-2022-1234',
     location: language === 'fr' ? 'Champ Nord' : 'North Field',
+    status: language === 'fr' ? 'Sélectionner un statut' : 'Select status',
+    date: language === 'fr' ? 'Sélectionner une date' : 'Select date',
   };
 
   const statusOptions = language === 'fr' 
@@ -46,35 +48,39 @@ const AdditionalInfoFields: React.FC<AdditionalInfoFieldsProps> = ({
       ];
 
   return (
-    <>
+    <div className="space-y-4">
       <YearField 
         form={form} 
         label={labels.year} 
         placeholder={placeholders.year} 
       />
-      <SerialNumberField 
-        form={form} 
-        label={labels.serialNumber} 
-        placeholder={placeholders.serialNumber} 
-      />
+      
       <StatusField 
         form={form} 
         label={labels.status} 
         statusOptions={statusOptions} 
-        placeholder={language === 'fr' ? 'Sélectionner un statut' : 'Select status'} 
+        placeholder={placeholders.status} 
       />
+      
       <LocationField 
         form={form} 
         label={labels.location} 
         placeholder={placeholders.location} 
       />
+      
+      <SerialNumberField 
+        form={form} 
+        label={labels.serialNumber} 
+        placeholder={placeholders.serialNumber} 
+      />
+      
       <PurchaseDateField 
         form={form} 
         label={labels.purchaseDate} 
-        placeholder={language === 'fr' ? 'Sélectionner une date' : 'Select date'} 
+        placeholder={placeholders.date} 
         language={language}
       />
-    </>
+    </div>
   );
 };
 
