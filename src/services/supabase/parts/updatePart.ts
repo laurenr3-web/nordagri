@@ -78,7 +78,8 @@ export async function updatePart(part: Part): Promise<Part> {
     // Préparation des données
     const partData = preparePartDataForUpdate(part);
     
-    console.log('🚀 Envoi de la requête de mise à jour à Supabase pour ID:', numericId, 'Données:', partData);
+    // Ajout des logs avant l'appel à Supabase
+    console.log('🚀 Sending update request with data:', partData);
     
     const { data, error } = await supabase
       .from('parts_inventory')
@@ -87,8 +88,10 @@ export async function updatePart(part: Part): Promise<Part> {
       .select('*')
       .single();
     
+    // Ajout des logs après l'appel à Supabase
     if (error) {
-      console.error('❌ Erreur Supabase lors de la mise à jour:', error);
+      console.error('❌ Supabase error during update:', error);
+      console.error('Error details:', error.details);
       
       // Personnalisation des messages d'erreur
       if (error.code === '23505') {
