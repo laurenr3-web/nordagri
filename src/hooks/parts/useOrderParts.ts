@@ -22,7 +22,7 @@ export const useOrderParts = () => {
       };
       return updatePart(updatedPart);
     },
-    onSuccess: (updatedPart) => {
+    onSuccess: (updatedPart: Part) => {
       queryClient.invalidateQueries({ queryKey: ['parts'] });
       
       toast({
