@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -19,25 +18,10 @@ import EditEquipmentDialog from './dialogs/EditEquipmentDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import EquipmentHistory from './tabs/EquipmentHistory';
 import EquipmentPerformance from './tabs/EquipmentPerformance';
+import { EquipmentItem } from './hooks/useEquipmentFilters';
 
 interface EquipmentDetailsProps {
-  equipment: {
-    id: number;
-    name: string;
-    type: string;
-    category: string;
-    manufacturer: string;
-    model: string;
-    year: number;
-    status: string;
-    location: string;
-    lastMaintenance: string;
-    image: string;
-    usage: { hours: number; target: number };
-    serialNumber: string;
-    purchaseDate: string;
-    nextService?: { type: string; due: string };
-  };
+  equipment: EquipmentItem;
   onUpdate?: (updatedEquipment: any) => void;
 }
 
@@ -80,7 +64,10 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
     });
   };
 
-  const usagePercentage = Math.round((equipment.usage.hours / equipment.usage.target) * 100);
+  // Calculate usage percentage safely with optional chaining
+  const usagePercentage = equipment.usage 
+    ? Math.round((equipment.usage.hours / equipment.usage.target) * 100)
+    : 0;
 
   const handleEquipmentUpdate = (updatedEquipment: any) => {
     if (onUpdate) {
@@ -173,7 +160,7 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
                 <h3 className="text-sm text-muted-foreground">Usage</h3>
                 <p className="font-medium flex items-center gap-2">
                   <Clock size={16} className="text-muted-foreground" />
-                  {equipment.usage.hours} / {equipment.usage.target} hours
+                  {equipment.usage ? `${equipment.usage.hours} / ${equipment.usage.target} hours` : 'No usage data'}
                 </p>
                 <div className="w-full bg-secondary rounded-full h-2 mt-2">
                   <div 

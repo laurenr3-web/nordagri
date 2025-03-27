@@ -3,24 +3,7 @@ import React from 'react';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { Button } from '@/components/ui/button';
 import { Tractor, TractorIcon, Truck, Cog, BarChart, ChevronRight } from 'lucide-react';
-
-interface EquipmentItem {
-  id: number;
-  name: string;
-  type: string;
-  category: string;
-  manufacturer: string;
-  model: string;
-  year: number;
-  status: string;
-  location: string;
-  lastMaintenance: string;
-  image: string;
-  usage?: { hours: number; target: number };
-  serialNumber: string;
-  purchaseDate: string;
-  nextService?: { type: string; due: string };
-}
+import { EquipmentItem } from '../hooks/useEquipmentFilters';
 
 interface EquipmentGridProps {
   equipment: EquipmentItem[];
