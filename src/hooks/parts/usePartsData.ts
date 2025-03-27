@@ -10,10 +10,12 @@ export const usePartsData = (initialParts: Part[] = []) => {
   const queryClient = useQueryClient();
   const [parts, setParts] = useState<Part[]>(initialParts);
 
-  // Fetch parts from Supabase
+  // Fetch parts from Supabase with updated query options
   const { data: supabaseParts, isLoading, isError } = useQuery({
     queryKey: ['parts'],
     queryFn: () => partsService.getParts(),
+    staleTime: 0, // Consider data stale immediately
+    refetchOnWindowFocus: true, // Refetch when window regains focus
     meta: {
       onSuccess: (data: Part[]) => {
         console.log('Fetched parts from Supabase:', data);
