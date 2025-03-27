@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Part } from '@/types/Part';
@@ -55,10 +56,24 @@ export const usePartsData = (initialParts: Part[] = []) => {
   
   const handleUpdatePart = (part: Part) => {
     console.log('👉 Updating part:', part);
+    
+    // Forcer le rechargement des données après la mise à jour,
+    // quelle que soit la réponse de la mutation
     updatePartMutation.mutate(part, {
-      onSuccess: () => {
-        console.log('🔄 Refetching parts after update');
-        refetch(); // Force un refetch après la mise à jour
+      onSuccess: (updatedPart) => {
+        console.log('🔄 Update successful:', updatedPart);
+        // Force un refetch après la mise à jour
+        refetch();
+      },
+      onError: (error) => {
+        console.error('❌ Update error:', error);
+        // Même en cas d'erreur, on peut essayer de rafraîchir les données
+        refetch();
+      },
+      onSettled: () => {
+        // Cette fonction est appelée que la mutation réussisse ou échoue
+        console.log('🔄 Forcing data refresh after update attempt');
+        refetch();
       }
     });
   };
