@@ -6,51 +6,6 @@ import { equipmentService } from '@/services/supabase/equipmentService';
 import { Equipment } from '@/services/supabase/equipment/types';
 
 /**
- * Helper function to normalize purchase date from different possible formats
- * @param purchaseDate The purchase date which could be in various formats
- * @returns A proper Date object or null if invalid
- */
-function normalizePurchaseDate(purchaseDate: any): Date | null {
-  // If it's null or undefined, return null
-  if (!purchaseDate) {
-    return null;
-  }
-  
-  // If it's already a Date object
-  if (purchaseDate instanceof Date) {
-    return purchaseDate;
-  }
-  
-  // Handle date picker object format
-  if (typeof purchaseDate === 'object') {
-    // Date picker with _type and value properties
-    if (purchaseDate._type === 'Date' && purchaseDate.value) {
-      // With ISO string
-      if (purchaseDate.value.iso) {
-        return new Date(purchaseDate.value.iso);
-      }
-      // With numeric value
-      if (purchaseDate.value.value) {
-        return new Date(purchaseDate.value.value);
-      }
-    }
-  }
-  
-  // If it's a string (ISO format), try to convert it
-  if (typeof purchaseDate === 'string') {
-    try {
-      return new Date(purchaseDate);
-    } catch (e) {
-      console.error('Invalid date string:', purchaseDate);
-      return null;
-    }
-  }
-  
-  // For any other format, return null
-  return null;
-}
-
-/**
  * Prepares equipment data for server update by cleaning UI-specific properties
  * @param equipmentData The equipment data from the UI
  * @returns Cleaned equipment data ready for the server
@@ -58,10 +13,6 @@ function normalizePurchaseDate(purchaseDate: any): Date | null {
 function prepareEquipmentForUpdate(equipmentData: any): any {
   // Remove UI-specific properties
   const { usage, nextService, ...equipmentToUpdate } = equipmentData;
-  
-  // Normalize the purchase date
-  equipmentToUpdate.purchaseDate = normalizePurchaseDate(equipmentToUpdate.purchaseDate);
-  
   return equipmentToUpdate;
 }
 
