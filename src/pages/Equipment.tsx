@@ -10,9 +10,7 @@ const EquipmentPage = () => {
   // Use the equipment data hook to fetch and manage equipment
   const {
     equipment,
-    isLoading,
-    addEquipment,
-    isAdding
+    isLoading
   } = useEquipmentData();
   
   // Set up realtime updates
@@ -24,10 +22,7 @@ const EquipmentPage = () => {
         equipment={equipment}
         isLoading={isLoading}
       />
-      <EquipmentDialogs
-        addEquipment={addEquipment}
-        isAdding={isAdding}
-      />
+      <EquipmentDialogs />
     </SidebarProvider>
   );
 };

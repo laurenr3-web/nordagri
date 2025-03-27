@@ -4,18 +4,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import EquipmentForm from '@/components/equipment/EquipmentForm';
 import EquipmentDetails from '@/components/equipment/EquipmentDetails';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
+import { useAddEquipment } from '@/hooks/equipment/useAddEquipment';
 
-interface EquipmentDialogsProps {
-  addEquipment: (data: any) => void;
-  isAdding: boolean;
-}
-
-const EquipmentDialogs: React.FC<EquipmentDialogsProps> = ({
-  addEquipment,
-  isAdding
-}) => {
+const EquipmentDialogs: React.FC = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedEquipment, setSelectedEquipment] = useState<EquipmentItem | null>(null);
+  const { mutate, isPending } = useAddEquipment();
 
   useEffect(() => {
     // Listen for custom events to open the dialogs
@@ -57,9 +51,12 @@ const EquipmentDialogs: React.FC<EquipmentDialogsProps> = ({
     
     console.log('Adding new equipment:', newEquipment);
     
-    // Add equipment using the hook function
-    addEquipment(newEquipment);
-    setIsAddDialogOpen(false);
+    // Add equipment using the hook's mutate function
+    mutate(newEquipment, {
+      onSuccess: () => {
+        setIsAddDialogOpen(false);
+      }
+    });
   };
 
   return (
@@ -73,7 +70,7 @@ const EquipmentDialogs: React.FC<EquipmentDialogsProps> = ({
           <EquipmentForm 
             onSubmit={handleAddEquipment}
             onCancel={() => setIsAddDialogOpen(false)}
-            isSubmitting={isAdding}
+            isSubmitting={isPending}
           />
         </DialogContent>
       </Dialog>
