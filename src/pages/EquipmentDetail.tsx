@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
@@ -24,7 +25,9 @@ const EquipmentDetail = () => {
       
       try {
         setLoading(true);
+        console.log('Fetching equipment with ID:', id);
         const data = await equipmentService.getEquipmentById(Number(id));
+        console.log('Fetched equipment data:', data);
         setEquipment(data);
         setError(null);
       } catch (err: any) {
