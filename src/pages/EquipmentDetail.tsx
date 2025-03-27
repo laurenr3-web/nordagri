@@ -32,7 +32,25 @@ const EquipmentDetail = () => {
           throw new Error('Équipement non trouvé');
         }
         
-        setEquipment(data);
+        // Ensure date fields are properly formatted as strings
+        const processedData = {
+          ...data,
+          lastMaintenance: data.lastMaintenance 
+            ? (typeof data.lastMaintenance === 'object' 
+               ? data.lastMaintenance.toISOString() 
+               : String(data.lastMaintenance))
+            : 'N/A',
+          purchaseDate: data.purchaseDate 
+            ? (typeof data.purchaseDate === 'object' 
+               ? data.purchaseDate.toISOString() 
+               : String(data.purchaseDate))
+            : '',
+          // Add UI-specific properties
+          usage: { hours: 0, target: 500 },
+          nextService: { type: 'Regular maintenance', due: 'In 30 days' }
+        };
+        
+        setEquipment(processedData);
         setError(null);
       } catch (err: any) {
         console.error('Error fetching equipment:', err);
@@ -58,13 +76,28 @@ const EquipmentDetail = () => {
       console.log('Update result:', result);
       
       // Update local state with the result from the server
-      setEquipment(prev => ({
-        ...prev,
-        ...result,
-        // Keep UI-specific properties that aren't stored in the database
-        usage: prev?.usage || { hours: 0, target: 500 },
-        nextService: prev?.nextService || { type: 'Regular maintenance', due: 'In 30 days' }
-      }));
+      setEquipment(prev => {
+        if (!prev) return null;
+        
+        return {
+          ...prev,
+          ...result,
+          // Convert potential Date objects to strings for UI display
+          lastMaintenance: result.lastMaintenance 
+            ? (typeof result.lastMaintenance === 'object' 
+               ? result.lastMaintenance.toISOString() 
+               : String(result.lastMaintenance))
+            : prev.lastMaintenance || 'N/A',
+          purchaseDate: result.purchaseDate 
+            ? (typeof result.purchaseDate === 'object' 
+               ? result.purchaseDate.toISOString() 
+               : String(result.purchaseDate))
+            : prev.purchaseDate || '',
+          // Keep UI-specific properties
+          usage: prev.usage || { hours: 0, target: 500 },
+          nextService: prev.nextService || { type: 'Regular maintenance', due: 'In 30 days' }
+        };
+      });
       
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['equipment'] });

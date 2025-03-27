@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import EquipmentForm from '@/components/equipment/EquipmentForm';
 import EquipmentDetails from '@/components/equipment/EquipmentDetails';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
-import { useAddEquipment } from '@/hooks/equipment/useAddEquipment';
+import { useAddEquipment } from '@/hooks/useAddEquipment';
 import { EquipmentFormValues } from '../form/equipmentFormTypes';
 import { toast } from 'sonner';
 import { equipmentService } from '@/services/supabase/equipmentService';
@@ -50,14 +50,25 @@ const EquipmentDialogs: React.FC = () => {
       
       console.log('Equipment updated successfully:', result);
       
-      // Update the local state
-      setSelectedEquipment(prev => prev ? {
-        ...prev,
-        ...result,
-        // Keep UI properties
-        usage: prev.usage,
-        nextService: prev.nextService
-      } : null);
+      // Update the local state - ensure all properties match EquipmentItem type
+      setSelectedEquipment(prev => {
+        if (!prev) return null;
+        
+        return {
+          ...prev,
+          ...result,
+          // Convert potential Date objects to strings for type compatibility
+          lastMaintenance: typeof result.lastMaintenance === 'object' && result.lastMaintenance instanceof Date 
+            ? result.lastMaintenance.toISOString() 
+            : result.lastMaintenance?.toString() || prev.lastMaintenance,
+          purchaseDate: typeof result.purchaseDate === 'object' && result.purchaseDate instanceof Date 
+            ? result.purchaseDate.toISOString() 
+            : result.purchaseDate?.toString() || prev.purchaseDate,
+          // Keep UI properties
+          usage: prev.usage,
+          nextService: prev.nextService
+        } as EquipmentItem;
+      });
       
       // Invalidate queries to refresh data across the app
       queryClient.invalidateQueries({ queryKey: ['equipment'] });
