@@ -1,5 +1,4 @@
 
-import { supabase } from '@/integrations/supabase/client';
 import { Part } from '@/types/Part';
 import { getParts } from './getParts';
 import { addPart } from './addPart';

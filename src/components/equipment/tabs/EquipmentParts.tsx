@@ -21,7 +21,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Equipment } from '@/services/supabase/equipmentService';
 import { Part } from '@/types/Part';
-import { getPartsForEquipment } from '@/services/supabase/partsService';
+import { getPartsForEquipment } from '@/services/supabase/parts';
 import EditPartForm from '@/components/parts/dialogs/form/EditPartForm';
 
 interface EquipmentPartsProps {

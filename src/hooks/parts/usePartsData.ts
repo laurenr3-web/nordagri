@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Part } from '@/types/Part';
 import { useToast } from '@/hooks/use-toast';
-import { partsService } from '@/services/supabase/partsService';
+import { getParts } from '@/services/supabase/parts';
 import { useCreatePart, useUpdatePart, useDeletePart } from '@/hooks/usePartsMutations';
 
 export const usePartsData = (initialParts: Part[] = []) => {
@@ -18,7 +18,7 @@ export const usePartsData = (initialParts: Part[] = []) => {
   // Fetch parts using React Query
   const { data: supabaseParts, isLoading, isError, refetch } = useQuery({
     queryKey: ['parts'],
-    queryFn: () => partsService.getParts(),
+    queryFn: () => getParts(),
     staleTime: 0, // Toujours considérer les données comme périmées
     refetchOnWindowFocus: true, // Refetch quand la fenêtre récupère le focus
     refetchInterval: 30000 // Refetch toutes les 30 secondes
