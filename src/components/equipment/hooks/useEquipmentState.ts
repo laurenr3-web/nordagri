@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import { useEquipmentFilters, EquipmentItem } from '@/components/equipment/hooks/useEquipmentFilters';
 import { Equipment } from '@/services/supabase/equipmentService';
