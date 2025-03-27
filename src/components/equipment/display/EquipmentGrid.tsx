@@ -99,13 +99,13 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({
               </div>
               <div>
                 <p className="text-muted-foreground">Usage</p>
-                <p className="font-medium">{item.usage.hours} hrs</p>
+                <p className="font-medium">{item.usage?.hours || 0} hrs</p>
               </div>
             </div>
             
             <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
               <span className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">Next:</span> {item.nextService.type}
+                <span className="font-medium text-foreground">Next:</span> {item.nextService?.type || 'N/A'}
               </span>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" className="h-8 px-2 gap-1" onClick={(e) => {

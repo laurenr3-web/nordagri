@@ -21,4 +21,5 @@ export type EquipmentFormValues = z.infer<typeof equipmentFormSchema>;
 export interface EquipmentFormProps {
   onSubmit: (data: EquipmentFormValues) => void;
   onCancel: () => void;
+  isSubmitting?: boolean;
 }

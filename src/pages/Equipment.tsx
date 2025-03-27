@@ -18,8 +18,9 @@ import EquipmentList from '@/components/equipment/display/EquipmentList';
 import NoEquipmentFound from '@/components/equipment/display/NoEquipmentFound';
 import { useEquipmentFilters, EquipmentItem } from '@/components/equipment/hooks/useEquipmentFilters';
 import { getStatusColor, getStatusText } from '@/components/equipment/utils/statusUtils';
+import { Equipment } from '@/services/supabase/equipmentService';
 
-const Equipment = () => {
+const EquipmentPage = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedEquipment, setSelectedEquipment] = useState<EquipmentItem | null>(null);
   
@@ -34,6 +35,18 @@ const Equipment = () => {
   // Set up realtime updates
   useEquipmentRealtime();
   
+  // Transform the equipment data to include UI-specific properties
+  const transformedEquipment: EquipmentItem[] = React.useMemo(() => {
+    if (!equipment) return [];
+    
+    return equipment.map((item: Equipment) => ({
+      ...item,
+      usage: { hours: 0, target: 0 }, // Provide default values
+      lastMaintenance: item.last_maintenance?.toString() || 'N/A',
+      nextService: { type: 'Regular maintenance', due: 'In 30 days' } // Provide default values
+    }));
+  }, [equipment]);
+
   const {
     searchTerm,
     setSearchTerm,
@@ -56,7 +69,7 @@ const Equipment = () => {
     sortOrder,
     setSortOrder,
     filteredEquipment
-  } = useEquipmentFilters(equipment || []);
+  } = useEquipmentFilters(transformedEquipment);
 
   const handleAddEquipment = (data: any) => {
     // Create new equipment object from form data
@@ -182,4 +195,4 @@ const Equipment = () => {
   );
 };
 
-export default Equipment;
+export default EquipmentPage;
