@@ -22,6 +22,7 @@ const SidebarTrigger = React.forwardRef<
         onClick?.(event)
         toggleSidebar()
       }}
+      aria-label="Basculer la barre latérale"
       {...props}
     >
       <PanelLeft />
@@ -49,6 +50,7 @@ const SidebarToggleButton = React.forwardRef<
         onClick?.(event)
         toggleSidebar()
       }}
+      aria-label="Ouvrir/fermer le menu"
       {...props}
     >
       <Menu />
@@ -68,7 +70,7 @@ const SidebarRail = React.forwardRef<
     <button
       ref={ref}
       data-sidebar="rail"
-      aria-label="Toggle Sidebar"
+      aria-label="Basculer la barre latérale"
       tabIndex={-1}
       onClick={toggleSidebar}
       title="Toggle Sidebar"

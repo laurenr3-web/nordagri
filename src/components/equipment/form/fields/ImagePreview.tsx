@@ -36,6 +36,7 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
         variant="destructive" 
         className="absolute top-2 right-2 h-6 w-6"
         onClick={onReset}
+        aria-label="Supprimer l'image"
       >
         <X className="h-3 w-3" />
       </Button>

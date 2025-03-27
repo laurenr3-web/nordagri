@@ -97,8 +97,22 @@ const PartsGrid: React.FC<PartsGridProps> = ({ parts, openPartDetails, openOrder
             </div>
             
             <div className="mt-4 pt-4 border-t border-border flex justify-between">
-              <Button variant="outline" size="sm" onClick={() => openPartDetails(part)}>Details</Button>
-              <Button variant="default" size="sm" onClick={() => openOrderDialog(part)}>Order</Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => openPartDetails(part)}
+                aria-label="Voir les détails de la pièce"
+              >
+                Details
+              </Button>
+              <Button 
+                variant="default" 
+                size="sm" 
+                onClick={() => openOrderDialog(part)}
+                aria-label="Commander cette pièce"
+              >
+                Order
+              </Button>
             </div>
           </div>
         </BlurContainer>

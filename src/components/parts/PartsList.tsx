@@ -70,8 +70,24 @@ const PartsList: React.FC<PartsListProps> = ({ parts, openPartDetails, openOrder
                 <td className="p-3">{part.location}</td>
                 <td className="p-3">
                   <div className="flex gap-1">
-                    <Button variant="outline" size="sm" className="h-8 px-2" onClick={() => openPartDetails(part)}>Details</Button>
-                    <Button variant="default" size="sm" className="h-8 px-2" onClick={() => openOrderDialog(part)}>Order</Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-8 px-2" 
+                      onClick={() => openPartDetails(part)}
+                      aria-label="Voir les détails de la pièce"
+                    >
+                      Details
+                    </Button>
+                    <Button 
+                      variant="default" 
+                      size="sm" 
+                      className="h-8 px-2" 
+                      onClick={() => openOrderDialog(part)}
+                      aria-label="Commander cette pièce"
+                    >
+                      Order
+                    </Button>
                   </div>
                 </td>
               </tr>

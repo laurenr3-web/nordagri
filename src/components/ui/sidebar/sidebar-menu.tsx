@@ -79,6 +79,9 @@ const SidebarMenuButton = React.forwardRef<
     const Comp = asChild ? Slot : "button"
     const { isMobile, state } = useSidebar()
 
+    // Add an aria-label if it's not provided
+    const ariaLabel = props["aria-label"] || (typeof tooltip === "string" ? tooltip : undefined);
+
     const button = (
       <Comp
         ref={ref}
@@ -86,6 +89,7 @@ const SidebarMenuButton = React.forwardRef<
         data-size={size}
         data-active={isActive}
         className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+        aria-label={ariaLabel}
         {...props}
       />
     )
@@ -124,10 +128,14 @@ const SidebarMenuAction = React.forwardRef<
 >(({ className, asChild = false, showOnHover = false, ...props }, ref) => {
   const Comp = asChild ? Slot : "button"
 
+  // Add an aria-label if it's not provided
+  const ariaLabel = props["aria-label"] || "Menu action";
+
   return (
     <Comp
       ref={ref}
       data-sidebar="menu-action"
+      aria-label={ariaLabel}
       className={cn(
         "absolute right-1 top-1.5 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground outline-none ring-sidebar-ring transition-transform hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 peer-hover/menu-button:text-sidebar-accent-foreground [&>svg]:size-4 [&>svg]:shrink-0",
         // Increases the hit area of the button on mobile.

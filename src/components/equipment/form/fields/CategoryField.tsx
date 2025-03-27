@@ -55,6 +55,7 @@ const CategoryField: React.FC<CategoryFieldProps> = ({
               variant="outline" 
               size="icon"
               onClick={onAddCategoryClick}
+              aria-label={addButtonText}
             >
               <Plus className="h-4 w-4" />
             </Button>

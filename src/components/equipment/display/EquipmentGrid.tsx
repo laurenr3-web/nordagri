@@ -104,11 +104,18 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({
                 <Button variant="outline" size="sm" className="h-8 px-2 gap-1" onClick={(e) => {
                   e.stopPropagation();
                   handleEquipmentClick(item);
-                }}>
+                }}
+                aria-label="Voir les détails de l'équipement"
+                >
                   <span>Details</span>
                   <ChevronRight size={14} />
                 </Button>
-                <Button variant="outline" size="sm" className="h-8 px-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="h-8 px-2"
+                  aria-label="Voir les statistiques de l'équipement"
+                >
                   <BarChart size={14} />
                 </Button>
               </div>

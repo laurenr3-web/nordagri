@@ -66,11 +66,17 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
                       size="sm" 
                       className="h-8 px-2 gap-1"
                       onClick={() => handleEquipmentClick(item)}
+                      aria-label="Voir les détails de l'équipement"
                     >
                       <span>Details</span>
                       <ExternalLink size={14} />
                     </Button>
-                    <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-8 w-8 p-0"
+                      aria-label="Voir les statistiques de l'équipement"
+                    >
                       <BarChart size={14} />
                     </Button>
                   </div>
