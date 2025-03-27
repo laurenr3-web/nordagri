@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { partsData } from '@/data/partsData';
 import { useParts } from '@/hooks/useParts';
@@ -14,6 +14,11 @@ const initialPartsData = partsData;
 const Parts = () => {
   // The main hook now provides a cleaner interface with more focused sub-hooks
   const partsHookData = useParts(initialPartsData);
+  
+  // Debug logging for parts data updates
+  useEffect(() => {
+    console.log("Données parts mises à jour:", partsHookData.parts);
+  }, [partsHookData.parts]);
 
   return (
     <SidebarProvider>
