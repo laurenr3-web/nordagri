@@ -42,15 +42,15 @@ export function useUpdatePart() {
   return useMutation({
     mutationFn: updatePart,
     onMutate: async (updatedPart) => {
-      console.log('⏳ Starting update mutation for part:', updatedPart);
+      console.log('⏳ Démarrage de la mutation de mise à jour pour la pièce:', updatedPart);
       
-      // Cancel any outgoing refetches
+      // Annuler toutes les requêtes de récupération sortantes
       await queryClient.cancelQueries({ queryKey: ['parts'] });
       
-      // Snapshot the previous value
+      // Prendre un instantané de la valeur précédente
       const previousParts = queryClient.getQueryData(['parts']);
       
-      // Optimistically update the cache
+      // Mettre à jour le cache de manière optimiste
       if (updatedPart.id) {
         queryClient.setQueryData(['parts'], (oldData: Part[] | undefined) => {
           if (!oldData) return [updatedPart];
@@ -63,21 +63,12 @@ export function useUpdatePart() {
       return { previousParts };
     },
     onSuccess: (updatedPart) => {
-      console.log('✅ Update successful:', updatedPart);
+      console.log('✅ Mise à jour réussie:', updatedPart);
       
-      // Force a complete refetch to ensure data consistency
+      // Forcer une récupération complète pour assurer la cohérence des données
       queryClient.invalidateQueries({ 
         queryKey: ['parts']
       });
-      
-      // Additionally perform a full refetch to be extra safe
-      setTimeout(() => {
-        queryClient.refetchQueries({ 
-          queryKey: ['parts'],
-          type: 'all',
-          exact: false
-        });
-      }, 300);
       
       toast({
         title: "Pièce mise à jour",
@@ -85,9 +76,9 @@ export function useUpdatePart() {
       });
     },
     onError: (error: any, variables, context) => {
-      console.error('❌ Update failed:', error);
+      console.error('❌ Échec de la mise à jour:', error);
       
-      // Revert optimistic update
+      // Annuler la mise à jour optimiste
       if (context?.previousParts) {
         queryClient.setQueryData(['parts'], context.previousParts);
       }
@@ -99,7 +90,9 @@ export function useUpdatePart() {
       });
     },
     onSettled: () => {
-      console.log('🏁 Update mutation completed');
+      console.log('🏁 Mutation de mise à jour terminée');
+      // Effectuer une nouvelle requête pour rafraîchir les données
+      queryClient.refetchQueries({ queryKey: ['parts'] });
     }
   });
 }

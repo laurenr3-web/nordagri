@@ -16,11 +16,12 @@ export const usePartsData = (initialParts: Part[] = []) => {
   const deletePartMutation = useDeletePart();
 
   // Fetch parts using React Query
-  const { data: supabaseParts, isLoading, isError } = useQuery({
+  const { data: supabaseParts, isLoading, isError, refetch } = useQuery({
     queryKey: ['parts'],
     queryFn: () => partsService.getParts(),
-    staleTime: 0,
-    refetchOnWindowFocus: true
+    staleTime: 0, // Toujours considérer les données comme périmées
+    refetchOnWindowFocus: true, // Refetch quand la fenêtre récupère le focus
+    refetchInterval: 30000 // Refetch toutes les 30 secondes
   });
 
   // Handle data updates
@@ -39,8 +40,13 @@ export const usePartsData = (initialParts: Part[] = []) => {
     if (isError && initialParts.length > 0) {
       console.log('⚠️ Using initial data due to Supabase error');
       setParts(initialParts);
+      toast({
+        title: "Erreur de connexion",
+        description: "Impossible de charger les données depuis Supabase",
+        variant: "destructive",
+      });
     }
-  }, [isError, initialParts]);
+  }, [isError, initialParts, toast]);
 
   // Action handlers
   const handleAddPart = (part: Omit<Part, 'id'>) => {
@@ -50,18 +56,29 @@ export const usePartsData = (initialParts: Part[] = []) => {
   
   const handleUpdatePart = (part: Part) => {
     console.log('👉 Updating part:', part);
-    updatePartMutation.mutate(part);
+    updatePartMutation.mutate(part, {
+      onSuccess: () => {
+        console.log('🔄 Refetching parts after update');
+        refetch(); // Force un refetch après la mise à jour
+      }
+    });
   };
   
   const handleDeletePart = (partId: number) => {
     console.log('👉 Deleting part:', partId);
-    deletePartMutation.mutate(partId);
+    deletePartMutation.mutate(partId, {
+      onSuccess: () => {
+        console.log('🔄 Refetching parts after delete');
+        refetch(); // Force un refetch après la suppression
+      }
+    });
   };
 
   return {
     parts,
     isLoading,
     isError,
+    refetch,
     handleAddPart,
     handleUpdatePart,
     handleDeletePart,

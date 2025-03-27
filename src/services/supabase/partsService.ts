@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Part } from '@/types/Part';
 
@@ -73,8 +74,9 @@ export const partsService = {
   
   // Update an existing part in the database
   async updatePart(part: Part): Promise<Part> {
-    console.log('🔄 Updating part with ID:', part.id, 'Type:', typeof part.id, 'Data:', part);
+    console.log('🔄 Début de la mise à jour de pièce avec ID:', part.id, 'Type:', typeof part.id, 'Données:', part);
     
+    // Structure correcte pour Supabase
     const partData = {
       name: part.name,
       part_number: part.partNumber,
@@ -89,23 +91,36 @@ export const partsService = {
     };
     
     try {
-      console.log('🚀 Sending update request to Supabase with data:', partData);
+      console.log('🚀 Envoi de la requête de mise à jour à Supabase avec données:', partData);
+      
+      // Vérification supplémentaire pour l'ID
+      if (!part.id || isNaN(Number(part.id))) {
+        throw new Error(`ID invalide: ${part.id}`);
+      }
+      
+      // S'assurer que l'ID est bien un nombre
+      const numericId = Number(part.id);
       
       const { data, error } = await supabase
         .from('parts_inventory')
         .update(partData)
-        .eq('id', part.id)
+        .eq('id', numericId)
         .select('*')
         .single();
       
       if (error) {
-        console.error('❌ Supabase update error:', error);
+        console.error('❌ Erreur Supabase lors de la mise à jour:', error);
         throw error;
       }
       
-      console.log('✅ Supabase update successful, response:', data);
+      if (!data) {
+        console.error('❌ Aucune donnée retournée après la mise à jour');
+        throw new Error('Aucune donnée retournée après la mise à jour');
+      }
       
-      // Return the updated part with all fields
+      console.log('✅ Mise à jour Supabase réussie, réponse:', data);
+      
+      // Retourner la pièce mise à jour avec tous les champs
       return {
         id: data.id,
         name: data.name,
@@ -120,7 +135,7 @@ export const partsService = {
         image: part.image || 'https://placehold.co/100x100/png'
       };
     } catch (err) {
-      console.error('💥 Exception in updatePart:', err);
+      console.error('💥 Exception dans updatePart:', err);
       throw err;
     }
   },
