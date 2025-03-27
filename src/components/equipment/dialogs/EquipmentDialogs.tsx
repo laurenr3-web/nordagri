@@ -54,16 +54,31 @@ const EquipmentDialogs: React.FC = () => {
       setSelectedEquipment(prev => {
         if (!prev) return null;
         
+        // Get the string values for date fields with safe fallbacks
+        let lastMaintenanceStr = '';
+        if (result.lastMaintenance) {
+          if (result.lastMaintenance instanceof Date) {
+            lastMaintenanceStr = result.lastMaintenance.toISOString();
+          } else if (typeof result.lastMaintenance === 'string') {
+            lastMaintenanceStr = result.lastMaintenance;
+          }
+        }
+        
+        let purchaseDateStr = '';
+        if (result.purchaseDate) {
+          if (result.purchaseDate instanceof Date) {
+            purchaseDateStr = result.purchaseDate.toISOString();
+          } else if (typeof result.purchaseDate === 'string') {
+            purchaseDateStr = result.purchaseDate;
+          }
+        }
+        
         return {
           ...prev,
           ...result,
-          // Convert potential Date objects to strings for type compatibility
-          lastMaintenance: typeof result.lastMaintenance === 'object' && result.lastMaintenance instanceof Date 
-            ? result.lastMaintenance.toISOString() 
-            : result.lastMaintenance?.toString?.() || prev.lastMaintenance || '',
-          purchaseDate: typeof result.purchaseDate === 'object' && result.purchaseDate instanceof Date 
-            ? result.purchaseDate.toISOString() 
-            : result.purchaseDate?.toString?.() || prev.purchaseDate || '',
+          // Apply string values for date fields
+          lastMaintenance: lastMaintenanceStr || prev.lastMaintenance || '',
+          purchaseDate: purchaseDateStr || prev.purchaseDate || '',
           // Keep UI properties
           usage: prev.usage,
           nextService: prev.nextService
