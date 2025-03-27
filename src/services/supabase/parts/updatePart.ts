@@ -3,118 +3,58 @@ import { supabase } from '@/integrations/supabase/client';
 import { Part } from '@/types/Part';
 
 /**
- * Convertit un ID de pièce en nombre si nécessaire
- * @param id L'ID de la pièce qui peut être une chaîne ou un nombre
- * @returns L'ID numérique ou lance une erreur si invalide
- */
-function ensureNumericId(id: string | number): number {
-  const numericId = typeof id === 'string' ? parseInt(id) : id;
-  
-  if (isNaN(numericId)) {
-    throw new Error(`ID invalide: ${id}`);
-  }
-  
-  return numericId;
-}
-
-/**
- * Prépare les données de la pièce pour la mise à jour dans Supabase
- * @param part L'objet pièce à mettre à jour
- * @returns Les données formatées pour Supabase
- */
-function preparePartDataForUpdate(part: Part): any {
-  // Vérifier les valeurs obligatoires
-  if (!part.name) {
-    throw new Error('Le nom de la pièce est obligatoire');
-  }
-  
-  if (!part.partNumber) {
-    throw new Error('Le numéro de référence est obligatoire');
-  }
-  
-  // Vérifier que les valeurs numériques sont valides
-  const price = parseFloat(String(part.price));
-  if (isNaN(price)) {
-    throw new Error('Le prix doit être un nombre valide');
-  }
-  
-  const stock = parseInt(String(part.stock));
-  if (isNaN(stock)) {
-    throw new Error('Le stock doit être un nombre entier valide');
-  }
-  
-  const reorderPoint = parseInt(String(part.reorderPoint));
-  if (isNaN(reorderPoint)) {
-    throw new Error('Le point de réapprovisionnement doit être un nombre valide');
-  }
-  
-  // Structure correcte pour Supabase
-  return {
-    name: part.name,
-    part_number: part.partNumber,
-    category: part.category,
-    supplier: part.manufacturer,
-    compatible_with: Array.isArray(part.compatibility) ? part.compatibility : [],
-    quantity: stock,
-    unit_price: price,
-    location: part.location,
-    reorder_threshold: reorderPoint,
-    updated_at: new Date().toISOString()
-  };
-}
-
-/**
  * Met à jour une pièce existante dans la base de données
  * @param part La pièce avec les valeurs mises à jour
  * @returns Promise résolvant vers la pièce mise à jour
  */
 export async function updatePart(part: Part): Promise<Part> {
-  console.log('🔄 Début de la mise à jour de pièce avec ID:', part.id, 'Type:', typeof part.id, 'Données:', part);
+  console.log('🔄 Début de la mise à jour de pièce avec ID:', part.id);
   
   try {
-    // Conversion de l'ID en nombre
-    const numericId = ensureNumericId(part.id);
+    // Validation des champs obligatoires
+    if (!part.name || part.stock === undefined) {
+      throw new Error("Les champs obligatoires 'name' et 'stock' doivent être définis");
+    }
+
+    // Préparation des données avec correspondance exacte des noms de colonnes
+    const updateData = {
+      name: part.name,
+      part_number: part.partNumber,
+      category: part.category,
+      supplier: part.manufacturer,
+      compatible_with: Array.isArray(part.compatibility) ? part.compatibility : [],
+      quantity: part.stock,
+      unit_price: part.price !== undefined ? part.price : null,
+      location: part.location || null,
+      reorder_threshold: part.reorderPoint || null,
+      image_url: part.image || null,
+      updated_at: new Date().toISOString()
+    };
     
-    // Préparation des données
-    const partData = preparePartDataForUpdate(part);
+    console.log('Données envoyées à Supabase:', updateData);
     
-    // Ajout des logs avant l'appel à Supabase
-    console.log('🚀 Sending update request with data:', partData);
-    
-    const { data, error } = await supabase
+    // Exécution de la requête avec debug complet
+    const { data, error, status } = await supabase
       .from('parts_inventory')
-      .update(partData)
-      .eq('id', numericId)
+      .update(updateData)
+      .eq('id', part.id)
       .select('*')
       .single();
     
-    // Ajout des logs après l'appel à Supabase
     if (error) {
-      console.error('❌ Supabase error during update:', error);
-      console.error('Error details:', error.details);
-      
-      // Personnalisation des messages d'erreur
-      if (error.code === '23505') {
-        throw new Error('Cette référence de pièce existe déjà dans l\'inventaire');
-      } else if (error.code === '23502') {
-        throw new Error('Un ou plusieurs champs obligatoires sont manquants');
-      } else if (error.code === '42P01') {
-        throw new Error('Problème de connexion à la base de données');
-      } else if (error.code === '42703') {
-        throw new Error('Structure de données incorrecte');
-      } else {
-        throw error;
-      }
+      console.error('Erreur Supabase:', error);
+      console.error('Code de statut HTTP:', status);
+      throw error;
     }
     
     if (!data) {
-      console.error('❌ Aucune donnée retournée après la mise à jour');
-      throw new Error('Aucune donnée retournée après la mise à jour. La pièce existe-t-elle?');
+      console.error('Aucune donnée retournée après la mise à jour');
+      throw new Error('Pièce non trouvée ou problème de permissions');
     }
     
-    console.log('✅ Mise à jour Supabase réussie, réponse:', data);
+    console.log('Mise à jour réussie, données retournées:', data);
     
-    // Retourner la pièce mise à jour avec tous les champs
+    // Mappage correct des données retournées
     return {
       id: data.id,
       name: data.name,
@@ -126,15 +66,10 @@ export async function updatePart(part: Part): Promise<Part> {
       price: data.unit_price !== null ? data.unit_price : 0,
       location: data.location || '',
       reorderPoint: data.reorder_threshold || 5,
-      image: part.image || 'https://placehold.co/100x100/png'
+      image: data.image_url || 'https://placehold.co/100x100/png'
     };
   } catch (err: any) {
-    console.error('💥 Exception dans updatePart:', err);
-    throw {
-      message: err.message || 'Échec de la mise à jour de la pièce',
-      code: err.code,
-      details: err.details,
-      originalError: err
-    };
+    console.error('Exception lors de la mise à jour:', err);
+    throw err;
   }
 }
