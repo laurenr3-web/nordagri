@@ -27,80 +27,7 @@ export const partsService = {
       price: part.unit_price !== null ? part.unit_price : 0,
       location: part.location || '',
       reorderPoint: part.reorder_threshold || 5,
-      image: part.image_url || 'https://placehold.co/100x100/png'
-    }));
-  },
-  
-  // Fetch parts that are compatible with a specific equipment
-  async getPartsForEquipment(equipmentId: number): Promise<Part[]> {
-    console.log(`🔍 Fetching parts compatible with equipment ID ${equipmentId}...`);
-    
-    // First, get equipment details to check the name or model
-    const { data: equipmentData, error: equipmentError } = await supabase
-      .from('equipment')
-      .select('name, model, manufacturer')
-      .eq('id', equipmentId)
-      .single();
-    
-    if (equipmentError) {
-      console.error('Error fetching equipment:', equipmentError);
-      throw equipmentError;
-    }
-    
-    if (!equipmentData) {
-      throw new Error(`Equipment with ID ${equipmentId} not found`);
-    }
-    
-    // Create search terms based on equipment data
-    const searchTerms = [
-      equipmentData.name, 
-      equipmentData.model, 
-      `${equipmentData.manufacturer} ${equipmentData.model}`
-    ].filter(Boolean);
-    
-    // Fetch parts that have any of these terms in their compatibility array
-    const { data, error } = await supabase
-      .from('parts_inventory')
-      .select('*');
-    
-    if (error) {
-      console.error('Error fetching compatible parts:', error);
-      throw error;
-    }
-    
-    // Filter parts where compatibility array contains any of the search terms
-    // or where the equipment ID is directly in the compatibility array
-    const compatibleParts = (data || []).filter(part => {
-      if (!part.compatible_with) return false;
-      
-      // Check if equipment ID is in compatibility array as a number or string
-      const hasEquipmentId = part.compatible_with.some(
-        (item: any) => item === equipmentId || item === equipmentId.toString()
-      );
-      
-      // Check if any search term is in compatibility array
-      const hasCompatibleTerm = searchTerms.some(term => 
-        term && part.compatible_with.some(
-          (item: string) => typeof item === 'string' && item.toLowerCase().includes(term.toLowerCase())
-        )
-      );
-      
-      return hasEquipmentId || hasCompatibleTerm;
-    });
-    
-    // Convert database records to Part objects
-    return compatibleParts.map(part => ({
-      id: part.id,
-      name: part.name,
-      partNumber: part.part_number || '',
-      category: part.category || '',
-      manufacturer: part.supplier || '',
-      compatibility: part.compatible_with || [],
-      stock: part.quantity,
-      price: part.unit_price !== null ? part.unit_price : 0,
-      location: part.location || '',
-      reorderPoint: part.reorder_threshold || 5,
-      image: part.image_url || 'https://placehold.co/100x100/png'
+      image: 'https://placehold.co/100x100/png'
     }));
   },
   
@@ -228,7 +155,7 @@ export const partsService = {
 };
 
 // Add individual function exports for direct imports
-export const { getParts, addPart, updatePart, deletePart, getPartsForEquipment } = partsService;
+export const { getParts, addPart, updatePart, deletePart } = partsService;
 
 // Explicitly expose for browser console testing
 if (typeof window !== 'undefined') {
