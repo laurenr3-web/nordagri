@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 
@@ -15,7 +16,7 @@ export interface Equipment {
   lastMaintenance?: Date;
   nextMaintenance?: Date;
   notes?: string;
-  image?: string; // Keep in the interface but not in the database
+  image?: string; // Client-side property only, not stored in database
   type?: string;
   category?: string;
 }
@@ -111,10 +112,10 @@ export const equipmentService = {
       imagePath = await uploadEquipmentImage(imageFile);
     }
     
-    const equipmentData = mapEquipmentToDatabase({
-      ...equipment,
-      image: imagePath
-    });
+    // Separate image from data to be sent to the database
+    const { image, ...equipmentWithoutImage } = equipment;
+    
+    const equipmentData = mapEquipmentToDatabase(equipmentWithoutImage);
     
     const { error } = await supabase
       .from('equipment')
