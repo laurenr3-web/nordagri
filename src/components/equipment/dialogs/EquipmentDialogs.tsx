@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import EquipmentForm from '@/components/equipment/EquipmentForm';
@@ -7,11 +6,14 @@ import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import { useAddEquipment } from '@/hooks/equipment/useAddEquipment';
 import { EquipmentFormValues } from '../form/equipmentFormTypes';
 import { toast } from 'sonner';
+import { equipmentService } from '@/services/supabase/equipmentService';
+import { useQueryClient } from '@tanstack/react-query';
 
 const EquipmentDialogs: React.FC = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedEquipment, setSelectedEquipment] = useState<EquipmentItem | null>(null);
   const { mutate, isPending } = useAddEquipment();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     // Listen for custom events to open the dialogs
@@ -36,10 +38,43 @@ const EquipmentDialogs: React.FC = () => {
     };
   }, []);
 
-  const handleEquipmentUpdate = (updatedEquipment: any) => {
-    console.log('Equipment updated:', updatedEquipment);
-    setSelectedEquipment(null); // Close the dialog after update
-    toast.success("Équipement mis à jour avec succès");
+  const handleEquipmentUpdate = async (updatedEquipment: any) => {
+    console.log('Equipment dialog updating equipment:', updatedEquipment);
+    
+    try {
+      // Remove UI-specific properties before sending to server
+      const { usage, nextService, ...equipmentToUpdate } = updatedEquipment;
+      
+      // Call the update service
+      const result = await equipmentService.updateEquipment(equipmentToUpdate);
+      
+      console.log('Equipment updated successfully:', result);
+      
+      // Update the local state
+      setSelectedEquipment(prev => prev ? {
+        ...prev,
+        ...result,
+        // Keep UI properties
+        usage: prev.usage,
+        nextService: prev.nextService
+      } : null);
+      
+      // Invalidate queries to refresh data across the app
+      queryClient.invalidateQueries({ queryKey: ['equipment'] });
+      if (updatedEquipment.id) {
+        queryClient.invalidateQueries({ queryKey: ['equipment', updatedEquipment.id] });
+      }
+      
+      // Close the dialog
+      setTimeout(() => setSelectedEquipment(null), 500);
+      
+      toast.success("Équipement mis à jour avec succès");
+    } catch (error: any) {
+      console.error("Erreur lors de la mise à jour de l'équipement:", error);
+      toast.error("Erreur lors de la mise à jour de l'équipement", { 
+        description: error.message || "Une erreur s'est produite"
+      });
+    }
   };
 
   const handleAddEquipment = (data: EquipmentFormValues) => {

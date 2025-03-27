@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
@@ -50,13 +49,33 @@ const EquipmentDetail = () => {
   const handleEquipmentUpdate = async (updatedEquipment: any) => {
     try {
       console.log('Updating equipment:', updatedEquipment);
-      const result = await equipmentService.updateEquipment(updatedEquipment);
-      setEquipment(result);
+      setLoading(true);
+      
+      // Remove any UI-specific properties before sending to the server
+      const { usage, nextService, ...equipmentForUpdate } = updatedEquipment;
+      
+      const result = await equipmentService.updateEquipment(equipmentForUpdate);
+      console.log('Update result:', result);
+      
+      // Update local state with the result from the server
+      setEquipment(prev => ({
+        ...prev,
+        ...result,
+        // Keep UI-specific properties that aren't stored in the database
+        usage: prev?.usage || { hours: 0, target: 500 },
+        nextService: prev?.nextService || { type: 'Regular maintenance', due: 'In 30 days' }
+      }));
+      
+      // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['equipment'] });
+      queryClient.invalidateQueries({ queryKey: ['equipment', Number(id)] });
+      
       toast.success('Équipement mis à jour avec succès');
     } catch (error: any) {
       console.error('Error updating equipment:', error);
       toast.error(`Erreur lors de la mise à jour : ${error.message}`);
+    } finally {
+      setLoading(false);
     }
   };
   

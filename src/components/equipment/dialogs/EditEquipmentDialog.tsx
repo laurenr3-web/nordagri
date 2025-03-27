@@ -29,6 +29,8 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
   const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
   const [customCategories, setCustomCategories] = useState<string[]>([]);
 
+  console.log('Editing equipment:', equipment);
+
   // Format equipment data for the form, ensuring purchaseDate is properly formatted
   const defaultValues: EquipmentFormValues = {
     name: equipment.name,
@@ -45,31 +47,41 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
     image: equipment.image,
   };
 
+  console.log('Form default values:', defaultValues);
+
   const form = useForm<EquipmentFormValues>({
     resolver: zodResolver(equipmentFormSchema),
     defaultValues,
   });
 
   const handleFormSubmit = (data: EquipmentFormValues) => {
-    // Convert form data back to equipment object format
-    const updatedEquipment = {
-      ...equipment,
-      name: data.name,
-      type: data.type,
-      category: data.category.charAt(0).toUpperCase() + data.category.slice(1),
-      manufacturer: data.manufacturer,
-      model: data.model,
-      year: parseInt(data.year),
-      serialNumber: data.serialNumber,
-      status: data.status,
-      location: data.location,
-      purchaseDate: data.purchaseDate,
-      notes: data.notes,
-      image: data.image,
-    };
-    
-    onSubmit(updatedEquipment);
-    toast.success('Equipment updated successfully');
+    try {
+      console.log('Form submitted with values:', data);
+      
+      // Convert form data back to equipment object format
+      const updatedEquipment = {
+        ...equipment,
+        name: data.name,
+        type: data.type,
+        category: data.category.charAt(0).toUpperCase() + data.category.slice(1),
+        manufacturer: data.manufacturer,
+        model: data.model,
+        year: parseInt(data.year),
+        serialNumber: data.serialNumber,
+        status: data.status,
+        location: data.location,
+        purchaseDate: data.purchaseDate,
+        notes: data.notes,
+        image: data.image,
+      };
+      
+      console.log('Updated equipment to be submitted:', updatedEquipment);
+      onSubmit(updatedEquipment);
+      toast.success('Equipment updated successfully');
+    } catch (error) {
+      console.error('Error updating equipment:', error);
+      toast.error('Failed to update equipment');
+    }
   };
 
   const addNewCategory = (category: string) => {
