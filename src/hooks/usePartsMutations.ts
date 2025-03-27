@@ -22,9 +22,12 @@ export function useCreatePart() {
       });
     },
     onError: (error: any) => {
+      const errorMessage = error.message || "Impossible d'ajouter la pièce";
+      console.error('Erreur lors de l'ajout de pièce:', errorMessage);
+      
       toast({
-        title: "Erreur",
-        description: error.message || "Impossible d'ajouter la pièce",
+        title: "Erreur d'ajout",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -84,10 +87,21 @@ export function useUpdatePart() {
         queryClient.setQueryData(['parts'], context.previousParts);
       }
       
-      // Afficher une notification d'erreur
+      // Déterminer un message d'erreur plus précis
+      let errorMessage = "Impossible de mettre à jour la pièce";
+      
+      if (error.code === '23505') {
+        errorMessage = "Cette référence de pièce existe déjà.";
+      } else if (error.code === '23502') {
+        errorMessage = "Des champs obligatoires sont manquants.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      // Afficher une notification d'erreur détaillée
       toast({
         title: "Erreur de modification",
-        description: error.message || "Impossible de mettre à jour la pièce",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -121,9 +135,12 @@ export function useDeletePart() {
       });
     },
     onError: (error: any) => {
+      const errorMessage = error.message || "Impossible de supprimer la pièce";
+      console.error('Erreur lors de la suppression:', errorMessage);
+      
       toast({
         title: "Erreur de suppression",
-        description: error.message || "Impossible de supprimer la pièce",
+        description: errorMessage,
         variant: "destructive",
       });
     },

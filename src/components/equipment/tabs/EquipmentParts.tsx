@@ -26,7 +26,8 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = ({ equipment }) => {
     setIsEditDialogOpen,
     handleEditPart,
     handlePartUpdated,
-    handleAddPart
+    handleAddPart,
+    isUpdating
   } = useEquipmentParts(equipment);
 
   if (loading) {
@@ -56,7 +57,9 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = ({ equipment }) => {
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Modifier la pièce</DialogTitle>
+              <DialogTitle>
+                {isUpdating ? 'Mise à jour en cours...' : 'Modifier la pièce'}
+              </DialogTitle>
             </DialogHeader>
             {selectedPart && (
               <EditPartForm 

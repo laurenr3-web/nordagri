@@ -6,9 +6,14 @@ import { DialogFooter } from '@/components/ui/dialog';
 interface FormActionsProps {
   onCancel: () => void;
   isSubmitting?: boolean;
+  isError?: boolean;
 }
 
-const FormActions: React.FC<FormActionsProps> = ({ onCancel, isSubmitting = false }) => {
+const FormActions: React.FC<FormActionsProps> = ({ 
+  onCancel, 
+  isSubmitting = false,
+  isError = false
+}) => {
   return (
     <DialogFooter>
       <Button 
@@ -22,6 +27,7 @@ const FormActions: React.FC<FormActionsProps> = ({ onCancel, isSubmitting = fals
       <Button 
         type="submit" 
         disabled={isSubmitting}
+        variant={isError ? "destructive" : "default"}
         aria-label="Enregistrer les modifications"
       >
         {isSubmitting ? 'Enregistrement...' : 'Enregistrer les modifications'}
