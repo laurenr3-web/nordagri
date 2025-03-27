@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -11,6 +11,7 @@ import ImageField from '../form/ImageField';
 import NotesField from '../form/NotesField';
 import AddCategorySection from './form/AddCategorySection';
 import { equipmentFormSchema, type EquipmentFormValues } from './form/EquipmentFormSchema';
+import { Form } from '@/components/ui/form';
 
 interface EditEquipmentDialogProps {
   isOpen: boolean;
@@ -36,10 +37,10 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
     manufacturer: equipment.manufacturer,
     model: equipment.model,
     year: equipment.year.toString(),
-    serialNumber: equipment.serialNumber,
+    serialNumber: equipment.serialNumber || '',
     status: equipment.status,
     location: equipment.location,
-    purchaseDate: new Date(equipment.purchaseDate),
+    purchaseDate: equipment.purchaseDate ? new Date(equipment.purchaseDate) : undefined,
     notes: equipment.notes || '',
     image: equipment.image,
   };
@@ -86,31 +87,33 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <BasicInfoFields 
-              form={form}
-              customCategories={customCategories}
-              onAddCategoryClick={() => setIsAddCategoryDialogOpen(true)}
-              language="en"
-            />
-            
-            <AdditionalInfoFields 
-              form={form}
-              language="en"
-            />
-          </div>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <BasicInfoFields 
+                form={form}
+                customCategories={customCategories}
+                onAddCategoryClick={() => setIsAddCategoryDialogOpen(true)}
+                language="en"
+              />
+              
+              <AdditionalInfoFields 
+                form={form}
+                language="en"
+              />
+            </div>
 
-          <ImageField form={form} />
-          <NotesField form={form} />
+            <ImageField form={form} />
+            <NotesField form={form} />
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit">Update Equipment</Button>
-          </DialogFooter>
-        </form>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">Update Equipment</Button>
+            </DialogFooter>
+          </form>
+        </Form>
 
         <AddCategorySection
           isOpen={isAddCategoryDialogOpen}

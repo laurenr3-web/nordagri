@@ -72,7 +72,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
                 </td>
                 <td className="p-3">{item.type}</td>
                 <td className="p-3">{item.manufacturer}</td>
-                <td className="p-3">{item.serialNumber}</td>
+                <td className="p-3">{item.serialNumber || '-'}</td>
                 <td className="p-3">{item.year}</td>
                 <td className="p-3">
                   <span className={`text-xs font-medium px-2 py-1 rounded-full ${getStatusColor(item.status)}`}>
