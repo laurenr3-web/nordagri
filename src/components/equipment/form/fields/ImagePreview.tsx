@@ -6,9 +6,14 @@ import { X } from 'lucide-react';
 interface ImagePreviewProps {
   imageUrl?: string;
   onReset: () => void;
+  altText?: string;
 }
 
-const ImagePreview: React.FC<ImagePreviewProps> = ({ imageUrl, onReset }) => {
+const ImagePreview: React.FC<ImagePreviewProps> = ({ 
+  imageUrl, 
+  onReset,
+  altText = "Preview image" 
+}) => {
   if (!imageUrl) return null;
 
   return (
@@ -16,8 +21,13 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({ imageUrl, onReset }) => {
       <div className="aspect-video w-full max-w-md mx-auto">
         <img
           src={imageUrl}
-          alt="Equipment preview"
+          alt={altText}
           className="object-cover w-full h-full"
+          onError={(e) => {
+            // If image fails to load, set a placeholder
+            const target = e.target as HTMLImageElement;
+            target.src = 'https://placehold.co/400x300/png?text=No+Image';
+          }}
         />
       </div>
       <Button 

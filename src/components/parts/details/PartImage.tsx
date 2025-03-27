@@ -17,6 +17,11 @@ const PartImage: React.FC<PartImageProps> = ({ part }) => {
         src={part.image} 
         alt={part.name}
         className="w-full h-full object-cover"
+        onError={(e) => {
+          // If image fails to load, set a placeholder
+          const target = e.target as HTMLImageElement;
+          target.src = 'https://placehold.co/400x300/png?text=No+Image';
+        }}
       />
       {isLowStock && (
         <div className="absolute top-2 right-2">

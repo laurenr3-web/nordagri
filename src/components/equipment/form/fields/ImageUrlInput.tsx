@@ -5,14 +5,19 @@ import { Input } from '@/components/ui/input';
 interface ImageUrlInputProps {
   value: string;
   onChange: (value: string) => void;
+  placeholder?: string;
 }
 
-const ImageUrlInput: React.FC<ImageUrlInputProps> = ({ value, onChange }) => {
+const ImageUrlInput: React.FC<ImageUrlInputProps> = ({ 
+  value, 
+  onChange, 
+  placeholder = "https://example.com/image.jpg" 
+}) => {
   return (
     <Input 
       type="text" 
-      placeholder="https://example.com/image.jpg" 
-      value={value} 
+      placeholder={placeholder}
+      value={value || ''} 
       onChange={(e) => onChange(e.target.value)} 
       className="flex-1"
     />

@@ -2,10 +2,9 @@
 import React from 'react';
 import { FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { UseFormReturn } from 'react-hook-form';
-import { Input } from '@/components/ui/input';
 import { PartFormValues } from '../partFormTypes';
 import CameraCapture from '@/components/equipment/form/CameraCapture';
-import { FormControl } from '@/components/ui/form';
+import ImageUrlInput from '@/components/equipment/form/fields/ImageUrlInput';
 import ImagePreview from '@/components/equipment/form/fields/ImagePreview';
 
 interface ImageFieldProps {
@@ -22,9 +21,11 @@ const ImageField: React.FC<ImageFieldProps> = ({ form }) => {
           <FormLabel>Image</FormLabel>
           <div className="flex flex-col space-y-3">
             <div className="flex items-center space-x-2">
-              <FormControl>
-                <Input placeholder="https://example.com/image.jpg" {...field} />
-              </FormControl>
+              <ImageUrlInput 
+                value={field.value || ''}
+                onChange={(value) => form.setValue('image', value)}
+                placeholder="https://example.com/image.jpg"
+              />
               
               <CameraCapture 
                 onCapture={(imageDataUrl) => {
@@ -33,10 +34,10 @@ const ImageField: React.FC<ImageFieldProps> = ({ form }) => {
               />
             </div>
             
-            {/* Use the ImagePreview component instead of duplicating the code */}
             <ImagePreview 
-              imageUrl={field.value} 
+              imageUrl={field.value}
               onReset={() => form.setValue('image', '')}
+              altText="Part preview"
             />
             
             <FormDescription>

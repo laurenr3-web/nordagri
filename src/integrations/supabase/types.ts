@@ -162,6 +162,7 @@ export type Database = {
           compatible_with: string[] | null
           created_at: string | null
           id: number
+          image_url: string | null
           last_ordered: string | null
           location: string | null
           name: string
@@ -177,6 +178,7 @@ export type Database = {
           compatible_with?: string[] | null
           created_at?: string | null
           id?: number
+          image_url?: string | null
           last_ordered?: string | null
           location?: string | null
           name: string
@@ -192,6 +194,7 @@ export type Database = {
           compatible_with?: string[] | null
           created_at?: string | null
           id?: number
+          image_url?: string | null
           last_ordered?: string | null
           location?: string | null
           name?: string
