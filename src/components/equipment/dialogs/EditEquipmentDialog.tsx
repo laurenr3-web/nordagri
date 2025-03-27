@@ -28,7 +28,7 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
   const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
   const [customCategories, setCustomCategories] = useState<string[]>([]);
 
-  // Format equipment data for the form
+  // Format equipment data for the form, ensuring purchaseDate is properly formatted
   const defaultValues: EquipmentFormValues = {
     name: equipment.name,
     type: equipment.type,
@@ -39,7 +39,7 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
     serialNumber: equipment.serialNumber,
     status: equipment.status,
     location: equipment.location,
-    purchaseDate: new Date(equipment.purchaseDate).toISOString().split('T')[0],
+    purchaseDate: new Date(equipment.purchaseDate),
     notes: equipment.notes || '',
     image: equipment.image,
   };

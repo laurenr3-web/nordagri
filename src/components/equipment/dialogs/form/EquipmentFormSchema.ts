@@ -11,7 +11,7 @@ export const equipmentFormSchema = z.object({
   serialNumber: z.string().min(1, { message: 'Serial number is required.' }),
   status: z.string().min(1, { message: 'Please select a status.' }),
   location: z.string().min(1, { message: 'Location is required.' }),
-  purchaseDate: z.string().min(1, { message: 'Purchase date is required.' }),
+  purchaseDate: z.coerce.date(),
   notes: z.string().optional(),
   image: z.string().optional(),
 });

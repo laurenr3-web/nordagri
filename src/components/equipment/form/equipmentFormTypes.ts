@@ -22,7 +22,7 @@ export const equipmentFormSchema = z.object({
   status: z.string().default("operational"),
   location: z.string().optional(),
   serialNumber: z.string().optional(),
-  purchaseDate: z.date().optional(),
+  purchaseDate: z.coerce.date().optional(),
   notes: z.string().optional(),
   image: z.string().optional(),
 });
