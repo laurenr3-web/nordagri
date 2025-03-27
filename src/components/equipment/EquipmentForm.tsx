@@ -12,7 +12,7 @@ import ImageField from './form/ImageField';
 import NotesField from './form/NotesField';
 import AddCategoryDialog from './form/AddCategoryDialog';
 
-const EquipmentForm: React.FC<EquipmentFormProps> = ({ onSubmit, onCancel }) => {
+const EquipmentForm: React.FC<EquipmentFormProps> = ({ onSubmit, onCancel, isSubmitting = false }) => {
   const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
   const [customCategories, setCustomCategories] = useState<string[]>([]);
 
@@ -36,11 +36,12 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ onSubmit, onCancel }) => 
 
   const handleSubmit = (data: EquipmentFormValues) => {
     try {
+      console.log('Submitting equipment data:', data);
       onSubmit(data);
-      toast.success("Equipment added successfully.", {
-        description: `${data.name} has been added successfully.`
-      });
+      
+      // Toast will be shown by the parent component after successful API call
     } catch (error) {
+      console.error('Error submitting form:', error);
       toast.error("Failed to add equipment", {
         description: "Please try again."
       });
@@ -72,7 +73,9 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ onSubmit, onCancel }) => 
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancel
             </Button>
-            <Button type="submit">Add Equipment</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Adding...' : 'Add Equipment'}
+            </Button>
           </div>
         </form>
       </Form>

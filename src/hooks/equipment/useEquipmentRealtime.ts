@@ -16,7 +16,7 @@ export function useEquipmentRealtime() {
   // Set up the realtime subscription
   const { isSubscribed, error } = useRealtimeSubscription<Equipment>({
     tableName: 'equipment',
-    showNotifications: false,
+    showNotifications: true, // Show notification toasts for equipment changes
     onInsert: (payload: RealtimePostgresChangesPayload<Equipment>) => {
       console.log('Equipment added:', payload.new);
       // Invalidate equipment queries to refetch data

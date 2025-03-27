@@ -39,11 +39,16 @@ export function useEquipmentData() {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
   
-  // Add equipment mutation
+  // Add equipment mutation with better logging
   const addEquipmentMutation = useMutation({
-    mutationFn: ({ equipment, imageFile }: { equipment: Omit<Equipment, 'id'>, imageFile?: File }) => 
-      equipmentService.addEquipment(equipment, imageFile),
+    mutationFn: ({ equipment, imageFile }: { equipment: Omit<Equipment, 'id'>, imageFile?: File }) => {
+      console.log('📤 Sending equipment to Supabase:', equipment);
+      return equipmentService.addEquipment(equipment, imageFile);
+    },
     onSuccess: (newEquipment) => {
+      console.log('✅ Equipment successfully added:', newEquipment);
+      
+      // Update cache and refetch
       queryClient.invalidateQueries({ queryKey: ['equipment'] });
       queryClient.invalidateQueries({ queryKey: ['equipment-stats'] });
       queryClient.invalidateQueries({ queryKey: ['equipment-filter-options'] });
@@ -54,7 +59,7 @@ export function useEquipmentData() {
       });
     },
     onError: (error: Error) => {
-      console.error('Error adding equipment:', error);
+      console.error('❌ Error adding equipment:', error);
       toast({
         title: 'Erreur',
         description: `Impossible d'ajouter l'équipement: ${error.message}`,
@@ -68,6 +73,9 @@ export function useEquipmentData() {
     mutationFn: ({ equipment, imageFile }: { equipment: Equipment, imageFile?: File }) => 
       equipmentService.updateEquipment(equipment, imageFile),
     onSuccess: (updatedEquipment) => {
+      console.log('✅ Equipment successfully updated:', updatedEquipment);
+      
+      // Update cache and refetch
       queryClient.invalidateQueries({ queryKey: ['equipment'] });
       queryClient.invalidateQueries({ queryKey: ['equipment', updatedEquipment.id] });
       queryClient.invalidateQueries({ queryKey: ['equipment-stats'] });
@@ -78,7 +86,7 @@ export function useEquipmentData() {
       });
     },
     onError: (error: Error) => {
-      console.error('Error updating equipment:', error);
+      console.error('❌ Error updating equipment:', error);
       toast({
         title: 'Erreur',
         description: `Impossible de mettre à jour l'équipement: ${error.message}`,
@@ -91,6 +99,9 @@ export function useEquipmentData() {
   const deleteEquipmentMutation = useMutation({
     mutationFn: (equipmentId: number) => equipmentService.deleteEquipment(equipmentId),
     onSuccess: (_, equipmentId) => {
+      console.log('✅ Equipment successfully deleted, ID:', equipmentId);
+      
+      // Update cache and refetch
       queryClient.invalidateQueries({ queryKey: ['equipment'] });
       queryClient.invalidateQueries({ queryKey: ['equipment-stats'] });
       queryClient.invalidateQueries({ queryKey: ['equipment-filter-options'] });
@@ -101,7 +112,7 @@ export function useEquipmentData() {
       });
     },
     onError: (error: Error) => {
-      console.error('Error deleting equipment:', error);
+      console.error('❌ Error deleting equipment:', error);
       toast({
         title: 'Erreur',
         description: `Impossible de supprimer l'équipement: ${error.message}`,
