@@ -2,6 +2,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { equipmentService, Equipment } from '@/services/supabase/equipmentService';
 import { toast } from 'sonner';
+import { isDataUrl, dataUrlToFile } from '@/services/supabase/equipment/utils';
 
 /**
  * Hook for adding new equipment items
@@ -11,9 +12,23 @@ export const useAddEquipment = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (newEquipment: Omit<Equipment, 'id'>) => {
+    mutationFn: async (newEquipment: Omit<Equipment, 'id'>) => {
       console.log('Tentative d\'ajout d\'équipement:', newEquipment);
-      return equipmentService.addEquipment(newEquipment);
+      
+      // Check if image is a data URL from camera capture
+      let imageFile: File | undefined;
+      if (newEquipment.image && isDataUrl(newEquipment.image)) {
+        // Convert data URL to File
+        console.log('Converting data URL to File');
+        imageFile = dataUrlToFile(
+          newEquipment.image, 
+          `equipment-${Date.now()}.jpg`
+        );
+        // Clear the image URL since we're uploading a file
+        newEquipment.image = undefined;
+      }
+      
+      return equipmentService.addEquipment(newEquipment, imageFile);
     },
     onSuccess: (data) => {
       console.log('Équipement ajouté avec succès:', data);

@@ -13,13 +13,17 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [streamActive, setStreamActive] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
-  // Clean up camera stream when component unmounts
+  // Clean up camera stream when component unmounts or popover closes
   useEffect(() => {
+    if (!isOpen) {
+      stopCamera();
+    }
     return () => {
       stopCamera();
     };
-  }, []);
+  }, [isOpen]);
 
   const startCamera = async () => {
     try {
@@ -64,22 +68,29 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
         const imageDataUrl = canvas.toDataURL('image/jpeg');
         onCapture(imageDataUrl);
         
-        // Stop the camera stream
-        stopCamera();
+        // Close popover and stop camera
+        setIsOpen(false);
+        toast.success('Photo capturée avec succès');
       }
     }
   };
 
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={(open) => {
+      setIsOpen(open);
+      if (open) {
+        // Start camera when popover opens
+        setTimeout(() => startCamera(), 300);
+      }
+    }}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="icon" type="button">
+        <Button variant="outline" size="icon" type="button" title="Prendre une photo">
           <Camera className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0">
         <div className="p-4 space-y-4">
-          <h4 className="font-medium">Take Photo</h4>
+          <h4 className="font-medium">Prendre une photo</h4>
           
           {/* Video preview for camera */}
           <div className="relative bg-muted rounded-md overflow-hidden">
@@ -97,15 +108,15 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
             {!streamActive ? (
               <Button type="button" onClick={startCamera} className="w-full">
                 <Camera className="mr-2 h-4 w-4" />
-                Start Camera
+                Démarrer la caméra
               </Button>
             ) : (
               <div className="flex space-x-2 w-full">
                 <Button type="button" onClick={captureImage} variant="secondary" className="flex-1">
-                  Take Photo
+                  Prendre une photo
                 </Button>
-                <Button type="button" onClick={stopCamera} variant="outline" className="flex-1">
-                  Cancel
+                <Button type="button" onClick={() => setIsOpen(false)} variant="outline" className="flex-1">
+                  Annuler
                 </Button>
               </div>
             )}

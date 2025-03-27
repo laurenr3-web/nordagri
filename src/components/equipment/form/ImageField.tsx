@@ -1,57 +1,67 @@
 
-import React from 'react';
-import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import React, { useState, useEffect } from 'react';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { UseFormReturn } from 'react-hook-form';
 import { EquipmentFormValues } from './equipmentFormTypes';
-import CameraCapture from './CameraCapture';
 import ImageUrlInput from './fields/ImageUrlInput';
 import ImagePreview from './fields/ImagePreview';
+import CameraCapture from './CameraCapture';
 
 interface ImageFieldProps {
   form: UseFormReturn<EquipmentFormValues>;
-  label?: string;
-  description?: string;
 }
 
-const ImageField: React.FC<ImageFieldProps> = ({ 
-  form,
-  label = "Image",
-  description = "Entrez une URL pour l'image de l'équipement ou prenez une photo"
-}) => {
+const ImageField: React.FC<ImageFieldProps> = ({ form }) => {
+  const [previewUrl, setPreviewUrl] = useState<string>('');
+
+  // Synchroniser la valeur du formulaire avec la prévisualisation
+  useEffect(() => {
+    const imageValue = form.watch('image');
+    setPreviewUrl(imageValue || '');
+  }, [form.watch('image')]);
+
+  // Gestionnaire pour la capture de caméra
+  const handleCameraCapture = (imageDataUrl: string) => {
+    form.setValue('image', imageDataUrl);
+    setPreviewUrl(imageDataUrl);
+  };
+
+  // Réinitialiser l'image
+  const handleImageReset = () => {
+    form.setValue('image', '');
+    setPreviewUrl('');
+  };
+
+  // Forcer la mise à jour de la prévisualisation après modification manuelle de l'URL
+  const handleImageUrlBlur = () => {
+    const imageValue = form.getValues('image');
+    setPreviewUrl(imageValue || '');
+  };
+
   return (
     <FormField
       control={form.control}
       name="image"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{label}</FormLabel>
-          <div className="flex flex-col space-y-3">
-            <div className="flex items-center space-x-2">
+          <FormLabel>Image de l'équipement</FormLabel>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
               <FormControl>
-                <ImageUrlInput 
+                <ImageUrlInput
                   value={field.value || ''}
-                  onChange={(value) => form.setValue('image', value)}
-                  placeholder="https://example.com/image.jpg"
-                  id="equipment-image"
-                  aria-describedby="equipment-image-description"
+                  onChange={field.onChange}
+                  placeholder="URL de l'image ou utilisez la caméra"
+                  onBlur={handleImageUrlBlur}
                 />
               </FormControl>
-              
-              <CameraCapture 
-                onCapture={(imageDataUrl) => {
-                  form.setValue('image', imageDataUrl);
-                }} 
-              />
+              <CameraCapture onCapture={handleCameraCapture} />
             </div>
-            
             <ImagePreview 
-              imageUrl={field.value}
-              onReset={() => form.setValue('image', '')} 
+              imageUrl={previewUrl} 
+              onReset={handleImageReset}
+              altText="Aperçu de l'équipement" 
             />
-            
-            <FormDescription id="equipment-image-description">
-              {description}
-            </FormDescription>
             <FormMessage />
           </div>
         </FormItem>
