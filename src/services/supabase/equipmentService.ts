@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 
@@ -16,7 +15,7 @@ export interface Equipment {
   lastMaintenance?: Date;
   nextMaintenance?: Date;
   notes?: string;
-  image?: string;
+  image?: string; // Keep in the interface but not in the database
   type?: string;
   category?: string;
 }
@@ -79,10 +78,11 @@ export const equipmentService = {
       imagePath = await uploadEquipmentImage(imageFile);
     }
     
-    const equipmentData = mapEquipmentToDatabase({
-      ...equipment,
-      image: imagePath
-    });
+    // Create a copy of the equipment object without the image property
+    const { image, ...equipmentWithoutImage } = equipment;
+    
+    // Convert to database format
+    const equipmentData = mapEquipmentToDatabase(equipmentWithoutImage);
     
     const { data, error } = await supabase
       .from('equipment')
@@ -95,7 +95,11 @@ export const equipmentService = {
       throw error;
     }
     
-    return mapEquipmentFromDatabase(data);
+    // Return the equipment with the image included in the response
+    return {
+      ...mapEquipmentFromDatabase(data),
+      image: imagePath
+    };
   },
   
   // Update equipment with image upload support
@@ -302,12 +306,12 @@ function mapEquipmentFromDatabase(item: any): Equipment {
     notes: item.notes,
     type: item.type || 'Tractor',
     category: item.category || 'Heavy Equipment',
-    image: item.image || 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=500&auto=format&fit=crop'
+    image: 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=500&auto=format&fit=crop' // Default image
   };
 }
 
 // Helper function to map Equipment interface to database fields
-function mapEquipmentToDatabase(equipment: Omit<Equipment, 'id'> & { id?: number }): any {
+function mapEquipmentToDatabase(equipment: Omit<Equipment, 'id' | 'image'> & { id?: number }): any {
   return {
     id: equipment.id,
     name: equipment.name,
@@ -323,8 +327,8 @@ function mapEquipmentToDatabase(equipment: Omit<Equipment, 'id'> & { id?: number
     next_maintenance: equipment.nextMaintenance?.toISOString(),
     notes: equipment.notes,
     type: equipment.type,
-    category: equipment.category,
-    image: equipment.image
+    category: equipment.category
+    // No image field here because it doesn't exist in the database
   };
 }
 
