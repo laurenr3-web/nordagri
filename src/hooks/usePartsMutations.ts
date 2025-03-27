@@ -23,7 +23,7 @@ export function useCreatePart() {
     },
     onError: (error: any) => {
       const errorMessage = error.message || "Impossible d'ajouter la pièce";
-      console.error('Erreur lors de l'ajout de pièce:', errorMessage);
+      console.error("Erreur lors de l'ajout de pièce:", errorMessage);
       
       toast({
         title: "Erreur d'ajout",
@@ -136,7 +136,7 @@ export function useDeletePart() {
     },
     onError: (error: any) => {
       const errorMessage = error.message || "Impossible de supprimer la pièce";
-      console.error('Erreur lors de la suppression:', errorMessage);
+      console.error("Erreur lors de la suppression:", errorMessage);
       
       toast({
         title: "Erreur de suppression",
