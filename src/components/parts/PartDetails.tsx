@@ -25,9 +25,10 @@ interface PartDetailsProps {
   part: Part;
   onEdit?: (part: Part) => void;
   onDelete?: (partId: number) => void;
+  onDialogClose?: () => void;
 }
 
-const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete }) => {
+const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDialogClose }) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
@@ -107,6 +108,7 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete }) => 
           onOpenChange={setIsEditDialogOpen}
           part={part}
           onSubmit={handleEdit}
+          onMainDialogClose={onDialogClose}
         />
       )}
     </div>

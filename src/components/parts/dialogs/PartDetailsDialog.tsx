@@ -36,6 +36,7 @@ const PartDetailsDialog: React.FC<PartDetailsDialogProps> = ({
             part={selectedPart} 
             onEdit={onEdit}
             onDelete={onDelete}
+            onDialogClose={() => onOpenChange(false)}
           />
         )}
       </DialogContent>

@@ -15,6 +15,7 @@ interface EditPartDialogProps {
   onOpenChange: (open: boolean) => void;
   part: Part;
   onSubmit: (updatedPart: Part) => void;
+  onMainDialogClose?: () => void;
 }
 
 const EditPartDialog: React.FC<EditPartDialogProps> = ({
@@ -22,6 +23,7 @@ const EditPartDialog: React.FC<EditPartDialogProps> = ({
   onOpenChange,
   part,
   onSubmit,
+  onMainDialogClose,
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -36,7 +38,8 @@ const EditPartDialog: React.FC<EditPartDialogProps> = ({
         <EditPartForm 
           part={part} 
           onSubmit={onSubmit} 
-          onCancel={() => onOpenChange(false)} 
+          onCancel={() => onOpenChange(false)}
+          onMainDialogClose={onMainDialogClose}
         />
       </DialogContent>
     </Dialog>

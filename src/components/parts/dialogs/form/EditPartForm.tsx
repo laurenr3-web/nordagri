@@ -21,15 +21,23 @@ import ImageField from './ImageField';
 import { partFormSchema } from './editPartFormTypes';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { useUpdatePart } from '@/hooks/parts/useUpdatePart';
 
 interface EditPartFormProps {
   part: Part;
   onSubmit: (part: Part) => void;
   onCancel: () => void;
+  onMainDialogClose?: () => void;
 }
 
-const EditPartForm: React.FC<EditPartFormProps> = ({ part, onSubmit, onCancel }) => {
+const EditPartForm: React.FC<EditPartFormProps> = ({ 
+  part, 
+  onSubmit, 
+  onCancel,
+  onMainDialogClose 
+}) => {
   const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const updatePartMutation = useUpdatePart();
   
   // Initialiser le formulaire avec les valeurs de la pièce existante
   const form = useForm<z.infer<typeof partFormSchema>>({
@@ -51,7 +59,7 @@ const EditPartForm: React.FC<EditPartFormProps> = ({ part, onSubmit, onCancel })
   console.log('Form initialized with values:', form.getValues());
 
   // Gérer la soumission du formulaire
-  const handleSubmit = (values: z.infer<typeof partFormSchema>) => {
+  const handleSubmit = async (values: z.infer<typeof partFormSchema>) => {
     console.log('Form submitted with values:', values);
     setSubmissionError(null); // Reset previous error
     
@@ -88,7 +96,20 @@ const EditPartForm: React.FC<EditPartFormProps> = ({ part, onSubmit, onCancel })
       };
       
       console.log('Sending updated part to parent:', updatedPart);
+      
+      // Attendre explicitement que la mise à jour soit terminée
+      await updatePartMutation.mutateAsync(updatedPart);
+      
+      // IMPORTANT: Fermer d'abord le dialogue d'édition
       onSubmit(updatedPart);
+      
+      // PUIS fermer le dialogue principal après un court délai
+      if (onMainDialogClose) {
+        setTimeout(() => {
+          onMainDialogClose();
+        }, 300);
+      }
+      
     } catch (error: any) {
       console.error('Error processing form submission:', error);
       setSubmissionError(error.message || 'Une erreur est survenue lors de la mise à jour de la pièce.');
@@ -116,7 +137,7 @@ const EditPartForm: React.FC<EditPartFormProps> = ({ part, onSubmit, onCancel })
         </div>
         <FormActions 
           onCancel={onCancel} 
-          isSubmitting={form.formState.isSubmitting}
+          isSubmitting={form.formState.isSubmitting || updatePartMutation.isPending}
           isError={!!submissionError}
         />
       </form>
