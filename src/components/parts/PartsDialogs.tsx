@@ -1,16 +1,15 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Part } from '@/types/Part';
 
-// Import part details
-import PartDetails from '@/components/parts/PartDetails';
-import { AddPartForm } from '@/components/parts/AddPartForm';
+// Part details components
+import PartDetailsDialog from '@/components/parts/dialogs/PartDetailsDialog';
+import AddPartDialog from '@/components/parts/dialogs/AddPartDialog';
 
-// Import dialogs
-import AddCategoryDialog from '@/components/parts/dialogs/AddCategoryDialog';
+// Dialog components
 import FilterDialog from '@/components/parts/dialogs/FilterDialog';
 import SortDialog from '@/components/parts/dialogs/SortDialog';
 import OrderDialog from '@/components/parts/dialogs/OrderDialog';
+import AddCategoryDialog from '@/components/parts/dialogs/AddCategoryDialog';
 
 interface PartsDialogsProps {
   // Part and selection
@@ -110,48 +109,20 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
   return (
     <>
       {/* Part Details Dialog */}
-      <Dialog
-        open={isPartDetailsDialogOpen}
+      <PartDetailsDialog
+        isOpen={isPartDetailsDialogOpen}
         onOpenChange={setIsPartDetailsDialogOpen}
-      >
-        <DialogContent 
-          className="sm:max-w-lg max-h-[90vh] overflow-y-auto"
-          onClick={e => e.stopPropagation()}
-        >
-          <DialogHeader>
-            <DialogTitle>Part Details</DialogTitle>
-            <DialogDescription>
-              Detailed information about the selected part
-            </DialogDescription>
-          </DialogHeader>
-          {selectedPart && (
-            <PartDetails 
-              part={selectedPart} 
-              onEdit={handleEditPart}
-              onDelete={handleDeletePart}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+        selectedPart={selectedPart}
+        onEdit={handleEditPart}
+        onDelete={handleDeletePart}
+      />
       
       {/* Add Part Dialog */}
-      <Dialog 
-        open={isAddPartDialogOpen} 
+      <AddPartDialog
+        isOpen={isAddPartDialogOpen}
         onOpenChange={setIsAddPartDialogOpen}
-      >
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Add New Part</DialogTitle>
-            <DialogDescription>
-              Fill out the form below to add a new part to the inventory
-            </DialogDescription>
-          </DialogHeader>
-          <AddPartForm 
-            onSuccess={handleAddPart}
-            onCancel={() => setIsAddPartDialogOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
+        onSuccess={handleAddPart}
+      />
       
       {/* Filter Dialog */}
       <FilterDialog 
