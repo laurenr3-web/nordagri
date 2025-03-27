@@ -5,7 +5,7 @@ import { User, Session } from '@supabase/supabase-js';
 /**
  * Interface for profile data
  */
-interface ProfileData {
+export interface ProfileData {
   id: string;
   first_name?: string;
   last_name?: string;
