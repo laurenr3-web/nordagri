@@ -7,19 +7,25 @@ import { EquipmentFormValues } from './equipmentFormTypes';
 
 interface NotesFieldProps {
   form: UseFormReturn<EquipmentFormValues>;
+  label?: string;
+  placeholder?: string;
 }
 
-const NotesField: React.FC<NotesFieldProps> = ({ form }) => {
+const NotesField: React.FC<NotesFieldProps> = ({ 
+  form,
+  label = "Notes",
+  placeholder = "Enter any additional information about this equipment"
+}) => {
   return (
     <FormField
       control={form.control}
       name="notes"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Notes</FormLabel>
+          <FormLabel>{label}</FormLabel>
           <FormControl>
             <Textarea
-              placeholder="Enter any additional information about this equipment"
+              placeholder={placeholder}
               className="resize-none"
               {...field}
             />

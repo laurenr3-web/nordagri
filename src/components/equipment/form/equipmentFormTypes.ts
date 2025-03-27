@@ -1,37 +1,30 @@
+
 import { z } from 'zod';
 
 export const equipmentFormSchema = z.object({
   name: z.string().min(2, {
-    message: "Equipment name must be at least 2 characters.",
+    message: "Le nom doit contenir au moins 2 caractères",
   }),
-  type: z.string().min(2, {
-    message: "Equipment type must be at least 2 characters.",
+  type: z.string().min(1, {
+    message: "Veuillez sélectionner un type",
   }),
-  category: z.string().min(2, {
-    message: "Equipment category must be at least 2 characters.",
+  category: z.string().min(1, {
+    message: "Veuillez sélectionner une catégorie",
   }),
-  manufacturer: z.string().min(2, {
-    message: "Equipment manufacturer must be at least 2 characters.",
+  manufacturer: z.string().min(1, {
+    message: "Le fabricant est requis",
   }),
-  model: z.string().min(2, {
-    message: "Equipment model must be at least 2 characters.",
-  }),
+  model: z.string().optional(),
   year: z.string().regex(/^\d{4}$/, {
-    message: "Please enter a valid year.",
+    message: "L'année doit être au format YYYY",
   }),
-  serialNumber: z.string().min(2, {
-    message: "Serial number must be at least 2 characters.",
-  }),
-  status: z.string(),
-  location: z.string().min(2, {
-    message: "Location must be at least 2 characters.",
-  }),
-  purchaseDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
-    message: "Please enter a valid purchase date in YYYY-MM-DD format.",
-  }),
+  status: z.string().default("operational"),
+  location: z.string().optional(),
+  serialNumber: z.string().optional(),
+  purchaseDate: z.date().optional(),
   notes: z.string().optional(),
   image: z.string().url({
-    message: "Please enter a valid URL.",
+    message: "Veuillez entrer une URL valide.",
   }),
 });
 

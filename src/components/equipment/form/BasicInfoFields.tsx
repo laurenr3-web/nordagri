@@ -21,15 +21,18 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
 }) => {
   return (
     <>
-      <NameField form={form} />
-      <TypeField form={form} />
+      <NameField form={form} label="Nom de l'équipement*" placeholder="John Deere 8R 410" />
+      <TypeField form={form} label="Type*" placeholder="Sélectionner un type" />
       <CategoryField 
         form={form} 
         customCategories={customCategories} 
         onAddCategoryClick={onAddCategoryClick} 
+        label="Catégorie*"
+        placeholder="Sélectionner une catégorie"
+        addButtonText="+ Ajouter une catégorie"
       />
-      <ManufacturerField form={form} />
-      <ModelField form={form} />
+      <ManufacturerField form={form} label="Fabricant*" placeholder="John Deere" />
+      <ModelField form={form} label="Modèle" placeholder="8R 410" />
     </>
   );
 };
