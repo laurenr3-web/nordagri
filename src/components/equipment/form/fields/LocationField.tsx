@@ -7,18 +7,24 @@ import { EquipmentFormValues } from '../equipmentFormTypes';
 
 interface LocationFieldProps {
   form: UseFormReturn<EquipmentFormValues>;
+  label?: string;
+  placeholder?: string;
 }
 
-const LocationField: React.FC<LocationFieldProps> = ({ form }) => {
+const LocationField: React.FC<LocationFieldProps> = ({ 
+  form,
+  label = "Location",
+  placeholder = "e.g., North Field" 
+}) => {
   return (
     <FormField
       control={form.control}
       name="location"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Location</FormLabel>
+          <FormLabel>{label}</FormLabel>
           <FormControl>
-            <Input placeholder="e.g., North Field" {...field} />
+            <Input placeholder={placeholder} {...field} />
           </FormControl>
           <FormMessage />
         </FormItem>

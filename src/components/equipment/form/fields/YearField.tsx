@@ -7,18 +7,24 @@ import { EquipmentFormValues } from '../equipmentFormTypes';
 
 interface YearFieldProps {
   form: UseFormReturn<EquipmentFormValues>;
+  label?: string;
+  placeholder?: string;
 }
 
-const YearField: React.FC<YearFieldProps> = ({ form }) => {
+const YearField: React.FC<YearFieldProps> = ({ 
+  form,
+  label = "Year",
+  placeholder = "e.g., 2023" 
+}) => {
   return (
     <FormField
       control={form.control}
       name="year"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Year</FormLabel>
+          <FormLabel>{label}</FormLabel>
           <FormControl>
-            <Input type="number" {...field} />
+            <Input placeholder={placeholder} {...field} />
           </FormControl>
           <FormMessage />
         </FormItem>

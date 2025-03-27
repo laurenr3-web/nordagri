@@ -7,18 +7,24 @@ import { EquipmentFormValues } from '../equipmentFormTypes';
 
 interface ModelFieldProps {
   form: UseFormReturn<EquipmentFormValues>;
+  label?: string;
+  placeholder?: string;
 }
 
-const ModelField: React.FC<ModelFieldProps> = ({ form }) => {
+const ModelField: React.FC<ModelFieldProps> = ({ 
+  form,
+  label = "Model",
+  placeholder = "e.g., 8R 410" 
+}) => {
   return (
     <FormField
       control={form.control}
       name="model"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Model</FormLabel>
+          <FormLabel>{label}</FormLabel>
           <FormControl>
-            <Input placeholder="e.g., 8R 410" {...field} />
+            <Input placeholder={placeholder} {...field} />
           </FormControl>
           <FormMessage />
         </FormItem>

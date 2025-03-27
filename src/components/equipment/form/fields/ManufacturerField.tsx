@@ -7,18 +7,24 @@ import { EquipmentFormValues } from '../equipmentFormTypes';
 
 interface ManufacturerFieldProps {
   form: UseFormReturn<EquipmentFormValues>;
+  label?: string;
+  placeholder?: string;
 }
 
-const ManufacturerField: React.FC<ManufacturerFieldProps> = ({ form }) => {
+const ManufacturerField: React.FC<ManufacturerFieldProps> = ({ 
+  form,
+  label = "Manufacturer",
+  placeholder = "e.g., John Deere" 
+}) => {
   return (
     <FormField
       control={form.control}
       name="manufacturer"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Manufacturer</FormLabel>
+          <FormLabel>{label}</FormLabel>
           <FormControl>
-            <Input placeholder="e.g., John Deere" {...field} />
+            <Input placeholder={placeholder} {...field} />
           </FormControl>
           <FormMessage />
         </FormItem>

@@ -7,20 +7,26 @@ import { EquipmentFormValues } from '../equipmentFormTypes';
 
 interface TypeFieldProps {
   form: UseFormReturn<EquipmentFormValues>;
+  label?: string;
+  placeholder?: string;
 }
 
-const TypeField: React.FC<TypeFieldProps> = ({ form }) => {
+const TypeField: React.FC<TypeFieldProps> = ({ 
+  form,
+  label = "Type",
+  placeholder = "Select type"
+}) => {
   return (
     <FormField
       control={form.control}
       name="type"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Type</FormLabel>
+          <FormLabel>{label}</FormLabel>
           <Select onValueChange={field.onChange} defaultValue={field.value}>
             <FormControl>
               <SelectTrigger>
-                <SelectValue placeholder="Select type" />
+                <SelectValue placeholder={placeholder} />
               </SelectTrigger>
             </FormControl>
             <SelectContent>

@@ -7,18 +7,24 @@ import { EquipmentFormValues } from '../equipmentFormTypes';
 
 interface SerialNumberFieldProps {
   form: UseFormReturn<EquipmentFormValues>;
+  label?: string;
+  placeholder?: string;
 }
 
-const SerialNumberField: React.FC<SerialNumberFieldProps> = ({ form }) => {
+const SerialNumberField: React.FC<SerialNumberFieldProps> = ({ 
+  form,
+  label = "Serial Number",
+  placeholder = "e.g., JD8R410-22-7834" 
+}) => {
   return (
     <FormField
       control={form.control}
       name="serialNumber"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Serial Number</FormLabel>
+          <FormLabel>{label}</FormLabel>
           <FormControl>
-            <Input placeholder="e.g., JD8R410-22-7834" {...field} />
+            <Input placeholder={placeholder} {...field} />
           </FormControl>
           <FormMessage />
         </FormItem>

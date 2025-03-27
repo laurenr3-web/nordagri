@@ -7,18 +7,24 @@ import { EquipmentFormValues } from '../equipmentFormTypes';
 
 interface NameFieldProps {
   form: UseFormReturn<EquipmentFormValues>;
+  label?: string;
+  placeholder?: string;
 }
 
-const NameField: React.FC<NameFieldProps> = ({ form }) => {
+const NameField: React.FC<NameFieldProps> = ({ 
+  form, 
+  label = "Equipment Name",
+  placeholder = "e.g., John Deere 8R 410" 
+}) => {
   return (
     <FormField
       control={form.control}
       name="name"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Equipment Name</FormLabel>
+          <FormLabel>{label}</FormLabel>
           <FormControl>
-            <Input placeholder="e.g., John Deere 8R 410" {...field} />
+            <Input placeholder={placeholder} {...field} />
           </FormControl>
           <FormMessage />
         </FormItem>
