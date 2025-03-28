@@ -10,28 +10,50 @@ export async function getPartTechnicalInfo(partReference: string, partName?: str
       throw new Error('La référence de la pièce est requise');
     }
 
-    // Préparation de la requête
-    const partNameInfo = partName ? `, nom: ${partName}` : '';
-    const requestContent = `Recherchez des informations techniques détaillées sur la pièce agricole avec la référence ${partReference}${partNameInfo}. 
-      Incluez la fonction, les équipements compatibles, le guide d'installation, les symptômes de défaillance, l'entretien requis, 
-      les références alternatives si disponibles, et les avertissements importants. 
-      Répondez au format JSON avec les champs: function, compatibleEquipment (array), installation, symptoms, maintenance, alternatives (array), warnings.`;
+    // Préparation des messages avec une approche plus conversationnelle
+    const messages = [
+      {
+        role: "system",
+        content: `Vous êtes un expert spécialisé dans l'identification de pièces agricoles. 
+        Utilisez votre connaissance des systèmes de numérotation des fabricants pour identifier au mieux cette pièce.
+        Si vous ne trouvez aucune information spécifique, indiquez les fabricants susceptibles d'utiliser ce format de référence 
+        et ce que pourrait être cette pièce basé sur les préfixes ou la structure du numéro.
+        
+        Fournissez vos réponses au format JSON avec la structure suivante: 
+        { 
+          "function": "description détaillée", 
+          "compatibleEquipment": ["liste", "équipements"], 
+          "installation": "guide d'installation", 
+          "symptoms": "symptômes", 
+          "maintenance": "conseils", 
+          "alternatives": ["pièces alternatives"], 
+          "warnings": "avertissements" 
+        }. 
+        
+        Si vous ne connaissez pas certains détails, utilisez "Information non disponible" comme valeur.`
+      },
+      {
+        role: "user",
+        content: `Identifiez la pièce agricole avec la référence ${partReference}${partName ? ` (${partName})` : ''}.
+        En particulier:
+        1. De quel fabricant est-elle probablement (John Deere, Case IH, New Holland, Caterpillar, Kubota, etc.) ?
+        2. À quel type d'équipement est-elle destinée ?
+        3. Quelle est sa fonction ?
+        4. Comment l'installer et la maintenir ?
+        
+        Si vous ne trouvez pas d'information précise sur cette référence, formulez une hypothèse basée sur le format du numéro 
+        et les conventions de numérotation des fabricants d'équipements agricoles.
+        
+        IMPORTANT: Votre réponse doit être UNIQUEMENT un objet JSON valide, sans texte supplémentaire avant ou après.`
+      }
+    ];
 
     console.log(`Demande d'informations techniques pour: ${partReference}`);
     
-    // Envoi de la requête
+    // Envoi de la requête avec les nouveaux messages structurés
     const response = await perplexityClient.post('/chat/completions', {
       model: "sonar-medium-online",
-      messages: [
-        {
-          role: "system",
-          content: "Vous êtes un assistant spécialisé dans les pièces détachées agricoles. Retournez les informations techniques demandées au format JSON structuré."
-        },
-        {
-          role: "user",
-          content: requestContent
-        }
-      ],
+      messages: messages,
       temperature: 0.2,
       max_tokens: 2048
     });
@@ -45,7 +67,7 @@ export async function getPartTechnicalInfo(partReference: string, partName?: str
     const content = response.data.choices[0].message.content;
     console.log("Réponse technique reçue de Perplexity");
     
-    // Transformation en format structuré avec la nouvelle fonction de parsing améliorée
+    // Transformation en format structuré avec la fonction de parsing
     return parseResponse(content);
     
   } catch (error) {
