@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, RefreshCw, AlertCircle, Wrench, CheckCircle, Info } from 'lucide-react';
 import { toast } from 'sonner';
-import { partsTechnicalService, PartTechnicalInfo } from '@/services/perplexity/partsTechnicalService';
+import { partsTechnicalService } from '@/services/perplexity/partsTechnicalService';
+import type { PartTechnicalInfo } from '@/services/perplexity/technical';
 import { checkApiKey } from '@/services/perplexity/client';
 import { TechnicalInfoDisplay } from './displays/TechnicalInfoDisplay';
 
