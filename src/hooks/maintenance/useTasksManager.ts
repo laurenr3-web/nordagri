@@ -66,7 +66,7 @@ export const useTasksManager = (initialTasks: MaintenanceTask[] = []) => {
   // Update task status mutation
   const updateTaskStatusMutation = useMutation({
     mutationFn: ({ taskId, status }: { taskId: number, status: MaintenanceStatus }) => 
-      maintenanceService.updateTaskStatus(taskId, status),
+      maintenanceService.updateTaskStatus(taskId.toString(), status),
     onSuccess: (_, { taskId, status }) => {
       queryClient.invalidateQueries({ queryKey: ['maintenanceTasks'] });
       setTasks(prevTasks => prevTasks.map(task => 
@@ -95,7 +95,7 @@ export const useTasksManager = (initialTasks: MaintenanceTask[] = []) => {
   // Update task priority mutation
   const updateTaskPriorityMutation = useMutation({
     mutationFn: ({ taskId, priority }: { taskId: number, priority: MaintenancePriority }) => 
-      maintenanceService.updateTaskPriority(taskId, priority),
+      maintenanceService.updateTaskPriority(taskId.toString(), priority),
     onSuccess: (_, { taskId, priority }) => {
       queryClient.invalidateQueries({ queryKey: ['maintenanceTasks'] });
       setTasks(prevTasks => prevTasks.map(task => 
@@ -119,7 +119,7 @@ export const useTasksManager = (initialTasks: MaintenanceTask[] = []) => {
 
   // Delete task mutation
   const deleteTaskMutation = useMutation({
-    mutationFn: (taskId: number) => maintenanceService.deleteTask(taskId),
+    mutationFn: (taskId: number) => maintenanceService.deleteTask(taskId.toString()),
     onSuccess: (_, taskId) => {
       queryClient.invalidateQueries({ queryKey: ['maintenanceTasks'] });
       setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));

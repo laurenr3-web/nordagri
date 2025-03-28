@@ -39,7 +39,7 @@ export async function searchEquipment(searchTerm: string): Promise<Equipment[]> 
     const { data, error } = await supabase
       .from('equipments')
       .select('*')
-      .or(`name.ilike.%${searchTerm}%,model.ilike.%${searchTerm}%,serial_number.ilike.%${searchTerm}%`);
+      .or(`name.ilike.%${searchTerm}%,type.ilike.%${searchTerm}%,serial_number.ilike.%${searchTerm}%`);
     
     if (error) {
       console.error('Error searching equipment:', error);
@@ -126,10 +126,12 @@ export async function getEquipmentStats(): Promise<EquipmentStats> {
         stats.byType[item.type] = (stats.byType[item.type] || 0) + 1;
       }
       
-      // Count by manufacturer (from metadata)
-      if (item.metadata && item.metadata.manufacturer) {
+      // Count by manufacturer from metadata
+      if (item.metadata && typeof item.metadata === 'object') {
         const manufacturer = item.metadata.manufacturer;
-        stats.byManufacturer[manufacturer] = (stats.byManufacturer[manufacturer] || 0) + 1;
+        if (manufacturer) {
+          stats.byManufacturer[manufacturer] = (stats.byManufacturer[manufacturer] || 0) + 1;
+        }
       }
     });
     
@@ -166,7 +168,7 @@ export async function getFilterOptions(): Promise<FilterOptions> {
   try {
     const { data, error } = await supabase
       .from('equipments')
-      .select('type, status, location, metadata');
+      .select('type, status, metadata');
     
     if (error) {
       console.error('Error fetching filter options:', error);
@@ -183,25 +185,9 @@ export async function getFilterOptions(): Promise<FilterOptions> {
     
     // Extract unique values
     data.forEach(item => {
-      // Extract manufacturers from metadata
-      if (item.metadata && item.metadata.manufacturer) {
-        const manufacturer = item.metadata.manufacturer;
-        if (!options.manufacturers.includes(manufacturer)) {
-          options.manufacturers.push(manufacturer);
-        }
-      }
-      
       // Extract types
       if (item.type && !options.types.includes(item.type)) {
         options.types.push(item.type);
-      }
-      
-      // Extract categories from metadata
-      if (item.metadata && item.metadata.category) {
-        const category = item.metadata.category;
-        if (!options.categories.includes(category)) {
-          options.categories.push(category);
-        }
       }
       
       // Extract statuses
@@ -209,9 +195,22 @@ export async function getFilterOptions(): Promise<FilterOptions> {
         options.statuses.push(item.status);
       }
       
-      // Extract locations
-      if (item.location && !options.locations.includes(item.location)) {
-        options.locations.push(item.location);
+      // Extract metadata fields (manufacturers, categories, locations)
+      if (item.metadata && typeof item.metadata === 'object') {
+        // Extract manufacturers
+        if (item.metadata.manufacturer && !options.manufacturers.includes(item.metadata.manufacturer)) {
+          options.manufacturers.push(item.metadata.manufacturer);
+        }
+        
+        // Extract categories
+        if (item.metadata.category && !options.categories.includes(item.metadata.category)) {
+          options.categories.push(item.metadata.category);
+        }
+        
+        // Extract locations
+        if (item.metadata.location && !options.locations.includes(item.metadata.location)) {
+          options.locations.push(item.metadata.location);
+        }
       }
     });
     

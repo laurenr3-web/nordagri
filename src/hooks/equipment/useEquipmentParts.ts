@@ -21,7 +21,8 @@ export function useEquipmentParts(equipment: Equipment) {
       try {
         setLoading(true);
         setError(null);
-        // Charger les pièces associées à cet équipement
+        // Load parts associated with this equipment
+        // Convert id to string to ensure it works with Supabase's interface
         const equipmentParts = await getPartsForEquipment(equipment.id.toString());
         setParts(equipmentParts);
       } catch (err: any) {
@@ -40,7 +41,7 @@ export function useEquipmentParts(equipment: Equipment) {
     fetchParts();
   }, [equipment.id, toast]);
 
-  // Filtrer les pièces en fonction du terme de recherche
+  // Filter parts based on search term
   const filteredParts = parts.filter(part => 
     part.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     part.partNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||

@@ -9,9 +9,7 @@ export const applyFilters = (query: any, filters: EquipmentFilter) => {
   // Apply search filter
   if (filters.search && filters.search.trim() !== '') {
     const searchTerm = `%${filters.search.toLowerCase()}%`;
-    query = query.or(
-      `name.ilike.${searchTerm},type.ilike.${searchTerm},metadata->manufacturer.ilike.${searchTerm},metadata->model.ilike.${searchTerm},serial_number.ilike.${searchTerm}`
-    );
+    query = query.or(`name.ilike.${searchTerm},type.ilike.${searchTerm},serial_number.ilike.${searchTerm}`);
   }
 
   // Apply type filter
@@ -21,12 +19,12 @@ export const applyFilters = (query: any, filters: EquipmentFilter) => {
 
   // Apply category filter
   if (filters.category) {
-    query = query.eq('metadata->>category', filters.category);
+    query = query.eq('metadata->category', filters.category);
   }
 
   // Apply manufacturer filter
   if (filters.manufacturer) {
-    query = query.eq('metadata->>manufacturer', filters.manufacturer);
+    query = query.eq('metadata->manufacturer', filters.manufacturer);
   }
 
   // Apply status filter
@@ -36,12 +34,12 @@ export const applyFilters = (query: any, filters: EquipmentFilter) => {
 
   // Apply location filter
   if (filters.location) {
-    query = query.eq('location', filters.location);
+    query = query.eq('metadata->location', filters.location);
   }
 
-  // Apply year min filter if present
+  // Apply year filter if present
   if (filters.year) {
-    query = query.eq('metadata->>year', filters.year.toString());
+    query = query.eq('metadata->year', filters.year.toString());
   }
 
   // Apply sorting
@@ -69,9 +67,9 @@ function getSortColumn(sortBy: string): string {
     case 'type':
       return 'type';
     case 'year':
-      return 'metadata->>year';
+      return 'metadata->year';
     case 'manufacturer':
-      return 'metadata->>manufacturer';
+      return 'metadata->manufacturer';
     default:
       return 'name';
   }
