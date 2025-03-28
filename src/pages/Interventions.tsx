@@ -132,86 +132,90 @@ const InterventionsPage = () => {
           <Navbar />
         </Sidebar>
         
-        <div className="flex-1 w-full">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 h-full">
-            {/* Main content area - takes 2/3 or 3/4 of the space */}
-            <div className="md:col-span-2 lg:col-span-3 p-6">
-              <div className="max-w-5xl">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 space-y-4 sm:space-y-0">
-                  <h1 className="text-3xl font-bold">Interventions</h1>
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      onClick={exportInterventionsReport}
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-1"
-                    >
-                      <Download size={16} />
-                      <span className="hidden sm:inline">Exporter</span>
-                    </Button>
-                    <Button 
-                      onClick={() => setShowNewDialog(true)}
-                      className="flex items-center gap-1"
-                      size="sm"
-                    >
-                      <Plus size={16} />
-                      <span>Nouvelle intervention</span>
-                    </Button>
+        <div className="flex-1 w-full overflow-x-hidden">
+          <div className="container mx-auto py-8 px-4 md:px-8">
+            <div className="flex flex-col lg:flex-row gap-6">
+              {/* Main content area */}
+              <div className="w-full lg:w-3/4 order-2 lg:order-1">
+                <div className="bg-card rounded-xl shadow-subtle p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+                    <h1 className="text-3xl font-bold text-foreground">Interventions</h1>
+                    <div className="flex items-center gap-3">
+                      <Button 
+                        onClick={exportInterventionsReport}
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-2"
+                      >
+                        <Download size={16} />
+                        <span className="hidden sm:inline">Exporter</span>
+                      </Button>
+                      <Button 
+                        onClick={() => setShowNewDialog(true)}
+                        className="flex items-center gap-2"
+                        size="sm"
+                      >
+                        <Plus size={16} />
+                        <span>Nouvelle intervention</span>
+                      </Button>
+                    </div>
                   </div>
+                  
+                  {isLoading ? (
+                    <div className="text-center p-8 my-8">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
+                      <p className="mt-4 text-muted-foreground">Chargement des interventions...</p>
+                    </div>
+                  ) : isError ? (
+                    <div className="p-8 text-center border rounded-lg border-destructive/10 bg-destructive/5 my-8">
+                      <p className="text-lg font-medium text-destructive">
+                        Impossible de charger les interventions
+                      </p>
+                      <p className="mt-2 text-muted-foreground">
+                        {error instanceof Error ? error.message : 'Une erreur inconnue est survenue'}
+                      </p>
+                      <button
+                        onClick={() => refetch()}
+                        className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md"
+                      >
+                        Réessayer
+                      </button>
+                    </div>
+                  ) : interventions.length === 0 ? (
+                    <div className="p-8 text-center border rounded-lg border-dashed my-8">
+                      <p className="text-lg font-medium">Aucune intervention planifiée</p>
+                      <p className="mt-2 text-muted-foreground">
+                        Commencez par créer une nouvelle intervention pour un équipement.
+                      </p>
+                      <button
+                        onClick={() => setShowNewDialog(true)}
+                        className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md"
+                      >
+                        Créer une intervention
+                      </button>
+                    </div>
+                  ) : (
+                    <InterventionsList 
+                      filteredInterventions={interventions}
+                      currentView={currentView}
+                      setCurrentView={setCurrentView}
+                      onClearSearch={handleClearSearch}
+                      onViewDetails={handleViewDetails}
+                      onStartWork={handleStartWork}
+                    />
+                  )}
                 </div>
-                
-                {isLoading ? (
-                  <div className="text-center p-8">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
-                    <p className="mt-4 text-muted-foreground">Chargement des interventions...</p>
-                  </div>
-                ) : isError ? (
-                  <div className="p-8 text-center border rounded-lg border-destructive/10 bg-destructive/5">
-                    <p className="text-lg font-medium text-destructive">
-                      Impossible de charger les interventions
-                    </p>
-                    <p className="mt-2 text-muted-foreground">
-                      {error instanceof Error ? error.message : 'Une erreur inconnue est survenue'}
-                    </p>
-                    <button
-                      onClick={() => refetch()}
-                      className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md"
-                    >
-                      Réessayer
-                    </button>
-                  </div>
-                ) : interventions.length === 0 ? (
-                  <div className="p-8 text-center border rounded-lg border-dashed">
-                    <p className="text-lg font-medium">Aucune intervention planifiée</p>
-                    <p className="mt-2 text-muted-foreground">
-                      Commencez par créer une nouvelle intervention pour un équipement.
-                    </p>
-                    <button
-                      onClick={() => setShowNewDialog(true)}
-                      className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md"
-                    >
-                      Créer une intervention
-                    </button>
-                  </div>
-                ) : (
-                  <InterventionsList 
-                    filteredInterventions={interventions}
-                    currentView={currentView}
-                    setCurrentView={setCurrentView}
-                    onClearSearch={handleClearSearch}
-                    onViewDetails={handleViewDetails}
-                    onStartWork={handleStartWork}
-                  />
-                )}
               </div>
-            </div>
-            
-            {/* Right sidebar for upcoming interventions and stats - takes 1/3 or 1/4 of the space */}
-            <div className="md:col-span-1 p-6">
-              <InterventionsSidebar 
-                interventions={interventions}
-                onViewDetails={handleViewDetails}
-              />
+              
+              {/* Right sidebar for upcoming interventions and stats */}
+              <div className="w-full lg:w-1/4 order-1 lg:order-2">
+                <div className="sticky top-4">
+                  <InterventionsSidebar 
+                    interventions={interventions}
+                    onViewDetails={handleViewDetails}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
