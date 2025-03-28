@@ -42,3 +42,4 @@ perplexityClient.interceptors.response.use(
 export const checkApiKey = () => {
   return PERPLEXITY_API_KEY && PERPLEXITY_API_KEY.length > 0;
 };
+

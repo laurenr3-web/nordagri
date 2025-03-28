@@ -1,25 +1,38 @@
 
-import { perplexityClient } from './client';
+import { perplexityClient } from '@/services/perplexity/client';
+import { PartPriceInfo } from '@/types/Part';
+import { toast } from 'sonner';
 
-export interface PriceComparisonItem {
+export type PriceComparisonItem = {
   vendor: string;
   price: number | string;
   currency: string;
-  url?: string;
-  availability: 'En stock' | 'Sur commande' | 'Non disponible';
-  shippingCost?: number | string;
-  estimatedDelivery?: string;
-  condition?: string;
-  lastUpdated: string;
-}
+  url?: string | null;
+  availability: string;
+  shippingCost?: number | string | null;
+  estimatedDelivery: string;
+};
 
 export const partsPriceService = {
-  async findBestPrices(partNumber: string, partName?: string): Promise<PriceComparisonItem[]> {
+  // Rechercher les meilleurs prix pour une pièce spécifique
+  async findBestPrices(partReference: string, partName?: string): Promise<PriceComparisonItem[]> {
     try {
-      console.log(`Recherche des meilleurs prix pour ${partNumber} (${partName || 'Sans nom'})`);
+      console.log('Démarrage de la recherche des prix pour:', partReference);
+      
+      // Vérifier si la clé API est configurée
+      const apiKey = import.meta.env.VITE_PERPLEXITY_API_KEY;
+      if (!apiKey) {
+        console.error("Clé API Perplexity non configurée");
+        toast.error("Configuration API manquante", {
+          description: "Veuillez configurer une clé API Perplexity dans vos variables d'environnement."
+        });
+        return [];
+      }
+      
+      const nameInfo = partName ? `, nom: ${partName}` : '';
       
       const response = await perplexityClient.post('/chat/completions', {
-        model: "sonar-medium-online",
+        model: "llama-3.1-sonar-small-128k-online",
         messages: [
           {
             role: "system",
@@ -27,52 +40,76 @@ export const partsPriceService = {
           },
           {
             role: "user",
-            content: `Trouvez les 5 offres les moins chères pour la pièce agricole avec référence ${partNumber} ${partName ? `(nom: ${partName})` : ''}. Incluez le prix, le vendeur, l'URL, la disponibilité, les frais de livraison et le délai estimé. Limitez aux sites français et aux sites professionnels agricoles. Format: JSON.`
+            content: `Trouvez les 5 offres les moins chères pour la pièce agricole avec référence ${partReference}${nameInfo}. Incluez le prix, le vendeur, l'URL, la disponibilité, les frais de livraison et le délai estimé. Limitez aux sites français et aux sites professionnels agricoles. Format: JSON.`
           }
         ],
-        temperature: 0.1 // Faible température pour des résultats plus précis
+        temperature: 0.1,
+        max_tokens: 1000
       });
       
-      // Extraction du JSON de la réponse
+      console.log('Réponse API reçue');
+      
+      // Extraction et transformation des données en format exploitable
       const content = response.data.choices[0].message.content;
-      let parsedData;
+      let jsonData;
       
       try {
-        // Recherche du contenu JSON
+        // Tenter d'extraire le JSON de la réponse
         const jsonMatch = content.match(/```json\n([\s\S]*?)\n```/) || 
-                          content.match(/```\n([\s\S]*?)\n```/) ||
-                          content.match(/{[\s\S]*?}/);
-                          
+                         content.match(/```\n([\s\S]*?)\n```/) ||
+                         content.match(/{[\s\S]*?}/);
+                         
         if (jsonMatch) {
-          parsedData = JSON.parse(jsonMatch[0].replace(/```json\n|```\n|```/g, ''));
+          jsonData = JSON.parse(jsonMatch[0].replace(/```json\n|```\n|```/g, ''));
         } else {
-          parsedData = JSON.parse(content);
+          // Si pas de bloc JSON explicite, essayer de parser toute la réponse
+          jsonData = JSON.parse(content);
         }
       } catch (parseError) {
-        console.error("Erreur lors du parsing des résultats:", parseError);
-        return [];
+        console.error("Erreur lors du parsing JSON:", parseError);
+        console.log("Contenu brut:", content);
+        
+        // Revenir à un format par défaut en cas d'erreur
+        return [{
+          vendor: "Erreur de formatage",
+          price: "Non disponible",
+          currency: "EUR",
+          availability: "Information non disponible",
+          estimatedDelivery: "Information non disponible"
+        }];
       }
       
-      const results = parsedData.results || parsedData.prices || parsedData;
-      if (!Array.isArray(results)) {
-        return [];
-      }
+      // Normaliser la structure de réponse
+      const results = jsonData.results || jsonData.vendors || jsonData.offers || [jsonData];
       
-      // Transformation en format uniforme
+      // Transformation en format standard
       return results.map((item: any) => ({
-        vendor: item.vendor || item.vendeur || item.fournisseur || item.supplier || 'Inconnu',
-        price: item.price || item.prix || 0,
-        currency: item.currency || item.devise || '€',
-        url: item.url || item.link || item.lien || '',
-        availability: item.availability || item.disponibilité || item.disponibilite || 'Non disponible',
-        shippingCost: item.shippingCost || item.shippingFee || item.fraisLivraison || item.fraisDeLivraison || 0,
-        estimatedDelivery: item.estimatedDelivery || item.delaiLivraison || item.délaiLivraison || 'Non spécifié',
-        condition: item.condition || item.état || item.etat || 'Neuf',
-        lastUpdated: new Date().toISOString()
+        vendor: item.vendor || item.supplier || item.seller || "Fournisseur inconnu",
+        price: item.price || "Prix non spécifié",
+        currency: item.currency || "EUR",
+        url: item.url || item.link || null,
+        availability: item.availability || item.inStock || "Inconnu",
+        shippingCost: item.shippingCost || item.shipping || null,
+        estimatedDelivery: item.estimatedDelivery || item.delivery || item.deliveryTime || "Non spécifié"
       }));
     } catch (error) {
       console.error("Erreur lors de la recherche des prix:", error);
-      throw error;
+      
+      // Afficher des informations de débogage
+      if (error.response) {
+        console.error("Données de l'erreur:", error.response.data);
+        console.error("Statut:", error.response.status);
+        toast.error(`Erreur API (${error.response.status})`, { 
+          description: error.response.data?.error?.message || "Détails non disponibles" 
+        });
+      } else {
+        toast.error("Erreur de recherche", { 
+          description: error.message || "Une erreur inattendue est survenue" 
+        });
+      }
+      
+      return [];
     }
   }
 };
+
