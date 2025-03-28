@@ -31,6 +31,8 @@ const InterventionsSidebar: React.FC<InterventionsSidebarProps> = ({
   
   return (
     <div className="space-y-6">
+      <h2 className="text-xl font-semibold mb-4">Aperçu des interventions</h2>
+      
       <BlurContainer className="p-4">
         <h3 className="font-medium mb-4">Interventions à venir</h3>
         <div className="space-y-4">
