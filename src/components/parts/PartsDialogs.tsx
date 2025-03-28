@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Part as PartType } from '@/types/Part';
 
 // Part details components
 import PartDetailsDialog from '@/components/parts/dialogs/PartDetailsDialog';
@@ -13,9 +12,35 @@ import OrderDialog from '@/components/parts/dialogs/OrderDialog';
 import AddCategoryDialog from '@/components/parts/dialogs/AddCategoryDialog';
 import PriceComparison from '@/components/parts/PriceComparison';
 
+// Définition locale du type Part pour éviter les conflits d'importation
+interface LocalPart {
+  id: string | number;
+  name: string;
+  reference: string;
+  description: string;
+  category: string;
+  manufacturer: string;
+  compatibleWith: string[] | string;
+  inStock: boolean;
+  quantity?: number;
+  minimumStock?: number;
+  location?: string;
+  lastUsed?: Date | null;
+  purchasePrice?: number;
+  estimatedPrice?: number | null;
+  isFromSearch?: boolean;
+  imageUrl?: string | null;
+  partNumber?: string;
+  compatibility?: string[];
+  stock?: number;
+  price?: number;
+  reorderPoint?: number;
+  image?: string;
+}
+
 interface PartsDialogsProps {
   // Part and selection
-  selectedPart: PartType | null;
+  selectedPart: LocalPart | null;
   
   // Dialog states
   isPartDetailsDialogOpen: boolean;
@@ -57,7 +82,7 @@ interface PartsDialogsProps {
   isOrderSuccess?: boolean;
   handleOrderSubmit?: () => void;
   handleAddPart?: (data: any) => void;
-  handleEditPart?: (part: PartType) => void;
+  handleEditPart?: (part: LocalPart) => void;
   handleDeletePart?: (partId: number | string) => void;
 }
 
