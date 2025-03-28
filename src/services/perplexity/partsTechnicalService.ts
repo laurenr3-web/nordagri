@@ -30,23 +30,30 @@ export const partsTechnicalService = {
         messages: [
           {
             role: "system",
-            content: "Vous êtes un expert technique agricole specialisé dans les équipements agricoles. Répondez uniquement au format JSON."
+            content: "Vous êtes un expert en pièces détachées agricoles avec une connaissance approfondie des nomenclatures, numéros de référence et spécifications techniques. Soyez spécifique et précis. Répondez uniquement au format JSON."
           },
           {
             role: "user",
-            content: `Fournissez des informations techniques détaillées sur la pièce agricole avec référence ${partReference}${nameInfo}. Incluez: 
-            1. Fonction et utilisation
-            2. Equipements compatibles (liste)
-            3. Guide d'installation
-            4. Symptômes de défaillance
-            5. Conseils d'entretien et maintenance
-            6. Alternatives possibles (liste)
-            7. Avertissements importants
-
-            Retournez uniquement un objet JSON structuré avec ces informations.`
+            content: `Recherchez des informations complètes sur la pièce agricole avec la référence ${partReference}${nameInfo}. 
+            Si possible, identifiez le fabricant, le type de machine (tracteur, moissonneuse, etc.), 
+            la fonction exacte de cette pièce, les procédures d'installation, 
+            les signes de défaillance et les recommandations d'entretien. 
+            Si vous ne trouvez pas d'informations spécifiques sur cette référence exacte, suggérez des informations 
+            sur des pièces similaires ou des catégories compatibles.
+            
+            Retournez uniquement un objet JSON structuré avec les propriétés suivantes:
+            {
+              "function": "description détaillée de la fonction",
+              "compatibleEquipment": ["liste", "des", "équipements", "compatibles"],
+              "installation": "guide d'installation",
+              "symptoms": "symptômes de défaillance",
+              "maintenance": "conseils d'entretien",
+              "alternatives": ["pièces", "alternatives"],
+              "warnings": "avertissements importants"
+            }`
           }
         ],
-        temperature: 0.1,
+        temperature: 0.3,
         max_tokens: 1000
       });
       
@@ -117,4 +124,3 @@ export const partsTechnicalService = {
     }
   }
 };
-
