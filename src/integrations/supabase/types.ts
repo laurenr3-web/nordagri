@@ -13,16 +13,14 @@ export type Database = {
         Row: {
           category: string | null
           created_at: string | null
-          current_location: string | null
           id: number
-          last_maintenance: string | null
+          image: string | null
+          location: string | null
           manufacturer: string | null
           model: string | null
           name: string
-          next_maintenance: string | null
           notes: string | null
           purchase_date: string | null
-          purchase_price: number | null
           serial_number: string | null
           status: string | null
           type: string | null
@@ -32,16 +30,14 @@ export type Database = {
         Insert: {
           category?: string | null
           created_at?: string | null
-          current_location?: string | null
           id?: number
-          last_maintenance?: string | null
+          image?: string | null
+          location?: string | null
           manufacturer?: string | null
           model?: string | null
           name: string
-          next_maintenance?: string | null
           notes?: string | null
           purchase_date?: string | null
-          purchase_price?: number | null
           serial_number?: string | null
           status?: string | null
           type?: string | null
@@ -51,21 +47,105 @@ export type Database = {
         Update: {
           category?: string | null
           created_at?: string | null
-          current_location?: string | null
           id?: number
-          last_maintenance?: string | null
+          image?: string | null
+          location?: string | null
           manufacturer?: string | null
           model?: string | null
           name?: string
-          next_maintenance?: string | null
           notes?: string | null
           purchase_date?: string | null
-          purchase_price?: number | null
           serial_number?: string | null
           status?: string | null
           type?: string | null
           updated_at?: string | null
           year?: number | null
+        }
+        Relationships: []
+      }
+      equipment_documents: {
+        Row: {
+          content_type: string | null
+          equipment_id: string | null
+          file_name: string
+          file_path: string
+          id: string
+          metadata: Json | null
+          size_bytes: number | null
+          uploaded_at: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          content_type?: string | null
+          equipment_id?: string | null
+          file_name: string
+          file_path: string
+          id?: string
+          metadata?: Json | null
+          size_bytes?: number | null
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          content_type?: string | null
+          equipment_id?: string | null
+          file_name?: string
+          file_path?: string
+          id?: string
+          metadata?: Json | null
+          size_bytes?: number | null
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_documents_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipments: {
+        Row: {
+          acquisition_date: string | null
+          created_at: string | null
+          current_hours: number | null
+          id: string
+          metadata: Json | null
+          name: string
+          owner_id: string | null
+          serial_number: string | null
+          status: string | null
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          acquisition_date?: string | null
+          created_at?: string | null
+          current_hours?: number | null
+          id?: string
+          metadata?: Json | null
+          name: string
+          owner_id?: string | null
+          serial_number?: string | null
+          status?: string | null
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          acquisition_date?: string | null
+          created_at?: string | null
+          current_hours?: number | null
+          id?: string
+          metadata?: Json | null
+          name?: string
+          owner_id?: string | null
+          serial_number?: string | null
+          status?: string | null
+          type?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -104,6 +184,53 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      maintenance_records: {
+        Row: {
+          completed: boolean | null
+          cost: number | null
+          created_at: string | null
+          description: string | null
+          equipment_id: string | null
+          hours_at_maintenance: number | null
+          id: string
+          maintenance_type: string
+          performed_at: string | null
+          technician_id: string | null
+        }
+        Insert: {
+          completed?: boolean | null
+          cost?: number | null
+          created_at?: string | null
+          description?: string | null
+          equipment_id?: string | null
+          hours_at_maintenance?: number | null
+          id?: string
+          maintenance_type: string
+          performed_at?: string | null
+          technician_id?: string | null
+        }
+        Update: {
+          completed?: boolean | null
+          cost?: number | null
+          created_at?: string | null
+          description?: string | null
+          equipment_id?: string | null
+          hours_at_maintenance?: number | null
+          id?: string
+          maintenance_type?: string
+          performed_at?: string | null
+          technician_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_records_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       maintenance_tasks: {
         Row: {
@@ -169,6 +296,7 @@ export type Database = {
           last_ordered: string | null
           location: string | null
           name: string
+          owner_id: string | null
           part_number: string | null
           quantity: number
           reorder_threshold: number | null
@@ -185,6 +313,7 @@ export type Database = {
           last_ordered?: string | null
           location?: string | null
           name: string
+          owner_id?: string | null
           part_number?: string | null
           quantity: number
           reorder_threshold?: number | null
@@ -201,6 +330,7 @@ export type Database = {
           last_ordered?: string | null
           location?: string | null
           name?: string
+          owner_id?: string | null
           part_number?: string | null
           quantity?: number
           reorder_threshold?: number | null
@@ -278,12 +408,42 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_equipment_statistics: {
+        Args: {
+          p_equipment_id: string
+        }
+        Returns: {
+          total_maintenance_cost: number
+          maintenance_count: number
+          average_days_between_maintenance: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

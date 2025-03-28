@@ -43,6 +43,7 @@ const AddEquipmentDialog: React.FC<AddEquipmentDialogProps> = ({
       // Add equipment using the hook's mutate function
       mutate(newEquipment, {
         onSuccess: () => {
+          console.log('Equipment added successfully');
           onOpenChange(false);
           toast.success("Équipement ajouté avec succès");
         },
