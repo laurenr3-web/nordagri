@@ -58,7 +58,7 @@ export function RealtimeCacheProvider({ children }: RealtimeCacheProviderProps) 
     });
   }, [queryClient]);
 
-  const value = {
+  const value: RealtimeCacheContextType = {
     isRealtimeEnabled: true,
     realtimeStatus,
   };

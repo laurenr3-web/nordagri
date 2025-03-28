@@ -8,6 +8,7 @@ import { useQueryClient } from '@tanstack/react-query';
  */
 export function useEquipmentRealtime() {
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -28,7 +29,7 @@ export function useEquipmentRealtime() {
           queryClient.invalidateQueries({ queryKey: ['equipment'] });
           
           // If a specific equipment is updated, also invalidate that query
-          if (payload.new && payload.new.id) {
+          if (payload.new && typeof payload.new === 'object' && 'id' in payload.new) {
             queryClient.invalidateQueries({ queryKey: ['equipment', payload.new.id] });
           }
           
@@ -38,7 +39,16 @@ export function useEquipmentRealtime() {
       )
       .subscribe((status) => {
         console.log('Equipment realtime subscription status:', status);
-        setIsSubscribed(status === 'SUBSCRIBED');
+        if (status === 'SUBSCRIBED') {
+          setIsSubscribed(true);
+          setError(null);
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('Error subscribing to equipment realtime updates');
+          setIsSubscribed(false);
+          setError(new Error('Failed to subscribe to equipment updates'));
+        } else {
+          setIsSubscribed(false);
+        }
       });
 
     // Clean up the subscription when the component unmounts
@@ -48,5 +58,5 @@ export function useEquipmentRealtime() {
     };
   }, [queryClient]);
 
-  return { isSubscribed };
+  return { isSubscribed, error };
 }
