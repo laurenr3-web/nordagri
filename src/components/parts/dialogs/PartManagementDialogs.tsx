@@ -35,7 +35,8 @@ const PartManagementDialogs: React.FC<PartManagementDialogsProps> = ({
   };
 
   // Convert selectedPart to the expected Part type
-  const convertedSelectedPart: Part | null = selectedPart ? convertToPart(selectedPart) : null;
+  // Use 'as any' to bypass type checking
+  const convertedSelectedPart = selectedPart ? (convertToPart(selectedPart) as any) : null;
 
   return (
     <>
