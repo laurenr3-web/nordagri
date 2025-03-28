@@ -11,6 +11,19 @@ interface InfoSectionProps {
   searchQuery?: string;
 }
 
+// Fonction utilitaire pour nettoyer le texte des réponses
+function sanitizeResponse(text: string): string {
+  if (!text) return "Information non disponible";
+  
+  // Supprimer les caractères JSON qui pourraient être affichés par erreur
+  return text
+    .replace(/[{}\[\]"\\]/g, '') // Supprimer les accolades, crochets, guillemets
+    .replace(/^[,\s:]*/, '')     // Supprimer les virgules et deux-points au début
+    .replace(/[,\s:]*$/, '')     // Supprimer les virgules et deux-points à la fin
+    .replace(/```/g, '')         // Supprimer les backticks
+    .trim();
+}
+
 export const InfoSection: React.FC<InfoSectionProps> = ({ 
   title, 
   icon, 
@@ -18,9 +31,11 @@ export const InfoSection: React.FC<InfoSectionProps> = ({
   partNumber,
   searchQuery
 }) => {
-  const hasContent = content && 
-                    content !== "Information non disponible" && 
-                    !content.includes("non disponible");
+  const sanitizedContent = sanitizeResponse(content);
+  
+  const hasContent = sanitizedContent && 
+                    sanitizedContent !== "Information non disponible" && 
+                    !sanitizedContent.includes("non disponible");
   
   const handleSearch = () => {
     const query = searchQuery || `${partNumber}+${title.toLowerCase()}`;
@@ -38,7 +53,7 @@ export const InfoSection: React.FC<InfoSectionProps> = ({
       <CardContent>
         {hasContent ? (
           <div className="prose prose-sm max-w-none dark:prose-invert">
-            <p className="whitespace-pre-line">{content}</p>
+            <p className="whitespace-pre-line">{sanitizedContent}</p>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-4 text-center">
