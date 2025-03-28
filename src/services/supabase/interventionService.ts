@@ -22,8 +22,13 @@ export const interventionService = {
       equipmentId: item.equipment_id,
       location: item.location,
       coordinates: item.coordinates ? 
-        (typeof item.coordinates === 'object' ? 
-          { lat: item.coordinates.lat || 0, lng: item.coordinates.lng || 0 } : 
+        (typeof item.coordinates === 'object' && item.coordinates !== null ? 
+          { 
+            lat: typeof item.coordinates === 'object' && 'lat' in item.coordinates ? 
+              Number(item.coordinates.lat) || 0 : 0, 
+            lng: typeof item.coordinates === 'object' && 'lng' in item.coordinates ? 
+              Number(item.coordinates.lng) || 0 : 0 
+          } : 
           { lat: 0, lng: 0 }
         ) : { lat: 0, lng: 0 },
       status: (item.status as Intervention['status']) || 'scheduled',
@@ -47,7 +52,12 @@ export const interventionService = {
   
   // Ajouter une intervention
   async addIntervention(intervention: InterventionFormValues): Promise<Intervention> {
-    const { data: userData } = await supabase.auth.getUser();
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError) {
+      console.error('Error getting session:', sessionError);
+      throw sessionError;
+    }
     
     const newIntervention = {
       title: intervention.title,
@@ -63,7 +73,7 @@ export const interventionService = {
       description: intervention.description,
       notes: intervention.notes,
       parts_used: [],
-      owner_id: userData?.user ? userData.user.id : null
+      owner_id: sessionData.session?.user.id
     };
     
     const { data, error } = await supabase
@@ -84,7 +94,12 @@ export const interventionService = {
       equipmentId: data.equipment_id,
       location: data.location,
       coordinates: data.coordinates && typeof data.coordinates === 'object' ? 
-        { lat: data.coordinates.lat || 0, lng: data.coordinates.lng || 0 } : 
+        { 
+          lat: typeof data.coordinates === 'object' && 'lat' in data.coordinates ? 
+            Number(data.coordinates.lat) || 0 : 0, 
+          lng: typeof data.coordinates === 'object' && 'lng' in data.coordinates ? 
+            Number(data.coordinates.lng) || 0 : 0 
+        } : 
         { lat: 0, lng: 0 },
       status: (data.status as Intervention['status']) || 'scheduled',
       priority: (data.priority as Intervention['priority']) || 'medium',

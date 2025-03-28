@@ -10,13 +10,18 @@ export async function addEquipment(equipment: Omit<Equipment, 'id'>): Promise<Eq
   try {
     console.log('Adding equipment:', equipment);
     
-    // Get the current user
-    const { data: userData } = await supabase.auth.getUser();
+    // Get the current user session
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError) {
+      console.error('Error getting session:', sessionError);
+      throw sessionError;
+    }
     
     // Map equipment to database format
     const dbEquipment = {
       ...mapEquipmentToDatabase(equipment),
-      owner_id: userData?.user ? userData.user.id : null
+      owner_id: sessionData.session?.user.id
     };
     
     // Insert the equipment
