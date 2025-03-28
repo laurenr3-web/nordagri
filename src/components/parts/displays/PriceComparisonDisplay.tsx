@@ -3,11 +3,11 @@ import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { PriceComparisonItem } from '@/services/perplexity/partsPriceService';
+import { PartPriceInfo } from '@/types/Part';
 import { ExternalLink } from 'lucide-react';
 
 interface PriceComparisonDisplayProps {
-  data: PriceComparisonItem[] | null;
+  data: PartPriceInfo[] | null;
 }
 
 export const PriceComparisonDisplay: React.FC<PriceComparisonDisplayProps> = ({ data }) => {
@@ -35,7 +35,7 @@ export const PriceComparisonDisplay: React.FC<PriceComparisonDisplayProps> = ({ 
         <TableBody>
           {data.map((item, index) => (
             <TableRow key={index}>
-              <TableCell className="font-medium">{item.vendor}</TableCell>
+              <TableCell className="font-medium">{item.vendor || item.supplier}</TableCell>
               <TableCell>
                 <span className="font-bold text-green-600 dark:text-green-400">
                   {typeof item.price === 'number' 
@@ -53,23 +53,24 @@ export const PriceComparisonDisplay: React.FC<PriceComparisonDisplayProps> = ({ 
               <TableCell>
                 <Badge 
                   variant={
-                    typeof item.availability === 'string' && 
-                    (item.availability.toLowerCase().includes('stock') || 
-                     item.availability.toLowerCase().includes('disponible'))
+                    item.isAvailable || 
+                    (typeof item.availability === 'string' && 
+                     (item.availability.toLowerCase().includes('stock') || 
+                      item.availability.toLowerCase().includes('disponible')))
                       ? 'success'
                       : 'outline'
                   }
                 >
-                  {item.availability}
+                  {item.availability || (item.isAvailable ? 'En stock' : 'Non disponible')}
                 </Badge>
               </TableCell>
-              <TableCell>{item.estimatedDelivery}</TableCell>
+              <TableCell>{item.estimatedDelivery || item.deliveryTime || 'Non précisé'}</TableCell>
               <TableCell className="text-right">
-                {item.url && (
+                {(item.url || item.link) && (
                   <Button 
                     size="sm" 
                     variant="outline" 
-                    onClick={() => window.open(item.url, '_blank')}
+                    onClick={() => window.open(item.url || item.link, '_blank')}
                   >
                     <ExternalLink className="h-4 w-4 mr-1" />
                     Voir
@@ -83,4 +84,3 @@ export const PriceComparisonDisplay: React.FC<PriceComparisonDisplayProps> = ({ 
     </div>
   );
 };
-

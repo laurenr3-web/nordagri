@@ -27,12 +27,18 @@ export interface Part {
 
 export interface PartPriceInfo {
   supplier: string;
+  vendor?: string;
   price: string | number;
   currency: string;
-  link: string | null;
-  isAvailable: boolean;
-  deliveryTime: string;
+  link?: string | null;
+  url?: string;
+  isAvailable?: boolean;
+  availability?: string;
+  deliveryTime?: string;
+  estimatedDelivery?: string;
+  shippingCost?: string | number;
   lastUpdated: string;
+  condition?: string;
 }
 
 export interface PartFilter {

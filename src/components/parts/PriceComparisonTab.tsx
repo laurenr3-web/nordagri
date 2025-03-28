@@ -98,7 +98,7 @@ const PriceComparisonTab = ({ partNumber, partName }: PriceComparisonTabProps) =
             
             {priceData.map((price, index) => (
               <div key={index} className="grid grid-cols-1 md:grid-cols-7 gap-4 text-sm py-4 border-b last:border-0">
-                <div className="md:col-span-1 font-medium">{price.vendor}</div>
+                <div className="md:col-span-1 font-medium">{price.supplier || price.vendor}</div>
                 <div className="md:col-span-1">
                   <span className="font-bold text-green-600 dark:text-green-400">
                     {typeof price.price === 'number' 
@@ -116,23 +116,26 @@ const PriceComparisonTab = ({ partNumber, partName }: PriceComparisonTabProps) =
                 <div className="md:col-span-1">
                   <span 
                     className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      price.availability.toLowerCase().includes('stock') 
+                      (price.isAvailable === true) || 
+                      (typeof price.availability === 'string' && 
+                        price.availability.toLowerCase().includes('stock'))
                         ? 'bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-300' 
-                        : price.availability.toLowerCase().includes('commande')
+                        : (typeof price.availability === 'string' && 
+                          price.availability.toLowerCase().includes('commande'))
                           ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800/20 dark:text-yellow-300'
                           : 'bg-red-100 text-red-800 dark:bg-red-800/20 dark:text-red-300'
                     }`}
                   >
-                    {price.availability}
+                    {price.availability || (price.isAvailable ? 'En stock' : 'Non disponible')}
                   </span>
                 </div>
-                <div className="md:col-span-2">{price.estimatedDelivery}</div>
+                <div className="md:col-span-2">{price.estimatedDelivery || price.deliveryTime || 'Non précisé'}</div>
                 <div className="md:col-span-1">
-                  {price.url && (
+                  {(price.url || price.link) && (
                     <Button 
                       size="sm" 
                       variant="outline" 
-                      onClick={() => window.open(price.url, '_blank')}
+                      onClick={() => window.open(price.url || price.link, '_blank')}
                     >
                       <ExternalLink className="h-4 w-4 mr-1" />
                       Voir
