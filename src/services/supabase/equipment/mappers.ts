@@ -5,20 +5,23 @@ import { Equipment } from './types';
  * Maps database equipment record to frontend Equipment object
  */
 export const mapEquipmentFromDatabase = (record: any): Equipment => {
+  // Extract metadata fields or use defaults
+  const metadata = record.metadata || {};
+  
   return {
     id: record.id,
     name: record.name,
     type: record.type || '',
-    category: record.category || '',  // Garder ceci pour la compatibilité avec le modèle frontend
-    manufacturer: record.manufacturer || '',
-    model: record.model || '',
-    year: record.year || null,
+    category: metadata.category || '',  // Get category from metadata
+    manufacturer: metadata.manufacturer || '',  // Get manufacturer from metadata
+    model: metadata.model || '',
+    year: metadata.year || null,
     serialNumber: record.serial_number || null,
     purchaseDate: record.acquisition_date ? new Date(record.acquisition_date) : undefined,
     status: record.status || 'operational',
-    location: record.location || '',
+    location: metadata.location || '',  // Get location from metadata
     notes: record.notes || '',
-    image: record.image || '',
+    image: metadata.image || '',
     owner_id: record.owner_id || null,
     metadata: record.metadata || {},
     current_hours: record.current_hours || 0,
@@ -34,27 +37,37 @@ export const mapEquipmentFromDatabase = (record: any): Equipment => {
  * Maps frontend Equipment object to database record format
  */
 export const mapEquipmentToDatabase = (equipment: Omit<Equipment, 'id' | 'image'>): any => {
-  // Nous créons un objet de mappage de base
+  // Create a base mapping object
   const dbRecord = {
     name: equipment.name,
     type: equipment.type,
-    manufacturer: equipment.manufacturer,
     model: equipment.model || null,
-    year: equipment.year || null,
     serial_number: equipment.serialNumber || null,
     acquisition_date: equipment.purchaseDate,
     status: equipment.status || 'operational',
-    location: equipment.location || null,
     notes: equipment.notes || null,
     owner_id: equipment.owner_id || null,
     metadata: equipment.metadata || {},
     current_hours: equipment.current_hours || 0
   };
 
-  // Si la propriété category existe, nous l'ajoutons aux métadonnées
+  // Add fields to metadata that are not direct columns in the database
+  const metadata = dbRecord.metadata as Record<string, any>;
+  
+  if (equipment.manufacturer) {
+    metadata.manufacturer = equipment.manufacturer;
+  }
+  
   if (equipment.category) {
-    if (!dbRecord.metadata) dbRecord.metadata = {};
-    dbRecord.metadata.category = equipment.category;
+    metadata.category = equipment.category;
+  }
+  
+  if (equipment.location) {
+    metadata.location = equipment.location;
+  }
+  
+  if (equipment.year) {
+    metadata.year = equipment.year;
   }
   
   return dbRecord;

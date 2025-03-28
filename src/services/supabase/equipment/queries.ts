@@ -12,48 +12,43 @@ export const getEquipment = async (filters: EquipmentFilter): Promise<Equipment[
     
     // Apply filters
     if (filters.search) {
-      query = query.or(`name.ilike.%${filters.search}%,type.ilike.%${filters.search}%,model.ilike.%${filters.search}%`);
+      query = query.or(`name.ilike.%${filters.search}%,type.ilike.%${filters.search}%,serial_number.ilike.%${filters.search}%`);
     }
     
     if (filters.type) {
       query = query.eq('type', filters.type);
     }
     
-     if (filters.manufacturer) {
-      // Pour manufacturer, chercher dans les métadonnées
-      const metadata = typeof filters.manufacturer === 'string' 
-        ? { manufacturer: filters.manufacturer } 
-        : { manufacturer: { eq: filters.manufacturer } };
-      
-      query = query.contains('metadata', metadata);
+    // The manufacturer is stored in metadata JSON field
+    if (filters.manufacturer) {
+      query = query.contains('metadata', { manufacturer: filters.manufacturer });
     }
     
+    // The category is stored in metadata JSON field
     if (filters.category) {
-      // Pour category, chercher dans les métadonnées
-      const metadata = typeof filters.category === 'string'
-        ? { category: filters.category }
-        : { category: { eq: filters.category } };
-      
-      query = query.contains('metadata', metadata);
+      query = query.contains('metadata', { category: filters.category });
     }
     
+    // Status is a direct column
     if (filters.status) {
       query = query.eq('status', filters.status);
     }
     
+    // Location is stored in metadata JSON field
     if (filters.location) {
-      query = query.eq('location', filters.location);
+      query = query.contains('metadata', { location: filters.location });
     }
     
     if (filters.year) {
-      query = query.eq('year', filters.year);
+      query = query.contains('metadata', { year: filters.year });
     }
     
     // Apply sorting
     if (filters.sortBy) {
       const direction = filters.sortOrder || 'asc';
-      // Ajouter une logique spéciale pour trier les champs dans les métadonnées
-      if (filters.sortBy === 'manufacturer' || filters.sortBy === 'category') {
+      // Special logic for sorting metadata fields
+      if (['manufacturer', 'category', 'location'].includes(filters.sortBy)) {
+        // Default to name sorting for metadata fields since JSON sorting is complex
         query = query.order('name', { ascending: direction === 'asc' });
       } else {
         query = query.order(filters.sortBy, { ascending: direction === 'asc' });
@@ -112,7 +107,7 @@ export const getEquipmentStats = async (): Promise<EquipmentStats> => {
   try {
     const { data, error } = await supabase
       .from('equipments')
-      .select('status, type, manufacturer');
+      .select('status, type, metadata');
     
     if (error) {
       console.error('Error fetching equipment stats:', error);
@@ -131,8 +126,12 @@ export const getEquipmentStats = async (): Promise<EquipmentStats> => {
       if (item.type) {
         byType[item.type] = (byType[item.type] || 0) + 1;
       }
-      if (item.manufacturer) {
-        byManufacturer[item.manufacturer] = (byManufacturer[item.manufacturer] || 0) + 1;
+      
+      // Get manufacturer from metadata
+      const metadata = item.metadata as Record<string, any> | null;
+      if (metadata && metadata.manufacturer) {
+        const manufacturer = String(metadata.manufacturer);
+        byManufacturer[manufacturer] = (byManufacturer[manufacturer] || 0) + 1;
       }
     });
     
@@ -191,7 +190,7 @@ export const getFilterOptions = async (): Promise<FilterOptions> => {
   try {
     const { data, error } = await supabase
       .from('equipments')
-      .select('type, metadata, status, location');
+      .select('type, metadata, status');
     
     if (error) {
       console.error('Error fetching filter options:', error);
@@ -209,14 +208,14 @@ export const getFilterOptions = async (): Promise<FilterOptions> => {
       // Add non-empty values to respective sets
       if (item.type) types.add(item.type);
       if (item.status) statuses.add(item.status);
-      if (item.location) locations.add(item.location);
       
       // Handle metadata fields - ensure we safely access properties
       const metadata = item.metadata as Record<string, any> | null;
       
       if (metadata && typeof metadata === 'object') {
-        if (metadata.manufacturer) manufacturers.add(metadata.manufacturer);
-        if (metadata.category) categories.add(metadata.category);
+        if (metadata.manufacturer) manufacturers.add(String(metadata.manufacturer));
+        if (metadata.category) categories.add(String(metadata.category));
+        if (metadata.location) locations.add(String(metadata.location));
       }
     });
 
@@ -243,48 +242,43 @@ export const searchEquipment = async (filters: EquipmentFilter): Promise<Equipme
     
     // Apply filters
     if (filters.search) {
-      query = query.or(`name.ilike.%${filters.search}%,type.ilike.%${filters.search}%,model.ilike.%${filters.search}%`);
+      query = query.or(`name.ilike.%${filters.search}%,type.ilike.%${filters.search}%,serial_number.ilike.%${filters.search}%`);
     }
     
     if (filters.type) {
       query = query.eq('type', filters.type);
     }
     
+    // The manufacturer is stored in metadata JSON field
     if (filters.manufacturer) {
-      // Pour manufacturer, chercher dans les métadonnées
-      const metadata = typeof filters.manufacturer === 'string' 
-        ? { manufacturer: filters.manufacturer } 
-        : { manufacturer: { eq: filters.manufacturer } };
-      
-      query = query.contains('metadata', metadata);
+      query = query.contains('metadata', { manufacturer: filters.manufacturer });
     }
     
+    // The category is stored in metadata JSON field
     if (filters.category) {
-      // Pour category, chercher dans les métadonnées
-      const metadata = typeof filters.category === 'string'
-        ? { category: filters.category }
-        : { category: { eq: filters.category } };
-      
-      query = query.contains('metadata', metadata);
+      query = query.contains('metadata', { category: filters.category });
     }
     
+    // Status is a direct column
     if (filters.status) {
       query = query.eq('status', filters.status);
     }
     
+    // Location is stored in metadata JSON field
     if (filters.location) {
-      query = query.eq('location', filters.location);
+      query = query.contains('metadata', { location: filters.location });
     }
     
     if (filters.year) {
-      query = query.eq('year', filters.year);
+      query = query.contains('metadata', { year: filters.year });
     }
     
     // Apply sorting
     if (filters.sortBy) {
       const direction = filters.sortOrder || 'asc';
-      // Ajouter une logique spéciale pour trier les champs dans les métadonnées
-      if (filters.sortBy === 'manufacturer' || filters.sortBy === 'category') {
+      // Special logic for sorting metadata fields
+      if (['manufacturer', 'category', 'location'].includes(filters.sortBy)) {
+        // Default to name sorting for metadata fields since JSON sorting is complex
         query = query.order('name', { ascending: direction === 'asc' });
       } else {
         query = query.order(filters.sortBy, { ascending: direction === 'asc' });
