@@ -49,12 +49,13 @@ export function Combobox({
   const safeOptions = Array.isArray(options) ? options : [];
   
   // Filter options based on search term
-  const filteredOptions = searchTerm 
-    ? safeOptions.filter(option => 
-        option.label.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        option.value.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : safeOptions
+  const filteredOptions = React.useMemo(() => {
+    if (!searchTerm) return safeOptions;
+    return safeOptions.filter(option => 
+      option.label.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      option.value.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm, safeOptions]);
 
   const handleSelect = (currentValue: string) => {
     setValue(currentValue)
@@ -89,23 +90,25 @@ export function Combobox({
             onValueChange={setSearchTerm}
           />
           <CommandEmpty>{emptyMessage}</CommandEmpty>
-          <CommandGroup className="max-h-60 overflow-y-auto">
-            {filteredOptions.map((option) => (
-              <CommandItem
-                key={option.value}
-                value={option.value}
-                onSelect={handleSelect}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    value === option.value ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                {option.label}
-              </CommandItem>
-            ))}
-          </CommandGroup>
+          {filteredOptions.length > 0 ? (
+            <CommandGroup className="max-h-60 overflow-y-auto">
+              {filteredOptions.map((option) => (
+                <CommandItem
+                  key={option.value}
+                  value={option.value}
+                  onSelect={handleSelect}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === option.value ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {option.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          ) : null}
         </Command>
       </PopoverContent>
     </Popover>

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -131,8 +132,9 @@ const PerplexitySearch = () => {
         
         <TabsContent value="search">
           <div className="space-y-4">
+            {/* Vérifiez que SEARCH_SUGGESTIONS est un tableau valide avant de le passer */}
             <Combobox
-              options={SEARCH_SUGGESTIONS}
+              options={SEARCH_SUGGESTIONS || []}
               placeholder="Entrez une référence ou description..."
               onSelect={(value) => handleSearch(value)}
               emptyMessage="Aucune suggestion disponible"
