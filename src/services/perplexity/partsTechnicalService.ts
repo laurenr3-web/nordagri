@@ -1,5 +1,5 @@
 
-import { perplexityClient } from './client';
+import { perplexityClient, checkApiKey } from './client';
 
 export interface PartTechnicalInfo {
   function: string;
@@ -17,6 +17,11 @@ export const partsTechnicalService = {
   async getPartInfo(partNumber: string, partName?: string): Promise<PartTechnicalInfo> {
     try {
       console.log(`Recherche d'informations techniques pour ${partNumber} (${partName || 'Sans nom'})`);
+      
+      // Vérifier si la clé API est configurée
+      if (!checkApiKey()) {
+        throw new Error("Clé API Perplexity manquante. Veuillez configurer la variable d'environnement VITE_PERPLEXITY_API_KEY.");
+      }
       
       const response = await perplexityClient.post('/chat/completions', {
         model: "sonar-medium-online",
