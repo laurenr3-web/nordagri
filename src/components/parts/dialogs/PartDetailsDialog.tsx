@@ -9,7 +9,7 @@ interface PartDetailsDialogProps {
   onOpenChange: (open: boolean) => void;
   selectedPart: Part | null;
   onEdit?: (part: Part) => void;
-  onDelete?: (partId: number) => void;
+  onDelete?: (partId: number | string) => void;
 }
 
 const PartDetailsDialog: React.FC<PartDetailsDialogProps> = ({

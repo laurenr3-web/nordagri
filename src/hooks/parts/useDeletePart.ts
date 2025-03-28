@@ -13,14 +13,19 @@ export function useDeletePart() {
   const { toast } = useToast();
   
   return useMutation({
-    mutationFn: (partId: number) => {
+    mutationFn: (partId: number | string) => {
       console.log('🗑️ Tentative de suppression de la pièce:', partId);
-      if (!partId || isNaN(Number(partId))) {
+      
+      // Convertir l'ID en nombre si possible
+      const numericId = typeof partId === 'string' ? Number(partId) : partId;
+      
+      if (isNaN(Number(numericId))) {
         throw new Error("ID de pièce invalide");
       }
-      return deletePart(partId);
+      
+      return deletePart(Number(numericId));
     },
-    onMutate: async (partId: number) => {
+    onMutate: async (partId: number | string) => {
       await queryClient.cancelQueries({ queryKey: ['parts'] });
       
       // Sauvegarder l'état précédent

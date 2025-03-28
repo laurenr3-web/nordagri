@@ -24,7 +24,7 @@ import EditPartDialog from './dialogs/EditPartDialog';
 interface PartDetailsProps {
   part: Part;
   onEdit?: (part: Part) => void;
-  onDelete?: (partId: number) => void;
+  onDelete?: (partId: number | string) => void;
   onDialogClose?: () => void;
 }
 
@@ -36,10 +36,10 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
     // Prevent event from bubbling up which might cause redirection
     e.stopPropagation();
     
-    if (onDelete && typeof part.id === 'number') {
+    if (onDelete) {
       onDelete(part.id);
     } else {
-      console.warn('Cannot delete part with non-numeric ID:', part.id);
+      console.warn('Delete handler not available for part with ID:', part.id);
     }
     setIsDeleteDialogOpen(false);
   };

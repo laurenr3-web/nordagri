@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Part } from '@/types/Part';
 
@@ -15,9 +16,15 @@ export async function updatePart(part: Part): Promise<Part> {
       throw new Error("Les champs obligatoires 'name' et 'stock' doivent être définis");
     }
 
-    // Vérification que l'ID est un nombre
-    if (typeof part.id !== 'number') {
-      throw new Error("L'ID de la pièce doit être un nombre pour la mise à jour");
+    // Vérification que l'ID est un nombre pour les opérations Supabase
+    // Si l'ID est une chaîne qui peut être convertie en nombre, le faire
+    const partId = typeof part.id === 'string' && !isNaN(Number(part.id)) 
+      ? Number(part.id) 
+      : part.id;
+      
+    // Si après conversion ce n'est toujours pas un nombre, rejeter
+    if (typeof partId !== 'number') {
+      throw new Error("L'ID de la pièce doit être un nombre pour la mise à jour dans Supabase");
     }
 
     // Préparation des données avec correspondance exacte des noms de colonnes
@@ -41,7 +48,7 @@ export async function updatePart(part: Part): Promise<Part> {
     const { data, error, status } = await supabase
       .from('parts_inventory')
       .update(updateData)
-      .eq('id', part.id)
+      .eq('id', partId)
       .select('*')
       .single();
     

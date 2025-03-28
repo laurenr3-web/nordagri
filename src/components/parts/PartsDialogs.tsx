@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Part } from '@/types/Part';
 
@@ -56,7 +57,7 @@ interface PartsDialogsProps {
   handleOrderSubmit?: () => void;
   handleAddPart?: (data: any) => void;
   handleEditPart?: (part: Part) => void;
-  handleDeletePart?: (partId: number) => void;
+  handleDeletePart?: (partId: number | string) => void;
 }
 
 const PartsDialogs: React.FC<PartsDialogsProps> = ({
@@ -115,10 +116,10 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
         selectedPart={selectedPart}
         onEdit={handleEditPart}
         onDelete={(partId) => {
-          if (handleDeletePart && typeof partId === 'number') {
+          if (handleDeletePart) {
             handleDeletePart(partId);
           } else {
-            console.warn('Cannot delete part with non-numeric ID:', partId);
+            console.warn('Delete handler not available for part with ID:', partId);
           }
         }}
       />
