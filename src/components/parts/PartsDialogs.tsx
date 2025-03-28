@@ -16,26 +16,26 @@ import PriceComparison from '@/components/parts/PriceComparison';
 interface LocalPart {
   id: string | number;
   name: string;
-  reference: string;
-  description: string;
+  reference?: string;
+  partNumber: string;
+  description?: string;
   category: string;
   manufacturer: string;
-  compatibleWith: string[] | string;
-  inStock: boolean;
+  compatibleWith?: string[] | string;
+  compatibility: string[];
+  inStock?: boolean;
   quantity?: number;
   minimumStock?: number;
-  location?: string;
+  location: string;
   lastUsed?: Date | null;
   purchasePrice?: number;
   estimatedPrice?: number | null;
   isFromSearch?: boolean;
   imageUrl?: string | null;
-  partNumber?: string;
-  compatibility?: string[];
-  stock?: number;
-  price?: number;
-  reorderPoint?: number;
-  image?: string;
+  stock: number;
+  price: number;
+  reorderPoint: number;
+  image: string;
 }
 
 interface PartsDialogsProps {
@@ -139,8 +139,8 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
       <PartDetailsDialog
         isOpen={isPartDetailsDialogOpen}
         onOpenChange={setIsPartDetailsDialogOpen}
-        selectedPart={selectedPart}
-        onEdit={handleEditPart}
+        selectedPart={selectedPart as any}
+        onEdit={handleEditPart as any}
         onDelete={handleDeletePart}
       />
       
@@ -189,7 +189,7 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
       <OrderDialog 
         isOpen={isOrderDialogOpen}
         onOpenChange={setIsOrderDialogOpen}
-        selectedPart={selectedPart}
+        selectedPart={selectedPart as any}
         orderQuantity={orderQuantity || ''}
         setOrderQuantity={setOrderQuantity || (() => {})}
         orderNote={orderNote || ''}
