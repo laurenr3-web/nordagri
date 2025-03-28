@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/ui/sidebar';
@@ -11,11 +11,15 @@ import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { interventionService } from '@/services/supabase/interventionService';
 import { Intervention } from '@/types/Intervention';
+import { useInterventionsRealtime } from '@/hooks/interventions/useInterventionsRealtime';
 
 const InterventionsPage = () => {
   const [showNewDialog, setShowNewDialog] = React.useState(false);
   const [selectedIntervention, setSelectedIntervention] = useState<Intervention | null>(null);
   const [currentView, setCurrentView] = useState('all');
+  
+  // Enable realtime updates
+  const { isSubscribed, error: realtimeError } = useInterventionsRealtime();
   
   // Fetch interventions
   const {
@@ -37,6 +41,18 @@ const InterventionsPage = () => {
       });
     }
   }, [isError, error]);
+
+  // Monitor realtime subscription
+  useEffect(() => {
+    if (realtimeError) {
+      console.error('Error with realtime subscription:', realtimeError);
+      toast.error('Erreur de synchronisation en temps réel', {
+        description: 'Les mises à jour en temps réel des interventions peuvent ne pas fonctionner correctement.'
+      });
+    } else if (isSubscribed) {
+      console.log('Successfully subscribed to realtime updates for interventions');
+    }
+  }, [isSubscribed, realtimeError]);
 
   const handleViewDetails = (intervention: Intervention) => {
     setSelectedIntervention(intervention);
