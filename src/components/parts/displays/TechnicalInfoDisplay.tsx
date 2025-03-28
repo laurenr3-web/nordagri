@@ -1,11 +1,9 @@
 
 import React from 'react';
 import { PartTechnicalInfo } from '@/services/perplexity/partsTechnicalService';
+import { InfoSection } from './TechnicalInfoSections/InfoSection';
+import { Info, Wrench, AlertCircle, CheckCircle } from 'lucide-react';
 import {
-  FunctionSection,
-  InstallationSection,
-  SymptomsSection,
-  MaintenanceSection,
   AlternativesSection,
   WarningsSection,
   HelpSection
@@ -41,39 +39,54 @@ export const TechnicalInfoDisplay: React.FC<TechnicalInfoDisplayProps> = ({
   return (
     <div className="space-y-6">
       {/* Section fonction et utilisation */}
-      <FunctionSection 
-        functionInfo={data.function}
-        compatibleEquipment={data.compatibleEquipment}
-        partReference={partReference}
-        isInfoAvailable={isInfoAvailable}
+      <InfoSection 
+        title="Fonction et utilisation"
+        icon={<Info className="h-5 w-5 mr-2" />}
+        content={data.function}
+        partNumber={partReference}
       />
       
       {/* Guide d'installation */}
-      <InstallationSection 
-        installation={data.installation}
-        isInfoAvailable={isInfoAvailable}
-      />
+      {isInfoAvailable(data.installation) && (
+        <InfoSection 
+          title="Guide d'installation"
+          icon={<Wrench className="h-5 w-5 mr-2" />}
+          content={data.installation}
+          partNumber={partReference}
+          searchQuery={`${partReference}+installation+guide`}
+        />
+      )}
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Symptômes de défaillance */}
-        <SymptomsSection 
-          symptoms={data.symptoms}
-          isInfoAvailable={isInfoAvailable}
-        />
+        {isInfoAvailable(data.symptoms) && (
+          <InfoSection 
+            title="Symptômes de défaillance"
+            icon={<AlertCircle className="h-5 w-5 mr-2" />}
+            content={data.symptoms}
+            partNumber={partReference}
+            searchQuery={`${partReference}+problèmes+symptômes`}
+          />
+        )}
         
         {/* Entretien et maintenance */}
-        <MaintenanceSection 
-          maintenance={data.maintenance}
-          isInfoAvailable={isInfoAvailable}
-        />
+        {isInfoAvailable(data.maintenance) && (
+          <InfoSection 
+            title="Entretien et maintenance"
+            icon={<Wrench className="h-5 w-5 mr-2" />}
+            content={data.maintenance}
+            partNumber={partReference}
+            searchQuery={`${partReference}+maintenance+entretien`}
+          />
+        )}
       </div>
       
       {/* Alternatives possibles */}
-      <AlternativesSection alternatives={data.alternatives} />
+      <AlternativesSection alternatives={data.alternatives || []} />
       
       {/* Avertissements importants */}
       <WarningsSection 
-        warnings={data.warnings}
+        warnings={data.warnings || ""}
         isInfoAvailable={isInfoAvailable}
       />
       
