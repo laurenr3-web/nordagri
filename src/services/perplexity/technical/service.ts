@@ -44,6 +44,13 @@ export async function getPartTechnicalInfo(partReference: string, partName?: str
       max_tokens: 2000
     });
 
+    // Déboguer la réponse brute
+    if (response.data && response.data.choices && response.data.choices[0]?.message?.content) {
+      console.log("Réponse brute de Perplexity:", response.data.choices[0].message.content);
+    } else {
+      console.error("Structure de réponse inattendue:", response.data);
+    }
+
     // Traitement de la réponse
     if (!response.data || !response.data.choices || !response.data.choices[0]?.message?.content) {
       console.error("Réponse API Perplexity invalide:", response.data);
@@ -59,8 +66,9 @@ export async function getPartTechnicalInfo(partReference: string, partName?: str
   } catch (error) {
     console.error("Erreur lors de la récupération des informations techniques:", error);
     
-    // Amélioration des messages d'erreur pour le débogage
+    // Amélioration du débogage pour les erreurs API
     if (error.response) {
+      console.error("Erreur API complète:", error);
       console.error("Détails de l'erreur API:", error.response.status, error.response.data);
       
       if (error.response.status === 401) {
