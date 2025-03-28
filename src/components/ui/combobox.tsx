@@ -34,7 +34,7 @@ interface ComboboxProps {
 }
 
 export function Combobox({
-  options,
+  options = [], // Set default empty array to prevent undefined
   placeholder = "Sélectionner une option...",
   emptyMessage = "Aucun résultat trouvé",
   onSelect,
@@ -45,13 +45,16 @@ export function Combobox({
   const [value, setValue] = React.useState(defaultValue || "")
   const [searchTerm, setSearchTerm] = React.useState("")
 
-  // Filtrer les options basées sur le terme de recherche
+  // Safely check options array exists before filtering
+  const safeOptions = Array.isArray(options) ? options : [];
+  
+  // Filter options based on search term
   const filteredOptions = searchTerm 
-    ? options.filter(option => 
+    ? safeOptions.filter(option => 
         option.label.toLowerCase().includes(searchTerm.toLowerCase()) || 
         option.value.toLowerCase().includes(searchTerm.toLowerCase())
       )
-    : options
+    : safeOptions
 
   const handleSelect = (currentValue: string) => {
     setValue(currentValue)
@@ -59,11 +62,11 @@ export function Combobox({
     onSelect(currentValue)
   }
 
-  // Trouver le libellé correspondant à la valeur sélectionnée
+  // Safely find the selected label
   const selectedLabel = React.useMemo(() => {
-    const option = options.find(option => option.value === value)
+    const option = safeOptions.find(option => option.value === value)
     return option ? option.label : value || placeholder
-  }, [value, options, placeholder])
+  }, [value, safeOptions, placeholder])
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

@@ -11,7 +11,10 @@ interface PriceComparisonDisplayProps {
 }
 
 export const PriceComparisonDisplay: React.FC<PriceComparisonDisplayProps> = ({ data }) => {
-  if (!data || data.length === 0) {
+  // Safely handle null/undefined data
+  const safeData = Array.isArray(data) ? data : [];
+  
+  if (safeData.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         Aucune information de prix disponible
@@ -33,7 +36,7 @@ export const PriceComparisonDisplay: React.FC<PriceComparisonDisplayProps> = ({ 
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((item, index) => (
+          {safeData.map((item, index) => (
             <TableRow key={index}>
               <TableCell className="font-medium">{item.vendor || item.supplier}</TableCell>
               <TableCell>

@@ -2,7 +2,6 @@
 import { PartPriceInfo } from '@/types/Part';
 import { partsApi } from './api';
 import { partsParser } from './parser';
-import { PriceComparisonConfig } from './types';
 
 /**
  * Service for comparing part prices using Perplexity API
@@ -40,7 +39,7 @@ export const partsPriceService = {
       const normalizedData = partsParser.normalizeSearchResponse(parsedData);
       
       // Transform to application format
-      return this.transformPriceResults(normalizedData.results);
+      return this.transformPriceResults(normalizedData.results || []);
       
     } catch (error) {
       console.error("Erreur lors de la comparaison des prix:", error);
@@ -52,14 +51,17 @@ export const partsPriceService = {
    * Transform price comparison results to application PartPriceInfo format
    */
   transformPriceResults(results: any[]): PartPriceInfo[] {
-    return results.map((item: any) => ({
+    // Ensure results is always an array
+    const safeResults = Array.isArray(results) ? results : [];
+    
+    return safeResults.map((item: any) => ({
       supplier: item.supplier || item.vendor || "Inconnu",
       vendor: item.vendor || item.supplier || "Inconnu",
       price: item.price || "N/A",
       currency: item.currency || "EUR",
       link: item.link || null,
       url: item.url || item.link || null,
-      isAvailable: item.isAvailable || item.availability || false,
+      isAvailable: Boolean(item.isAvailable || item.availability || false),
       availability: item.availability || (item.isAvailable ? "En stock" : "Non disponible"),
       deliveryTime: item.deliveryTime || "Non spécifié",
       estimatedDelivery: item.estimatedDelivery || item.deliveryTime || "Non spécifié",
