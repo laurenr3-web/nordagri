@@ -8,6 +8,16 @@ import { partsTechnicalService } from '@/services/perplexity/partsTechnicalServi
 import type { PartTechnicalInfo } from '@/services/perplexity/technical';
 import { checkApiKey } from '@/services/perplexity/client';
 import { TechnicalInfoDisplay } from './displays/TechnicalInfoDisplay';
+import { Combobox, ComboboxOption } from '@/components/ui/combobox';
+
+// Suggestions prédéfinies pour la recherche de pièces techniques
+const TECHNICAL_SUGGESTIONS: ComboboxOption[] = [
+  { label: "John Deere 0118-2672 - Filtre à huile", value: "JD0118-2672" },
+  { label: "Case IH 0118-2672 - Capteur de pression", value: "CASE0118-2672" },
+  { label: "Kubota 0118-2672 - Joint d'étanchéité", value: "KUB0118-2672" },
+  { label: "John Deere RE504836 - Filtre à carburant", value: "RE504836" },
+  { label: "Case IH 84475542 - Filtre à air", value: "84475542" },
+];
 
 interface TechnicalInfoTabProps {
   partNumber: string;
@@ -20,9 +30,12 @@ const TechnicalInfoTab = ({ partNumber, partName }: TechnicalInfoTabProps) => {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [manufacturer, setManufacturer] = useState<string | null>(null);
+  const [currentPartNumber, setCurrentPartNumber] = useState(partNumber);
 
-  const loadTechnicalInfo = async (manufacturerOverride?: string) => {
-    if (!partNumber) {
+  const loadTechnicalInfo = async (manufacturerOverride?: string, partNumberOverride?: string) => {
+    const usePartNumber = partNumberOverride || currentPartNumber;
+    
+    if (!usePartNumber) {
       toast.error('Numéro de pièce manquant');
       setError('Numéro de pièce manquant');
       return;
@@ -48,7 +61,7 @@ const TechnicalInfoTab = ({ partNumber, partName }: TechnicalInfoTabProps) => {
       if (currentManufacturer) {
         contextName = contextName 
           ? `${contextName} (${currentManufacturer})` 
-          : `${partNumber} (${currentManufacturer})`;
+          : `${usePartNumber} (${currentManufacturer})`;
         
         // Stocker le fabricant pour les prochaines requêtes
         if (manufacturerOverride) {
@@ -56,7 +69,7 @@ const TechnicalInfoTab = ({ partNumber, partName }: TechnicalInfoTabProps) => {
         }
       }
       
-      const data = await partsTechnicalService.getPartInfo(partNumber, contextName);
+      const data = await partsTechnicalService.getPartInfo(usePartNumber, contextName);
       setTechnicalInfo(data);
       setLastUpdated(new Date());
     } catch (error) {
@@ -78,67 +91,95 @@ const TechnicalInfoTab = ({ partNumber, partName }: TechnicalInfoTabProps) => {
 
   useEffect(() => {
     if (partNumber) {
+      setCurrentPartNumber(partNumber);
       loadTechnicalInfo();
     }
   }, [partNumber]);
+
+  const handleComboboxSelect = (value: string) => {
+    // Extraire les informations de la suggestion
+    const suggestion = TECHNICAL_SUGGESTIONS.find(s => s.value === value);
+    if (suggestion) {
+      // Extraire la référence et le fabricant du libellé
+      const parts = suggestion.label.split(' - ')[0].split(' ');
+      if (parts.length >= 2) {
+        const reference = parts[parts.length - 1];
+        const manufacturer = parts.slice(0, parts.length - 1).join(' ');
+        
+        setCurrentPartNumber(reference);
+        setManufacturer(manufacturer);
+        loadTechnicalInfo(manufacturer, reference);
+      }
+    } else {
+      // Si la valeur n'est pas dans les suggestions, la traiter comme une référence directe
+      setCurrentPartNumber(value);
+      loadTechnicalInfo(null, value);
+    }
+  };
 
   const formatDate = (date: Date | null) => {
     if (!date) return 'Jamais';
     return date.toLocaleString();
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16">
-        <Loader2 className="h-8 w-8 animate-spin mb-2" />
-        <p className="text-muted-foreground">Recherche des informations techniques...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16">
-        <AlertCircle className="h-8 w-8 text-destructive mb-2" />
-        <p className="text-destructive font-medium">Erreur</p>
-        <p className="text-muted-foreground text-center max-w-md mt-2">{error}</p>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="mt-4"
-          onClick={() => loadTechnicalInfo()}
-        >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Réessayer
-        </Button>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Informations techniques</h2>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">
-            Dernière mise à jour: {formatDate(lastUpdated)}
-          </span>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => loadTechnicalInfo()} 
-            disabled={isLoading}
-          >
-            <RefreshCw className="h-4 w-4" />
-          </Button>
+      <div className="flex flex-col space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <h2 className="text-2xl font-bold">Informations techniques</h2>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">
+              Dernière mise à jour: {formatDate(lastUpdated)}
+            </span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => loadTechnicalInfo()} 
+              disabled={isLoading}
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        
+        <div>
+          <Combobox
+            options={TECHNICAL_SUGGESTIONS}
+            placeholder="Rechercher une pièce..."
+            onSelect={handleComboboxSelect}
+            defaultValue={currentPartNumber}
+            className="w-full md:max-w-md"
+          />
         </div>
       </div>
       
-      <TechnicalInfoDisplay 
-        data={technicalInfo} 
-        partReference={partNumber} 
-        onRetryWithManufacturer={handleRetryWithManufacturer}
-      />
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-16">
+          <Loader2 className="h-8 w-8 animate-spin mb-2" />
+          <p className="text-muted-foreground">Recherche des informations techniques...</p>
+        </div>
+      ) : error ? (
+        <div className="flex flex-col items-center justify-center py-16">
+          <AlertCircle className="h-8 w-8 text-destructive mb-2" />
+          <p className="text-destructive font-medium">Erreur</p>
+          <p className="text-muted-foreground text-center max-w-md mt-2">{error}</p>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="mt-4"
+            onClick={() => loadTechnicalInfo()}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Réessayer
+          </Button>
+        </div>
+      ) : (
+        <TechnicalInfoDisplay 
+          data={technicalInfo} 
+          partReference={currentPartNumber} 
+          onRetryWithManufacturer={handleRetryWithManufacturer}
+        />
+      )}
     </div>
   );
 };

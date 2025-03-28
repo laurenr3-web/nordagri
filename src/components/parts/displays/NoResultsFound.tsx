@@ -3,6 +3,21 @@ import React, { useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Combobox, ComboboxOption } from '@/components/ui/combobox';
+
+// Suggestions de fabricants pour aider l'utilisateur
+const MANUFACTURER_SUGGESTIONS: ComboboxOption[] = [
+  { label: "John Deere", value: "John Deere" },
+  { label: "Case IH", value: "Case IH" },
+  { label: "New Holland", value: "New Holland" },
+  { label: "Kubota", value: "Kubota" },
+  { label: "Massey Ferguson", value: "Massey Ferguson" },
+  { label: "CLAAS", value: "CLAAS" },
+  { label: "Fendt", value: "Fendt" },
+  { label: "Deutz-Fahr", value: "Deutz-Fahr" },
+  { label: "Valtra", value: "Valtra" },
+  { label: "JCB", value: "JCB" },
+];
 
 interface NoResultsFoundProps {
   partReference: string;
@@ -32,6 +47,14 @@ const NoResultsFound: React.FC<NoResultsFoundProps> = ({
     }
   };
 
+  const handleManufacturerSelect = (value: string) => {
+    setManufacturer(value);
+    
+    if (value && onRetryWithManufacturer) {
+      onRetryWithManufacturer(value);
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
       <AlertCircle className="h-12 w-12 text-amber-500 mb-4" />
@@ -42,14 +65,12 @@ const NoResultsFound: React.FC<NoResultsFoundProps> = ({
       
       <div className="flex flex-col gap-4 w-full max-w-md">
         <div className="flex gap-2">
-          <Input 
-            placeholder="Ajoutez un fabricant (ex: John Deere, Case IH)" 
+          <Combobox
+            options={MANUFACTURER_SUGGESTIONS}
+            placeholder="Sélectionnez un fabricant"
+            onSelect={handleManufacturerSelect}
             className="flex-1"
-            value={manufacturer}
-            onChange={(e) => setManufacturer(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handlePrecise()}
           />
-          <Button onClick={handlePrecise}>Préciser</Button>
         </div>
         
         <div className="grid grid-cols-2 gap-2">

@@ -12,6 +12,19 @@ import { PriceComparisonDisplay } from './displays/PriceComparisonDisplay';
 import { checkApiKey } from '@/services/perplexity/client';
 import PerplexityChat from './PerplexityChat';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Combobox, ComboboxOption } from '@/components/ui/combobox';
+
+// Suggestions prédéfinies pour la recherche de pièces
+const SEARCH_SUGGESTIONS: ComboboxOption[] = [
+  { label: "John Deere 0118-2672 - Filtre à huile", value: "JD0118-2672" },
+  { label: "Case IH 0118-2672 - Capteur de pression", value: "CASE0118-2672" },
+  { label: "Kubota 0118-2672 - Joint d'étanchéité", value: "KUB0118-2672" },
+  { label: "John Deere RE504836 - Filtre à carburant", value: "RE504836" },
+  { label: "Case IH 84475542 - Filtre à air", value: "84475542" },
+  { label: "Kubota HH164-32430 - Courroie", value: "HH164-32430" },
+  { label: "New Holland 87300041 - Capteur", value: "87300041" },
+  { label: "Massey Ferguson 3595175M1 - Joint", value: "3595175M1" },
+];
 
 const PerplexitySearch = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -23,10 +36,34 @@ const PerplexitySearch = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSearch = async (manufacturerOverride?: string) => {
-    if (!searchQuery.trim()) {
+  const handleSearch = async (suggestionValue?: string) => {
+    const query = suggestionValue || searchQuery;
+    
+    if (!query.trim()) {
       toast.error('Veuillez entrer un numéro de pièce');
       return;
+    }
+    
+    // Si c'est une suggestion sélectionnée, extraire le numéro de référence
+    let partRef = query;
+    let partManufacturer = manufacturer;
+    
+    // Si suggestion au format "JD0118-2672", extraire le fabricant
+    if (suggestionValue) {
+      const suggestion = SEARCH_SUGGESTIONS.find(s => s.value === suggestionValue);
+      if (suggestion) {
+        // Extraire la référence du libellé (format: "John Deere 0118-2672 - Filtre à huile")
+        const parts = suggestion.label.split(' - ')[0].split(' ');
+        if (parts.length >= 2) {
+          // Le dernier élément est la référence, les précédents forment le fabricant
+          partRef = parts[parts.length - 1];
+          partManufacturer = parts.slice(0, parts.length - 1).join(' ');
+          
+          // Mettre à jour les champs d'interface
+          setSearchQuery(partRef);
+          setManufacturer(partManufacturer);
+        }
+      }
     }
     
     // Vérifier si la clé API est configurée
@@ -42,23 +79,18 @@ const PerplexitySearch = () => {
     
     try {
       // Préparer le nom avec le fabricant si disponible
-      const currentManufacturer = manufacturerOverride || manufacturer;
+      const currentManufacturer = partManufacturer || manufacturer;
       const partContext = currentManufacturer 
-        ? `${searchQuery} (${currentManufacturer})` 
-        : searchQuery;
+        ? `${partRef} (${currentManufacturer})` 
+        : partRef;
         
-      // Si un nouveau fabricant est spécifié, le stocker
-      if (manufacturerOverride) {
-        setManufacturer(manufacturerOverride);
-      }
-      
       // Combine les deux types de recherche en une seule requête
       const promises = [
-        partsPriceService.findBestPrices(searchQuery).catch(err => {
+        partsPriceService.findBestPrices(partRef).catch(err => {
           console.error('Erreur lors de la recherche de prix:', err);
           return null;
         }),
-        partsTechnicalService.getPartInfo(searchQuery, partContext).catch(err => {
+        partsTechnicalService.getPartInfo(partRef, partContext).catch(err => {
           console.error('Erreur lors de la recherche technique:', err);
           return null;
         })
@@ -99,29 +131,39 @@ const PerplexitySearch = () => {
         </TabsList>
         
         <TabsContent value="search">
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Input
-              placeholder="Entrez un numéro de pièce (ex: JD6850)"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              className="flex-1"
+          <div className="space-y-4">
+            <Combobox
+              options={SEARCH_SUGGESTIONS}
+              placeholder="Entrez une référence ou description..."
+              onSelect={(value) => handleSearch(value)}
+              emptyMessage="Aucune suggestion disponible"
+              className="w-full"
             />
-            <Input
-              placeholder="Fabricant (optionnel)"
-              value={manufacturer}
-              onChange={(e) => setManufacturer(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              className="flex-1 sm:max-w-[200px]"
-            />
-            <Button onClick={() => handleSearch()} disabled={isLoading}>
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <Search className="h-4 w-4 mr-2" />
-              )}
-              Rechercher
-            </Button>
+            
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Input
+                placeholder="Entrez un numéro de pièce (ex: JD6850)"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                className="flex-1"
+              />
+              <Input
+                placeholder="Fabricant (optionnel)"
+                value={manufacturer}
+                onChange={(e) => setManufacturer(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                className="flex-1 sm:max-w-[200px]"
+              />
+              <Button onClick={() => handleSearch()} disabled={isLoading}>
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Search className="h-4 w-4 mr-2" />
+                )}
+                Rechercher
+              </Button>
+            </div>
           </div>
 
           {error && (
