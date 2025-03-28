@@ -12,18 +12,17 @@ import { PriceComparisonDisplay } from './displays/PriceComparisonDisplay';
 import { checkApiKey } from '@/services/perplexity/client';
 import PerplexityChat from './PerplexityChat';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { Combobox, ComboboxOption } from '@/components/ui/combobox';
 
-// Suggestions prédéfinies pour la recherche de pièces - ensure this is a valid array
-const SEARCH_SUGGESTIONS: ComboboxOption[] = [
-  { label: "John Deere 0118-2672 - Filtre à huile", value: "JD0118-2672" },
-  { label: "Case IH 0118-2672 - Capteur de pression", value: "CASE0118-2672" },
-  { label: "Kubota 0118-2672 - Joint d'étanchéité", value: "KUB0118-2672" },
-  { label: "John Deere RE504836 - Filtre à carburant", value: "RE504836" },
-  { label: "Case IH 84475542 - Filtre à air", value: "84475542" },
-  { label: "Kubota HH164-32430 - Courroie", value: "HH164-32430" },
-  { label: "New Holland 87300041 - Capteur", value: "87300041" },
-  { label: "Massey Ferguson 3595175M1 - Joint", value: "3595175M1" },
+// Suggestions prédéfinies pour la recherche de pièces
+const SUGGESTED_PARTS = [
+  { ref: "0118-2672", name: "Filtre à huile", manufacturer: "John Deere" },
+  { ref: "0118-2672", name: "Capteur de pression", manufacturer: "Case IH" },
+  { ref: "0118-2672", name: "Joint d'étanchéité", manufacturer: "Kubota" },
+  { ref: "RE504836", name: "Filtre à carburant", manufacturer: "John Deere" },
+  { ref: "84475542", name: "Filtre à air", manufacturer: "Case IH" },
+  { ref: "HH164-32430", name: "Courroie", manufacturer: "Kubota" },
+  { ref: "87300041", name: "Capteur", manufacturer: "New Holland" },
+  { ref: "3595175M1", name: "Joint", manufacturer: "Massey Ferguson" },
 ];
 
 const PerplexitySearch = () => {
@@ -47,27 +46,6 @@ const PerplexitySearch = () => {
     // Si c'est une suggestion sélectionnée, extraire le numéro de référence
     let partRef = query;
     let partManufacturer = manufacturer;
-    
-    // Si suggestion au format "JD0118-2672", extraire le fabricant
-    if (suggestionValue) {
-      // Ensure SEARCH_SUGGESTIONS is an array before using find
-      const suggestionsList = Array.isArray(SEARCH_SUGGESTIONS) ? SEARCH_SUGGESTIONS : [];
-      const suggestion = suggestionsList.find(s => s.value === suggestionValue);
-      
-      if (suggestion) {
-        // Extraire la référence du libellé (format: "John Deere 0118-2672 - Filtre à huile")
-        const parts = suggestion.label.split(' - ')[0].split(' ');
-        if (parts.length >= 2) {
-          // Le dernier élément est la référence, les précédents forment le fabricant
-          partRef = parts[parts.length - 1];
-          partManufacturer = parts.slice(0, parts.length - 1).join(' ');
-          
-          // Mettre à jour les champs d'interface
-          setSearchQuery(partRef);
-          setManufacturer(partManufacturer);
-        }
-      }
-    }
     
     // Vérifier si la clé API est configurée
     if (!checkApiKey()) {
@@ -128,7 +106,14 @@ const PerplexitySearch = () => {
   };
 
   const handleRetryWithManufacturer = (manufacturerValue: string) => {
+    setManufacturer(manufacturerValue.split(' ')[0] || '');
     handleSearch(manufacturerValue);
+  };
+
+  const handleSuggestionClick = (part: {ref: string, name: string, manufacturer: string}) => {
+    setSearchQuery(part.ref);
+    setManufacturer(part.manufacturer);
+    handleSearch(`${part.ref} ${part.manufacturer}`);
   };
 
   return (
@@ -141,14 +126,20 @@ const PerplexitySearch = () => {
         
         <TabsContent value="search">
           <div className="space-y-4">
-            {/* Ensure SEARCH_SUGGESTIONS is always a valid array before passing to Combobox */}
-            <Combobox
-              options={Array.isArray(SEARCH_SUGGESTIONS) ? SEARCH_SUGGESTIONS : []}
-              placeholder="Entrez une référence ou description..."
-              onSelect={(value) => handleSearch(value)}
-              emptyMessage="Aucune suggestion disponible"
-              className="w-full"
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+              {SUGGESTED_PARTS.map((part, index) => (
+                <div 
+                  key={index}
+                  className="cursor-pointer p-3 border rounded-md hover:bg-accent/5"
+                  onClick={() => handleSuggestionClick(part)}
+                >
+                  <p className="font-medium text-sm">{part.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {part.manufacturer} - Réf: {part.ref}
+                  </p>
+                </div>
+              ))}
+            </div>
             
             <div className="flex flex-col gap-2 sm:flex-row">
               <Input

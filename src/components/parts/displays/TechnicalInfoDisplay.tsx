@@ -1,18 +1,21 @@
 
 import React from 'react';
-import { PartTechnicalInfo } from '@/services/perplexity/partsTechnicalService';
-import { InfoSection } from './TechnicalInfoSections/InfoSection';
-import { Info, Wrench, AlertCircle } from 'lucide-react';
-import {
-  AlternativesSection,
-  WarningsSection,
-  HelpSection
-} from './TechnicalInfoSections';
+import { Info, Tool, AlertTriangle, HelpCircle, Settings, RotateCcw, ArrowRightLeft, Wrench } from 'lucide-react';
 import NoResultsFound from './NoResultsFound';
+import { 
+  FunctionSection, 
+  InstallationSection, 
+  SymptomsSection, 
+  MaintenanceSection, 
+  AlternativesSection, 
+  WarningsSection,
+  HelpSection,
+  InfoSection
+} from './TechnicalInfoSections';
 
 interface TechnicalInfoDisplayProps {
-  data: PartTechnicalInfo | null;
-  partReference?: string;
+  data: any;
+  partReference: string;
   onRetryWithManufacturer?: (manufacturer: string) => void;
 }
 
@@ -21,89 +24,54 @@ export const TechnicalInfoDisplay: React.FC<TechnicalInfoDisplayProps> = ({
   partReference,
   onRetryWithManufacturer
 }) => {
+  // Si pas de données, afficher une interface pour améliorer la recherche
   if (!data) {
     return (
-      <div className="text-center py-8 text-muted-foreground">
-        Aucune information technique disponible
-      </div>
+      <NoResultsFound 
+        partReference={partReference} 
+        onRetryWithManufacturer={onRetryWithManufacturer}
+      />
     );
   }
 
-  // Fonction pour vérifier si une information est disponible ou pertinente
-  const isInfoAvailable = (info: string): boolean => {
-    return !!info && !info.toLowerCase().includes("non disponible") && !info.toLowerCase().includes("information non");
-  };
-
-  // Vérifier si les informations principales sont manquantes
-  const mainInfoMissing = !isInfoAvailable(data.function) && 
-                          !isInfoAvailable(data.installation) && 
-                          !isInfoAvailable(data.symptoms) && 
-                          !isInfoAvailable(data.maintenance);
-
-  // Si toutes les informations importantes sont manquantes, afficher un message spécial
-  if (mainInfoMissing) {
-    return <NoResultsFound partReference={partReference || ''} onRetryWithManufacturer={onRetryWithManufacturer} />;
-  }
-
+  // Données techniques disponibles, afficher les sections
   return (
-    <div className="space-y-6">
-      {/* Section fonction et utilisation */}
-      <InfoSection 
-        title="Fonction et utilisation"
-        icon={<Info className="h-5 w-5 mr-2" />}
-        content={data.function}
-        partNumber={partReference}
-      />
-      
-      {/* Guide d'installation */}
-      {isInfoAvailable(data.installation) && (
-        <InfoSection 
-          title="Guide d'installation"
-          icon={<Wrench className="h-5 w-5 mr-2" />}
-          content={data.installation}
-          partNumber={partReference}
-          searchQuery={`${partReference}+installation+guide`}
-        />
-      )}
-      
+    <div className="space-y-6 py-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Symptômes de défaillance */}
-        {isInfoAvailable(data.symptoms) && (
-          <InfoSection 
-            title="Symptômes de défaillance"
-            icon={<AlertCircle className="h-5 w-5 mr-2" />}
-            content={data.symptoms}
-            partNumber={partReference}
-            searchQuery={`${partReference}+problèmes+symptômes`}
-          />
-        )}
+        <FunctionSection 
+          data={data.function || data.description} 
+          partNumber={partReference}
+        />
         
-        {/* Entretien et maintenance */}
-        {isInfoAvailable(data.maintenance) && (
-          <InfoSection 
-            title="Entretien et maintenance"
-            icon={<Wrench className="h-5 w-5 mr-2" />}
-            content={data.maintenance}
-            partNumber={partReference}
-            searchQuery={`${partReference}+maintenance+entretien`}
-          />
-        )}
+        <InstallationSection 
+          data={data.installation || data.mountingInstructions} 
+          partNumber={partReference}
+        />
       </div>
       
-      {/* Alternatives possibles */}
-      <AlternativesSection alternatives={data.alternatives || []} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <SymptomsSection 
+          data={data.symptoms || data.failureIndicators} 
+          partNumber={partReference}
+        />
+        
+        <MaintenanceSection 
+          data={data.maintenance || data.upkeep} 
+          partNumber={partReference}
+        />
+      </div>
       
-      {/* Avertissements importants */}
-      <WarningsSection 
-        warnings={data.warnings || ""}
-        isInfoAvailable={isInfoAvailable}
-      />
-      
-      {/* Section d'aide si la majorité des informations sont manquantes */}
-      <HelpSection 
-        partReference={partReference}
-        shouldShow={false} // On utilise maintenant NoResultsFound pour ce cas
-      />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <WarningsSection 
+          data={data.warnings || data.precautions} 
+          partNumber={partReference}
+        />
+        
+        <AlternativesSection 
+          data={data.alternatives || data.substitutes} 
+          partNumber={partReference}
+        />
+      </div>
     </div>
   );
 };
