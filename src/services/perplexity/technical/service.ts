@@ -45,7 +45,7 @@ export async function getPartTechnicalInfo(partReference: string, partName?: str
     const content = response.data.choices[0].message.content;
     console.log("Réponse technique reçue de Perplexity");
     
-    // Transformation en format structuré
+    // Transformation en format structuré avec la nouvelle fonction de parsing améliorée
     return parseResponse(content);
     
   } catch (error) {

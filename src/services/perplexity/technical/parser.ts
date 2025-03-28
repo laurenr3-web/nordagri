@@ -2,6 +2,50 @@
 import { PartTechnicalInfo } from './types';
 import { extractInformationFromText } from './utils/textExtraction';
 
+/**
+ * Improved function to process and clean Perplexity API responses
+ */
+function processResponse(content: string): PartTechnicalInfo {
+  try {
+    // Nettoyage du contenu - supprimer les backticks et la syntaxe JSON
+    let cleanContent = content
+      .replace(/```json/g, '')
+      .replace(/```/g, '')
+      .trim();
+    
+    // Essayer de trouver un objet JSON valide
+    let jsonMatch = cleanContent.match(/{[\s\S]*}/);
+    let parsedData = null;
+    
+    if (jsonMatch) {
+      try {
+        parsedData = JSON.parse(jsonMatch[0]);
+      } catch (e) {
+        console.warn("Impossible de parser le JSON trouvé:", e);
+      }
+    }
+    
+    // Si nous avons du JSON valide, l'utiliser
+    if (parsedData) {
+      return {
+        function: typeof parsedData.function === 'string' ? parsedData.function : "Information non disponible",
+        compatibleEquipment: Array.isArray(parsedData.compatibleEquipment) ? parsedData.compatibleEquipment : [],
+        installation: typeof parsedData.installation === 'string' ? parsedData.installation : "Information non disponible",
+        symptoms: typeof parsedData.symptoms === 'string' ? parsedData.symptoms : "Information non disponible",
+        maintenance: typeof parsedData.maintenance === 'string' ? parsedData.maintenance : "Information non disponible",
+        alternatives: Array.isArray(parsedData.alternatives) ? parsedData.alternatives : [],
+        warnings: typeof parsedData.warnings === 'string' ? parsedData.warnings : ""
+      };
+    }
+    
+    // Sinon, utiliser la méthode de secours pour extraire du texte structuré
+    return extractInformationFromText(cleanContent);
+  } catch (error) {
+    console.error("Erreur lors du traitement de la réponse:", error);
+    return createDefaultTechnicalInfo();
+  }
+}
+
 export function parseResponse(content: string): PartTechnicalInfo {
   try {
     // Vérifier si le contenu est vide ou null
@@ -10,51 +54,8 @@ export function parseResponse(content: string): PartTechnicalInfo {
       return createDefaultTechnicalInfo();
     }
 
-    // Essayer de parser le JSON directement
-    let parsedData;
-    
-    try {
-      // D'abord essayer de parser directement
-      parsedData = JSON.parse(content);
-    } catch (parseError) {
-      // Ensuite chercher un bloc JSON entre ```
-      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-      if (jsonMatch) {
-        parsedData = JSON.parse(jsonMatch[1]);
-      } else {
-        // Chercher quelque chose qui ressemble à un objet JSON
-        const potentialJson = content.match(/{[\s\S]*?}/);
-        if (potentialJson) {
-          parsedData = JSON.parse(potentialJson[0]);
-        } else {
-          console.warn("Aucun JSON valide trouvé dans la réponse, utilisation du fallback d'extraction de texte");
-          return extractInformationFromText(content);
-        }
-      }
-    }
-    
-    // Vérifier et compléter les données si nécessaires
-    return {
-      function: parsedData.function || parsedData.utilisation || parsedData["1"] || "Information non disponible",
-      compatibleEquipment: Array.isArray(parsedData.compatibleEquipment) 
-        ? parsedData.compatibleEquipment 
-        : parsedData.equipementsCompatibles 
-        ? (Array.isArray(parsedData.equipementsCompatibles) ? parsedData.equipementsCompatibles : [parsedData.equipementsCompatibles])
-        : parsedData.compatibleEquipment 
-          ? [parsedData.compatibleEquipment] 
-          : parsedData["2"]
-          ? (Array.isArray(parsedData["2"]) ? parsedData["2"] : [parsedData["2"]])
-          : [],
-      installation: parsedData.installation || parsedData.guide || parsedData["3"] || "Information non disponible",
-      symptoms: parsedData.symptoms || parsedData.defaillance || parsedData["4"] || "Information non disponible",
-      maintenance: parsedData.maintenance || parsedData.entretien || parsedData["5"] || "Information non disponible",
-      alternatives: Array.isArray(parsedData.alternatives) 
-        ? parsedData.alternatives 
-        : parsedData["6"]
-        ? (Array.isArray(parsedData["6"]) ? parsedData["6"] : [parsedData["6"]])
-        : [],
-      warnings: parsedData.warnings || parsedData.avertissements || parsedData["7"] || ""
-    };
+    // Utiliser la nouvelle fonction de traitement améliorée
+    return processResponse(content);
   } catch (error) {
     console.error("Erreur lors du parsing JSON:", error);
     console.log("Contenu brut:", content);
