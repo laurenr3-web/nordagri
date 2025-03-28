@@ -17,7 +17,7 @@ import { useInterventionsRealtime } from '@/hooks/interventions/useInterventions
 const InterventionsPage = () => {
   const [showNewDialog, setShowNewDialog] = React.useState(false);
   const [selectedIntervention, setSelectedIntervention] = useState<Intervention | null>(null);
-  const [currentView, setCurrentView] = useState('all');
+  const [currentView, setCurrentView] = useState('scheduled');
   
   // Enable realtime updates
   const { isSubscribed, error: realtimeError } = useInterventionsRealtime();
@@ -135,6 +135,7 @@ const InterventionsPage = () => {
                 <InterventionsList 
                   filteredInterventions={interventions}
                   currentView={currentView}
+                  setCurrentView={setCurrentView}
                   onClearSearch={handleClearSearch}
                   onViewDetails={handleViewDetails}
                   onStartWork={handleStartWork}
