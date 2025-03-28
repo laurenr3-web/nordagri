@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Loader2, Search, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { partsPriceService } from '@/services/perplexity/parts/priceService';
+import { perplexityPartsService } from '@/services/perplexity/parts';
 import { partsTechnicalService } from '@/services/perplexity/partsTechnicalService';
 import { TechnicalInfoDisplay } from './displays/TechnicalInfoDisplay';
 import { PriceComparisonDisplay } from './displays/PriceComparisonDisplay';
@@ -86,7 +86,7 @@ const PerplexitySearch = () => {
         
       // Combine les deux types de recherche en une seule requête
       const promises = [
-        partsPriceService.findBestPrices(partRef).catch(err => {
+        perplexityPartsService.comparePartPrices(partRef, partContext).catch(err => {
           console.error('Erreur lors de la recherche de prix:', err);
           return null;
         }),

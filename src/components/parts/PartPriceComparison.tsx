@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PartPriceInfo } from '@/types/Part';
-import { partsSearchService } from '@/services/perplexity/partsSearchService';
 import { ExternalLink, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
+import { perplexityPartsService } from '@/services/perplexity/parts';
 
 interface PartPriceComparisonProps {
   partReference: string;
@@ -33,11 +32,7 @@ const PartPriceComparison: React.FC<PartPriceComparisonProps> = ({
     setIsLoading(true);
     try {
       // Amélioration: inclure le fabricant pour affiner la recherche
-      const searchQuery = partManufacturer 
-        ? `${partReference} ${partName} ${partManufacturer}`
-        : `${partReference} ${partName}`;
-        
-      const data = await partsSearchService.comparePartPrices(partReference, searchQuery);
+      const data = await perplexityPartsService.comparePartPrices(partReference, partName, partManufacturer);
       setPriceData(data);
       setLastUpdated(new Date());
       

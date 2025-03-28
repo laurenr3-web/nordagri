@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Search, Loader2, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { partsSearchService } from '@/services/perplexity/parts/searchService';
+import { perplexityPartsService } from '@/services/perplexity/parts';
 import { Part } from '@/types/Part';
 
 interface PartSearchProps {
@@ -31,7 +31,7 @@ const PartSearch = ({ onAddPartToInventory }: PartSearchProps) => {
     
     try {
       console.log('Lancement de la recherche pour:', searchQuery);
-      const results = await partsSearchService.searchParts(searchQuery);
+      const results = await perplexityPartsService.searchParts(searchQuery);
       console.log('Résultats reçus:', results);
       setSearchResults(results);
       

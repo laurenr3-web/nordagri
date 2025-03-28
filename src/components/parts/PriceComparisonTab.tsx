@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
-import { partsPriceService, PriceComparisonItem } from '@/services/perplexity/partsPriceService';
+import { perplexityPartsService } from '@/services/perplexity/parts';
+import { PartPriceInfo } from '@/types/Part';
 
 interface PriceComparisonTabProps {
   partNumber: string;
@@ -12,7 +13,7 @@ interface PriceComparisonTabProps {
 }
 
 const PriceComparisonTab = ({ partNumber, partName }: PriceComparisonTabProps) => {
-  const [priceData, setPriceData] = useState<PriceComparisonItem[]>([]);
+  const [priceData, setPriceData] = useState<PartPriceInfo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
@@ -24,7 +25,7 @@ const PriceComparisonTab = ({ partNumber, partName }: PriceComparisonTabProps) =
 
     setIsLoading(true);
     try {
-      const data = await partsPriceService.findBestPrices(partNumber, partName);
+      const data = await perplexityPartsService.comparePartPrices(partNumber, partName || partNumber);
       setPriceData(data);
       setLastUpdated(new Date());
       
