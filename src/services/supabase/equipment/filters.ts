@@ -37,11 +37,6 @@ export const applyFilters = (query: any, filters: EquipmentFilter) => {
     query = query.eq('metadata->location', filters.location);
   }
 
-  // Apply year filter if present
-  if (filters.year) {
-    query = query.eq('metadata->year', filters.year.toString());
-  }
-
   // Apply sorting
   if (filters.sortBy) {
     const column = getSortColumn(filters.sortBy);

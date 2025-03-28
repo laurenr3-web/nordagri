@@ -7,7 +7,7 @@ export const maintenanceTasks: MaintenanceTask[] = [
     id: 1,
     title: 'Oil and Filter Change',
     equipment: 'John Deere 8R 410',
-    equipmentId: 1,
+    equipmentId: "1", // Changed to string
     type: 'preventive' as MaintenanceType,
     status: 'scheduled' as MaintenanceStatus,
     priority: 'medium' as MaintenancePriority,
@@ -20,7 +20,7 @@ export const maintenanceTasks: MaintenanceTask[] = [
     id: 2,
     title: 'Hydraulic System Inspection',
     equipment: 'Case IH Axial-Flow',
-    equipmentId: 2,
+    equipmentId: "2", // Changed to string
     type: 'preventive' as MaintenanceType,
     status: 'in-progress' as MaintenanceStatus,
     priority: 'high' as MaintenancePriority,
@@ -33,7 +33,7 @@ export const maintenanceTasks: MaintenanceTask[] = [
     id: 3,
     title: 'Engine Repair',
     equipment: 'Kubota M7-172',
-    equipmentId: 3,
+    equipmentId: "3", // Changed to string
     type: 'corrective' as MaintenanceType,
     status: 'in-progress' as MaintenanceStatus,
     priority: 'critical' as MaintenancePriority,
@@ -46,7 +46,7 @@ export const maintenanceTasks: MaintenanceTask[] = [
     id: 4,
     title: 'Brake System Check',
     equipment: 'New Holland T6.180',
-    equipmentId: 5,
+    equipmentId: "5", // Changed to string
     type: 'preventive' as MaintenanceType,
     status: 'completed' as MaintenanceStatus,
     priority: 'medium' as MaintenancePriority,
@@ -61,7 +61,7 @@ export const maintenanceTasks: MaintenanceTask[] = [
     id: 5,
     title: 'Transmission Service',
     equipment: 'Fendt 942 Vario',
-    equipmentId: 6,
+    equipmentId: "6", // Changed to string
     type: 'preventive' as MaintenanceType,
     status: 'scheduled' as MaintenanceStatus,
     priority: 'high' as MaintenancePriority,
@@ -74,7 +74,7 @@ export const maintenanceTasks: MaintenanceTask[] = [
     id: 6,
     title: 'Tire Replacement',
     equipment: 'Massey Ferguson 8S.245',
-    equipmentId: 4,
+    equipmentId: "4", // Changed to string
     type: 'corrective' as MaintenanceType,
     status: 'scheduled' as MaintenanceStatus,
     priority: 'medium' as MaintenancePriority,
@@ -87,7 +87,7 @@ export const maintenanceTasks: MaintenanceTask[] = [
     id: 7,
     title: 'Annual Service',
     equipment: 'John Deere 8R 410',
-    equipmentId: 1,
+    equipmentId: "1", // Changed to string
     type: 'preventive' as MaintenanceType,
     status: 'scheduled' as MaintenanceStatus,
     priority: 'medium' as MaintenancePriority,
@@ -100,7 +100,7 @@ export const maintenanceTasks: MaintenanceTask[] = [
     id: 8,
     title: 'Electrical System Repair',
     equipment: 'Kubota M7-172',
-    equipmentId: 3,
+    equipmentId: "3", // Changed to string
     type: 'corrective' as MaintenanceType,
     status: 'pending-parts' as MaintenanceStatus,
     priority: 'high' as MaintenancePriority,

@@ -7,7 +7,7 @@ export const maintenanceService = {
   async getTasks(): Promise<MaintenanceTask[]> {
     const { data, error } = await supabase
       .from('maintenance_records')
-      .select('*');
+      .select('*, equipments(name)');
     
     if (error) {
       console.error('Error fetching maintenance tasks:', error);
@@ -18,10 +18,10 @@ export const maintenanceService = {
     return (data || []).map(task => ({
       id: parseInt(task.id) || 0, // Convert string id to number
       title: task.description || '',
-      equipment: task.equipment_id ? `Equipment ${task.equipment_id}` : '', // We need to fetch equipment name
+      equipment: task.equipments?.name || `Equipment ${task.equipment_id}`,
       equipmentId: task.equipment_id || '',
       type: (task.maintenance_type as MaintenanceType) || 'preventive',
-      status: task.completed ? 'completed' as MaintenanceStatus : 'pending' as MaintenanceStatus,
+      status: task.completed ? 'completed' as MaintenanceStatus : 'scheduled' as MaintenanceStatus,
       priority: ('medium' as MaintenancePriority), // Default priority
       dueDate: task.performed_at ? new Date(task.performed_at) : new Date(),
       completedDate: task.performed_at ? new Date(task.performed_at) : undefined,
@@ -66,7 +66,7 @@ export const maintenanceService = {
       equipment: `Equipment ${data.equipment_id}`,
       equipmentId: data.equipment_id || '',
       type: (data.maintenance_type as MaintenanceType) || 'preventive',
-      status: data.completed ? 'completed' as MaintenanceStatus : 'pending' as MaintenanceStatus,
+      status: data.completed ? 'completed' as MaintenanceStatus : 'scheduled' as MaintenanceStatus,
       priority: 'medium' as MaintenancePriority,
       dueDate: data.performed_at ? new Date(data.performed_at) : new Date(),
       completedDate: data.performed_at ? new Date(data.performed_at) : undefined,
