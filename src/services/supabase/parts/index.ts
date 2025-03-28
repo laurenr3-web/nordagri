@@ -1,7 +1,7 @@
 
 import { Part } from '@/types/Part';
 import { getParts } from './getParts';
-import { addPart } from './addPart';
+import { addPart } from './addPartService';
 import { updatePart } from './updatePart';
 import { deletePart } from './deletePart';
 import { getPartsForEquipment } from './getPartsForEquipment';
