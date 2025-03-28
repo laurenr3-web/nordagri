@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { LocalPart, convertToLocalPart } from '@/utils/partTypeConverters';
 import PartManagementDialogs from '@/components/parts/dialogs/PartManagementDialogs';
 import FilterSortDialogs from '@/components/parts/dialogs/FilterSortDialogs';
 import OrderManagementDialog from '@/components/parts/dialogs/OrderManagementDialog';
-import PriceComparison from '@/components/parts/PriceComparison';
+import PartPriceComparison from '@/components/parts/PartPriceComparison';
 
 interface PartsDialogsProps {
   // Part and selection
@@ -117,9 +118,10 @@ const PartsDialogs: React.FC<PartsDialogsProps> = (props) => {
 
       {/* Price Comparison Component */}
       {props.selectedPart && (
-        <PriceComparison
+        <PartPriceComparison
           partReference={props.selectedPart.partNumber || props.selectedPart.reference || ''}
           partName={props.selectedPart.name}
+          partManufacturer={props.selectedPart.manufacturer}
         />
       )}
     </>
