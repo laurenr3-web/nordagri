@@ -53,8 +53,9 @@ export const partsTechnicalService = {
             }`
           }
         ],
-        temperature: 0.3,
-        max_tokens: 1000
+        temperature: 0.2,
+        max_tokens: 1000,
+        response_format: { type: "json_object" }
       });
       
       const content = response.data.choices[0].message.content;
