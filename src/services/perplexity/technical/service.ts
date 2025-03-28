@@ -10,6 +10,9 @@ export async function getPartTechnicalInfo(partReference: string, partName?: str
       throw new Error('La référence de la pièce est requise');
     }
 
+    // Utiliser la référence exactement comme fournie, sans modification
+    console.log(`Demande d'informations techniques pour: ${partReference}`);
+    
     // Simplification du prompt système et du format de requête
     const messages = [
       {
@@ -33,8 +36,6 @@ export async function getPartTechnicalInfo(partReference: string, partName?: str
         }`
       }
     ];
-
-    console.log(`Demande d'informations techniques pour: ${partReference}`);
     
     // Configuration de la requête avec les paramètres simplifiés
     const response = await perplexityClient.post('/chat/completions', {

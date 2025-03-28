@@ -24,8 +24,8 @@ export const usePerplexitySearch = () => {
       return;
     }
     
-    // Si c'est une suggestion sélectionnée, extraire le numéro de référence
-    let partRef = query;
+    // Transmettre la référence exactement comme saisie
+    let partRef = query.trim();
     let partManufacturer = manufacturer;
     
     // Vérifier si la clé API est configurée

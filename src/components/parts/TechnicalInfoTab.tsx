@@ -69,6 +69,7 @@ const TechnicalInfoTab = ({ partNumber, partName }: TechnicalInfoTabProps) => {
         }
       }
       
+      // Transmettre la référence exactement comme saisie, sans modification
       const data = await partsTechnicalService.getPartInfo(usePartNumber, contextName);
       setTechnicalInfo(data);
       setLastUpdated(new Date());
@@ -113,6 +114,7 @@ const TechnicalInfoTab = ({ partNumber, partName }: TechnicalInfoTabProps) => {
     } else {
       // Si la valeur n'est pas dans les suggestions, la traiter comme une référence directe
       setCurrentPartNumber(value);
+      // Transmettre la référence exactement comme saisie sans modification
       loadTechnicalInfo(null, value);
     }
   };

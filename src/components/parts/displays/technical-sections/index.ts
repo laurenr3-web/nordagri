@@ -6,3 +6,4 @@ export * from './SymptomsSection';
 export * from './MaintenanceSection';
 export * from './AlternativesSection';
 export * from './WarningsSection';
+export * from './CompatibleEquipmentSection';
