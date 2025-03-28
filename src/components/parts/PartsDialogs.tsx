@@ -11,6 +11,7 @@ import SortDialog from '@/components/parts/dialogs/SortDialog';
 import OrderDialog from '@/components/parts/dialogs/OrderDialog';
 import AddCategoryDialog from '@/components/parts/dialogs/AddCategoryDialog';
 import PriceComparison from '@/components/parts/PriceComparison';
+import { Part } from '@/types/Part';
 
 // Définition locale du type Part pour éviter les conflits d'importation
 interface LocalPart {
@@ -48,8 +49,8 @@ const convertToLocalPart = (part: any): LocalPart => {
     description: part.description || '',
     category: part.category || '',
     manufacturer: part.manufacturer || '',
-    compatibleWith: part.compatibleWith || [],
-    compatibility: part.compatibility || [],
+    compatibleWith: Array.isArray(part.compatibleWith) ? part.compatibleWith : [],
+    compatibility: Array.isArray(part.compatibility) ? part.compatibility : [],
     inStock: !!part.inStock,
     quantity: part.quantity,
     minimumStock: part.minimumStock,
@@ -67,12 +68,27 @@ const convertToLocalPart = (part: any): LocalPart => {
 };
 
 // Fonction pour convertir LocalPart vers Part
-const convertToPart = (localPart: LocalPart): any => {
-  // Cast vers any pour contourner les vérifications de type
+const convertToPart = (localPart: LocalPart): Part => {
+  // Conversion explicite vers le type Part
   return {
-    ...localPart,
-    id: typeof localPart.id === 'string' ? parseInt(localPart.id, 10) : localPart.id,
-    partNumber: localPart.partNumber || localPart.reference // Assurez-vous que partNumber est défini
+    id: typeof localPart.id === 'string' ? parseInt(localPart.id, 10) : localPart.id as number,
+    name: localPart.name,
+    partNumber: localPart.partNumber || (localPart.reference || ''),
+    category: localPart.category,
+    compatibility: Array.isArray(localPart.compatibility) ? localPart.compatibility : [],
+    manufacturer: localPart.manufacturer,
+    price: localPart.price,
+    stock: localPart.stock,
+    location: localPart.location,
+    reorderPoint: localPart.reorderPoint,
+    image: localPart.image,
+    description: localPart.description,
+    reference: localPart.reference,
+    compatibleWith: Array.isArray(localPart.compatibleWith) ? localPart.compatibleWith : [],
+    estimatedPrice: localPart.estimatedPrice,
+    inStock: localPart.inStock,
+    isFromSearch: localPart.isFromSearch,
+    imageUrl: localPart.imageUrl
   };
 };
 
@@ -179,13 +195,16 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
     }
   };
 
+  // Convertir selectedPart au format Part pour les composants qui l'attendent
+  const convertedSelectedPart = selectedPart ? convertToPart(selectedPart) : null;
+
   return (
     <>
       {/* Part Details Dialog */}
       <PartDetailsDialog
         isOpen={isPartDetailsDialogOpen}
         onOpenChange={setIsPartDetailsDialogOpen}
-        selectedPart={selectedPart}
+        selectedPart={convertedSelectedPart}
         onEdit={handleEditPartWrapper}
         onDelete={handleDeletePart}
       />
@@ -235,7 +254,7 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
       <OrderDialog 
         isOpen={isOrderDialogOpen}
         onOpenChange={setIsOrderDialogOpen}
-        selectedPart={selectedPart}
+        selectedPart={convertedSelectedPart}
         orderQuantity={orderQuantity || ''}
         setOrderQuantity={setOrderQuantity || (() => {})}
         orderNote={orderNote || ''}
