@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { Part } from '@/types/Part';
+import { Part as PartType } from '@/types/Part';
 
 // Part details components
 import PartDetailsDialog from '@/components/parts/dialogs/PartDetailsDialog';
@@ -14,7 +15,7 @@ import PriceComparison from '@/components/parts/PriceComparison';
 
 interface PartsDialogsProps {
   // Part and selection
-  selectedPart: Part | null;
+  selectedPart: PartType | null;
   
   // Dialog states
   isPartDetailsDialogOpen: boolean;
@@ -56,7 +57,7 @@ interface PartsDialogsProps {
   isOrderSuccess?: boolean;
   handleOrderSubmit?: () => void;
   handleAddPart?: (data: any) => void;
-  handleEditPart?: (part: Part) => void;
+  handleEditPart?: (part: PartType) => void;
   handleDeletePart?: (partId: number | string) => void;
 }
 
