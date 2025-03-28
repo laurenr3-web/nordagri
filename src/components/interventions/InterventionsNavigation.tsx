@@ -8,7 +8,9 @@ import {
   CheckCircle2, 
   Wrench, 
   ArrowRight,
-  AlertTriangle
+  AlertTriangle,
+  History,
+  FileText
 } from 'lucide-react';
 
 interface InterventionsNavigationProps {
@@ -28,22 +30,22 @@ const InterventionsNavigation: React.FC<InterventionsNavigationProps> = ({
       view: 'scheduled',
     },
     {
-      title: 'Types d\'Interventions',
-      description: 'Parcourir par catégorie',
+      title: 'Suivi Terrain',
+      description: 'Interventions en cours',
       icon: <Wrench className="h-5 w-5" />,
-      view: 'by-type',
+      view: 'field-tracking',
     },
     {
-      title: 'Interventions Prioritaires',
-      description: 'Focus sur les tâches urgentes',
-      icon: <AlertTriangle className="h-5 w-5" />,
-      view: 'by-priority',
+      title: 'Demandes',
+      description: 'Gestion des requêtes',
+      icon: <FileText className="h-5 w-5" />,
+      view: 'requests',
     },
     {
-      title: 'Vue Calendrier',
-      description: 'Planifiez vos interventions',
-      icon: <CalendarDays className="h-5 w-5" />,
-      view: 'calendar',
+      title: 'Historique',
+      description: 'Par équipement',
+      icon: <History className="h-5 w-5" />,
+      view: 'history',
     },
   ];
 
@@ -72,7 +74,7 @@ const InterventionsNavigation: React.FC<InterventionsNavigationProps> = ({
             }`}>
               {item.icon}
             </div>
-            <div className="ml-4 overflow-hidden">
+            <div className="ml-4 w-full">
               <h3 className="font-semibold text-base truncate">{item.title}</h3>
               <p className="text-sm text-muted-foreground mt-1 truncate">{item.description}</p>
             </div>

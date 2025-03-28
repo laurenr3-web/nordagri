@@ -5,8 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Intervention } from '@/types/Intervention';
 import InterventionCard from './InterventionCard';
-import { CalendarCheck, Clock, CheckCircle2, Wrench, AlertTriangle } from 'lucide-react';
+import { CalendarCheck, Clock, CheckCircle2, Wrench, AlertTriangle, History, FileText } from 'lucide-react';
 import InterventionsNavigation from './InterventionsNavigation';
+import FieldTrackingView from './views/FieldTrackingView';
+import RequestsManagementView from './views/RequestsManagementView';
+import EquipmentHistoryView from './views/EquipmentHistoryView';
 
 interface InterventionsListProps {
   filteredInterventions: Intervention[];
@@ -33,12 +36,12 @@ const InterventionsList: React.FC<InterventionsListProps> = ({
         return 'Aucune intervention en cours.';
       case 'completed':
         return 'Aucune intervention terminée.';
-      case 'by-type':
-        return 'Aucune intervention à afficher par type.';
-      case 'by-priority':
-        return 'Aucune intervention à afficher par priorité.';
-      case 'calendar':
-        return 'Aucune intervention à afficher dans le calendrier.';
+      case 'field-tracking':
+        return 'Aucune intervention terrain à suivre.';
+      case 'requests':
+        return 'Aucune demande d\'intervention.';
+      case 'history':
+        return 'Aucun historique d\'intervention.';
       default:
         return 'Aucune intervention trouvée correspondant à vos critères de recherche.';
     }
@@ -63,7 +66,7 @@ const InterventionsList: React.FC<InterventionsListProps> = ({
       />
       
       <Tabs value={currentView} defaultValue="scheduled" className="w-full" onValueChange={setCurrentView}>
-        <TabsList className="mb-6 bg-background border">
+        <TabsList className="mb-6 bg-background border overflow-x-auto whitespace-nowrap w-full">
           <TabsTrigger value="scheduled" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
             <CalendarCheck size={16} />
             <span>Planifiées ({scheduledCount})</span>
@@ -76,17 +79,17 @@ const InterventionsList: React.FC<InterventionsListProps> = ({
             <CheckCircle2 size={16} />
             <span>Terminées ({completedCount})</span>
           </TabsTrigger>
-          <TabsTrigger value="by-type" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
+          <TabsTrigger value="field-tracking" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
             <Wrench size={16} />
-            <span>Par Type</span>
+            <span>Suivi Terrain</span>
           </TabsTrigger>
-          <TabsTrigger value="by-priority" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
-            <AlertTriangle size={16} />
-            <span>Par Priorité</span>
+          <TabsTrigger value="requests" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
+            <FileText size={16} />
+            <span>Demandes</span>
           </TabsTrigger>
-          <TabsTrigger value="calendar" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
-            <CalendarCheck size={16} />
-            <span>Calendrier</span>
+          <TabsTrigger value="history" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
+            <History size={16} />
+            <span>Historique</span>
           </TabsTrigger>
         </TabsList>
 
@@ -147,22 +150,16 @@ const InterventionsList: React.FC<InterventionsListProps> = ({
           )}
         </TabsContent>
         
-        <TabsContent value="by-type" className="mt-2 space-y-4">
-          <BlurContainer className="p-8 text-center">
-            <p className="text-muted-foreground">Fonctionnalité à venir: Affichage des interventions par type.</p>
-          </BlurContainer>
+        <TabsContent value="field-tracking" className="mt-2 space-y-4">
+          <FieldTrackingView interventions={filteredInterventions} onViewDetails={onViewDetails} />
         </TabsContent>
         
-        <TabsContent value="by-priority" className="mt-2 space-y-4">
-          <BlurContainer className="p-8 text-center">
-            <p className="text-muted-foreground">Fonctionnalité à venir: Affichage des interventions par priorité.</p>
-          </BlurContainer>
+        <TabsContent value="requests" className="mt-2 space-y-4">
+          <RequestsManagementView interventions={filteredInterventions} onViewDetails={onViewDetails} />
         </TabsContent>
         
-        <TabsContent value="calendar" className="mt-2 space-y-4">
-          <BlurContainer className="p-8 text-center">
-            <p className="text-muted-foreground">Fonctionnalité à venir: Affichage des interventions dans un calendrier.</p>
-          </BlurContainer>
+        <TabsContent value="history" className="mt-2 space-y-4">
+          <EquipmentHistoryView interventions={filteredInterventions} onViewDetails={onViewDetails} />
         </TabsContent>
       </Tabs>
     </>

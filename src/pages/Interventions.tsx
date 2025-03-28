@@ -9,7 +9,7 @@ import NewInterventionDialog from '@/components/interventions/NewInterventionDia
 import InterventionDetailsDialog from '@/components/interventions/InterventionDetailsDialog';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, FileText, BarChart3, Download } from 'lucide-react';
 
 import { useQuery } from '@tanstack/react-query';
 import { interventionService } from '@/services/supabase/interventionService';
@@ -84,6 +84,47 @@ const InterventionsPage = () => {
     console.log('Clearing search');
   };
 
+  const exportInterventionsReport = () => {
+    // Implementation for exporting interventions report to CSV
+    try {
+      const headers = ['ID', 'Titre', 'Équipement', 'Statut', 'Priorité', 'Date', 'Technicien', 'Durée', 'Lieu'];
+      
+      const csvRows = [
+        headers.join(','),
+        ...interventions.map(i => [
+          i.id,
+          `"${i.title.replace(/"/g, '""')}"`, // Escape quotes in CSV
+          `"${i.equipment.replace(/"/g, '""')}"`,
+          i.status,
+          i.priority,
+          i.date.toISOString().split('T')[0],
+          `"${i.technician.replace(/"/g, '""')}"`,
+          i.duration || i.scheduledDuration || '',
+          `"${i.location.replace(/"/g, '""')}"`
+        ].join(','))
+      ];
+      
+      const csvContent = csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `interventions_report_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success('Rapport d\'interventions exporté avec succès');
+    } catch (error) {
+      toast.error('Erreur lors de l\'exportation du rapport', {
+        description: error instanceof Error ? error.message : 'Une erreur inconnue est survenue'
+      });
+    }
+  };
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
@@ -96,16 +137,27 @@ const InterventionsPage = () => {
             {/* Main content area - takes 2/3 or 3/4 of the space */}
             <div className="md:col-span-2 lg:col-span-3 p-6">
               <div className="max-w-5xl">
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 space-y-4 sm:space-y-0">
                   <h1 className="text-3xl font-bold">Interventions</h1>
-                  <Button 
-                    onClick={() => setShowNewDialog(true)}
-                    className="flex items-center gap-2"
-                    size="sm"
-                  >
-                    <Plus size={16} />
-                    <span>Nouvelle intervention</span>
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      onClick={exportInterventionsReport}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1"
+                    >
+                      <Download size={16} />
+                      <span className="hidden sm:inline">Exporter</span>
+                    </Button>
+                    <Button 
+                      onClick={() => setShowNewDialog(true)}
+                      className="flex items-center gap-1"
+                      size="sm"
+                    >
+                      <Plus size={16} />
+                      <span>Nouvelle intervention</span>
+                    </Button>
+                  </div>
                 </div>
                 
                 {isLoading ? (
