@@ -7,7 +7,7 @@ interface BaseSectionCardProps {
   title: string;
   icon: LucideIcon;
   partNumber: string;
-  description: string | null | undefined;
+  description: React.ReactNode;
   placeholder?: string;
   iconColor?: string;
 }
@@ -28,7 +28,7 @@ export const BaseSectionCard: React.FC<BaseSectionCardProps> = ({
       </CardHeader>
       <CardContent>
         {description ? (
-          <p className="text-sm">{description}</p>
+          <div className="text-sm">{description}</div>
         ) : (
           <p className="text-sm text-muted-foreground italic">
             {placeholder || `Aucune information disponible pour ${partNumber}`}
