@@ -30,7 +30,7 @@ export const partsTechnicalService = {
         messages: [
           {
             role: "system",
-            content: "Vous êtes un expert en pièces détachées agricoles avec une connaissance approfondie des nomenclatures, numéros de référence et spécifications techniques. Soyez spécifique et précis. Répondez uniquement au format JSON."
+            content: "Vous êtes un expert en pièces détachées agricoles avec une connaissance approfondie des nomenclatures, numéros de référence et spécifications techniques. Fournissez vos réponses au format JSON avec la structure suivante: { \"function\": \"description détaillée\", \"compatibleEquipment\": [\"liste\", \"équipements\"], \"installation\": \"guide d'installation\", \"symptoms\": \"symptômes\", \"maintenance\": \"conseils\", \"alternatives\": [\"pièces alternatives\"], \"warnings\": \"avertissements\" }. Si vous ne connaissez pas certains détails, utilisez \"Information non disponible\" comme valeur."
           },
           {
             role: "user",
@@ -41,21 +41,12 @@ export const partsTechnicalService = {
             Si vous ne trouvez pas d'informations spécifiques sur cette référence exacte, suggérez des informations 
             sur des pièces similaires ou des catégories compatibles.
             
-            Retournez uniquement un objet JSON structuré avec les propriétés suivantes:
-            {
-              "function": "description détaillée de la fonction",
-              "compatibleEquipment": ["liste", "des", "équipements", "compatibles"],
-              "installation": "guide d'installation",
-              "symptoms": "symptômes de défaillance",
-              "maintenance": "conseils d'entretien",
-              "alternatives": ["pièces", "alternatives"],
-              "warnings": "avertissements importants"
-            }`
+            IMPORTANT: Votre réponse doit être UNIQUEMENT un objet JSON valide, sans texte supplémentaire avant ou après.`
           }
         ],
         temperature: 0.2,
-        max_tokens: 1000,
-        response_format: { type: "json_object" }
+        max_tokens: 1000
+        // Le paramètre response_format est supprimé
       });
       
       const content = response.data.choices[0].message.content;
