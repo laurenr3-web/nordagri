@@ -3,9 +3,9 @@ import React from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/ui/sidebar';
-import { InterventionsList } from '@/components/interventions/InterventionsList';
-import { InterventionsSidebar } from '@/components/interventions/InterventionsSidebar';
-import { NewInterventionDialog } from '@/components/interventions/NewInterventionDialog';
+import InterventionsList from '@/components/interventions/InterventionsList';
+import InterventionsSidebar from '@/components/interventions/InterventionsSidebar';
+import NewInterventionDialog from '@/components/interventions/NewInterventionDialog';
 import { toast } from 'sonner';
 
 import { useQuery } from '@tanstack/react-query';
