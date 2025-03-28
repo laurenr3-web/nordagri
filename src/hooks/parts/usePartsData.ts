@@ -78,7 +78,7 @@ export const usePartsData = (initialParts: Part[] = []) => {
     });
   };
   
-  const handleDeletePart = (partId: number) => {
+  const handleDeletePart = (partId: number | string) => {
     console.log('👉 Deleting part:', partId);
     deletePartMutation.mutate(partId, {
       onSuccess: () => {
