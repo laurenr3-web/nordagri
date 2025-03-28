@@ -19,8 +19,9 @@ const TechnicalInfoTab = ({ partNumber, partName }: TechnicalInfoTabProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [manufacturer, setManufacturer] = useState<string | null>(null);
 
-  const loadTechnicalInfo = async () => {
+  const loadTechnicalInfo = async (manufacturerOverride?: string) => {
     if (!partNumber) {
       toast.error('Numéro de pièce manquant');
       setError('Numéro de pièce manquant');
@@ -39,7 +40,23 @@ const TechnicalInfoTab = ({ partNumber, partName }: TechnicalInfoTabProps) => {
     setError(null);
     
     try {
-      const data = await partsTechnicalService.getPartInfo(partNumber, partName);
+      // Utiliser le fabricant fourni ou celui stocké précédemment
+      const currentManufacturer = manufacturerOverride || manufacturer;
+      let contextName = partName;
+      
+      // Ajouter le fabricant au nom de la pièce pour plus de contexte
+      if (currentManufacturer) {
+        contextName = contextName 
+          ? `${contextName} (${currentManufacturer})` 
+          : `${partNumber} (${currentManufacturer})`;
+        
+        // Stocker le fabricant pour les prochaines requêtes
+        if (manufacturerOverride) {
+          setManufacturer(manufacturerOverride);
+        }
+      }
+      
+      const data = await partsTechnicalService.getPartInfo(partNumber, contextName);
       setTechnicalInfo(data);
       setLastUpdated(new Date());
     } catch (error) {
@@ -52,6 +69,11 @@ const TechnicalInfoTab = ({ partNumber, partName }: TechnicalInfoTabProps) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleRetryWithManufacturer = (manufacturer: string) => {
+    toast.info(`Recherche avec précision: ${manufacturer}`);
+    loadTechnicalInfo(manufacturer);
   };
 
   useEffect(() => {
@@ -84,7 +106,7 @@ const TechnicalInfoTab = ({ partNumber, partName }: TechnicalInfoTabProps) => {
           variant="outline" 
           size="sm" 
           className="mt-4"
-          onClick={loadTechnicalInfo}
+          onClick={() => loadTechnicalInfo()}
         >
           <RefreshCw className="h-4 w-4 mr-2" />
           Réessayer
@@ -104,7 +126,7 @@ const TechnicalInfoTab = ({ partNumber, partName }: TechnicalInfoTabProps) => {
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={loadTechnicalInfo} 
+            onClick={() => loadTechnicalInfo()} 
             disabled={isLoading}
           >
             <RefreshCw className="h-4 w-4" />
@@ -112,7 +134,11 @@ const TechnicalInfoTab = ({ partNumber, partName }: TechnicalInfoTabProps) => {
         </div>
       </div>
       
-      <TechnicalInfoDisplay data={technicalInfo} partReference={partNumber} />
+      <TechnicalInfoDisplay 
+        data={technicalInfo} 
+        partReference={partNumber} 
+        onRetryWithManufacturer={handleRetryWithManufacturer}
+      />
     </div>
   );
 };

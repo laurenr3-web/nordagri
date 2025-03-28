@@ -2,21 +2,24 @@
 import React from 'react';
 import { PartTechnicalInfo } from '@/services/perplexity/partsTechnicalService';
 import { InfoSection } from './TechnicalInfoSections/InfoSection';
-import { Info, Wrench, AlertCircle, CheckCircle } from 'lucide-react';
+import { Info, Wrench, AlertCircle } from 'lucide-react';
 import {
   AlternativesSection,
   WarningsSection,
   HelpSection
 } from './TechnicalInfoSections';
+import NoResultsFound from './NoResultsFound';
 
 interface TechnicalInfoDisplayProps {
   data: PartTechnicalInfo | null;
   partReference?: string;
+  onRetryWithManufacturer?: (manufacturer: string) => void;
 }
 
 export const TechnicalInfoDisplay: React.FC<TechnicalInfoDisplayProps> = ({ 
   data, 
-  partReference 
+  partReference,
+  onRetryWithManufacturer
 }) => {
   if (!data) {
     return (
@@ -32,9 +35,15 @@ export const TechnicalInfoDisplay: React.FC<TechnicalInfoDisplayProps> = ({
   };
 
   // Vérifier si les informations principales sont manquantes
-  const mainInfoMissing = !isInfoAvailable(data.installation) && 
+  const mainInfoMissing = !isInfoAvailable(data.function) && 
+                          !isInfoAvailable(data.installation) && 
                           !isInfoAvailable(data.symptoms) && 
                           !isInfoAvailable(data.maintenance);
+
+  // Si toutes les informations importantes sont manquantes, afficher un message spécial
+  if (mainInfoMissing) {
+    return <NoResultsFound partReference={partReference || ''} onRetryWithManufacturer={onRetryWithManufacturer} />;
+  }
 
   return (
     <div className="space-y-6">
@@ -93,7 +102,7 @@ export const TechnicalInfoDisplay: React.FC<TechnicalInfoDisplayProps> = ({
       {/* Section d'aide si la majorité des informations sont manquantes */}
       <HelpSection 
         partReference={partReference}
-        shouldShow={mainInfoMissing}
+        shouldShow={false} // On utilise maintenant NoResultsFound pour ce cas
       />
     </div>
   );

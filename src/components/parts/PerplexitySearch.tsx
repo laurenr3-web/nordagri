@@ -15,6 +15,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 const PerplexitySearch = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [manufacturer, setManufacturer] = useState('');
   const [results, setResults] = useState<{
     priceData: any[] | null;
     technicalInfo: any | null;
@@ -22,7 +23,7 @@ const PerplexitySearch = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSearch = async () => {
+  const handleSearch = async (manufacturerOverride?: string) => {
     if (!searchQuery.trim()) {
       toast.error('Veuillez entrer un numéro de pièce');
       return;
@@ -40,13 +41,24 @@ const PerplexitySearch = () => {
     setError(null);
     
     try {
+      // Préparer le nom avec le fabricant si disponible
+      const currentManufacturer = manufacturerOverride || manufacturer;
+      const partContext = currentManufacturer 
+        ? `${searchQuery} (${currentManufacturer})` 
+        : searchQuery;
+        
+      // Si un nouveau fabricant est spécifié, le stocker
+      if (manufacturerOverride) {
+        setManufacturer(manufacturerOverride);
+      }
+      
       // Combine les deux types de recherche en une seule requête
       const promises = [
         partsPriceService.findBestPrices(searchQuery).catch(err => {
           console.error('Erreur lors de la recherche de prix:', err);
           return null;
         }),
-        partsTechnicalService.getPartInfo(searchQuery).catch(err => {
+        partsTechnicalService.getPartInfo(searchQuery, partContext).catch(err => {
           console.error('Erreur lors de la recherche technique:', err);
           return null;
         })
@@ -74,6 +86,10 @@ const PerplexitySearch = () => {
     }
   };
 
+  const handleRetryWithManufacturer = (manufacturerValue: string) => {
+    handleSearch(manufacturerValue);
+  };
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="search" className="w-full">
@@ -83,7 +99,7 @@ const PerplexitySearch = () => {
         </TabsList>
         
         <TabsContent value="search">
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <Input
               placeholder="Entrez un numéro de pièce (ex: JD6850)"
               value={searchQuery}
@@ -91,7 +107,14 @@ const PerplexitySearch = () => {
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               className="flex-1"
             />
-            <Button onClick={handleSearch} disabled={isLoading}>
+            <Input
+              placeholder="Fabricant (optionnel)"
+              value={manufacturer}
+              onChange={(e) => setManufacturer(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              className="flex-1 sm:max-w-[200px]"
+            />
+            <Button onClick={() => handleSearch()} disabled={isLoading}>
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
               ) : (
@@ -123,7 +146,11 @@ const PerplexitySearch = () => {
                 <TabsTrigger value="prices">Comparaison de prix</TabsTrigger>
               </TabsList>
               <TabsContent value="technical">
-                <TechnicalInfoDisplay data={results.technicalInfo} partReference={searchQuery} />
+                <TechnicalInfoDisplay 
+                  data={results.technicalInfo} 
+                  partReference={searchQuery}
+                  onRetryWithManufacturer={handleRetryWithManufacturer}
+                />
               </TabsContent>
               <TabsContent value="prices">
                 <PriceComparisonDisplay data={results.priceData} />
