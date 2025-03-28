@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, RefreshCw, AlertCircle, Tool, Wrench, CheckCircle, Info } from 'lucide-react';
+import { Loader2, RefreshCw, AlertCircle, Wrench, CheckCircle, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { partsTechnicalService, PartTechnicalInfo } from '@/services/perplexity/partsTechnicalService';
 
@@ -112,7 +112,7 @@ const TechnicalInfoTab = ({ partNumber, partName }: TechnicalInfoTabProps) => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <Tool className="h-5 w-5 mr-2" />
+            <Wrench className="h-5 w-5 mr-2" />
             Guide d'installation
           </CardTitle>
         </CardHeader>
