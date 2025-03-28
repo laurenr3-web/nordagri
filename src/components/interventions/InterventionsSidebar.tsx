@@ -32,7 +32,7 @@ const InterventionsSidebar: React.FC<InterventionsSidebarProps> = ({
   return (
     <div className="space-y-6">
       <BlurContainer className="p-4">
-        <h3 className="font-medium mb-4">Upcoming Interventions</h3>
+        <h3 className="font-medium mb-4">Interventions à venir</h3>
         <div className="space-y-4">
           {interventions
             .filter(intervention => intervention.status === 'scheduled')
@@ -43,6 +43,14 @@ const InterventionsSidebar: React.FC<InterventionsSidebarProps> = ({
                 key={intervention.id} 
                 className="flex items-start gap-3 pb-3 border-b last:border-0 cursor-pointer hover:bg-secondary/20 p-2 rounded-md transition-colors"
                 onClick={() => onViewDetails(intervention)}
+                role="button"
+                tabIndex={0}
+                aria-label={`Voir les détails de l'intervention ${intervention.title}`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    onViewDetails(intervention);
+                  }
+                }}
               >
                 <div className={`h-10 w-10 rounded-full flex items-center justify-center
                   ${intervention.priority === 'high' ? 'bg-red-100 text-red-800' : 
@@ -50,7 +58,7 @@ const InterventionsSidebar: React.FC<InterventionsSidebarProps> = ({
                     'bg-agri-100 text-agri-800'}`}>
                   <Wrench size={20} />
                 </div>
-                <div>
+                <div className="flex-1">
                   <h4 className="font-medium">{intervention.title}</h4>
                   <p className="text-sm text-muted-foreground mb-1">{intervention.equipment}</p>
                   <p className="text-xs">Date: {formatDate(intervention.date)}</p>
@@ -60,39 +68,39 @@ const InterventionsSidebar: React.FC<InterventionsSidebarProps> = ({
           }
           
           {interventions.filter(i => i.status === 'scheduled').length === 0 && (
-            <p className="text-sm text-muted-foreground">No upcoming interventions scheduled.</p>
+            <p className="text-sm text-muted-foreground">Aucune intervention planifiée.</p>
           )}
         </div>
       </BlurContainer>
       
       <BlurContainer className="p-4">
-        <h3 className="font-medium mb-4">Intervention Statistics</h3>
+        <h3 className="font-medium mb-4">Statistiques d'interventions</h3>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span>Total Interventions</span>
+            <span>Total des interventions</span>
             <span className="font-medium">{stats.total}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span>Scheduled</span>
+            <span>Planifiées</span>
             <span className="font-medium">{stats.scheduled}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span>In Progress</span>
+            <span>En cours</span>
             <span className="font-medium">{stats.inProgress}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span>Completed</span>
+            <span>Terminées</span>
             <span className="font-medium">{stats.completed}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span>Canceled</span>
+            <span>Annulées</span>
             <span className="font-medium">{stats.canceled}</span>
           </div>
         </div>
       </BlurContainer>
       
       <BlurContainer className="p-4">
-        <h3 className="font-medium mb-4">By Equipment</h3>
+        <h3 className="font-medium mb-4">Par équipement</h3>
         <div className="space-y-3">
           {Object.entries(equipmentStats)
             .sort((a, b) => b[1] - a[1])

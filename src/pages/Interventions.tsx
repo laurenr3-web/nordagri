@@ -6,6 +6,7 @@ import { Sidebar } from '@/components/ui/sidebar';
 import InterventionsList from '@/components/interventions/InterventionsList';
 import InterventionsSidebar from '@/components/interventions/InterventionsSidebar';
 import NewInterventionDialog from '@/components/interventions/NewInterventionDialog';
+import InterventionDetailsDialog from '@/components/interventions/InterventionDetailsDialog';
 import { toast } from 'sonner';
 
 import { useQuery } from '@tanstack/react-query';
@@ -58,9 +59,22 @@ const InterventionsPage = () => {
     setSelectedIntervention(intervention);
   };
 
+  const handleCloseDetails = () => {
+    setSelectedIntervention(null);
+  };
+
   const handleStartWork = (intervention: Intervention) => {
     // Implementation for starting work
-    console.log('Starting work on intervention:', intervention);
+    interventionService.updateInterventionStatus(intervention.id, 'in-progress')
+      .then(() => {
+        toast.success('Intervention démarrée');
+        refetch();
+      })
+      .catch((err) => {
+        toast.error('Erreur lors du démarrage de l\'intervention', {
+          description: err.message
+        });
+      });
   };
 
   const handleClearSearch = () => {
@@ -148,6 +162,15 @@ const InterventionsPage = () => {
                 });
               });
           }}
+        />
+      )}
+
+      {selectedIntervention && (
+        <InterventionDetailsDialog
+          open={!!selectedIntervention}
+          onOpenChange={() => setSelectedIntervention(null)}
+          interventionId={selectedIntervention.id}
+          onStartWork={() => handleStartWork(selectedIntervention)}
         />
       )}
     </SidebarProvider>
