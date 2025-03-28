@@ -64,15 +64,12 @@ export const partsTechnicalService = {
           const jsonMatch = content.match(/{[\s\S]*?}/);
           if (jsonMatch) {
             parsedData = JSON.parse(jsonMatch[0]);
+          } else {
+            throw new Error("Aucun JSON valide trouvé dans la réponse");
           }
         } else {
           // Format texte - extraction manuelle des informations
-          parsedData = {
-            function: this.extractSection(content, "Fonction", "Installation"),
-            installation: this.extractSection(content, "Installation", "Symptômes"),
-            symptoms: this.extractSection(content, "Symptômes", "Entretien"),
-            maintenance: this.extractSection(content, "Entretien", null)
-          };
+          parsedData = this.extractInformationFromText(content);
         }
         
         // Vérifier et compléter les données si nécessaires
@@ -102,12 +99,15 @@ export const partsTechnicalService = {
         console.log("Contenu brut:", content);
         
         // Créer un résultat formaté à partir du texte brut
+        const extractedInfo = this.extractInformationFromText(content);
         return {
-          function: `Informations sur ${partReference}: ${content.substring(0, 200)}...`,
-          compatibleEquipment: [],
-          installation: "Information non disponible dans un format structuré.",
-          symptoms: "Information non disponible dans un format structuré.",
-          maintenance: "Information non disponible dans un format structuré."
+          function: extractedInfo.function || `Informations sur ${partReference}: ${content.substring(0, 200)}...`,
+          compatibleEquipment: extractedInfo.compatibleEquipment || [],
+          installation: extractedInfo.installation || "Information non disponible dans un format structuré.",
+          symptoms: extractedInfo.symptoms || "Information non disponible dans un format structuré.",
+          maintenance: extractedInfo.maintenance || "Information non disponible dans un format structuré.",
+          alternatives: extractedInfo.alternatives || [],
+          warnings: extractedInfo.warnings || ""
         };
       }
       
@@ -129,19 +129,83 @@ export const partsTechnicalService = {
     }
   },
   
+  // Fonction pour extraire des informations d'un texte non structuré
+  extractInformationFromText(text) {
+    return {
+      function: this.extractSection(text, "Fonction", ["Installation", "Guide"]) || 
+                this.extractSection(text, "Description", ["Installation", "Guide"]) ||
+                "Information non disponible",
+      compatibleEquipment: this.extractEquipmentList(text) || [],
+      installation: this.extractSection(text, "Installation", ["Symptômes", "Défaillance"]) || 
+                    this.extractSection(text, "Guide", ["Symptômes", "Défaillance"]) ||
+                    "Information non disponible",
+      symptoms: this.extractSection(text, "Symptômes", ["Entretien", "Maintenance"]) || 
+                this.extractSection(text, "Défaillance", ["Entretien", "Maintenance"]) || 
+                "Information non disponible",
+      maintenance: this.extractSection(text, "Entretien", []) || 
+                  this.extractSection(text, "Maintenance", []) || 
+                  "Information non disponible",
+      alternatives: this.extractAlternativesList(text) || [],
+      warnings: this.extractSection(text, "Avertissement", []) ||
+                this.extractSection(text, "Attention", []) || 
+                ""
+    };
+  },
+  
+  // Extraire une liste d'équipements compatibles
+  extractEquipmentList(text) {
+    const equipmentSectionRegex = /(?:équipements? compatibles?|compatible avec)[\s\:]+([^]*?)(?:\n\n|\n[A-Z]|$)/i;
+    const equipmentMatch = text.match(equipmentSectionRegex);
+    
+    if (equipmentMatch && equipmentMatch[1]) {
+      // Extraire les éléments de liste ou séparés par virgules
+      const listItems = equipmentMatch[1].split(/[\n,]/).map(item => {
+        // Nettoyer les puces de liste et les espaces
+        return item.replace(/^[\s\-\*•]+|[\s\-\*•]+$/g, '').trim();
+      }).filter(item => item.length > 0);
+      
+      return listItems.length > 0 ? listItems : [];
+    }
+    
+    return [];
+  },
+  
+  // Extraire une liste d'alternatives
+  extractAlternativesList(text) {
+    const alternativesSectionRegex = /(?:alternatives|pièces? similaires|références? alternatives)[\s\:]+([^]*?)(?:\n\n|\n[A-Z]|$)/i;
+    const alternativesMatch = text.match(alternativesSectionRegex);
+    
+    if (alternativesMatch && alternativesMatch[1]) {
+      // Extraire les éléments de liste ou séparés par virgules
+      const listItems = alternativesMatch[1].split(/[\n,]/).map(item => {
+        // Nettoyer les puces de liste et les espaces
+        return item.replace(/^[\s\-\*•]+|[\s\-\*•]+$/g, '').trim();
+      }).filter(item => item.length > 0);
+      
+      return listItems.length > 0 ? listItems : [];
+    }
+    
+    return [];
+  },
+  
   // Fonction helper pour extraire les sections textuelles
-  extractSection(text, startSection, endSection) {
+  extractSection(text, startSection, endSections) {
     const startRegex = new RegExp(`${startSection}[\\s\\:]+`, 'i');
     const startMatch = text.match(startRegex);
-    if (!startMatch) return "Information non disponible";
+    if (!startMatch) return null;
     
     const startPos = startMatch.index + startMatch[0].length;
     let endPos = text.length;
     
-    if (endSection) {
-      const endRegex = new RegExp(`${endSection}[\\s\\:]+`, 'i');
-      const endMatch = text.substring(startPos).match(endRegex);
-      if (endMatch) endPos = startPos + endMatch.index;
+    if (endSections && endSections.length > 0) {
+      for (const endSection of endSections) {
+        const endRegex = new RegExp(`${endSection}[\\s\\:]+`, 'i');
+        const endMatch = text.substring(startPos).match(endRegex);
+        if (endMatch) {
+          const newEndPos = startPos + endMatch.index;
+          if (newEndPos < endPos) endPos = newEndPos;
+        }
+      }
     }
     
     return text.substring(startPos, endPos).trim();
