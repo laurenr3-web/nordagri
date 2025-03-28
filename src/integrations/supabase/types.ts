@@ -20,6 +20,7 @@ export type Database = {
           model: string | null
           name: string
           notes: string | null
+          owner_id: string | null
           purchase_date: string | null
           serial_number: string | null
           status: string | null
@@ -37,6 +38,7 @@ export type Database = {
           model?: string | null
           name: string
           notes?: string | null
+          owner_id?: string | null
           purchase_date?: string | null
           serial_number?: string | null
           status?: string | null
@@ -54,6 +56,7 @@ export type Database = {
           model?: string | null
           name?: string
           notes?: string | null
+          owner_id?: string | null
           purchase_date?: string | null
           serial_number?: string | null
           status?: string | null
@@ -185,47 +188,110 @@ export type Database = {
         }
         Relationships: []
       }
+      interventions: {
+        Row: {
+          coordinates: Json | null
+          created_at: string | null
+          date: string
+          description: string | null
+          duration: number | null
+          equipment: string
+          equipment_id: number
+          id: number
+          location: string
+          notes: string | null
+          owner_id: string | null
+          parts_used: Json | null
+          priority: string
+          scheduled_duration: number | null
+          status: string
+          technician: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          coordinates?: Json | null
+          created_at?: string | null
+          date: string
+          description?: string | null
+          duration?: number | null
+          equipment: string
+          equipment_id: number
+          id?: never
+          location: string
+          notes?: string | null
+          owner_id?: string | null
+          parts_used?: Json | null
+          priority: string
+          scheduled_duration?: number | null
+          status: string
+          technician: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          coordinates?: Json | null
+          created_at?: string | null
+          date?: string
+          description?: string | null
+          duration?: number | null
+          equipment?: string
+          equipment_id?: number
+          id?: never
+          location?: string
+          notes?: string | null
+          owner_id?: string | null
+          parts_used?: Json | null
+          priority?: string
+          scheduled_duration?: number | null
+          status?: string
+          technician?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       maintenance_records: {
         Row: {
           completed: boolean | null
           cost: number | null
           created_at: string | null
           description: string | null
-          equipment_id: string | null
           hours_at_maintenance: number | null
           id: string
           maintenance_type: string
           performed_at: string | null
           technician_id: string | null
+          title: string | null
         }
         Insert: {
           completed?: boolean | null
           cost?: number | null
           created_at?: string | null
           description?: string | null
-          equipment_id?: string | null
           hours_at_maintenance?: number | null
           id?: string
           maintenance_type: string
           performed_at?: string | null
           technician_id?: string | null
+          title?: string | null
         }
         Update: {
           completed?: boolean | null
           cost?: number | null
           created_at?: string | null
           description?: string | null
-          equipment_id?: string | null
           hours_at_maintenance?: number | null
           id?: string
           maintenance_type?: string
           performed_at?: string | null
           technician_id?: string | null
+          title?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "maintenance_records_equipment_id_fkey"
-            columns: ["equipment_id"]
+            foreignKeyName: "maintenance_records_title_fkey"
+            columns: ["title"]
             isOneToOne: false
             referencedRelation: "equipments"
             referencedColumns: ["id"]
@@ -244,6 +310,7 @@ export type Database = {
           estimated_duration: number | null
           id: number
           notes: string | null
+          owner_id: string | null
           priority: string
           status: string
           title: string
@@ -261,6 +328,7 @@ export type Database = {
           estimated_duration?: number | null
           id?: number
           notes?: string | null
+          owner_id?: string | null
           priority: string
           status: string
           title: string
@@ -278,6 +346,7 @@ export type Database = {
           estimated_duration?: number | null
           id?: number
           notes?: string | null
+          owner_id?: string | null
           priority?: string
           status?: string
           title?: string
@@ -434,6 +503,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_db_documentation: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_equipment_statistics: {
         Args: {
           p_equipment_id: string

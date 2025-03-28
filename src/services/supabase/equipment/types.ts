@@ -1,4 +1,3 @@
-
 export interface Equipment {
   id: number;
   name: string;
@@ -16,6 +15,7 @@ export interface Equipment {
   image?: string; // Client-side property only, not stored in database
   type?: string;
   category?: string;
+  owner_id?: string; // Added owner_id field
 }
 
 export interface EquipmentFilter {

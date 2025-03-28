@@ -1,27 +1,46 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Plus, Search } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import InterventionDetailsDialog from '@/components/interventions/InterventionDetailsDialog';
 import NewInterventionDialog from '@/components/interventions/NewInterventionDialog';
 import InterventionsList from '@/components/interventions/InterventionsList';
 import InterventionsSidebar from '@/components/interventions/InterventionsSidebar';
 import { Intervention, InterventionFormValues } from '@/types/Intervention';
-import { interventionsData } from '@/components/interventions/utils/interventionUtils';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
+import { interventionService } from '@/services/supabase/interventionService';
 
 const Interventions = () => {
-  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [currentView, setCurrentView] = useState('all');
-  const [interventions, setInterventions] = useState<Intervention[]>(interventionsData);
+  const [interventions, setInterventions] = useState<Intervention[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedIntervention, setSelectedIntervention] = useState<Intervention | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [isNewInterventionDialogOpen, setIsNewInterventionDialogOpen] = useState(false);
+  
+  // Fetch interventions on component mount
+  useEffect(() => {
+    const fetchInterventions = async () => {
+      try {
+        setIsLoading(true);
+        const data = await interventionService.getInterventions();
+        setInterventions(data);
+      } catch (error) {
+        console.error('Error fetching interventions:', error);
+        toast.error('Erreur lors du chargement des interventions');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchInterventions();
+  }, []);
   
   // Filter interventions based on search term and current view
   const filteredInterventions = interventions.filter(intervention => {
@@ -47,41 +66,43 @@ const Interventions = () => {
   };
 
   // Handle updating an intervention status
-  const handleUpdateStatus = (interventionId: number, status: 'scheduled' | 'in-progress' | 'completed' | 'canceled') => {
-    setInterventions(interventions.map(intervention => 
-      intervention.id === interventionId ? {
-        ...intervention,
-        status,
-        ...(status === 'completed' ? { duration: intervention.scheduledDuration } : {})
-      } : intervention
-    ));
-    
-    toast({
-      title: "Status updated",
-      description: `Intervention status has been updated to ${status}`,
-    });
+  const handleUpdateStatus = async (interventionId: number, status: 'scheduled' | 'in-progress' | 'completed' | 'canceled') => {
+    try {
+      await interventionService.updateInterventionStatus(interventionId, status);
+      
+      setInterventions(interventions.map(intervention => 
+        intervention.id === interventionId ? {
+          ...intervention,
+          status,
+          ...(status === 'completed' ? { duration: intervention.scheduledDuration } : {})
+        } : intervention
+      ));
+      
+      toast({
+        title: "Status updated",
+        description: `Intervention status has been updated to ${status}`,
+      });
+    } catch (error) {
+      console.error('Error updating intervention status:', error);
+      toast.error('Erreur lors de la mise à jour du statut');
+    }
   };
 
   // Handle creating a new intervention
-  const handleCreateIntervention = (formData: InterventionFormValues) => {
-    const newIntervention: Intervention = {
-      id: interventions.length > 0 ? Math.max(...interventions.map(i => i.id)) + 1 : 1,
-      ...formData,
-      coordinates: {
-        lat: 34.052235,
-        lng: -118.243683
-      },
-      status: 'scheduled',
-      partsUsed: [],
-    };
-    
-    setInterventions([newIntervention, ...interventions]);
-    setIsNewInterventionDialogOpen(false);
-    
-    toast({
-      title: "Intervention created",
-      description: `New intervention "${formData.title}" has been created`,
-    });
+  const handleCreateIntervention = async (formData: InterventionFormValues) => {
+    try {
+      const newIntervention = await interventionService.addIntervention(formData);
+      setInterventions([newIntervention, ...interventions]);
+      setIsNewInterventionDialogOpen(false);
+      
+      toast({
+        title: "Intervention created",
+        description: `New intervention "${formData.title}" has been created`,
+      });
+    } catch (error) {
+      console.error('Error creating intervention:', error);
+      toast.error('Erreur lors de la création de l\'intervention');
+    }
   };
 
   // Handle clearing search

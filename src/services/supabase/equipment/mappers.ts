@@ -18,7 +18,8 @@ export const mapEquipmentFromDatabase = (record: any): Equipment => {
     status: record.status || 'operational',
     location: record.location || '',
     notes: record.notes || '',
-    image: record.image || ''
+    image: record.image || '',
+    owner_id: record.owner_id || null
   };
 };
 
@@ -37,6 +38,7 @@ export const mapEquipmentToDatabase = (equipment: Omit<Equipment, 'id' | 'image'
     purchase_date: equipment.purchaseDate,
     status: equipment.status || 'operational',
     location: equipment.location || null,
-    notes: equipment.notes || null
+    notes: equipment.notes || null,
+    owner_id: equipment.owner_id || null
   };
 };

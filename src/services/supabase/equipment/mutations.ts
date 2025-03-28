@@ -1,111 +1,95 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Equipment } from './types';
 import { mapEquipmentToDatabase, mapEquipmentFromDatabase } from './mappers';
-import { uploadEquipmentImage } from './utils';
 
-// Add new equipment with image upload support
-export async function addEquipment(equipment: Omit<Equipment, 'id'>, imageFile?: File): Promise<Equipment> {
+/**
+ * Add a new equipment item to the database
+ */
+export async function addEquipment(equipment: Omit<Equipment, 'id'>): Promise<Equipment> {
   try {
-    let imagePath = equipment.image;
+    console.log('Adding equipment:', equipment);
     
-    // Upload image if provided
-    if (imageFile) {
-      imagePath = await uploadEquipmentImage(imageFile);
-    }
+    // Get the current user
+    const { user } = await supabase.auth.getUser();
     
-    // Create a copy of the equipment object without the image property
-    const { image, ...equipmentWithoutImage } = equipment;
+    // Map equipment to database format
+    const dbEquipment = {
+      ...mapEquipmentToDatabase(equipment),
+      owner_id: user ? user.id : null
+    };
     
-    // Convert to database format
-    const equipmentData = mapEquipmentToDatabase(equipmentWithoutImage);
-    
-    console.log('Attempting to insert equipment to Supabase:', equipmentData);
-    
+    // Insert the equipment
     const { data, error } = await supabase
       .from('equipment')
-      .insert(equipmentData)
+      .insert(dbEquipment)
       .select()
       .single();
     
     if (error) {
-      console.error('Error adding equipment:', error);
+      console.error('Error adding equipment:', error.message);
       throw error;
     }
     
-    // Return the equipment with the image included in the response
-    return {
-      ...mapEquipmentFromDatabase(data),
-      image: imagePath
-    };
+    console.log('Equipment added successfully:', data);
+    return mapEquipmentFromDatabase(data);
   } catch (error) {
-    console.error('Exception in addEquipment:', error);
+    console.error('Error in addEquipment:', error);
     throw error;
   }
 }
 
-// Update equipment with image upload support
-export async function updateEquipment(equipment: Equipment, imageFile?: File): Promise<Equipment> {
+/**
+ * Update an existing equipment item in the database
+ */
+export async function updateEquipment(equipment: Equipment): Promise<Equipment> {
   try {
-    let imagePath = equipment.image;
+    console.log('Updating equipment:', equipment);
     
-    // Upload image if provided
-    if (imageFile) {
-      imagePath = await uploadEquipmentImage(imageFile);
-    }
+    // Map equipment to database format
+    const dbEquipment = mapEquipmentToDatabase(equipment);
     
-    // Separate image from data to be sent to the database
-    const { image, ...equipmentWithoutImage } = equipment;
-    
-    const equipmentData = mapEquipmentToDatabase(equipmentWithoutImage);
-    
-    const { error } = await supabase
+    // Update the equipment
+    const { data, error } = await supabase
       .from('equipment')
-      .update(equipmentData)
-      .eq('id', equipment.id);
-    
-    if (error) {
-      console.error('Error updating equipment:', error);
-      throw error;
-    }
-    
-    return {
-      ...equipment,
-      image: imagePath
-    };
-  } catch (error) {
-    console.error('Exception in updateEquipment:', error);
-    throw error;
-  }
-}
-
-// Delete equipment
-export async function deleteEquipment(equipmentId: number): Promise<void> {
-  try {
-    // First attempt to get the image path
-    const { data: equipment } = await supabase
-      .from('equipment')
-      .select('image')
-      .eq('id', equipmentId)
+      .update(dbEquipment)
+      .eq('id', equipment.id)
+      .select()
       .single();
     
-    // Delete the equipment record
+    if (error) {
+      console.error('Error updating equipment:', error.message);
+      throw error;
+    }
+    
+    console.log('Equipment updated successfully:', data);
+    return mapEquipmentFromDatabase(data);
+  } catch (error) {
+    console.error('Error in updateEquipment:', error);
+    throw error;
+  }
+}
+
+/**
+ * Delete an equipment item from the database
+ */
+export async function deleteEquipment(id: number): Promise<void> {
+  try {
+    console.log('Deleting equipment with ID:', id);
+    
+    // Delete the equipment
     const { error } = await supabase
       .from('equipment')
       .delete()
-      .eq('id', equipmentId);
+      .eq('id', id);
     
     if (error) {
-      console.error('Error deleting equipment:', error);
+      console.error('Error deleting equipment:', error.message);
       throw error;
     }
     
-    // TODO: Add storage bucket integration for deleting images
-    // if (equipment?.image && equipment.image.startsWith('equipment/')) {
-    //   await deleteEquipmentImage(equipment.image);
-    // }
+    console.log('Equipment deleted successfully');
   } catch (error) {
-    console.error('Exception in deleteEquipment:', error);
+    console.error('Error in deleteEquipment:', error);
     throw error;
   }
 }
