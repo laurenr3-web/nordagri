@@ -38,6 +38,44 @@ interface LocalPart {
   image: string;
 }
 
+// Fonction pour convertir Part vers LocalPart
+const convertToLocalPart = (part: any): LocalPart => {
+  return {
+    id: part.id,
+    name: part.name || '',
+    reference: part.reference || '',
+    partNumber: part.partNumber || '',
+    description: part.description || '',
+    category: part.category || '',
+    manufacturer: part.manufacturer || '',
+    compatibleWith: part.compatibleWith || [],
+    compatibility: part.compatibility || [],
+    inStock: !!part.inStock,
+    quantity: part.quantity,
+    minimumStock: part.minimumStock,
+    location: part.location || '',
+    lastUsed: part.lastUsed,
+    purchasePrice: part.purchasePrice,
+    estimatedPrice: part.estimatedPrice,
+    isFromSearch: part.isFromSearch,
+    imageUrl: part.imageUrl,
+    stock: part.stock || 0,
+    price: part.price || 0,
+    reorderPoint: part.reorderPoint || 0,
+    image: part.image || ''
+  };
+};
+
+// Fonction pour convertir LocalPart vers Part
+const convertToPart = (localPart: LocalPart): any => {
+  // Cast vers any pour contourner les vérifications de type
+  return {
+    ...localPart,
+    id: typeof localPart.id === 'string' ? parseInt(localPart.id, 10) : localPart.id,
+    partNumber: localPart.partNumber || localPart.reference // Assurez-vous que partNumber est défini
+  };
+};
+
 interface PartsDialogsProps {
   // Part and selection
   selectedPart: LocalPart | null;
@@ -133,14 +171,22 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
   handleEditPart,
   handleDeletePart
 }) => {
+  // Conversion des données si nécessaire
+  const handleEditPartWrapper = (part: any) => {
+    if (handleEditPart) {
+      const localPart = convertToLocalPart(part);
+      handleEditPart(localPart);
+    }
+  };
+
   return (
     <>
       {/* Part Details Dialog */}
       <PartDetailsDialog
         isOpen={isPartDetailsDialogOpen}
         onOpenChange={setIsPartDetailsDialogOpen}
-        selectedPart={selectedPart as any}
-        onEdit={handleEditPart as any}
+        selectedPart={selectedPart}
+        onEdit={handleEditPartWrapper}
         onDelete={handleDeletePart}
       />
       
@@ -189,7 +235,7 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
       <OrderDialog 
         isOpen={isOrderDialogOpen}
         onOpenChange={setIsOrderDialogOpen}
-        selectedPart={selectedPart as any}
+        selectedPart={selectedPart}
         orderQuantity={orderQuantity || ''}
         setOrderQuantity={setOrderQuantity || (() => {})}
         orderNote={orderNote || ''}
