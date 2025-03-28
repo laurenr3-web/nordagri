@@ -1,5 +1,5 @@
 
-import { perplexityClient } from '@/integrations/perplexity/client';
+import { perplexityClient } from '@/services/perplexity/client';
 import { Part, PartPriceInfo } from '@/types/Part';
 import { toast } from 'sonner';
 
