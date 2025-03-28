@@ -2,7 +2,8 @@
 import React from 'react';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { Button } from '@/components/ui/button';
-import { MapPin, User, Wrench } from 'lucide-react';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { MapPin, User, Wrench, Clock, CalendarCheck } from 'lucide-react';
 import { Intervention } from '@/types/Intervention';
 import StatusBadge from './StatusBadge';
 import PriorityBadge from './PriorityBadge';
@@ -20,100 +21,76 @@ const InterventionCard: React.FC<InterventionCardProps> = ({
   onStartWork 
 }) => {
   return (
-    <BlurContainer 
-      key={intervention.id}
-      className="mb-6 animate-fade-in overflow-hidden"
-    >
-      <div className="p-5">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
-          <div>
-            <h3 className="font-medium text-lg leading-tight mb-1">{intervention.title}</h3>
-            <div className="flex flex-wrap items-center gap-2 text-muted-foreground text-sm">
-              <span>{intervention.equipment}</span>
-              <span>•</span>
-              <div className="flex items-center gap-1">
-                <MapPin size={14} />
-                <span>{intervention.location}</span>
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
+    <Card className="overflow-hidden transition-all hover:shadow-md animate-fade-in">
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between mb-3">
+          <h3 className="font-medium text-lg leading-tight truncate">{intervention.title}</h3>
+          <div className="flex flex-shrink-0 gap-2 ml-2">
             <StatusBadge status={intervention.status} />
             <PriorityBadge priority={intervention.priority} />
           </div>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-          <div>
-            <p className="text-sm text-muted-foreground mb-1">Date</p>
-            <p className="font-medium">{formatDate(intervention.date)}</p>
+        <div className="flex flex-col gap-2 text-sm">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Wrench size={14} className="flex-shrink-0" />
+            <span className="truncate">{intervention.equipment}</span>
           </div>
-          <div>
-            <p className="text-sm text-muted-foreground mb-1">Duration</p>
-            <p className="font-medium">
-              {intervention.status === 'completed' && intervention.duration ? 
-                `${intervention.duration} hrs (Actual)` : 
-                `${intervention.scheduledDuration} hrs (Scheduled)`
-              }
-            </p>
+          
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <MapPin size={14} className="flex-shrink-0" />
+            <span className="truncate">{intervention.location}</span>
           </div>
-          <div>
-            <p className="text-sm text-muted-foreground mb-1">Technician</p>
-            <div className="flex items-center gap-2">
-              <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center">
-                <User size={14} className="text-primary" />
-              </div>
-              <p className="font-medium">{intervention.technician}</p>
+          
+          <div className="grid grid-cols-2 gap-2 mt-1">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <CalendarCheck size={14} className="flex-shrink-0" />
+              <span>{formatDate(intervention.date)}</span>
             </div>
+            
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Clock size={14} className="flex-shrink-0" />
+              <span>
+                {intervention.status === 'completed' && intervention.duration
+                  ? `${intervention.duration} hrs`
+                  : `${intervention.scheduledDuration} hrs`}
+              </span>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <User size={14} className="flex-shrink-0" />
+            <span className="font-medium">{intervention.technician}</span>
           </div>
         </div>
         
-        <div className="mb-4">
-          <p className="text-sm text-muted-foreground mb-1">Description</p>
-          <p className="text-sm">{intervention.description}</p>
-        </div>
-        
-        {intervention.partsUsed && intervention.partsUsed.length > 0 && (
-          <div className="mb-4">
-            <p className="text-sm text-muted-foreground mb-1">Parts Used</p>
-            <div className="bg-secondary/50 p-3 rounded-md">
-              {intervention.partsUsed.map((part, index) => (
-                <div key={part.id} className={`flex justify-between text-sm ${index > 0 ? 'mt-2' : ''}`}>
-                  <span>{part.name}</span>
-                  <span className="font-medium">Qty: {part.quantity}</span>
-                </div>
-              ))}
-            </div>
+        {intervention.description && (
+          <div className="mt-3 text-sm">
+            <p className="line-clamp-2 text-muted-foreground">{intervention.description}</p>
           </div>
         )}
-        
-        {intervention.notes && (
-          <div className="mb-4">
-            <p className="text-sm text-muted-foreground mb-1">Notes</p>
-            <p className="text-sm italic">{intervention.notes}</p>
-          </div>
-        )}
-        
-        <div className="flex justify-end gap-2">
-          {intervention.status === 'scheduled' && (
-            <Button 
-              variant="outline" 
-              className="gap-1"
-              onClick={() => onStartWork(intervention)}
-            >
-              <Wrench size={16} />
-              <span>Start Work</span>
-            </Button>
-          )}
+      </CardContent>
+      
+      <CardFooter className="px-5 py-3 bg-muted/30 border-t flex justify-end gap-2">
+        {intervention.status === 'scheduled' && (
           <Button 
+            variant="outline" 
+            size="sm"
             className="gap-1"
-            onClick={() => onViewDetails(intervention)}
+            onClick={() => onStartWork(intervention)}
           >
-            <span>Details</span>
+            <Wrench size={16} />
+            <span>Démarrer</span>
           </Button>
-        </div>
-      </div>
-    </BlurContainer>
+        )}
+        <Button 
+          size="sm"
+          onClick={() => onViewDetails(intervention)}
+        >
+          Détails
+        </Button>
+      </CardFooter>
+    </Card>
   );
 };
 
