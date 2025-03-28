@@ -1,29 +1,28 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle } from 'lucide-react';
+import { ArrowRightLeft } from 'lucide-react';
 
 interface AlternativesSectionProps {
-  alternatives: string[];
+  partNumber: string;
+  description: string | null | undefined;
 }
 
-export const AlternativesSection: React.FC<AlternativesSectionProps> = ({ alternatives }) => {
-  if (!alternatives || alternatives.length === 0) return null;
-  
+export const AlternativesSection: React.FC<AlternativesSectionProps> = ({ partNumber, description }) => {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <CheckCircle className="h-5 w-5 mr-2" />
-          Alternatives possibles
-        </CardTitle>
+      <CardHeader className="flex flex-row items-center gap-2">
+        <ArrowRightLeft className="h-5 w-5 text-primary" />
+        <CardTitle className="text-base">Alternatives & compatibilité</CardTitle>
       </CardHeader>
       <CardContent>
-        <ul className="list-disc pl-5 space-y-1">
-          {alternatives.map((alternative, index) => (
-            <li key={index}>{alternative}</li>
-          ))}
-        </ul>
+        {description ? (
+          <p className="text-sm">{description}</p>
+        ) : (
+          <p className="text-sm text-muted-foreground italic">
+            Aucune information disponible sur les alternatives à la pièce {partNumber}
+          </p>
+        )}
       </CardContent>
     </Card>
   );

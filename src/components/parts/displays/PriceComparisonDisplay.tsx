@@ -27,8 +27,8 @@ export const PriceComparisonDisplay: React.FC<PriceComparisonDisplayProps> = ({ 
 
   // Formatter les prix pour l'affichage
   const formatPrice = (price: string | number) => {
-    // Si c'est déjà une chaîne formatée, la retourner
-    if (typeof price === 'string' && price.includes('€') || price.includes('$')) {
+    // Si c'est déjà une chaîne formatée avec un symbole de devise, la retourner
+    if (typeof price === 'string' && (price.includes('€') || price.includes('$'))) {
       return price;
     }
     

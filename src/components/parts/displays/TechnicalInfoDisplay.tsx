@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Info, Tool, AlertTriangle, HelpCircle, Settings, RotateCcw, ArrowRightLeft, Wrench } from 'lucide-react';
+import { Info, AlertTriangle, HelpCircle, Settings, RotateCcw, ArrowRightLeft, Wrench } from 'lucide-react';
 import NoResultsFound from './NoResultsFound';
 import { 
   FunctionSection, 
@@ -39,37 +39,37 @@ export const TechnicalInfoDisplay: React.FC<TechnicalInfoDisplayProps> = ({
     <div className="space-y-6 py-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <FunctionSection 
-          data={data.function || data.description} 
           partNumber={partReference}
+          description={data.function || data.description}
         />
         
         <InstallationSection 
-          data={data.installation || data.mountingInstructions} 
           partNumber={partReference}
+          description={data.installation || data.mountingInstructions}
         />
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <SymptomsSection 
-          data={data.symptoms || data.failureIndicators} 
           partNumber={partReference}
+          description={data.symptoms || data.failureIndicators}
         />
         
         <MaintenanceSection 
-          data={data.maintenance || data.upkeep} 
           partNumber={partReference}
+          description={data.maintenance || data.upkeep}
         />
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <WarningsSection 
-          data={data.warnings || data.precautions} 
           partNumber={partReference}
+          description={data.warnings || data.precautions}
         />
         
         <AlternativesSection 
-          data={data.alternatives || data.substitutes} 
           partNumber={partReference}
+          description={data.alternatives || data.substitutes}
         />
       </div>
     </div>

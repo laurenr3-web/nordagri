@@ -1,29 +1,28 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 
 interface WarningsSectionProps {
-  warnings: string;
-  isInfoAvailable: (info: string) => boolean;
+  partNumber: string;
+  description: string | null | undefined;
 }
 
-export const WarningsSection: React.FC<WarningsSectionProps> = ({ 
-  warnings,
-  isInfoAvailable
-}) => {
-  if (!isInfoAvailable(warnings)) return null;
-  
+export const WarningsSection: React.FC<WarningsSectionProps> = ({ partNumber, description }) => {
   return (
-    <Card className="border-yellow-200 bg-yellow-50 dark:bg-yellow-950/30 dark:border-yellow-900">
-      <CardHeader>
-        <CardTitle className="flex items-center text-yellow-800 dark:text-yellow-300">
-          <AlertCircle className="h-5 w-5 mr-2" />
-          Avertissements importants
-        </CardTitle>
+    <Card>
+      <CardHeader className="flex flex-row items-center gap-2">
+        <AlertTriangle className="h-5 w-5 text-red-500" />
+        <CardTitle className="text-base">Avertissements</CardTitle>
       </CardHeader>
-      <CardContent className="text-yellow-800 dark:text-yellow-300">
-        <div className="whitespace-pre-line">{warnings}</div>
+      <CardContent>
+        {description ? (
+          <p className="text-sm">{description}</p>
+        ) : (
+          <p className="text-sm text-muted-foreground italic">
+            Aucun avertissement spécifique pour la pièce {partNumber}
+          </p>
+        )}
       </CardContent>
     </Card>
   );
