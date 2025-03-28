@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Equipment } from '@/services/supabase/equipmentService';
 import { Part } from '@/types/Part';
@@ -21,10 +20,8 @@ export function useEquipmentParts(equipment: Equipment) {
       try {
         setLoading(true);
         setError(null);
-        // Load parts associated with this equipment
-        // Pass the ID directly - our function now handles both string and number types
-        const equipmentId = equipment.id;
-        const equipmentParts = await getPartsForEquipment(equipmentId);
+        // Charger les pièces associées à cet équipement
+        const equipmentParts = await getPartsForEquipment(equipment.id);
         setParts(equipmentParts);
       } catch (err: any) {
         console.error('Error fetching parts:', err);
@@ -42,7 +39,7 @@ export function useEquipmentParts(equipment: Equipment) {
     fetchParts();
   }, [equipment.id, toast]);
 
-  // Filter parts based on search term
+  // Filtrer les pièces en fonction du terme de recherche
   const filteredParts = parts.filter(part => 
     part.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     part.partNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||

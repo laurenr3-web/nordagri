@@ -77,7 +77,7 @@ export const useDataInitialization = () => {
       const taskData = maintenanceTasks.map(task => ({
         title: task.title,
         equipment: task.equipment,
-        equipment_id: parseInt(task.equipmentId), // Convert string back to number for database
+        equipment_id: task.equipmentId || 1, // Default ID
         type: task.type,
         status: task.status,
         priority: task.priority,

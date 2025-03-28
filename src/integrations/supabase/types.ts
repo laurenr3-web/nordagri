@@ -434,10 +434,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      generate_db_documentation: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
       get_equipment_statistics: {
         Args: {
           p_equipment_id: string

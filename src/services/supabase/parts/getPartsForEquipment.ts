@@ -3,19 +3,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { Part } from '@/types/Part';
 import { getParts } from './getParts';
 
-// Update parameter type to accept either string or number
-export async function getPartsForEquipment(equipmentId: string | number): Promise<Part[]> {
+export async function getPartsForEquipment(equipmentId: number): Promise<Part[]> {
   console.log('🔍 Fetching parts compatible with equipment ID:', equipmentId);
   
   try {
-    // Ensure equipment ID is handled correctly
-    const numericId = typeof equipmentId === 'string' ? parseInt(equipmentId, 10) : equipmentId;
-    
     // 1. First fetch the equipment details to get type, model, etc.
     const { data: equipment, error: equipmentError } = await supabase
       .from('equipment')
       .select('*')
-      .eq('id', numericId)
+      .eq('id', equipmentId)
       .single();
     
     if (equipmentError) {
@@ -43,8 +39,8 @@ export async function getPartsForEquipment(equipmentId: string | number): Promis
     const compatibleParts = allParts.filter(part => {
       // Check if equipment id is directly in the compatibility array
       if (part.compatibility.some(comp => 
-          typeof comp === 'number' && comp === numericId ||
-          typeof comp === 'string' && (comp === equipmentId.toString() || parseInt(comp, 10) === numericId)
+          typeof comp === 'number' && comp === equipmentId ||
+          typeof comp === 'string' && comp === equipmentId.toString()
       )) {
         return true;
       }

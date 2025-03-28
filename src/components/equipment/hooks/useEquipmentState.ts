@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from 'react';
 import { useEquipmentFilters, EquipmentItem } from '@/components/equipment/hooks/useEquipmentFilters';
 import { Equipment } from '@/services/supabase/equipmentService';
@@ -11,7 +12,7 @@ export const useEquipmentState = (equipment: Equipment[] | null) => {
     if (!equipment) return [];
     
     return equipment.map((item: Equipment) => ({
-      id: typeof item.id === 'string' ? parseInt(item.id, 10) : Number(item.id),
+      id: item.id,
       name: item.name,
       type: item.type || 'Unknown',
       category: item.category || 'Uncategorized',
@@ -21,7 +22,11 @@ export const useEquipmentState = (equipment: Equipment[] | null) => {
       status: item.status || 'unknown',
       location: item.location || '',
       // Ensure date fields are converted to strings
-      lastMaintenance: item.lastMaintenance || 'N/A',
+      lastMaintenance: item.lastMaintenance 
+        ? (typeof item.lastMaintenance === 'object' 
+           ? item.lastMaintenance.toISOString() 
+           : String(item.lastMaintenance))
+        : 'N/A',
       image: item.image || '',
       serialNumber: item.serialNumber || '',
       purchaseDate: item.purchaseDate 
@@ -30,7 +35,7 @@ export const useEquipmentState = (equipment: Equipment[] | null) => {
            : String(item.purchaseDate))
         : '',
       // Define default values for usage and nextService which don't exist in Equipment type
-      usage: { hours: item.current_hours || 0, target: 500 }, 
+      usage: { hours: 0, target: 500 }, 
       nextService: { type: 'Regular maintenance', due: 'In 30 days' }
     }));
   }, [equipment]);

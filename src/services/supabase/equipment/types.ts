@@ -1,38 +1,33 @@
 
 export interface Equipment {
-  id: string;
+  id: number;
   name: string;
-  type: string;
-  category?: string;
-  manufacturer?: string;
   model?: string;
-  year?: number | null;
-  serialNumber?: string | null;
+  manufacturer?: string;
+  year?: number;
+  serialNumber?: string;
   purchaseDate?: Date;
+  purchasePrice?: number;
   status?: string;
   location?: string;
+  lastMaintenance?: Date;
+  nextMaintenance?: Date;
   notes?: string;
-  image?: string;
-  owner_id?: string;
-  metadata?: any;
-  current_hours?: number;
-  acquisition_date?: string;
-  created_at?: string;
-  updated_at?: string;
-  // Virtual fields for UI
-  lastMaintenance?: string;
+  image?: string; // Client-side property only, not stored in database
+  type?: string;
+  category?: string;
 }
 
 export interface EquipmentFilter {
   search?: string;
-  type?: string;
-  category?: string;
-  manufacturer?: string;
-  status?: string;
-  location?: string;
-  year?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  status?: string[];
+  type?: string[];
+  category?: string[];
+  manufacturer?: string[];
+  location?: string[];
+  yearMin?: number;
+  yearMax?: number;
+  nextMaintenanceBefore?: Date;
 }
 
 export interface EquipmentStats {

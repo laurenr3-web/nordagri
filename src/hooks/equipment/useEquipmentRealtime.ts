@@ -20,7 +20,7 @@ export function useEquipmentRealtime() {
         {
           event: '*',
           schema: 'public',
-          table: 'equipments'
+          table: 'equipment'
         },
         (payload) => {
           console.log('Realtime update for equipment:', payload);
@@ -29,7 +29,7 @@ export function useEquipmentRealtime() {
           queryClient.invalidateQueries({ queryKey: ['equipment'] });
           
           // If a specific equipment is updated, also invalidate that query
-          if (payload.new && typeof payload.new === 'object' && 'id' in payload.new && payload.new.id) {
+          if (payload.new && typeof payload.new === 'object' && 'id' in payload.new) {
             queryClient.invalidateQueries({ queryKey: ['equipment', payload.new.id] });
           }
           

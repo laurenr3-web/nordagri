@@ -11,7 +11,7 @@ export const useMaintenanceForm = (
   const { toast } = useToast();
   const [title, setTitle] = useState('');
   const [equipment, setEquipment] = useState('');
-  const [equipmentId, setEquipmentId] = useState('1'); // Use string type
+  const [equipmentId, setEquipmentId] = useState(1);
   const [type, setType] = useState<MaintenanceType>('preventive');
   const [priority, setPriority] = useState<MaintenancePriority>('medium');
   const [dueDate, setDueDate] = useState<Date>(initialDate || new Date());
@@ -51,7 +51,7 @@ export const useMaintenanceForm = (
     const selected = equipmentOptions.find(eq => eq.name === value);
     if (selected) {
       setEquipment(value);
-      setEquipmentId(selected.id.toString()); // Convert to string
+      setEquipmentId(selected.id);
     }
   };
 
@@ -98,7 +98,7 @@ export const useMaintenanceForm = (
     // Reset form
     setTitle('');
     setEquipment('');
-    setEquipmentId('1'); // Reset to string
+    setEquipmentId(1);
     setType('preventive');
     setPriority('medium');
     setDueDate(new Date());
