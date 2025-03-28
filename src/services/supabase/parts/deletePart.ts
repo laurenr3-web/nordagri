@@ -1,11 +1,12 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-export async function deletePart(partId: number): Promise<void> {
+export async function deletePart(partId: number | string): Promise<void> {
   console.log('🗑️ Deleting part with ID:', partId);
   
-  if (isNaN(partId)) {
-    throw new Error('Invalid part ID: must be a number');
+  if (typeof partId === 'string' && isNaN(Number(partId))) {
+    // If it's a non-numeric string ID (like a UUID)
+    throw new Error('Invalid part ID format for this database');
   }
   
   const { error } = await supabase

@@ -1,78 +1,23 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { deletePart } from '@/services/supabase/parts';
-import { useToast } from '@/hooks/use-toast';
-import { Part } from '@/types/Part';
+import { deletePart } from '@/services/supabase/parts/deletePart';
+import { toast } from 'sonner';
 
-/**
- * Hook pour supprimer une pièce avec les mutations React Query
- * Fournit des notifications toast appropriées et l'invalidation du cache
- */
-export function useDeletePart() {
+export const useDeletePart = () => {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
-  
+
   return useMutation({
-    mutationFn: (partId: number | string) => {
-      console.log('🗑️ Tentative de suppression de la pièce:', partId);
-      
-      // Convertir l'ID en nombre si possible
-      const numericId = typeof partId === 'string' ? Number(partId) : partId;
-      
-      if (isNaN(Number(numericId))) {
-        throw new Error("ID de pièce invalide");
-      }
-      
-      return deletePart(Number(numericId));
-    },
-    onMutate: async (partId: number | string) => {
-      await queryClient.cancelQueries({ queryKey: ['parts'] });
-      
-      // Sauvegarder l'état précédent
-      const previousParts = queryClient.getQueryData<Part[]>(['parts']);
-      
-      // Supprimer optimiste
-      queryClient.setQueryData<Part[]>(['parts'], (oldData = []) => {
-        return oldData.filter(part => part.id !== partId);
-      });
-      
-      return { previousParts };
-    },
-    onSuccess: (_, partId) => {
-      console.log('✅ Suppression réussie de la pièce:', partId);
-      
-      // Supprimer la pièce du cache
-      queryClient.removeQueries({ queryKey: ['parts', partId] });
-      // Invalider la liste pour la rafraîchir
+    mutationFn: (partId: number | string) => deletePart(partId),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['parts'] });
-      
-      toast({
-        title: "Pièce supprimée",
-        description: "La pièce a été supprimée de l'inventaire.",
-      });
+      toast.success('Part deleted successfully');
     },
-    onError: (error: any, partId, context) => {
-      console.error('❌ Échec de la suppression:', error);
-      
-      // Restaurer l'état précédent
-      if (context?.previousParts) {
-        queryClient.setQueryData(['parts'], context.previousParts);
-      }
-      
-      // Message d'erreur spécifique
-      let errorMessage = "Impossible de supprimer la pièce";
-      
-      if (error.code === '23503') {
-        errorMessage = "Cette pièce est référencée par d'autres éléments et ne peut pas être supprimée.";
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      toast({
-        title: "Erreur de suppression",
-        description: errorMessage,
-        variant: "destructive",
+    onError: (error: any) => {
+      toast.error('Failed to delete part', { 
+        description: error?.message || 'An unknown error occurred'
       });
-    },
+    }
   });
-}
+};
+
+export default useDeletePart;

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Part } from '@/types/Part';
 
@@ -115,13 +114,7 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
         onOpenChange={setIsPartDetailsDialogOpen}
         selectedPart={selectedPart}
         onEdit={handleEditPart}
-        onDelete={(partId) => {
-          if (handleDeletePart) {
-            handleDeletePart(partId);
-          } else {
-            console.warn('Delete handler not available for part with ID:', partId);
-          }
-        }}
+        onDelete={handleDeletePart}
       />
       
       {/* Add Part Dialog */}
