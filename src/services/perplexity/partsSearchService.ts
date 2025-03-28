@@ -1,11 +1,24 @@
 
 import { perplexityClient } from '@/integrations/perplexity/client';
 import { Part, PartPriceInfo } from '@/types/Part';
+import { toast } from 'sonner';
 
 export const partsSearchService = {
   // Rechercher des pièces par description ou référence
   async searchParts(query: string): Promise<Part[]> {
     try {
+      console.log('Démarrage de la recherche pour:', query);
+      
+      // Vérifier si la clé API est configurée
+      const apiKey = import.meta.env.VITE_PERPLEXITY_API_KEY;
+      if (!apiKey) {
+        console.error("Clé API Perplexity non configurée");
+        toast.error("Configuration API manquante", {
+          description: "Veuillez configurer une clé API Perplexity dans vos variables d'environnement."
+        });
+        return [];
+      }
+      
       const response = await perplexityClient.post('/chat/completions', {
         model: "sonar-medium-online",
         messages: [
@@ -20,6 +33,8 @@ export const partsSearchService = {
         ],
         temperature: 0.2
       });
+      
+      console.log('Réponse API reçue:', response.status);
       
       // Extraction et transformation des données du format JSON
       const content = response.data.choices[0].message.content;
@@ -36,8 +51,12 @@ export const partsSearchService = {
           // Si pas de bloc JSON explicite, essayer de parser toute la réponse
           parsedData = JSON.parse(content);
         }
+        
+        console.log('Données JSON extraites avec succès');
       } catch (parseError) {
         console.error("Erreur lors du parsing de la réponse JSON:", parseError);
+        console.log("Contenu de la réponse:", content);
+        
         // Format de secours si le parsing échoue
         parsedData = { 
           results: [{ 
@@ -48,6 +67,11 @@ export const partsSearchService = {
             estimatedPrice: "Inconnu"
           }] 
         };
+      }
+      
+      // S'assurer que parsedData.results existe
+      if (!parsedData.results) {
+        parsedData = { results: [parsedData] };
       }
       
       // Transformer en format utilisable par l'application
@@ -73,13 +97,50 @@ export const partsSearchService = {
       }));
     } catch (error) {
       console.error("Erreur lors de la recherche de pièces:", error);
-      throw error;
+      
+      // Afficher un message d'erreur plus détaillé
+      if (error.response) {
+        console.error("Données de l'erreur:", error.response.data);
+        console.error("Statut:", error.response.status);
+        
+        if (error.response.status === 401) {
+          toast.error("Erreur d'authentification API", { 
+            description: "Vérifiez votre clé API Perplexity" 
+          });
+        } else {
+          toast.error(`Erreur API (${error.response.status})`, { 
+            description: error.response.data?.error?.message || "Détails non disponibles" 
+          });
+        }
+      } else if (error.request) {
+        console.error("Pas de réponse reçue:", error.request);
+        toast.error("Impossible de contacter l'API", { 
+          description: "Vérifiez votre connexion Internet" 
+        });
+      } else {
+        toast.error("Erreur de recherche", { 
+          description: error.message || "Une erreur inattendue est survenue" 
+        });
+      }
+      
+      return [];
     }
   },
 
   // Comparer les prix pour une pièce spécifique
-  async comparePartPrices(partReference: string, partName: string): Promise<PartPriceInfo[]> {
+  async comparePartPrices(partReference: string, partName: string, partManufacturer?: string): Promise<PartPriceInfo[]> {
     try {
+      console.log('Démarrage de la comparaison de prix pour:', partReference, partName);
+      
+      // Vérifier si la clé API est configurée
+      const apiKey = import.meta.env.VITE_PERPLEXITY_API_KEY;
+      if (!apiKey) {
+        console.error("Clé API Perplexity non configurée");
+        return [];
+      }
+      
+      const manufacturerInfo = partManufacturer ? `, fabricant: ${partManufacturer}` : '';
+      
       const response = await perplexityClient.post('/chat/completions', {
         model: "sonar-medium-online",
         messages: [
@@ -89,11 +150,13 @@ export const partsSearchService = {
           },
           {
             role: "user",
-            content: `Recherchez les prix actuels pour la pièce agricole avec la référence: ${partReference}, nom: ${partName}. Incluez le nom du fournisseur, le prix, le lien vers la page produit, et la disponibilité. Limitez-vous à 5 résultats maximum.`
+            content: `Recherchez les prix actuels pour la pièce agricole avec la référence: ${partReference}, nom: ${partName}${manufacturerInfo}. Incluez le nom du fournisseur, le prix, le lien vers la page produit, et la disponibilité. Limitez-vous à 5 résultats maximum.`
           }
         ],
         temperature: 0.2
       });
+      
+      console.log('Réponse API reçue pour comparaison de prix');
       
       // Extraction des données JSON
       const content = response.data.choices[0].message.content;
@@ -109,8 +172,14 @@ export const partsSearchService = {
         } else {
           parsedData = JSON.parse(content);
         }
+        
+        // S'assurer que parsedData.results existe
+        if (!parsedData.results) {
+          parsedData = { results: [parsedData] };
+        }
       } catch (parseError) {
         console.error("Erreur lors du parsing des prix:", parseError);
+        console.log("Contenu de la réponse:", content);
         return [];
       }
       
@@ -126,7 +195,12 @@ export const partsSearchService = {
       }));
     } catch (error) {
       console.error("Erreur lors de la comparaison des prix:", error);
-      throw error;
+      
+      if (error.response) {
+        console.error("Détails de l'erreur:", error.response.data);
+      }
+      
+      return [];
     }
   }
 };

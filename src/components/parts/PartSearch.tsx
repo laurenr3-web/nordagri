@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { partsSearchService } from '@/services/perplexity/partsSearchService';
@@ -16,6 +17,7 @@ const PartSearch = ({ onAddPartToInventory }: PartSearchProps) => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<Part[]>([]);
   const [showResults, setShowResults] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
@@ -25,9 +27,12 @@ const PartSearch = ({ onAddPartToInventory }: PartSearchProps) => {
 
     setIsSearching(true);
     setShowResults(true);
+    setHasError(false);
     
     try {
+      console.log('Lancement de la recherche pour:', searchQuery);
       const results = await partsSearchService.searchParts(searchQuery);
+      console.log('Résultats reçus:', results);
       setSearchResults(results);
       
       if (results.length === 0) {
@@ -35,6 +40,7 @@ const PartSearch = ({ onAddPartToInventory }: PartSearchProps) => {
       }
     } catch (error) {
       console.error('Erreur lors de la recherche:', error);
+      setHasError(true);
       toast.error('Erreur lors de la recherche de pièces', {
         description: error instanceof Error ? error.message : 'Une erreur inconnue est survenue'
       });
@@ -97,6 +103,15 @@ const PartSearch = ({ onAddPartToInventory }: PartSearchProps) => {
                 <Loader2 className="h-8 w-8 animate-spin mb-2" />
                 <p className="text-muted-foreground">
                   Recherche de pièces et comparaison des prix...
+                </p>
+              </div>
+            ) : hasError ? (
+              <div className="flex flex-col items-center justify-center py-8 text-destructive">
+                <AlertTriangle className="h-8 w-8 mb-2" />
+                <h3 className="font-medium">Erreur de connexion à l'API</h3>
+                <p className="text-center text-muted-foreground mt-1">
+                  Vérifiez que votre clé API Perplexity est correctement configurée<br />
+                  dans les variables d'environnement <code>VITE_PERPLEXITY_API_KEY</code>
                 </p>
               </div>
             ) : searchResults.length === 0 ? (
