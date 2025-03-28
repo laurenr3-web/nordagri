@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,6 +23,7 @@ import PartCompatibility from './details/PartCompatibility';
 import PartReorderInfo from './details/PartReorderInfo';
 import EditPartDialog from './dialogs/EditPartDialog';
 import PartPriceComparison from './PartPriceComparison';
+import { useDeletePart } from '@/hooks/parts';
 
 interface PartDetailsProps {
   part: Part;
@@ -36,6 +36,7 @@ interface PartDetailsProps {
 const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDialogClose, onBack }) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const deleteMutation = useDeletePart();
 
   const handleDelete = (e: React.MouseEvent) => {
     // Prevent event from bubbling up which might cause redirection
@@ -44,8 +45,17 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
     if (onDelete) {
       onDelete(part.id);
     } else {
-      console.warn('Delete handler not available for part with ID:', part.id);
+      // Utiliser la mutation de suppression si aucun gestionnaire n'est fourni
+      deleteMutation.mutate(part.id, {
+        onSuccess: () => {
+          // Fermer le dialogue principal après la suppression réussie
+          if (onDialogClose) {
+            setTimeout(() => onDialogClose(), 300);
+          }
+        }
+      });
     }
+    
     setIsDeleteDialogOpen(false);
   };
 
@@ -69,6 +79,7 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
     setIsEditDialogOpen(true);
   };
 
+  // Nouveau gestionnaire pour ouvrir le dialogue de confirmation de suppression
   const openDeleteDialog = (e: React.MouseEvent) => {
     // Prevent event from bubbling up which might cause redirection
     e.stopPropagation();

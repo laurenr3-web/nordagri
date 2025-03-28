@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Edit } from 'lucide-react';
+import { Edit, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,9 +16,14 @@ import { Part } from '@/types/Part';
 interface EquipmentPartsTableProps {
   parts: Part[];
   onEditPart: (part: Part) => void;
+  onDeletePart?: (partId: number | string) => void;
 }
 
-const EquipmentPartsTable: React.FC<EquipmentPartsTableProps> = ({ parts, onEditPart }) => {
+const EquipmentPartsTable: React.FC<EquipmentPartsTableProps> = ({ 
+  parts, 
+  onEditPart, 
+  onDeletePart 
+}) => {
   if (parts.length === 0) {
     return (
       <div className="text-center py-6">
@@ -59,13 +64,31 @@ const EquipmentPartsTable: React.FC<EquipmentPartsTableProps> = ({ parts, onEdit
               </TableCell>
               <TableCell>{part.price.toFixed(2)} €</TableCell>
               <TableCell>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => onEditPart(part)}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
+                <div className="flex space-x-1">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => onEditPart(part)}
+                    title="Modifier la pièce"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  
+                  {onDeletePart && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => {
+                        if (confirm(`Êtes-vous sûr de vouloir supprimer la pièce "${part.name}"?`)) {
+                          onDeletePart(part.id);
+                        }
+                      }}
+                      title="Supprimer la pièce"
+                    >
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  )}
+                </div>
               </TableCell>
             </TableRow>
           ))}
