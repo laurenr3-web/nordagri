@@ -55,7 +55,19 @@ export async function updatePart(part: Part): Promise<Part> {
     if (error) {
       console.error('Erreur Supabase:', error);
       console.error('Code de statut HTTP:', status);
-      throw error;
+      
+      // Messages d'erreur plus détaillés et descriptifs
+      if (error.code === '23505') {
+        throw new Error(`Référence de pièce en doublon: "${part.partNumber}" existe déjà dans la base de données`);
+      } else if (error.code === '23502') {
+        throw new Error("Champs obligatoires manquants: vérifiez que tous les champs requis sont remplis");
+      } else if (error.code === '42703') {
+        throw new Error("Structure de données incorrecte: veuillez contacter l'administrateur système");
+      } else if (error.code === '42501') {
+        throw new Error("Permissions insuffisantes: vous n'avez pas les droits nécessaires pour modifier cette pièce");
+      } else {
+        throw new Error(`Erreur lors de la mise à jour: ${error.message || "Problème inconnu"}`);
+      }
     }
     
     if (!data) {

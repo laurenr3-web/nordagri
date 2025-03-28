@@ -75,6 +75,12 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
         ? values.compatibility.split(',').map(item => item.trim()).filter(Boolean)
         : [];
       
+      // Validation locale des données avant envoi
+      if (!values.name.trim()) {
+        setSubmissionError("Le nom de la pièce est obligatoire");
+        return;
+      }
+      
       const updatedPart: Part = {
         ...part, // Conserver l'ID et autres propriétés inchangées
         name: values.name,
@@ -110,7 +116,19 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
       
     } catch (error: any) {
       console.error('Error processing form submission:', error);
-      setSubmissionError(error.message || 'Une erreur est survenue lors de la mise à jour de la pièce.');
+      // Message d'erreur plus détaillé et plus convivial
+      let errorMessage = error.message || 'Une erreur est survenue lors de la mise à jour de la pièce.';
+      
+      // Formatage spécifique des messages d'erreur pour une meilleure lisibilité
+      if (errorMessage.includes('Référence de pièce en doublon')) {
+        errorMessage = `Cette référence de pièce (${form.getValues().partNumber}) est déjà utilisée. Veuillez en choisir une autre.`;
+      } else if (errorMessage.includes('Champs obligatoires manquants')) {
+        errorMessage = 'Veuillez remplir tous les champs obligatoires marqués d\'un astérisque (*).';
+      } else if (errorMessage.includes('Permissions insuffisantes')) {
+        errorMessage = 'Vous n\'avez pas les droits nécessaires pour modifier cette pièce. Veuillez contacter votre administrateur.';
+      }
+      
+      setSubmissionError(errorMessage);
     }
   };
 
@@ -120,7 +138,7 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
         {submissionError && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Erreur</AlertTitle>
+            <AlertTitle>Erreur de mise à jour</AlertTitle>
             <AlertDescription>{submissionError}</AlertDescription>
           </Alert>
         )}

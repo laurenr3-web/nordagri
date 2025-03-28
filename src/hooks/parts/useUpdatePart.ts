@@ -70,21 +70,36 @@ export function useUpdatePart() {
         queryClient.setQueryData(['parts'], context.previousParts);
       }
       
-      // Analyse détaillée des erreurs
+      // Analyse détaillée des erreurs avec messages plus descriptifs
       let errorMessage = "Impossible de mettre à jour la pièce";
+      let errorTitle = "Erreur de modification";
       
       if (error.code === '23505') {
-        errorMessage = "Cette référence de pièce existe déjà.";
+        errorTitle = "Référence en double";
+        errorMessage = "Cette référence de pièce existe déjà dans la base de données.";
       } else if (error.code === '23502') {
-        errorMessage = "Des champs obligatoires sont manquants.";
+        errorTitle = "Champs obligatoires";
+        errorMessage = "Des champs obligatoires sont manquants. Vérifiez tous les champs requis.";
       } else if (error.code === '42703') {
+        errorTitle = "Erreur technique";
         errorMessage = "Structure de données incorrecte. Contactez l'administrateur.";
+      } else if (error.code === '42501') {
+        errorTitle = "Permissions insuffisantes";
+        errorMessage = "Vous n'avez pas les droits nécessaires pour modifier cette pièce.";
       } else if (error.message) {
+        // Extraire un message d'erreur plus concis et utile
         errorMessage = error.message;
+        if (errorMessage.includes("L'ID de la pièce")) {
+          errorTitle = "Erreur d'identifiant";
+        } else if (errorMessage.includes("champ obligatoire")) {
+          errorTitle = "Données incomplètes";
+        } else if (errorMessage.includes("Référence de pièce en doublon")) {
+          errorTitle = "Référence en double";
+        }
       }
       
       toast({
-        title: "Erreur de modification",
+        title: errorTitle,
         description: errorMessage,
         variant: "destructive",
       });
