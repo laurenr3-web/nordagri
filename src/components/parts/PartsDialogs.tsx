@@ -10,6 +10,7 @@ import FilterDialog from '@/components/parts/dialogs/FilterDialog';
 import SortDialog from '@/components/parts/dialogs/SortDialog';
 import OrderDialog from '@/components/parts/dialogs/OrderDialog';
 import AddCategoryDialog from '@/components/parts/dialogs/AddCategoryDialog';
+import PriceComparison from '@/components/parts/PriceComparison';
 
 interface PartsDialogsProps {
   // Part and selection
@@ -170,6 +171,13 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
         isOrderSuccess={isOrderSuccess || false}
         handleOrderSubmit={handleOrderSubmit || (() => {})}
       />
+
+      {selectedPart && (
+        <PriceComparison
+          partReference={selectedPart.partNumber || selectedPart.reference || ''}
+          partName={selectedPart.name}
+        />
+      )}
     </>
   );
 };
