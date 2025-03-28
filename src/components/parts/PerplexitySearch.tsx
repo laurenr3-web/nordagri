@@ -10,6 +10,7 @@ import { partsTechnicalService } from '@/services/perplexity/partsTechnicalServi
 import { TechnicalInfoDisplay } from './displays/TechnicalInfoDisplay';
 import { PriceComparisonDisplay } from './displays/PriceComparisonDisplay';
 import { checkApiKey } from '@/services/perplexity/client';
+import PerplexityChat from './PerplexityChat';
 
 const PerplexitySearch = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -60,47 +61,59 @@ const PerplexitySearch = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-2">
-        <Input
-          placeholder="Entrez un numéro de pièce (ex: JD6850)"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          className="flex-1"
-        />
-        <Button onClick={handleSearch} disabled={isLoading}>
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-          ) : (
-            <Search className="h-4 w-4 mr-2" />
+      <Tabs defaultValue="search" className="w-full">
+        <TabsList className="w-full justify-start mb-6">
+          <TabsTrigger value="search">Recherche de pièces</TabsTrigger>
+          <TabsTrigger value="chat">Conversation</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="search">
+          <div className="flex gap-2">
+            <Input
+              placeholder="Entrez un numéro de pièce (ex: JD6850)"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              className="flex-1"
+            />
+            <Button onClick={handleSearch} disabled={isLoading}>
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Search className="h-4 w-4 mr-2" />
+              )}
+              Rechercher
+            </Button>
+          </div>
+
+          {error && (
+            <div className="p-4 border border-destructive/20 rounded-md bg-destructive/10 text-destructive mt-4">
+              <p>{error}</p>
+            </div>
           )}
-          Rechercher
-        </Button>
-      </div>
 
-      {error && (
-        <div className="p-4 border border-destructive/20 rounded-md bg-destructive/10 text-destructive">
-          <p>{error}</p>
-        </div>
-      )}
-
-      {results && !error && (
-        <Tabs defaultValue="technical" className="w-full">
-          <TabsList className="w-full justify-start">
-            <TabsTrigger value="technical">Informations techniques</TabsTrigger>
-            <TabsTrigger value="prices">Comparaison de prix</TabsTrigger>
-          </TabsList>
-          <TabsContent value="technical">
-            <TechnicalInfoDisplay data={results.technicalInfo} />
-          </TabsContent>
-          <TabsContent value="prices">
-            <PriceComparisonDisplay data={results.priceData} />
-          </TabsContent>
-        </Tabs>
-      )}
+          {results && !error && (
+            <Tabs defaultValue="technical" className="w-full mt-6">
+              <TabsList className="w-full justify-start">
+                <TabsTrigger value="technical">Informations techniques</TabsTrigger>
+                <TabsTrigger value="prices">Comparaison de prix</TabsTrigger>
+              </TabsList>
+              <TabsContent value="technical">
+                <TechnicalInfoDisplay data={results.technicalInfo} />
+              </TabsContent>
+              <TabsContent value="prices">
+                <PriceComparisonDisplay data={results.priceData} />
+              </TabsContent>
+            </Tabs>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="chat">
+          <PerplexityChat />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
 
 export default PerplexitySearch;
-
