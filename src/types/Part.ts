@@ -29,3 +29,10 @@ export interface PartPriceInfo {
   deliveryTime: string;
   lastUpdated: string;
 }
+
+export interface PartFilter {
+  category?: string;
+  manufacturer?: string;
+  inStock?: boolean;
+  searchTerm?: string;
+}

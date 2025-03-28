@@ -114,7 +114,13 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
         onOpenChange={setIsPartDetailsDialogOpen}
         selectedPart={selectedPart}
         onEdit={handleEditPart}
-        onDelete={handleDeletePart}
+        onDelete={(partId) => {
+          if (handleDeletePart && typeof partId === 'number') {
+            handleDeletePart(partId);
+          } else {
+            console.warn('Cannot delete part with non-numeric ID:', partId);
+          }
+        }}
       />
       
       {/* Add Part Dialog */}

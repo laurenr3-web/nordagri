@@ -36,8 +36,10 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
     // Prevent event from bubbling up which might cause redirection
     e.stopPropagation();
     
-    if (onDelete) {
+    if (onDelete && typeof part.id === 'number') {
       onDelete(part.id);
+    } else {
+      console.warn('Cannot delete part with non-numeric ID:', part.id);
     }
     setIsDeleteDialogOpen(false);
   };

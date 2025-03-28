@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Part } from '@/types/Part';
 
@@ -14,6 +13,11 @@ export async function updatePart(part: Part): Promise<Part> {
     // Validation des champs obligatoires
     if (!part.name || part.stock === undefined) {
       throw new Error("Les champs obligatoires 'name' et 'stock' doivent être définis");
+    }
+
+    // Vérification que l'ID est un nombre
+    if (typeof part.id !== 'number') {
+      throw new Error("L'ID de la pièce doit être un nombre pour la mise à jour");
     }
 
     // Préparation des données avec correspondance exacte des noms de colonnes
