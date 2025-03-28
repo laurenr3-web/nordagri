@@ -9,6 +9,7 @@ import PartsHeader from '@/components/parts/PartsHeader';
 import PartsToolbar from '@/components/parts/PartsToolbar';
 import PartsGrid from '@/components/parts/PartsGrid';
 import PartsList from '@/components/parts/PartsList';
+import PartDetailsExtended from './PartDetailsExtended';
 
 // Import dialogs
 import PartsDialogs from '@/components/parts/PartsDialogs';
@@ -57,52 +58,64 @@ const PartsContainer = ({
             openAddPartDialog={() => setIsAddPartDialogOpen(true)}
           />
           
-          {/* Search and Filter Toolbar */}
-          <PartsToolbar 
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            currentView={currentView}
-            setCurrentView={setCurrentView}
-            openFilterDialog={() => setIsFilterDialogOpen(true)}
-            openSortDialog={() => setIsSortDialogOpen(true)}
-            filterCount={filterCount}
-          />
-          
-          {/* Category Tabs */}
-          <Tabs defaultValue="all" className="mb-6" value={selectedCategory} onValueChange={setSelectedCategory}>
-            <TabsList className="flex flex-wrap h-auto p-1">
-              {categories.map(category => (
-                <TabsTrigger key={category} value={category} className="mb-1 mr-1">
-                  {category === 'all' ? 'All Parts' : 
-                    category.charAt(0).toUpperCase() + category.slice(1)}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-          
-          {/* Parts Display (Grid or List) */}
-          {currentView === 'grid' ? (
-            <PartsGrid 
-              parts={filteredParts} 
-              openPartDetails={actions.openPartDetails} 
-              openOrderDialog={actions.openOrderDialog} 
+          {/* Si une pièce est sélectionnée, afficher ses détails étendus */}
+          {selectedPart ? (
+            <PartDetailsExtended
+              part={selectedPart}
+              onBack={() => actions.openPartDetails(null)}
+              onEdit={actions.handleEditPart}
+              onDelete={actions.handleDeletePart}
             />
           ) : (
-            <PartsList 
-              parts={filteredParts} 
-              openPartDetails={actions.openPartDetails} 
-              openOrderDialog={actions.openOrderDialog} 
-            />
-          )}
-          
-          {/* Empty State */}
-          {filteredParts.length === 0 && (
-            <div className="mt-10 text-center">
-              <p className="text-muted-foreground">No parts found matching your criteria.</p>
-              <Button variant="link" onClick={() => { setSearchTerm(''); setSelectedCategory('all'); }}>
-                Reset filters
-              </Button>
-            </div>
+            <>
+              {/* Search and Filter Toolbar */}
+              <PartsToolbar 
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                currentView={currentView}
+                setCurrentView={setCurrentView}
+                openFilterDialog={() => setIsFilterDialogOpen(true)}
+                openSortDialog={() => setIsSortDialogOpen(true)}
+                filterCount={filterCount}
+              />
+              
+              {/* Category Tabs */}
+              <Tabs defaultValue="all" className="mb-6" value={selectedCategory} onValueChange={setSelectedCategory}>
+                <TabsList className="flex flex-wrap h-auto p-1">
+                  {categories.map(category => (
+                    <TabsTrigger key={category} value={category} className="mb-1 mr-1">
+                      {category === 'all' ? 'All Parts' : 
+                        category.charAt(0).toUpperCase() + category.slice(1)}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+              
+              {/* Parts Display (Grid or List) */}
+              {currentView === 'grid' ? (
+                <PartsGrid 
+                  parts={filteredParts} 
+                  openPartDetails={actions.openPartDetails} 
+                  openOrderDialog={actions.openOrderDialog} 
+                />
+              ) : (
+                <PartsList 
+                  parts={filteredParts} 
+                  openPartDetails={actions.openPartDetails} 
+                  openOrderDialog={actions.openOrderDialog} 
+                />
+              )}
+              
+              {/* Empty State */}
+              {filteredParts.length === 0 && (
+                <div className="mt-10 text-center">
+                  <p className="text-muted-foreground">No parts found matching your criteria.</p>
+                  <Button variant="link" onClick={() => { setSearchTerm(''); setSelectedCategory('all'); }}>
+                    Reset filters
+                  </Button>
+                </div>
+              )}
+            </>
           )}
           
           {/* Dialogs */}
