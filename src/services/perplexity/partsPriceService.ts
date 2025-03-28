@@ -18,13 +18,6 @@ export const partsPriceService = {
     try {
       console.log(`Recherche des meilleurs prix pour ${partNumber} (${partName || 'Sans nom'})`);
       
-      // Vérifier la présence de la clé API
-      const apiKey = import.meta.env.VITE_PERPLEXITY_API_KEY;
-      if (!apiKey) {
-        console.error("Clé API Perplexity non configurée");
-        throw new Error("Clé API Perplexity manquante");
-      }
-      
       const response = await perplexityClient.post('/chat/completions', {
         model: "sonar-medium-online",
         messages: [
