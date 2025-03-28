@@ -70,7 +70,21 @@ const RequestsManagementView: React.FC<RequestsManagementViewProps> = ({ interve
 
   const handleCreateRequest = async (values: FormValues) => {
     try {
-      await interventionService.addIntervention(values);
+      // Ensure all required fields are present and properly typed
+      const interventionData = {
+        title: values.title,
+        equipment: values.equipment,
+        equipmentId: values.equipmentId,
+        location: values.location,
+        priority: values.priority,
+        date: values.date,
+        scheduledDuration: values.scheduledDuration,
+        technician: values.technician,
+        description: values.description,
+        notes: values.notes,
+      };
+      
+      await interventionService.addIntervention(interventionData);
       toast.success('Demande d\'intervention créée avec succès');
       setIsRequestDialogOpen(false);
       form.reset();
