@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { equipmentService, Equipment, EquipmentFilter } from '@/services/supabase/equipmentService';
@@ -76,7 +77,7 @@ export function useEquipmentData() {
       
       // Update cache and refetch
       queryClient.invalidateQueries({ queryKey: ['equipment'] });
-      queryClient.invalidateQueries({ queryKey: ['equipment', updatedEquipment.id] });
+      queryClient.invalidateQueries({ queryKey: ['equipment', updatedEquipment.id.toString()] });
       queryClient.invalidateQueries({ queryKey: ['equipment-stats'] });
       
       toast({
@@ -96,7 +97,7 @@ export function useEquipmentData() {
   
   // Delete equipment mutation
   const deleteEquipmentMutation = useMutation({
-    mutationFn: (equipmentId: number) => equipmentService.deleteEquipment(equipmentId),
+    mutationFn: (equipmentId: string) => equipmentService.deleteEquipment(equipmentId),
     onSuccess: (_, equipmentId) => {
       console.log('✅ Equipment successfully deleted, ID:', equipmentId);
       
@@ -121,7 +122,7 @@ export function useEquipmentData() {
   });
   
   // Get equipment by ID
-  const getEquipmentById = (id: number) => {
+  const getEquipmentById = (id: string) => {
     return useQuery({
       queryKey: ['equipment', id],
       queryFn: () => equipmentService.getEquipmentById(id),
@@ -129,7 +130,7 @@ export function useEquipmentData() {
   };
   
   // Get maintenance history for an equipment
-  const getMaintenanceHistory = (equipmentId: number) => {
+  const getMaintenanceHistory = (equipmentId: string) => {
     return useQuery({
       queryKey: ['equipment-maintenance', equipmentId],
       queryFn: () => equipmentService.getEquipmentMaintenanceHistory(equipmentId),
@@ -168,7 +169,7 @@ export function useEquipmentData() {
       addEquipmentMutation.mutate({ equipment, imageFile }),
     updateEquipment: (equipment: Equipment, imageFile?: File) => 
       updateEquipmentMutation.mutate({ equipment, imageFile }),
-    deleteEquipment: (equipmentId: number) => 
+    deleteEquipment: (equipmentId: string) => 
       deleteEquipmentMutation.mutate(equipmentId),
     getEquipmentById,
     getMaintenanceHistory,

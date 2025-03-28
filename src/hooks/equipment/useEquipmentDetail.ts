@@ -18,7 +18,7 @@ export function useEquipmentDetail(id: string | undefined) {
       try {
         setLoading(true);
         console.log('Fetching equipment with ID:', id);
-        const data = await equipmentService.getEquipmentById(Number(id));
+        const data = await equipmentService.getEquipmentById(id);
         console.log('Fetched equipment data:', data);
         
         if (!data) {
@@ -28,18 +28,14 @@ export function useEquipmentDetail(id: string | undefined) {
         // Ensure date fields are properly formatted as strings
         const processedData = {
           ...data,
-          lastMaintenance: data.lastMaintenance 
-            ? (typeof data.lastMaintenance === 'object' 
-               ? data.lastMaintenance.toISOString() 
-               : String(data.lastMaintenance))
-            : 'N/A',
+          lastMaintenance: data.lastMaintenance || 'N/A',
           purchaseDate: data.purchaseDate 
             ? (typeof data.purchaseDate === 'object' 
                ? data.purchaseDate.toISOString() 
                : String(data.purchaseDate))
             : '',
           // Add UI-specific properties
-          usage: { hours: 0, target: 500 },
+          usage: { hours: data.current_hours || 0, target: 500 },
           nextService: { type: 'Regular maintenance', due: 'In 30 days' }
         };
         
@@ -76,11 +72,7 @@ export function useEquipmentDetail(id: string | undefined) {
           ...prev,
           ...result,
           // Convert potential Date objects to strings for UI display
-          lastMaintenance: result.lastMaintenance 
-            ? (typeof result.lastMaintenance === 'object' 
-               ? result.lastMaintenance.toISOString() 
-               : String(result.lastMaintenance))
-            : prev.lastMaintenance || 'N/A',
+          lastMaintenance: result.lastMaintenance || prev.lastMaintenance || 'N/A',
           purchaseDate: result.purchaseDate 
             ? (typeof result.purchaseDate === 'object' 
                ? result.purchaseDate.toISOString() 
@@ -94,7 +86,7 @@ export function useEquipmentDetail(id: string | undefined) {
       
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['equipment'] });
-      queryClient.invalidateQueries({ queryKey: ['equipment', Number(id)] });
+      queryClient.invalidateQueries({ queryKey: ['equipment', id] });
       
       toast.success('Équipement mis à jour avec succès');
     } catch (error: any) {

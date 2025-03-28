@@ -19,7 +19,14 @@ export const mapEquipmentFromDatabase = (record: any): Equipment => {
     location: record.location || '',
     notes: record.notes || '',
     image: record.image || '',
-    owner_id: record.owner_id || null
+    owner_id: record.owner_id || null,
+    metadata: record.metadata || {},
+    current_hours: record.current_hours || 0,
+    acquisition_date: record.acquisition_date,
+    created_at: record.created_at,
+    updated_at: record.updated_at,
+    // Add a placeholder for lastMaintenance which will be populated elsewhere
+    lastMaintenance: undefined
   };
 };
 
@@ -39,6 +46,8 @@ export const mapEquipmentToDatabase = (equipment: Omit<Equipment, 'id' | 'image'
     status: equipment.status || 'operational',
     location: equipment.location || null,
     notes: equipment.notes || null,
-    owner_id: equipment.owner_id || null
+    owner_id: equipment.owner_id || null,
+    metadata: equipment.metadata || {},
+    current_hours: equipment.current_hours || 0
   };
 };

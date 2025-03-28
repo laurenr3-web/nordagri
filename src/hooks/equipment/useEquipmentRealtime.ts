@@ -29,7 +29,7 @@ export function useEquipmentRealtime() {
           queryClient.invalidateQueries({ queryKey: ['equipment'] });
           
           // If a specific equipment is updated, also invalidate that query
-          if (payload.new && typeof payload.new === 'object' && 'id' in payload.new) {
+          if (payload.new && typeof payload.new === 'object' && 'id' in payload.new && payload.new.id) {
             queryClient.invalidateQueries({ queryKey: ['equipment', payload.new.id] });
           }
           

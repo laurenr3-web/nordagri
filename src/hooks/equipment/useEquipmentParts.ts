@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Equipment } from '@/services/supabase/equipmentService';
 import { Part } from '@/types/Part';
@@ -21,7 +22,7 @@ export function useEquipmentParts(equipment: Equipment) {
         setLoading(true);
         setError(null);
         // Charger les pièces associées à cet équipement
-        const equipmentParts = await getPartsForEquipment(equipment.id);
+        const equipmentParts = await getPartsForEquipment(equipment.id.toString());
         setParts(equipmentParts);
       } catch (err: any) {
         console.error('Error fetching parts:', err);

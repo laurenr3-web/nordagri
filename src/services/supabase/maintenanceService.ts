@@ -16,19 +16,19 @@ export const maintenanceService = {
     
     // Convert Supabase date strings to Date objects and ensure numeric values
     return (data || []).map(task => ({
-      id: task.id,
+      id: parseInt(task.id, 10) || 0, // Convert string id to number
       title: task.description || '',
-      equipment: task.equipment_name || '',
-      equipmentId: task.equipment_id,
-      type: task.maintenance_type as MaintenanceType,
+      equipment: task.equipment_id ? `Equipment ${task.equipment_id}` : '', // We need to fetch equipment name
+      equipmentId: task.equipment_id || '',
+      type: (task.maintenance_type as MaintenanceType) || 'preventive',
       status: task.completed ? 'completed' as MaintenanceStatus : 'pending' as MaintenanceStatus,
-      priority: task.priority as MaintenancePriority || 'medium',
-      dueDate: task.scheduled_date ? new Date(task.scheduled_date) : new Date(),
+      priority: ('medium' as MaintenancePriority), // Default priority
+      dueDate: task.performed_at ? new Date(task.performed_at) : new Date(),
       completedDate: task.performed_at ? new Date(task.performed_at) : undefined,
-      estimatedDuration: task.estimated_hours ? Number(task.estimated_hours) : 0,
-      actualDuration: task.hours_spent ? Number(task.hours_spent) : undefined,
+      estimatedDuration: task.hours_at_maintenance ? Number(task.hours_at_maintenance) : 0,
+      actualDuration: task.hours_at_maintenance ? Number(task.hours_at_maintenance) : undefined,
       assignedTo: task.technician_id || '',
-      notes: task.notes || ''
+      notes: task.description || ''
     }));
   },
   
@@ -40,17 +40,13 @@ export const maintenanceService = {
     
     const supabaseTask = {
       description: task.title,
-      equipment_name: task.equipment,
       equipment_id: task.equipmentId,
       maintenance_type: task.type,
       completed: task.status === 'completed',
-      priority: task.priority,
-      scheduled_date: task.dueDate.toISOString(),
-      estimated_hours: task.estimatedDuration,
-      technician_id: task.assignedTo || session?.user?.id || null,
-      notes: task.notes,
       performed_at: task.completedDate ? task.completedDate.toISOString() : null,
-      hours_spent: task.actualDuration || null
+      hours_at_maintenance: task.estimatedDuration || null,
+      technician_id: task.assignedTo || session?.user?.id || null,
+      cost: 0 // Default cost
     };
     
     const { data, error } = await supabase
@@ -65,24 +61,24 @@ export const maintenanceService = {
     }
     
     return {
-      id: data.id,
+      id: parseInt(data.id, 10) || 0,
       title: data.description || '',
-      equipment: data.equipment_name || '',
-      equipmentId: data.equipment_id,
-      type: data.maintenance_type as MaintenanceType,
+      equipment: `Equipment ${data.equipment_id}`,
+      equipmentId: data.equipment_id || '',
+      type: (data.maintenance_type as MaintenanceType) || 'preventive',
       status: data.completed ? 'completed' as MaintenanceStatus : 'pending' as MaintenanceStatus,
-      priority: data.priority as MaintenancePriority,
-      dueDate: new Date(data.scheduled_date || new Date()),
+      priority: 'medium' as MaintenancePriority,
+      dueDate: data.performed_at ? new Date(data.performed_at) : new Date(),
       completedDate: data.performed_at ? new Date(data.performed_at) : undefined,
-      estimatedDuration: Number(data.estimated_hours || 0),
-      actualDuration: data.hours_spent ? Number(data.hours_spent) : undefined,
+      estimatedDuration: Number(data.hours_at_maintenance || 0),
+      actualDuration: data.hours_at_maintenance ? Number(data.hours_at_maintenance) : undefined,
       assignedTo: data.technician_id || '',
-      notes: data.notes || ''
+      notes: data.description || ''
     };
   },
   
   // Mettre à jour le statut d'une tâche
-  async updateTaskStatus(taskId: number | string, status: MaintenanceStatus): Promise<void> {
+  async updateTaskStatus(taskId: string, status: MaintenanceStatus): Promise<void> {
     console.log('Updating task status in Supabase:', taskId, status);
     
     const updates = { 
@@ -102,22 +98,15 @@ export const maintenanceService = {
   },
   
   // Mettre à jour la priorité d'une tâche
-  async updateTaskPriority(taskId: number | string, priority: MaintenancePriority): Promise<void> {
+  async updateTaskPriority(taskId: string, priority: MaintenancePriority): Promise<void> {
     console.log('Updating task priority in Supabase:', taskId, priority);
     
-    const { error } = await supabase
-      .from('maintenance_records')
-      .update({ priority })
-      .eq('id', taskId);
-    
-    if (error) {
-      console.error('Error updating task priority:', error);
-      throw error;
-    }
+    // Priority is not directly in the schema, so we'll skip this for now
+    console.log('Warning: Priority update not implemented in current schema');
   },
   
   // Supprimer une tâche
-  async deleteTask(taskId: number | string): Promise<void> {
+  async deleteTask(taskId: string): Promise<void> {
     console.log('Deleting task from Supabase:', taskId);
     
     const { error } = await supabase

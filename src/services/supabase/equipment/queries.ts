@@ -93,29 +93,43 @@ export async function getEquipmentStats(): Promise<EquipmentStats> {
       throw error;
     }
     
-    const stats = {
-      total: data.length,
-      operational: data.filter(item => item.status === 'operational').length,
-      maintenance: data.filter(item => item.status === 'maintenance').length,
-      repair: data.filter(item => item.status === 'repair').length,
-      byType: {} as Record<string, number>,
-      byManufacturer: {} as Record<string, number>
+    // Default stats structure
+    const stats: EquipmentStats = {
+      total: 0,
+      operational: 0,
+      maintenance: 0,
+      repair: 0,
+      byType: {},
+      byManufacturer: {}
     };
     
-    // Calculate stats by type
+    if (!data || data.length === 0) {
+      return stats;
+    }
+    
+    // Calculate stats
+    stats.total = data.length;
+    
+    // Count by status
     data.forEach(item => {
-      if (item.type) {
-        if (!stats.byType[item.type]) {
-          stats.byType[item.type] = 0;
-        }
-        stats.byType[item.type]++;
+      // Count by status
+      if (item.status === 'operational') {
+        stats.operational++;
+      } else if (item.status === 'maintenance') {
+        stats.maintenance++;
+      } else if (item.status === 'repair') {
+        stats.repair++;
       }
       
-      if (item.manufacturer) {
-        if (!stats.byManufacturer[item.manufacturer]) {
-          stats.byManufacturer[item.manufacturer] = 0;
-        }
-        stats.byManufacturer[item.manufacturer]++;
+      // Count by type
+      if (item.type) {
+        stats.byType[item.type] = (stats.byType[item.type] || 0) + 1;
+      }
+      
+      // Count by manufacturer (from metadata)
+      if (item.metadata && item.metadata.manufacturer) {
+        const manufacturer = item.metadata.manufacturer;
+        stats.byManufacturer[manufacturer] = (stats.byManufacturer[manufacturer] || 0) + 1;
       }
     });
     
@@ -126,7 +140,7 @@ export async function getEquipmentStats(): Promise<EquipmentStats> {
   }
 }
 
-// Get maintenance history for equipment
+// Get equipment maintenance history
 export async function getEquipmentMaintenanceHistory(equipmentId: string): Promise<any[]> {
   try {
     const { data, error } = await supabase
@@ -136,7 +150,7 @@ export async function getEquipmentMaintenanceHistory(equipmentId: string): Promi
       .order('performed_at', { ascending: false });
     
     if (error) {
-      console.error('Error fetching equipment maintenance history:', error);
+      console.error('Error fetching maintenance history:', error);
       throw error;
     }
     
@@ -147,47 +161,66 @@ export async function getEquipmentMaintenanceHistory(equipmentId: string): Promi
   }
 }
 
-// Get unique values for filtering
+// Get filter options
 export async function getFilterOptions(): Promise<FilterOptions> {
   try {
     const { data, error } = await supabase
       .from('equipments')
-      .select('manufacturer, type, category, status, location');
+      .select('type, status, location, metadata');
     
     if (error) {
       console.error('Error fetching filter options:', error);
       throw error;
     }
     
-    const options = {
-      manufacturers: [] as string[],
-      types: [] as string[],
-      categories: [] as string[],
-      statuses: [] as string[],
-      locations: [] as string[]
+    const options: FilterOptions = {
+      manufacturers: [],
+      types: [],
+      categories: [],
+      statuses: [],
+      locations: []
     };
     
+    // Extract unique values
     data.forEach(item => {
-      if (item.manufacturer && !options.manufacturers.includes(item.manufacturer)) {
-        options.manufacturers.push(item.manufacturer);
+      // Extract manufacturers from metadata
+      if (item.metadata && item.metadata.manufacturer) {
+        const manufacturer = item.metadata.manufacturer;
+        if (!options.manufacturers.includes(manufacturer)) {
+          options.manufacturers.push(manufacturer);
+        }
       }
       
+      // Extract types
       if (item.type && !options.types.includes(item.type)) {
         options.types.push(item.type);
       }
       
-      if (item.category && !options.categories.includes(item.category)) {
-        options.categories.push(item.category);
+      // Extract categories from metadata
+      if (item.metadata && item.metadata.category) {
+        const category = item.metadata.category;
+        if (!options.categories.includes(category)) {
+          options.categories.push(category);
+        }
       }
       
+      // Extract statuses
       if (item.status && !options.statuses.includes(item.status)) {
         options.statuses.push(item.status);
       }
       
+      // Extract locations
       if (item.location && !options.locations.includes(item.location)) {
         options.locations.push(item.location);
       }
     });
+    
+    // Sort options
+    options.manufacturers.sort();
+    options.types.sort();
+    options.categories.sort();
+    options.statuses.sort();
+    options.locations.sort();
     
     return options;
   } catch (error) {

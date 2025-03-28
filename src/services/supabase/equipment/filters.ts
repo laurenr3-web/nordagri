@@ -1,47 +1,78 @@
 
-import { PostgrestFilterBuilder } from '@supabase/postgrest-js';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { EquipmentFilter } from './types';
 
-// Apply filters to a query
-export function applyFilters(
-  query: PostgrestFilterBuilder<any, any, any>,
-  filters: EquipmentFilter
-): PostgrestFilterBuilder<any, any, any> {
-  if (filters.search) {
-    query = query.or(`name.ilike.%${filters.search}%,model.ilike.%${filters.search}%,serial_number.ilike.%${filters.search}%`);
+/**
+ * Apply filters to Supabase query
+ */
+export const applyFilters = (query: any, filters: EquipmentFilter) => {
+  // Apply search filter
+  if (filters.search && filters.search.trim() !== '') {
+    const searchTerm = `%${filters.search.toLowerCase()}%`;
+    query = query.or(
+      `name.ilike.${searchTerm},type.ilike.${searchTerm},metadata->manufacturer.ilike.${searchTerm},metadata->model.ilike.${searchTerm},serial_number.ilike.${searchTerm}`
+    );
   }
-  
-  if (filters.status && filters.status.length > 0) {
-    query = query.in('status', filters.status);
+
+  // Apply type filter
+  if (filters.type) {
+    query = query.eq('type', filters.type);
   }
-  
-  if (filters.type && filters.type.length > 0) {
-    query = query.in('type', filters.type);
+
+  // Apply category filter
+  if (filters.category) {
+    query = query.eq('metadata->>category', filters.category);
   }
-  
-  if (filters.category && filters.category.length > 0) {
-    query = query.in('category', filters.category);
+
+  // Apply manufacturer filter
+  if (filters.manufacturer) {
+    query = query.eq('metadata->>manufacturer', filters.manufacturer);
   }
-  
-  if (filters.manufacturer && filters.manufacturer.length > 0) {
-    query = query.in('manufacturer', filters.manufacturer);
+
+  // Apply status filter
+  if (filters.status) {
+    query = query.eq('status', filters.status);
   }
-  
-  if (filters.location && filters.location.length > 0) {
-    query = query.in('current_location', filters.location);
+
+  // Apply location filter
+  if (filters.location) {
+    query = query.eq('location', filters.location);
   }
-  
-  if (filters.yearMin) {
-    query = query.gte('year', filters.yearMin);
+
+  // Apply year min filter if present
+  if (filters.year) {
+    query = query.eq('metadata->>year', filters.year.toString());
   }
-  
-  if (filters.yearMax) {
-    query = query.lte('year', filters.yearMax);
+
+  // Apply sorting
+  if (filters.sortBy) {
+    const column = getSortColumn(filters.sortBy);
+    const order = filters.sortOrder || 'asc';
+    query = query.order(column, { ascending: order === 'asc' });
+  } else {
+    // Default sorting
+    query = query.order('name', { ascending: true });
   }
-  
-  if (filters.nextMaintenanceBefore) {
-    query = query.lte('next_maintenance', filters.nextMaintenanceBefore.toISOString());
-  }
-  
+
   return query;
+};
+
+/**
+ * Map frontend sort fields to database columns
+ */
+function getSortColumn(sortBy: string): string {
+  switch (sortBy) {
+    case 'name':
+      return 'name';
+    case 'status':
+      return 'status';
+    case 'type':
+      return 'type';
+    case 'year':
+      return 'metadata->>year';
+    case 'manufacturer':
+      return 'metadata->>manufacturer';
+    default:
+      return 'name';
+  }
 }

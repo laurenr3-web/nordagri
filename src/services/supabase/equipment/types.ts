@@ -1,19 +1,26 @@
 
 export interface Equipment {
-  id: string | number;
+  id: string;
   name: string;
   type: string;
-  category: string;
-  manufacturer: string;
-  model: string;
-  year: number | null;
-  serialNumber: string | null;
+  category?: string;
+  manufacturer?: string;
+  model?: string;
+  year?: number | null;
+  serialNumber?: string | null;
   purchaseDate?: Date;
-  status: string;
-  location: string;
-  notes: string;
+  status?: string;
+  location?: string;
+  notes?: string;
   image?: string;
   owner_id?: string;
+  metadata?: any;
+  current_hours?: number;
+  acquisition_date?: string;
+  created_at?: string;
+  updated_at?: string;
+  // Virtual fields for UI
+  lastMaintenance?: string;
 }
 
 export interface EquipmentFilter {
