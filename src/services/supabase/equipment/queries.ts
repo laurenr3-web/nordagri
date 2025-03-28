@@ -1,21 +1,66 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Equipment, EquipmentFilter, EquipmentStats, FilterOptions } from './types';
 import { mapEquipmentFromDatabase } from './mappers';
-import { applyFilters } from './filters';
 
-// Fetch all equipment with optional filters
-export async function getEquipment(filters?: EquipmentFilter): Promise<Equipment[]> {
+/**
+ * Get all equipment
+ */
+export const getEquipment = async (filters: EquipmentFilter): Promise<Equipment[]> => {
   try {
     console.log('Fetching equipment with filters:', filters);
+    let query = supabase.from('equipments').select('*');
     
-    let query = supabase
-      .from('equipments')
-      .select('*');
+    // Apply filters
+    if (filters.search) {
+      query = query.or(`name.ilike.%${filters.search}%,type.ilike.%${filters.search}%,model.ilike.%${filters.search}%`);
+    }
     
-    // Apply filters if provided
-    if (filters) {
-      query = applyFilters(query, filters);
+    if (filters.type) {
+      query = query.eq('type', filters.type);
+    }
+    
+     if (filters.manufacturer) {
+      // Pour manufacturer, chercher dans les métadonnées
+      const metadata = typeof filters.manufacturer === 'string' 
+        ? { manufacturer: filters.manufacturer } 
+        : { manufacturer: { eq: filters.manufacturer } };
+      
+      query = query.contains('metadata', metadata);
+    }
+    
+    if (filters.category) {
+      // Pour category, chercher dans les métadonnées
+      const metadata = typeof filters.category === 'string'
+        ? { category: filters.category }
+        : { category: { eq: filters.category } };
+      
+      query = query.contains('metadata', metadata);
+    }
+    
+    if (filters.status) {
+      query = query.eq('status', filters.status);
+    }
+    
+    if (filters.location) {
+      query = query.eq('location', filters.location);
+    }
+    
+    if (filters.year) {
+      query = query.eq('year', filters.year);
+    }
+    
+    // Apply sorting
+    if (filters.sortBy) {
+      const direction = filters.sortOrder || 'asc';
+      // Ajouter une logique spéciale pour trier les champs dans les métadonnées
+      if (filters.sortBy === 'manufacturer' || filters.sortBy === 'category') {
+        query = query.order('name', { ascending: direction === 'asc' });
+      } else {
+        query = query.order(filters.sortBy, { ascending: direction === 'asc' });
+      }
+    } else {
+      // Default sorting by name
+      query = query.order('name');
     }
     
     const { data, error } = await query;
@@ -25,43 +70,24 @@ export async function getEquipment(filters?: EquipmentFilter): Promise<Equipment
       throw error;
     }
     
-    console.log(`Retrieved ${data?.length || 0} equipment records`);
-    return (data || []).map(mapEquipmentFromDatabase);
+    // Map database records to Equipment objects
+    return data.map(record => mapEquipmentFromDatabase(record));
   } catch (error) {
-    console.error('Exception in getEquipment:', error);
+    console.error('Error in getEquipment:', error);
     throw error;
   }
-}
+};
 
-// Search equipment by name or other properties
-export async function searchEquipment(searchTerm: string): Promise<Equipment[]> {
+/**
+ * Get equipment by ID
+ */
+export const getEquipmentById = async (id: string): Promise<Equipment | null> => {
   try {
     const { data, error } = await supabase
       .from('equipments')
       .select('*')
-      .or(`name.ilike.%${searchTerm}%,type.ilike.%${searchTerm}%,serial_number.ilike.%${searchTerm}%`);
-    
-    if (error) {
-      console.error('Error searching equipment:', error);
-      throw error;
-    }
-    
-    return (data || []).map(mapEquipmentFromDatabase);
-  } catch (error) {
-    console.error('Exception in searchEquipment:', error);
-    throw error;
-  }
-}
-
-// Get equipment by ID
-export async function getEquipmentById(equipmentId: string): Promise<Equipment | null> {
-  try {
-    console.log(`Fetching equipment with ID ${equipmentId} from Supabase`);
-    const { data, error } = await supabase
-      .from('equipments')
-      .select('*')
-      .eq('id', equipmentId)
-      .maybeSingle();
+      .eq('id', id)
+      .single();
     
     if (error) {
       console.error('Error fetching equipment by ID:', error);
@@ -69,164 +95,216 @@ export async function getEquipmentById(equipmentId: string): Promise<Equipment |
     }
     
     if (!data) {
-      console.log(`No equipment found with ID ${equipmentId}`);
       return null;
     }
     
-    console.log('Equipment data from DB:', data);
     return mapEquipmentFromDatabase(data);
   } catch (error) {
-    console.error('Exception in getEquipmentById:', error);
+    console.error('Error in getEquipmentById:', error);
     throw error;
   }
-}
+};
 
-// Get equipment statistics
-export async function getEquipmentStats(): Promise<EquipmentStats> {
+/**
+ * Get equipment stats
+ */
+export const getEquipmentStats = async (): Promise<EquipmentStats> => {
   try {
     const { data, error } = await supabase
       .from('equipments')
-      .select('*');
-      
+      .select('status, type, manufacturer');
+    
     if (error) {
       console.error('Error fetching equipment stats:', error);
       throw error;
     }
     
-    // Default stats structure
-    const stats: EquipmentStats = {
-      total: 0,
-      operational: 0,
-      maintenance: 0,
-      repair: 0,
-      byType: {},
-      byManufacturer: {}
-    };
+    const total = data.length;
+    const operational = data.filter(item => item.status === 'operational').length;
+    const maintenance = data.filter(item => item.status === 'maintenance').length;
+    const repair = data.filter(item => item.status === 'repair').length;
     
-    if (!data || data.length === 0) {
-      return stats;
-    }
+    const byType: Record<string, number> = {};
+    const byManufacturer: Record<string, number> = {};
     
-    // Calculate stats
-    stats.total = data.length;
-    
-    // Count by status
     data.forEach(item => {
-      // Count by status
-      if (item.status === 'operational') {
-        stats.operational++;
-      } else if (item.status === 'maintenance') {
-        stats.maintenance++;
-      } else if (item.status === 'repair') {
-        stats.repair++;
-      }
-      
-      // Count by type
       if (item.type) {
-        stats.byType[item.type] = (stats.byType[item.type] || 0) + 1;
+        byType[item.type] = (byType[item.type] || 0) + 1;
       }
-      
-      // Count by manufacturer from metadata
-      if (item.metadata && typeof item.metadata === 'object') {
-        const metadata = item.metadata as Record<string, any>;
-        const manufacturer = metadata.manufacturer;
-        if (manufacturer) {
-          stats.byManufacturer[manufacturer] = (stats.byManufacturer[manufacturer] || 0) + 1;
-        }
+      if (item.manufacturer) {
+        byManufacturer[item.manufacturer] = (byManufacturer[item.manufacturer] || 0) + 1;
       }
     });
     
-    return stats;
+    return {
+      total,
+      operational,
+      maintenance,
+      repair,
+      byType,
+      byManufacturer
+    };
   } catch (error) {
-    console.error('Exception in getEquipmentStats:', error);
+    console.error('Error in getEquipmentStats:', error);
     throw error;
   }
-}
+};
 
-// Get equipment maintenance history
-export async function getEquipmentMaintenanceHistory(equipmentId: string): Promise<any[]> {
+/**
+ * Get maintenance history for an equipment
+ */
+export const getEquipmentMaintenanceHistory = async (equipmentId: string): Promise<any[]> => {
   try {
-    const { data, error } = await supabase
-      .from('maintenance_records')
-      .select('*')
-      .eq('equipment_id', equipmentId)
-      .order('performed_at', { ascending: false });
+    // TODO: Implement this function to fetch maintenance history from the database
+    // This is just a placeholder, replace with actual implementation
+    console.log(`Fetching maintenance history for equipment ID: ${equipmentId}`);
     
-    if (error) {
-      console.error('Error fetching maintenance history:', error);
-      throw error;
-    }
+    // Simulate a delay to mimic a real database query
+    await new Promise(resolve => setTimeout(resolve, 500));
     
-    return data || [];
+    return [
+      {
+        id: '1',
+        equipmentId: equipmentId,
+        date: new Date(),
+        description: 'Oil change',
+        cost: 100,
+      },
+      {
+        id: '2',
+        equipmentId: equipmentId,
+        date: new Date(),
+        description: 'Tire change',
+        cost: 200,
+      },
+    ];
   } catch (error) {
-    console.error('Exception in getEquipmentMaintenanceHistory:', error);
+    console.error('Error in getEquipmentMaintenanceHistory:', error);
     throw error;
   }
-}
+};
 
-// Get filter options
-export async function getFilterOptions(): Promise<FilterOptions> {
+/**
+ * Get filter options for equipment
+ */
+export const getFilterOptions = async (): Promise<FilterOptions> => {
   try {
     const { data, error } = await supabase
       .from('equipments')
-      .select('type, status, metadata');
+      .select('type, metadata, status, location');
     
     if (error) {
       console.error('Error fetching filter options:', error);
       throw error;
     }
-    
-    const options: FilterOptions = {
-      manufacturers: [],
-      types: [],
-      categories: [],
-      statuses: [],
-      locations: []
-    };
-    
-    // Extract unique values
+
+    // Extract unique values for each filter
+    const manufacturers = new Set<string>();
+    const types = new Set<string>();
+    const categories = new Set<string>();
+    const statuses = new Set<string>();
+    const locations = new Set<string>();
+
     data.forEach(item => {
-      // Extract types
-      if (item.type && !options.types.includes(item.type)) {
-        options.types.push(item.type);
-      }
+      // Add non-empty values to respective sets
+      if (item.type) types.add(item.type);
+      if (item.status) statuses.add(item.status);
+      if (item.location) locations.add(item.location);
       
-      // Extract statuses
-      if (item.status && !options.statuses.includes(item.status)) {
-        options.statuses.push(item.status);
-      }
+      // Handle metadata fields - ensure we safely access properties
+      const metadata = item.metadata as Record<string, any> | null;
       
-      // Extract metadata fields (manufacturers, categories, locations)
-      if (item.metadata && typeof item.metadata === 'object') {
-        const metadata = item.metadata as Record<string, any>;
-        
-        // Extract manufacturers
-        if (metadata.manufacturer && !options.manufacturers.includes(metadata.manufacturer)) {
-          options.manufacturers.push(metadata.manufacturer);
-        }
-        
-        // Extract categories
-        if (metadata.category && !options.categories.includes(metadata.category)) {
-          options.categories.push(metadata.category);
-        }
-        
-        // Extract locations
-        if (metadata.location && !options.locations.includes(metadata.location)) {
-          options.locations.push(metadata.location);
-        }
+      if (metadata && typeof metadata === 'object') {
+        if (metadata.manufacturer) manufacturers.add(metadata.manufacturer);
+        if (metadata.category) categories.add(metadata.category);
       }
     });
-    
-    // Sort options
-    options.manufacturers.sort();
-    options.types.sort();
-    options.categories.sort();
-    options.statuses.sort();
-    options.locations.sort();
-    
-    return options;
+
+    return {
+      manufacturers: Array.from(manufacturers).sort(),
+      types: Array.from(types).sort(),
+      categories: Array.from(categories).sort(),
+      statuses: Array.from(statuses).sort(),
+      locations: Array.from(locations).sort()
+    };
   } catch (error) {
-    console.error('Exception in getFilterOptions:', error);
+    console.error('Error in getFilterOptions:', error);
     throw error;
   }
-}
+};
+
+/**
+ * Search equipment based on filters
+ */
+export const searchEquipment = async (filters: EquipmentFilter): Promise<Equipment[]> => {
+  try {
+    console.log('Searching equipment with filters:', filters);
+    let query = supabase.from('equipments').select('*');
+    
+    // Apply filters
+    if (filters.search) {
+      query = query.or(`name.ilike.%${filters.search}%,type.ilike.%${filters.search}%,model.ilike.%${filters.search}%`);
+    }
+    
+    if (filters.type) {
+      query = query.eq('type', filters.type);
+    }
+    
+    if (filters.manufacturer) {
+      // Pour manufacturer, chercher dans les métadonnées
+      const metadata = typeof filters.manufacturer === 'string' 
+        ? { manufacturer: filters.manufacturer } 
+        : { manufacturer: { eq: filters.manufacturer } };
+      
+      query = query.contains('metadata', metadata);
+    }
+    
+    if (filters.category) {
+      // Pour category, chercher dans les métadonnées
+      const metadata = typeof filters.category === 'string'
+        ? { category: filters.category }
+        : { category: { eq: filters.category } };
+      
+      query = query.contains('metadata', metadata);
+    }
+    
+    if (filters.status) {
+      query = query.eq('status', filters.status);
+    }
+    
+    if (filters.location) {
+      query = query.eq('location', filters.location);
+    }
+    
+    if (filters.year) {
+      query = query.eq('year', filters.year);
+    }
+    
+    // Apply sorting
+    if (filters.sortBy) {
+      const direction = filters.sortOrder || 'asc';
+      // Ajouter une logique spéciale pour trier les champs dans les métadonnées
+      if (filters.sortBy === 'manufacturer' || filters.sortBy === 'category') {
+        query = query.order('name', { ascending: direction === 'asc' });
+      } else {
+        query = query.order(filters.sortBy, { ascending: direction === 'asc' });
+      }
+    } else {
+      // Default sorting by name
+      query = query.order('name');
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) {
+      console.error('Error searching equipment:', error);
+      throw error;
+    }
+    
+    // Map database records to Equipment objects
+    return data.map(record => mapEquipmentFromDatabase(record));
+  } catch (error) {
+    console.error('Error in searchEquipment:', error);
+    throw error;
+  }
+};

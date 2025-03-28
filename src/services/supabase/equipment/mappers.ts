@@ -9,7 +9,7 @@ export const mapEquipmentFromDatabase = (record: any): Equipment => {
     id: record.id,
     name: record.name,
     type: record.type || '',
-    category: record.category || '',
+    category: record.category || '',  // Garder ceci pour la compatibilité avec le modèle frontend
     manufacturer: record.manufacturer || '',
     model: record.model || '',
     year: record.year || null,
@@ -34,10 +34,10 @@ export const mapEquipmentFromDatabase = (record: any): Equipment => {
  * Maps frontend Equipment object to database record format
  */
 export const mapEquipmentToDatabase = (equipment: Omit<Equipment, 'id' | 'image'>): any => {
-  return {
+  // Nous créons un objet de mappage de base
+  const dbRecord = {
     name: equipment.name,
     type: equipment.type,
-    category: equipment.category,
     manufacturer: equipment.manufacturer,
     model: equipment.model || null,
     year: equipment.year || null,
@@ -50,4 +50,12 @@ export const mapEquipmentToDatabase = (equipment: Omit<Equipment, 'id' | 'image'
     metadata: equipment.metadata || {},
     current_hours: equipment.current_hours || 0
   };
+
+  // Si la propriété category existe, nous l'ajoutons aux métadonnées
+  if (equipment.category) {
+    if (!dbRecord.metadata) dbRecord.metadata = {};
+    dbRecord.metadata.category = equipment.category;
+  }
+  
+  return dbRecord;
 };
