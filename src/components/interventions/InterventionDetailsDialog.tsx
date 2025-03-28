@@ -12,50 +12,69 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Clock, CheckCircle2, X, MapPin, User, CalendarCheck, Wrench } from 'lucide-react';
-
-// Types from the Interventions page
-interface Intervention {
-  id: number;
-  title: string;
-  equipment: string;
-  equipmentId: number;
-  location: string;
-  coordinates: {
-    lat: number;
-    lng: number;
-  };
-  status: 'scheduled' | 'in-progress' | 'completed' | 'canceled';
-  priority: 'high' | 'medium' | 'low';
-  date: Date;
-  duration?: number;
-  scheduledDuration?: number;
-  technician: string;
-  description: string;
-  partsUsed: Array<{ id: number; name: string; quantity: number; }>;
-  notes: string;
-}
+import { Intervention } from '@/types/Intervention';
+import { useInterventionDetail } from '@/hooks/interventions/useInterventionDetail';
 
 interface InterventionDetailsDialogProps {
-  intervention: Intervention | null;
+  interventionId: number | string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onStatusChange?: (interventionId: number, status: 'scheduled' | 'in-progress' | 'completed' | 'canceled') => void;
+  onStartWork?: () => void;
 }
 
 const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
-  intervention,
+  interventionId,
   open,
   onOpenChange,
-  onStatusChange
+  onStartWork
 }) => {
   const { toast } = useToast();
   
-  if (!intervention) return null;
+  // Use the hook to fetch intervention details
+  const {
+    intervention,
+    loading,
+    error,
+    handleInterventionUpdate
+  } = useInterventionDetail(interventionId);
+  
+  if (loading) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[600px]">
+          <div className="text-center p-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
+            <p className="mt-4 text-muted-foreground">Chargement des détails de l'intervention...</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+  
+  if (error || !intervention) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Erreur</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-red-500">Impossible de charger les détails de l'intervention.</p>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Fermer</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   // Helper function to format date
   const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      month: 'short',
+    return new Date(date).toLocaleDateString('fr-FR', {
+      month: 'long',
       day: 'numeric',
       year: 'numeric'
     });
@@ -68,28 +87,28 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
         return (
           <Badge variant="outline" className="bg-secondary flex items-center gap-1 text-muted-foreground">
             <CalendarCheck size={12} />
-            <span>Scheduled</span>
+            <span>Planifiée</span>
           </Badge>
         );
       case 'in-progress':
         return (
           <Badge className="bg-harvest-100 text-harvest-800 flex items-center gap-1">
             <Clock size={12} />
-            <span>In Progress</span>
+            <span>En cours</span>
           </Badge>
         );
       case 'completed':
         return (
           <Badge className="bg-agri-100 text-agri-800 flex items-center gap-1">
             <CheckCircle2 size={12} />
-            <span>Completed</span>
+            <span>Terminée</span>
           </Badge>
         );
       case 'canceled':
         return (
           <Badge variant="outline" className="bg-red-100 text-red-800 flex items-center gap-1">
             <X size={12} />
-            <span>Canceled</span>
+            <span>Annulée</span>
           </Badge>
         );
       default:
@@ -106,15 +125,15 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
     switch (priority) {
       case 'high':
         return (
-          <Badge className="bg-red-100 text-red-800">High</Badge>
+          <Badge className="bg-red-100 text-red-800">Élevée</Badge>
         );
       case 'medium':
         return (
-          <Badge className="bg-harvest-100 text-harvest-800">Medium</Badge>
+          <Badge className="bg-harvest-100 text-harvest-800">Moyenne</Badge>
         );
       case 'low':
         return (
-          <Badge className="bg-agri-100 text-agri-800">Low</Badge>
+          <Badge className="bg-agri-100 text-agri-800">Basse</Badge>
         );
       default:
         return (
@@ -124,12 +143,12 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
   };
 
   const handleStatusChange = (status: 'scheduled' | 'in-progress' | 'completed' | 'canceled') => {
-    if (onStatusChange && intervention) {
-      onStatusChange(intervention.id, status);
-      toast({
-        title: "Status updated",
-        description: `Intervention status updated to ${status}`,
-      });
+    if (intervention) {
+      const updatedIntervention = {
+        ...intervention,
+        status
+      };
+      handleInterventionUpdate(updatedIntervention);
     }
   };
 
@@ -152,7 +171,7 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
             <div className="flex gap-2 items-start">
               <Wrench className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
-                <p className="text-sm text-muted-foreground">Equipment</p>
+                <p className="text-sm text-muted-foreground">Équipement</p>
                 <p className="font-medium">{intervention.equipment} (ID: {intervention.equipmentId})</p>
               </div>
             </div>
@@ -160,7 +179,7 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
             <div className="flex gap-2 items-start">
               <User className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
-                <p className="text-sm text-muted-foreground">Technician</p>
+                <p className="text-sm text-muted-foreground">Technicien</p>
                 <p className="font-medium">{intervention.technician}</p>
               </div>
             </div>
@@ -168,7 +187,7 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
             <div className="flex gap-2 items-start">
               <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
-                <p className="text-sm text-muted-foreground">Location</p>
+                <p className="text-sm text-muted-foreground">Localisation</p>
                 <p className="font-medium">{intervention.location}</p>
               </div>
             </div>
@@ -184,11 +203,11 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
             <div className="flex gap-2 items-start">
               <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
-                <p className="text-sm text-muted-foreground">Duration</p>
+                <p className="text-sm text-muted-foreground">Durée</p>
                 <p className="font-medium">
                   {intervention.status === 'completed' && intervention.duration ? 
-                    `${intervention.duration} hrs (Actual)` : 
-                    `${intervention.scheduledDuration} hrs (Scheduled)`
+                    `${intervention.duration} hrs (Réelle)` : 
+                    `${intervention.scheduledDuration} hrs (Planifiée)`
                   }
                 </p>
               </div>
@@ -202,12 +221,12 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
           
           {intervention.partsUsed && intervention.partsUsed.length > 0 && (
             <div className="mb-4">
-              <p className="text-sm text-muted-foreground mb-1">Parts Used</p>
+              <p className="text-sm text-muted-foreground mb-1">Pièces utilisées</p>
               <div className="bg-secondary/50 p-3 rounded-md">
                 {intervention.partsUsed.map((part) => (
                   <div key={part.id} className="flex justify-between text-sm mb-1 last:mb-0">
                     <span>{part.name}</span>
-                    <span className="font-medium">Qty: {part.quantity}</span>
+                    <span className="font-medium">Qté: {part.quantity}</span>
                   </div>
                 ))}
               </div>
@@ -225,17 +244,20 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
           {intervention.status !== 'completed' && intervention.status !== 'canceled' && (
             <div className="grid grid-cols-1 mt-6">
               <div>
-                <p className="text-sm text-muted-foreground mb-2">Update Status</p>
+                <p className="text-sm text-muted-foreground mb-2">Mettre à jour le statut</p>
                 <div className="flex flex-wrap gap-2">
                   {intervention.status !== 'in-progress' && (
                     <Button 
                       variant="outline" 
                       size="sm" 
                       className="gap-1"
-                      onClick={() => handleStatusChange('in-progress')}
+                      onClick={() => {
+                        handleStatusChange('in-progress');
+                        if (onStartWork) onStartWork();
+                      }}
                     >
                       <Clock size={14} />
-                      <span>Start Work</span>
+                      <span>Démarrer</span>
                     </Button>
                   )}
                   
@@ -246,7 +268,7 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
                     onClick={() => handleStatusChange('completed')}
                   >
                     <CheckCircle2 size={14} />
-                    <span>Mark as Completed</span>
+                    <span>Marquer comme terminée</span>
                   </Button>
                   
                   <Button 
@@ -256,7 +278,7 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
                     onClick={() => handleStatusChange('canceled')}
                   >
                     <X size={14} />
-                    <span>Cancel</span>
+                    <span>Annuler</span>
                   </Button>
                 </div>
               </div>
@@ -266,7 +288,7 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
         
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Close</Button>
+            <Button variant="outline">Fermer</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>
