@@ -29,19 +29,19 @@ const InterventionsNavigation: React.FC<InterventionsNavigationProps> = ({
     },
     {
       title: 'Types d\'Interventions',
-      description: 'Parcourir par catégorie et type',
+      description: 'Parcourir par catégorie',
       icon: <Wrench className="h-5 w-5" />,
       view: 'by-type',
     },
     {
       title: 'Interventions Prioritaires',
-      description: 'Focus sur le travail critique et urgent',
+      description: 'Focus sur les tâches urgentes',
       icon: <AlertTriangle className="h-5 w-5" />,
       view: 'by-priority',
     },
     {
       title: 'Vue Calendrier',
-      description: 'Planifiez votre programme d\'interventions',
+      description: 'Planifiez vos interventions',
       icon: <CalendarDays className="h-5 w-5" />,
       view: 'calendar',
     },
@@ -72,9 +72,9 @@ const InterventionsNavigation: React.FC<InterventionsNavigationProps> = ({
             }`}>
               {item.icon}
             </div>
-            <div className="ml-4">
-              <h3 className="font-semibold text-base">{item.title}</h3>
-              <p className="text-sm text-muted-foreground mt-1">{item.description}</p>
+            <div className="ml-4 overflow-hidden">
+              <h3 className="font-semibold text-base truncate">{item.title}</h3>
+              <p className="text-sm text-muted-foreground mt-1 truncate">{item.description}</p>
             </div>
           </div>
           <div className="flex justify-end mt-3">
@@ -83,7 +83,7 @@ const InterventionsNavigation: React.FC<InterventionsNavigationProps> = ({
               size="sm" 
               className={`${currentView === item.view ? 'text-primary font-medium' : 'text-muted-foreground'}`}
             >
-              <span>Voir</span>
+              <span className="truncate">Voir</span>
               <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
           </div>

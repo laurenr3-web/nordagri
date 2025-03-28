@@ -1,9 +1,10 @@
 
 import React from 'react';
 import { BlurContainer } from '@/components/ui/blur-container';
-import { Wrench, Clock, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Wrench, Clock, CheckCircle2, AlertTriangle, Plus } from 'lucide-react';
 import { Intervention } from '@/types/Intervention';
 import { formatDate } from './utils/interventionUtils';
+import { Button } from '@/components/ui/button';
 
 interface InterventionsSidebarProps {
   interventions: Intervention[];
@@ -30,13 +31,15 @@ const InterventionsSidebar: React.FC<InterventionsSidebarProps> = ({
   }, {} as Record<string, number>);
   
   return (
-    <div className="space-y-8 mt-4">
-      <h2 className="text-2xl font-semibold mb-2">Aperçu des interventions</h2>
+    <div className="space-y-6 mt-4">
+      <h2 className="text-xl font-semibold mb-2">Aperçu des interventions</h2>
       
       <BlurContainer className="p-5 hover:shadow-md transition-shadow">
-        <div className="flex items-center mb-4">
-          <Clock className="h-5 w-5 mr-2 text-agri-600" />
-          <h3 className="font-medium text-lg">Interventions à venir</h3>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center">
+            <Clock className="h-5 w-5 mr-2 text-agri-600" />
+            <h3 className="font-medium text-lg">Interventions à venir</h3>
+          </div>
         </div>
         <div className="space-y-4">
           {interventions
@@ -63,9 +66,9 @@ const InterventionsSidebar: React.FC<InterventionsSidebarProps> = ({
                     'bg-agri-100 text-agri-800'}`}>
                   <Wrench size={18} />
                 </div>
-                <div className="flex-1">
-                  <h4 className="font-medium">{intervention.title}</h4>
-                  <p className="text-sm text-muted-foreground mb-1">{intervention.equipment}</p>
+                <div className="flex-1 overflow-hidden">
+                  <h4 className="font-medium truncate">{intervention.title}</h4>
+                  <p className="text-sm text-muted-foreground mb-1 truncate">{intervention.equipment}</p>
                   <p className="text-xs">Date: {formatDate(intervention.date)}</p>
                 </div>
               </div>
@@ -91,28 +94,28 @@ const InterventionsSidebar: React.FC<InterventionsSidebarProps> = ({
           <div className="flex items-center justify-between py-1">
             <span className="flex items-center text-muted-foreground">
               <div className="w-2 h-2 rounded-full bg-agri-500 mr-2"></div>
-              Planifiées
+              <span className="truncate">Planifiées</span>
             </span>
             <span className="font-medium">{stats.scheduled}</span>
           </div>
           <div className="flex items-center justify-between py-1">
             <span className="flex items-center text-muted-foreground">
               <div className="w-2 h-2 rounded-full bg-harvest-500 mr-2"></div>
-              En cours
+              <span className="truncate">En cours</span>
             </span>
             <span className="font-medium">{stats.inProgress}</span>
           </div>
           <div className="flex items-center justify-between py-1">
             <span className="flex items-center text-muted-foreground">
               <div className="w-2 h-2 rounded-full bg-agri-700 mr-2"></div>
-              Terminées
+              <span className="truncate">Terminées</span>
             </span>
             <span className="font-medium">{stats.completed}</span>
           </div>
           <div className="flex items-center justify-between py-1">
             <span className="flex items-center text-muted-foreground">
               <div className="w-2 h-2 rounded-full bg-red-400 mr-2"></div>
-              Annulées
+              <span className="truncate">Annulées</span>
             </span>
             <span className="font-medium">{stats.canceled}</span>
           </div>
@@ -124,18 +127,18 @@ const InterventionsSidebar: React.FC<InterventionsSidebarProps> = ({
           <Wrench className="h-5 w-5 mr-2 text-agri-600" />
           <h3 className="font-medium text-lg">Par équipement</h3>
         </div>
-        <div className="space-y-3">
+        <div className="space-y-3 max-h-[250px] overflow-y-auto pr-1">
           {Object.entries(equipmentStats)
             .sort((a, b) => b[1] - a[1])
             .map(([equipment, count], index) => (
               <div key={equipment} className="flex items-center justify-between py-1">
-                <span className="flex items-center truncate max-w-[75%] text-muted-foreground">
+                <span className="flex items-center max-w-[75%] text-muted-foreground">
                   <div className={`w-2 h-2 rounded-full mr-2 ${
                     index % 3 === 0 ? 'bg-agri-500' : 
                     index % 3 === 1 ? 'bg-harvest-500' : 
                     'bg-soil-500'
                   }`}></div>
-                  {equipment}
+                  <span className="truncate" title={equipment}>{equipment}</span>
                 </span>
                 <span className="font-medium">{count}</span>
               </div>

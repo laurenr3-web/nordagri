@@ -8,6 +8,8 @@ import InterventionsSidebar from '@/components/interventions/InterventionsSideba
 import NewInterventionDialog from '@/components/interventions/NewInterventionDialog';
 import InterventionDetailsDialog from '@/components/interventions/InterventionDetailsDialog';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 import { useQuery } from '@tanstack/react-query';
 import { interventionService } from '@/services/supabase/interventionService';
@@ -94,7 +96,17 @@ const InterventionsPage = () => {
             {/* Main content area - takes 2/3 or 3/4 of the space */}
             <div className="md:col-span-2 lg:col-span-3 p-6">
               <div className="max-w-5xl">
-                <h1 className="text-3xl font-bold mb-6">Interventions</h1>
+                <div className="flex items-center justify-between mb-6">
+                  <h1 className="text-3xl font-bold">Interventions</h1>
+                  <Button 
+                    onClick={() => setShowNewDialog(true)}
+                    className="flex items-center gap-2"
+                    size="sm"
+                  >
+                    <Plus size={16} />
+                    <span>Nouvelle intervention</span>
+                  </Button>
+                </div>
                 
                 {isLoading ? (
                   <div className="text-center p-8">
