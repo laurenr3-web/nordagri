@@ -6,7 +6,7 @@ export const maintenanceService = {
   // Récupérer toutes les tâches
   async getTasks(): Promise<MaintenanceTask[]> {
     const { data, error } = await supabase
-      .from('maintenance_tasks')
+      .from('maintenance_records')
       .select('*');
     
     if (error) {
@@ -17,17 +17,17 @@ export const maintenanceService = {
     // Convert Supabase date strings to Date objects and ensure numeric values
     return (data || []).map(task => ({
       id: task.id,
-      title: task.title,
-      equipment: task.equipment,
+      title: task.description || '',
+      equipment: task.equipment_name || '',
       equipmentId: task.equipment_id,
-      type: task.type as MaintenanceType,
-      status: task.status as MaintenanceStatus,
-      priority: task.priority as MaintenancePriority,
-      dueDate: task.due_date ? new Date(task.due_date) : new Date(),
-      completedDate: task.completed_date ? new Date(task.completed_date) : undefined,
-      estimatedDuration: task.estimated_duration ? Number(task.estimated_duration) : 0,
-      actualDuration: task.actual_duration ? Number(task.actual_duration) : undefined,
-      assignedTo: task.assigned_to || '',
+      type: task.maintenance_type as MaintenanceType,
+      status: task.completed ? 'completed' as MaintenanceStatus : 'pending' as MaintenanceStatus,
+      priority: task.priority as MaintenancePriority || 'medium',
+      dueDate: task.scheduled_date ? new Date(task.scheduled_date) : new Date(),
+      completedDate: task.performed_at ? new Date(task.performed_at) : undefined,
+      estimatedDuration: task.estimated_hours ? Number(task.estimated_hours) : 0,
+      actualDuration: task.hours_spent ? Number(task.hours_spent) : undefined,
+      assignedTo: task.technician_id || '',
       notes: task.notes || ''
     }));
   },
@@ -36,23 +36,25 @@ export const maintenanceService = {
   async addTask(task: Omit<MaintenanceTask, 'id'>): Promise<MaintenanceTask> {
     console.log('Adding task to Supabase:', task);
     
+    const { data: { session } } = await supabase.auth.getSession();
+    
     const supabaseTask = {
-      title: task.title,
-      equipment: task.equipment,
+      description: task.title,
+      equipment_name: task.equipment,
       equipment_id: task.equipmentId,
-      type: task.type,
-      status: task.status,
+      maintenance_type: task.type,
+      completed: task.status === 'completed',
       priority: task.priority,
-      due_date: task.dueDate.toISOString(),
-      estimated_duration: task.estimatedDuration,
-      assigned_to: task.assignedTo || '',
+      scheduled_date: task.dueDate.toISOString(),
+      estimated_hours: task.estimatedDuration,
+      technician_id: task.assignedTo || session?.user?.id || null,
       notes: task.notes,
-      completed_date: task.completedDate ? task.completedDate.toISOString() : null,
-      actual_duration: task.actualDuration || null
+      performed_at: task.completedDate ? task.completedDate.toISOString() : null,
+      hours_spent: task.actualDuration || null
     };
     
     const { data, error } = await supabase
-      .from('maintenance_tasks')
+      .from('maintenance_records')
       .insert(supabaseTask)
       .select()
       .single();
@@ -64,32 +66,32 @@ export const maintenanceService = {
     
     return {
       id: data.id,
-      title: data.title,
-      equipment: data.equipment,
+      title: data.description || '',
+      equipment: data.equipment_name || '',
       equipmentId: data.equipment_id,
-      type: data.type as MaintenanceType,
-      status: data.status as MaintenanceStatus,
+      type: data.maintenance_type as MaintenanceType,
+      status: data.completed ? 'completed' as MaintenanceStatus : 'pending' as MaintenanceStatus,
       priority: data.priority as MaintenancePriority,
-      dueDate: new Date(data.due_date),
-      completedDate: data.completed_date ? new Date(data.completed_date) : undefined,
-      estimatedDuration: Number(data.estimated_duration),
-      actualDuration: data.actual_duration ? Number(data.actual_duration) : undefined,
-      assignedTo: data.assigned_to || '',
+      dueDate: new Date(data.scheduled_date || new Date()),
+      completedDate: data.performed_at ? new Date(data.performed_at) : undefined,
+      estimatedDuration: Number(data.estimated_hours || 0),
+      actualDuration: data.hours_spent ? Number(data.hours_spent) : undefined,
+      assignedTo: data.technician_id || '',
       notes: data.notes || ''
     };
   },
   
   // Mettre à jour le statut d'une tâche
-  async updateTaskStatus(taskId: number, status: MaintenanceStatus): Promise<void> {
+  async updateTaskStatus(taskId: number | string, status: MaintenanceStatus): Promise<void> {
     console.log('Updating task status in Supabase:', taskId, status);
     
     const updates = { 
-      status,
-      ...(status === 'completed' ? { completed_date: new Date().toISOString() } : {})
+      completed: status === 'completed',
+      performed_at: status === 'completed' ? new Date().toISOString() : null
     };
     
     const { error } = await supabase
-      .from('maintenance_tasks')
+      .from('maintenance_records')
       .update(updates)
       .eq('id', taskId);
     
@@ -100,11 +102,11 @@ export const maintenanceService = {
   },
   
   // Mettre à jour la priorité d'une tâche
-  async updateTaskPriority(taskId: number, priority: MaintenancePriority): Promise<void> {
+  async updateTaskPriority(taskId: number | string, priority: MaintenancePriority): Promise<void> {
     console.log('Updating task priority in Supabase:', taskId, priority);
     
     const { error } = await supabase
-      .from('maintenance_tasks')
+      .from('maintenance_records')
       .update({ priority })
       .eq('id', taskId);
     
@@ -115,11 +117,11 @@ export const maintenanceService = {
   },
   
   // Supprimer une tâche
-  async deleteTask(taskId: number): Promise<void> {
+  async deleteTask(taskId: number | string): Promise<void> {
     console.log('Deleting task from Supabase:', taskId);
     
     const { error } = await supabase
-      .from('maintenance_tasks')
+      .from('maintenance_records')
       .delete()
       .eq('id', taskId);
     

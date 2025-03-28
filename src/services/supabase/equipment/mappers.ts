@@ -14,11 +14,12 @@ export const mapEquipmentFromDatabase = (record: any): Equipment => {
     model: record.model || '',
     year: record.year || null,
     serialNumber: record.serial_number || null,
-    purchaseDate: record.purchase_date ? new Date(record.purchase_date) : undefined,
+    purchaseDate: record.acquisition_date ? new Date(record.acquisition_date) : undefined,
     status: record.status || 'operational',
     location: record.location || '',
     notes: record.notes || '',
-    image: record.image || ''
+    image: record.image || '',
+    owner_id: record.owner_id || null
   };
 };
 
@@ -34,9 +35,10 @@ export const mapEquipmentToDatabase = (equipment: Omit<Equipment, 'id' | 'image'
     model: equipment.model || null,
     year: equipment.year || null,
     serial_number: equipment.serialNumber || null,
-    purchase_date: equipment.purchaseDate,
+    acquisition_date: equipment.purchaseDate,
     status: equipment.status || 'operational',
     location: equipment.location || null,
-    notes: equipment.notes || null
+    notes: equipment.notes || null,
+    owner_id: equipment.owner_id || null
   };
 };

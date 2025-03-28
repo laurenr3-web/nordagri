@@ -5,6 +5,7 @@ import EquipmentForm from '@/components/equipment/EquipmentForm';
 import { EquipmentFormValues } from '@/components/equipment/form/equipmentFormTypes';
 import { useAddEquipment } from '@/hooks/equipment/useAddEquipment';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AddEquipmentDialogProps {
   isOpen: boolean;
@@ -17,11 +18,21 @@ const AddEquipmentDialog: React.FC<AddEquipmentDialogProps> = ({
 }) => {
   const { mutate, isPending } = useAddEquipment();
 
-  const handleAddEquipment = (data: EquipmentFormValues) => {
+  const handleAddEquipment = async (data: EquipmentFormValues) => {
     // Log form data for debugging
     console.log('Form data received:', data);
     
     try {
+      // Get current user for owner_id
+      const { data: { session } } = await supabase.auth.getSession();
+      const owner_id = session?.user?.id;
+      
+      if (!owner_id) {
+        console.warn('No authenticated user found, equipment will be created without owner');
+      } else {
+        console.log('Adding equipment with owner_id:', owner_id);
+      }
+      
       // Create new equipment object from form data
       const newEquipment = {
         name: data.name,
@@ -36,6 +47,7 @@ const AddEquipmentDialog: React.FC<AddEquipmentDialogProps> = ({
         purchaseDate: data.purchaseDate,
         notes: data.notes || '',
         image: data.image || '',
+        owner_id: owner_id
       };
       
       console.log('Adding new equipment:', newEquipment);

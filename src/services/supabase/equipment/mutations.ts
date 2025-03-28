@@ -20,10 +20,18 @@ export async function addEquipment(equipment: Omit<Equipment, 'id'>, imageFile?:
     // Convert to database format
     const equipmentData = mapEquipmentToDatabase(equipmentWithoutImage);
     
+    // Set owner_id to the current user's ID if not provided
+    if (!equipmentData.owner_id) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        equipmentData.owner_id = session.user.id;
+      }
+    }
+    
     console.log('Attempting to insert equipment to Supabase:', equipmentData);
     
     const { data, error } = await supabase
-      .from('equipment')
+      .from('equipments')
       .insert(equipmentData)
       .select()
       .single();
@@ -60,7 +68,7 @@ export async function updateEquipment(equipment: Equipment, imageFile?: File): P
     const equipmentData = mapEquipmentToDatabase(equipmentWithoutImage);
     
     const { error } = await supabase
-      .from('equipment')
+      .from('equipments')
       .update(equipmentData)
       .eq('id', equipment.id);
     
@@ -80,18 +88,18 @@ export async function updateEquipment(equipment: Equipment, imageFile?: File): P
 }
 
 // Delete equipment
-export async function deleteEquipment(equipmentId: number): Promise<void> {
+export async function deleteEquipment(equipmentId: string): Promise<void> {
   try {
     // First attempt to get the image path
     const { data: equipment } = await supabase
-      .from('equipment')
+      .from('equipments')
       .select('image')
       .eq('id', equipmentId)
       .single();
     
     // Delete the equipment record
     const { error } = await supabase
-      .from('equipment')
+      .from('equipments')
       .delete()
       .eq('id', equipmentId);
     

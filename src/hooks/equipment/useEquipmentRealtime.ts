@@ -20,7 +20,7 @@ export function useEquipmentRealtime() {
         {
           event: '*',
           schema: 'public',
-          table: 'equipment'
+          table: 'equipments'
         },
         (payload) => {
           console.log('Realtime update for equipment:', payload);

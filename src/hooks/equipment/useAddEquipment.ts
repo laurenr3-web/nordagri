@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { equipmentService, Equipment } from '@/services/supabase/equipmentService';
 import { toast } from 'sonner';
 import { isDataUrl, dataUrlToFile } from '@/services/supabase/equipment/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Hook for adding new equipment items
@@ -34,6 +35,15 @@ export const useAddEquipment = () => {
         newEquipment.serialNumber = null;
       }
 
+      // Get the current user ID and add it to the equipment data
+      if (!newEquipment.owner_id) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          newEquipment.owner_id = session.user.id;
+          console.log('Setting owner_id to current user:', newEquipment.owner_id);
+        }
+      }
+      
       // Create a clean copy of the equipment for debugging
       const cleanEquipment = { ...newEquipment };
       

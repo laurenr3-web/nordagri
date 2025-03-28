@@ -10,7 +10,7 @@ export async function getEquipment(filters?: EquipmentFilter): Promise<Equipment
     console.log('Fetching equipment with filters:', filters);
     
     let query = supabase
-      .from('equipment')
+      .from('equipments')
       .select('*');
     
     // Apply filters if provided
@@ -37,7 +37,7 @@ export async function getEquipment(filters?: EquipmentFilter): Promise<Equipment
 export async function searchEquipment(searchTerm: string): Promise<Equipment[]> {
   try {
     const { data, error } = await supabase
-      .from('equipment')
+      .from('equipments')
       .select('*')
       .or(`name.ilike.%${searchTerm}%,model.ilike.%${searchTerm}%,serial_number.ilike.%${searchTerm}%`);
     
@@ -54,11 +54,11 @@ export async function searchEquipment(searchTerm: string): Promise<Equipment[]> 
 }
 
 // Get equipment by ID
-export async function getEquipmentById(equipmentId: number): Promise<Equipment | null> {
+export async function getEquipmentById(equipmentId: string): Promise<Equipment | null> {
   try {
     console.log(`Fetching equipment with ID ${equipmentId} from Supabase`);
     const { data, error } = await supabase
-      .from('equipment')
+      .from('equipments')
       .select('*')
       .eq('id', equipmentId)
       .maybeSingle();
@@ -85,7 +85,7 @@ export async function getEquipmentById(equipmentId: number): Promise<Equipment |
 export async function getEquipmentStats(): Promise<EquipmentStats> {
   try {
     const { data, error } = await supabase
-      .from('equipment')
+      .from('equipments')
       .select('*');
       
     if (error) {
@@ -127,13 +127,13 @@ export async function getEquipmentStats(): Promise<EquipmentStats> {
 }
 
 // Get maintenance history for equipment
-export async function getEquipmentMaintenanceHistory(equipmentId: number): Promise<any[]> {
+export async function getEquipmentMaintenanceHistory(equipmentId: string): Promise<any[]> {
   try {
     const { data, error } = await supabase
-      .from('maintenance_tasks')
+      .from('maintenance_records')
       .select('*')
       .eq('equipment_id', equipmentId)
-      .order('due_date', { ascending: false });
+      .order('performed_at', { ascending: false });
     
     if (error) {
       console.error('Error fetching equipment maintenance history:', error);
@@ -151,7 +151,7 @@ export async function getEquipmentMaintenanceHistory(equipmentId: number): Promi
 export async function getFilterOptions(): Promise<FilterOptions> {
   try {
     const { data, error } = await supabase
-      .from('equipment')
+      .from('equipments')
       .select('manufacturer, type, category, status, location');
     
     if (error) {
