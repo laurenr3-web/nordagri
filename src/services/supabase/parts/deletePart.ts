@@ -1,74 +1,45 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 /**
- * Supprime définitivement une pièce de la base de données par ID
+ * Supprime une pièce de l'inventaire
  * 
- * @param partId L'identifiant de la pièce à supprimer (string ou number)
- * @returns Promise résolvant à void en cas de succès ou rejetant avec une erreur
+ * @param partId L'identifiant de la pièce à supprimer
+ * @returns Promise résolvant à true si la suppression a réussi
  */
-export async function deletePart(partId: number | string): Promise<void> {
-  console.log('🗑️ Début de la suppression de pièce avec ID:', partId);
+export async function deletePart(partId: string | number): Promise<boolean> {
+  console.log("🗑️ Tentative de suppression de la pièce ID:", partId);
   
   try {
-    // Normalisation de l'ID en fonction du type
-    let normalizedId: number | string = partId;
-    
-    // Si l'ID est une chaîne qui peut être convertie en nombre, le faire
+    // Vérification si l'ID est une chaîne numérique
     if (typeof partId === 'string' && !isNaN(Number(partId))) {
-      normalizedId = Number(partId);
-      console.log('ID converti en nombre:', normalizedId);
+      partId = Number(partId);
     }
     
-    // Vérification que l'ID est valide
-    if ((typeof normalizedId === 'string' && normalizedId.trim() === '') || 
-        (typeof normalizedId === 'number' && !isFinite(normalizedId))) {
-      const error = new Error("ID de pièce invalide pour la suppression");
-      console.error('❌ Validation échouée:', error);
-      throw error;
-    }
-    
-    console.log(`Exécution de la requête de suppression avec ID ${normalizedId} (type: ${typeof normalizedId})`);
-    
-    // Exécution de la requête avec analyse complète des résultats
-    const { error, count, status } = await supabase
+    // Suppression avec le bon type d'ID
+    const { error } = await supabase
       .from('parts_inventory')
       .delete()
-      .eq('id', normalizedId)
-      .select('count');
-    
-    if (error) {
-      console.error('❌ Erreur Supabase:', error);
-      console.error('Code de statut HTTP:', status);
+      .eq('id', partId);
       
-      // Messages d'erreur plus détaillés et descriptifs
+    if (error) {
+      console.error("❌ Erreur lors de la suppression:", error);
+      
+      // Analyse détaillée des erreurs
       if (error.code === '23503') {
-        throw new Error("Cette pièce est référencée par d'autres éléments et ne peut pas être supprimée");
+        throw new Error("Impossible de supprimer cette pièce car elle est utilisée ailleurs");
       } else if (error.code === '42501') {
-        throw new Error("Permissions insuffisantes: vous n'avez pas les droits nécessaires pour supprimer cette pièce");
-      } else if (error.code === '22P02') {
-        throw new Error("Format d'identifiant invalide. Veuillez réessayer ou contacter le support");
+        throw new Error("Vous n'avez pas les permissions nécessaires pour supprimer cette pièce");
       } else {
         throw new Error(`Erreur lors de la suppression: ${error.message || "Problème inconnu"}`);
       }
     }
     
-    // Si aucune ligne n'a été supprimée, c'est que la pièce n'existe pas
-    if (count === 0) {
-      const notFoundError = new Error("Aucune pièce trouvée avec cet identifiant");
-      console.warn('⚠️ Suppression sans effet:', notFoundError.message);
-      throw notFoundError;
-    }
-    
-    console.log('✅ Suppression réussie');
-  } catch (err: any) {
-    console.error('❌ Exception lors de la suppression:', err);
-    
-    // Si l'erreur vient de Supabase, elle est déjà formatée, sinon on l'enveloppe
-    if (err.code && err.message) {
-      throw err;
-    } else {
-      throw new Error(err.message || "Une erreur est survenue lors de la suppression de la pièce");
-    }
+    console.log("✅ Pièce supprimée avec succès");
+    return true;
+  } catch (error: any) {
+    console.error("❌ Exception lors de la suppression:", error);
+    throw error;
   }
 }
