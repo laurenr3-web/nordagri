@@ -90,10 +90,10 @@ const InterventionsPage = () => {
         </Sidebar>
         
         <div className="flex-1 w-full">
-          <div className="flex flex-col md:flex-row h-full">
-            {/* Main content area */}
-            <div className="flex-1 p-6">
-              <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 h-full">
+            {/* Main content area - takes 2/3 or 3/4 of the space */}
+            <div className="md:col-span-2 lg:col-span-3 p-6">
+              <div className="max-w-5xl">
                 <h1 className="text-3xl font-bold mb-6">Interventions</h1>
                 
                 {isLoading ? (
@@ -142,8 +142,8 @@ const InterventionsPage = () => {
               </div>
             </div>
             
-            {/* Right sidebar for upcoming interventions and stats */}
-            <div className="w-full md:w-80 lg:w-96 p-6 border-l shrink-0">
+            {/* Right sidebar for upcoming interventions and stats - takes 1/3 or 1/4 of the space */}
+            <div className="md:col-span-1 p-6">
               <InterventionsSidebar 
                 interventions={interventions}
                 onViewDetails={handleViewDetails}
