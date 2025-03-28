@@ -7,6 +7,7 @@ import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PartsContainer from '@/components/parts/PartsContainer';
 import PartSearch from '@/components/parts/PartSearch';
+import PerplexitySearch from '@/components/parts/PerplexitySearch';
 import { Part } from '@/types/Part';
 
 // Sample parts data
@@ -51,9 +52,10 @@ const Parts = () => {
           </div>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-2 w-[400px]">
+            <TabsList className="grid grid-cols-3 w-[600px]">
               <TabsTrigger value="inventory">Inventaire</TabsTrigger>
               <TabsTrigger value="search">Recherche web</TabsTrigger>
+              <TabsTrigger value="perplexity">Recherche Perplexity</TabsTrigger>
             </TabsList>
             
             <TabsContent value="inventory" className="mt-6">
@@ -62,6 +64,10 @@ const Parts = () => {
             
             <TabsContent value="search" className="mt-6">
               <PartSearch onAddPartToInventory={handleAddPartFromSearch} />
+            </TabsContent>
+            
+            <TabsContent value="perplexity" className="mt-6">
+              <PerplexitySearch />
             </TabsContent>
           </Tabs>
         </div>
