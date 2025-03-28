@@ -58,9 +58,12 @@ export function Combobox({
   }, [searchTerm, safeOptions]);
 
   const handleSelect = (currentValue: string) => {
+    if (!currentValue) return; // Prevent selecting undefined values
     setValue(currentValue)
     setOpen(false)
-    onSelect(currentValue)
+    if (typeof onSelect === 'function') {
+      onSelect(currentValue)
+    }
   }
 
   // Safely find the selected label
@@ -90,7 +93,7 @@ export function Combobox({
             onValueChange={setSearchTerm}
           />
           <CommandEmpty>{emptyMessage}</CommandEmpty>
-          {filteredOptions.length > 0 ? (
+          {filteredOptions && filteredOptions.length > 0 ? (
             <CommandGroup className="max-h-60 overflow-y-auto">
               {filteredOptions.map((option) => (
                 <CommandItem

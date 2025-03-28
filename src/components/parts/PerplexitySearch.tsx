@@ -14,7 +14,7 @@ import PerplexityChat from './PerplexityChat';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Combobox, ComboboxOption } from '@/components/ui/combobox';
 
-// Suggestions prédéfinies pour la recherche de pièces
+// Suggestions prédéfinies pour la recherche de pièces - ensure this is a valid array
 const SEARCH_SUGGESTIONS: ComboboxOption[] = [
   { label: "John Deere 0118-2672 - Filtre à huile", value: "JD0118-2672" },
   { label: "Case IH 0118-2672 - Capteur de pression", value: "CASE0118-2672" },
@@ -50,7 +50,10 @@ const PerplexitySearch = () => {
     
     // Si suggestion au format "JD0118-2672", extraire le fabricant
     if (suggestionValue) {
-      const suggestion = SEARCH_SUGGESTIONS.find(s => s.value === suggestionValue);
+      // Ensure SEARCH_SUGGESTIONS is an array before using find
+      const suggestionsList = Array.isArray(SEARCH_SUGGESTIONS) ? SEARCH_SUGGESTIONS : [];
+      const suggestion = suggestionsList.find(s => s.value === suggestionValue);
+      
       if (suggestion) {
         // Extraire la référence du libellé (format: "John Deere 0118-2672 - Filtre à huile")
         const parts = suggestion.label.split(' - ')[0].split(' ');
@@ -98,9 +101,15 @@ const PerplexitySearch = () => {
       
       const [priceData, technicalInfo] = await Promise.all(promises);
       
-      setResults({ priceData, technicalInfo });
+      // Ensure priceData is an array if it's not null
+      const safePrice = priceData ? (Array.isArray(priceData) ? priceData : []) : null;
       
-      if (priceData || technicalInfo) {
+      setResults({ 
+        priceData: safePrice, 
+        technicalInfo 
+      });
+      
+      if (safePrice || technicalInfo) {
         toast.success('Recherche terminée avec succès');
       } else {
         toast.error('Aucun résultat trouvé');
@@ -132,9 +141,9 @@ const PerplexitySearch = () => {
         
         <TabsContent value="search">
           <div className="space-y-4">
-            {/* Vérifiez que SEARCH_SUGGESTIONS est un tableau valide avant de le passer */}
+            {/* Ensure SEARCH_SUGGESTIONS is always a valid array before passing to Combobox */}
             <Combobox
-              options={SEARCH_SUGGESTIONS || []}
+              options={Array.isArray(SEARCH_SUGGESTIONS) ? SEARCH_SUGGESTIONS : []}
               placeholder="Entrez une référence ou description..."
               onSelect={(value) => handleSearch(value)}
               emptyMessage="Aucune suggestion disponible"
