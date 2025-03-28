@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { normalizePartId } from '@/services/perplexity/adapters';
 
 /**
  * Supprime une pièce de l'inventaire
@@ -12,16 +13,14 @@ export async function deletePart(partId: string | number): Promise<boolean> {
   console.log("🗑️ Tentative de suppression de la pièce ID:", partId);
   
   try {
-    // Vérification si l'ID est une chaîne numérique
-    if (typeof partId === 'string' && !isNaN(Number(partId))) {
-      partId = Number(partId);
-    }
+    // Normaliser l'ID au format numérique
+    const numericId = normalizePartId(partId);
     
     // Suppression avec le bon type d'ID
     const { error } = await supabase
       .from('parts_inventory')
       .delete()
-      .eq('id', partId);
+      .eq('id', numericId);
       
     if (error) {
       console.error("❌ Erreur lors de la suppression:", error);
