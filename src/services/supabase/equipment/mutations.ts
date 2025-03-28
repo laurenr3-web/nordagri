@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Equipment } from './types';
 import { mapEquipmentToDatabase, mapEquipmentFromDatabase } from './mappers';
@@ -10,12 +11,12 @@ export async function addEquipment(equipment: Omit<Equipment, 'id'>): Promise<Eq
     console.log('Adding equipment:', equipment);
     
     // Get the current user
-    const { user } = await supabase.auth.getUser();
+    const { data: userData } = await supabase.auth.getUser();
     
     // Map equipment to database format
     const dbEquipment = {
       ...mapEquipmentToDatabase(equipment),
-      owner_id: user ? user.id : null
+      owner_id: userData?.user ? userData.user.id : null
     };
     
     // Insert the equipment

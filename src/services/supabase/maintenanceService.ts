@@ -36,7 +36,7 @@ export const maintenanceService = {
   async addTask(task: Omit<MaintenanceTask, 'id'>): Promise<MaintenanceTask> {
     console.log('Adding task to Supabase:', task);
     
-    const { user } = await supabase.auth.getUser();
+    const { data: userData } = await supabase.auth.getUser();
     
     const supabaseTask = {
       title: task.title,
@@ -51,7 +51,7 @@ export const maintenanceService = {
       notes: task.notes,
       completed_date: task.completedDate ? task.completedDate.toISOString() : null,
       actual_duration: task.actualDuration || null,
-      owner_id: user ? user.id : null
+      owner_id: userData?.user ? userData.user.id : null
     };
     
     const { data, error } = await supabase

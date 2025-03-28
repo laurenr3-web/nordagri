@@ -40,7 +40,7 @@ export const useAddEquipment = () => {
       // Log the final equipment data being sent to the API
       console.log('Sending equipment data to API:', JSON.stringify(cleanEquipment, null, 2));
       
-      return equipmentService.addEquipment(newEquipment, imageFile);
+      return equipmentService.addEquipment(newEquipment);
     },
     onSuccess: (data) => {
       console.log('Équipement ajouté avec succès:', data);

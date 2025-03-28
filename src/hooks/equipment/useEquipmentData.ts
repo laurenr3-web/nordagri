@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { equipmentService, Equipment, EquipmentFilter } from '@/services/supabase/equipmentService';
@@ -40,9 +41,9 @@ export function useEquipmentData() {
   
   // Add equipment mutation with better logging
   const addEquipmentMutation = useMutation({
-    mutationFn: ({ equipment, imageFile }: { equipment: Omit<Equipment, 'id'>, imageFile?: File }) => {
+    mutationFn: (equipment: Omit<Equipment, 'id'>) => {
       console.log('📤 Sending equipment to Supabase:', equipment);
-      return equipmentService.addEquipment(equipment, imageFile);
+      return equipmentService.addEquipment(equipment);
     },
     onSuccess: (newEquipment) => {
       console.log('✅ Equipment successfully added:', newEquipment);
@@ -69,8 +70,8 @@ export function useEquipmentData() {
   
   // Update equipment mutation
   const updateEquipmentMutation = useMutation({
-    mutationFn: ({ equipment, imageFile }: { equipment: Equipment, imageFile?: File }) => 
-      equipmentService.updateEquipment(equipment, imageFile),
+    mutationFn: (equipment: Equipment) => 
+      equipmentService.updateEquipment(equipment),
     onSuccess: (updatedEquipment) => {
       console.log('✅ Equipment successfully updated:', updatedEquipment);
       
@@ -164,10 +165,10 @@ export function useEquipmentData() {
     searchEquipment,
     updateFilters,
     resetFilters,
-    addEquipment: (equipment: Omit<Equipment, 'id'>, imageFile?: File) => 
-      addEquipmentMutation.mutate({ equipment, imageFile }),
-    updateEquipment: (equipment: Equipment, imageFile?: File) => 
-      updateEquipmentMutation.mutate({ equipment, imageFile }),
+    addEquipment: (equipment: Omit<Equipment, 'id'>) => 
+      addEquipmentMutation.mutate(equipment),
+    updateEquipment: (equipment: Equipment) => 
+      updateEquipmentMutation.mutate(equipment),
     deleteEquipment: (equipmentId: number) => 
       deleteEquipmentMutation.mutate(equipmentId),
     getEquipmentById,

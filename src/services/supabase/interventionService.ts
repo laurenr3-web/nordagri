@@ -21,22 +21,33 @@ export const interventionService = {
       equipment: item.equipment,
       equipmentId: item.equipment_id,
       location: item.location,
-      coordinates: item.coordinates ? item.coordinates : { lat: 0, lng: 0 },
-      status: item.status,
-      priority: item.priority,
+      coordinates: item.coordinates ? 
+        (typeof item.coordinates === 'object' ? 
+          { lat: item.coordinates.lat || 0, lng: item.coordinates.lng || 0 } : 
+          { lat: 0, lng: 0 }
+        ) : { lat: 0, lng: 0 },
+      status: (item.status as Intervention['status']) || 'scheduled',
+      priority: (item.priority as Intervention['priority']) || 'medium',
       date: new Date(item.date),
       duration: item.duration || undefined,
       scheduledDuration: item.scheduled_duration || undefined,
       technician: item.technician,
       description: item.description || '',
-      partsUsed: item.parts_used ? item.parts_used : [],
+      partsUsed: item.parts_used ? 
+        (Array.isArray(item.parts_used) ? 
+          item.parts_used.map((p: any) => ({
+            id: p.id || 0,
+            name: p.name || '',
+            quantity: p.quantity || 0
+          })) : []
+        ) : [],
       notes: item.notes || '',
     }));
   },
   
   // Ajouter une intervention
   async addIntervention(intervention: InterventionFormValues): Promise<Intervention> {
-    const { user } = await supabase.auth.getUser();
+    const { data: userData } = await supabase.auth.getUser();
     
     const newIntervention = {
       title: intervention.title,
@@ -52,7 +63,7 @@ export const interventionService = {
       description: intervention.description,
       notes: intervention.notes,
       parts_used: [],
-      owner_id: user ? user.id : null
+      owner_id: userData?.user ? userData.user.id : null
     };
     
     const { data, error } = await supabase
@@ -72,15 +83,22 @@ export const interventionService = {
       equipment: data.equipment,
       equipmentId: data.equipment_id,
       location: data.location,
-      coordinates: data.coordinates || { lat: 0, lng: 0 },
-      status: data.status,
-      priority: data.priority,
+      coordinates: data.coordinates && typeof data.coordinates === 'object' ? 
+        { lat: data.coordinates.lat || 0, lng: data.coordinates.lng || 0 } : 
+        { lat: 0, lng: 0 },
+      status: (data.status as Intervention['status']) || 'scheduled',
+      priority: (data.priority as Intervention['priority']) || 'medium',
       date: new Date(data.date),
       duration: data.duration || undefined,
       scheduledDuration: data.scheduled_duration || undefined,
       technician: data.technician,
       description: data.description || '',
-      partsUsed: data.parts_used || [],
+      partsUsed: Array.isArray(data.parts_used) ? 
+        data.parts_used.map((p: any) => ({
+          id: p.id || 0,
+          name: p.name || '',
+          quantity: p.quantity || 0
+        })) : [],
       notes: data.notes || ''
     };
   },

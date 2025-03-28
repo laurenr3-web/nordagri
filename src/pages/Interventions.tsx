@@ -78,9 +78,8 @@ const Interventions = () => {
         } : intervention
       ));
       
-      toast({
-        title: "Status updated",
-        description: `Intervention status has been updated to ${status}`,
+      toast.success("Status updated", {
+        description: `Intervention status has been updated to ${status}`
       });
     } catch (error) {
       console.error('Error updating intervention status:', error);
@@ -95,9 +94,8 @@ const Interventions = () => {
       setInterventions([newIntervention, ...interventions]);
       setIsNewInterventionDialogOpen(false);
       
-      toast({
-        title: "Intervention created",
-        description: `New intervention "${formData.title}" has been created`,
+      toast.success("Intervention created", {
+        description: `New intervention "${formData.title}" has been created`
       });
     } catch (error) {
       console.error('Error creating intervention:', error);
