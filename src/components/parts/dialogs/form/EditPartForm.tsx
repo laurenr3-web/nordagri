@@ -44,15 +44,16 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
     resolver: zodResolver(partFormSchema),
     defaultValues: {
       name: part.name,
-      partNumber: part.partNumber,
+      partNumber: part.partNumber || part.reference || '',
       category: part.category,
       manufacturer: part.manufacturer,
-      price: part.price.toString(),
-      stock: part.stock.toString(),
-      reorderPoint: part.reorderPoint.toString(),
-      location: part.location,
-      compatibility: Array.isArray(part.compatibility) ? part.compatibility.join(', ') : '', // Sécuriser la conversion array → string
-      image: part.image
+      price: part.price?.toString() || '0',
+      stock: part.stock?.toString() || '0',
+      reorderPoint: part.reorderPoint?.toString() || '5',
+      location: part.location || '',
+      compatibility: Array.isArray(part.compatibility) ? part.compatibility.join(', ') : 
+                     Array.isArray(part.compatibleWith) ? part.compatibleWith.join(', ') : '',
+      image: part.image || 'https://placehold.co/100x100/png'
     },
   });
 
@@ -65,16 +66,9 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
     
     try {
       // Convertir les chaînes en nombres pour les champs numériques
-      const price = parseFloat(values.price);
-      const stock = parseInt(values.stock);
-      const reorderPoint = parseInt(values.reorderPoint);
-      
-      // Vérifier que les conversions sont valides
-      if (isNaN(price) || isNaN(stock) || isNaN(reorderPoint)) {
-        console.error('Invalid number conversions:', { price, stock, reorderPoint });
-        setSubmissionError('Valeurs numériques invalides. Vérifiez le prix, le stock et le point de réapprovisionnement.');
-        return;
-      }
+      const price = parseFloat(values.price) || 0;
+      const stock = parseInt(values.stock) || 0;
+      const reorderPoint = parseInt(values.reorderPoint) || 5;
       
       // Convertir la chaîne de compatibilité en tableau
       const compatibility = values.compatibility
@@ -85,13 +79,17 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
         ...part, // Conserver l'ID et autres propriétés inchangées
         name: values.name,
         partNumber: values.partNumber,
+        reference: values.partNumber, // Pour assurer la compatibilité avec le composant de détail
         category: values.category,
         manufacturer: values.manufacturer,
         price: price,
         stock: stock,
+        quantity: stock, // Pour assurer la compatibilité avec le composant de détail
         reorderPoint: reorderPoint,
+        minimumStock: reorderPoint, // Pour assurer la compatibilité avec le composant de détail
         location: values.location,
         compatibility: compatibility,
+        compatibleWith: compatibility, // Pour assurer la compatibilité avec le composant de détail
         image: values.image || part.image // Conserver l'image existante si aucune nouvelle n'est fournie
       };
       

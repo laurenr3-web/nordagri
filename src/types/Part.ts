@@ -11,9 +11,14 @@ export interface Part {
   location: string;
   reorderPoint: number;
   image: string;
+  
+  // Champs pour la rétrocompatibilité
   description?: string;
   reference?: string;
   compatibleWith?: string[];
+  purchasePrice?: number;
+  quantity?: number;
+  minimumStock?: number;
   estimatedPrice?: number | string | null;
   inStock?: boolean;
   isFromSearch?: boolean;

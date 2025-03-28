@@ -12,8 +12,8 @@ export async function updatePart(part: Part): Promise<Part> {
   
   try {
     // Validation des champs obligatoires
-    if (!part.name || part.stock === undefined) {
-      throw new Error("Les champs obligatoires 'name' et 'stock' doivent être définis");
+    if (!part.name) {
+      throw new Error("Le champ obligatoire 'name' doit être défini");
     }
 
     // Vérification que l'ID est un nombre pour les opérations Supabase
@@ -30,14 +30,14 @@ export async function updatePart(part: Part): Promise<Part> {
     // Préparation des données avec correspondance exacte des noms de colonnes
     const updateData = {
       name: part.name,
-      part_number: part.partNumber,
-      category: part.category,
-      supplier: part.manufacturer,
+      part_number: part.partNumber || '',
+      category: part.category || '',
+      supplier: part.manufacturer || '',
       compatible_with: Array.isArray(part.compatibility) ? part.compatibility : [],
-      quantity: part.stock,
-      unit_price: part.price !== undefined ? part.price : null,
-      location: part.location || null,
-      reorder_threshold: part.reorderPoint || null,
+      quantity: part.stock || 0,
+      unit_price: part.price !== undefined ? part.price : 0,
+      location: part.location || '',
+      reorder_threshold: part.reorderPoint || 0,
       image_url: part.image || null,
       updated_at: new Date().toISOString()
     };
@@ -73,11 +73,12 @@ export async function updatePart(part: Part): Promise<Part> {
       category: data.category || '',
       manufacturer: data.supplier || '',
       compatibility: data.compatible_with || [],
-      stock: data.quantity,
+      stock: data.quantity || 0,
       price: data.unit_price !== null ? data.unit_price : 0,
       location: data.location || '',
       reorderPoint: data.reorder_threshold || 5,
-      image: data.image_url || 'https://placehold.co/100x100/png'
+      image: data.image_url || 'https://placehold.co/100x100/png',
+      reference: data.part_number || '' // Ajout du champ reference pour compatibilité
     };
   } catch (err: any) {
     console.error('Exception lors de la mise à jour:', err);
