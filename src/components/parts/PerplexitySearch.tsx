@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Loader2, Search, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { partsPriceService } from '@/services/perplexity/partsPriceService';
+import { partsPriceService } from '@/services/perplexity/parts/priceService';
 import { partsTechnicalService } from '@/services/perplexity/partsTechnicalService';
 import { TechnicalInfoDisplay } from './displays/TechnicalInfoDisplay';
 import { PriceComparisonDisplay } from './displays/PriceComparisonDisplay';

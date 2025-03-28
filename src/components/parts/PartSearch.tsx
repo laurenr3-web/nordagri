@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Search, Loader2, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { partsSearchService } from '@/services/perplexity/partsSearchService';
+import { partsSearchService } from '@/services/perplexity/parts/searchService';
 import { Part } from '@/types/Part';
 
 interface PartSearchProps {
