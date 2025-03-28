@@ -23,7 +23,8 @@ export function useEquipmentParts(equipment: Equipment) {
         setError(null);
         // Load parts associated with this equipment
         // Convert id to string to ensure it works with Supabase's interface
-        const equipmentParts = await getPartsForEquipment(equipment.id.toString());
+        const equipmentId = equipment.id.toString();
+        const equipmentParts = await getPartsForEquipment(equipmentId);
         setParts(equipmentParts);
       } catch (err: any) {
         console.error('Error fetching parts:', err);

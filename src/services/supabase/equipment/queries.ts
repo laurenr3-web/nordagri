@@ -128,7 +128,8 @@ export async function getEquipmentStats(): Promise<EquipmentStats> {
       
       // Count by manufacturer from metadata
       if (item.metadata && typeof item.metadata === 'object') {
-        const manufacturer = item.metadata.manufacturer;
+        const metadata = item.metadata as Record<string, any>;
+        const manufacturer = metadata.manufacturer;
         if (manufacturer) {
           stats.byManufacturer[manufacturer] = (stats.byManufacturer[manufacturer] || 0) + 1;
         }
@@ -197,19 +198,21 @@ export async function getFilterOptions(): Promise<FilterOptions> {
       
       // Extract metadata fields (manufacturers, categories, locations)
       if (item.metadata && typeof item.metadata === 'object') {
+        const metadata = item.metadata as Record<string, any>;
+        
         // Extract manufacturers
-        if (item.metadata.manufacturer && !options.manufacturers.includes(item.metadata.manufacturer)) {
-          options.manufacturers.push(item.metadata.manufacturer);
+        if (metadata.manufacturer && !options.manufacturers.includes(metadata.manufacturer)) {
+          options.manufacturers.push(metadata.manufacturer);
         }
         
         // Extract categories
-        if (item.metadata.category && !options.categories.includes(item.metadata.category)) {
-          options.categories.push(item.metadata.category);
+        if (metadata.category && !options.categories.includes(metadata.category)) {
+          options.categories.push(metadata.category);
         }
         
         // Extract locations
-        if (item.metadata.location && !options.locations.includes(item.metadata.location)) {
-          options.locations.push(item.metadata.location);
+        if (metadata.location && !options.locations.includes(metadata.location)) {
+          options.locations.push(metadata.location);
         }
       }
     });

@@ -11,7 +11,7 @@ export const useMaintenanceForm = (
   const { toast } = useToast();
   const [title, setTitle] = useState('');
   const [equipment, setEquipment] = useState('');
-  const [equipmentId, setEquipmentId] = useState('1'); // Changed from number to string
+  const [equipmentId, setEquipmentId] = useState('1'); // Use string type
   const [type, setType] = useState<MaintenanceType>('preventive');
   const [priority, setPriority] = useState<MaintenancePriority>('medium');
   const [dueDate, setDueDate] = useState<Date>(initialDate || new Date());
@@ -98,7 +98,7 @@ export const useMaintenanceForm = (
     // Reset form
     setTitle('');
     setEquipment('');
-    setEquipmentId(1);
+    setEquipmentId('1'); // Reset to string
     setType('preventive');
     setPriority('medium');
     setDueDate(new Date());
