@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Loader2, Search } from 'lucide-react';
+import { Loader2, Search, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { partsPriceService } from '@/services/perplexity/partsPriceService';
 import { partsTechnicalService } from '@/services/perplexity/partsTechnicalService';
@@ -11,6 +11,7 @@ import { TechnicalInfoDisplay } from './displays/TechnicalInfoDisplay';
 import { PriceComparisonDisplay } from './displays/PriceComparisonDisplay';
 import { checkApiKey } from '@/services/perplexity/client';
 import PerplexityChat from './PerplexityChat';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 const PerplexitySearch = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,13 +41,27 @@ const PerplexitySearch = () => {
     
     try {
       // Combine les deux types de recherche en une seule requête
-      const [priceData, technicalInfo] = await Promise.all([
-        partsPriceService.findBestPrices(searchQuery),
-        partsTechnicalService.getPartInfo(searchQuery)
-      ]);
+      const promises = [
+        partsPriceService.findBestPrices(searchQuery).catch(err => {
+          console.error('Erreur lors de la recherche de prix:', err);
+          return null;
+        }),
+        partsTechnicalService.getPartInfo(searchQuery).catch(err => {
+          console.error('Erreur lors de la recherche technique:', err);
+          return null;
+        })
+      ];
+      
+      const [priceData, technicalInfo] = await Promise.all(promises);
       
       setResults({ priceData, technicalInfo });
-      toast.success('Recherche terminée avec succès');
+      
+      if (priceData || technicalInfo) {
+        toast.success('Recherche terminée avec succès');
+      } else {
+        toast.error('Aucun résultat trouvé');
+        setError('Aucune information n\'a pu être récupérée. Veuillez vérifier la référence et réessayer.');
+      }
     } catch (error) {
       console.error('Erreur de recherche:', error);
       const errorMessage = error instanceof Error ? error.message : 'Une erreur inconnue est survenue';
@@ -87,12 +102,21 @@ const PerplexitySearch = () => {
           </div>
 
           {error && (
-            <div className="p-4 border border-destructive/20 rounded-md bg-destructive/10 text-destructive mt-4">
-              <p>{error}</p>
+            <Alert variant="destructive" className="mt-4">
+              <AlertCircle className="h-5 w-5" />
+              <AlertTitle>Erreur</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          {isLoading && (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <p className="ml-2">Recherche en cours...</p>
             </div>
           )}
 
-          {results && !error && (
+          {results && !error && !isLoading && (
             <Tabs defaultValue="technical" className="w-full mt-6">
               <TabsList className="w-full justify-start">
                 <TabsTrigger value="technical">Informations techniques</TabsTrigger>

@@ -4,6 +4,12 @@ import { extractInformationFromText } from './utils/textExtraction';
 
 export function parseResponse(content: string): PartTechnicalInfo {
   try {
+    // Vérifier si le contenu est vide ou null
+    if (!content || content.trim() === '') {
+      console.error("Contenu de réponse vide ou null");
+      return createDefaultTechnicalInfo();
+    }
+
     // Essayer de parser le JSON directement
     let parsedData;
     
@@ -21,7 +27,8 @@ export function parseResponse(content: string): PartTechnicalInfo {
         if (potentialJson) {
           parsedData = JSON.parse(potentialJson[0]);
         } else {
-          throw new Error("Aucun JSON valide trouvé dans la réponse");
+          console.warn("Aucun JSON valide trouvé dans la réponse, utilisation du fallback d'extraction de texte");
+          return extractInformationFromText(content);
         }
       }
     }
@@ -52,7 +59,25 @@ export function parseResponse(content: string): PartTechnicalInfo {
     console.error("Erreur lors du parsing JSON:", error);
     console.log("Contenu brut:", content);
     
-    // Créer un résultat formaté à partir du texte brut
-    return extractInformationFromText(content);
+    // Créer un résultat formaté à partir du texte brut ou retourner une structure par défaut
+    try {
+      return extractInformationFromText(content);
+    } catch (extractError) {
+      console.error("Erreur lors de l'extraction du texte:", extractError);
+      return createDefaultTechnicalInfo();
+    }
   }
+}
+
+// Fonction pour créer une structure d'information technique par défaut
+function createDefaultTechnicalInfo(): PartTechnicalInfo {
+  return {
+    function: "Information non disponible",
+    compatibleEquipment: [],
+    installation: "Information non disponible",
+    symptoms: "Information non disponible",
+    maintenance: "Information non disponible",
+    alternatives: [],
+    warnings: ""
+  };
 }
