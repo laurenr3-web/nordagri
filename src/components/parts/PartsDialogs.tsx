@@ -1,96 +1,9 @@
-
 import React from 'react';
-
-// Part details components
-import PartDetailsDialog from '@/components/parts/dialogs/PartDetailsDialog';
-import AddPartDialog from '@/components/parts/dialogs/AddPartDialog';
-
-// Dialog components
-import FilterDialog from '@/components/parts/dialogs/FilterDialog';
-import SortDialog from '@/components/parts/dialogs/SortDialog';
-import OrderDialog from '@/components/parts/dialogs/OrderDialog';
-import AddCategoryDialog from '@/components/parts/dialogs/AddCategoryDialog';
+import { LocalPart, convertToLocalPart } from '@/utils/partTypeConverters';
+import PartManagementDialogs from '@/components/parts/dialogs/PartManagementDialogs';
+import FilterSortDialogs from '@/components/parts/dialogs/FilterSortDialogs';
+import OrderManagementDialog from '@/components/parts/dialogs/OrderManagementDialog';
 import PriceComparison from '@/components/parts/PriceComparison';
-import { Part } from '@/types/Part';
-
-// Définition locale du type Part pour éviter les conflits d'importation
-interface LocalPart {
-  id: string | number;
-  name: string;
-  reference?: string;
-  partNumber: string;
-  description?: string;
-  category: string;
-  manufacturer: string;
-  compatibleWith?: string[] | string;
-  compatibility: string[];
-  inStock?: boolean;
-  quantity?: number;
-  minimumStock?: number;
-  location: string;
-  lastUsed?: Date | null;
-  purchasePrice?: number;
-  estimatedPrice?: number | null;
-  isFromSearch?: boolean;
-  imageUrl?: string | null;
-  stock: number;
-  price: number;
-  reorderPoint: number;
-  image: string;
-}
-
-// Fonction pour convertir Part vers LocalPart
-const convertToLocalPart = (part: any): LocalPart => {
-  return {
-    id: part.id,
-    name: part.name || '',
-    reference: part.reference || '',
-    partNumber: part.partNumber || '',
-    description: part.description || '',
-    category: part.category || '',
-    manufacturer: part.manufacturer || '',
-    compatibleWith: Array.isArray(part.compatibleWith) ? part.compatibleWith : [],
-    compatibility: Array.isArray(part.compatibility) ? part.compatibility : [],
-    inStock: !!part.inStock,
-    quantity: part.quantity,
-    minimumStock: part.minimumStock,
-    location: part.location || '',
-    lastUsed: part.lastUsed,
-    purchasePrice: part.purchasePrice,
-    estimatedPrice: part.estimatedPrice,
-    isFromSearch: part.isFromSearch,
-    imageUrl: part.imageUrl,
-    stock: part.stock || 0,
-    price: part.price || 0,
-    reorderPoint: part.reorderPoint || 0,
-    image: part.image || ''
-  };
-};
-
-// Fonction pour convertir LocalPart vers Part
-const convertToPart = (localPart: LocalPart): Part => {
-  // Conversion explicite vers le type Part
-  return {
-    id: typeof localPart.id === 'string' ? parseInt(localPart.id, 10) : localPart.id as number,
-    name: localPart.name,
-    partNumber: localPart.partNumber || (localPart.reference || ''),
-    category: localPart.category,
-    compatibility: Array.isArray(localPart.compatibility) ? localPart.compatibility : [],
-    manufacturer: localPart.manufacturer,
-    price: localPart.price,
-    stock: localPart.stock,
-    location: localPart.location,
-    reorderPoint: localPart.reorderPoint,
-    image: localPart.image,
-    description: localPart.description,
-    reference: localPart.reference,
-    compatibleWith: Array.isArray(localPart.compatibleWith) ? localPart.compatibleWith : [],
-    estimatedPrice: localPart.estimatedPrice,
-    inStock: localPart.inStock,
-    isFromSearch: localPart.isFromSearch,
-    imageUrl: localPart.imageUrl
-  };
-};
 
 interface PartsDialogsProps {
   // Part and selection
@@ -140,133 +53,73 @@ interface PartsDialogsProps {
   handleDeletePart?: (partId: number | string) => void;
 }
 
-const PartsDialogs: React.FC<PartsDialogsProps> = ({
-  // Part and selection
-  selectedPart,
-  
-  // Dialog states
-  isPartDetailsDialogOpen,
-  isAddPartDialogOpen,
-  isAddCategoryDialogOpen,
-  isFilterDialogOpen,
-  isSortDialogOpen,
-  isOrderDialogOpen,
-  
-  // Dialog setters
-  setIsPartDetailsDialogOpen,
-  setIsAddPartDialogOpen,
-  setIsAddCategoryDialogOpen,
-  setIsFilterDialogOpen,
-  setIsSortDialogOpen,
-  setIsOrderDialogOpen,
-  
-  // Other props
-  manufacturers,
-  filterManufacturers,
-  toggleManufacturerFilter,
-  filterMinPrice,
-  setFilterMinPrice,
-  filterMaxPrice,
-  setFilterMaxPrice,
-  filterInStock,
-  setFilterInStock,
-  resetFilters,
-  applyFilters,
-  sortBy,
-  setSortBy,
-  newCategory,
-  setNewCategory,
-  addNewCategory,
-  orderQuantity,
-  setOrderQuantity,
-  orderNote,
-  setOrderNote,
-  isOrderSuccess,
-  handleOrderSubmit,
-  handleAddPart,
-  handleEditPart,
-  handleDeletePart
-}) => {
-  // Conversion des données si nécessaire
+const PartsDialogs: React.FC<PartsDialogsProps> = (props) => {
+  // Create a wrapper function for handling part edits
   const handleEditPartWrapper = (part: any) => {
-    if (handleEditPart) {
+    if (props.handleEditPart) {
       const localPart = convertToLocalPart(part);
-      handleEditPart(localPart);
+      props.handleEditPart(localPart);
     }
   };
 
-  // Convertir selectedPart au format Part pour les composants qui l'attendent
-  const convertedSelectedPart = selectedPart ? convertToPart(selectedPart) : null;
-
   return (
     <>
-      {/* Part Details Dialog */}
-      <PartDetailsDialog
-        isOpen={isPartDetailsDialogOpen}
-        onOpenChange={setIsPartDetailsDialogOpen}
-        selectedPart={convertedSelectedPart}
-        onEdit={handleEditPartWrapper}
-        onDelete={handleDeletePart}
+      {/* Part Management Dialogs - Details and Add Part */}
+      <PartManagementDialogs
+        selectedPart={props.selectedPart}
+        isPartDetailsDialogOpen={props.isPartDetailsDialogOpen}
+        isAddPartDialogOpen={props.isAddPartDialogOpen}
+        setIsPartDetailsDialogOpen={props.setIsPartDetailsDialogOpen}
+        setIsAddPartDialogOpen={props.setIsAddPartDialogOpen}
+        handleEditPart={props.handleEditPart}
+        handleDeletePart={props.handleDeletePart}
+        handleAddPart={props.handleAddPart}
       />
       
-      {/* Add Part Dialog */}
-      <AddPartDialog
-        isOpen={isAddPartDialogOpen}
-        onOpenChange={setIsAddPartDialogOpen}
-        onSuccess={handleAddPart}
+      {/* Filter, Sort and Category Dialogs */}
+      <FilterSortDialogs
+        isFilterDialogOpen={props.isFilterDialogOpen}
+        isSortDialogOpen={props.isSortDialogOpen}
+        isAddCategoryDialogOpen={props.isAddCategoryDialogOpen}
+        setIsFilterDialogOpen={props.setIsFilterDialogOpen}
+        setIsSortDialogOpen={props.setIsSortDialogOpen}
+        setIsAddCategoryDialogOpen={props.setIsAddCategoryDialogOpen}
+        manufacturers={props.manufacturers}
+        filterManufacturers={props.filterManufacturers}
+        toggleManufacturerFilter={props.toggleManufacturerFilter}
+        filterMinPrice={props.filterMinPrice}
+        setFilterMinPrice={props.setFilterMinPrice}
+        filterMaxPrice={props.filterMaxPrice}
+        setFilterMaxPrice={props.setFilterMaxPrice}
+        filterInStock={props.filterInStock}
+        setFilterInStock={props.setFilterInStock}
+        resetFilters={props.resetFilters}
+        applyFilters={props.applyFilters}
+        sortBy={props.sortBy}
+        setSortBy={props.setSortBy}
+        newCategory={props.newCategory}
+        setNewCategory={props.setNewCategory}
+        addNewCategory={props.addNewCategory}
       />
       
-      {/* Filter Dialog */}
-      <FilterDialog 
-        isOpen={isFilterDialogOpen}
-        onOpenChange={setIsFilterDialogOpen}
-        manufacturers={manufacturers || []}
-        filterManufacturers={filterManufacturers || []}
-        toggleManufacturerFilter={toggleManufacturerFilter || (() => {})}
-        filterMinPrice={filterMinPrice || ''}
-        setFilterMinPrice={setFilterMinPrice || (() => {})}
-        filterMaxPrice={filterMaxPrice || ''}
-        setFilterMaxPrice={setFilterMaxPrice || (() => {})}
-        filterInStock={filterInStock || false}
-        setFilterInStock={setFilterInStock || (() => {})}
-        resetFilters={resetFilters || (() => {})}
-        applyFilters={applyFilters || (() => {})}
-      />
-      
-      {/* Sort Dialog */}
-      <SortDialog 
-        isOpen={isSortDialogOpen}
-        onOpenChange={setIsSortDialogOpen}
-        sortBy={sortBy || ''}
-        setSortBy={setSortBy || (() => {})}
-      />
-      
-      {/* Add Category Dialog */}
-      <AddCategoryDialog 
-        isOpen={isAddCategoryDialogOpen}
-        onOpenChange={setIsAddCategoryDialogOpen}
-        newCategory={newCategory || ''}
-        setNewCategory={setNewCategory || (() => {})}
-        addNewCategory={addNewCategory || (() => {})}
-      />
-      
-      {/* Order Dialog */}
-      <OrderDialog 
-        isOpen={isOrderDialogOpen}
-        onOpenChange={setIsOrderDialogOpen}
-        selectedPart={convertedSelectedPart}
-        orderQuantity={orderQuantity || ''}
-        setOrderQuantity={setOrderQuantity || (() => {})}
-        orderNote={orderNote || ''}
-        setOrderNote={setOrderNote || (() => {})}
-        isOrderSuccess={isOrderSuccess || false}
-        handleOrderSubmit={handleOrderSubmit || (() => {})}
+      {/* Order Management Dialog */}
+      <OrderManagementDialog
+        selectedPart={props.selectedPart}
+        isOrderDialogOpen={props.isOrderDialogOpen}
+        setIsOrderDialogOpen={props.setIsOrderDialogOpen}
+        orderQuantity={props.orderQuantity}
+        setOrderQuantity={props.setOrderQuantity}
+        orderNote={props.orderNote}
+        setOrderNote={props.setOrderNote}
+        isOrderSuccess={props.isOrderSuccess}
+        handleOrderSubmit={props.handleOrderSubmit}
       />
 
-      {selectedPart && (
+      {/* Price Comparison Component */}
+      {props.selectedPart && (
         <PriceComparison
-          partReference={selectedPart.partNumber || selectedPart.reference || ''}
-          partName={selectedPart.name}
+          partReference={props.selectedPart.partNumber || props.selectedPart.reference || ''}
+          partName={props.selectedPart.name}
         />
       )}
     </>
