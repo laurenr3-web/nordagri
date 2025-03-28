@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,7 +45,16 @@ const PartSearch = ({ onAddPartToInventory }: PartSearchProps) => {
   };
 
   const handleAddToInventory = (part: Part) => {
-    onAddPartToInventory(part);
+    // Ensure the part has compatible ID type before adding it to inventory
+    const processedPart: Part = {
+      ...part,
+      // Keep the ID as is since our Part interface now supports string | number
+      id: part.id,
+      // Ensure these fields exist for consistency
+      isFromSearch: true
+    };
+    
+    onAddPartToInventory(processedPart);
     toast.success(`${part.name} ajouté à l'inventaire`);
   };
 
