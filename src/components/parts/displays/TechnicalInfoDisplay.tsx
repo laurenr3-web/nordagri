@@ -1,17 +1,14 @@
 
 import React from 'react';
-import { Info, AlertTriangle, HelpCircle, Settings, RotateCcw, ArrowRightLeft, Wrench } from 'lucide-react';
 import NoResultsFound from './NoResultsFound';
-import { 
-  FunctionSection, 
-  InstallationSection, 
-  SymptomsSection, 
-  MaintenanceSection, 
-  AlternativesSection, 
-  WarningsSection,
-  HelpSection,
-  InfoSection
-} from './TechnicalInfoSections';
+import {
+  FunctionSection,
+  InstallationSection,
+  SymptomsSection,
+  MaintenanceSection,
+  AlternativesSection,
+  WarningsSection
+} from './technical-sections';
 
 interface TechnicalInfoDisplayProps {
   data: any;
