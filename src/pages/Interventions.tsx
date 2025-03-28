@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/ui/sidebar';
@@ -10,9 +10,12 @@ import { toast } from 'sonner';
 
 import { useQuery } from '@tanstack/react-query';
 import { interventionService } from '@/services/supabase/interventionService';
+import { Intervention } from '@/types/Intervention';
 
 const InterventionsPage = () => {
   const [showNewDialog, setShowNewDialog] = React.useState(false);
+  const [selectedIntervention, setSelectedIntervention] = useState<Intervention | null>(null);
+  const [currentView, setCurrentView] = useState('all');
   
   // Fetch interventions
   const {
@@ -35,13 +38,28 @@ const InterventionsPage = () => {
     }
   }, [isError, error]);
 
+  const handleViewDetails = (intervention: Intervention) => {
+    setSelectedIntervention(intervention);
+  };
+
+  const handleStartWork = (intervention: Intervention) => {
+    // Implementation for starting work
+    console.log('Starting work on intervention:', intervention);
+  };
+
+  const handleClearSearch = () => {
+    // Implementation for clearing search
+    console.log('Clearing search');
+  };
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
         <Sidebar className="border-r">
           <Navbar />
           <InterventionsSidebar 
-            onAddNew={() => setShowNewDialog(true)}
+            interventions={interventions}
+            onViewDetails={handleViewDetails}
           />
         </Sidebar>
         
@@ -84,7 +102,13 @@ const InterventionsPage = () => {
                   </button>
                 </div>
               ) : (
-                <InterventionsList interventions={interventions} />
+                <InterventionsList 
+                  filteredInterventions={interventions}
+                  currentView={currentView}
+                  onClearSearch={handleClearSearch}
+                  onViewDetails={handleViewDetails}
+                  onStartWork={handleStartWork}
+                />
               )}
             </div>
           </div>
@@ -94,11 +118,19 @@ const InterventionsPage = () => {
       {showNewDialog && (
         <NewInterventionDialog
           open={showNewDialog}
-          onClose={() => setShowNewDialog(false)}
-          onSuccess={() => {
-            refetch();
-            setShowNewDialog(false);
-            toast.success('Intervention créée avec succès');
+          onOpenChange={setShowNewDialog}
+          onSubmit={(values) => {
+            interventionService.addIntervention(values)
+              .then(() => {
+                refetch();
+                setShowNewDialog(false);
+                toast.success('Intervention créée avec succès');
+              })
+              .catch((err) => {
+                toast.error('Erreur lors de la création de l\'intervention', {
+                  description: err.message
+                });
+              });
           }}
         />
       )}
