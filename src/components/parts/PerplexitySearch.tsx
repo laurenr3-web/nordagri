@@ -99,7 +99,7 @@ const PerplexitySearch = () => {
                 <TabsTrigger value="prices">Comparaison de prix</TabsTrigger>
               </TabsList>
               <TabsContent value="technical">
-                <TechnicalInfoDisplay data={results.technicalInfo} />
+                <TechnicalInfoDisplay data={results.technicalInfo} partReference={searchQuery} />
               </TabsContent>
               <TabsContent value="prices">
                 <PriceComparisonDisplay data={results.priceData} />

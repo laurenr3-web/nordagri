@@ -6,6 +6,7 @@ import { Loader2, RefreshCw, AlertCircle, Wrench, CheckCircle, Info } from 'luci
 import { toast } from 'sonner';
 import { partsTechnicalService, PartTechnicalInfo } from '@/services/perplexity/partsTechnicalService';
 import { checkApiKey } from '@/services/perplexity/client';
+import { TechnicalInfoDisplay } from './displays/TechnicalInfoDisplay';
 
 interface TechnicalInfoTabProps {
   partNumber: string;
@@ -91,14 +92,6 @@ const TechnicalInfoTab = ({ partNumber, partName }: TechnicalInfoTabProps) => {
     );
   }
 
-  if (!technicalInfo) {
-    return (
-      <div className="text-center py-8 text-muted-foreground">
-        Aucune information technique disponible
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -118,108 +111,7 @@ const TechnicalInfoTab = ({ partNumber, partName }: TechnicalInfoTabProps) => {
         </div>
       </div>
       
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Info className="h-5 w-5 mr-2" />
-            Fonction et utilisation
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="whitespace-pre-line">
-            {technicalInfo.function}
-          </p>
-          
-          {technicalInfo.compatibleEquipment && technicalInfo.compatibleEquipment.length > 0 && (
-            <div className="mt-4">
-              <h4 className="font-medium mb-2">Équipements compatibles:</h4>
-              <ul className="list-disc pl-5 space-y-1">
-                {technicalInfo.compatibleEquipment.map((equipment, index) => (
-                  <li key={index}>{equipment}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Wrench className="h-5 w-5 mr-2" />
-            Guide d'installation
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="whitespace-pre-line">
-            {technicalInfo.installation}
-          </div>
-        </CardContent>
-      </Card>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <AlertCircle className="h-5 w-5 mr-2" />
-              Symptômes de défaillance
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="whitespace-pre-line">
-              {technicalInfo.symptoms}
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Wrench className="h-5 w-5 mr-2" />
-              Entretien et maintenance
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="whitespace-pre-line">
-              {technicalInfo.maintenance}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {technicalInfo.alternatives && technicalInfo.alternatives.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <CheckCircle className="h-5 w-5 mr-2" />
-              Alternatives possibles
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="list-disc pl-5 space-y-1">
-              {technicalInfo.alternatives.map((alternative, index) => (
-                <li key={index}>{alternative}</li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
-      
-      {technicalInfo.warnings && (
-        <Card className="border-yellow-200 bg-yellow-50 dark:bg-yellow-950/30 dark:border-yellow-900">
-          <CardHeader>
-            <CardTitle className="flex items-center text-yellow-800 dark:text-yellow-300">
-              <AlertCircle className="h-5 w-5 mr-2" />
-              Avertissements importants
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-yellow-800 dark:text-yellow-300">
-            <div className="whitespace-pre-line">
-              {technicalInfo.warnings}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <TechnicalInfoDisplay data={technicalInfo} partReference={partNumber} />
     </div>
   );
 };
