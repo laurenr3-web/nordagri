@@ -2,7 +2,7 @@
 import React from 'react';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { Button } from '@/components/ui/button';
-import { TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Intervention } from '@/types/Intervention';
 import InterventionCard from './InterventionCard';
 
@@ -35,7 +35,7 @@ const InterventionsList: React.FC<InterventionsListProps> = ({
   };
 
   return (
-    <>
+    <Tabs value={currentView} defaultValue="all">
       <TabsContent value="all" className="mt-6 space-y-4">
         {filteredInterventions.length > 0 ? (
           filteredInterventions.map(intervention => (
@@ -108,7 +108,7 @@ const InterventionsList: React.FC<InterventionsListProps> = ({
           </BlurContainer>
         )}
       </TabsContent>
-    </>
+    </Tabs>
   );
 };
 

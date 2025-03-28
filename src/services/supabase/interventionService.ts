@@ -51,10 +51,12 @@ export const interventionService = {
   
   // Récupérer une intervention par son ID
   async getInterventionById(id: string | number): Promise<Intervention> {
+    const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
+    
     const { data, error } = await supabase
       .from('interventions')
       .select('*')
-      .eq('id', id)
+      .eq('id', numericId)
       .single();
     
     if (error) {
