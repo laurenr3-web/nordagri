@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Part } from '@/types/Part';
 import PartDetails from '@/components/parts/PartDetails';
@@ -19,6 +19,16 @@ const PartDetailsDialog: React.FC<PartDetailsDialogProps> = ({
   onEdit,
   onDelete
 }) => {
+  // Log des informations de débogage
+  useEffect(() => {
+    console.log("PartDetailsDialog - Props:", { 
+      isOpen, 
+      selectedPart: selectedPart?.name,
+      hasEditHandler: !!onEdit,
+      hasDeleteHandler: !!onDelete
+    });
+  }, [isOpen, selectedPart, onEdit, onDelete]);
+
   // Fonctions d'édition et de suppression
   const handleEdit = () => {
     if (selectedPart && onEdit) {
@@ -33,6 +43,14 @@ const PartDetailsDialog: React.FC<PartDetailsDialogProps> = ({
       onDelete(selectedPart.id);
     }
   };
+
+  // Gérer explicitement l'état de dialogue fermé lorsqu'aucune pièce n'est sélectionnée
+  useEffect(() => {
+    if (!selectedPart && isOpen) {
+      console.log("PartDetailsDialog: Aucune pièce sélectionnée, fermeture du dialogue");
+      onOpenChange(false);
+    }
+  }, [selectedPart, isOpen, onOpenChange]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>

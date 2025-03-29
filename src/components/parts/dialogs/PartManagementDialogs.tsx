@@ -26,6 +26,13 @@ const PartManagementDialogs: React.FC<PartManagementDialogsProps> = ({
   handleDeletePart,
   handleAddPart
 }) => {
+  // Debug log pour vérifier les valeurs
+  console.log("PartManagementDialogs - Props:", { 
+    selectedPart: selectedPart?.name, 
+    isPartDetailsDialogOpen, 
+    isAddPartDialogOpen 
+  });
+
   // Wrapper function for editing parts
   const handleEditPartWrapper = (part: any) => {
     if (handleEditPart) {
@@ -34,8 +41,7 @@ const PartManagementDialogs: React.FC<PartManagementDialogsProps> = ({
     }
   };
 
-  // Convert selectedPart to the expected Part type
-  // Use 'as any' to bypass type checking
+  // Convert selectedPart to the expected Part type with null check
   const convertedSelectedPart = selectedPart ? (convertToPart(selectedPart) as any) : null;
 
   return (

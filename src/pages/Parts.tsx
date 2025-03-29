@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { partsData } from '@/data/partsData';
 import { useParts } from '@/hooks/useParts';
@@ -12,6 +11,9 @@ import PartToolbar from '@/components/parts/PartToolbar';
 import PhotoCaptureModal from '@/components/parts/PhotoCaptureModal';
 import { identifyPartFromImage } from '@/services/openai/partVisionService';
 import { toast } from 'sonner';
+import FilterSortDialogs from '@/components/parts/dialogs/FilterSortDialogs';
+import PartManagementDialogs from '@/components/parts/dialogs/PartManagementDialogs';
+import { LocalPart, convertToLocalPart } from '@/utils/partTypeConverters';
 
 // Sample parts data
 const initialPartsData = partsData;
@@ -29,6 +31,23 @@ const Parts = () => {
   useEffect(() => {
     console.log("Données parts mises à jour:", partsHookData.parts);
   }, [partsHookData.parts]);
+  
+  // Debug logging for dialog states
+  useEffect(() => {
+    console.log("États dialogues:", {
+      isPartDetailsDialogOpen: partsHookData.isPartDetailsDialogOpen,
+      isAddPartDialogOpen: partsHookData.isAddPartDialogOpen,
+      isFilterDialogOpen: partsHookData.isFilterDialogOpen,
+      isSortDialogOpen: partsHookData.isSortDialogOpen,
+      selectedPart: partsHookData.selectedPart?.name
+    });
+  }, [
+    partsHookData.isPartDetailsDialogOpen,
+    partsHookData.isAddPartDialogOpen,
+    partsHookData.isFilterDialogOpen,
+    partsHookData.isSortDialogOpen,
+    partsHookData.selectedPart
+  ]);
 
   const handleAddPartFromSearch = (part: Part) => {
     // Pré-traiter la pièce avant de l'ajouter à l'inventaire
@@ -87,6 +106,11 @@ const Parts = () => {
       setIsIdentifying(false);
     }
   };
+
+  // Conversion du selectedPart pour éviter les problèmes de type
+  const selectedPartAsLocalPart = partsHookData.selectedPart 
+    ? (convertToLocalPart(partsHookData.selectedPart) as LocalPart) 
+    : null;
 
   return (
     <SidebarProvider>
@@ -175,6 +199,42 @@ const Parts = () => {
               <PartSearch onAddPartToInventory={handleAddPartFromSearch} />
             </TabsContent>
           </Tabs>
+          
+          {/* Ajout explicite des dialogues pour éviter les problèmes de rendu */}
+          <FilterSortDialogs
+            isFilterDialogOpen={partsHookData.isFilterDialogOpen}
+            isSortDialogOpen={partsHookData.isSortDialogOpen}
+            isAddCategoryDialogOpen={partsHookData.isAddCategoryDialogOpen}
+            setIsFilterDialogOpen={partsHookData.setIsFilterDialogOpen}
+            setIsSortDialogOpen={partsHookData.setIsSortDialogOpen}
+            setIsAddCategoryDialogOpen={partsHookData.setIsAddCategoryDialogOpen}
+            manufacturers={partsHookData.manufacturers}
+            filterManufacturers={partsHookData.filterManufacturers}
+            toggleManufacturerFilter={partsHookData.toggleManufacturerFilter}
+            filterMinPrice={partsHookData.filterMinPrice}
+            setFilterMinPrice={partsHookData.setFilterMinPrice}
+            filterMaxPrice={partsHookData.filterMaxPrice}
+            setFilterMaxPrice={partsHookData.setFilterMaxPrice}
+            filterInStock={partsHookData.filterInStock}
+            setFilterInStock={partsHookData.setFilterInStock}
+            resetFilters={partsHookData.clearFilters}
+            sortBy={partsHookData.sortBy}
+            setSortBy={partsHookData.setSortBy}
+            newCategory={partsHookData.newCategory}
+            setNewCategory={partsHookData.setNewCategory}
+            addNewCategory={partsHookData.addNewCategory}
+          />
+          
+          <PartManagementDialogs
+            selectedPart={selectedPartAsLocalPart}
+            isPartDetailsDialogOpen={partsHookData.isPartDetailsDialogOpen}
+            isAddPartDialogOpen={partsHookData.isAddPartDialogOpen}
+            setIsPartDetailsDialogOpen={partsHookData.setIsPartDetailsDialogOpen}
+            setIsAddPartDialogOpen={partsHookData.setIsAddPartDialogOpen}
+            handleEditPart={partsHookData.handleUpdatePart}
+            handleDeletePart={partsHookData.handleDeletePart}
+            handleAddPart={partsHookData.handleAddPart}
+          />
         </div>
       </div>
       

@@ -34,7 +34,7 @@ export const usePartsActions = (
     }
   };
 
-  // Function to open part details
+  // Function to open part details - modified to fix event issues
   const openPartDetails = (part: Part) => {
     if (!part) {
       toast.error("Erreur", {
@@ -43,15 +43,13 @@ export const usePartsActions = (
       return;
     }
     
-    // Utiliser un délai court pour éviter les problèmes de propagation d'événements
-    setTimeout(() => {
-      console.log("Ouverture des détails pour la pièce:", part.name);
-      partsDialogs.setSelectedPart(part);
-      partsDialogs.setIsPartDetailsDialogOpen(true);
-    }, 0);
+    // Suppression du setTimeout qui peut causer des problèmes
+    console.log("Ouverture des détails pour la pièce:", part.name);
+    partsDialogs.setSelectedPart(part);
+    partsDialogs.setIsPartDetailsDialogOpen(true);
   };
 
-  // Function to open order dialog
+  // Function to open order dialog - also modified to fix event issues
   const openOrderDialog = (part: Part) => {
     if (!part) {
       toast.error("Erreur", {
@@ -60,12 +58,10 @@ export const usePartsActions = (
       return;
     }
     
-    // Utiliser un délai court pour éviter les problèmes de propagation d'événements
-    setTimeout(() => {
-      console.log("Ouverture du dialogue de commande pour:", part.name);
-      partsDialogs.setSelectedPart(part);
-      partsDialogs.setIsOrderDialogOpen(true);
-    }, 0);
+    // Suppression du setTimeout qui peut causer des problèmes
+    console.log("Ouverture du dialogue de commande pour:", part.name);
+    partsDialogs.setSelectedPart(part);
+    partsDialogs.setIsOrderDialogOpen(true);
   };
 
   return {
