@@ -2,8 +2,8 @@
 import OpenAI from 'openai';
 import { toast } from 'sonner';
 
-// Récupérer la clé API depuis les variables d'environnement
-const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+// Récupérer la clé API depuis les variables d'environnement avec une valeur par défaut vide
+const apiKey = import.meta.env.VITE_OPENAI_API_KEY || '';
 
 // Client OpenAI avec configuration de base
 export const openai = new OpenAI({
@@ -16,8 +16,8 @@ export const checkApiKey = (): boolean => {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
   if (!apiKey) {
     console.error('⚠️ Clé API OpenAI manquante');
-    toast.error('Clé API OpenAI manquante', {
-      description: 'Configurez votre clé API OpenAI dans .env.development'
+    toast.error('Fonctionnalité limitée', {
+      description: 'L\'identification des pièces par photo nécessite une clé API OpenAI. Contactez l\'administrateur.'
     });
     return false;
   }
