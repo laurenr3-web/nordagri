@@ -3,25 +3,12 @@ import React from 'react';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { Button } from '@/components/ui/button';
 import { AlertCircle } from 'lucide-react';
-
-interface Part {
-  id: number;
-  name: string;
-  partNumber: string;
-  category: string;
-  compatibility: string[];
-  manufacturer: string;
-  price: number;
-  stock: number;
-  location: string;
-  reorderPoint: number;
-  image: string;
-}
+import { Part } from '@/types/Part';
 
 interface PartsListProps {
   parts: Part[];
   openPartDetails: (part: Part) => void;
-  openOrderDialog: (part: Part) => void;
+  openOrderDialog?: (part: Part) => void;
 }
 
 const PartsList: React.FC<PartsListProps> = ({ parts, openPartDetails, openOrderDialog }) => {
@@ -79,15 +66,17 @@ const PartsList: React.FC<PartsListProps> = ({ parts, openPartDetails, openOrder
                     >
                       Details
                     </Button>
-                    <Button 
-                      variant="default" 
-                      size="sm" 
-                      className="h-8 px-2" 
-                      onClick={() => openOrderDialog(part)}
-                      aria-label="Commander cette pièce"
-                    >
-                      Order
-                    </Button>
+                    {openOrderDialog && (
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        className="h-8 px-2" 
+                        onClick={() => openOrderDialog(part)}
+                        aria-label="Commander cette pièce"
+                      >
+                        Order
+                      </Button>
+                    )}
                   </div>
                 </td>
               </tr>

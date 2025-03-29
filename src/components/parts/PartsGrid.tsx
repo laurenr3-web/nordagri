@@ -4,25 +4,12 @@ import { BlurContainer } from '@/components/ui/blur-container';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle } from 'lucide-react';
-
-interface Part {
-  id: number;
-  name: string;
-  partNumber: string;
-  category: string;
-  compatibility: string[];
-  manufacturer: string;
-  price: number;
-  stock: number;
-  location: string;
-  reorderPoint: number;
-  image: string;
-}
+import { Part } from '@/types/Part';
 
 interface PartsGridProps {
   parts: Part[];
   openPartDetails: (part: Part) => void;
-  openOrderDialog: (part: Part) => void;
+  openOrderDialog?: (part: Part) => void;
 }
 
 const PartsGrid: React.FC<PartsGridProps> = ({ parts, openPartDetails, openOrderDialog }) => {
@@ -100,19 +87,27 @@ const PartsGrid: React.FC<PartsGridProps> = ({ parts, openPartDetails, openOrder
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => openPartDetails(part)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openPartDetails(part);
+                }}
                 aria-label="Voir les détails de la pièce"
               >
                 Details
               </Button>
-              <Button 
-                variant="default" 
-                size="sm" 
-                onClick={() => openOrderDialog(part)}
-                aria-label="Commander cette pièce"
-              >
-                Order
-              </Button>
+              {openOrderDialog && (
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openOrderDialog(part);
+                  }}
+                  aria-label="Commander cette pièce"
+                >
+                  Order
+                </Button>
+              )}
             </div>
           </div>
         </BlurContainer>

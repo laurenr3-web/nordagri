@@ -181,13 +181,15 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
 
       {currentView === 'grid' ? (
         <PartsGrid 
-          parts={filteredParts as Part[]} 
-          onSelectPart={openPartDetails} 
+          parts={filteredParts} 
+          openPartDetails={openPartDetails} 
+          openOrderDialog={openOrderDialog}
         />
       ) : (
         <PartsList 
-          parts={filteredParts as Part[]} 
-          onSelectPart={openPartDetails} 
+          parts={filteredParts} 
+          openPartDetails={openPartDetails} 
+          openOrderDialog={openOrderDialog}
         />
       )}
     </div>
