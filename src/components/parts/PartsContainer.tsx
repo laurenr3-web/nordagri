@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -181,9 +180,15 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
       </div>
 
       {currentView === 'grid' ? (
-        <PartsGrid parts={filteredParts} onSelectPart={openPartDetails} />
+        <PartsGrid 
+          parts={filteredParts as Part[]} 
+          onSelectPart={openPartDetails} 
+        />
       ) : (
-        <PartsList parts={filteredParts} onSelectPart={openPartDetails} />
+        <PartsList 
+          parts={filteredParts as Part[]} 
+          onSelectPart={openPartDetails} 
+        />
       )}
     </div>
   );

@@ -6,7 +6,7 @@ import { ensureNumber } from '@/utils/typeAdapters';
 
 interface PartReorderInfoProps {
   part: Part;
-  onOrder: () => void;
+  onOrder?: () => void;
 }
 
 const PartReorderInfo: React.FC<PartReorderInfoProps> = ({ part, onOrder }) => {

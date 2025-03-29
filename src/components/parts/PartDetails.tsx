@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -142,7 +141,12 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
 
       <PartCompatibility compatibility={part.compatibility} />
 
-      <PartReorderInfo part={part} />
+      <PartReorderInfo 
+        part={part} 
+        onOrder={() => {
+          // Handle order logic if needed
+        }}
+      />
 
       {/* Price Comparison Component */}
       <PartPriceComparison 
