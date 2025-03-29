@@ -28,8 +28,9 @@ supabase.auth.getSession().then(({ data, error }) => {
 
 export const checkSupabaseConnection = async (): Promise<boolean> => {
   try {
-    // Remplacer 'user_profiles' par 'profiles' qui existe dans le schéma
-    const { data, error } = await supabase.from('profiles').select('id').limit(1);
+    // Essayer une requête simple pour vérifier la connexion
+    // Utilisons parts_inventory au lieu de user_profiles qui n'existe pas
+    const { data, error } = await supabase.from('parts_inventory').select('id').limit(1);
     
     if (error) {
       console.error('Erreur de connexion Supabase:', error);
