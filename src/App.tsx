@@ -12,6 +12,7 @@ import Equipment from '@/pages/Equipment';
 import EquipmentDetail from '@/pages/EquipmentDetail';
 import Maintenance from '@/pages/Maintenance';
 import Parts from '@/pages/Parts';
+import EmergencyParts from '@/pages/EmergencyParts'; // Ajout de la page d'urgence
 import Interventions from '@/pages/Interventions';
 import Dashboard from '@/pages/Dashboard';
 import Settings from '@/pages/Settings';
@@ -49,6 +50,12 @@ function App() {
           <Route path="/parts" element={
             <ProtectedRoute>
               <Parts />
+            </ProtectedRoute>
+          } />
+          {/* Route pour la page d'urgence */}
+          <Route path="/emergency-parts" element={
+            <ProtectedRoute>
+              <EmergencyParts />
             </ProtectedRoute>
           } />
           <Route path="/interventions" element={
