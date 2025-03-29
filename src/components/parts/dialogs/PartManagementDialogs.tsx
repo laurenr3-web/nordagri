@@ -36,8 +36,17 @@ const PartManagementDialogs: React.FC<PartManagementDialogsProps> = ({
   // Wrapper function for editing parts
   const handleEditPartWrapper = (part: any) => {
     if (handleEditPart) {
+      console.log("PartManagementDialogs: Édition de la pièce", part?.name);
       const localPart = convertToLocalPart(part);
       handleEditPart(localPart);
+    }
+  };
+
+  // Wrapper function for deleting parts
+  const handleDeletePartWrapper = (partId: number | string) => {
+    if (handleDeletePart) {
+      console.log("PartManagementDialogs: Suppression de la pièce", partId);
+      handleDeletePart(partId);
     }
   };
 
@@ -50,8 +59,8 @@ const PartManagementDialogs: React.FC<PartManagementDialogsProps> = ({
         isOpen={isPartDetailsDialogOpen}
         onOpenChange={setIsPartDetailsDialogOpen}
         selectedPart={convertedSelectedPart}
-        onEdit={handleEditPartWrapper}
-        onDelete={handleDeletePart}
+        onEdit={handleEditPart ? handleEditPartWrapper : undefined}
+        onDelete={handleDeletePart ? handleDeletePartWrapper : undefined}
       />
       
       <AddPartDialog

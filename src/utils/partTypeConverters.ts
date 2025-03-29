@@ -27,9 +27,38 @@ export interface LocalPart {
   image: string;
 }
 
-// Fonction pour convertir Part vers LocalPart
+// Fonction pour convertir Part vers LocalPart avec meilleure gestion des cas null
 export const convertToLocalPart = (part: any): LocalPart => {
   console.log("Conversion Part -> LocalPart:", part?.name);
+  
+  if (!part) {
+    console.error("Erreur de conversion: part est null ou undefined");
+    // Retourner un objet par défaut pour éviter les erreurs
+    return {
+      id: '',
+      name: '',
+      reference: '',
+      partNumber: '',
+      description: '',
+      category: '',
+      manufacturer: '',
+      compatibleWith: [],
+      compatibility: [],
+      inStock: false,
+      quantity: 0,
+      minimumStock: 0,
+      location: '',
+      lastUsed: null,
+      purchasePrice: 0,
+      estimatedPrice: null,
+      isFromSearch: false,
+      imageUrl: null,
+      stock: 0,
+      price: 0,
+      reorderPoint: 0,
+      image: ''
+    };
+  }
   
   return {
     id: part.id,
@@ -59,9 +88,27 @@ export const convertToLocalPart = (part: any): LocalPart => {
   };
 };
 
-// Fonction pour convertir LocalPart vers Part
+// Fonction pour convertir LocalPart vers Part avec meilleure gestion des valeurs par défaut
 export const convertToPart = (localPart: LocalPart): Part => {
   console.log("Conversion LocalPart -> Part:", localPart?.name);
+  
+  if (!localPart) {
+    console.error("Erreur de conversion: localPart est null ou undefined");
+    // Retourner un objet Part par défaut pour éviter les erreurs
+    return {
+      id: '',
+      name: '',
+      partNumber: '',
+      category: '',
+      compatibility: [],
+      manufacturer: '',
+      price: 0,
+      stock: 0,
+      location: '',
+      reorderPoint: 0,
+      image: ''
+    };
+  }
   
   // Conversion explicite vers le type Part avec des valeurs par défaut pour éviter les erreurs
   return {

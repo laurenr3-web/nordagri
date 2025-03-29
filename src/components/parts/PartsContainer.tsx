@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { PartsHeader, PartsContent, LoadingState, ErrorState, EmptyState } from './container';
 import PartDetailsExtended from './PartDetailsExtended';
 import { Part } from '@/types/Part';
@@ -82,10 +82,16 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
   openPartDetails,
   openOrderDialog
 }) => {
+  // Log pour suivre l'état de selectedPart
+  useEffect(() => {
+    console.log("[PartsContainer] selectedPart mis à jour:", selectedPart?.name);
+  }, [selectedPart]);
+  
   console.log("[PartsContainer] Rendu avec selectedPart:", selectedPart?.name);
   
   // Si une pièce est sélectionnée, afficher les détails
   if (selectedPart) {
+    console.log("[PartsContainer] Affichage du composant PartDetailsExtended pour:", selectedPart.name);
     return (
       <PartDetailsExtended
         part={selectedPart}

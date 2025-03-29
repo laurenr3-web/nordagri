@@ -112,6 +112,11 @@ const Parts = () => {
     ? (convertToLocalPart(partsHookData.selectedPart) as LocalPart) 
     : null;
 
+  // Ajout d'un log pour déboguer l'état de selectedPart
+  useEffect(() => {
+    console.log("Parts: selectedPart mis à jour:", partsHookData.selectedPart?.name);
+  }, [partsHookData.selectedPart]);
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
@@ -200,7 +205,7 @@ const Parts = () => {
             </TabsContent>
           </Tabs>
           
-          {/* Ajout explicite des dialogues pour éviter les problèmes de rendu */}
+          {/* Render dialogs explicitly to ensure they're always in the DOM */}
           <FilterSortDialogs
             isFilterDialogOpen={partsHookData.isFilterDialogOpen}
             isSortDialogOpen={partsHookData.isSortDialogOpen}

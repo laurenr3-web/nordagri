@@ -41,8 +41,13 @@ const PartDetailsDialog: React.FC<PartDetailsDialogProps> = ({
     if (selectedPart && onDelete) {
       console.log("PartDetailsDialog: Suppression de la pièce", selectedPart.name);
       onDelete(selectedPart.id);
+      // Fermer le dialogue après la suppression
+      onOpenChange(false);
     }
   };
+
+  // Éviter les erreurs si une pièce est sélectionnée puis désélectionnée pendant que le dialogue est ouvert
+  const isValidToRender = isOpen && selectedPart;
 
   // Gérer explicitement l'état de dialogue fermé lorsqu'aucune pièce n'est sélectionnée
   useEffect(() => {
@@ -53,7 +58,7 @@ const PartDetailsDialog: React.FC<PartDetailsDialogProps> = ({
   }, [selectedPart, isOpen, onOpenChange]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isValidToRender} onOpenChange={onOpenChange}>
       <DialogContent 
         className="sm:max-w-lg max-h-[90vh] overflow-y-auto"
       >

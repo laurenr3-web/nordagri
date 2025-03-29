@@ -43,10 +43,12 @@ export const usePartsActions = (
       return;
     }
     
-    // Suppression du setTimeout qui peut causer des problèmes
     console.log("Ouverture des détails pour la pièce:", part.name);
-    partsDialogs.setSelectedPart(part);
-    partsDialogs.setIsPartDetailsDialogOpen(true);
+    // Utiliser un délai minimal pour résoudre les problèmes de propagation d'événements
+    setTimeout(() => {
+      partsDialogs.setSelectedPart(part);
+      // Ne pas définir isPartDetailsDialogOpen - cela est géré par le conteneur
+    }, 10);
   };
 
   // Function to open order dialog - also modified to fix event issues
@@ -58,10 +60,12 @@ export const usePartsActions = (
       return;
     }
     
-    // Suppression du setTimeout qui peut causer des problèmes
     console.log("Ouverture du dialogue de commande pour:", part.name);
-    partsDialogs.setSelectedPart(part);
-    partsDialogs.setIsOrderDialogOpen(true);
+    // Utiliser un délai minimal pour résoudre les problèmes de propagation d'événements
+    setTimeout(() => {
+      partsDialogs.setSelectedPart(part);
+      partsDialogs.setIsOrderDialogOpen(true);
+    }, 10);
   };
 
   return {
