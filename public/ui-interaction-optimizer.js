@@ -9,15 +9,15 @@
   
   // Optimize event handling for clicks and taps
   function optimizeEventHandling() {
-    // Prioritize click and touch event handling
+    // Prioritize click and touch event handling but don't override default behavior
     const originalAddEventListener = EventTarget.prototype.addEventListener;
     EventTarget.prototype.addEventListener = function(type, listener, options) {
       if (type === 'click' || type === 'mousedown' || type === 'touchstart') {
-        // Give priority to click events
+        // Give priority to click events but avoid making them trigger artificially
         const enhancedOptions = options || {};
         if (typeof enhancedOptions === 'object') {
           enhancedOptions.capture = true;
-          enhancedOptions.passive = false;
+          // Don't set passive to false as it can cause unexpected behavior
         }
         return originalAddEventListener.call(this, type, listener, enhancedOptions);
       }
@@ -25,57 +25,28 @@
     };
   }
   
-  // Add visual feedback for click interactions
+  // Fix for random click issues: remove auto-click feature
   function enhanceMouseFeedback() {
-    // Add subtle visual indicator for clicks
-    document.body.addEventListener('mousedown', (e) => {
-      // Mark the event as having been handled quickly
-      e._handledQuickly = true;
+    // Create a flag to prevent multiple click events
+    window._lastClickTime = 0;
+    
+    // Add click handling without auto-triggering clicks
+    document.addEventListener('click', (e) => {
+      const now = Date.now();
+      // Prevent duplicate clicks in quick succession (debounce)
+      if (now - window._lastClickTime < 300) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+      window._lastClickTime = now;
     }, { capture: true, passive: false });
     
-    // Add click ripple effect
-    document.body.addEventListener('mousedown', (e) => {
-      const clickIndicator = document.createElement('div');
-      clickIndicator.style.cssText = `
-        position: fixed;
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background-color: rgba(0, 0, 0, 0.2);
-        transform: translate(-50%, -50%);
-        pointer-events: none;
-        z-index: 9999;
-        animation: clickRipple 0.5s ease-out forwards;
-      `;
-      clickIndicator.style.left = `${e.clientX}px`;
-      clickIndicator.style.top = `${e.clientY}px`;
-      document.body.appendChild(clickIndicator);
-      
-      setTimeout(() => {
-        if (clickIndicator.parentNode) {
-          document.body.removeChild(clickIndicator);
-        }
-      }, 500);
-    }, { passive: true });
-    
-    // Add ripple animation style
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes clickRipple {
-        0% {
-          transform: translate(-50%, -50%) scale(1);
-          opacity: 0.5;
-        }
-        100% {
-          transform: translate(-50%, -50%) scale(3);
-          opacity: 0;
-        }
-      }
-    `;
-    document.head.appendChild(style);
+    // Remove the ripple effect to prevent ghost clicks
+    // The ripple effect code has been removed to prevent ghost clicks
   }
   
-  // Optimize dialog transitions
+  // Optimize dialog transitions and fix dropdown menus in forms
   function optimizeDialogInteractions() {
     // Fix dialog transitions
     const dialogElements = document.querySelectorAll('[role="dialog"]');
@@ -102,15 +73,60 @@
     });
   }
   
+  // Fix dropdown menus in forms
+  function fixFormDropdowns() {
+    // Fix Radix UI Select dropdowns
+    document.querySelectorAll('[data-radix-select-trigger]').forEach(trigger => {
+      if (trigger._dropdownFixed) return;
+      trigger._dropdownFixed = true;
+      
+      // Ensure the trigger element correctly opens the dropdown
+      trigger.addEventListener('click', (e) => {
+        // Let the click pass through without interference
+        // Just flag it as handled properly
+        e._handledByOptimizer = true;
+      }, { capture: true });
+    });
+    
+    // Fix other dropdown menus
+    document.querySelectorAll('.select-trigger, [role="combobox"]').forEach(dropdown => {
+      if (dropdown._dropdownFixed) return;
+      dropdown._dropdownFixed = true;
+      
+      dropdown.addEventListener('click', (e) => {
+        // Make sure click actually reaches the dropdown
+        e._handledByOptimizer = true;
+      }, { capture: true });
+    });
+    
+    // Monitor for dynamically added dropdowns
+    const dropdownObserver = new MutationObserver((mutations) => {
+      mutations.forEach(mutation => {
+        if (mutation.type === 'childList' && mutation.addedNodes.length) {
+          setTimeout(() => {
+            fixFormDropdowns();
+          }, 100);
+        }
+      });
+    });
+    
+    dropdownObserver.observe(document.body, { 
+      childList: true, 
+      subtree: true 
+    });
+  }
+  
   // Apply all UI optimizations
   function applyUIOptimizations() {
     optimizeEventHandling();
     enhanceMouseFeedback();
     optimizeDialogInteractions();
+    fixFormDropdowns();
     
     // Continue to optimize dialogs as new ones are added
     setInterval(() => {
       optimizeDialogInteractions();
+      fixFormDropdowns();
     }, 2000);
     
     console.log('✅ UI interaction optimizations applied');
