@@ -73,9 +73,9 @@ export const useOpenAISearch = () => {
         Basez-vous sur des informations précises pour cette référence. Si vous n'êtes pas certain, analysez le format de la référence pour déterminer le fabricant probable et le type de pièce.
       `;
       
-      // Utiliser gpt-4o pour des résultats plus précis
+      // Utiliser gpt-3.5-turbo pour des résultats plus accessibles
       const response = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-3.5-turbo",
         messages: [
           {
             role: "system",
