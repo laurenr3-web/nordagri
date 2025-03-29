@@ -1,6 +1,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
+import { toast } from '@/hooks/use-toast';
 
 // Utiliser les variables d'environnement ou les valeurs par défaut pour assurer le bon fonctionnement
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://cagmgtmeljxykyngxxmj.supabase.co";
@@ -24,3 +25,31 @@ supabase.auth.getSession().then(({ data, error }) => {
     console.log('✅ Successfully connected to Supabase');
   }
 });
+
+export const checkSupabaseConnection = async (): Promise<boolean> => {
+  try {
+    // Essayer une requête simple pour vérifier la connexion
+    const { data, error } = await supabase.from('user_profiles').select('id').limit(1);
+    
+    if (error) {
+      console.error('Erreur de connexion Supabase:', error);
+      toast({
+        title: 'Problème de connexion à la base de données',
+        description: "Certaines fonctionnalités peuvent être limitées. Réessayez plus tard.",
+        variant: "destructive"
+      });
+      return false;
+    }
+    
+    console.log('✅ Connexion Supabase réussie');
+    return true;
+  } catch (err) {
+    console.error('Exception lors du test de connexion Supabase:', err);
+    toast({
+      title: 'Problème de connexion à la base de données',
+      description: "Certaines fonctionnalités peuvent être limitées. Réessayez plus tard.",
+      variant: "destructive"
+    });
+    return false;
+  }
+};
