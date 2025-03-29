@@ -1,76 +1,66 @@
-
 import React from 'react';
-import {
-  LayoutDashboard,
-  Tractor,
-  Wrench,
-  Package,
-  ClipboardList,
-} from 'lucide-react';
-import { NavLink } from 'react-router-dom';
-import { useSidebar } from '@/components/ui/sidebar';
+import { Link, useLocation } from 'react-router-dom';
+import { Home, BarChart, Settings, Truck, Package, ListChecks } from 'lucide-react';
 
-interface NavItem {
-  title: string;
-  href: string;
-  icon: React.ForwardRefExoticComponent<
-    React.PropsWithoutRef<React.SVGProps<SVGSVGElement>> & {
-      title?: string | undefined;
-      titleId?: string | undefined;
-    } & React.RefAttributes<SVGSVGElement>
-  >;
-}
-
-export const navItems: NavItem[] = [
+export const navItems = [
   {
-    title: "Tableau de bord",
-    href: "/",
-    icon: LayoutDashboard,
+    href: '/',
+    title: 'Dashboard',
+    icon: Home,
   },
   {
-    title: "Équipements",
-    href: "/equipment",
-    icon: Tractor,
+    href: '/equipment',
+    title: 'Equipment',
+    icon: Truck,
   },
   {
-    title: "Maintenance",
-    href: "/maintenance",
-    icon: Wrench,
+    href: '/maintenance',
+    title: 'Maintenance',
+    icon: ListChecks,
   },
   {
-    title: "Pièces",
-    href: "/parts",
+    href: '/parts',
+    title: 'Parts',
     icon: Package,
   },
   {
-    title: "Interventions",
-    href: "/interventions",
-    icon: ClipboardList,
+    href: '/interventions',
+    title: 'Interventions',
+    icon: BarChart,
+  },
+  {
+    href: '/settings',
+    title: 'Settings',
+    icon: Settings,
   },
 ];
 
-const Navbar: React.FC = () => {
-  const { openMobile, setOpenMobile } = useSidebar();
-
+const Navbar = () => {
+  const location = useLocation();
+  
   return (
-    <nav className="flex flex-col space-y-0.5">
-      {navItems.map((item) => (
-        <NavLink
-          key={item.href}
-          to={item.href}
-          className={({ isActive }) =>
-            `group flex items-center space-x-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-secondary hover:text-foreground ${
-              isActive
-                ? 'bg-secondary text-foreground font-bold'
-                : 'text-muted-foreground'
-            }`
-          }
-          onClick={() => openMobile ? setOpenMobile(false) : null}
-        >
-          <item.icon className="h-4 w-4" />
-          <span>{item.title}</span>
-        </NavLink>
-      ))}
+    <nav className="w-full">
+      <div className="px-4 py-4">
+        <div className="text-xl font-bold mb-6">Agri ERP Insight</div>
+        <div className="space-y-1">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                to={item.href}
+                className={`flex items-center px-3 py-2 text-sm rounded-md transition-colors ${
+                  isActive 
+                    ? 'bg-secondary text-secondary-foreground' 
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                }`}
+              >
+                {item.title}
+              </Link>
+            );
+          })}
+        </div>
+      </div>
     </nav>
   );
 };

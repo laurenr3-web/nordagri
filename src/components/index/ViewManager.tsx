@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import Dashboard from './Dashboard';
 import CalendarView from './CalendarView';
@@ -19,39 +19,9 @@ interface ViewManagerProps {
 }
 
 const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) => {
-  const navigate = useNavigate();
-
+  // Remplacer l'utilisation de navigate par des liens directs
   const handleStatsCardClick = (type: string) => {
-    switch (type) {
-      case 'Active Equipment':
-        navigate('/equipment');
-        break;
-      case 'Maintenance Tasks':
-        navigate('/maintenance');
-        break;
-      case 'Parts Inventory':
-        navigate('/parts');
-        break;
-      case 'Field Interventions':
-        navigate('/interventions');
-        break;
-    }
-  };
-
-  const handleEquipmentViewAllClick = () => {
-    navigate('/equipment');
-  };
-
-  const handleMaintenanceCalendarClick = () => {
-    navigate('/maintenance');
-  };
-
-  const handleTasksAddClick = () => {
-    navigate('/maintenance');
-  };
-  
-  const handleEquipmentClick = (id: number) => {
-    navigate(`/equipment/${id}`);
+    // This function will be kept but handled by links instead of navigation
   };
 
   return (
@@ -65,11 +35,11 @@ const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) 
           upcomingTasks={upcomingTasks}
           currentMonth={currentMonth}
           handleStatsCardClick={handleStatsCardClick}
-          handleEquipmentViewAllClick={handleEquipmentViewAllClick}
-          handleMaintenanceCalendarClick={handleMaintenanceCalendarClick}
-          handleAlertsViewAllClick={() => {}} // This will be handled in the parent
-          handleTasksAddClick={handleTasksAddClick}
-          handleEquipmentClick={handleEquipmentClick}
+          handleEquipmentViewAllClick={() => {}}  
+          handleMaintenanceCalendarClick={() => {}}
+          handleAlertsViewAllClick={() => {}}
+          handleTasksAddClick={() => {}}
+          handleEquipmentClick={(id) => {}}
         />
       </TabsContent>
       

@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import StatsSection from './StatsSection';
 import EquipmentSection from './EquipmentSection';
 import MaintenanceSection from './MaintenanceSection';
@@ -41,12 +42,24 @@ const Dashboard: React.FC<DashboardProps> = ({
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Équipements</h2>
+            <Link to="/equipment" className="text-primary text-sm">
+              Voir tout
+            </Link>
+          </div>
           <EquipmentSection 
             equipment={equipmentData} 
             onViewAllClick={handleEquipmentViewAllClick}
             onEquipmentClick={handleEquipmentClick}
           />
           
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Maintenance</h2>
+            <Link to="/maintenance" className="text-primary text-sm">
+              Voir calendrier
+            </Link>
+          </div>
           <MaintenanceSection 
             events={maintenanceEvents} 
             month={currentMonth} 
@@ -55,11 +68,23 @@ const Dashboard: React.FC<DashboardProps> = ({
         </div>
         
         <div className="space-y-8">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Alertes</h2>
+            <Link to="/?view=alerts" className="text-primary text-sm">
+              Voir tout
+            </Link>
+          </div>
           <AlertsSection 
             alerts={alertItems} 
             onViewAllClick={handleAlertsViewAllClick} 
           />
           
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Tâches</h2>
+            <Link to="/maintenance" className="text-primary text-sm">
+              Ajouter
+            </Link>
+          </div>
           <TasksSection 
             tasks={upcomingTasks} 
             onAddClick={handleTasksAddClick} 
