@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 const Parts = () => {
   // Add mounting check to help with debugging
   useEffect(() => {
-    console.log("Parts component mounted with context provider");
+    console.log("Parts component mounted");
     return () => {
       console.log("Parts component unmounted");
     };
