@@ -19,6 +19,19 @@ const PartDetailsDialog: React.FC<PartDetailsDialogProps> = ({
   onEdit,
   onDelete
 }) => {
+  // Create wrapper functions that will pass the necessary arguments
+  const handleEdit = () => {
+    if (selectedPart && onEdit) {
+      onEdit(selectedPart);
+    }
+  };
+
+  const handleDelete = () => {
+    if (selectedPart && onDelete) {
+      onDelete(selectedPart.id);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent 
@@ -34,8 +47,8 @@ const PartDetailsDialog: React.FC<PartDetailsDialogProps> = ({
         {selectedPart && (
           <PartDetails 
             part={selectedPart} 
-            onEdit={onEdit}
-            onDelete={onDelete}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
             onDialogClose={() => onOpenChange(false)}
           />
         )}
