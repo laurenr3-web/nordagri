@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -126,6 +127,8 @@
 @layer base {
   * {
     @apply border-border;
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   body {
@@ -230,4 +233,28 @@
     -webkit-user-select: all;
     user-select: all;
   }
+}
+
+/* Correction pour les éléments de formulaire */
+input, textarea, select, [contentEditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Correction pour l'accessibilité des éléments interactifs */
+button:not([title]),
+[role="button"]:not([title]) {
+  position: relative;
+}
+
+/* Amélioration pour la visualisation des éléments focalisés */
+:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* Styles pour améliorer la visibilité des boutons actifs */
+button:active,
+[role="button"]:active {
+  transform: translateY(1px);
 }
