@@ -3,22 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { EquipmentCard } from '@/components/dashboard/EquipmentCard';
 import { DashboardSection } from '@/components/dashboard/DashboardSection';
-
-interface EquipmentItem {
-  id: number;
-  name: string;
-  type: string;
-  image: string;
-  status: 'operational' | 'maintenance' | 'repair';
-  usage: {
-    hours: number;
-    target: number;
-  };
-  nextService: {
-    type: string;
-    due: string;
-  };
-}
+import { EquipmentItem } from '@/hooks/dashboard/useDashboardData';
 
 interface EquipmentSectionProps {
   equipment: EquipmentItem[];
