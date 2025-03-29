@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PartsContainer from '@/components/parts/PartsContainer';
 import PartSearch from '@/components/parts/PartSearch';
-import TechnicalInfoTab from '@/components/parts/technical-info';
+import { TechnicalInfoTab } from '@/components/parts/technical-info';
 import { usePartsContext } from '@/contexts/PartsContext';
 
 interface PartsTabsContentProps {
@@ -103,16 +103,12 @@ const PartsTabsContent: React.FC<PartsTabsContentProps> = ({
 
       <TabsContent value="search" className="space-y-4">
         <PartSearch
-          searchValue={partNumber}
-          onSearchChange={setPartNumber}
-          onSearch={handleSearch}
-          onAddPart={handleAddPartFromSearch}
-          isLoading={isIdentifying}
+          onAddPartToInventory={handleAddPartFromSearch}
         />
       </TabsContent>
 
       <TabsContent value="technical" className="space-y-4">
-        <TechnicalInfoTab />
+        <TechnicalInfoTab partNumber={partNumber || ""} />
       </TabsContent>
     </Tabs>
   );
