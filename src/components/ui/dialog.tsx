@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { X } from "lucide-react"
@@ -41,6 +42,19 @@ const DialogContent = React.forwardRef<
     };
   }, []);
 
+  // Function to safely access ref
+  const getDialogElement = () => {
+    if (!ref) return null;
+    
+    // Handle RefObject (with current)
+    if (typeof ref === 'object' && ref !== null && 'current' in ref) {
+      return ref.current;
+    }
+    
+    // For callback refs, we can't access directly
+    return null;
+  };
+
   return (
     <DialogPortal>
       <DialogOverlay />
@@ -58,9 +72,9 @@ const DialogContent = React.forwardRef<
           // Use a safer approach to closing
           if (isMountedRef.current) {
             requestAnimationFrame(() => {
-              // Close using the right API
-              const dialog = ref.current as any;
-              if (dialog && dialog.dataset) {
+              // Close using dataset attribute if possible
+              const dialog = getDialogElement();
+              if (dialog && dialog instanceof HTMLElement && dialog.dataset) {
                 dialog.dataset.state = "closed";
               }
             });
@@ -70,9 +84,9 @@ const DialogContent = React.forwardRef<
         onPointerDownOutside={(event) => {
           // Only prevent outside clicks during animation
           const target = event.target as HTMLElement;
-          const dialogContent = ref.current as HTMLElement;
+          const dialog = getDialogElement();
           
-          if (dialogContent && dialogContent.contains(target)) {
+          if (dialog && dialog instanceof HTMLElement && dialog.contains(target)) {
             return;
           }
           
