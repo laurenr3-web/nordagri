@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '@/components/ui/sidebar';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
-import EquipmentHeader from '../display/EquipmentHeader';
 import EquipmentContentSection from './EquipmentContentSection';
 import { EquipmentItem, useEquipmentFilters } from '@/hooks/equipment/useEquipmentFilters';
 
@@ -56,8 +55,6 @@ const EquipmentPageContent: React.FC<EquipmentPageContentProps> = ({
         </Sidebar>
         
         <div className="flex-1 p-6">
-          <EquipmentHeader openAddDialog={openAddDialog} />
-          
           <EquipmentContentSection
             equipment={equipment || []}
             isLoading={isLoading}
@@ -71,6 +68,7 @@ const EquipmentPageContent: React.FC<EquipmentPageContentProps> = ({
               }
             }}
             handleEquipmentClick={handleEquipmentClick}
+            openAddDialog={openAddDialog}
           />
         </div>
       </div>

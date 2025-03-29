@@ -18,6 +18,7 @@ interface EquipmentContentSectionProps {
     setCurrentView: (view: string) => void;
   };
   handleEquipmentClick: (equipment: EquipmentItem) => void;
+  openAddDialog: () => void;
 }
 
 const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
@@ -25,7 +26,8 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
   isLoading,
   filterState,
   viewState,
-  handleEquipmentClick
+  handleEquipmentClick,
+  openAddDialog
 }) => {
   const { currentView, setCurrentView } = viewState;
   
@@ -100,12 +102,6 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
   const sortOrder = filters.sortOrder || 'asc';
 
   // Use useCallback to prevent recreating functions on each render
-  const openAddDialog = useCallback(() => {
-    console.log('Triggering add equipment dialog');
-    const event = new CustomEvent('open-add-equipment-dialog');
-    window.dispatchEvent(event);
-  }, []);
-
   const handleEquipmentItemClick = useCallback((item: EquipmentItem) => {
     console.log('Equipment item clicked:', item);
     
