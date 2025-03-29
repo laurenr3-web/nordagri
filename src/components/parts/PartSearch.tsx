@@ -10,6 +10,7 @@ import { AlertCircle, ArchiveIcon, Plus, Search, Loader2 } from 'lucide-react';
 import { Part } from '@/types/Part';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import OpenAIPriceComparison from './displays/OpenAIPriceComparison';
 
 interface PartSearchProps {
   onAddPartToInventory: (part: Part) => void;
@@ -130,9 +131,10 @@ const PartSearch: React.FC<PartSearchProps> = ({ onAddPartToInventory }) => {
           
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid grid-cols-2 mb-4">
+              <TabsList className="grid grid-cols-3 mb-4">
                 <TabsTrigger value="technical">Informations techniques</TabsTrigger>
                 <TabsTrigger value="compatibility">Compatibilité</TabsTrigger>
+                <TabsTrigger value="price-comparison">Comparaison de prix</TabsTrigger>
               </TabsList>
               
               <TabsContent value="technical" className="space-y-4">
@@ -180,6 +182,13 @@ const PartSearch: React.FC<PartSearchProps> = ({ onAddPartToInventory }) => {
                     <p className="text-sm">{openAISearch.technicalInfo.maintenance}</p>
                   </div>
                 )}
+
+                {openAISearch.technicalInfo.warnings && (
+                  <div className="mt-4">
+                    <h3 className="font-medium mb-1">Avertissements</h3>
+                    <p className="text-sm">{openAISearch.technicalInfo.warnings}</p>
+                  </div>
+                )}
               </TabsContent>
               
               <TabsContent value="compatibility">
@@ -195,6 +204,25 @@ const PartSearch: React.FC<PartSearchProps> = ({ onAddPartToInventory }) => {
                     <p className="text-muted-foreground">Aucune information de compatibilité disponible</p>
                   )}
                 </div>
+
+                {openAISearch.technicalInfo.alternatives && openAISearch.technicalInfo.alternatives.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="font-medium mb-2">Pièces alternatives</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {openAISearch.technicalInfo.alternatives.map((alt, i) => (
+                        <Badge key={i} variant="outline">{alt}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="price-comparison">
+                <OpenAIPriceComparison 
+                  partNumber={openAISearch.technicalInfo.reference}
+                  partName={openAISearch.technicalInfo.name}
+                  manufacturer={openAISearch.technicalInfo.manufacturer}
+                />
               </TabsContent>
             </Tabs>
           </CardContent>

@@ -51,43 +51,47 @@ export const useOpenAISearch = () => {
     try {
       console.log('Recherche de pièce:', query);
       
-      // Construire le prompt pour OpenAI
+      // Construire un prompt plus détaillé pour OpenAI
       const prompt = `
-        Recherchez des informations techniques pour la pièce agricole avec la référence: ${query}
+        Vous êtes un expert en pièces détachées agricoles. Recherchez des informations précises et détaillées pour la pièce avec la référence: ${query}
         
         Fournissez les informations suivantes au format JSON:
-        - name: nom complet de la pièce
-        - reference: référence ou numéro de pièce
-        - category: catégorie (filtre, moteur, hydraulique, etc.)
-        - compatibleWith: tableau des équipements compatibles
-        - manufacturer: fabricant probable
-        - price: prix estimé en euros (nombre)
-        - imageUrl: laisser vide (sera ajouté manuellement)
-        - function: fonction principale et utilisation de la pièce
-        - installation: instructions d'installation
-        - symptoms: symptômes de défaillance
-        - maintenance: recommandations d'entretien
+        - name: nom complet de la pièce (soyez précis)
+        - reference: référence exacte ou numéro de pièce
+        - category: catégorie détaillée (filtre, moteur, hydraulique, transmission, etc.)
+        - compatibleWith: tableau des modèles d'équipements précis compatibles
+        - manufacturer: fabricant probable (marque reconnue dans le secteur agricole)
+        - price: prix moyen en euros (nombre)
+        - imageUrl: laisser vide pour le moment
+        - function: description complète de la fonction de la pièce (minimum 200 caractères)
+        - installation: instructions d'installation détaillées
+        - symptoms: liste détaillée des symptômes de défaillance
+        - maintenance: recommandations précises d'entretien
+        - warnings: précautions importantes lors de l'utilisation/installation
+        - alternatives: références de pièces alternatives compatibles
         
-        Si vous n'êtes pas certain, faites une estimation basée sur le format de la référence.
+        Basez-vous sur des informations précises pour cette référence. Si vous n'êtes pas certain, analysez le format de la référence pour déterminer le fabricant probable et le type de pièce.
       `;
       
+      // Utiliser gpt-4o pour des résultats plus précis
       const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
-            content: "Vous êtes un expert en pièces détachées agricoles. Répondez uniquement au format JSON demandé."
+            content: "Vous êtes un expert en pièces détachées agricoles avec une connaissance approfondie des catalogues de pièces, des références et des spécifications techniques. Votre rôle est de fournir des informations précises et détaillées."
           },
           {
             role: "user",
             content: prompt
           }
         ],
-        response_format: { type: "json_object" }
+        response_format: { type: "json_object" },
+        temperature: 0.2 // Réduire la créativité pour des résultats plus factuels
       });
       
       const content = response.choices[0].message.content;
-      console.log('Réponse OpenAI:', content);
+      console.log('Réponse détaillée OpenAI:', content);
       
       try {
         const result = JSON.parse(content);

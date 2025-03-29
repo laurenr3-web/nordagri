@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Loader2, RefreshCw } from 'lucide-react';
+import { ExternalLink, Loader2, RefreshCw, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
 import { PriceItem, getPartPrices } from '@/services/parts/priceComparisonService';
 
@@ -29,6 +29,7 @@ const OpenAIPriceComparison: React.FC<OpenAIPriceComparisonProps> = ({
 
     setIsLoading(true);
     try {
+      console.log(`Chargement des prix pour ${partNumber} (${manufacturer || 'fabricant inconnu'})`);
       const data = await getPartPrices(partNumber, manufacturer);
       setPriceData(data);
       setLastUpdated(new Date());
@@ -52,7 +53,7 @@ const OpenAIPriceComparison: React.FC<OpenAIPriceComparisonProps> = ({
     if (partNumber) {
       loadPriceData();
     }
-  }, [partNumber]);
+  }, [partNumber, manufacturer]);
 
   const formatDate = (date: Date | null) => {
     if (!date) return 'Jamais';
@@ -72,11 +73,20 @@ const OpenAIPriceComparison: React.FC<OpenAIPriceComparisonProps> = ({
       return `${price} ${currency}`;
     }
   };
+  
+  // Ouvrir l'URL dans un nouvel onglet
+  const handleOpenUrl = (url: string, vendorName: string) => {
+    if (!url || url === '#') {
+      toast.error(`Lien non disponible pour ${vendorName}`);
+      return;
+    }
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
 
   return (
-    <Card className="mt-6">
+    <Card className="mt-2">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-xl">Comparaison de prix (OpenAI)</CardTitle>
+        <CardTitle className="text-xl">Comparaison de prix</CardTitle>
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">
             Dernière mise à jour: {formatDate(lastUpdated)}
@@ -113,27 +123,37 @@ const OpenAIPriceComparison: React.FC<OpenAIPriceComparisonProps> = ({
               <div className="md:col-span-1">Livraison</div>
               <div className="md:col-span-1">Disponibilité</div>
               <div className="md:col-span-2">Délai estimé</div>
-              <div className="md:col-span-1"></div>
+              <div className="md:col-span-1">Actions</div>
             </div>
             
             {priceData.map((price, index) => (
               <div key={index} className="grid grid-cols-1 md:grid-cols-7 gap-4 text-sm py-4 border-b last:border-0">
                 <div className="md:col-span-1 font-medium">{price.vendor}</div>
                 <div className="md:col-span-1">
-                  <span className="font-bold text-green-600 dark:text-green-400">
+                  <span className={`font-bold ${index === 0 ? 'text-green-600 dark:text-green-400' : ''}`}>
                     {formatPrice(price.price, price.currency)}
+                    {index === 0 && (
+                      <span className="ml-2 inline-block px-1.5 py-0.5 text-[10px] rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                        Meilleur prix
+                      </span>
+                    )}
                   </span>
                 </div>
                 <div className="md:col-span-1">
-                  {price.shipping ? formatPrice(price.shipping, price.currency) : 'Non précisé'}
+                  {price.shipping === 'Gratuit' || price.shipping === 0 ? (
+                    <span className="text-green-600">Gratuit</span>
+                  ) : (
+                    formatPrice(price.shipping || 0, price.currency)
+                  )}
                 </div>
                 <div className="md:col-span-1">
                   <span 
                     className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      (price.availability.toLowerCase().includes('stock'))
+                      (typeof price.availability === 'string' && price.availability.toLowerCase().includes('stock'))
                         ? 'bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-300' 
-                        : (price.availability.toLowerCase().includes('commande') || 
-                           price.availability.toLowerCase().includes('délai'))
+                        : (typeof price.availability === 'string' && 
+                          (price.availability.toLowerCase().includes('commande') || 
+                           price.availability.toLowerCase().includes('délai')))
                           ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800/20 dark:text-yellow-300'
                           : 'bg-red-100 text-red-800 dark:bg-red-800/20 dark:text-red-300'
                     }`}
@@ -142,20 +162,35 @@ const OpenAIPriceComparison: React.FC<OpenAIPriceComparisonProps> = ({
                   </span>
                 </div>
                 <div className="md:col-span-2">{price.deliveryTime || 'Non précisé'}</div>
-                <div className="md:col-span-1">
+                <div className="md:col-span-1 flex gap-1">
                   {price.url && price.url !== '#' && (
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => window.open(price.url, '_blank')}
-                    >
-                      <ExternalLink className="h-4 w-4 mr-1" />
-                      Voir
-                    </Button>
+                    <>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => handleOpenUrl(price.url, price.vendor)}
+                        className="h-8 px-2"
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        Voir
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="default" 
+                        onClick={() => handleOpenUrl(price.url, price.vendor)}
+                        className="h-8 px-2"
+                      >
+                        <ShoppingCart className="h-3 w-3 mr-1" />
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
             ))}
+            
+            <div className="mt-4 text-xs text-muted-foreground">
+              <p>Note: Les prix et la disponibilité sont estimés à titre indicatif uniquement.</p>
+            </div>
           </div>
         )}
       </CardContent>
