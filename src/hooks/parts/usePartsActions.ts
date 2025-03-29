@@ -48,7 +48,7 @@ export const usePartsActions = (
     setTimeout(() => {
       partsDialogs.setSelectedPart(part);
       // Ne pas définir isPartDetailsDialogOpen - cela est géré par le conteneur
-    }, 10);
+    }, 50);
   };
 
   // Function to open order dialog - also modified to fix event issues
@@ -65,7 +65,7 @@ export const usePartsActions = (
     setTimeout(() => {
       partsDialogs.setSelectedPart(part);
       partsDialogs.setIsOrderDialogOpen(true);
-    }, 10);
+    }, 50);
   };
 
   return {
