@@ -13,6 +13,31 @@ interface PartsGridProps {
 }
 
 const PartsGrid: React.FC<PartsGridProps> = ({ parts, openPartDetails, openOrderDialog }) => {
+  // Fonction de gestion du clic sur l'image ou le conteneur
+  const handlePartClick = (part: Part, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("PartsGrid: Clic sur la pièce", part.name);
+    openPartDetails(part);
+  };
+  
+  // Fonction de gestion du clic sur le bouton détails
+  const handleDetailsClick = (part: Part, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("PartsGrid: Clic sur le bouton détails", part.name);
+    openPartDetails(part);
+  };
+  
+  // Fonction de gestion du clic sur le bouton commande
+  const handleOrderClick = (part: Part, e: React.MouseEvent) => {
+    if (!openOrderDialog) return;
+    e.preventDefault(); 
+    e.stopPropagation();
+    console.log("PartsGrid: Clic sur le bouton commande", part.name);
+    openOrderDialog(part);
+  };
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {parts.map((part, index) => (
@@ -20,10 +45,10 @@ const PartsGrid: React.FC<PartsGridProps> = ({ parts, openPartDetails, openOrder
           key={part.id} 
           className="overflow-hidden animate-scale-in"
           style={{ animationDelay: `${index * 0.1}s` } as React.CSSProperties}
+          onClick={(e) => handlePartClick(part, e)}
         >
           <div 
             className="aspect-square relative overflow-hidden cursor-pointer"
-            onClick={() => openPartDetails(part)}  
           >
             <img 
               src={part.image} 
@@ -34,7 +59,7 @@ const PartsGrid: React.FC<PartsGridProps> = ({ parts, openPartDetails, openOrder
               <div className="absolute top-2 right-2">
                 <Badge variant="destructive" className="flex items-center gap-1">
                   <AlertCircle size={12} />
-                  <span>Low Stock</span>
+                  <span>Stock Faible</span>
                 </Badge>
               </div>
             )}
@@ -48,34 +73,34 @@ const PartsGrid: React.FC<PartsGridProps> = ({ parts, openPartDetails, openOrder
             
             <div className="grid grid-cols-2 gap-2 mt-4 text-sm">
               <div>
-                <p className="text-muted-foreground">Manufacturer</p>
+                <p className="text-muted-foreground">Fabricant</p>
                 <p className="font-medium">{part.manufacturer}</p>
               </div>
               <div>
-                <p className="text-muted-foreground">Price</p>
+                <p className="text-muted-foreground">Prix</p>
                 <p className="font-medium">${part.price.toFixed(2)}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Stock</p>
                 <p className={`font-medium ${part.stock <= part.reorderPoint ? 'text-destructive' : ''}`}>
-                  {part.stock} units
+                  {part.stock} unités
                 </p>
               </div>
               <div>
-                <p className="text-muted-foreground">Location</p>
+                <p className="text-muted-foreground">Emplacement</p>
                 <p className="font-medium">{part.location}</p>
               </div>
             </div>
             
             <div className="mt-4">
-              <p className="text-xs text-muted-foreground mb-1">Compatible with:</p>
+              <p className="text-xs text-muted-foreground mb-1">Compatible avec:</p>
               <div className="flex flex-wrap gap-1">
-                {part.compatibility.slice(0, 2).map((equipment, i) => (
+                {part.compatibility && part.compatibility.slice(0, 2).map((equipment, i) => (
                   <span key={i} className="text-xs bg-secondary py-1 px-2 rounded-md">
                     {equipment}
                   </span>
                 ))}
-                {part.compatibility.length > 2 && (
+                {part.compatibility && part.compatibility.length > 2 && (
                   <span className="text-xs bg-secondary py-1 px-2 rounded-md">
                     +{part.compatibility.length - 2} more
                   </span>
@@ -87,25 +112,19 @@ const PartsGrid: React.FC<PartsGridProps> = ({ parts, openPartDetails, openOrder
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openPartDetails(part);
-                }}
+                onClick={(e) => handleDetailsClick(part, e)}
                 aria-label="Voir les détails de la pièce"
               >
-                Details
+                Détails
               </Button>
               {openOrderDialog && (
                 <Button 
                   variant="default" 
                   size="sm" 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openOrderDialog(part);
-                  }}
+                  onClick={(e) => handleOrderClick(part, e)}
                   aria-label="Commander cette pièce"
                 >
-                  Order
+                  Commander
                 </Button>
               )}
             </div>
