@@ -27,7 +27,7 @@ const AddPartDialog: React.FC<AddPartDialogProps> = ({
         // Use setTimeout to prevent React DOM manipulation errors
         setTimeout(() => {
           onOpenChange(open);
-        }, 10);
+        }, 50);
       }}
     >
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -46,7 +46,7 @@ const AddPartDialog: React.FC<AddPartDialogProps> = ({
           }}
           onCancel={() => {
             console.log('Cancel button clicked in AddPartForm');
-            onOpenChange(false);
+            setTimeout(() => onOpenChange(false), 50);
           }}
         />
       </DialogContent>

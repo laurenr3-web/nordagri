@@ -22,7 +22,7 @@ const ViewEquipmentDialog: React.FC<ViewEquipmentDialogProps> = ({
       
       // If the update is successful, close the dialog after a short delay
       if (result) {
-        setTimeout(() => onClose(), 500);
+        setTimeout(() => onClose(), 300);
       }
     } catch (error) {
       console.error('Failed to update equipment:', error);
@@ -36,8 +36,8 @@ const ViewEquipmentDialog: React.FC<ViewEquipmentDialogProps> = ({
       onOpenChange={(open) => {
         console.log('Equipment dialog open state changed to:', open);
         if (!open) {
-          // Use setTimeout to prevent the DOM manipulation error
-          setTimeout(() => onClose(), 10);
+          // Use a longer timeout to prevent the DOM manipulation error
+          setTimeout(() => onClose(), 100);
         }
       }}
     >

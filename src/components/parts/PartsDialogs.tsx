@@ -63,7 +63,7 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
       handleAddPart(partData);
       
       // Fermer le dialogue
-      setIsAddPartDialogOpen(false);
+      setTimeout(() => setIsAddPartDialogOpen(false), 50);
       
       // Notification
       toast.success("Pièce ajoutée", {
@@ -86,7 +86,7 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
       handleUpdatePart(selectedPart);
       
       // Fermer le dialogue
-      setIsPartDetailsDialogOpen(false);
+      setTimeout(() => setIsPartDetailsDialogOpen(false), 50);
       
       // Notification
       toast.success("Pièce mise à jour", {
@@ -112,10 +112,10 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
       handleDeletePart(selectedPart.id);
       
       // Fermer le dialogue
-      setIsPartDetailsDialogOpen(false);
+      setTimeout(() => setIsPartDetailsDialogOpen(false), 50);
       
       // Réinitialiser la pièce sélectionnée
-      setSelectedPart(null);
+      setTimeout(() => setSelectedPart(null), 100);
       
       // Notification
       toast.success("Pièce supprimée", {
@@ -134,7 +134,10 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
       {/* Dialogue d'ajout de pièce */}
       <Dialog 
         open={isAddPartDialogOpen} 
-        onOpenChange={setIsAddPartDialogOpen}
+        onOpenChange={(open) => {
+          console.log("Changement d'état du dialogue d'ajout:", open);
+          setTimeout(() => setIsAddPartDialogOpen(open), 50);
+        }}
       >
         <DialogContent className="sm:max-w-[650px]">
           <DialogHeader>
@@ -145,7 +148,7 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
           </DialogHeader>
           <AddPartForm
             onSuccess={handleAddPartSubmit}
-            onCancel={() => setIsAddPartDialogOpen(false)}
+            onCancel={() => setTimeout(() => setIsAddPartDialogOpen(false), 50)}
             categories={categories}
           />
         </DialogContent>
@@ -155,7 +158,9 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
       <Dialog 
         open={isPartDetailsDialogOpen} 
         onOpenChange={(open) => {
-          setIsPartDetailsDialogOpen(open);
+          console.log("Changement d'état du dialogue de détails:", open);
+          setTimeout(() => setIsPartDetailsDialogOpen(open), 50);
+          
           if (!open) {
             // Réinitialiser la pièce sélectionnée uniquement lors de la fermeture
             setTimeout(() => {
@@ -178,7 +183,7 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
               part={selectedPart}
               onEdit={handleUpdatePartSubmit}
               onDelete={handleDeletePartConfirm}
-              onDialogClose={() => setIsPartDetailsDialogOpen(false)}
+              onDialogClose={() => setTimeout(() => setIsPartDetailsDialogOpen(false), 50)}
             />
           )}
         </DialogContent>

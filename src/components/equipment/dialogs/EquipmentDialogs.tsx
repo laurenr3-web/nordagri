@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import AddEquipmentDialog from './AddEquipmentDialog';
 import ViewEquipmentDialog from './ViewEquipmentDialog';
 import { EquipmentItem } from '@/hooks/equipment/useEquipmentFilters';
@@ -22,18 +22,42 @@ const EquipmentDialogs: React.FC<EquipmentDialogsProps> = ({
     hasSelectedEquipment: !!selectedEquipment 
   });
 
+  // Debug dialog state changes
+  useEffect(() => {
+    console.log('EquipmentDialogs state updated:', {
+      isAddDialogOpen,
+      selectedEquipment: selectedEquipment ? selectedEquipment.name : 'none'
+    });
+  }, [isAddDialogOpen, selectedEquipment]);
+
+  // Safe state updater function
+  const safeSetIsAddDialogOpen = (open: boolean) => {
+    console.log('Setting add dialog open state to:', open);
+    setTimeout(() => {
+      setIsAddDialogOpen(open);
+    }, 50);
+  };
+
+  // Safe equipment selection function
+  const safeSetSelectedEquipment = (equipment: EquipmentItem | null) => {
+    console.log('Setting selected equipment to:', equipment ? equipment.name : 'null');
+    setTimeout(() => {
+      setSelectedEquipment(equipment);
+    }, 50);
+  };
+
   return (
     <>
       {/* Add Equipment Dialog */}
       <AddEquipmentDialog 
         isOpen={isAddDialogOpen} 
-        onOpenChange={setIsAddDialogOpen}
+        onOpenChange={safeSetIsAddDialogOpen}
       />
       
       {/* View Equipment Dialog */}
       <ViewEquipmentDialog 
         equipment={selectedEquipment} 
-        onClose={() => setSelectedEquipment(null)}
+        onClose={() => safeSetSelectedEquipment(null)}
       />
     </>
   );
