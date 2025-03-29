@@ -3,6 +3,7 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loader2, Search } from 'lucide-react';
+import { identifyPartCategory } from '@/utils/partCategoryIdentifier';
 
 interface PerplexitySearchFormProps {
   searchQuery: string;
@@ -21,12 +22,25 @@ const PerplexitySearchForm: React.FC<PerplexitySearchFormProps> = ({
   handleSearch,
   isLoading
 }) => {
+  // Identification automatique du fabricant lors de la saisie
+  const handlePartNumberChange = (value: string) => {
+    setSearchQuery(value);
+    
+    // Si le fabricant n'est pas déjà spécifié, essayer de l'identifier
+    if (!manufacturer && value.length > 3) {
+      const { manufacturers } = identifyPartCategory(value);
+      if (manufacturers.length > 0) {
+        setManufacturer(manufacturers[0]);
+      }
+    }
+  };
+  
   return (
     <div className="flex flex-col gap-2 sm:flex-row">
       <Input
         placeholder="Entrez un numéro de pièce (ex: JD6850)"
         value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
+        onChange={(e) => handlePartNumberChange(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
         className="flex-1"
       />

@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { perplexityPartsService } from '@/services/perplexity/parts';
 import { partsTechnicalService } from '@/services/perplexity/partsTechnicalService';
 import { checkApiKey } from '@/services/perplexity/client';
+import { identifyPartCategory } from '@/utils/partCategoryIdentifier';
 
 export const usePerplexitySearch = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,10 +41,17 @@ export const usePerplexitySearch = () => {
     setError(null);
     
     try {
-      // Préparer le nom avec le fabricant si disponible
-      const currentManufacturer = partManufacturer || manufacturer;
-      const partContext = currentManufacturer 
-        ? `${partRef} (${currentManufacturer})` 
+      // Identifier la catégorie et le fabricant possible
+      const { categories, manufacturers } = identifyPartCategory(partRef);
+      
+      // Si le fabricant n'est pas spécifié mais identifié, on l'utilise
+      if (!partManufacturer && manufacturers.length > 0) {
+        partManufacturer = manufacturers[0];
+      }
+      
+      // Préparer le contexte enrichi
+      const partContext = partManufacturer 
+        ? `${partRef} (${partManufacturer})` 
         : partRef;
         
       // Combine les deux types de recherche en une seule requête
@@ -52,7 +60,7 @@ export const usePerplexitySearch = () => {
           console.error('Erreur lors de la recherche de prix:', err);
           return null;
         }),
-        partsTechnicalService.getPartInfo(partRef, partContext).catch(err => {
+        partsTechnicalService.getPartInfo(partRef, partContext, categories).catch(err => {
           console.error('Erreur lors de la recherche technique:', err);
           return null;
         })
