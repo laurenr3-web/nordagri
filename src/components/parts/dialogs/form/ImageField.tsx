@@ -38,7 +38,8 @@ const ImageField: React.FC<ImageFieldProps> = ({ form }) => {
       }
       
       if (result.possibleUses && result.possibleUses.length > 0) {
-        form.setValue('compatibility', result.possibleUses, { shouldValidate: true });
+        // Convertir le tableau en chaîne pour le champ de compatibilité
+        form.setValue('compatibility', result.possibleUses.join(', '), { shouldValidate: true });
       }
       
       toast.success("Champs auto-remplis", {
