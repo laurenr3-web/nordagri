@@ -1,9 +1,9 @@
 
-import React from 'react';
-import { BlurContainer } from '@/components/ui/blur-container';
-import { Button } from '@/components/ui/button';
-import { Tractor, TractorIcon, Truck, Cog, BarChart, ChevronRight } from 'lucide-react';
+import React, { memo } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface EquipmentGridProps {
   equipment: EquipmentItem[];
@@ -12,119 +12,57 @@ interface EquipmentGridProps {
   handleEquipmentClick: (equipment: EquipmentItem) => void;
 }
 
-const EquipmentGrid: React.FC<EquipmentGridProps> = ({
+const EquipmentGrid: React.FC<EquipmentGridProps> = ({ 
   equipment,
   getStatusColor,
   getStatusText,
   handleEquipmentClick
 }) => {
-  const getEquipmentIcon = (type: string) => {
-    switch (type.toLowerCase()) {
-      case 'tractor':
-        return <Tractor className="h-5 w-5" />;
-      case 'harvester':
-        return <TractorIcon className="h-5 w-5" />;
-      case 'truck':
-        return <Truck className="h-5 w-5" />;
-      default:
-        return <Cog className="h-5 w-5" />;
-    }
-  };
-
-  // Function to safely get usage hours
-  const getUsageHours = (item: EquipmentItem) => {
-    return item.usage?.hours !== undefined ? item.usage.hours : 0;
-  };
-
-  // Function to safely get next service type
-  const getNextServiceType = (item: EquipmentItem) => {
-    return item.nextService?.type || 'N/A';
+  // Safe click handler to prevent the "removeChild" error
+  const handleClick = (item: EquipmentItem) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Use setTimeout to ensure this happens outside the current event loop
+    // This helps prevent React DOM manipulation conflicts
+    setTimeout(() => {
+      handleEquipmentClick(item);
+    }, 0);
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {equipment.map((item, index) => (
-        <BlurContainer 
-          key={item.id} 
-          className="overflow-hidden animate-scale-in cursor-pointer"
-          style={{ animationDelay: `${index * 0.1}s` } as React.CSSProperties}
-          raised
-          onClick={() => handleEquipmentClick(item)}
-        >
-          <div className="aspect-video relative overflow-hidden">
-            <img 
-              src={item.image} 
-              alt={item.name}
-              className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-            />
-            <div className="absolute top-2 right-2">
-              <span className={`text-xs font-medium px-2 py-1 rounded-full ${getStatusColor(item.status)}`}>
-                {getStatusText(item.status)}
-              </span>
-            </div>
-          </div>
-          
-          <div className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center">
-                  {getEquipmentIcon(item.type)}
-                </div>
-                <div>
-                  <h3 className="font-medium">{item.name}</h3>
-                  <p className="text-sm text-muted-foreground">{item.manufacturer} • {item.model}</p>
+    <ScrollArea className="h-[calc(100vh-280px)]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 py-4">
+        {equipment.map((item) => (
+          <Card 
+            key={`equipment-${item.id}`}
+            className="cursor-pointer hover:shadow-md transition-shadow"
+            onClick={handleClick(item)}
+          >
+            <CardContent className="p-0">
+              <div className="relative overflow-hidden aspect-video">
+                <img
+                  src={item.image || 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=300'}
+                  alt={item.name}
+                  className="object-cover w-full h-full"
+                />
+                <div className="absolute top-2 right-2">
+                  <Badge className={`${getStatusColor(item.status)}`}>
+                    {getStatusText(item.status)}
+                  </Badge>
                 </div>
               </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-2 mt-4 text-sm">
-              <div>
-                <p className="text-muted-foreground">Serial Number</p>
-                <p className="font-medium">{item.serialNumber}</p>
+              <div className="p-4">
+                <h3 className="font-semibold truncate">{item.name}</h3>
+                <p className="text-muted-foreground text-sm truncate">{item.type}</p>
               </div>
-              <div>
-                <p className="text-muted-foreground">Year</p>
-                <p className="font-medium">{item.year}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Location</p>
-                <p className="font-medium">{item.location}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Usage</p>
-                <p className="font-medium">{getUsageHours(item)} hrs</p>
-              </div>
-            </div>
-            
-            <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">Next:</span> {getNextServiceType(item)}
-              </span>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="h-8 px-2 gap-1" onClick={(e) => {
-                  e.stopPropagation();
-                  handleEquipmentClick(item);
-                }}
-                aria-label="Voir les détails de l'équipement"
-                >
-                  <span>Details</span>
-                  <ChevronRight size={14} />
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="h-8 px-2"
-                  aria-label="Voir les statistiques de l'équipement"
-                >
-                  <BarChart size={14} />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </BlurContainer>
-      ))}
-    </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </ScrollArea>
   );
 };
 
-export default EquipmentGrid;
+// Use React.memo to prevent unnecessary re-renders
+export default memo(EquipmentGrid);

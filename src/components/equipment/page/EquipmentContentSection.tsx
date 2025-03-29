@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import EquipmentHeader from '../display/EquipmentHeader';
 import SearchToolbar from '../filter/SearchToolbar';
@@ -50,21 +50,29 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
     filteredEquipment
   } = filterState;
 
-  const openAddDialog = () => {
+  // Use useCallback to prevent recreating functions on each render
+  const openAddDialog = useCallback(() => {
     console.log('Triggering add equipment dialog');
     const event = new CustomEvent('open-add-equipment-dialog');
     window.dispatchEvent(event);
-  };
+  }, []);
 
-  const handleEquipmentItemClick = (item: EquipmentItem) => {
+  const handleEquipmentItemClick = useCallback((item: EquipmentItem) => {
     console.log('Equipment item clicked:', item);
-    // Dispatch custom event to open the equipment details dialog
-    const event = new CustomEvent('equipment-selected', { detail: item });
-    window.dispatchEvent(event);
     
-    // Also call the passed handler
+    // Safely dispatch custom event
+    try {
+      const event = new CustomEvent('equipment-selected', { 
+        detail: { ...item } // Clone the item to avoid reference issues
+      });
+      window.dispatchEvent(event);
+    } catch (error) {
+      console.error('Error dispatching equipment-selected event:', error);
+    }
+    
+    // Call the passed handler
     handleEquipmentClick(item);
-  };
+  }, [handleEquipmentClick]);
 
   return (
     <>
@@ -103,6 +111,7 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
         </div>
       ) : currentView === 'grid' ? (
         <EquipmentGrid
+          key="grid-view"
           equipment={filteredEquipment}
           getStatusColor={getStatusColor}
           getStatusText={getStatusText}
@@ -110,6 +119,7 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
         />
       ) : (
         <EquipmentList 
+          key="list-view"
           equipment={filteredEquipment}
           getStatusColor={getStatusColor}
           getStatusText={getStatusText}
@@ -124,4 +134,4 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
   );
 };
 
-export default EquipmentContentSection;
+export default React.memo(EquipmentContentSection);
