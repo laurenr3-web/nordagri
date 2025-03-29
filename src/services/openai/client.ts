@@ -2,9 +2,12 @@
 import OpenAI from 'openai';
 import { toast } from 'sonner';
 
+// Récupérer la clé API depuis les variables d'environnement
+const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+
 // Client OpenAI avec configuration de base
 export const openai = new OpenAI({
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
+  apiKey: apiKey,
   dangerouslyAllowBrowser: true // Pour utilisation côté client
 });
 
@@ -13,17 +16,18 @@ export const checkApiKey = (): boolean => {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
   if (!apiKey) {
     console.error('⚠️ Clé API OpenAI manquante');
+    toast.error('Clé API OpenAI manquante', {
+      description: 'Configurez votre clé API OpenAI dans .env.development'
+    });
     return false;
   }
+  console.log('✅ Clé API OpenAI configurée');
   return true;
 };
 
 // Test de connexion
 export const testOpenAIConnection = async (): Promise<boolean> => {
   if (!checkApiKey()) {
-    toast.error('Clé API manquante', {
-      description: 'Configurez votre clé API OpenAI dans .env.development'
-    });
     return false;
   }
   
@@ -49,6 +53,9 @@ export const testOpenAIConnection = async (): Promise<boolean> => {
     return true;
   } catch (error) {
     console.error('❌ Échec du test de connexion OpenAI:', error);
+    toast.error('Échec de connexion à OpenAI', {
+      description: error.message
+    });
     return false;
   }
 };
@@ -56,7 +63,6 @@ export const testOpenAIConnection = async (): Promise<boolean> => {
 // Requête simple
 export const simpleChatQuery = async (prompt: string): Promise<string | null> => {
   if (!checkApiKey()) {
-    toast.error('Clé API OpenAI manquante');
     return null;
   }
   
@@ -81,6 +87,9 @@ export const simpleChatQuery = async (prompt: string): Promise<string | null> =>
     return response.choices[0].message.content;
   } catch (error) {
     console.error('❌ Erreur requête OpenAI:', error);
+    toast.error('Erreur de requête OpenAI', {
+      description: error.message
+    });
     return null;
   }
 };
