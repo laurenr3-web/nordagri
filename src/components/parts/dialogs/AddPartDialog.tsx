@@ -19,15 +19,26 @@ const AddPartDialog: React.FC<AddPartDialogProps> = ({
     console.log('AddPartDialog state changed:', { isOpen });
   }, [isOpen]);
 
+  // Fonction sécurisée pour fermer la boîte de dialogue
+  const safeCloseDialog = () => {
+    console.log('Fermeture sécurisée de la boîte de dialogue');
+    // Utiliser setTimeout pour éviter les erreurs de manipulation du DOM
+    setTimeout(() => {
+      onOpenChange(false);
+    }, 100);
+  };
+
   return (
     <Dialog 
       open={isOpen} 
       onOpenChange={(open) => {
         console.log('Part dialog open state change requested:', open);
-        // Use setTimeout to prevent React DOM manipulation errors
-        setTimeout(() => {
-          onOpenChange(open);
-        }, 50);
+        // Utiliser setTimeout pour éviter les erreurs de manipulation du DOM
+        if (open !== isOpen) {
+          setTimeout(() => {
+            onOpenChange(open);
+          }, 100);
+        }
       }}
     >
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -42,11 +53,13 @@ const AddPartDialog: React.FC<AddPartDialogProps> = ({
             console.log('AddPartForm success', data);
             if (onSuccess) {
               onSuccess(data);
+              // Utiliser la fonction sécurisée pour fermer la boîte de dialogue
+              safeCloseDialog();
             }
           }}
           onCancel={() => {
             console.log('Cancel button clicked in AddPartForm');
-            setTimeout(() => onOpenChange(false), 50);
+            safeCloseDialog();
           }}
         />
       </DialogContent>
