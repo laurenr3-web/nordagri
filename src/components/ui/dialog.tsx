@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { X } from "lucide-react"
@@ -35,6 +34,12 @@ const DialogContent = React.forwardRef<
   // Create a ref to track if the content is mounted
   const isMountedRef = React.useRef(true);
   
+  // Create a local ref for keeping track of events
+  const localStateRef = React.useRef({
+    isClosing: false,
+    closeStartTime: 0
+  });
+  
   // Set up an effect to manage the mounted state
   React.useEffect(() => {
     return () => {
@@ -42,17 +47,74 @@ const DialogContent = React.forwardRef<
     };
   }, []);
 
-  // Function to safely access ref
-  const getDialogElement = () => {
-    if (!ref) return null;
+  // Enhanced function to safely get dialog element
+  const getDialogElement = (forwardedRef: React.ForwardedRef<HTMLDivElement> | null) => {
+    if (!forwardedRef) return null;
     
-    // Handle RefObject (with current)
-    if (typeof ref === 'object' && ref !== null && 'current' in ref) {
-      return ref.current;
+    // Handle RefObject (with current property)
+    if (typeof forwardedRef === 'object' && forwardedRef !== null && 'current' in forwardedRef) {
+      return forwardedRef.current;
     }
     
     // For callback refs, we can't access directly
     return null;
+  };
+
+  // Enhanced handler for safe dialog closing
+  const handleEscapeKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    // Prevent default browser behavior
+    event.preventDefault();
+    
+    // Only proceed if not already closing
+    if (localStateRef.current.isClosing) return;
+    
+    // Mark dialog as closing
+    localStateRef.current.isClosing = true;
+    localStateRef.current.closeStartTime = Date.now();
+    
+    // Log the action for debugging
+    console.log('Dialog: Escape key pressed, initiating safe close');
+    
+    // Use a safer approach to closing with animation frame scheduling
+    if (isMountedRef.current) {
+      requestAnimationFrame(() => {
+        if (isMountedRef.current) {
+          // Try to set the dialog state to "closed" via data attribute
+          const dialog = getDialogElement(ref);
+          if (dialog && dialog instanceof HTMLElement) {
+            console.log('Dialog: Setting data-state to closed');
+            dialog.dataset.state = "closed";
+            
+            // Add a backup close trigger after animation completes
+            setTimeout(() => {
+              if (props.onEscapeKeyDown) {
+                props.onEscapeKeyDown(event);
+              }
+            }, 300);
+          } else {
+            // Fallback if we can't access the element
+            if (props.onEscapeKeyDown) {
+              props.onEscapeKeyDown(event);
+            }
+          }
+        }
+      });
+    }
+  };
+  
+  // Enhanced handler for outside clicks
+  const handlePointerDownOutside = (event: React.PointerEvent<HTMLDivElement>) => {
+    // Only prevent outside clicks if dialog is just opening or already closing
+    const timeSinceClose = Date.now() - localStateRef.current.closeStartTime;
+    if (localStateRef.current.isClosing && timeSinceClose < 500) {
+      event.preventDefault();
+      return;
+    }
+    
+    // Let the default behavior happen for normal outside clicks
+    if (props.onPointerDownOutside) {
+      props.onPointerDownOutside(event);
+    }
   };
 
   return (
@@ -64,33 +126,17 @@ const DialogContent = React.forwardRef<
           "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg md:max-h-[95vh] md:overflow-y-auto",
           className
         )}
-        // Add onEscapeKeyDown handler to ensure safe closing
-        onEscapeKeyDown={(event) => {
-          // Prevent the default behavior
-          event.preventDefault();
+        onEscapeKeyDown={handleEscapeKeyDown}
+        onPointerDownOutside={handlePointerDownOutside}
+        // Add enhanced close animation handling
+        onCloseAutoFocus={(event) => {
+          // Reset closing state
+          localStateRef.current.isClosing = false;
           
-          // Use a safer approach to closing
-          if (isMountedRef.current) {
-            requestAnimationFrame(() => {
-              // Close using dataset attribute if possible
-              const dialog = getDialogElement();
-              if (dialog && dialog instanceof HTMLElement && dialog.dataset) {
-                dialog.dataset.state = "closed";
-              }
-            });
+          // Proceed with normal handler
+          if (props.onCloseAutoFocus) {
+            props.onCloseAutoFocus(event);
           }
-        }}
-        // Add onPointerDownOutside handler
-        onPointerDownOutside={(event) => {
-          // Only prevent outside clicks during animation
-          const target = event.target as HTMLElement;
-          const dialog = getDialogElement();
-          
-          if (dialog && dialog instanceof HTMLElement && dialog.contains(target)) {
-            return;
-          }
-          
-          // Otherwise, let the default behavior happen
         }}
         {...props}
       >
