@@ -87,22 +87,22 @@ export const usePerplexitySearch = () => {
       }
       
       // Enrichir le contexte
-      const partContext = partManufacturer 
+      let contextInfo = partManufacturer 
         ? `${partRef} (${partManufacturer})` 
         : partRef;
         
       if (selectedCategory) {
-        partContext += ` - ${selectedCategory}`;
+        contextInfo += ` - ${selectedCategory}`;
       }
       
-      console.log(`🔍 Contexte enrichi: "${partContext}"`);
+      console.log(`🔍 Contexte enrichi: "${contextInfo}"`);
       
       // Recherche d'informations techniques simplifiée
       setActiveTab('technical'); // Forcer l'onglet technique
       
       const technicalInfo = await partsTechnicalService.getPartInfo(
         partRef, 
-        partContext,
+        contextInfo,
         [...categories, selectedCategory].filter(Boolean) as string[]
       );
       
