@@ -9,9 +9,7 @@ import PartCompatibility from './details/PartCompatibility';
 import PartImage from './details/PartImage';
 import PartReorderInfo from './details/PartReorderInfo';
 import PartActions from './details/PartActions';
-import PartPriceComparison from './PartPriceComparison';
 import TechnicalInfoTab from './technical-info/TechnicalInfoTab';
-import OpenAIPriceComparison from './displays/OpenAIPriceComparison';
 import PriceComparisonTab from './PriceComparisonTab';
 
 interface PartDetailsExtendedProps {
@@ -44,7 +42,6 @@ const PartDetailsExtended = ({ part, onClose, onEdit, onOrder }: PartDetailsExte
           <TabsTrigger value="overview">Aperçu</TabsTrigger>
           <TabsTrigger value="technical">Informations techniques</TabsTrigger>
           <TabsTrigger value="prices-openai">Prix (OpenAI)</TabsTrigger>
-          <TabsTrigger value="prices-perplexity">Prix (Perplexity)</TabsTrigger>
         </TabsList>
         
         <TabsContent value="overview" className="space-y-4 pt-4">
@@ -68,14 +65,6 @@ const PartDetailsExtended = ({ part, onClose, onEdit, onOrder }: PartDetailsExte
           <TechnicalInfoTab 
             partNumber={part.partNumber} 
             partName={part.name}
-          />
-        </TabsContent>
-        
-        <TabsContent value="prices-perplexity" className="space-y-4 pt-4">
-          <PartPriceComparison
-            partReference={part.partNumber}
-            partName={part.name}
-            partManufacturer={part.manufacturer}
           />
         </TabsContent>
 
