@@ -154,37 +154,61 @@ export type Database = {
       }
       farms: {
         Row: {
+          address: string | null
+          company_name: string | null
           created_at: string
+          default_currency: string | null
           description: string | null
+          email: string | null
           id: string
           location: string | null
           name: string
           owner_id: string
+          phone: string | null
+          registration_number: string | null
           size: number | null
           size_unit: string | null
           updated_at: string
+          vat_number: string | null
+          website: string | null
         }
         Insert: {
+          address?: string | null
+          company_name?: string | null
           created_at?: string
+          default_currency?: string | null
           description?: string | null
+          email?: string | null
           id?: string
           location?: string | null
           name: string
           owner_id: string
+          phone?: string | null
+          registration_number?: string | null
           size?: number | null
           size_unit?: string | null
           updated_at?: string
+          vat_number?: string | null
+          website?: string | null
         }
         Update: {
+          address?: string | null
+          company_name?: string | null
           created_at?: string
+          default_currency?: string | null
           description?: string | null
+          email?: string | null
           id?: string
           location?: string | null
           name?: string
           owner_id?: string
+          phone?: string | null
+          registration_number?: string | null
           size?: number | null
           size_unit?: string | null
           updated_at?: string
+          vat_number?: string | null
+          website?: string | null
         }
         Relationships: []
       }
