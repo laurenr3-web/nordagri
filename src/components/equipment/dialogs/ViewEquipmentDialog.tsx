@@ -2,7 +2,7 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import EquipmentDetails from '@/components/equipment/EquipmentDetails';
-import { EquipmentItem } from '@/components/equipment/hooks/useEquipmentFilters';
+import { EquipmentItem } from '@/hooks/equipment/useEquipmentFilters';
 import { useEquipmentUpdate } from '@/hooks/equipment/useEquipmentUpdate';
 
 interface ViewEquipmentDialogProps {

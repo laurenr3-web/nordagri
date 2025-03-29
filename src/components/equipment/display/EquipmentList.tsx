@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { EquipmentItem } from '../hooks/useEquipmentFilters';
+import { EquipmentItem } from '@/hooks/equipment/useEquipmentFilters';
 
 interface EquipmentListProps {
   equipment: EquipmentItem[];
@@ -25,8 +25,8 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
   getStatusText,
   handleEquipmentClick,
 }) => {
-  // Safe click handler to prevent the "removeChild" error
-  const handleClick = (item: EquipmentItem) => (e: React.MouseEvent) => {
+  // Create a safe click handler to prevent the React DOM removeChild error
+  const handleRowClick = (item: EquipmentItem) => (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
@@ -55,7 +55,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
               <TableRow 
                 key={`equipment-list-${item.id}`}
                 className="cursor-pointer hover:bg-muted/50"
-                onClick={handleClick(item)}
+                onClick={handleRowClick(item)}
               >
                 <TableCell className="font-medium">{item.name}</TableCell>
                 <TableCell>{item.type}</TableCell>

@@ -1,7 +1,7 @@
 
 import React, { memo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { EquipmentItem } from '../hooks/useEquipmentFilters';
+import { EquipmentItem } from '@/hooks/equipment/useEquipmentFilters';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -18,8 +18,8 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({
   getStatusText,
   handleEquipmentClick
 }) => {
-  // Safe click handler to prevent the "removeChild" error
-  const handleClick = (item: EquipmentItem) => (e: React.MouseEvent) => {
+  // Create a safe click handler to prevent the React DOM removeChild error
+  const handleCardClick = (item: EquipmentItem) => (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
@@ -37,7 +37,7 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({
           <Card 
             key={`equipment-${item.id}`}
             className="cursor-pointer hover:shadow-md transition-shadow"
-            onClick={handleClick(item)}
+            onClick={handleCardClick(item)}
           >
             <CardContent className="p-0">
               <div className="relative overflow-hidden aspect-video">

@@ -1,3 +1,4 @@
+
 import React, { useCallback } from 'react';
 import { EquipmentItem } from '@/hooks/equipment/useEquipmentFilters';
 import EquipmentHeader from '../display/EquipmentHeader';

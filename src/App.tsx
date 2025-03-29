@@ -5,6 +5,7 @@ import { RealtimeCacheProvider } from '@/providers/RealtimeCacheProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import MobileMenu from '@/components/layout/MobileMenu';
+import { useEffect } from 'react';
 
 // Pages
 import Index from '@/pages/Index';
@@ -20,6 +21,32 @@ import NotFound from '@/pages/NotFound';
 import Auth from '@/pages/Auth';
 
 function App() {
+  // Load the fix scripts
+  useEffect(() => {
+    const loadFixScripts = () => {
+      const scripts = [
+        '/button-fix.js',
+        '/radix-fix.js',
+        '/fix-accessibility.js'
+      ];
+      
+      scripts.forEach(src => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.async = true;
+        document.head.appendChild(script);
+      });
+      
+      console.log('🛠️ Script de réparation en cours d\'exécution...');
+    };
+    
+    loadFixScripts();
+    
+    return () => {
+      console.log('✅ Réparation terminée! Les boutons devraient maintenant fonctionner.');
+    };
+  }, []);
+  
   return (
     <RealtimeCacheProvider>
       <AuthProvider>
