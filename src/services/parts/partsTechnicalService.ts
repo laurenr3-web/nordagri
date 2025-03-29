@@ -10,9 +10,27 @@ export interface PartTechnicalInfo {
   compatibleEquipment: string[];
 }
 
-export async function getPartInfo(partNumber: string): Promise<PartTechnicalInfo> {
+export async function getPartInfo(partNumber: string, contextInfo?: string): Promise<PartTechnicalInfo> {
   try {
     console.log(`Recherche d'informations pour la pièce: ${partNumber}`);
+    if (contextInfo) {
+      console.log(`Contexte additionnel: ${contextInfo}`);
+    }
+    
+    // Construction du prompt avec contexte si disponible
+    const userPrompt = `Fournissez toutes les informations disponibles sur la pièce agricole avec référence "${partNumber}"${
+      contextInfo ? ` (${contextInfo})` : ''
+    }.
+    
+    Incluez:
+    1. Sa fonction et utilisation
+    2. Les étapes détaillées d'installation
+    3. Les symptômes de défaillance qui indiquent qu'elle doit être remplacée
+    4. Les recommandations d'entretien et de maintenance
+    5. Les équipements compatibles
+    
+    Si vous n'avez pas d'information précise sur cette référence, utilisez votre expertise pour analyser le format du numéro
+    et suggérer de quel type de pièce il pourrait s'agir, et pour quel fabricant.`;
     
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -24,17 +42,7 @@ export async function getPartInfo(partNumber: string): Promise<PartTechnicalInfo
         },
         {
           role: "user",
-          content: `Fournissez toutes les informations disponibles sur la pièce agricole avec référence "${partNumber}".
-          
-          Incluez:
-          1. Sa fonction et utilisation
-          2. Les étapes détaillées d'installation
-          3. Les symptômes de défaillance qui indiquent qu'elle doit être remplacée
-          4. Les recommandations d'entretien et de maintenance
-          5. Les équipements compatibles
-          
-          Si vous n'avez pas d'information précise sur cette référence, utilisez votre expertise pour analyser le format du numéro
-          et suggérer de quel type de pièce il pourrait s'agir, et pour quel fabricant.`
+          content: userPrompt
         }
       ],
       response_format: { type: "json_object" }
