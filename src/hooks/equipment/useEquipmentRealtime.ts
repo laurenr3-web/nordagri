@@ -1,7 +1,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 export function useEquipmentRealtime() {
   const queryClient = useQueryClient();
@@ -39,7 +40,8 @@ export function useEquipmentRealtime() {
                     queryClient.invalidateQueries({ queryKey: ['equipment'] });
                     
                     // If it's an update to a specific equipment, also invalidate that query
-                    if (payload.new && payload.new.id) {
+                    // Check if payload.new exists and has an id property before accessing it
+                    if (payload.new && typeof payload.new === 'object' && 'id' in payload.new) {
                       queryClient.invalidateQueries({ 
                         queryKey: ['equipment', payload.new.id]
                       });
