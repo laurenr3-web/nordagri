@@ -19,7 +19,7 @@ const PartDetailsDialog: React.FC<PartDetailsDialogProps> = ({
   onEdit,
   onDelete
 }) => {
-  // Créer des fonctions wrapper qui passeront les arguments nécessaires
+  // Fonctions d'édition et de suppression sans events
   const handleEdit = () => {
     if (selectedPart && onEdit) {
       console.log("PartDetailsDialog: Édition de la pièce", selectedPart.name);
@@ -38,7 +38,6 @@ const PartDetailsDialog: React.FC<PartDetailsDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent 
         className="sm:max-w-lg max-h-[90vh] overflow-y-auto"
-        onClick={e => e.stopPropagation()}
       >
         <DialogHeader>
           <DialogTitle>Détails de la pièce</DialogTitle>
