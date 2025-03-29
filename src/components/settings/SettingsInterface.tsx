@@ -1,5 +1,4 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { SettingsSection } from './SettingsSection';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -9,60 +8,95 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChevronDown, SunMoon, LayoutDashboard, Star } from 'lucide-react';
 import { toast } from 'sonner';
+import { useUserSettingsContext } from '@/providers/UserSettingsProvider';
+import { useAuthContext } from '@/providers/AuthProvider';
 
 export const SettingsInterface = () => {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [darkMode, setDarkMode] = useState(false);
-  const [highContrast, setHighContrast] = useState(false);
-  const [animations, setAnimations] = useState(true);
+  const { user } = useAuthContext();
+  const { settings, loading, saveSettings } = useUserSettingsContext();
+  
+  // Initialize state based on user settings
+  const [darkMode, setDarkMode] = React.useState(settings?.theme === 'dark');
+  const [highContrast, setHighContrast] = React.useState(settings?.high_contrast || false);
+  const [animations, setAnimations] = React.useState(settings?.animations_enabled !== false);
 
-  // Initialize state based on existing document classes
+  // Update local state when settings are loaded
   useEffect(() => {
-    const isDarkMode = document.documentElement.classList.contains('dark');
-    const isHighContrast = document.documentElement.classList.contains('high-contrast');
-    setDarkMode(isDarkMode);
-    setHighContrast(isHighContrast);
-  }, []);
+    if (settings) {
+      setDarkMode(settings.theme === 'dark');
+      setHighContrast(settings.high_contrast);
+      setAnimations(settings.animations_enabled);
+    }
+  }, [settings]);
 
   // Handle dark mode toggle
-  const handleDarkModeToggle = (checked: boolean) => {
+  const handleDarkModeToggle = async (checked: boolean) => {
     setDarkMode(checked);
     if (checked) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
+    
+    if (settings && user) {
+      await saveSettings({
+        ...settings,
+        theme: checked ? 'dark' : 'light'
+      });
+    }
+    
     toast.success(`${checked ? 'Dark' : 'Light'} mode activated`);
   };
 
   // Handle high contrast toggle
-  const handleHighContrastToggle = (checked: boolean) => {
+  const handleHighContrastToggle = async (checked: boolean) => {
     setHighContrast(checked);
     if (checked) {
       document.documentElement.classList.add('high-contrast');
     } else {
       document.documentElement.classList.remove('high-contrast');
     }
+    
+    if (settings && user) {
+      await saveSettings({
+        ...settings,
+        high_contrast: checked
+      });
+    }
+    
     toast.success(`High contrast ${checked ? 'enabled' : 'disabled'}`);
   };
 
   // Handle animations toggle
-  const handleAnimationsToggle = (checked: boolean) => {
+  const handleAnimationsToggle = async (checked: boolean) => {
     setAnimations(checked);
     if (checked) {
       document.documentElement.classList.remove('reduce-motion');
     } else {
       document.documentElement.classList.add('reduce-motion');
     }
+    
+    if (settings && user) {
+      await saveSettings({
+        ...settings,
+        animations_enabled: checked
+      });
+    }
+    
     toast.success(`Animations ${checked ? 'enabled' : 'disabled'}`);
   };
 
   // Handle save settings
-  const handleSaveSettings = () => {
-    localStorage.setItem('darkMode', darkMode.toString());
-    localStorage.setItem('highContrast', highContrast.toString());
-    localStorage.setItem('animations', animations.toString());
-    toast.success('Dashboard settings saved successfully');
+  const handleSaveSettings = async () => {
+    if (settings && user) {
+      await saveSettings({
+        ...settings,
+        theme: darkMode ? 'dark' : 'light',
+        high_contrast: highContrast,
+        animations_enabled: animations
+      });
+    }
   };
 
   return (
@@ -87,6 +121,7 @@ export const SettingsInterface = () => {
                 id="dark-mode" 
                 checked={darkMode} 
                 onCheckedChange={handleDarkModeToggle}
+                disabled={loading}
               />
             </div>
             
@@ -101,6 +136,7 @@ export const SettingsInterface = () => {
                 id="high-contrast" 
                 checked={highContrast}
                 onCheckedChange={handleHighContrastToggle}
+                disabled={loading}
               />
             </div>
             
@@ -115,6 +151,7 @@ export const SettingsInterface = () => {
                 id="animations" 
                 checked={animations}
                 onCheckedChange={handleAnimationsToggle}
+                disabled={loading}
               />
             </div>
           </div>
