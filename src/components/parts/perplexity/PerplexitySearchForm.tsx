@@ -2,9 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2, Search, Tag } from 'lucide-react';
+import { Loader2, Search, Tag, AlertCircle } from 'lucide-react';
 import { identifyPartCategory } from '@/utils/partCategoryIdentifier';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 // Liste de catégories communes pour le raffinement de recherche
 const commonCategories = [
@@ -15,7 +17,9 @@ const commonCategories = [
   "Transmission",
   "Embrayage",
   "Batterie",
-  "Démarreur"
+  "Démarreur",
+  "Alternateur",
+  "Pompe"
 ];
 
 interface PerplexitySearchFormProps {
@@ -25,6 +29,9 @@ interface PerplexitySearchFormProps {
   setManufacturer: (value: string) => void;
   handleSearch: () => void;
   isLoading: boolean;
+  selectedCategory?: string;
+  onCategorySelect?: (category: string) => void;
+  isApiKeyValid?: boolean | null;
 }
 
 const PerplexitySearchForm: React.FC<PerplexitySearchFormProps> = ({
@@ -33,22 +40,22 @@ const PerplexitySearchForm: React.FC<PerplexitySearchFormProps> = ({
   manufacturer,
   setManufacturer,
   handleSearch,
-  isLoading
+  isLoading,
+  selectedCategory,
+  onCategorySelect,
+  isApiKeyValid
 }) => {
   const [identifiedCategories, setIdentifiedCategories] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
   
-  // Identification automatique du fabricant et des catégories lors de la saisie
+  // Identification automatique des catégories lors de la saisie
   const handlePartNumberChange = (value: string) => {
     setSearchQuery(value);
     
     if (value.length > 3) {
       const { manufacturers, categories } = identifyPartCategory(value);
-      
-      // Mise à jour des catégories identifiées
       setIdentifiedCategories(categories);
       
-      // Si le fabricant n'est pas déjà spécifié, essayer de l'identifier
+      // Auto-suggestion de fabricant si identifié
       if (!manufacturer && manufacturers.length > 0) {
         setManufacturer(manufacturers[0]);
       }
@@ -57,18 +64,24 @@ const PerplexitySearchForm: React.FC<PerplexitySearchFormProps> = ({
     }
   };
   
-  // Fonction de recherche avec catégorie
-  const handleCategorySearch = (category: string) => {
-    setSelectedCategory(category);
-    // Construire une requête enrichie avec la catégorie
-    const enrichedSearch = `${searchQuery} ${category}`;
-    // Passer cette requête enrichie à la fonction de recherche parent
-    setSearchQuery(enrichedSearch);
-    handleSearch();
+  // Gestion de la sélection de catégorie
+  const handleCategoryClick = (category: string) => {
+    if (onCategorySelect) {
+      onCategorySelect(category);
+    }
   };
   
   return (
     <div className="space-y-4">
+      {isApiKeyValid === false && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Clé API Perplexity manquante ou invalide. Configurez VITE_PERPLEXITY_API_KEY dans .env.development
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <div className="flex flex-col gap-2 sm:flex-row">
         <Input
           placeholder="Entrez un numéro de pièce (ex: JD6850)"
@@ -84,7 +97,7 @@ const PerplexitySearchForm: React.FC<PerplexitySearchFormProps> = ({
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           className="flex-1 sm:max-w-[200px]"
         />
-        <Button onClick={handleSearch} disabled={isLoading}>
+        <Button onClick={handleSearch} disabled={isLoading || isApiKeyValid === false}>
           {isLoading ? (
             <Loader2 className="h-4 w-4 animate-spin mr-2" />
           ) : (
@@ -112,7 +125,7 @@ const PerplexitySearchForm: React.FC<PerplexitySearchFormProps> = ({
         </Card>
       )}
       
-      {searchQuery && (
+      {searchQuery.length > 0 && (
         <div className="mt-4">
           <p className="text-sm font-medium mb-2">Affiner la recherche par catégorie :</p>
           <div className="flex flex-wrap gap-2">
@@ -121,7 +134,7 @@ const PerplexitySearchForm: React.FC<PerplexitySearchFormProps> = ({
                 key={category}
                 size="sm"
                 variant={selectedCategory === category ? "default" : "outline"}
-                onClick={() => handleCategorySearch(category)}
+                onClick={() => handleCategoryClick(category)}
               >
                 {category}
               </Button>

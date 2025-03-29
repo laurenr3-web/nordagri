@@ -8,6 +8,8 @@ import PerplexityLoading from './perplexity/PerplexityLoading';
 import PerplexityError from './perplexity/PerplexityError';
 import PerplexityResults from './perplexity/PerplexityResults';
 import { usePerplexitySearch } from '@/hooks/parts/usePerplexitySearch';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Info } from 'lucide-react';
 
 const PerplexitySearch = () => {
   const [mainTab, setMainTab] = useState('search');
@@ -21,8 +23,11 @@ const PerplexitySearch = () => {
     error,
     activeTab,
     setActiveTab,
+    isApiKeyValid,
+    selectedCategory,
     handleSearch,
-    handleRetryWithManufacturer
+    handleRetryWithManufacturer,
+    handleCategorySelect
   } = usePerplexitySearch();
 
   const handleSuggestionClick = (part: {ref: string, name: string, manufacturer: string}) => {
@@ -33,6 +38,14 @@ const PerplexitySearch = () => {
 
   return (
     <div className="space-y-6">
+      <Alert variant="default" className="bg-blue-50 text-blue-800 border-blue-200">
+        <Info className="h-4 w-4" />
+        <AlertDescription>
+          Ce module utilise l'API Perplexity pour rechercher des informations techniques sur les pièces agricoles.
+          Assurez-vous d'avoir configuré votre clé API dans .env.development.
+        </AlertDescription>
+      </Alert>
+      
       <Tabs value={mainTab} onValueChange={setMainTab} className="w-full">
         <TabsList className="w-full justify-start mb-6">
           <TabsTrigger value="search">Recherche de pièces</TabsTrigger>
@@ -50,6 +63,9 @@ const PerplexitySearch = () => {
               setManufacturer={setManufacturer}
               handleSearch={() => handleSearch()}
               isLoading={isLoading}
+              selectedCategory={selectedCategory || undefined}
+              onCategorySelect={handleCategorySelect}
+              isApiKeyValid={isApiKeyValid}
             />
           </div>
 

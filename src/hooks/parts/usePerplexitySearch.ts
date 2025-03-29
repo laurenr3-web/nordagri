@@ -1,9 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { perplexityPartsService } from '@/services/perplexity/parts';
 import { partsTechnicalService } from '@/services/perplexity/partsTechnicalService';
-import { checkApiKey, testPerplexityConnection } from '@/services/perplexity/client';
+import { checkApiKey, testPerplexityConnection, simplePerplexityQuery } from '@/services/perplexity/client';
 import { identifyPartCategory } from '@/utils/partCategoryIdentifier';
 
 export const usePerplexitySearch = () => {
@@ -17,24 +16,33 @@ export const usePerplexitySearch = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('technical');
   const [isApiKeyValid, setIsApiKeyValid] = useState<boolean | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   // Vérifier la validité de la clé API au chargement
   useEffect(() => {
-    const checkApiKeyValidity = async () => {
+    const checkConnection = async () => {
       const hasApiKey = checkApiKey();
-      setIsApiKeyValid(hasApiKey);
       
       if (hasApiKey) {
+        console.log("🔑 Clé API présente, test de connexion...");
         const isConnected = await testPerplexityConnection();
         setIsApiKeyValid(isConnected);
         
-        if (!isConnected) {
-          console.error('La clé API est présente mais semble invalide');
+        if (isConnected) {
+          console.log("✅ Connexion Perplexity établie");
+        } else {
+          console.error("❌ Connexion Perplexity échouée");
+          toast.error("Problème de connexion API", {
+            description: "Impossible d'établir une connexion avec Perplexity"
+          });
         }
+      } else {
+        setIsApiKeyValid(false);
+        console.error("❌ Clé API manquante");
       }
     };
     
-    checkApiKeyValidity();
+    checkConnection();
   }, []);
 
   const handleSearch = async (suggestionValue?: string) => {
@@ -45,77 +53,89 @@ export const usePerplexitySearch = () => {
       return;
     }
     
-    // Vérifier si la clé API est configurée
+    // Vérifier la clé API
     if (!checkApiKey()) {
-      const errorMessage = "Clé API Perplexity manquante. Pour utiliser cette fonctionnalité, veuillez configurer la variable d'environnement VITE_PERPLEXITY_API_KEY.";
+      const errorMessage = "Clé API Perplexity manquante. Configurez VITE_PERPLEXITY_API_KEY dans .env.development";
       toast.error(errorMessage);
       setError(errorMessage);
       return;
     }
     
-    // Transmettre la référence exactement comme saisie
+    // Référence et fabricant pour la recherche
     let partRef = query.trim();
     let partManufacturer = manufacturer;
     
     setIsLoading(true);
     setError(null);
-    console.log(`Début de la recherche pour "${partRef}" (fabricant: ${partManufacturer || 'non spécifié'})`);
+    console.log(`🔍 Recherche: "${partRef}" (Fabricant: ${partManufacturer || 'non spécifié'})`);
     
     try {
-      // Identifier la catégorie et le fabricant possible
+      // Identifier la catégorie
       const { categories, manufacturers } = identifyPartCategory(partRef);
-      console.log('Catégories identifiées:', categories);
-      console.log('Fabricants potentiels:', manufacturers);
+      console.log('📋 Catégories identifiées:', categories);
+      console.log('🏭 Fabricants potentiels:', manufacturers);
       
-      // Si le fabricant n'est pas spécifié mais identifié, on l'utilise
-      if (!partManufacturer && manufacturers.length > 0) {
-        partManufacturer = manufacturers[0];
-        console.log(`Fabricant automatiquement identifié: ${partManufacturer}`);
+      // Si catégorie sélectionnée via bouton, la prioritiser
+      if (selectedCategory) {
+        console.log(`🏷️ Catégorie sélectionnée manuellement: ${selectedCategory}`);
       }
       
-      // Préparer le contexte enrichi
+      // Utiliser le fabricant identifié si non spécifié
+      if (!partManufacturer && manufacturers.length > 0) {
+        partManufacturer = manufacturers[0];
+        console.log(`🏭 Fabricant auto-identifié: ${partManufacturer}`);
+      }
+      
+      // Enrichir le contexte
       const partContext = partManufacturer 
         ? `${partRef} (${partManufacturer})` 
         : partRef;
+        
+      if (selectedCategory) {
+        partContext += ` - ${selectedCategory}`;
+      }
       
-      console.log(`Contexte de recherche enrichi: "${partContext}"`);
+      console.log(`🔍 Contexte enrichi: "${partContext}"`);
       
-      // Combine les deux types de recherche en une seule requête
-      const promises = [
-        perplexityPartsService.comparePartPrices(partRef, partContext).catch(err => {
-          console.error('Erreur lors de la recherche de prix:', err);
-          return null;
-        }),
-        partsTechnicalService.getPartInfo(partRef, partContext, categories).catch(err => {
-          console.error('Erreur lors de la recherche technique:', err);
-          return null;
-        })
+      // Recherche d'informations techniques simplifiée
+      setActiveTab('technical'); // Forcer l'onglet technique
+      
+      const technicalInfo = await partsTechnicalService.getPartInfo(
+        partRef, 
+        partContext,
+        [...categories, selectedCategory].filter(Boolean) as string[]
+      );
+      
+      // Recherche de prix simplifiée (pour l'instant données statiques)
+      const priceData = [
+        {
+          supplier: "AgriStore",
+          price: "85,99 €",
+          currency: "EUR",
+          link: "#",
+          isAvailable: true,
+          availability: "En stock",
+          deliveryTime: "2-3 jours",
+          lastUpdated: new Date().toISOString()
+        }
       ];
       
-      console.log('Requêtes lancées, attente des résultats...');
-      
-      const [priceData, technicalInfo] = await Promise.all(promises);
-      
-      console.log('Résultats reçus:');
-      console.log('- Prix:', priceData);
+      console.log('✅ Résultats reçus:');
       console.log('- Infos techniques:', technicalInfo);
       
-      // Ensure priceData is an array if it's not null
-      const safePrice = priceData ? (Array.isArray(priceData) ? priceData : []) : null;
-      
       setResults({ 
-        priceData: safePrice, 
-        technicalInfo 
+        priceData, 
+        technicalInfo
       });
       
-      if (safePrice || technicalInfo) {
+      if (technicalInfo) {
         toast.success('Recherche terminée avec succès');
       } else {
         toast.error('Aucun résultat trouvé');
-        setError('Aucune information n\'a pu être récupérée. Veuillez vérifier la référence et réessayer.');
+        setError('Aucune information récupérée. Vérifiez la référence ou essayez avec plus de détails.');
       }
     } catch (error) {
-      console.error('Erreur de recherche:', error);
+      console.error('❌ Erreur de recherche:', error);
       const errorMessage = error instanceof Error ? error.message : 'Une erreur inconnue est survenue';
       toast.error('Erreur lors de la recherche', {
         description: errorMessage
@@ -128,9 +148,16 @@ export const usePerplexitySearch = () => {
 
   const handleRetryWithManufacturer = (manufacturerValue: string) => {
     const extractedManufacturer = manufacturerValue.split(' ')[0] || '';
-    console.log(`Nouvelle tentative avec fabricant: "${extractedManufacturer}"`);
+    console.log(`🔄 Nouvelle tentative avec fabricant: "${extractedManufacturer}"`);
     setManufacturer(extractedManufacturer);
-    handleSearch(manufacturerValue);
+    handleSearch(extractedManufacturer + ' ' + searchQuery);
+  };
+
+  const handleCategorySelect = (category: string) => {
+    console.log(`🏷️ Catégorie sélectionnée: ${category}`);
+    setSelectedCategory(category);
+    // Construire une requête enrichie avec la catégorie
+    handleSearch(`${searchQuery} ${category}`);
   };
 
   return {
@@ -144,7 +171,10 @@ export const usePerplexitySearch = () => {
     activeTab,
     setActiveTab,
     isApiKeyValid,
+    selectedCategory,
+    setSelectedCategory,
     handleSearch,
-    handleRetryWithManufacturer
+    handleRetryWithManufacturer,
+    handleCategorySelect
   };
 };

@@ -1,159 +1,106 @@
-
-import { perplexityClient } from './client';
+import { perplexityClient, checkApiKey } from './client';
 import { toast } from 'sonner';
 
 /**
  * Service pour récupérer des informations techniques sur des pièces agricoles
+ * Simplifié et plus robuste
  */
 export const partsTechnicalService = {
   /**
    * Récupère des informations techniques sur une pièce
-   * 
-   * @param partNumber Numéro de référence de la pièce
-   * @param partContext Contexte additionnel (fabricant, etc.)
-   * @param categories Catégories possibles de la pièce identifiées
-   * @returns Informations techniques structurées
    */
   async getPartInfo(partNumber: string, partContext?: string, categories: string[] = []): Promise<any> {
     try {
-      console.log(`Recherche d'informations techniques pour ${partContext || partNumber}`);
+      console.log(`🔍 Recherche technique pour: ${partNumber}`);
       
-      // Vérifier si la clé API est configurée
-      const apiKey = import.meta.env.VITE_PERPLEXITY_API_KEY;
-      if (!apiKey) {
-        console.error("Clé API Perplexity manquante");
+      // Vérifier la clé API
+      if (!checkApiKey()) {
         toast.error("Clé API manquante", {
-          description: "Veuillez configurer la variable VITE_PERPLEXITY_API_KEY dans votre fichier .env"
+          description: "Configurez VITE_PERPLEXITY_API_KEY dans .env.development"
         });
         return null;
       }
       
-      // Construire un prompt enrichi avec les informations de catégorie
-      let enrichedPrompt = `Recherchez des informations techniques détaillées sur la pièce agricole ${partContext || partNumber}`;
+      // Construction du prompt avec les informations disponibles
+      const categoryInfo = categories.length > 0 
+        ? `Cette référence correspond probablement à ${categories.join(" ou ")}. ` 
+        : '';
       
-      if (categories.length > 0) {
-        enrichedPrompt += `. Cette référence correspond probablement à ${categories.join(" ou ")}`;
-      }
+      const contextInfo = partContext 
+        ? `Je recherche des informations sur ${partContext}. ` 
+        : `Je recherche des informations sur la pièce ${partNumber}. `;
       
-      enrichedPrompt += `. Fournissez les informations suivantes structurées en JSON : 
-      1. Une description et la fonction de la pièce
-      2. Instructions d'installation et de montage
-      3. Symptômes courants de défaillance ou de dysfonctionnement
-      4. Entretien et maintenance recommandés
-      5. Avertissements et précautions d'utilisation
-      6. Pièces alternatives ou compatibles`;
+      const prompt = `${contextInfo}${categoryInfo}Fournissez les informations suivantes:
+      1. Description et fonction de la pièce
+      2. Instructions d'installation
+      3. Symptômes de défaillance
+      4. Entretien recommandé
+      5. Avertissements d'utilisation
+      6. Pièces alternatives
       
-      console.log("Requête à Perplexity API avec prompt:", enrichedPrompt);
+      IMPORTANT: Structurez votre réponse en JSON avec le format {"function":"Description détaillée", "installation":"Instructions", "symptoms":"Symptômes", "maintenance":"Entretien", "warnings":"Avertissements", "alternatives":["Pièce1", "Pièce2"]}`;
       
+      console.log("Prompt:", prompt);
+      
+      // Appel API avec un modèle plus petit et des paramètres optimisés
       const response = await perplexityClient.post('/chat/completions', {
-        model: "sonar-medium-online", 
+        model: "llama-3.1-sonar-small-128k-online",
         messages: [
           {
             role: "system",
-            content: "Vous êtes un expert en pièces détachées agricoles. Répondez uniquement avec des informations techniques précises et structurées en JSON."
+            content: "Vous êtes un expert en pièces détachées agricoles. Répondez uniquement avec un JSON valide."
           },
           {
             role: "user",
-            content: enrichedPrompt
+            content: prompt
           }
         ],
-        temperature: 0.1
+        temperature: 0.1,
+        max_tokens: 800
       });
       
-      console.log("Réponse de Perplexity API reçue");
-      
-      if (!response.data || !response.data.choices || !response.data.choices.length) {
-        console.error("Format de réponse inattendu:", response.data);
-        toast.error("Format de réponse inattendu");
-        return null;
-      }
-      
       const content = response.data.choices[0].message.content;
-      console.log("Contenu brut de la réponse:", content);
+      console.log("Réponse brute:", content);
       
+      // Tentative de parse simple
       try {
-        // Essayer de parser le JSON directement
-        console.log("Tentative de parsing JSON direct");
         return JSON.parse(content);
       } catch (parseError) {
-        console.log("Parsing direct du JSON échoué, extraction du bloc...", parseError);
+        console.log("Parsing JSON direct échoué, tentative d'extraction...");
         
-        // Essayer d'extraire un bloc JSON
-        const jsonMatch = content.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/) ||
-                          content.match(/(\{[\s\S]*\})/);
-                          
+        // Extraire un bloc JSON
+        const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/) || 
+                        content.match(/```\s*([\s\S]*?)\s*```/) ||
+                        content.match(/(\{[\s\S]*?\})/);
+        
         if (jsonMatch && jsonMatch[1]) {
           try {
-            console.log("Bloc JSON extrait, tentative de parsing:", jsonMatch[1]);
             return JSON.parse(jsonMatch[1]);
-          } catch (blockParseError) {
-            console.error("Erreur lors du parsing du bloc JSON:", blockParseError);
-            console.log("Contenu du bloc JSON:", jsonMatch[1]);
+          } catch (error) {
+            console.error("Extraction de JSON échouée");
           }
-        } else {
-          console.log("Aucun bloc JSON détecté dans la réponse");
         }
         
-        // Tenter une approche moins stricte pour extraire un JSON valide
-        try {
-          const potentialJson = content.substring(
-            content.indexOf('{'), 
-            content.lastIndexOf('}') + 1
-          );
-          console.log("Tentative avec substring:", potentialJson);
-          return JSON.parse(potentialJson);
-        } catch (substringError) {
-          console.error("Extraction par substring échouée:", substringError);
-        }
-        
-        // Fallback : structurer manuellement la réponse en texte
-        const formattedResponse = {
-          function: content.includes("fonction") ? this.extractSection(content, "fonction", "description") : content,
-          description: content.includes("description") ? this.extractSection(content, "description") : undefined,
-          installation: content.includes("installation") ? this.extractSection(content, "installation") : undefined,
-          symptoms: content.includes("symptômes") ? this.extractSection(content, "symptômes") : undefined,
-          maintenance: content.includes("maintenance") ? this.extractSection(content, "maintenance") : undefined,
-          warnings: content.includes("avertissements") ? this.extractSection(content, "avertissements") : undefined,
-          alternatives: content.includes("alternatives") ? this.extractSection(content, "alternatives") : undefined,
-          rawResponse: content
+        // Retour d'urgence: Formater nous-mêmes le résultat
+        return {
+          function: content.substring(0, 500),
+          installation: "Information non disponible",
+          symptoms: "Information non disponible",
+          maintenance: "Information non disponible",
+          warnings: "Information non disponible",
+          alternatives: []
         };
-        
-        console.log("Réponse formatée manuellement:", formattedResponse);
-        return formattedResponse;
       }
     } catch (error: any) {
-      console.error("Erreur lors de la récupération des informations techniques:", error);
-      
-      // Afficher des informations plus détaillées sur l'erreur
-      if (error.response) {
-        console.error("Détails de la réponse d'erreur:", {
-          status: error.response.status,
-          statusText: error.response.statusText,
-          data: error.response.data
-        });
-        
-        toast.error(`Erreur API (${error.response.status})`, {
-          description: error.response.data?.error?.message || "Une erreur s'est produite lors de la communication avec Perplexity API"
-        });
-      } else if (error.request) {
-        console.error("Aucune réponse reçue:", error.request);
-        toast.error("Erreur de connexion", {
-          description: "Aucune réponse reçue de Perplexity API"
-        });
-      } else {
-        console.error("Erreur:", error.message);
-        toast.error("Erreur", {
-          description: error.message || "Une erreur inattendue s'est produite"
-        });
-      }
-      
+      console.error("❌ Erreur recherche technique:", error);
+      toast.error("Erreur recherche technique", {
+        description: error.message || "Une erreur est survenue"
+      });
       return null;
     }
   },
-  
-  /**
-   * Extrait une section spécifique du texte basée sur un mot-clé
-   */
+
+  // Fonctions utilitaires conservées
   extractSection(text: string, keyword: string, endKeyword?: string): string {
     const lowercaseText = text.toLowerCase();
     const keywordIndex = lowercaseText.indexOf(keyword.toLowerCase());
