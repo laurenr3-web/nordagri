@@ -46,10 +46,9 @@ export const testOpenAIConnection = async (): Promise<boolean> => {
   
   try {
     console.log('🔍 Test de connexion OpenAI...');
-    console.log('Clé API (premiers caractères):', apiKey?.substring(0, 8) + '...');
     
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
@@ -93,7 +92,7 @@ export const simpleChatQuery = async (prompt: string): Promise<string | null> =>
   try {
     console.log('🔍 Requête OpenAI:', prompt.substring(0, 50) + '...');
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
