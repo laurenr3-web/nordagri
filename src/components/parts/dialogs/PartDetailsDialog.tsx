@@ -19,15 +19,17 @@ const PartDetailsDialog: React.FC<PartDetailsDialogProps> = ({
   onEdit,
   onDelete
 }) => {
-  // Create wrapper functions that will pass the necessary arguments
+  // Créer des fonctions wrapper qui passeront les arguments nécessaires
   const handleEdit = () => {
     if (selectedPart && onEdit) {
+      console.log("PartDetailsDialog: Édition de la pièce", selectedPart.name);
       onEdit(selectedPart);
     }
   };
 
   const handleDelete = () => {
     if (selectedPart && onDelete) {
+      console.log("PartDetailsDialog: Suppression de la pièce", selectedPart.name);
       onDelete(selectedPart.id);
     }
   };
@@ -39,18 +41,22 @@ const PartDetailsDialog: React.FC<PartDetailsDialogProps> = ({
         onClick={e => e.stopPropagation()}
       >
         <DialogHeader>
-          <DialogTitle>Part Details</DialogTitle>
+          <DialogTitle>Détails de la pièce</DialogTitle>
           <DialogDescription>
-            Detailed information about the selected part
+            Informations détaillées sur la pièce sélectionnée
           </DialogDescription>
         </DialogHeader>
-        {selectedPart && (
+        {selectedPart ? (
           <PartDetails 
             part={selectedPart} 
-            onEdit={handleEdit}
-            onDelete={handleDelete}
+            onEdit={onEdit ? handleEdit : undefined}
+            onDelete={onDelete ? handleDelete : undefined}
             onDialogClose={() => onOpenChange(false)}
           />
+        ) : (
+          <div className="py-4 text-center text-muted-foreground">
+            Aucune pièce sélectionnée
+          </div>
         )}
       </DialogContent>
     </Dialog>
