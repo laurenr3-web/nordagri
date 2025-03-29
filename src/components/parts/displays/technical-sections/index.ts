@@ -7,3 +7,4 @@ export * from './MaintenanceSection';
 export * from './AlternativesSection';
 export * from './WarningsSection';
 export * from './CompatibleEquipmentSection';
+export * from './TechnicalInfoSections';

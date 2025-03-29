@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Edit, Trash2, DollarSign, Info } from 'lucide-react';
 import PriceComparisonTab from './PriceComparisonTab';
-import TechnicalInfoTab from './TechnicalInfoTab';
+import { TechnicalInfoTab } from './technical-info';
 
 // Utilisez LocalPart ou votre interface Part selon votre configuration
 interface PartProps {
