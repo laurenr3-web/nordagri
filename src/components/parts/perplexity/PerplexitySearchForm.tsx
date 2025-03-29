@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Search, Tag, AlertCircle } from 'lucide-react';
 import { identifyPartCategory } from '@/utils/partCategoryIdentifier';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 // Liste de catégories communes pour le raffinement de recherche

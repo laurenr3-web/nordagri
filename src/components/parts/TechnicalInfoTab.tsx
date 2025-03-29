@@ -4,9 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, RefreshCw, AlertCircle, Wrench, CheckCircle, Info } from 'lucide-react';
 import { toast } from 'sonner';
-import { partsTechnicalService } from '@/services/perplexity/partsTechnicalService';
+import { getPartInfo } from '@/services/parts/partsTechnicalService';
 import type { PartTechnicalInfo } from '@/services/perplexity/technical';
-import { checkApiKey } from '@/services/perplexity/client';
+import { checkApiKey } from '@/services/openai/client';
 import { TechnicalInfoDisplay } from './displays/TechnicalInfoDisplay';
 import { Combobox, ComboboxOption } from '@/components/ui/combobox';
 
@@ -43,7 +43,7 @@ const TechnicalInfoTab = ({ partNumber, partName }: TechnicalInfoTabProps) => {
 
     // Vérifier si la clé API est configurée
     if (!checkApiKey()) {
-      const errorMessage = "Clé API Perplexity manquante. Pour utiliser cette fonctionnalité, veuillez configurer la variable d'environnement VITE_PERPLEXITY_API_KEY.";
+      const errorMessage = "Clé API OpenAI manquante. Pour utiliser cette fonctionnalité, veuillez configurer la variable d'environnement VITE_OPENAI_API_KEY.";
       toast.error(errorMessage);
       setError(errorMessage);
       return;
@@ -70,7 +70,7 @@ const TechnicalInfoTab = ({ partNumber, partName }: TechnicalInfoTabProps) => {
       }
       
       // Transmettre la référence exactement comme saisie, sans modification
-      const data = await partsTechnicalService.getPartInfo(usePartNumber, contextName);
+      const data = await getPartInfo(usePartNumber, contextName);
       setTechnicalInfo(data);
       setLastUpdated(new Date());
     } catch (error) {
