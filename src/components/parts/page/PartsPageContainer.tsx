@@ -10,9 +10,42 @@ import PhotoCaptureModal from '@/components/parts/PhotoCaptureModal';
 import { usePartsContext } from '@/contexts/PartsContext';
 import PartsHeader from './PartsHeader';
 import PartsDialogs from './PartsDialogs';
+import { toast } from 'sonner';
 
 const PartsPageContainer = () => {
   console.log("PartsPageContainer - Rendering and attempting to use context");
+  
+  // State to track if we're ready to use context
+  const [isContextReady, setIsContextReady] = useState(false);
+  const [contextError, setContextError] = useState<Error | null>(null);
+  
+  useEffect(() => {
+    // This effect will run after the component is mounted
+    // Set a small delay to ensure the context provider is fully initialized
+    const timer = setTimeout(() => {
+      setIsContextReady(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
+  // Only try to use context when we're ready
+  if (!isContextReady) {
+    return (
+      <div className="flex min-h-screen w-full bg-background">
+        <Sidebar className="border-r">
+          <Navbar />
+        </Sidebar>
+        <div className="flex-1 p-6">
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="animate-pulse">
+              <p className="text-muted-foreground">Initializing parts management...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   // Wrap the context access in a try/catch to help with debugging
   try {
@@ -130,14 +163,36 @@ const PartsPageContainer = () => {
       </div>
     );
   } catch (error) {
+    // If we encounter an error with the context, update state and show error
+    if (!contextError) {
+      setContextError(error as Error);
+      console.error("Error in PartsPageContainer:", error);
+      
+      // Show toast notification
+      toast.error("Error loading parts management", {
+        description: (error as Error)?.message || "Context unavailable"
+      });
+    }
+    
     // Fallback UI for when the context is not available
-    console.error("Error in PartsPageContainer:", error);
     return (
-      <div className="flex min-h-screen w-full bg-background p-8">
-        <div className="w-full max-w-md mx-auto p-6 bg-card rounded-lg shadow-lg">
-          <h2 className="text-2xl font-bold mb-4 text-destructive">Error Loading Parts</h2>
-          <p className="mb-4">Unable to load the parts management interface. This could be due to a context provider issue.</p>
-          <p className="text-muted-foreground">Technical details: {(error as Error)?.message}</p>
+      <div className="flex min-h-screen w-full bg-background">
+        <Sidebar className="border-r">
+          <Navbar />
+        </Sidebar>
+        
+        <div className="flex-1 p-6">
+          <div className="w-full max-w-md mx-auto p-6 bg-card rounded-lg shadow-lg">
+            <h2 className="text-2xl font-bold mb-4 text-destructive">Error Loading Parts</h2>
+            <p className="mb-4">Unable to load the parts management interface. This could be due to a context provider issue.</p>
+            <p className="text-muted-foreground">{(contextError as Error)?.message}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="mt-4 bg-primary text-primary-foreground px-4 py-2 rounded"
+            >
+              Reload Page
+            </button>
+          </div>
         </div>
       </div>
     );

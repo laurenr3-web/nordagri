@@ -1,9 +1,10 @@
 
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 import { partsData } from '@/data/partsData';
 import { useParts } from '@/hooks/useParts';
 import { Part } from '@/types/Part';
 import { LocalPart, convertToLocalPart } from '@/utils/partTypeConverters';
+import { toast } from 'sonner';
 
 interface PartsContextType {
   partsHookData: ReturnType<typeof useParts>;
@@ -28,13 +29,28 @@ const PartsContext = createContext<PartsContextType | undefined>(undefined);
 export const usePartsContext = () => {
   const context = useContext(PartsContext);
   if (!context) {
-    console.error("usePartsContext called outside of a PartsContextProvider - check component hierarchy");
+    // Log detailed error information
+    console.error(
+      "usePartsContext called outside of a PartsContextProvider - check component hierarchy",
+      new Error().stack
+    );
+    toast.error("Context error", {
+      description: "Parts data unavailable - please refresh the page"
+    });
     throw new Error('usePartsContext must be used within a PartsContextProvider');
   }
   return context;
 };
 
 export const PartsContextProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
+  // Debug logs for mounting/unmounting
+  useEffect(() => {
+    console.log("PartsContextProvider mounted");
+    return () => {
+      console.log("PartsContextProvider unmounted");
+    };
+  }, []);
+  
   console.log("PartsContextProvider rendering");
   
   // The main hook now provides a cleaner interface with more focused sub-hooks
@@ -90,7 +106,8 @@ export const PartsContextProvider: React.FC<{children: React.ReactNode}> = ({ ch
 
   const handlePhotoTaken = async (imageData: string) => {
     setIsIdentifying(true);
-    import('@/services/openai/partVisionService').then(async ({ identifyPartFromImage }) => {
+    try {
+      const { identifyPartFromImage } = await import('@/services/openai/partVisionService');
       try {
         const result = await identifyPartFromImage(imageData);
         
@@ -101,17 +118,15 @@ export const PartsContextProvider: React.FC<{children: React.ReactNode}> = ({ ch
           // Lancer la recherche automatiquement
           handleSearch(result.referenceNumber);
           
-          import('sonner').then(({ toast }) => {
-            toast.success(`Pièce identifiée: ${result.probableName}`, {
-              description: `Référence: ${result.referenceNumber}`
-            });
+          const { toast } = await import('sonner');
+          toast.success(`Pièce identifiée: ${result.probableName}`, {
+            description: `Référence: ${result.referenceNumber}`
           });
         } else {
           // Sinon, afficher les informations disponibles
-          import('sonner').then(({ toast }) => {
-            toast.info(`Type de pièce identifié: ${result.probableName}`, {
-              description: "Aucune référence précise n'a pu être détectée."
-            });
+          const { toast } = await import('sonner');
+          toast.info(`Type de pièce identifié: ${result.probableName}`, {
+            description: "Aucune référence précise n'a pu être détectée."
           });
           
           // Mettre une description générique dans le champ de recherche
@@ -120,15 +135,16 @@ export const PartsContextProvider: React.FC<{children: React.ReactNode}> = ({ ch
         }
       } catch (error) {
         console.error("Erreur d'identification:", error);
-        import('sonner').then(({ toast }) => {
-          toast.error("Impossible d'identifier la pièce", {
-            description: "Essayez avec une photo plus claire ou de meilleure qualité."
-          });
+        const { toast } = await import('sonner');
+        toast.error("Impossible d'identifier la pièce", {
+          description: "Essayez avec une photo plus claire ou de meilleure qualité."
         });
-      } finally {
-        setIsIdentifying(false);
-      }
-    });
+      } 
+    } catch (error) {
+      console.error("Erreur au chargement du module d'identification:", error);
+    } finally {
+      setIsIdentifying(false);
+    }
   };
 
   // Conversion du selectedPart pour éviter les problèmes de type

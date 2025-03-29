@@ -47,24 +47,24 @@ function App() {
               <Maintenance />
             </ProtectedRoute>
           } />
-          {/* Make sure both /parts and parts (without slash) routes work */}
-          <Route path="/parts" element={
+          {/* Single route for parts with both slash and no-slash paths */}
+          <Route path="/parts/*" element={
             <ProtectedRoute>
               <Parts />
             </ProtectedRoute>
           } />
-          <Route path="parts" element={
+          <Route path="parts/*" element={
             <ProtectedRoute>
               <Parts />
             </ProtectedRoute>
           } />
           {/* Routes for emergency parts */}
-          <Route path="/emergency-parts" element={
+          <Route path="/emergency-parts/*" element={
             <ProtectedRoute>
               <EmergencyParts />
             </ProtectedRoute>
           } />
-          <Route path="emergency-parts" element={
+          <Route path="emergency-parts/*" element={
             <ProtectedRoute>
               <EmergencyParts />
             </ProtectedRoute>
