@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, Send } from 'lucide-react';
 import { toast } from 'sonner';
-import { perplexityChatService } from '@/services/perplexity/perplexityChatService';
+import { openaiChatService } from '@/services/openai/openaiChatService';
 
 interface Message {
   id: string;
@@ -38,7 +38,7 @@ const PerplexityChat: React.FC = () => {
     setIsLoading(true);
     
     try {
-      const { answer } = await perplexityChatService.askQuestion(inputValue);
+      const { answer } = await openaiChatService.askQuestion(inputValue);
       
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -49,7 +49,7 @@ const PerplexityChat: React.FC = () => {
       setMessages(prev => [...prev, botMessage]);
     } catch (error) {
       console.error('Erreur lors de la réception de la réponse:', error);
-      toast.error('Erreur de communication avec Perplexity', {
+      toast.error('Erreur de communication avec OpenAI', {
         description: error instanceof Error ? error.message : 'Une erreur est survenue'
       });
     } finally {

@@ -1,8 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { partsTechnicalService } from '@/services/perplexity/partsTechnicalService';
-import { checkApiKey, testPerplexityConnection, simplePerplexityQuery } from '@/services/perplexity/client';
+import { partsTechnicalService } from '@/services/openai/partsTechnicalService';
+import { checkApiKey, testOpenAIConnection } from '@/services/openai/client';
 import { identifyPartCategory } from '@/utils/partCategoryIdentifier';
 
 export const usePerplexitySearch = () => {
@@ -25,15 +25,15 @@ export const usePerplexitySearch = () => {
       
       if (hasApiKey) {
         console.log("🔑 Clé API présente, test de connexion...");
-        const isConnected = await testPerplexityConnection();
+        const isConnected = await testOpenAIConnection();
         setIsApiKeyValid(isConnected);
         
         if (isConnected) {
-          console.log("✅ Connexion Perplexity établie");
+          console.log("✅ Connexion OpenAI établie");
         } else {
-          console.error("❌ Connexion Perplexity échouée");
+          console.error("❌ Connexion OpenAI échouée");
           toast.error("Problème de connexion API", {
-            description: "Impossible d'établir une connexion avec Perplexity"
+            description: "Impossible d'établir une connexion avec OpenAI"
           });
         }
       } else {
@@ -55,7 +55,7 @@ export const usePerplexitySearch = () => {
     
     // Vérifier la clé API
     if (!checkApiKey()) {
-      const errorMessage = "Clé API Perplexity manquante. Configurez VITE_PERPLEXITY_API_KEY dans .env.development";
+      const errorMessage = "Clé API OpenAI manquante. Configurez VITE_OPENAI_API_KEY dans .env.development";
       toast.error(errorMessage);
       setError(errorMessage);
       return;

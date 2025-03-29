@@ -77,7 +77,7 @@ const PerplexitySearchForm: React.FC<PerplexitySearchFormProps> = ({
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Clé API Perplexity manquante ou invalide. Configurez VITE_PERPLEXITY_API_KEY dans .env.development
+            Clé API OpenAI manquante ou invalide. Configurez VITE_OPENAI_API_KEY dans .env.development
           </AlertDescription>
         </Alert>
       )}
