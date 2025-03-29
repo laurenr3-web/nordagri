@@ -22,6 +22,7 @@ interface PartsDialogsProps {
   handleAddPart?: (data: any) => void;
   handleUpdatePart?: (part: Part) => void;
   handleDeletePart?: (partId: string | number) => void;
+  handleOrderPart?: (part: Part) => void;
   categories?: string[];
 }
 
@@ -40,6 +41,7 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
   handleAddPart,
   handleUpdatePart,
   handleDeletePart,
+  handleOrderPart,
   categories = []
 }) => {
   
@@ -75,10 +77,18 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
   };
   
   // Handler pour la mise à jour d'une pièce
-  const handleUpdatePartSubmit = (partData: Part) => {
+  const handleUpdatePartSubmit = () => {
     try {
+      // Vérifier si on a une pièce sélectionnée
+      if (!selectedPart) {
+        toast.error("Aucune pièce sélectionnée", {
+          description: "Impossible de mettre à jour la pièce"
+        });
+        return;
+      }
+      
       // Vérifier si on a les champs obligatoires
-      if (!partData.name || !partData.partNumber || !partData.category) {
+      if (!selectedPart.name || !selectedPart.partNumber || !selectedPart.category) {
         toast.error("Données incomplètes", {
           description: "Veuillez remplir tous les champs obligatoires"
         });
@@ -87,7 +97,7 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
       
       // Mettre à jour la pièce
       if (handleUpdatePart) {
-        handleUpdatePart(partData);
+        handleUpdatePart(selectedPart);
       }
       
       // Fermer le dialogue
@@ -95,7 +105,7 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
       
       // Notification
       toast.success("Pièce mise à jour", {
-        description: `La pièce ${partData.name} a été mise à jour avec succès`
+        description: `La pièce ${selectedPart.name} a été mise à jour avec succès`
       });
     } catch (error) {
       console.error("Erreur lors de la mise à jour de la pièce:", error);
@@ -136,6 +146,30 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
     }
   };
 
+  // Handler pour la commande d'une pièce
+  const handleOrderPartConfirm = () => {
+    if (!selectedPart) return;
+    
+    try {
+      // Commander la pièce
+      if (handleOrderPart) {
+        handleOrderPart(selectedPart);
+      }
+      
+      // Notification
+      toast.success("Commande initiée", {
+        description: `Commande pour ${selectedPart.name} initiée avec succès`
+      });
+      
+      // Ne pas fermer le dialogue de détails automatiquement
+    } catch (error) {
+      console.error("Erreur lors de la commande de la pièce:", error);
+      toast.error("Erreur", {
+        description: "Impossible de commander la pièce. Veuillez réessayer."
+      });
+    }
+  };
+
   console.log("État du dialogue d'ajout:", isAddPartDialogOpen);
   console.log("État du dialogue de détails:", isPartDetailsDialogOpen);
   console.log("Pièce sélectionnée:", selectedPart);
@@ -165,8 +199,9 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
           {selectedPart && (
             <PartDetails
               part={selectedPart}
-              onEdit={() => handleUpdatePartSubmit(selectedPart)}
+              onEdit={handleUpdatePartSubmit}
               onDelete={handleDeletePartConfirm}
+              onOrder={handleOrderPart ? handleOrderPartConfirm : undefined}
               onDialogClose={() => setIsPartDetailsDialogOpen(false)}
             />
           )}
