@@ -17,7 +17,6 @@ const Parts = () => {
   const partsHookData = useParts(initialPartsData);
   const [activeTab, setActiveTab] = useState('inventory');
   const [orderNote, setOrderNote] = useState('');
-  const [orderStatus, setOrderStatus] = useState('');
   
   // Debug logging for parts data updates
   useEffect(() => {

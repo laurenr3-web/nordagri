@@ -131,6 +131,10 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
         onOrder={() => {
           openOrderDialog(selectedPart);
         }}
+        onDelete={() => {
+          handleDeletePart(selectedPart.id);
+          setSelectedPart(null);
+        }}
       />
     );
   }

@@ -1,90 +1,120 @@
 
-import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Part } from '@/types/Part';
+import React from 'react';
+import { ArrowLeft, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
+import { Part } from '@/types/Part';
 import PartBasicInfo from './details/PartBasicInfo';
+import PartImage from './details/PartImage';
 import PartInventoryInfo from './details/PartInventoryInfo';
 import PartCompatibility from './details/PartCompatibility';
-import PartImage from './details/PartImage';
 import PartReorderInfo from './details/PartReorderInfo';
+import PartPriceComparison from './PartPriceComparison';
 import PartActions from './details/PartActions';
-import TechnicalInfoTab from './technical-info/TechnicalInfoTab';
-import PriceComparisonTab from './PriceComparisonTab';
 
 interface PartDetailsExtendedProps {
   part: Part;
-  onClose?: () => void;
-  onEdit?: (part: Part) => void;
-  onOrder?: (part: Part) => void;
+  onClose: () => void;
+  onEdit: () => void;
+  onOrder: () => void;
+  onDelete: () => void;
 }
 
-const PartDetailsExtended = ({ part, onClose, onEdit, onOrder }: PartDetailsExtendedProps) => {
-  const [activeTab, setActiveTab] = useState('overview');
-  
-  // Créons des fonctions de gestionnaire pour corriger les erreurs de type
-  const handleEdit = () => {
-    if (onEdit) onEdit(part);
-  };
-  
-  const handleOrder = () => {
-    if (onOrder) onOrder(part);
-  };
-  
+const PartDetailsExtended: React.FC<PartDetailsExtendedProps> = ({
+  part,
+  onClose,
+  onEdit,
+  onOrder,
+  onDelete
+}) => {
+  const [activeTab, setActiveTab] = React.useState('details');
+
+  // Déterminer si le stock est bas en fonction du point de réapprovisionnement
+  const isLowStock = part.stock <= part.reorderPoint;
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-start">
-        <div className="flex-1">
-          <h2 className="text-2xl font-bold">{part.name}</h2>
-          <p className="text-muted-foreground">{part.partNumber} • {part.manufacturer}</p>
-        </div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" onClick={onClose} className="flex items-center">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Retour à l'inventaire
+        </Button>
         <PartActions 
-          part={part} 
-          onClose={onClose} 
-          onEdit={handleEdit} 
-          onOrder={handleOrder}
+          part={part}
+          onEdit={onEdit}
+          onOrder={onOrder}
+          onDelete={onDelete}
         />
       </div>
-      
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full justify-start">
-          <TabsTrigger value="overview">Aperçu</TabsTrigger>
-          <TabsTrigger value="technical">Informations techniques</TabsTrigger>
-          <TabsTrigger value="prices-openai">Prix (OpenAI)</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="overview" className="space-y-4 pt-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <PartImage part={part} />
-            <Card className="md:col-span-2">
-              <CardHeader>
-                <CardTitle>Informations générales</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-6">
-                <PartBasicInfo part={part} />
-                <PartInventoryInfo part={part} />
-                <PartReorderInfo part={part} />
-                <PartCompatibility compatibility={part.compatibility} />
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="technical" className="space-y-4 pt-4">
-          <TechnicalInfoTab 
-            partNumber={part.partNumber} 
-            partName={part.name}
-          />
-        </TabsContent>
 
-        <TabsContent value="prices-openai" className="space-y-4 pt-4">
-          <PriceComparisonTab
-            partNumber={part.partNumber}
-            partName={part.name}
-            manufacturer={part.manufacturer}
-          />
-        </TabsContent>
-      </Tabs>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-2 space-y-6">
+          <Card>
+            <CardHeader className="flex flex-row items-start justify-between">
+              <div>
+                <CardTitle className="text-xl font-bold">{part.name}</CardTitle>
+                <CardDescription>Référence: {part.partNumber || part.reference}</CardDescription>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Badge variant={part.stock > 0 ? "outline" : "destructive"}>
+                  {part.stock > 0 ? "En stock" : "Rupture de stock"}
+                </Badge>
+                {isLowStock && part.stock > 0 && (
+                  <Badge variant="secondary" className="flex items-center">
+                    <AlertCircle className="w-3 h-3 mr-1" />
+                    Stock bas
+                  </Badge>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="details" value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="w-full">
+                  <TabsTrigger value="details">Détails</TabsTrigger>
+                  <TabsTrigger value="compatibility">Compatibilité</TabsTrigger>
+                  <TabsTrigger value="pricing">Comparaison de prix</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="details" className="space-y-6 pt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <PartBasicInfo part={part} />
+                    <PartInventoryInfo part={part} />
+                  </div>
+                  
+                  <Separator />
+                  
+                  <PartReorderInfo 
+                    stock={part.stock}
+                    reorderPoint={part.reorderPoint || part.minimumStock}
+                    onOrder={onOrder}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="compatibility" className="pt-4">
+                  <PartCompatibility 
+                    compatibility={part.compatibility || part.compatibleWith || []} 
+                  />
+                </TabsContent>
+                
+                <TabsContent value="pricing" className="pt-4">
+                  <PartPriceComparison 
+                    partReference={part.partNumber || part.reference || ''}
+                    partName={part.name}
+                    partManufacturer={part.manufacturer}
+                  />
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <div>
+          <PartImage image={part.image || part.imageUrl || ''} name={part.name} />
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,61 +1,60 @@
-import { useState } from 'react';
-import { Part } from '@/types/Part';
-import { useToast } from '@/hooks/use-toast';
-// Update import to use the new path
-import { addPart } from '@/services/supabase/parts';
 
-export function useOrderParts() {
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { Part } from '@/types/Part';
+
+export const useOrderParts = () => {
+  const [selectedPart, setSelectedPart] = useState<Part | null>(null);
+  const [orderQuantity, setOrderQuantity] = useState<string>('1');
+  const [isOrderSuccess, setIsOrderSuccess] = useState(false);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
-  const [orderQuantity, setOrderQuantity] = useState(1);
-  const [selectedPartForOrder, setSelectedPartForOrder] = useState<Part | null>(null);
-  const { toast } = useToast();
 
   const openOrderDialog = (part: Part) => {
-    setSelectedPartForOrder(part);
+    setSelectedPart(part);
+    setOrderQuantity('1'); // Reset quantity on new order
+    setIsOrderSuccess(false);
     setIsOrderDialogOpen(true);
-    setOrderQuantity(1); // Reset quantity when opening the dialog
   };
 
-  const closeOrderDialog = () => {
-    setIsOrderDialogOpen(false);
-    setSelectedPartForOrder(null);
-    setOrderQuantity(1); // Reset quantity when closing the dialog
-  };
-
-  const handleOrderSubmit = async () => {
-    if (!selectedPartForOrder) {
-      toast({
-        title: "Erreur",
-        description: "Aucune pièce sélectionnée pour la commande.",
-        variant: "destructive",
-      });
+  const handleOrderSubmit = () => {
+    // Validate quantity
+    const quantity = parseInt(orderQuantity, 10);
+    
+    if (isNaN(quantity) || quantity <= 0) {
+      toast.error("Veuillez entrer une quantité valide");
       return;
     }
-
-    // Simulate ordering process
-    console.log(`Ordering ${orderQuantity} of ${selectedPartForOrder.name}`);
-
-    // Optimistically update the stock (you might want to revert this on error)
-    const newStock = selectedPartForOrder.stock + orderQuantity;
-
-    // Show success message
-    toast({
-      title: "Commande soumise",
-      description: `Vous avez commandé ${orderQuantity} de ${selectedPartForOrder.name}. Nouveau stock: ${newStock}`,
-    });
-
-    closeOrderDialog();
+    
+    if (!selectedPart) {
+      toast.error("Aucune pièce sélectionnée");
+      return;
+    }
+    
+    // Simulating order submission
+    console.log(`Commande de ${quantity} ${selectedPart.name} envoyée`);
+    
+    // In a real app, you would call an API to place the order
+    // For now, we'll just simulate success
+    setTimeout(() => {
+      setIsOrderSuccess(true);
+      toast.success(`Commande de ${quantity} ${selectedPart.name} placée avec succès`);
+      
+      // Close dialog after a short delay
+      setTimeout(() => {
+        setIsOrderDialogOpen(false);
+      }, 2000);
+    }, 1000);
   };
 
   return {
-    isOrderDialogOpen,
-    setIsOrderDialogOpen,
+    selectedPart,
+    setSelectedPart,
     orderQuantity,
     setOrderQuantity,
-    selectedPartForOrder,
-    setSelectedPartForOrder,
+    isOrderSuccess,
+    isOrderDialogOpen,
+    setIsOrderDialogOpen,
     openOrderDialog,
-    closeOrderDialog,
     handleOrderSubmit
   };
-}
+};

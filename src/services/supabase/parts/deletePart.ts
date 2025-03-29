@@ -4,10 +4,13 @@ import { toast } from 'sonner';
 
 export async function deletePart(partId: string | number) {
   try {
+    // Convert string ID to number if needed
+    const numericId = typeof partId === 'string' ? parseInt(partId, 10) : partId;
+    
     const { error } = await supabase
       .from('parts_inventory')
       .delete()
-      .eq('id', typeof partId === 'string' ? parseInt(partId, 10) : partId);
+      .eq('id', numericId);
 
     if (error) throw error;
 

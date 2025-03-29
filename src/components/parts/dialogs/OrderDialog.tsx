@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Check } from 'lucide-react';
 
 interface Part {
-  id: number;
+  id: string | number;
   name: string;
   partNumber: string;
   category: string;
@@ -89,7 +89,7 @@ const OrderDialog: React.FC<OrderDialogProps> = ({
                   id="quantity" 
                   type="number" 
                   min="1" 
-                  value={orderQuantity} 
+                  value={orderQuantity}
                   onChange={(e) => setOrderQuantity(e.target.value)}
                 />
               </div>
