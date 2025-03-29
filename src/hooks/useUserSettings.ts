@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -68,11 +69,22 @@ export const useUserSettings = (userId: string) => {
           throw error;
         }
       } else {
-        // Convert theme to the correct type to fix TypeScript error
+        // Convert the data to the correct type
         const parsedSettings: UserSettings = {
-          ...data,
+          ...defaultSettings,
+          user_id: data.user_id,
           theme: data.theme as 'light' | 'dark' | 'system',
-          widget_preferences: data.widget_preferences as UserSettings['widget_preferences']
+          high_contrast: data.high_contrast,
+          animations_enabled: data.animations_enabled,
+          default_layout: data.default_layout as 'grid' | 'list' | 'compact',
+          notification_email: data.notification_email,
+          notification_push: data.notification_push,
+          notification_sms: data.notification_sms,
+          widget_preferences: data.widget_preferences as UserSettings['widget_preferences'],
+          language: data.language,
+          date_format: data.date_format,
+          time_format: data.time_format,
+          units_system: data.units_system as 'metric' | 'imperial'
         };
         setSettings(parsedSettings);
       }
