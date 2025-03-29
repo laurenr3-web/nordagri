@@ -7,6 +7,8 @@ import CalendarView from './CalendarView';
 import AllAlertsSection from './AllAlertsSection';
 import { useDashboardData } from '@/hooks/dashboard/useDashboardData';
 import LoadingSpinner from '@/components/dashboard/LoadingSpinner';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 interface ViewManagerProps {
   currentView: 'main' | 'calendar' | 'alerts';
@@ -21,7 +23,8 @@ const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) 
     equipmentData, 
     maintenanceEvents, 
     alertItems, 
-    upcomingTasks 
+    upcomingTasks,
+    error 
   } = useDashboardData();
 
   // Fonction pour gérer les clics sur les cartes de statistiques
@@ -31,6 +34,18 @@ const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) 
 
   if (loading) {
     return <LoadingSpinner message="Chargement des données..." />;
+  }
+
+  if (error) {
+    return (
+      <Alert variant="destructive" className="my-8">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Erreur</AlertTitle>
+        <AlertDescription>
+          {error}. Veuillez réessayer plus tard ou contacter l'assistance.
+        </AlertDescription>
+      </Alert>
+    );
   }
 
   return (

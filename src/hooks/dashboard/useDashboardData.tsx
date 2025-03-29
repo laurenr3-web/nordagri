@@ -8,6 +8,7 @@ import { Part } from '@/types/Part';
 import { MaintenanceTask } from '@/hooks/maintenance/maintenanceSlice';
 import { Intervention } from '@/types/Intervention';
 import { Tractor, Wrench, Package, ClipboardCheck } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 // Stat type definition
 export interface Stat {
@@ -74,6 +75,7 @@ export const useDashboardData = () => {
   const [maintenanceEvents, setMaintenanceEvents] = useState<MaintenanceEvent[]>([]);
   const [alertItems, setAlertItems] = useState<AlertItem[]>([]);
   const [upcomingTasks, setUpcomingTasks] = useState<TaskItem[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   // Helper for date formatting
   const getDueString = (date: Date): string => {
@@ -282,28 +284,57 @@ export const useDashboardData = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
+      setError(null);
 
       // 1. Get equipment
+      console.log('Chargement des données d\'équipement...');
       const equipment = await equipmentService.getEquipment();
       
       // 2. Get maintenance tasks
+      console.log('Chargement des tâches de maintenance...');
       const maintenanceTasks = await maintenanceService.getTasks();
       
       // 3. Get parts
+      console.log('Chargement des pièces détachées...');
       const parts = await getParts();
       
       // 4. Get interventions
+      console.log('Chargement des interventions...');
       const interventions = await interventionService.getInterventions();
       
+      // Vérification des données récupérées
+      if (!equipment || equipment.length === 0) {
+        console.warn('Aucun équipement trouvé dans la base de données');
+      }
+      
+      if (!maintenanceTasks || maintenanceTasks.length === 0) {
+        console.warn('Aucune tâche de maintenance trouvée dans la base de données');
+      }
+      
+      if (!parts || parts.length === 0) {
+        console.warn('Aucune pièce détachée trouvée dans la base de données');
+      }
+      
+      if (!interventions || interventions.length === 0) {
+        console.warn('Aucune intervention trouvée dans la base de données');
+      }
+      
       // Update all data sections
-      updateStatsData(equipment, maintenanceTasks, parts, interventions);
-      updateEquipmentData(equipment, maintenanceTasks);
-      updateMaintenanceEvents(maintenanceTasks);
-      updateAlerts(equipment, parts, maintenanceTasks);
-      updateUpcomingTasks(maintenanceTasks);
+      updateStatsData(equipment || [], maintenanceTasks || [], parts || [], interventions || []);
+      updateEquipmentData(equipment || [], maintenanceTasks || []);
+      updateMaintenanceEvents(maintenanceTasks || []);
+      updateAlerts(equipment || [], parts || [], maintenanceTasks || []);
+      updateUpcomingTasks(maintenanceTasks || []);
       
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error('Erreur lors du chargement des données du dashboard:', error);
+      setError('Impossible de récupérer les données du tableau de bord');
+      
+      toast({
+        title: 'Erreur de chargement',
+        description: 'Impossible de récupérer les données du tableau de bord',
+        variant: 'destructive'
+      });
     } finally {
       setLoading(false);
     }
@@ -321,6 +352,7 @@ export const useDashboardData = () => {
     maintenanceEvents,
     alertItems,
     upcomingTasks,
-    fetchDashboardData
+    fetchDashboardData,
+    error
   };
 };
