@@ -41,6 +41,8 @@
   const fixScripts = [
     '/dom-safety.js',
     '/dialog-fixer.js',
+    '/form-optimizer.js',
+    '/ui-interaction-optimizer.js',
     '/button-fix.js',
     '/radix-fix.js',
     '/fix-accessibility.js',
