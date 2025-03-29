@@ -1,5 +1,5 @@
 
-import { openai } from '../openai/client';
+import { openai } from '@/services/openai/client';
 
 export interface PriceItem {
   vendor: string;
@@ -7,13 +7,54 @@ export interface PriceItem {
   currency: string;
   url: string;
   availability: string;
-  shipping: string | number;
+  shipping?: number | string;
   deliveryTime: string;
-  condition: string;
+  condition?: string;
 }
 
 export async function getPartPrices(partNumber: string, manufacturer?: string): Promise<PriceItem[]> {
   try {
+    // Simulate API call for now
+    console.log(`Getting prices for part ${partNumber} from ${manufacturer || 'unknown manufacturer'}`);
+    
+    // Mock data
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    return [
+      {
+        vendor: "AgriStore",
+        price: 89.99,
+        currency: "€",
+        url: "https://example.com/part1",
+        availability: "En stock",
+        shipping: 5.99,
+        deliveryTime: "2-3 jours ouvrables",
+        condition: "Neuf"
+      },
+      {
+        vendor: "FarmParts",
+        price: 92.50,
+        currency: "€",
+        url: "https://example.com/part2",
+        availability: "En stock",
+        shipping: 4.99,
+        deliveryTime: "3-5 jours ouvrables",
+        condition: "Neuf"
+      },
+      {
+        vendor: "TractorSupply",
+        price: 87.75,
+        currency: "€",
+        url: "https://example.com/part3",
+        availability: "En stock",
+        shipping: "Gratuit",
+        deliveryTime: "5-7 jours ouvrables",
+        condition: "Neuf"
+      }
+    ];
+    
+    /*
+    // Uncomment this to use the real OpenAI API
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -80,32 +121,13 @@ export async function getPartPrices(partNumber: string, manufacturer?: string): 
         deliveryTime: item.deliveryTime || item.delaiLivraison || item.délaiLivraison || "Non spécifié",
         condition: item.condition || item.etat || item.état || "Neuf"
       }));
-    } else if (parsedData.results && Array.isArray(parsedData.results)) {
-      priceItems = parsedData.results.map((item: any) => ({
-        vendor: item.vendor || item.supplier || item.fournisseur || "Inconnu",
-        price: item.price || item.prix || 0,
-        currency: item.currency || item.devise || "€",
-        url: item.url || item.link || item.lien || "#",
-        availability: item.availability || item.disponibilite || item.disponibilité || "Non spécifié",
-        shipping: item.shipping || item.shippingCost || item.fraisLivraison || 0,
-        deliveryTime: item.deliveryTime || item.delaiLivraison || item.délaiLivraison || "Non spécifié",
-        condition: item.condition || item.etat || item.état || "Neuf"
-      }));
     }
     
-    // Vérification et correction des URLs
-    priceItems = priceItems.map(item => {
-      // S'assurer que l'URL commence par http:// ou https://
-      if (item.url && !item.url.startsWith('http')) {
-        item.url = 'https://' + item.url;
-      }
-      return item;
-    });
+    return priceItems;
+    */
     
-    // Filtrer les résultats sans URL valide
-    return priceItems.filter(item => item.url && item.url !== 'https://#');
   } catch (error) {
-    console.error("Erreur lors de la récupération des prix:", error);
+    console.error('Erreur lors de la récupération des prix:', error);
     throw error;
   }
 }

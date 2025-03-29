@@ -1,36 +1,42 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Trash, Pencil } from 'lucide-react';
+import { Edit, Truck, X } from 'lucide-react';
+import { Part } from '@/types/Part';
 
-interface PartActionsProps {
-  onEdit: (e: React.MouseEvent) => void;
-  onDelete: (e: React.MouseEvent) => void;
+export interface PartActionsProps {
+  part?: Part;
+  onClose?: () => void;
+  onEdit?: () => void;
+  onOrder?: () => void;
 }
 
-const PartActions: React.FC<PartActionsProps> = ({ onEdit, onDelete }) => {
+const PartActions: React.FC<PartActionsProps> = ({
+  part,
+  onClose,
+  onEdit,
+  onOrder
+}) => {
   return (
-    <div className="flex justify-end gap-2">
-      <Button 
-        variant="outline" 
-        size="sm" 
-        className="flex items-center gap-1"
-        onClick={onEdit}
-        aria-label="Modifier la pièce"
-      >
-        <Pencil size={16} />
-        Modifier
-      </Button>
-      <Button 
-        variant="destructive" 
-        size="sm" 
-        className="flex items-center gap-1"
-        onClick={onDelete}
-        aria-label="Supprimer la pièce"
-      >
-        <Trash size={16} />
-        Supprimer
-      </Button>
+    <div className="flex gap-2">
+      {onClose && (
+        <Button variant="ghost" size="sm" onClick={onClose}>
+          <X className="h-4 w-4 mr-2" />
+          Fermer
+        </Button>
+      )}
+      {onEdit && (
+        <Button variant="outline" size="sm" onClick={onEdit}>
+          <Edit className="h-4 w-4 mr-2" />
+          Modifier
+        </Button>
+      )}
+      {onOrder && (
+        <Button variant="default" size="sm" onClick={onOrder}>
+          <Truck className="h-4 w-4 mr-2" />
+          Commander
+        </Button>
+      )}
     </div>
   );
 };

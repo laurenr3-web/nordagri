@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 export async function deletePart(partId: string | number) {
   try {
     const { error } = await supabase
-      .from('parts')
+      .from('parts_inventory')
       .delete()
       .eq('id', partId);
 

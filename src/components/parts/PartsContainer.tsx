@@ -7,59 +7,130 @@ import PartsGrid from './PartsGrid';
 import PartsList from './PartsList';
 import PartDetailsExtended from './PartDetailsExtended';
 import { Part } from '@/types/Part';
+import { PartsView } from '@/hooks/parts/usePartsFilter';
 
 interface PartsContainerProps {
   parts: Part[];
   filteredParts: Part[];
+  isLoading?: boolean; 
+  isError?: boolean;
+  categories: string[];
+  currentView: PartsView;
+  setCurrentView: (view: PartsView) => void;
   selectedPart: Part | null;
-  handleSelectPart: (part: Part | null) => void;
+  setSelectedPart: (part: Part | null) => void;
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  selectedCategory: string;
+  setSelectedCategory: (category: string) => void;
+  filterManufacturers: string[];
+  manufacturers: string[];
+  toggleManufacturerFilter: (manufacturer: string) => void;
+  filterMinPrice: string;
+  setFilterMinPrice: (price: string) => void;
+  filterMaxPrice: string;
+  setFilterMaxPrice: (price: string) => void;
+  filterInStock: boolean;
+  setFilterInStock: (inStock: boolean) => void;
+  filterCount: number;
+  clearFilters: () => void;
+  sortBy: string;
+  setSortBy: (sort: string) => void;
+  isPartDetailsDialogOpen: boolean;
+  setIsPartDetailsDialogOpen: (open: boolean) => void;
+  isAddPartDialogOpen: boolean;
+  setIsAddPartDialogOpen: (open: boolean) => void;
+  isAddCategoryDialogOpen: boolean;
+  setIsAddCategoryDialogOpen: (open: boolean) => void;
+  isFilterDialogOpen: boolean;
+  setIsFilterDialogOpen: (open: boolean) => void;
+  isSortDialogOpen: boolean;
+  setIsSortDialogOpen: (open: boolean) => void;
+  isOrderDialogOpen: boolean;
+  setIsOrderDialogOpen: (open: boolean) => void;
+  orderQuantity: string;
+  setOrderQuantity: (quantity: string) => void;
+  orderNote?: string;
+  setOrderNote?: (note: string) => void;
+  isOrderSuccess?: boolean;
   handleAddPart: (part: Part) => void;
   handleUpdatePart: (part: Part) => void;
   handleDeletePart: (partId: string | number) => void;
-  handleFilterChange: (filter: string) => void;
-  handleSearchChange: (search: string) => void;
-  handleSortChange: (sort: string) => void;
-  handleViewModeChange: (mode: 'grid' | 'list') => void;
-  viewMode: 'grid' | 'list';
-  isAddDialogOpen: boolean;
-  setIsAddDialogOpen: (open: boolean) => void;
-  setIsFilterDialogOpen: (open: boolean) => void;
-  setIsSortDialogOpen: (open: boolean) => void;
+  handleOrderSubmit: () => void;
+  openPartDetails: (part: Part) => void;
+  openOrderDialog: (part: Part) => void;
 }
 
 const PartsContainer: React.FC<PartsContainerProps> = ({
   parts,
   filteredParts,
+  isLoading = false,
+  isError = false,
+  categories,
+  currentView,
+  setCurrentView,
   selectedPart,
-  handleSelectPart,
+  setSelectedPart,
+  searchTerm,
+  setSearchTerm,
+  selectedCategory,
+  setSelectedCategory,
+  filterManufacturers,
+  manufacturers,
+  toggleManufacturerFilter,
+  filterMinPrice,
+  setFilterMinPrice,
+  filterMaxPrice,
+  setFilterMaxPrice,
+  filterInStock,
+  setFilterInStock,
+  filterCount,
+  clearFilters,
+  sortBy,
+  setSortBy,
+  isPartDetailsDialogOpen,
+  setIsPartDetailsDialogOpen,
+  isAddPartDialogOpen,
+  setIsAddPartDialogOpen,
+  isAddCategoryDialogOpen,
+  setIsAddCategoryDialogOpen,
+  isFilterDialogOpen,
+  setIsFilterDialogOpen,
+  isSortDialogOpen,
+  setIsSortDialogOpen,
+  isOrderDialogOpen,
+  setIsOrderDialogOpen,
+  orderQuantity,
+  setOrderQuantity,
+  orderNote,
+  setOrderNote,
+  isOrderSuccess,
   handleAddPart,
   handleUpdatePart,
   handleDeletePart,
-  handleFilterChange,
-  handleSearchChange,
-  handleSortChange,
-  handleViewModeChange,
-  viewMode,
-  isAddDialogOpen,
-  setIsAddDialogOpen,
-  setIsFilterDialogOpen,
-  setIsSortDialogOpen,
+  handleOrderSubmit,
+  openPartDetails,
+  openOrderDialog
 }) => {
-  const [searchValue, setSearchValue] = useState('');
+  const [localSearchValue, setLocalSearchValue] = useState(searchTerm);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setSearchValue(value);
-    handleSearchChange(value);
+    setLocalSearchValue(value);
+    setSearchTerm(value);
   };
 
   if (selectedPart) {
     return (
       <PartDetailsExtended
         part={selectedPart}
-        onClose={() => handleSelectPart(null)}
-        onEdit={handleUpdatePart}
-        onOrder={(part) => console.log('Order part:', part)}
+        onClose={() => setSelectedPart(null)}
+        onEdit={() => {
+          setIsPartDetailsDialogOpen(true);
+        }}
+        onOrder={() => {
+          openOrderDialog(selectedPart);
+        }}
       />
     );
   }
@@ -73,7 +144,7 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
               type="text"
               placeholder="Rechercher une pièce..."
               className="w-full rounded-md border border-input px-4 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              value={searchValue}
+              value={localSearchValue}
               onChange={handleSearch}
             />
           </div>
@@ -87,8 +158,8 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
 
         <div className="flex gap-2">
           <Select
-            value={viewMode}
-            onValueChange={(value) => handleViewModeChange(value as 'grid' | 'list')}
+            value={currentView}
+            onValueChange={(value) => setCurrentView(value as PartsView)}
           >
             <SelectTrigger className="w-[120px]">
               <SelectValue placeholder="Affichage" />
@@ -98,17 +169,17 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
               <SelectItem value="list">Liste</SelectItem>
             </SelectContent>
           </Select>
-          <Button onClick={() => setIsAddDialogOpen(true)}>
+          <Button onClick={() => setIsAddPartDialogOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Ajouter
           </Button>
         </div>
       </div>
 
-      {viewMode === 'grid' ? (
-        <PartsGrid parts={filteredParts} onSelectPart={handleSelectPart} />
+      {currentView === 'grid' ? (
+        <PartsGrid parts={filteredParts} onSelectPart={openPartDetails} />
       ) : (
-        <PartsList parts={filteredParts} onSelectPart={handleSelectPart} />
+        <PartsList parts={filteredParts} onSelectPart={openPartDetails} />
       )}
     </div>
   );

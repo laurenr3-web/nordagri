@@ -16,6 +16,8 @@ const Parts = () => {
   // The main hook now provides a cleaner interface with more focused sub-hooks
   const partsHookData = useParts(initialPartsData);
   const [activeTab, setActiveTab] = useState('inventory');
+  const [orderNote, setOrderNote] = useState('');
+  const [orderStatus, setOrderStatus] = useState('');
   
   // Debug logging for parts data updates
   useEffect(() => {
@@ -98,9 +100,8 @@ const Parts = () => {
                 setSelectedPart={partsHookData.setSelectedPart}
                 orderQuantity={partsHookData.orderQuantity}
                 setOrderQuantity={partsHookData.setOrderQuantity}
-                orderNotes={partsHookData.orderNotes}
-                setOrderNotes={partsHookData.setOrderNotes}
-                orderStatus={partsHookData.orderStatus}
+                orderNote={orderNote}
+                setOrderNote={setOrderNote}
                 handleAddPart={partsHookData.handleAddPart}
                 handleUpdatePart={partsHookData.handleUpdatePart}
                 handleDeletePart={partsHookData.handleDeletePart}
