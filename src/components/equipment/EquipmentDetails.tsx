@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Separator } from '@/components/ui/separator';
 import EditEquipmentDialog from './dialogs/EditEquipmentDialog';
-import { EquipmentItem } from './hooks/useEquipmentFilters';
+import { EquipmentItem } from '@/hooks/equipment/useEquipmentFilters';
 import EquipmentHeader from './details/EquipmentHeader';
 import EquipmentTabs from './details/EquipmentTabs';
 import { toast } from 'sonner';
@@ -14,6 +14,7 @@ interface EquipmentDetailsProps {
 
 const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate }) => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDialogClosing, setIsDialogClosing] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [localEquipment, setLocalEquipment] = useState(equipment);
 
@@ -33,14 +34,31 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
       }
     }
     
-    setIsEditDialogOpen(false);
+    // Close dialog safely with animation
+    handleDialogOpenChange(false);
+  };
+  
+  // Safe dialog state handler
+  const handleDialogOpenChange = (open: boolean) => {
+    if (!open) {
+      // First mark as closing to trigger animation
+      setIsDialogClosing(true);
+      
+      // Then set actual state after animation completes
+      setTimeout(() => {
+        setIsEditDialogOpen(false);
+        setIsDialogClosing(false);
+      }, 200);
+    } else {
+      setIsEditDialogOpen(true);
+    }
   };
 
   return (
     <div className="space-y-6">
       <EquipmentHeader 
         equipment={localEquipment} 
-        onEditClick={() => setIsEditDialogOpen(true)} 
+        onEditClick={() => handleDialogOpenChange(true)} 
       />
 
       <Separator />
@@ -51,11 +69,11 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
         onTabChange={setActiveTab}
       />
       
-      {/* Edit Equipment Dialog */}
-      {isEditDialogOpen && (
+      {/* Edit Equipment Dialog - Only render when needed */}
+      {(isEditDialogOpen || isDialogClosing) && (
         <EditEquipmentDialog
-          isOpen={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
+          isOpen={isEditDialogOpen && !isDialogClosing}
+          onOpenChange={handleDialogOpenChange}
           equipment={localEquipment}
           onSubmit={handleEquipmentUpdate}
         />

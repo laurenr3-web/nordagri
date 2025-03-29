@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { X } from "lucide-react"
@@ -48,7 +49,7 @@ const DialogContent = React.forwardRef<
   }, []);
 
   // Enhanced handler for safe dialog closing
-  const handleEscapeKeyDown = (event: DialogPrimitive.EscapeKeyDownEvent) => {
+  const handleEscapeKeyDown = (event: React.KeyboardEvent) => {
     // Prevent default browser behavior
     event.preventDefault();
     
@@ -66,14 +67,14 @@ const DialogContent = React.forwardRef<
     if (isMountedRef.current) {
       requestAnimationFrame(() => {
         if (isMountedRef.current && props.onEscapeKeyDown) {
-          props.onEscapeKeyDown(event);
+          props.onEscapeKeyDown(event as any);
         }
       });
     }
   };
   
   // Enhanced handler for outside clicks
-  const handlePointerDownOutside = (event: DialogPrimitive.PointerDownOutsideEvent) => {
+  const handlePointerDownOutside = (event: React.PointerEvent) => {
     // Only prevent outside clicks if dialog is just opening or already closing
     const timeSinceClose = Date.now() - localStateRef.current.closeStartTime;
     if (localStateRef.current.isClosing && timeSinceClose < 500) {
@@ -83,7 +84,7 @@ const DialogContent = React.forwardRef<
     
     // Let the default behavior happen for normal outside clicks
     if (props.onPointerDownOutside) {
-      props.onPointerDownOutside(event);
+      props.onPointerDownOutside(event as any);
     }
   };
 
@@ -96,8 +97,8 @@ const DialogContent = React.forwardRef<
           "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg md:max-h-[95vh] md:overflow-y-auto",
           className
         )}
-        onEscapeKeyDown={handleEscapeKeyDown}
-        onPointerDownOutside={handlePointerDownOutside}
+        onEscapeKeyDown={handleEscapeKeyDown as any}
+        onPointerDownOutside={handlePointerDownOutside as any}
         // Add enhanced close animation handling
         onCloseAutoFocus={(event) => {
           // Reset closing state

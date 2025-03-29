@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Equipment } from '@/services/supabase/equipmentService';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -30,6 +30,9 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = ({ equipment }) => {
     isUpdating
   } = useEquipmentParts(equipment);
 
+  // Add a local state to track when dialog is closing
+  const [isDialogClosing, setIsDialogClosing] = useState(false);
+
   if (loading) {
     return <EquipmentPartsLoading />;
   }
@@ -37,6 +40,22 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = ({ equipment }) => {
   if (error) {
     return <EquipmentPartsError error={error} />;
   }
+  
+  // Safe dialog state handler to prevent unmounting issues
+  const handleDialogOpenChange = (open: boolean) => {
+    if (!open) {
+      // First, mark as closing to trigger animation
+      setIsDialogClosing(true);
+      
+      // Then actually close after animation completes
+      setTimeout(() => {
+        setIsEditDialogOpen(false);
+        setIsDialogClosing(false);
+      }, 200);
+    } else {
+      setIsEditDialogOpen(true);
+    }
+  };
 
   return (
     <Card>
@@ -54,7 +73,10 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = ({ equipment }) => {
         />
 
         {/* Dialog pour modifier une pièce */}
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <Dialog 
+          open={isEditDialogOpen && !isDialogClosing} 
+          onOpenChange={handleDialogOpenChange}
+        >
           <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
@@ -65,7 +87,8 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = ({ equipment }) => {
               <EditPartForm 
                 part={selectedPart} 
                 onSubmit={handlePartUpdated}
-                onCancel={() => setIsEditDialogOpen(false)}
+                onCancel={() => handleDialogOpenChange(false)}
+                onMainDialogClose={() => handleDialogOpenChange(false)}
               />
             )}
           </DialogContent>

@@ -24,60 +24,17 @@ const EquipmentDialogs: React.FC<EquipmentDialogsProps> = ({
   const [shouldRenderAddDialog, setShouldRenderAddDialog] = useState(isAddDialogOpen);
   const [shouldRenderViewDialog, setShouldRenderViewDialog] = useState(!!selectedEquipment);
   
-  // Track previous state for debugging
-  const prevStateRef = useRef({ isAddDialogOpen, hasSelectedEquipment: !!selectedEquipment });
-  
-  console.log('EquipmentDialogs render state:', { 
-    isAddDialogOpen, 
-    hasSelectedEquipment: !!selectedEquipment,
-    shouldRenderAddDialog,
-    shouldRenderViewDialog
+  // Add state to track pending updates
+  const pendingUpdatesRef = useRef({
+    closeAddDialog: false,
+    closeViewDialog: false
   });
-
-  // Update local render state when props change
+  
+  // Log component render state for debugging
   useEffect(() => {
-    const prevState = prevStateRef.current;
-    prevStateRef.current = { isAddDialogOpen, hasSelectedEquipment: !!selectedEquipment };
-    
-    // Only update render state if component is mounted
-    if (isMountedRef.current) {
-      // For opening dialogs, update immediately
-      if (isAddDialogOpen && !shouldRenderAddDialog) {
-        setShouldRenderAddDialog(true);
-      }
-      
-      if (selectedEquipment && !shouldRenderViewDialog) {
-        setShouldRenderViewDialog(true);
-      }
-      
-      // For closing dialogs, delay unmounting to prevent removeChild errors
-      if (!isAddDialogOpen && shouldRenderAddDialog) {
-        // Use a short timeout to prevent unmounting during render cycle
-        const timer = setTimeout(() => {
-          if (isMountedRef.current) {
-            setShouldRenderAddDialog(false);
-          }
-        }, 300);
-        return () => clearTimeout(timer);
-      }
-      
-      if (!selectedEquipment && shouldRenderViewDialog) {
-        // Use a short timeout to prevent unmounting during render cycle
-        const timer = setTimeout(() => {
-          if (isMountedRef.current) {
-            setShouldRenderViewDialog(false);
-          }
-        }, 300);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [isAddDialogOpen, selectedEquipment, shouldRenderAddDialog, shouldRenderViewDialog]);
-
-  // Debug dialog state changes
-  useEffect(() => {
-    console.log('EquipmentDialogs state updated:', {
-      isAddDialogOpen,
-      selectedEquipment: selectedEquipment ? selectedEquipment.name : 'none',
+    console.log('EquipmentDialogs render state:', { 
+      isAddDialogOpen, 
+      hasSelectedEquipment: !!selectedEquipment,
       shouldRenderAddDialog,
       shouldRenderViewDialog
     });
@@ -88,16 +45,62 @@ const EquipmentDialogs: React.FC<EquipmentDialogsProps> = ({
     };
   }, [isAddDialogOpen, selectedEquipment, shouldRenderAddDialog, shouldRenderViewDialog]);
 
-  // Safe state updater functions with debouncing
+  // Update render state when props change - separate effect for Add Dialog
+  useEffect(() => {
+    if (isMountedRef.current) {
+      // For opening dialog, update immediately
+      if (isAddDialogOpen && !shouldRenderAddDialog) {
+        setShouldRenderAddDialog(true);
+      }
+      
+      // For closing dialog, delay unmounting to prevent removeChild errors
+      if (!isAddDialogOpen && shouldRenderAddDialog) {
+        pendingUpdatesRef.current.closeAddDialog = true;
+        
+        // Use a safer timeout duration to ensure component is fully unmounted
+        setTimeout(() => {
+          if (isMountedRef.current && pendingUpdatesRef.current.closeAddDialog) {
+            setShouldRenderAddDialog(false);
+            pendingUpdatesRef.current.closeAddDialog = false;
+          }
+        }, 300);
+      }
+    }
+  }, [isAddDialogOpen, shouldRenderAddDialog]);
+  
+  // Separate effect for View Dialog to avoid race conditions
+  useEffect(() => {
+    if (isMountedRef.current) {
+      // For opening dialog, update immediately
+      if (selectedEquipment && !shouldRenderViewDialog) {
+        setShouldRenderViewDialog(true);
+      }
+      
+      // For closing dialog, delay unmounting to prevent removeChild errors
+      if (!selectedEquipment && shouldRenderViewDialog) {
+        pendingUpdatesRef.current.closeViewDialog = true;
+        
+        // Use a safer timeout duration to ensure component is fully unmounted
+        setTimeout(() => {
+          if (isMountedRef.current && pendingUpdatesRef.current.closeViewDialog) {
+            setShouldRenderViewDialog(false);
+            pendingUpdatesRef.current.closeViewDialog = false;
+          }
+        }, 300);
+      }
+    }
+  }, [selectedEquipment, shouldRenderViewDialog]);
+
+  // Safe state updater function with debouncing
   const safeSetIsAddDialogOpen = (open: boolean) => {
     console.log('Setting add dialog open state to:', open);
     if (isMountedRef.current) {
-      // Use requestAnimationFrame for better timing with rendering cycle
-      requestAnimationFrame(() => {
+      // Use a safer approach with setTimeout instead of requestAnimationFrame
+      setTimeout(() => {
         if (isMountedRef.current) {
           setIsAddDialogOpen(open);
         }
-      });
+      }, 50);
     }
   };
 
@@ -105,12 +108,12 @@ const EquipmentDialogs: React.FC<EquipmentDialogsProps> = ({
   const safeSetSelectedEquipment = (equipment: EquipmentItem | null) => {
     console.log('Setting selected equipment to:', equipment ? equipment.name : 'null');
     if (isMountedRef.current) {
-      // Use requestAnimationFrame for better timing with rendering cycle
-      requestAnimationFrame(() => {
+      // Use a safer approach with setTimeout instead of requestAnimationFrame
+      setTimeout(() => {
         if (isMountedRef.current) {
           setSelectedEquipment(equipment);
         }
-      });
+      }, 50);
     }
   };
 

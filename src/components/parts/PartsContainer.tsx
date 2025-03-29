@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { PartsHeader, PartsContent, LoadingState, ErrorState, EmptyState } from './container';
 import PartDetailsExtended from './PartDetailsExtended';
 import { Part } from '@/types/Part';
@@ -82,41 +82,52 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
   openPartDetails,
   openOrderDialog
 }) => {
-  // Log pour suivre l'état de selectedPart
+  // Track when component is transitioning selectedPart
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  
+  // Log for debugging
   useEffect(() => {
-    console.log("[PartsContainer] selectedPart mis à jour:", selectedPart?.name);
-  }, [selectedPart]);
+    console.log("[PartsContainer] selectedPart state:", selectedPart?.name, "isTransitioning:", isTransitioning);
+  }, [selectedPart, isTransitioning]);
   
-  console.log("[PartsContainer] Rendu avec selectedPart:", selectedPart?.name);
+  // Safe way to close part details
+  const handleClosePartDetails = () => {
+    console.log("[PartsContainer] Starting transition to close part details");
+    setIsTransitioning(true);
+    
+    // Use timeout to ensure animation completes before state change
+    setTimeout(() => {
+      console.log("[PartsContainer] Completing transition to close part details");
+      setSelectedPart(null);
+      setIsTransitioning(false);
+    }, 100);
+  };
   
-  // Si une pièce est sélectionnée, afficher les détails
-  if (selectedPart) {
-    console.log("[PartsContainer] Affichage du composant PartDetailsExtended pour:", selectedPart.name);
+  // If a part is selected, show the details view
+  if (selectedPart && !isTransitioning) {
+    console.log("[PartsContainer] Rendering PartDetailsExtended for:", selectedPart.name);
     return (
       <PartDetailsExtended
         part={selectedPart}
-        onClose={() => {
-          console.log("[PartsContainer] Fermeture des détails");
-          setSelectedPart(null);
-        }}
+        onClose={handleClosePartDetails}
         onEdit={() => {
-          console.log("[PartsContainer] Ouverture du dialogue de modification");
+          console.log("[PartsContainer] Opening part details dialog");
           setIsPartDetailsDialogOpen(true);
         }}
         onOrder={() => {
-          console.log("[PartsContainer] Ouverture du dialogue de commande");
+          console.log("[PartsContainer] Opening order dialog");
           openOrderDialog(selectedPart);
         }}
         onDelete={() => {
-          console.log("[PartsContainer] Suppression de la pièce");
+          console.log("[PartsContainer] Deleting part");
           handleDeletePart(selectedPart.id);
-          setSelectedPart(null);
+          handleClosePartDetails();
         }}
       />
     );
   }
 
-  // Si aucune pièce n'est sélectionnée, afficher la liste ou la grille
+  // If no part is selected or we're transitioning, show the list/grid view
   return (
     <div className="space-y-4">
       <PartsHeader 
@@ -148,11 +159,11 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
           filteredParts={filteredParts}
           currentView={currentView}
           openPartDetails={(part) => {
-            console.log("[PartsContainer] Ouverture des détails de la pièce:", part.name);
+            console.log("[PartsContainer] Opening part details for:", part.name);
             openPartDetails(part);
           }}
           openOrderDialog={(part) => {
-            console.log("[PartsContainer] Ouverture de la commande pour la pièce:", part.name);
+            console.log("[PartsContainer] Opening order dialog for:", part.name);
             openOrderDialog(part);
           }}
         />

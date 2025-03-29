@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import EquipmentDetails from '@/components/equipment/EquipmentDetails';
 import { EquipmentItem } from '@/hooks/equipment/useEquipmentFilters';
@@ -16,6 +16,7 @@ const ViewEquipmentDialog: React.FC<ViewEquipmentDialogProps> = ({
 }) => {
   const { updateEquipment } = useEquipmentUpdate();
   const isMountedRef = useRef(true);
+  const [isClosing, setIsClosing] = useState(false);
   
   // Track when component will unmount
   useEffect(() => {
@@ -30,16 +31,14 @@ const ViewEquipmentDialog: React.FC<ViewEquipmentDialogProps> = ({
       
       // If the update is successful, close the dialog after a short delay
       if (result && isMountedRef.current) {
-        // Use requestAnimationFrame for better timing with browser rendering cycle
-        requestAnimationFrame(() => {
+        setIsClosing(true);
+        
+        // Delay actual closing to allow animation to complete
+        setTimeout(() => {
           if (isMountedRef.current) {
-            setTimeout(() => {
-              if (isMountedRef.current) {
-                onClose();
-              }
-            }, 100);
+            onClose();
           }
-        });
+        }, 200);
       }
     } catch (error) {
       console.error('Failed to update equipment:', error);
@@ -50,24 +49,23 @@ const ViewEquipmentDialog: React.FC<ViewEquipmentDialogProps> = ({
   // Safely handle dialog open state changes
   const handleOpenChange = (open: boolean) => {
     console.log('Equipment dialog open state changed to:', open);
-    if (!open && isMountedRef.current) {
-      // Use requestAnimationFrame for smoother state transitions
-      requestAnimationFrame(() => {
+    
+    if (!open && !isClosing && isMountedRef.current) {
+      setIsClosing(true);
+      
+      // Use a short timeout to ensure animation can complete
+      // before actually unmounting the component
+      setTimeout(() => {
         if (isMountedRef.current) {
-          // Add additional delay to ensure animation completes
-          setTimeout(() => {
-            if (isMountedRef.current) {
-              onClose();
-            }
-          }, 100);
+          onClose();
         }
-      });
+      }, 200);
     }
   };
 
   return (
     <Dialog 
-      open={!!equipment} 
+      open={!!equipment && !isClosing} 
       onOpenChange={handleOpenChange}
     >
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
