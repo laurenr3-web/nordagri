@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import EquipmentPageContent from '@/components/equipment/page/EquipmentPageContent';
@@ -12,7 +11,7 @@ import { Equipment } from '@/services/supabase/equipmentService';
 // Helper function to convert Equipment to EquipmentItem
 const mapEquipmentToEquipmentItem = (equipment: Equipment[]): EquipmentItem[] => {
   return equipment.map(item => ({
-    id: item.id,
+    id: item.id, // This will accept both number and string
     name: item.name,
     type: item.type || 'Unknown',
     category: item.category || 'Uncategorized',

@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 
 export interface EquipmentItem {
@@ -30,7 +29,6 @@ interface FilterState {
 }
 
 export function useEquipmentFilters(equipmentItems: EquipmentItem[]) {
-  // State for filters
   const [filters, setFilters] = useState<FilterState>({
     searchTerm: '',
     filterStatus: [],
@@ -41,7 +39,6 @@ export function useEquipmentFilters(equipmentItems: EquipmentItem[]) {
     sortOrder: 'asc'
   });
 
-  // Extract available filter options
   const filterOptions = useMemo(() => {
     const statusSet = new Set<string>();
     const typeSet = new Set<string>();
@@ -63,33 +60,27 @@ export function useEquipmentFilters(equipmentItems: EquipmentItem[]) {
     };
   }, [equipmentItems]);
 
-  // Apply filters and sorting
   const filteredEquipment = useMemo(() => {
     return equipmentItems
       .filter(item => {
-        // Search term filter
         if (filters.searchTerm && !item.name.toLowerCase().includes(filters.searchTerm.toLowerCase()) &&
             !item.type.toLowerCase().includes(filters.searchTerm.toLowerCase()) &&
             !item.manufacturer.toLowerCase().includes(filters.searchTerm.toLowerCase())) {
           return false;
         }
 
-        // Status filter
         if (filters.filterStatus.length > 0 && !filters.filterStatus.includes(item.status)) {
           return false;
         }
 
-        // Type filter
         if (filters.filterType.length > 0 && !filters.filterType.includes(item.type)) {
           return false;
         }
 
-        // Category filter
         if (filters.filterCategory.length > 0 && !filters.filterCategory.includes(item.category)) {
           return false;
         }
 
-        // Manufacturer filter
         if (filters.filterManufacturer.length > 0 && !filters.filterManufacturer.includes(item.manufacturer)) {
           return false;
         }
@@ -107,7 +98,6 @@ export function useEquipmentFilters(equipmentItems: EquipmentItem[]) {
             : bValue.localeCompare(aValue);
         }
 
-        // Handle numeric values
         if (typeof aValue === 'number' && typeof bValue === 'number') {
           return filters.sortOrder === 'asc'
             ? aValue - bValue
@@ -118,7 +108,6 @@ export function useEquipmentFilters(equipmentItems: EquipmentItem[]) {
       });
   }, [equipmentItems, filters]);
 
-  // Update filter handlers
   const setSearchTerm = (term: string) => {
     setFilters(prev => ({ ...prev, searchTerm: term }));
   };
@@ -161,7 +150,6 @@ export function useEquipmentFilters(equipmentItems: EquipmentItem[]) {
 
   const setSortBy = (field: string) => {
     setFilters(prev => {
-      // If clicking on same field, toggle order
       const newOrder = prev.sortBy === field && prev.sortOrder === 'asc' ? 'desc' : 'asc';
       return { ...prev, sortBy: field, sortOrder: newOrder };
     });
