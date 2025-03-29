@@ -3,7 +3,7 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TechnicalInfoDisplay } from '../displays/TechnicalInfoDisplay';
 import { PriceComparisonDisplay } from '../displays/PriceComparisonDisplay';
-import OpenAIPriceComparison from '../displays/OpenAIPriceComparison';
+import PriceComparisonTab from '../PriceComparisonTab';
 
 interface PerplexityResultsProps {
   results: {
@@ -41,7 +41,9 @@ const PerplexityResults: React.FC<PerplexityResultsProps> = ({
         <PriceComparisonDisplay data={results.priceData} />
       </TabsContent>
       <TabsContent value="prices-openai">
-        <OpenAIPriceComparison partNumber={searchQuery} />
+        <PriceComparisonTab 
+          partNumber={searchQuery}
+        />
       </TabsContent>
     </Tabs>
   );

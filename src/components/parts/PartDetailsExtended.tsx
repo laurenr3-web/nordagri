@@ -12,6 +12,7 @@ import PartActions from './details/PartActions';
 import PartPriceComparison from './PartPriceComparison';
 import TechnicalInfoTab from './technical-info/TechnicalInfoTab';
 import OpenAIPriceComparison from './displays/OpenAIPriceComparison';
+import PriceComparisonTab from './PriceComparisonTab';
 
 interface PartDetailsExtendedProps {
   part: Part;
@@ -42,13 +43,13 @@ const PartDetailsExtended = ({ part, onClose, onEdit, onOrder }: PartDetailsExte
         <TabsList className="w-full justify-start">
           <TabsTrigger value="overview">Aperçu</TabsTrigger>
           <TabsTrigger value="technical">Informations techniques</TabsTrigger>
-          <TabsTrigger value="prices-perplexity">Prix (Perplexity)</TabsTrigger>
           <TabsTrigger value="prices-openai">Prix (OpenAI)</TabsTrigger>
+          <TabsTrigger value="prices-perplexity">Prix (Perplexity)</TabsTrigger>
         </TabsList>
         
         <TabsContent value="overview" className="space-y-4 pt-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <PartImage part={part} className="md:col-span-1" />
+            <PartImage part={part} />
             <Card className="md:col-span-2">
               <CardHeader>
                 <CardTitle>Informations générales</CardTitle>
@@ -67,7 +68,6 @@ const PartDetailsExtended = ({ part, onClose, onEdit, onOrder }: PartDetailsExte
           <TechnicalInfoTab 
             partNumber={part.partNumber} 
             partName={part.name}
-            manufacturer={part.manufacturer}
           />
         </TabsContent>
         
@@ -80,7 +80,7 @@ const PartDetailsExtended = ({ part, onClose, onEdit, onOrder }: PartDetailsExte
         </TabsContent>
 
         <TabsContent value="prices-openai" className="space-y-4 pt-4">
-          <OpenAIPriceComparison
+          <PriceComparisonTab
             partNumber={part.partNumber}
             partName={part.name}
             manufacturer={part.manufacturer}

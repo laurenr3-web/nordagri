@@ -55,7 +55,7 @@ const Parts = () => {
             <TabsList className="grid grid-cols-3 w-[600px]">
               <TabsTrigger value="inventory">Inventaire</TabsTrigger>
               <TabsTrigger value="search">Recherche web</TabsTrigger>
-              <TabsTrigger value="perplexity">Recherche IA</TabsTrigger>
+              <TabsTrigger value="perplexity">Recherche technique</TabsTrigger>
             </TabsList>
             
             <TabsContent value="inventory" className="mt-6">
