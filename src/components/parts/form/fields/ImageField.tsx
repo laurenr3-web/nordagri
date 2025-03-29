@@ -3,9 +3,9 @@ import React from 'react';
 import { FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { UseFormReturn } from 'react-hook-form';
 import { PartFormValues } from '../partFormTypes';
-import CameraCapture from '@/components/equipment/form/CameraCapture';
 import ImageUrlInput from '@/components/equipment/form/fields/ImageUrlInput';
 import ImagePreview from '@/components/equipment/form/fields/ImagePreview';
+import PartPhotoCapture from '../../PartPhotoCapture';
 
 interface ImageFieldProps {
   form: UseFormReturn<PartFormValues>;
@@ -26,19 +26,21 @@ const ImageField: React.FC<ImageFieldProps> = ({ form }) => {
                 onChange={(value) => form.setValue('image', value)}
                 placeholder="https://example.com/image.jpg"
               />
-              
-              <CameraCapture 
-                onCapture={(imageDataUrl) => {
-                  form.setValue('image', imageDataUrl);
-                }} 
-              />
             </div>
             
-            <ImagePreview 
-              imageUrl={field.value}
-              onReset={() => form.setValue('image', '')}
-              altText="Part preview"
-            />
+            {field.value ? (
+              <ImagePreview 
+                imageUrl={field.value}
+                onReset={() => form.setValue('image', '')}
+                altText="Part preview"
+              />
+            ) : (
+              <PartPhotoCapture 
+                onPhotoTaken={(imageDataUrl) => {
+                  form.setValue('image', imageDataUrl);
+                }}
+              />
+            )}
             
             <FormDescription>
               Enter a URL for the part image or take a photo
