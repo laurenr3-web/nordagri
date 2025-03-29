@@ -1,6 +1,5 @@
 
 import { Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { RealtimeCacheProvider } from '@/providers/RealtimeCacheProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
@@ -21,54 +20,52 @@ import Auth from '@/pages/Auth';
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="light" storageKey="agri-erp-theme">
-      <RealtimeCacheProvider>
-        <AuthProvider>
-          <MobileMenu />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/equipment" element={
-              <ProtectedRoute>
-                <Equipment />
-              </ProtectedRoute>
-            } />
-            <Route path="/equipment/:id" element={
-              <ProtectedRoute>
-                <EquipmentDetail />
-              </ProtectedRoute>
-            } />
-            <Route path="/maintenance" element={
-              <ProtectedRoute>
-                <Maintenance />
-              </ProtectedRoute>
-            } />
-            <Route path="/parts" element={
-              <ProtectedRoute>
-                <Parts />
-              </ProtectedRoute>
-            } />
-            <Route path="/interventions" element={
-              <ProtectedRoute>
-                <Interventions />
-              </ProtectedRoute>
-            } />
-            <Route path="/settings" element={
-              <ProtectedRoute>
-                <Settings />
-              </ProtectedRoute>
-            } />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Toaster />
-        </AuthProvider>
-      </RealtimeCacheProvider>
-    </ThemeProvider>
+    <RealtimeCacheProvider>
+      <AuthProvider>
+        <MobileMenu />
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/equipment" element={
+            <ProtectedRoute>
+              <Equipment />
+            </ProtectedRoute>
+          } />
+          <Route path="/equipment/:id" element={
+            <ProtectedRoute>
+              <EquipmentDetail />
+            </ProtectedRoute>
+          } />
+          <Route path="/maintenance" element={
+            <ProtectedRoute>
+              <Maintenance />
+            </ProtectedRoute>
+          } />
+          <Route path="/parts" element={
+            <ProtectedRoute>
+              <Parts />
+            </ProtectedRoute>
+          } />
+          <Route path="/interventions" element={
+            <ProtectedRoute>
+              <Interventions />
+            </ProtectedRoute>
+          } />
+          <Route path="/settings" element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          } />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <Toaster />
+      </AuthProvider>
+    </RealtimeCacheProvider>
   );
 }
 

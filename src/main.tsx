@@ -22,7 +22,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider defaultTheme="system" storageKey="farm-theme">
+        <ThemeProvider defaultTheme="light" storageKey="farm-theme">
           <App />
           <Toaster />
         </ThemeProvider>
