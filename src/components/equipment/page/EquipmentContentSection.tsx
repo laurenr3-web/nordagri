@@ -29,10 +29,23 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
 }) => {
   const { currentView, setCurrentView } = viewState;
   
-  // Ajouter des valeurs par défaut pour éviter les erreurs undefined
+  // Add default values for all filter state properties to avoid undefined errors
   const {
-    filters = { filterStatus: [], filterType: [], filterCategory: [], filterManufacturer: [] },
-    filterOptions = { status: [], type: [], category: [], manufacturer: [] },
+    filters = { 
+      filterStatus: [], 
+      filterType: [], 
+      filterCategory: [], 
+      filterManufacturer: [],
+      searchTerm: '',
+      sortBy: 'name',
+      sortOrder: 'asc' 
+    },
+    filterOptions = { 
+      status: [], 
+      type: [], 
+      category: [], 
+      manufacturer: [] 
+    },
     filteredEquipment = [],
     setSearchTerm = () => {},
     toggleStatusFilter = () => {},
@@ -40,6 +53,7 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
     toggleCategoryFilter = () => {},
     toggleManufacturerFilter = () => {},
     setSortBy = () => {},
+    setSortOrder = () => {},
     resetFilters = () => {},
   } = filterState || {};
 
@@ -53,10 +67,12 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
       toggleCategoryFilter(category);
     }
   };
+  
+  // Ensure all filter options arrays exist with fallbacks
   const statusOptions = filterOptions.status || [];
   const typeOptions = filterOptions.type || [];
   const manufacturerOptions = filterOptions.manufacturer || [];
-  const yearOptions = [];  // Non utilisé actuellement
+  const yearOptions: number[] = [];  // Non utilisé actuellement
 
   // Adapter les fonctions de filtrage
   const isFilterActive = (type: 'status' | 'type' | 'manufacturer' | 'year', value: string | number) => {
@@ -140,7 +156,7 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
         sortBy={sortBy}
         sortOrder={sortOrder}
         setSortBy={setSortBy}
-        setSortOrder={() => {}}
+        setSortOrder={setSortOrder}
       />
       
       <CategoryTabs 

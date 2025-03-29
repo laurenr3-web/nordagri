@@ -24,15 +24,20 @@ const ActiveFilters: React.FC<ActiveFiltersProps> = ({
   clearFilters,
   getStatusColor,
   getStatusText,
-  activeFilterCount
+  activeFilterCount = 0
 }) => {
   if (activeFilterCount === 0) {
     return null;
   }
   
+  // Ensure all filter arrays are defined
+  const statusFilters = filters.status || [];
+  const typeFilters = filters.type || [];
+  const manufacturerFilters = filters.manufacturer || [];
+  
   return (
     <div className="flex flex-wrap gap-2 mt-4">
-      {(filters.status || []).map(status => (
+      {statusFilters.map(status => (
         <Badge 
           key={`active-status-${status}`} 
           variant="outline"
@@ -51,7 +56,7 @@ const ActiveFilters: React.FC<ActiveFiltersProps> = ({
         </Badge>
       ))}
       
-      {(filters.type || []).map(type => (
+      {typeFilters.map(type => (
         <Badge 
           key={`active-type-${type}`} 
           variant="outline"
@@ -69,7 +74,7 @@ const ActiveFilters: React.FC<ActiveFiltersProps> = ({
         </Badge>
       ))}
       
-      {(filters.manufacturer || []).map(manufacturer => (
+      {manufacturerFilters.map(manufacturer => (
         <Badge 
           key={`active-manufacturer-${manufacturer}`} 
           variant="outline"

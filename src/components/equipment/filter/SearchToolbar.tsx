@@ -36,27 +36,27 @@ interface SearchToolbarProps {
 }
 
 const SearchToolbar: React.FC<SearchToolbarProps> = ({
-  searchTerm,
+  searchTerm = '',
   setSearchTerm,
-  currentView,
+  currentView = 'grid',
   setCurrentView,
-  filters,
-  statusOptions,
-  typeOptions,
-  manufacturerOptions,
-  yearOptions,
+  filters = { status: [], type: [], manufacturer: [], year: [] },
+  statusOptions = [],
+  typeOptions = [],
+  manufacturerOptions = [],
+  yearOptions = [],
   isFilterActive,
   toggleFilter,
   clearFilters,
   getStatusColor,
   getStatusText,
-  activeFilterCount,
-  sortBy,
-  sortOrder,
+  activeFilterCount = 0,
+  sortBy = 'name',
+  sortOrder = 'asc',
   setSortBy,
   setSortOrder
 }) => {
-  // S'assurer que filters a des valeurs par défaut
+  // Ensure filters object has default values for all properties
   const safeFilters = {
     status: filters.status || [],
     type: filters.type || [],

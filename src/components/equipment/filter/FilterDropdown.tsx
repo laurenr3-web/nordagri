@@ -37,13 +37,19 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
   manufacturerOptions = [],
   yearOptions = [],
   filters = { status: [], type: [], manufacturer: [], year: [] },
-  activeFilterCount,
+  activeFilterCount = 0,
   isFilterActive,
   toggleFilter,
   clearFilters,
   getStatusColor,
   getStatusText
 }) => {
+  // Ensure all arrays have default values to prevent mapping over undefined
+  const safeStatusOptions = statusOptions || [];
+  const safeTypeOptions = typeOptions || [];
+  const safeManufacturerOptions = manufacturerOptions || [];
+  const safeYearOptions = yearOptions || [];
+  
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -62,7 +68,7 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
         <DropdownMenuGroup>
           <div className="p-2 font-medium">Status</div>
           <div className="px-2 pb-2 grid grid-cols-2 gap-1">
-            {(statusOptions || []).map(status => (
+            {safeStatusOptions.map(status => (
               <DropdownMenuItem
                 key={`status-${status}`}
                 className="gap-2 cursor-pointer"
@@ -84,7 +90,7 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
         <DropdownMenuGroup>
           <div className="p-2 font-medium">Type</div>
           <div className="px-2 pb-2">
-            {(typeOptions || []).map(type => (
+            {safeTypeOptions.map(type => (
               <DropdownMenuItem
                 key={`type-${type}`}
                 className="gap-2 cursor-pointer"
@@ -105,7 +111,7 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
         <DropdownMenuGroup>
           <div className="p-2 font-medium">Manufacturer</div>
           <div className="px-2 pb-2">
-            {(manufacturerOptions || []).map(manufacturer => (
+            {safeManufacturerOptions.map(manufacturer => (
               <DropdownMenuItem
                 key={`manufacturer-${manufacturer}`}
                 className="gap-2 cursor-pointer truncate"
