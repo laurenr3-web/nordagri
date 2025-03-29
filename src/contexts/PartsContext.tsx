@@ -21,17 +21,22 @@ interface PartsContextType {
   handlePhotoTaken: (imageData: string) => Promise<void>;
 }
 
+// Create the context with a meaningful undefined check
 const PartsContext = createContext<PartsContextType | undefined>(undefined);
 
+// Add better error messaging to the hook
 export const usePartsContext = () => {
   const context = useContext(PartsContext);
   if (!context) {
+    console.error("usePartsContext called outside of a PartsContextProvider - check component hierarchy");
     throw new Error('usePartsContext must be used within a PartsContextProvider');
   }
   return context;
 };
 
 export const PartsContextProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
+  console.log("PartsContextProvider rendering");
+  
   // The main hook now provides a cleaner interface with more focused sub-hooks
   const partsHookData = useParts(partsData);
   const [orderNote, setOrderNote] = React.useState('');
@@ -152,6 +157,8 @@ export const PartsContextProvider: React.FC<{children: React.ReactNode}> = ({ ch
     handlePhotoTaken
   };
 
+  console.log("PartsContextProvider providing context");
+  
   return (
     <PartsContext.Provider value={value}>
       {children}
