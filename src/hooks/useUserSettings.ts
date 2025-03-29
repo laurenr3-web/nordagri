@@ -15,6 +15,7 @@ export interface UserSettings {
   widget_preferences: Record<string, { enabled: boolean; priority: 'high' | 'medium' | 'low' }>;
   language: string;
   date_format: string;
+  time_format: string;
   units_system: 'metric' | 'imperial';
 }
 
@@ -42,6 +43,7 @@ export const useUserSettings = (userId: string) => {
     },
     language: 'fr',
     date_format: 'DD/MM/YYYY',
+    time_format: '24h',
     units_system: 'metric'
   };
 

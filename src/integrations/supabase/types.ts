@@ -460,6 +460,45 @@ export type Database = {
         }
         Relationships: []
       }
+      regional_preferences: {
+        Row: {
+          created_at: string
+          currency: string
+          date_format: string
+          id: string
+          language: string
+          number_format: string
+          time_format: string
+          units_system: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          date_format?: string
+          id?: string
+          language?: string
+          number_format?: string
+          time_format?: string
+          units_system?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          date_format?: string
+          id?: string
+          language?: string
+          number_format?: string
+          time_format?: string
+          units_system?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       team_members: {
         Row: {
           created_at: string
@@ -535,6 +574,7 @@ export type Database = {
           notification_push: boolean
           notification_sms: boolean
           theme: string
+          time_format: string
           units_system: string
           updated_at: string
           user_id: string
@@ -552,6 +592,7 @@ export type Database = {
           notification_push?: boolean
           notification_sms?: boolean
           theme?: string
+          time_format?: string
           units_system?: string
           updated_at?: string
           user_id: string
@@ -569,6 +610,7 @@ export type Database = {
           notification_push?: boolean
           notification_sms?: boolean
           theme?: string
+          time_format?: string
           units_system?: string
           updated_at?: string
           user_id?: string

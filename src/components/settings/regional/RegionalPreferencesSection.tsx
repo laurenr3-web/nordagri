@@ -15,7 +15,7 @@ export const RegionalPreferencesSection = () => {
     settings?.units_system === 'imperial' ? 'fahrenheit' : 'celsius'
   );
   const [dateFormat, setDateFormat] = useState(settings?.date_format || 'dd/mm/yyyy');
-  const [timeFormat, setTimeFormat] = useState('24h');
+  const [timeFormat, setTimeFormat] = useState(settings?.time_format || '24h');
   const [language, setLanguage] = useState(settings?.language || 'en');
   const [savingSettings, setSavingSettings] = useState(false);
 
@@ -24,6 +24,7 @@ export const RegionalPreferencesSection = () => {
     if (settings) {
       setTemperatureUnit(settings.units_system === 'imperial' ? 'fahrenheit' : 'celsius');
       setDateFormat(settings.date_format);
+      setTimeFormat(settings.time_format);
       setLanguage(settings.language);
     }
   }, [settings]);
@@ -41,6 +42,7 @@ export const RegionalPreferencesSection = () => {
         ...settings,
         units_system: temperatureUnit === 'celsius' ? 'metric' : 'imperial',
         date_format: dateFormat,
+        time_format: timeFormat,
         language: language
       });
       
