@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Separator } from '@/components/ui/separator';
 import EditEquipmentDialog from './dialogs/EditEquipmentDialog';
 import { EquipmentItem } from '@/hooks/equipment/useEquipmentFilters';
@@ -17,42 +17,48 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
   const [isDialogClosing, setIsDialogClosing] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [localEquipment, setLocalEquipment] = useState(equipment);
+  
+  // Mettre à jour les données locales quand les props changent
+  useEffect(() => {
+    setLocalEquipment(equipment);
+  }, [equipment]);
 
-  const handleEquipmentUpdate = (updatedEquipment: any) => {
+  // Optimiser avec useCallback pour réduire les re-rendus
+  const handleEquipmentUpdate = useCallback((updatedEquipment: any) => {
     console.log('EquipmentDetails received updated equipment:', updatedEquipment);
     
-    // Update local state first for immediate UI feedback
+    // Mise à jour de l'état local pour un retour UI immédiat
     setLocalEquipment(updatedEquipment);
     
-    // Call parent update handler if provided
+    // Appeler le gestionnaire de mise à jour parent si fourni
     if (onUpdate) {
       try {
         onUpdate(updatedEquipment);
       } catch (error) {
         console.error('Error during equipment update:', error);
-        toast.error('Failed to update equipment on the server');
+        toast.error('Échec de la mise à jour de l\'équipement sur le serveur');
       }
     }
     
-    // Close dialog safely with animation
+    // Fermer le dialogue en toute sécurité avec animation
     handleDialogOpenChange(false);
-  };
+  }, [onUpdate]);
   
-  // Safe dialog state handler
-  const handleDialogOpenChange = (open: boolean) => {
+  // Gestionnaire d'état de dialogue optimisé
+  const handleDialogOpenChange = useCallback((open: boolean) => {
     if (!open) {
-      // First mark as closing to trigger animation
+      // D'abord marquer comme fermant pour déclencher l'animation
       setIsDialogClosing(true);
       
-      // Then set actual state after animation completes
+      // Puis définir l'état réel après la fin de l'animation
       setTimeout(() => {
         setIsEditDialogOpen(false);
         setIsDialogClosing(false);
-      }, 200);
+      }, 300);
     } else {
       setIsEditDialogOpen(true);
     }
-  };
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -69,7 +75,7 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
         onTabChange={setActiveTab}
       />
       
-      {/* Edit Equipment Dialog - Only render when needed */}
+      {/* Dialogue de modification d'équipement - Ne rendre que si nécessaire */}
       {(isEditDialogOpen || isDialogClosing) && (
         <EditEquipmentDialog
           isOpen={isEditDialogOpen && !isDialogClosing}

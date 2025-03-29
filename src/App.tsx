@@ -27,7 +27,10 @@ function App() {
       const scripts = [
         '/button-fix.js',
         '/radix-fix.js',
-        '/fix-accessibility.js'
+        '/fix-accessibility.js',
+        '/form-fix.js',
+        '/fix-all.js',
+        '/performance-fix.js' // Ajout du nouveau script d'optimisation
       ];
       
       scripts.forEach(src => {
@@ -37,13 +40,13 @@ function App() {
         document.head.appendChild(script);
       });
       
-      console.log('🛠️ Script de réparation en cours d\'exécution...');
+      console.log('🛠️ Scripts de réparation et d\'optimisation en cours d\'exécution...');
     };
     
     loadFixScripts();
     
     return () => {
-      console.log('✅ Réparation terminée! Les boutons devraient maintenant fonctionner.');
+      console.log('✅ Réparation terminée! Les boutons et formulaires devraient maintenant fonctionner correctement.');
     };
   }, []);
   

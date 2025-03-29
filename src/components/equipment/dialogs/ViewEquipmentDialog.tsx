@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import EquipmentDetails from '@/components/equipment/EquipmentDetails';
 import { EquipmentItem } from '@/hooks/equipment/useEquipmentFilters';
 import { useEquipmentUpdate } from '@/hooks/equipment/useEquipmentUpdate';
+import { toast } from 'sonner';
 
 interface ViewEquipmentDialogProps {
   equipment: EquipmentItem | null;
@@ -20,6 +21,7 @@ const ViewEquipmentDialog: React.FC<ViewEquipmentDialogProps> = ({
   
   // Track when component will unmount
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
     };
@@ -27,39 +29,42 @@ const ViewEquipmentDialog: React.FC<ViewEquipmentDialogProps> = ({
 
   const handleEquipmentUpdate = async (updatedEquipment: any) => {
     try {
+      if (!isMountedRef.current) return;
+      
       const result = await updateEquipment(updatedEquipment);
       
-      // If the update is successful, close the dialog after a short delay
+      // Si la mise à jour réussit, fermer le dialogue après un court délai
       if (result && isMountedRef.current) {
+        toast.success("Équipement mis à jour avec succès");
         setIsClosing(true);
         
-        // Delay actual closing to allow animation to complete
+        // Mieux gérer la fermeture du dialogue
         setTimeout(() => {
           if (isMountedRef.current) {
             onClose();
           }
-        }, 200);
+        }, 300);
       }
     } catch (error) {
       console.error('Failed to update equipment:', error);
-      // Error is already handled in the hook
+      toast.error("Échec de la mise à jour de l'équipement");
+      // L'erreur est déjà gérée dans le hook
     }
   };
 
-  // Safely handle dialog open state changes
+  // Gestion plus sécurisée des changements d'état du dialogue
   const handleOpenChange = (open: boolean) => {
-    console.log('Equipment dialog open state changed to:', open);
-    
     if (!open && !isClosing && isMountedRef.current) {
       setIsClosing(true);
       
-      // Use a short timeout to ensure animation can complete
-      // before actually unmounting the component
-      setTimeout(() => {
-        if (isMountedRef.current) {
-          onClose();
-        }
-      }, 200);
+      // Utiliser requestAnimationFrame pour une meilleure synchronisation
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          if (isMountedRef.current) {
+            onClose();
+          }
+        }, 300);
+      });
     }
   };
 
