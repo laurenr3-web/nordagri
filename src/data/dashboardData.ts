@@ -125,19 +125,19 @@ export const maintenanceEvents = [{
 
 // Alert items
 export const alertItems = [{
-  id: 1,
+  id: '1',
   severity: 'high' as const,
   message: 'Harvester engine overheating detected',
   time: '2 hours ago',
   equipment: 'Case IH Axial-Flow'
 }, {
-  id: 2,
+  id: '2',
   severity: 'medium' as const,
   message: 'Low oil pressure warning on Tractor #3',
   time: '1 day ago',
   equipment: 'Kubota M7-172'
 }, {
-  id: 3,
+  id: '3',
   severity: 'low' as const,
   message: 'Maintenance interval approaching for Tractor #1',
   time: '2 days ago',
@@ -150,20 +150,20 @@ export const upcomingTasks = [{
   title: 'Oil and Filter Change',
   equipment: 'John Deere 8R 410',
   due: 'Tomorrow',
-  priority: 'high',
+  priority: 'high' as const,
   assignee: 'Michael Torres'
 }, {
   id: 2,
   title: 'Hydraulic System Check',
   equipment: 'Case IH Axial-Flow',
   due: 'Jun 15',
-  priority: 'medium',
+  priority: 'medium' as const,
   assignee: 'Sarah Johnson'
 }, {
   id: 3,
   title: 'Tire Pressure Adjustment',
   equipment: 'Kubota M7-172',
   due: 'Jun 18',
-  priority: 'low',
+  priority: 'low' as const,
   assignee: 'David Chen'
 }];

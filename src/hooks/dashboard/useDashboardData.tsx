@@ -63,7 +63,7 @@ export interface TaskItem {
   title: string;
   equipment: string;
   due: string;
-  priority: 'critical' | 'high' | 'medium' | 'low';
+  priority: 'critical' | 'high' | 'medium' | 'low' | string;
   assignee: string;
 }
 
