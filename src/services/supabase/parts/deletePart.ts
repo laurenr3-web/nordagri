@@ -7,7 +7,7 @@ export async function deletePart(partId: string | number) {
     const { error } = await supabase
       .from('parts_inventory')
       .delete()
-      .eq('id', partId);
+      .eq('id', typeof partId === 'string' ? parseInt(partId, 10) : partId);
 
     if (error) throw error;
 

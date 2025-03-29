@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,9 +39,9 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const deleteMutation = useDeletePart();
 
-  const handleDelete = (e: React.MouseEvent) => {
+  const handleDelete = (e?: React.MouseEvent) => {
     // Prevent event from bubbling up which might cause redirection
-    e.stopPropagation();
+    if (e) e.stopPropagation();
     
     if (onDelete) {
       onDelete(part.id);
@@ -73,17 +74,24 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
     }
   };
 
-  const openEditDialog = (e: React.MouseEvent) => {
+  const openEditDialog = (e?: React.MouseEvent) => {
     // Prevent event from bubbling up which might cause redirection
-    e.stopPropagation();
+    if (e) e.stopPropagation();
     setIsEditDialogOpen(true);
   };
 
   // Nouveau gestionnaire pour ouvrir le dialogue de confirmation de suppression
-  const openDeleteDialog = (e: React.MouseEvent) => {
+  const openDeleteDialog = (e?: React.MouseEvent) => {
     // Prevent event from bubbling up which might cause redirection
-    e.stopPropagation();
+    if (e) e.stopPropagation();
     setIsDeleteDialogOpen(true);
+  };
+
+  const handleDialogClose = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (onDialogClose) {
+      onDialogClose();
+    }
   };
 
   return (
@@ -118,7 +126,12 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
         <p className="text-muted-foreground">{part.partNumber}</p>
       </div>
 
-      {!onBack && <PartActions onEdit={openEditDialog} onDelete={openDeleteDialog} />}
+      {!onBack && <PartActions 
+        part={part} 
+        onEdit={openEditDialog} 
+        onDelete={openDeleteDialog} 
+        onClose={handleDialogClose}
+      />}
 
       <Separator />
       

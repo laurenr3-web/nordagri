@@ -6,9 +6,9 @@ import { Part } from '@/types/Part';
 
 export interface PartActionsProps {
   part?: Part;
-  onClose?: () => void;
-  onEdit?: () => void;
-  onOrder?: () => void;
+  onClose?: (e?: React.MouseEvent) => void;
+  onEdit?: (e?: React.MouseEvent) => void;
+  onOrder?: (e?: React.MouseEvent) => void;
 }
 
 const PartActions: React.FC<PartActionsProps> = ({

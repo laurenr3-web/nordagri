@@ -98,8 +98,12 @@ const Parts = () => {
                 setIsOrderDialogOpen={partsHookData.setIsOrderDialogOpen}
                 selectedPart={partsHookData.selectedPart}
                 setSelectedPart={partsHookData.setSelectedPart}
-                orderQuantity={partsHookData.orderQuantity}
-                setOrderQuantity={partsHookData.setOrderQuantity}
+                orderQuantity={partsHookData.orderQuantity || ''}
+                setOrderQuantity={(qty: string) => {
+                  if (partsHookData.setOrderQuantity) {
+                    partsHookData.setOrderQuantity(qty);
+                  }
+                }}
                 orderNote={orderNote}
                 setOrderNote={setOrderNote}
                 handleAddPart={partsHookData.handleAddPart}
