@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import AddPartForm from '@/components/parts/AddPartForm';
 
@@ -14,32 +14,50 @@ const AddPartDialog: React.FC<AddPartDialogProps> = ({
   onOpenChange,
   onSuccess
 }) => {
+  // Use a ref to track if component is mounted
+  const isMountedRef = useRef(true);
+  
   // Log when dialog state changes
   useEffect(() => {
     console.log('AddPartDialog state changed:', { isOpen });
+    
+    // Setup cleanup function to prevent state updates after unmount
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [isOpen]);
 
-  // Fonction sécurisée pour fermer la boîte de dialogue
+  // Safe method to close the dialog
   const safeCloseDialog = () => {
     console.log('Fermeture sécurisée de la boîte de dialogue');
-    // Utiliser setTimeout pour éviter les erreurs de manipulation du DOM
-    setTimeout(() => {
-      onOpenChange(false);
-    }, 100);
+    // Use requestAnimationFrame instead of setTimeout for better synchronization with browser rendering
+    if (isMountedRef.current) {
+      requestAnimationFrame(() => {
+        if (isMountedRef.current) {
+          onOpenChange(false);
+        }
+      });
+    }
+  };
+
+  // Enhanced error handling when opening/closing the dialog
+  const handleOpenChange = (open: boolean) => {
+    console.log('Part dialog open state change requested:', open);
+    
+    if (open !== isOpen && isMountedRef.current) {
+      // Use requestAnimationFrame for better timing with rendering cycle
+      requestAnimationFrame(() => {
+        if (isMountedRef.current) {
+          onOpenChange(open);
+        }
+      });
+    }
   };
 
   return (
     <Dialog 
       open={isOpen} 
-      onOpenChange={(open) => {
-        console.log('Part dialog open state change requested:', open);
-        // Utiliser setTimeout pour éviter les erreurs de manipulation du DOM
-        if (open !== isOpen) {
-          setTimeout(() => {
-            onOpenChange(open);
-          }, 100);
-        }
-      }}
+      onOpenChange={handleOpenChange}
     >
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -51,9 +69,8 @@ const AddPartDialog: React.FC<AddPartDialogProps> = ({
         <AddPartForm 
           onSuccess={(data) => {
             console.log('AddPartForm success', data);
-            if (onSuccess) {
+            if (onSuccess && isMountedRef.current) {
               onSuccess(data);
-              // Utiliser la fonction sécurisée pour fermer la boîte de dialogue
               safeCloseDialog();
             }
           }}

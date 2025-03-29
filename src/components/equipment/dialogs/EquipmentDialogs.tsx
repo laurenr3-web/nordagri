@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import AddEquipmentDialog from './AddEquipmentDialog';
 import ViewEquipmentDialog from './ViewEquipmentDialog';
 import { EquipmentItem } from '@/hooks/equipment/useEquipmentFilters';
@@ -17,6 +17,9 @@ const EquipmentDialogs: React.FC<EquipmentDialogsProps> = ({
   selectedEquipment,
   setSelectedEquipment
 }) => {
+  // Use a ref to track if component is mounted
+  const isMountedRef = useRef(true);
+  
   console.log('EquipmentDialogs render state:', { 
     isAddDialogOpen, 
     hasSelectedEquipment: !!selectedEquipment 
@@ -28,22 +31,35 @@ const EquipmentDialogs: React.FC<EquipmentDialogsProps> = ({
       isAddDialogOpen,
       selectedEquipment: selectedEquipment ? selectedEquipment.name : 'none'
     });
+    
+    // Cleanup function to prevent state updates after unmount
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [isAddDialogOpen, selectedEquipment]);
 
-  // Safe state updater function
+  // Safe state updater functions
   const safeSetIsAddDialogOpen = (open: boolean) => {
     console.log('Setting add dialog open state to:', open);
-    setTimeout(() => {
-      setIsAddDialogOpen(open);
-    }, 50);
+    if (isMountedRef.current) {
+      requestAnimationFrame(() => {
+        if (isMountedRef.current) {
+          setIsAddDialogOpen(open);
+        }
+      });
+    }
   };
 
   // Safe equipment selection function
   const safeSetSelectedEquipment = (equipment: EquipmentItem | null) => {
     console.log('Setting selected equipment to:', equipment ? equipment.name : 'null');
-    setTimeout(() => {
-      setSelectedEquipment(equipment);
-    }, 50);
+    if (isMountedRef.current) {
+      requestAnimationFrame(() => {
+        if (isMountedRef.current) {
+          setSelectedEquipment(equipment);
+        }
+      });
+    }
   };
 
   return (
