@@ -1,129 +1,177 @@
 
 import React from 'react';
 import { LocalPart, convertToLocalPart } from '@/utils/partTypeConverters';
-import PartManagementDialogs from '@/components/parts/dialogs/PartManagementDialogs';
-import FilterSortDialogs from '@/components/parts/dialogs/FilterSortDialogs';
-import OrderManagementDialog from '@/components/parts/dialogs/OrderManagementDialog';
-import PartPriceComparison from '@/components/parts/PartPriceComparison';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import AddPartForm from '@/components/parts/AddPartForm';
+import PartDetails from '@/components/parts/PartDetails';
+import { toast } from 'sonner';
+import { Part } from '@/types/Part';
 
 interface PartsDialogsProps {
-  // Part and selection
-  selectedPart: LocalPart | null;
-  
-  // Dialog states
+  // États des dialogues
   isPartDetailsDialogOpen: boolean;
   isAddPartDialogOpen: boolean;
-  isAddCategoryDialogOpen: boolean;
-  isFilterDialogOpen: boolean;
-  isSortDialogOpen: boolean;
-  isOrderDialogOpen: boolean;
   
-  // Dialog setters
+  // Setters pour les dialogues
   setIsPartDetailsDialogOpen: (open: boolean) => void;
   setIsAddPartDialogOpen: (open: boolean) => void;
-  setIsAddCategoryDialogOpen: (open: boolean) => void;
-  setIsFilterDialogOpen: (open: boolean) => void;
-  setIsSortDialogOpen: (open: boolean) => void;
-  setIsOrderDialogOpen: (open: boolean) => void;
   
-  // Other props needed for dialogs
-  manufacturers?: string[];
-  filterManufacturers?: string[];
-  toggleManufacturerFilter?: (manufacturer: string) => void;
-  filterMinPrice?: string;
-  setFilterMinPrice?: (value: string) => void;
-  filterMaxPrice?: string;
-  setFilterMaxPrice?: (value: string) => void;
-  filterInStock?: boolean;
-  setFilterInStock?: (value: boolean) => void;
-  resetFilters?: () => void;
-  applyFilters?: () => void;
-  sortBy?: string;
-  setSortBy?: (sort: string) => void;
-  newCategory?: string;
-  setNewCategory?: (category: string) => void;
-  addNewCategory?: () => void;
-  orderQuantity?: string;
-  setOrderQuantity?: (quantity: string) => void;
-  orderNote?: string;
-  setOrderNote?: (note: string) => void;
-  isOrderSuccess?: boolean;
-  handleOrderSubmit?: () => void;
+  // Données et actions
+  selectedPart: Part | null;
+  setSelectedPart: (part: Part | null) => void;
   handleAddPart?: (data: any) => void;
-  handleEditPart?: (part: LocalPart) => void;
-  handleDeletePart?: (partId: number | string) => void;
+  handleUpdatePart?: (part: Part) => void;
+  handleDeletePart?: (partId: string | number) => void;
+  categories?: string[];
 }
 
-const PartsDialogs: React.FC<PartsDialogsProps> = (props) => {
-  // Create a wrapper function for handling part edits
-  const handleEditPartWrapper = (part: any) => {
-    if (props.handleEditPart) {
-      const localPart = convertToLocalPart(part);
-      props.handleEditPart(localPart);
+const PartsDialogs: React.FC<PartsDialogsProps> = ({
+  // États des dialogues
+  isPartDetailsDialogOpen,
+  isAddPartDialogOpen,
+  
+  // Setters pour les dialogues
+  setIsPartDetailsDialogOpen,
+  setIsAddPartDialogOpen,
+  
+  // Données et actions
+  selectedPart,
+  setSelectedPart,
+  handleAddPart,
+  handleUpdatePart,
+  handleDeletePart,
+  categories = []
+}) => {
+  
+  // Handler pour l'ajout d'une pièce
+  const handleAddPartSubmit = (partData: Partial<Part>) => {
+    try {
+      // Vérifier si on a les champs obligatoires
+      if (!partData.name || !partData.partNumber || !partData.category) {
+        toast.error("Données incomplètes", {
+          description: "Veuillez remplir tous les champs obligatoires"
+        });
+        return;
+      }
+      
+      // Ajouter la pièce
+      if (handleAddPart) {
+        handleAddPart(partData);
+      }
+      
+      // Fermer le dialogue
+      setIsAddPartDialogOpen(false);
+      
+      // Notification
+      toast.success("Pièce ajoutée", {
+        description: `La pièce ${partData.name} a été ajoutée avec succès`
+      });
+    } catch (error) {
+      console.error("Erreur lors de l'ajout de la pièce:", error);
+      toast.error("Erreur", {
+        description: "Impossible d'ajouter la pièce. Veuillez réessayer."
+      });
+    }
+  };
+  
+  // Handler pour la mise à jour d'une pièce
+  const handleUpdatePartSubmit = (partData: Part) => {
+    try {
+      // Vérifier si on a les champs obligatoires
+      if (!partData.name || !partData.partNumber || !partData.category) {
+        toast.error("Données incomplètes", {
+          description: "Veuillez remplir tous les champs obligatoires"
+        });
+        return;
+      }
+      
+      // Mettre à jour la pièce
+      if (handleUpdatePart) {
+        handleUpdatePart(partData);
+      }
+      
+      // Fermer le dialogue
+      setIsPartDetailsDialogOpen(false);
+      
+      // Notification
+      toast.success("Pièce mise à jour", {
+        description: `La pièce ${partData.name} a été mise à jour avec succès`
+      });
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour de la pièce:", error);
+      toast.error("Erreur", {
+        description: "Impossible de mettre à jour la pièce. Veuillez réessayer."
+      });
+    }
+  };
+  
+  // Handler pour la suppression d'une pièce
+  const handleDeletePartConfirm = () => {
+    if (!selectedPart) return;
+    
+    try {
+      // Récupérer les données avant de supprimer (pour le toast)
+      const partName = selectedPart.name;
+      
+      // Supprimer la pièce
+      if (handleDeletePart) {
+        handleDeletePart(selectedPart.id);
+      }
+      
+      // Fermer le dialogue
+      setIsPartDetailsDialogOpen(false);
+      
+      // Réinitialiser la pièce sélectionnée
+      setSelectedPart(null);
+      
+      // Notification
+      toast.success("Pièce supprimée", {
+        description: `La pièce ${partName} a été supprimée avec succès`
+      });
+    } catch (error) {
+      console.error("Erreur lors de la suppression de la pièce:", error);
+      toast.error("Erreur", {
+        description: "Impossible de supprimer la pièce. Veuillez réessayer."
+      });
     }
   };
 
+  console.log("État du dialogue d'ajout:", isAddPartDialogOpen);
+  console.log("État du dialogue de détails:", isPartDetailsDialogOpen);
+  console.log("Pièce sélectionnée:", selectedPart);
+  
   return (
     <>
-      {/* Part Management Dialogs - Details and Add Part */}
-      <PartManagementDialogs
-        selectedPart={props.selectedPart}
-        isPartDetailsDialogOpen={props.isPartDetailsDialogOpen}
-        isAddPartDialogOpen={props.isAddPartDialogOpen}
-        setIsPartDetailsDialogOpen={props.setIsPartDetailsDialogOpen}
-        setIsAddPartDialogOpen={props.setIsAddPartDialogOpen}
-        handleEditPart={props.handleEditPart}
-        handleDeletePart={props.handleDeletePart}
-        handleAddPart={props.handleAddPart}
-      />
+      {/* Dialogue d'ajout de pièce */}
+      <Dialog open={isAddPartDialogOpen} onOpenChange={setIsAddPartDialogOpen}>
+        <DialogContent className="sm:max-w-[650px]">
+          <DialogHeader>
+            <DialogTitle>Ajouter une nouvelle pièce</DialogTitle>
+          </DialogHeader>
+          <AddPartForm
+            onSuccess={handleAddPartSubmit}
+            onCancel={() => setIsAddPartDialogOpen(false)}
+            categories={categories}
+          />
+        </DialogContent>
+      </Dialog>
       
-      {/* Filter, Sort and Category Dialogs */}
-      <FilterSortDialogs
-        isFilterDialogOpen={props.isFilterDialogOpen}
-        isSortDialogOpen={props.isSortDialogOpen}
-        isAddCategoryDialogOpen={props.isAddCategoryDialogOpen}
-        setIsFilterDialogOpen={props.setIsFilterDialogOpen}
-        setIsSortDialogOpen={props.setIsSortDialogOpen}
-        setIsAddCategoryDialogOpen={props.setIsAddCategoryDialogOpen}
-        manufacturers={props.manufacturers}
-        filterManufacturers={props.filterManufacturers}
-        toggleManufacturerFilter={props.toggleManufacturerFilter}
-        filterMinPrice={props.filterMinPrice}
-        setFilterMinPrice={props.setFilterMinPrice}
-        filterMaxPrice={props.filterMaxPrice}
-        setFilterMaxPrice={props.setFilterMaxPrice}
-        filterInStock={props.filterInStock}
-        setFilterInStock={props.setFilterInStock}
-        resetFilters={props.resetFilters}
-        applyFilters={props.applyFilters}
-        sortBy={props.sortBy}
-        setSortBy={props.setSortBy}
-        newCategory={props.newCategory}
-        setNewCategory={props.setNewCategory}
-        addNewCategory={props.addNewCategory}
-      />
-      
-      {/* Order Management Dialog */}
-      <OrderManagementDialog
-        selectedPart={props.selectedPart}
-        isOrderDialogOpen={props.isOrderDialogOpen}
-        setIsOrderDialogOpen={props.setIsOrderDialogOpen}
-        orderQuantity={props.orderQuantity}
-        setOrderQuantity={props.setOrderQuantity}
-        orderNote={props.orderNote}
-        setOrderNote={props.setOrderNote}
-        isOrderSuccess={props.isOrderSuccess}
-        handleOrderSubmit={props.handleOrderSubmit}
-      />
-
-      {/* Price Comparison Component */}
-      {props.selectedPart && (
-        <PartPriceComparison
-          partReference={props.selectedPart.partNumber || props.selectedPart.reference || ''}
-          partName={props.selectedPart.name}
-          partManufacturer={props.selectedPart.manufacturer}
-        />
-      )}
+      {/* Dialogue de détails de pièce */}
+      <Dialog open={isPartDetailsDialogOpen} onOpenChange={setIsPartDetailsDialogOpen}>
+        <DialogContent className="sm:max-w-[650px]">
+          <DialogHeader>
+            <DialogTitle>Détails de la pièce</DialogTitle>
+          </DialogHeader>
+          {selectedPart && (
+            <PartDetails
+              part={selectedPart}
+              onEdit={() => handleUpdatePartSubmit(selectedPart)}
+              onDelete={handleDeletePartConfirm}
+              onDialogClose={() => setIsPartDetailsDialogOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
