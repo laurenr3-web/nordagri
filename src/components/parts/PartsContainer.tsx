@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -179,7 +180,28 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
         </div>
       </div>
 
-      {currentView === 'grid' ? (
+      {isLoading ? (
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+          <span className="ml-3">Chargement...</span>
+        </div>
+      ) : isError ? (
+        <div className="text-center py-12 text-destructive">
+          <p>Une erreur est survenue lors du chargement des pièces.</p>
+          <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+            Réessayer
+          </Button>
+        </div>
+      ) : filteredParts.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground">
+          <p>Aucune pièce trouvée avec les critères actuels.</p>
+          {filterCount > 0 && (
+            <Button variant="link" onClick={clearFilters} className="mt-2">
+              Effacer les filtres
+            </Button>
+          )}
+        </div>
+      ) : currentView === 'grid' ? (
         <PartsGrid 
           parts={filteredParts} 
           openPartDetails={openPartDetails} 
@@ -188,7 +210,7 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
       ) : (
         <PartsList 
           parts={filteredParts} 
-          openPartDetails={openPartDetails} 
+          openPartDetails={openPartDetails}
           openOrderDialog={openOrderDialog}
         />
       )}
