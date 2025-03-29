@@ -6,6 +6,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
 import EquipmentContentSection from './EquipmentContentSection';
 import { EquipmentItem, useEquipmentFilters } from '@/hooks/equipment/useEquipmentFilters';
+import EquipmentDialogs from '@/components/equipment/dialogs/EquipmentDialogs';
 
 interface EquipmentPageContentProps {
   equipment: EquipmentItem[];
@@ -17,6 +18,8 @@ const EquipmentPageContent: React.FC<EquipmentPageContentProps> = ({
   isLoading
 }) => {
   const [currentView, setCurrentView] = useState<string>('grid');
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [selectedEquipment, setSelectedEquipment] = useState<EquipmentItem | null>(null);
   const navigate = useNavigate();
   
   // Use a ref to track mounting state to prevent state updates on unmounted components
@@ -29,15 +32,14 @@ const EquipmentPageContent: React.FC<EquipmentPageContentProps> = ({
   const handleEquipmentClick = (item: EquipmentItem) => {
     if (isMounted.current) {
       console.log('Equipment clicked, navigating to detail page:', item.id);
-      navigate(`/equipment/${item.id}`);
+      setSelectedEquipment(item);
     }
   };
 
   // Helper function to open add equipment dialog
   const openAddDialog = () => {
-    console.log('Opening add equipment dialog');
-    const event = new CustomEvent('open-add-equipment-dialog');
-    window.dispatchEvent(event);
+    console.log('Opening add equipment dialog directly');
+    setIsAddDialogOpen(true);
   };
   
   // Cleanup function to prevent state updates after unmounting
@@ -72,6 +74,14 @@ const EquipmentPageContent: React.FC<EquipmentPageContentProps> = ({
           />
         </div>
       </div>
+      
+      {/* Inline dialogs for direct state control */}
+      <EquipmentDialogs 
+        isAddDialogOpen={isAddDialogOpen}
+        setIsAddDialogOpen={setIsAddDialogOpen}
+        selectedEquipment={selectedEquipment}
+        setSelectedEquipment={setSelectedEquipment}
+      />
     </SidebarProvider>
   );
 };

@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import EquipmentPageContent from '@/components/equipment/page/EquipmentPageContent';
-import EquipmentDialogs from '@/components/equipment/dialogs/EquipmentDialogs';
 import { useEquipmentData } from '@/hooks/equipment/useEquipmentData';
 import { useEquipmentRealtime } from '@/hooks/equipment/useEquipmentRealtime';
 import { toast } from 'sonner';
@@ -75,13 +74,10 @@ const EquipmentPage = () => {
   }, []);
   
   return (
-    <>
-      <EquipmentPageContent 
-        equipment={equipmentItems}
-        isLoading={isLoading}
-      />
-      <EquipmentDialogs />
-    </>
+    <EquipmentPageContent 
+      equipment={equipmentItems}
+      isLoading={isLoading}
+    />
   );
 };
 

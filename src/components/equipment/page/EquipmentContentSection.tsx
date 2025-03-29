@@ -1,4 +1,3 @@
-
 import React, { useCallback } from 'react';
 import { EquipmentItem } from '@/hooks/equipment/useEquipmentFilters';
 import EquipmentHeader from '../display/EquipmentHeader';
@@ -105,17 +104,7 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
   const handleEquipmentItemClick = useCallback((item: EquipmentItem) => {
     console.log('Equipment item clicked:', item);
     
-    // Safely dispatch custom event
-    try {
-      const event = new CustomEvent('equipment-selected', { 
-        detail: { ...item } // Clone the item to avoid reference issues
-      });
-      window.dispatchEvent(event);
-    } catch (error) {
-      console.error('Error dispatching equipment-selected event:', error);
-    }
-    
-    // Call the passed handler
+    // Call the passed handler directly
     handleEquipmentClick(item);
   }, [handleEquipmentClick]);
 

@@ -2,15 +2,23 @@
 import React from 'react';
 import AddEquipmentDialog from './AddEquipmentDialog';
 import ViewEquipmentDialog from './ViewEquipmentDialog';
-import { useEquipmentDialogs } from '@/hooks/equipment/useEquipmentDialogs';
+import { EquipmentItem } from '@/hooks/equipment/useEquipmentFilters';
 
-const EquipmentDialogs: React.FC = () => {
-  const {
-    isAddDialogOpen,
-    setIsAddDialogOpen,
-    selectedEquipment,
-    setSelectedEquipment
-  } = useEquipmentDialogs();
+interface EquipmentDialogsProps {
+  isAddDialogOpen: boolean;
+  setIsAddDialogOpen: (open: boolean) => void;
+  selectedEquipment: EquipmentItem | null;
+  setSelectedEquipment: (equipment: EquipmentItem | null) => void;
+}
+
+const EquipmentDialogs: React.FC<EquipmentDialogsProps> = ({
+  isAddDialogOpen,
+  setIsAddDialogOpen,
+  selectedEquipment,
+  setSelectedEquipment
+}) => {
+  console.log('EquipmentDialogs rendering with isAddDialogOpen:', isAddDialogOpen);
+  console.log('EquipmentDialogs rendering with selectedEquipment:', selectedEquipment);
 
   return (
     <>
