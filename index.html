@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -22,5 +23,74 @@
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Script de déblocage pour restaurer la fonctionnalité des boutons -->
+    <script>
+      // Script de secours pour débloquer les interactions
+      document.addEventListener("DOMContentLoaded", function() {
+        // Fonction pour restaurer les interactions des boutons
+        function repairButtonsAndDialogs() {
+          console.log("🛠️ Script de réparation en cours d'exécution...");
+          
+          // 1. Supprimer les écouteurs d'événements globaux problématiques
+          const oldAddEventListener = document.addEventListener;
+          const oldRemoveEventListener = document.removeEventListener;
+          
+          document.addEventListener = function(type, listener, options) {
+            if (type === 'click' && listener.toString().includes('setIsExpanded')) {
+              console.log("🚫 Blocage d'un écouteur d'événement click global");
+              return;
+            }
+            return oldAddEventListener.call(this, type, listener, options);
+          };
+          
+          // 2. Modifier les boutons pour qu'ils captent les clics avec priorité
+          setTimeout(() => {
+            const buttons = document.querySelectorAll('button');
+            const selects = document.querySelectorAll('select, [role="combobox"]');
+            const inputs = document.querySelectorAll('input');
+            
+            [...buttons, ...selects, ...inputs].forEach(element => {
+              // Supprimer et réattacher pour éliminer d'éventuels gestionnaires problématiques
+              const newElement = element.cloneNode(true);
+              
+              // S'assurer que les nouveaux éléments captent les événements avant propagation
+              newElement.addEventListener('click', (e) => {
+                console.log("🖱️ Clic capturé sur", e.currentTarget);
+                e.stopImmediatePropagation();
+                e.stopPropagation();
+                
+                // Déclencher artificiellement l'événement original après un bref délai
+                setTimeout(() => {
+                  try {
+                    // Simuler le clic original
+                    const event = new MouseEvent('click', {
+                      bubbles: false,
+                      cancelable: true,
+                      view: window
+                    });
+                    element.dispatchEvent(event);
+                  } catch (err) {
+                    console.error("Erreur lors de la simulation de clic:", err);
+                  }
+                }, 10);
+              }, true);
+              
+              if (element.parentNode) {
+                element.parentNode.replaceChild(newElement, element);
+              }
+            });
+            
+            console.log("✅ Réparation terminée! Les boutons devraient maintenant fonctionner.");
+          }, 1000);
+        }
+        
+        // Exécuter la réparation après un court délai
+        setTimeout(repairButtonsAndDialogs, 500);
+        
+        // Réexécuter périodiquement pour capturer les nouveaux éléments
+        setInterval(repairButtonsAndDialogs, 10000);
+      });
+    </script>
   </body>
 </html>
