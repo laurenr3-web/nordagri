@@ -1,67 +1,76 @@
 
-import { openai, checkApiKey } from '../openai/client';
+import { openai } from '../openai/client';
 import { toast } from 'sonner';
 
-export async function getPartInfo(partNumber: string, context?: string, categories: string[] = []): Promise<any> {
-  try {
-    // Vérifier la clé API
-    if (!checkApiKey()) {
-      toast.error('Clé API OpenAI manquante', {
-        description: 'Configurez VITE_OPENAI_API_KEY dans votre .env.development'
-      });
-      return null;
-    }
+export interface PartTechnicalInfo {
+  function: string;
+  installation: string;
+  symptoms: string;
+  maintenance: string;
+  compatibleEquipment: string[];
+}
 
-    console.log(`🔍 Recherche d'informations pour la pièce: ${partNumber}`);
-    console.log(`📋 Contexte: ${context || 'Non spécifié'}`);
-    console.log(`🏷️ Catégories identifiées: ${categories.join(', ') || 'Aucune'}`);
-    
-    // Construction du prompt avec contexte et catégories
-    const categoryInfo = categories.length > 0 
-      ? `Cette pièce appartient probablement à la catégorie: ${categories.join(' ou ')}.` 
-      : '';
-      
-    const contextPrompt = context 
-      ? `Contexte additionnel sur la pièce: ${context}.`
-      : '';
+export async function getPartInfo(partNumber: string): Promise<PartTechnicalInfo> {
+  try {
+    console.log(`Recherche d'informations pour la pièce: ${partNumber}`);
     
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: "Vous êtes un expert en pièces détachées agricoles. Répondez en français avec des informations techniques précises et structurées."
+          content: `Vous êtes un expert en pièces détachées agricoles avec une connaissance approfondie des équipements, 
+          numérotation de pièces et spécifications techniques. Répondez en français avec des informations précises et détaillées.`
         },
         {
           role: "user",
-          content: `
-Je recherche des informations techniques précises sur une pièce agricole avec la référence: ${partNumber}.
-${contextPrompt}
-${categoryInfo}
-
-Fournissez les informations techniques structurées suivantes si possible:
-1. Fonction principale de la pièce
-2. Instructions d'installation/montage
-3. Symptômes de défaillance ou d'usure
-4. Conseils de maintenance
-5. Avertissements ou précautions d'utilisation
-6. Équipements compatibles
-
-Si vous n'êtes pas sûr d'une information, indiquez-le clairement.`
+          content: `Fournissez toutes les informations disponibles sur la pièce agricole avec référence "${partNumber}".
+          
+          Incluez:
+          1. Sa fonction et utilisation
+          2. Les étapes détaillées d'installation
+          3. Les symptômes de défaillance qui indiquent qu'elle doit être remplacée
+          4. Les recommandations d'entretien et de maintenance
+          5. Les équipements compatibles
+          
+          Si vous n'avez pas d'information précise sur cette référence, utilisez votre expertise pour analyser le format du numéro
+          et suggérer de quel type de pièce il pourrait s'agir, et pour quel fabricant.`
         }
       ],
       response_format: { type: "json_object" }
     });
     
-    // Le parsing est simplifié puisque OpenAI retourne directement du JSON valide
-    const result = JSON.parse(response.choices[0].message.content);
-    console.log("Résultat OpenAI:", result);
+    // Parsing de la réponse
+    const content = response.choices[0].message.content;
+    console.log("Réponse brute GPT-4o:", content);
     
-    return result;
+    try {
+      const parsed = JSON.parse(content);
+      return {
+        function: parsed.function || "Information non disponible",
+        installation: parsed.installation || "Information non disponible",
+        symptoms: parsed.symptoms || "Information non disponible",
+        maintenance: parsed.maintenance || "Information non disponible",
+        compatibleEquipment: Array.isArray(parsed.compatibleEquipment) 
+          ? parsed.compatibleEquipment 
+          : []
+      };
+    } catch (parseError) {
+      console.error("Erreur de parsing:", parseError);
+      return {
+        function: "Erreur lors du traitement de la réponse",
+        installation: "Information non disponible",
+        symptoms: "Information non disponible",
+        maintenance: "Information non disponible",
+        compatibleEquipment: []
+      };
+    }
   } catch (error) {
     console.error("Erreur API OpenAI:", error);
-    toast.error("Erreur de recherche", {
-      description: error.message || "Une erreur est survenue lors de la recherche"
+    
+    // Notification utilisateur
+    toast.error("Erreur lors de la recherche", {
+      description: error.message
     });
     
     return {
@@ -69,7 +78,6 @@ Si vous n'êtes pas sûr d'une information, indiquez-le clairement.`
       installation: "Information non disponible",
       symptoms: "Information non disponible",
       maintenance: "Information non disponible",
-      warnings: "Information non disponible",
       compatibleEquipment: []
     };
   }
