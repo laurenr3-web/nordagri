@@ -6,7 +6,8 @@ export async function getParts(): Promise<Part[]> {
   console.log('🔍 Fetching all parts from Supabase...');
   const { data, error } = await supabase
     .from('parts_inventory')
-    .select('*');
+    .select('*')
+    .order('name');
   
   if (error) {
     console.error('Error fetching parts:', error);

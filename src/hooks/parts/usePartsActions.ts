@@ -34,7 +34,7 @@ export const usePartsActions = (
     }
   };
 
-  // Function to open part details - modified to fix event issues
+  // Function to open part details with improved event handling
   const openPartDetails = (part: Part) => {
     if (!part) {
       toast.error("Erreur", {
@@ -44,14 +44,16 @@ export const usePartsActions = (
     }
     
     console.log("Ouverture des détails pour la pièce:", part.name);
+    
     // Utiliser un délai minimal pour résoudre les problèmes de propagation d'événements
+    // et s'assurer que l'état est correctement mis à jour
     setTimeout(() => {
       partsDialogs.setSelectedPart(part);
-      // Ne pas définir isPartDetailsDialogOpen - cela est géré par le conteneur
+      partsDialogs.setIsPartDetailsDialogOpen(true);
     }, 50);
   };
 
-  // Function to open order dialog - also modified to fix event issues
+  // Function to open order dialog with improved event handling
   const openOrderDialog = (part: Part) => {
     if (!part) {
       toast.error("Erreur", {
@@ -61,6 +63,7 @@ export const usePartsActions = (
     }
     
     console.log("Ouverture du dialogue de commande pour:", part.name);
+    
     // Utiliser un délai minimal pour résoudre les problèmes de propagation d'événements
     setTimeout(() => {
       partsDialogs.setSelectedPart(part);
