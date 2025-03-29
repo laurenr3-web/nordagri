@@ -7,6 +7,7 @@ import { useEquipmentDetail } from '@/hooks/equipment/useEquipmentDetail';
 import EquipmentDetailLoading from '@/components/equipment/detail/EquipmentDetailLoading';
 import EquipmentDetailError from '@/components/equipment/detail/EquipmentDetailError';
 import EquipmentDetailContent from '@/components/equipment/detail/EquipmentDetailContent';
+import { Sidebar } from '@/components/ui/sidebar';
 
 const EquipmentDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -15,7 +16,9 @@ const EquipmentDetail = () => {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
-        <Navbar />
+        <Sidebar className="border-r">
+          <Navbar />
+        </Sidebar>
         
         <div className="flex-1 w-full">
           <div className="pt-6 pb-16 px-4 sm:px-8 md:px-12">

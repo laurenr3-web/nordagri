@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import Navbar from '@/components/layout/Navbar';
 import { partsData } from '@/data/partsData';
 import { useParts } from '@/hooks/useParts';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PartsContainer from '@/components/parts/PartsContainer';
 import PartSearch from '@/components/parts/PartSearch';
+import Navbar from '@/components/layout/Navbar';
 import { Part } from '@/types/Part';
 
 // Sample parts data
