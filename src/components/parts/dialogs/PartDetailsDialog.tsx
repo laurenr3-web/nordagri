@@ -47,7 +47,8 @@ const PartDetailsDialog: React.FC<PartDetailsDialogProps> = ({
   };
 
   // Éviter les erreurs si une pièce est sélectionnée puis désélectionnée pendant que le dialogue est ouvert
-  const isValidToRender = isOpen && !!selectedPart;
+  // Assurons-nous que isValidToRender est explicitement de type boolean
+  const isValidToRender: boolean = !!(isOpen && selectedPart);
 
   // Gérer explicitement l'état de dialogue fermé lorsqu'aucune pièce n'est sélectionnée
   useEffect(() => {
