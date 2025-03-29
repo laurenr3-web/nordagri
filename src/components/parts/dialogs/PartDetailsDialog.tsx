@@ -19,7 +19,7 @@ const PartDetailsDialog: React.FC<PartDetailsDialogProps> = ({
   onEdit,
   onDelete
 }) => {
-  // Fonctions d'édition et de suppression sans events
+  // Fonctions d'édition et de suppression
   const handleEdit = () => {
     if (selectedPart && onEdit) {
       console.log("PartDetailsDialog: Édition de la pièce", selectedPart.name);
