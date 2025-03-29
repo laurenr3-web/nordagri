@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PartsContainer from '@/components/parts/PartsContainer';
 import PartSearch from '@/components/parts/PartSearch';
@@ -11,10 +11,16 @@ interface PartsTabsContentProps {
 }
 
 const PartsTabsContent: React.FC<PartsTabsContentProps> = ({ activeTab, setActiveTab }) => {
+  // Hook declarations first
   const {
     partsHookData,
     handleAddPartFromSearch
   } = usePartsContext();
+  
+  // Logging effect
+  useEffect(() => {
+    console.log("PartsTabsContent rendered with activeTab:", activeTab);
+  }, [activeTab]);
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

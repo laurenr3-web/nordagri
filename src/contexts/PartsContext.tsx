@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { partsData } from '@/data/partsData';
 import { useParts } from '@/hooks/useParts';
 import { Part } from '@/types/Part';
@@ -53,21 +53,21 @@ export const PartsContextProvider: React.FC<{children: React.ReactNode}> = ({ ch
   
   console.log("PartsContextProvider rendering");
   
-  // The main hook now provides a cleaner interface with more focused sub-hooks
+  // All hooks declarations at the beginning
   const partsHookData = useParts(partsData);
-  const [orderNote, setOrderNote] = React.useState('');
-  const [isPhotoModalOpen, setIsPhotoModalOpen] = React.useState(false);
-  const [isIdentifying, setIsIdentifying] = React.useState(false);
-  const [partNumber, setPartNumber] = React.useState('');
-  const [activeTab, setActiveTab] = React.useState('inventory');
+  const [orderNote, setOrderNote] = useState('');
+  const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
+  const [isIdentifying, setIsIdentifying] = useState(false);
+  const [partNumber, setPartNumber] = useState('');
+  const [activeTab, setActiveTab] = useState('inventory');
 
   // Debug logging for parts data updates
-  React.useEffect(() => {
+  useEffect(() => {
     console.log("Données parts mises à jour:", partsHookData.parts);
   }, [partsHookData.parts]);
   
   // Debug logging for dialog states
-  React.useEffect(() => {
+  useEffect(() => {
     console.log("États dialogues:", {
       isPartDetailsDialogOpen: partsHookData.isPartDetailsDialogOpen,
       isAddPartDialogOpen: partsHookData.isAddPartDialogOpen,
@@ -153,7 +153,7 @@ export const PartsContextProvider: React.FC<{children: React.ReactNode}> = ({ ch
     : null;
 
   // Ajout d'un log pour déboguer l'état de selectedPart
-  React.useEffect(() => {
+  useEffect(() => {
     console.log("Parts: selectedPart mis à jour:", partsHookData.selectedPart?.name);
   }, [partsHookData.selectedPart]);
 

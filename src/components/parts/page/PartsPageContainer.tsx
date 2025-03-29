@@ -1,23 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
-import { Sidebar } from '@/components/ui/sidebar';
-import Navbar from '@/components/layout/Navbar';
-import PartToolbar from '@/components/parts/PartToolbar';
-import PhotoCaptureModal from '@/components/parts/PhotoCaptureModal';
 import { usePartsContext } from '@/contexts/PartsContext';
-import PartsHeader from './PartsHeader';
-import PartsDialogs from './PartsDialogs';
 import LoadingState from './states/LoadingState';
 import ErrorState from './states/ErrorState';
 import ContextNotAvailable from './states/ContextNotAvailable';
-import PartsTabsContent from './PartsTabsContent';
+import PartsPageContent from './PartsPageContent';
 
 const PartsPageContainer = () => {
   console.log("PartsPageContainer - Rendering and attempting to use context");
   
-  // All state declarations need to be unconditional
+  // All hooks declarations at the beginning
   const [isContextReady, setIsContextReady] = useState(false);
-  const [contextError, setContextError] = useState<Error | null>(null);
   const [activeTab, setActiveTab] = useState('inventory');
   
   useEffect(() => {
@@ -35,7 +28,7 @@ const PartsPageContainer = () => {
     return <LoadingState />;
   }
   
-  // Don't use hooks inside a try/catch block, it violates React's rules of hooks
+  // Don't use hooks inside a try/catch block
   let contextValues;
   try {
     contextValues = usePartsContext();
@@ -53,42 +46,15 @@ const PartsPageContainer = () => {
     setIsPhotoModalOpen,
     handlePhotoTaken
   } = contextValues;
-  
-  // Log successful context access
-  useEffect(() => {
-    console.log("PartsPageContainer - Successfully connected to context");
-  }, []);
 
   return (
-    <div className="flex min-h-screen w-full bg-background">
-      <Sidebar className="border-r">
-        <Navbar />
-      </Sidebar>
-      
-      <div className="flex-1 p-6">
-        <PartsHeader />
-        
-        {/* Barre d'outils avec bouton caméra */}
-        <PartToolbar 
-          onPhotoClick={() => setIsPhotoModalOpen(true)} 
-        />
-        
-        <PartsTabsContent 
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab} 
-        />
-        
-        {/* Render dialogs explicitly to ensure they're always in the DOM */}
-        <PartsDialogs />
-      </div>
-      
-      {/* Modal de capture photo */}
-      <PhotoCaptureModal 
-        isOpen={isPhotoModalOpen}
-        onClose={() => setIsPhotoModalOpen(false)}
-        onPhotoTaken={handlePhotoTaken}
-      />
-    </div>
+    <PartsPageContent 
+      activeTab={activeTab}
+      setActiveTab={setActiveTab}
+      isPhotoModalOpen={isPhotoModalOpen}
+      setIsPhotoModalOpen={setIsPhotoModalOpen}
+      handlePhotoTaken={handlePhotoTaken}
+    />
   );
 };
 

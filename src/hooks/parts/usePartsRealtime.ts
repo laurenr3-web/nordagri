@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 
 export function usePartsRealtime() {
+  // Hooks declarations first
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const queryClient = useQueryClient();

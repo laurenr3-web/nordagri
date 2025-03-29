@@ -1,11 +1,17 @@
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { PartsContextProvider } from '@/contexts/PartsContext';
 import PartsPageContainer from '@/components/parts/page/PartsPageContainer';
 import { toast } from 'sonner';
+import { useParts } from '@/hooks/useParts';
+import { partsData } from '@/data/partsData';
 
 const Parts = () => {
+  // All hooks declarations at the beginning of the function
+  const [hasError, setHasError] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  
   // Add mounting check to help with debugging
   useEffect(() => {
     console.log("Parts component mounted");
