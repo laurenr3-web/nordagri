@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { addPart } from '@/services/supabase/parts/addPartService';
 import { useToast } from '@/hooks/use-toast';
 import { Part } from '@/types/Part';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Hook pour créer une nouvelle pièce avec les mutations React Query
@@ -15,6 +16,17 @@ export function useCreatePart() {
   return useMutation({
     mutationFn: (newPart: Omit<Part, 'id'>) => {
       console.log('📝 Tentative de création de pièce:', newPart);
+      
+      // Vérifier que Supabase est bien connecté
+      if (!supabase) {
+        throw new Error("Client Supabase non initialisé");
+      }
+      
+      // Ajouter une vérification des champs obligatoires
+      if (!newPart.name || !newPart.partNumber) {
+        throw new Error("Le nom et le numéro de pièce sont obligatoires");
+      }
+      
       return addPart(newPart);
     },
     onSuccess: (data: Part) => {
