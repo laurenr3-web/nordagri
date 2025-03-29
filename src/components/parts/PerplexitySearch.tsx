@@ -8,11 +8,13 @@ import PerplexityLoading from './perplexity/PerplexityLoading';
 import PerplexityError from './perplexity/PerplexityError';
 import PerplexityResults from './perplexity/PerplexityResults';
 import { usePerplexitySearch } from '@/hooks/parts/usePerplexitySearch';
+import { useOpenAIStatus } from '@/hooks/parts/useOpenAIStatus';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info } from 'lucide-react';
+import { Info, AlertCircle } from 'lucide-react';
 
 const PerplexitySearch = () => {
   const [mainTab, setMainTab] = useState('search');
+  const openAIStatus = useOpenAIStatus();
   const {
     searchQuery,
     setSearchQuery,
@@ -46,6 +48,15 @@ const PerplexitySearch = () => {
         </AlertDescription>
       </Alert>
       
+      {!openAIStatus.isApiKeyValid && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Clé API OpenAI manquante ou invalide. Configurez VITE_OPENAI_API_KEY dans .env.development
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <Tabs value={mainTab} onValueChange={setMainTab} className="w-full">
         <TabsList className="w-full justify-start mb-6">
           <TabsTrigger value="search">Recherche de pièces</TabsTrigger>
@@ -65,7 +76,7 @@ const PerplexitySearch = () => {
               isLoading={isLoading}
               selectedCategory={selectedCategory || undefined}
               onCategorySelect={handleCategorySelect}
-              isApiKeyValid={isApiKeyValid}
+              isApiKeyValid={openAIStatus.isApiKeyValid}
             />
           </div>
 

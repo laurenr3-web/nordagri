@@ -4,11 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, RefreshCw, AlertCircle, Wrench, CheckCircle, Info } from 'lucide-react';
 import { toast } from 'sonner';
-import { getPartInfo } from '@/services/parts/partsTechnicalService';
-import type { PartTechnicalInfo } from '@/services/perplexity/technical';
+import { getPartInfo } from '@/services/parts/openaiPartService';
+import type { PartTechnicalInfo } from '@/services/parts/openaiPartService';
 import { checkApiKey } from '@/services/openai/client';
 import { TechnicalInfoDisplay } from './displays/TechnicalInfoDisplay';
 import { Combobox, ComboboxOption } from '@/components/ui/combobox';
+import { useOpenAIStatus } from '@/hooks/parts/useOpenAIStatus';
 
 // Suggestions prédéfinies pour la recherche de pièces techniques
 const TECHNICAL_SUGGESTIONS: ComboboxOption[] = [
@@ -25,6 +26,7 @@ interface TechnicalInfoTabProps {
 }
 
 const TechnicalInfoTab = ({ partNumber, partName }: TechnicalInfoTabProps) => {
+  const openAIStatus = useOpenAIStatus();
   const [technicalInfo, setTechnicalInfo] = useState<PartTechnicalInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -42,8 +44,8 @@ const TechnicalInfoTab = ({ partNumber, partName }: TechnicalInfoTabProps) => {
     }
 
     // Vérifier si la clé API est configurée
-    if (!checkApiKey()) {
-      const errorMessage = "Clé API OpenAI manquante. Pour utiliser cette fonctionnalité, veuillez configurer la variable d'environnement VITE_OPENAI_API_KEY.";
+    if (!openAIStatus.isApiKeyValid) {
+      const errorMessage = "Clé API OpenAI manquante ou invalide. Pour utiliser cette fonctionnalité, veuillez configurer correctement la variable d'environnement VITE_OPENAI_API_KEY.";
       toast.error(errorMessage);
       setError(errorMessage);
       return;
@@ -91,11 +93,11 @@ const TechnicalInfoTab = ({ partNumber, partName }: TechnicalInfoTabProps) => {
   };
 
   useEffect(() => {
-    if (partNumber) {
+    if (partNumber && openAIStatus.isApiKeyValid) {
       setCurrentPartNumber(partNumber);
       loadTechnicalInfo();
     }
-  }, [partNumber]);
+  }, [partNumber, openAIStatus.isApiKeyValid]);
 
   const handleComboboxSelect = (value: string) => {
     // Extraire les informations de la suggestion
@@ -137,7 +139,7 @@ const TechnicalInfoTab = ({ partNumber, partName }: TechnicalInfoTabProps) => {
               variant="ghost" 
               size="sm" 
               onClick={() => loadTechnicalInfo()} 
-              disabled={isLoading}
+              disabled={isLoading || !openAIStatus.isApiKeyValid}
             >
               <RefreshCw className="h-4 w-4" />
             </Button>
@@ -155,6 +157,15 @@ const TechnicalInfoTab = ({ partNumber, partName }: TechnicalInfoTabProps) => {
         </div>
       </div>
       
+      {!openAIStatus.isApiKeyValid && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Clé API OpenAI manquante ou invalide. Configurez VITE_OPENAI_API_KEY dans .env.development
+          </AlertDescription>
+        </Alert>
+      )}
+      
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-16">
           <Loader2 className="h-8 w-8 animate-spin mb-2" />
@@ -170,6 +181,7 @@ const TechnicalInfoTab = ({ partNumber, partName }: TechnicalInfoTabProps) => {
             size="sm" 
             className="mt-4"
             onClick={() => loadTechnicalInfo()}
+            disabled={!openAIStatus.isApiKeyValid}
           >
             <RefreshCw className="h-4 w-4 mr-2" />
             Réessayer

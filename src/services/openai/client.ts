@@ -21,6 +21,16 @@ export const checkApiKey = (): boolean => {
     });
     return false;
   }
+  
+  // Vérifier si la clé a un format valide (commence par sk-)
+  if (!apiKey.startsWith('sk-')) {
+    console.error('⚠️ Format de clé API OpenAI invalide');
+    toast.error('Format de clé API OpenAI invalide', {
+      description: 'La clé API doit commencer par "sk-"'
+    });
+    return false;
+  }
+  
   console.log('✅ Clé API OpenAI configurée');
   return true;
 };

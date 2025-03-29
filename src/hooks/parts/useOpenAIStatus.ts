@@ -13,31 +13,36 @@ export const useOpenAIStatus = () => {
       setIsLoading(true);
       setError(null);
       
-      // Vérifier si la clé API existe
-      const hasApiKey = checkApiKey();
-      setIsApiKeyValid(hasApiKey);
-      
-      if (hasApiKey) {
-        try {
+      try {
+        // Vérifier si la clé API existe et a un format valide
+        const hasApiKey = checkApiKey();
+        console.log("Vérification clé API:", hasApiKey);
+        setIsApiKeyValid(hasApiKey);
+        
+        if (hasApiKey) {
           // Tester la connexion API
           const connected = await testOpenAIConnection();
+          console.log("Résultat test connexion:", connected);
           setIsConnected(connected);
           
           if (!connected) {
             setError("Impossible de se connecter à l'API OpenAI");
           }
-        } catch (err) {
+        } else {
           setIsConnected(false);
-          setError(err instanceof Error ? err.message : "Erreur inconnue");
+          setError("Clé API OpenAI manquante ou invalide");
         }
-      } else {
+      } catch (err) {
+        console.error("Erreur vérification OpenAI:", err);
         setIsConnected(false);
-        setError("Clé API OpenAI manquante");
+        setIsApiKeyValid(false);
+        setError(err instanceof Error ? err.message : "Erreur inconnue");
+      } finally {
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     };
     
+    // Exécuter la vérification au montage du composant
     checkConnection();
   }, []);
 
@@ -48,10 +53,19 @@ export const useOpenAIStatus = () => {
     error,
     checkConnection: async () => {
       setIsLoading(true);
-      const connected = await testOpenAIConnection();
-      setIsConnected(connected);
+      setError(null);
+      const apiKeyValid = checkApiKey();
+      setIsApiKeyValid(apiKeyValid);
+      
+      if (apiKeyValid) {
+        const connected = await testOpenAIConnection();
+        setIsConnected(connected);
+      } else {
+        setIsConnected(false);
+      }
+      
       setIsLoading(false);
-      return connected;
+      return apiKeyValid && isConnected;
     }
   };
 };
