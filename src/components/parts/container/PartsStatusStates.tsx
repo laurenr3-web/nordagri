@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertTriangle, Search } from 'lucide-react';
+import { Loader2, AlertTriangle, Search, ArchiveX } from 'lucide-react';
 
 interface LoadingStateProps {
   message?: string;
@@ -51,7 +51,11 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 }) => {
   return (
     <div className="text-center py-12">
-      <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+      {filterActive ? (
+        <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+      ) : (
+        <ArchiveX className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+      )}
       <p className="text-muted-foreground">{message}</p>
       {filterActive && onClearFilters && (
         <Button variant="link" onClick={onClearFilters} className="mt-2">
