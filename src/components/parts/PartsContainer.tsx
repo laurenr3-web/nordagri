@@ -1,10 +1,6 @@
 
-import React, { useState } from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { PlusCircle, FilterIcon, SortAsc } from 'lucide-react';
-import PartsGrid from './PartsGrid';
-import PartsList from './PartsList';
+import React from 'react';
+import { PartsHeader, PartsContent } from './container';
 import PartDetailsExtended from './PartDetailsExtended';
 import { Part } from '@/types/Part';
 import { PartsView } from '@/hooks/parts/usePartsFilter';
@@ -66,60 +62,27 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
   filteredParts,
   isLoading = false,
   isError = false,
-  categories,
   currentView,
   setCurrentView,
   selectedPart,
   setSelectedPart,
   searchTerm,
   setSearchTerm,
-  selectedCategory,
-  setSelectedCategory,
-  filterManufacturers,
-  manufacturers,
-  toggleManufacturerFilter,
-  filterMinPrice,
-  setFilterMinPrice,
-  filterMaxPrice,
-  setFilterMaxPrice,
-  filterInStock,
-  setFilterInStock,
   filterCount,
   clearFilters,
-  sortBy,
-  setSortBy,
   isPartDetailsDialogOpen,
   setIsPartDetailsDialogOpen,
   isAddPartDialogOpen,
   setIsAddPartDialogOpen,
-  isAddCategoryDialogOpen,
-  setIsAddCategoryDialogOpen,
   isFilterDialogOpen,
   setIsFilterDialogOpen,
   isSortDialogOpen,
   setIsSortDialogOpen,
-  isOrderDialogOpen,
-  setIsOrderDialogOpen,
-  orderQuantity,
-  setOrderQuantity,
-  orderNote,
-  setOrderNote,
-  isOrderSuccess,
-  handleAddPart,
-  handleUpdatePart,
   handleDeletePart,
-  handleOrderSubmit,
   openPartDetails,
   openOrderDialog
 }) => {
-  const [localSearchValue, setLocalSearchValue] = useState(searchTerm);
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setLocalSearchValue(value);
-    setSearchTerm(value);
-  };
-
+  // If a part is selected, show the part details
   if (selectedPart) {
     return (
       <PartDetailsExtended
@@ -139,81 +102,30 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
     );
   }
 
+  // If no part is selected, show the parts list/grid
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-4 md:flex-row md:justify-between">
-        <div className="flex flex-1 gap-2">
-          <div className="relative w-full md:max-w-sm">
-            <input
-              type="text"
-              placeholder="Rechercher une pièce..."
-              className="w-full rounded-md border border-input px-4 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              value={localSearchValue}
-              onChange={handleSearch}
-            />
-          </div>
-          <Button variant="outline" size="icon" onClick={() => setIsFilterDialogOpen(true)}>
-            <FilterIcon className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon" onClick={() => setIsSortDialogOpen(true)}>
-            <SortAsc className="h-4 w-4" />
-          </Button>
-        </div>
+      <PartsHeader 
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        currentView={currentView}
+        setCurrentView={setCurrentView}
+        setIsFilterDialogOpen={setIsFilterDialogOpen}
+        setIsSortDialogOpen={setIsSortDialogOpen}
+        setIsAddPartDialogOpen={setIsAddPartDialogOpen}
+      />
 
-        <div className="flex gap-2">
-          <Select
-            value={currentView}
-            onValueChange={(value) => setCurrentView(value as PartsView)}
-          >
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="Affichage" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="grid">Grille</SelectItem>
-              <SelectItem value="list">Liste</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button onClick={() => setIsAddPartDialogOpen(true)}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Ajouter
-          </Button>
-        </div>
-      </div>
-
-      {isLoading ? (
-        <div className="flex justify-center items-center py-12">
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-          <span className="ml-3">Chargement...</span>
-        </div>
-      ) : isError ? (
-        <div className="text-center py-12 text-destructive">
-          <p>Une erreur est survenue lors du chargement des pièces.</p>
-          <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
-            Réessayer
-          </Button>
-        </div>
-      ) : filteredParts.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
-          <p>Aucune pièce trouvée avec les critères actuels.</p>
-          {filterCount > 0 && (
-            <Button variant="link" onClick={clearFilters} className="mt-2">
-              Effacer les filtres
-            </Button>
-          )}
-        </div>
-      ) : currentView === 'grid' ? (
-        <PartsGrid 
-          parts={filteredParts} 
-          openPartDetails={openPartDetails} 
-          openOrderDialog={openOrderDialog}
-        />
-      ) : (
-        <PartsList 
-          parts={filteredParts} 
-          openPartDetails={openPartDetails}
-          openOrderDialog={openOrderDialog}
-        />
-      )}
+      <PartsContent
+        parts={parts}
+        filteredParts={filteredParts}
+        isLoading={isLoading}
+        isError={isError}
+        currentView={currentView}
+        filterCount={filterCount}
+        clearFilters={clearFilters}
+        openPartDetails={openPartDetails}
+        openOrderDialog={openOrderDialog}
+      />
     </div>
   );
 };
