@@ -1,9 +1,9 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { perplexityPartsService } from '@/services/perplexity/parts';
 import { partsTechnicalService } from '@/services/perplexity/partsTechnicalService';
-import { checkApiKey } from '@/services/perplexity/client';
+import { checkApiKey, testPerplexityConnection } from '@/services/perplexity/client';
 import { identifyPartCategory } from '@/utils/partCategoryIdentifier';
 
 export const usePerplexitySearch = () => {
@@ -16,6 +16,26 @@ export const usePerplexitySearch = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('technical');
+  const [isApiKeyValid, setIsApiKeyValid] = useState<boolean | null>(null);
+
+  // Vérifier la validité de la clé API au chargement
+  useEffect(() => {
+    const checkApiKeyValidity = async () => {
+      const hasApiKey = checkApiKey();
+      setIsApiKeyValid(hasApiKey);
+      
+      if (hasApiKey) {
+        const isConnected = await testPerplexityConnection();
+        setIsApiKeyValid(isConnected);
+        
+        if (!isConnected) {
+          console.error('La clé API est présente mais semble invalide');
+        }
+      }
+    };
+    
+    checkApiKeyValidity();
+  }, []);
 
   const handleSearch = async (suggestionValue?: string) => {
     const query = suggestionValue || searchQuery;
@@ -25,10 +45,6 @@ export const usePerplexitySearch = () => {
       return;
     }
     
-    // Transmettre la référence exactement comme saisie
-    let partRef = query.trim();
-    let partManufacturer = manufacturer;
-    
     // Vérifier si la clé API est configurée
     if (!checkApiKey()) {
       const errorMessage = "Clé API Perplexity manquante. Pour utiliser cette fonctionnalité, veuillez configurer la variable d'environnement VITE_PERPLEXITY_API_KEY.";
@@ -37,23 +53,33 @@ export const usePerplexitySearch = () => {
       return;
     }
     
+    // Transmettre la référence exactement comme saisie
+    let partRef = query.trim();
+    let partManufacturer = manufacturer;
+    
     setIsLoading(true);
     setError(null);
+    console.log(`Début de la recherche pour "${partRef}" (fabricant: ${partManufacturer || 'non spécifié'})`);
     
     try {
       // Identifier la catégorie et le fabricant possible
       const { categories, manufacturers } = identifyPartCategory(partRef);
+      console.log('Catégories identifiées:', categories);
+      console.log('Fabricants potentiels:', manufacturers);
       
       // Si le fabricant n'est pas spécifié mais identifié, on l'utilise
       if (!partManufacturer && manufacturers.length > 0) {
         partManufacturer = manufacturers[0];
+        console.log(`Fabricant automatiquement identifié: ${partManufacturer}`);
       }
       
       // Préparer le contexte enrichi
       const partContext = partManufacturer 
         ? `${partRef} (${partManufacturer})` 
         : partRef;
-        
+      
+      console.log(`Contexte de recherche enrichi: "${partContext}"`);
+      
       // Combine les deux types de recherche en une seule requête
       const promises = [
         perplexityPartsService.comparePartPrices(partRef, partContext).catch(err => {
@@ -66,7 +92,13 @@ export const usePerplexitySearch = () => {
         })
       ];
       
+      console.log('Requêtes lancées, attente des résultats...');
+      
       const [priceData, technicalInfo] = await Promise.all(promises);
+      
+      console.log('Résultats reçus:');
+      console.log('- Prix:', priceData);
+      console.log('- Infos techniques:', technicalInfo);
       
       // Ensure priceData is an array if it's not null
       const safePrice = priceData ? (Array.isArray(priceData) ? priceData : []) : null;
@@ -95,7 +127,9 @@ export const usePerplexitySearch = () => {
   };
 
   const handleRetryWithManufacturer = (manufacturerValue: string) => {
-    setManufacturer(manufacturerValue.split(' ')[0] || '');
+    const extractedManufacturer = manufacturerValue.split(' ')[0] || '';
+    console.log(`Nouvelle tentative avec fabricant: "${extractedManufacturer}"`);
+    setManufacturer(extractedManufacturer);
     handleSearch(manufacturerValue);
   };
 
@@ -109,6 +143,7 @@ export const usePerplexitySearch = () => {
     error,
     activeTab,
     setActiveTab,
+    isApiKeyValid,
     handleSearch,
     handleRetryWithManufacturer
   };
