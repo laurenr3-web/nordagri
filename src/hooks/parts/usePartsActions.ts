@@ -45,12 +45,9 @@ export const usePartsActions = (
     
     console.log("Ouverture des détails pour la pièce:", part.name);
     
-    // Utiliser un délai minimal pour résoudre les problèmes de propagation d'événements
-    // et s'assurer que l'état est correctement mis à jour
-    setTimeout(() => {
-      partsDialogs.setSelectedPart(part);
-      partsDialogs.setIsPartDetailsDialogOpen(true);
-    }, 50);
+    // Directly update state to avoid issues with setTimeout
+    partsDialogs.setSelectedPart(part);
+    partsDialogs.setIsPartDetailsDialogOpen(true);
   };
 
   // Function to open order dialog with improved event handling
@@ -64,11 +61,9 @@ export const usePartsActions = (
     
     console.log("Ouverture du dialogue de commande pour:", part.name);
     
-    // Utiliser un délai minimal pour résoudre les problèmes de propagation d'événements
-    setTimeout(() => {
-      partsDialogs.setSelectedPart(part);
-      partsDialogs.setIsOrderDialogOpen(true);
-    }, 50);
+    // Directly update state to avoid issues with setTimeout
+    partsDialogs.setSelectedPart(part);
+    partsDialogs.setIsOrderDialogOpen(true);
   };
 
   return {
