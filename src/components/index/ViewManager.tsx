@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import Dashboard from './Dashboard';
 import CalendarView from './CalendarView';
@@ -13,10 +13,17 @@ import { AlertCircle, WifiOff } from "lucide-react";
 interface ViewManagerProps {
   currentView: 'main' | 'calendar' | 'alerts';
   currentMonth: Date;
+  setCurrentView: (view: 'main' | 'calendar' | 'alerts') => void;
 }
 
-const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) => {
-  // Utiliser le hook useDashboardData pour récupérer les données réelles
+const ViewManager: React.FC<ViewManagerProps> = ({ 
+  currentView, 
+  currentMonth,
+  setCurrentView 
+}) => {
+  const navigate = useNavigate();
+  
+  // Utiliser le hook pour obtenir les données réelles
   const { 
     loading, 
     statsData, 
@@ -28,9 +35,42 @@ const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) 
     isOfflineMode
   } = useDashboardData();
 
-  // Fonction pour gérer les clics sur les cartes de statistiques
+  // Gestionnaires de navigation fonctionnels
   const handleStatsCardClick = (type: string) => {
-    // Implémenter la redirection avec Link plus tard si nécessaire
+    switch (type) {
+      case 'Active Equipment':
+        navigate('/equipment');
+        break;
+      case 'Maintenance Tasks':
+        navigate('/maintenance');
+        break;
+      case 'Parts Inventory':
+        navigate('/parts');
+        break;
+      case 'Field Interventions':
+        navigate('/interventions');
+        break;
+    }
+  };
+
+  const handleEquipmentViewAllClick = () => {
+    navigate('/equipment');
+  };
+
+  const handleMaintenanceCalendarClick = () => {
+    navigate('/maintenance');
+  };
+
+  const handleAlertsViewAllClick = () => {
+    setCurrentView('alerts');
+  };
+
+  const handleTasksAddClick = () => {
+    navigate('/maintenance');
+  };
+  
+  const handleEquipmentClick = (id: number) => {
+    navigate(`/equipment/${id}`);
   };
 
   if (loading) {
@@ -70,11 +110,11 @@ const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) 
           upcomingTasks={upcomingTasks}
           currentMonth={currentMonth}
           handleStatsCardClick={handleStatsCardClick}
-          handleEquipmentViewAllClick={() => {}}  
-          handleMaintenanceCalendarClick={() => {}}
-          handleAlertsViewAllClick={() => {}}
-          handleTasksAddClick={() => {}}
-          handleEquipmentClick={(id) => {}}
+          handleEquipmentViewAllClick={handleEquipmentViewAllClick}
+          handleMaintenanceCalendarClick={handleMaintenanceCalendarClick}
+          handleAlertsViewAllClick={handleAlertsViewAllClick}
+          handleTasksAddClick={handleTasksAddClick}
+          handleEquipmentClick={handleEquipmentClick}
         />
       </TabsContent>
       
