@@ -21,10 +21,12 @@ const EquipmentDialogs: React.FC = () => {
       />
 
       {/* Equipment Details Dialog */}
-      <ViewEquipmentDialog 
-        equipment={selectedEquipment}
-        onClose={() => setSelectedEquipment(null)}
-      />
+      {selectedEquipment && (
+        <ViewEquipmentDialog 
+          equipment={selectedEquipment}
+          onClose={() => setSelectedEquipment(null)}
+        />
+      )}
     </>
   );
 };
