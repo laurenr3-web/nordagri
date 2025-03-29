@@ -3,8 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import EquipmentHeader from '../display/EquipmentHeader';
 import EquipmentContentSection from './EquipmentContentSection';
-import { EquipmentItem } from '../hooks/useEquipmentFilters';
-import { useEquipmentFilters } from '@/hooks/equipment/useEquipmentFilters';
+import { EquipmentItem, useEquipmentFilters } from '@/hooks/equipment/useEquipmentFilters';
 
 interface EquipmentPageContentProps {
   equipment: EquipmentItem[];

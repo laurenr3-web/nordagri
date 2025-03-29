@@ -1,10 +1,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 export function useEquipmentRealtime() {
   const queryClient = useQueryClient();
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
   const subscription = useRef<any>(null);
   const isMountedRef = useRef(true);
 
@@ -13,12 +15,10 @@ export function useEquipmentRealtime() {
     if (!subscription.current) {
       try {
         // Use a timeout to ensure the component is fully mounted
-        const timeoutId = setTimeout(async () => {
+        const timeoutId = setTimeout(() => {
           if (!isMountedRef.current) return;
           
           try {
-            const { supabase } = await import('@/lib/supabase');
-            
             // Check if there's already a subscription
             if (subscription.current) {
               console.info('A realtime subscription already exists');
@@ -56,6 +56,9 @@ export function useEquipmentRealtime() {
             
           } catch (error) {
             console.error('Error setting up realtime subscription:', error);
+            if (isMountedRef.current) {
+              setError(error instanceof Error ? error : new Error(String(error)));
+            }
           }
         }, 1000);
         
@@ -64,6 +67,7 @@ export function useEquipmentRealtime() {
         };
       } catch (error) {
         console.error('Error in realtime subscription setup:', error);
+        setError(error instanceof Error ? error : new Error(String(error)));
       }
     }
     
@@ -81,5 +85,5 @@ export function useEquipmentRealtime() {
     };
   }, [queryClient]);
 
-  return { isSubscribed };
+  return { isSubscribed, error };
 }
