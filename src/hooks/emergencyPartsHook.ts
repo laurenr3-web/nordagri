@@ -4,7 +4,7 @@ import { partsData } from '@/data/partsData';
 import { Part } from '@/types/Part';
 
 export const useEmergencyParts = () => {
-  const [parts] = useState(partsData);
+  const [parts, setParts] = useState(partsData);
   const [currentView, setCurrentView] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -21,6 +21,9 @@ export const useEmergencyParts = () => {
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
   const [selectedPart, setSelectedPart] = useState<Part | null>(null);
   const [orderQuantity, setOrderQuantity] = useState('1');
+  // Add the missing properties
+  const [newCategory, setNewCategory] = useState('');
+  const [orderNote, setOrderNote] = useState('');
 
   // Extract unique categories and manufacturers
   const categories = [...new Set(parts.map(part => part.category))].filter(Boolean) as string[];
@@ -107,6 +110,15 @@ export const useEmergencyParts = () => {
     setIsOrderDialogOpen(true);
   };
 
+  // Add the missing function
+  const addNewCategory = () => {
+    console.log('Emergency mode: Add new category', newCategory);
+    if (newCategory.trim()) {
+      setNewCategory('');
+    }
+    return newCategory;
+  };
+
   // Calculate filter count for UI
   const filterCount = [
     selectedCategory ? 1 : 0,
@@ -161,6 +173,12 @@ export const useEmergencyParts = () => {
     handleDeletePart,
     handleOrderSubmit,
     openPartDetails,
-    openOrderDialog
+    openOrderDialog,
+    // Include the missing properties and function
+    newCategory,
+    setNewCategory,
+    addNewCategory,
+    orderNote,
+    setOrderNote
   };
 };
