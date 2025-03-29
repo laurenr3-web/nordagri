@@ -12,17 +12,20 @@ export interface Part {
   reorderPoint: number;
   image: string;
   
-  // Champs pour la rétrocompatibilité
+  // Champs optionnels avec types cohérents
   description?: string;
-  reference?: string;
-  compatibleWith?: string[];
   purchasePrice?: number;
-  quantity?: number;
-  minimumStock?: number;
-  estimatedPrice?: number | string | null;
+  estimatedPrice?: number | null;
   inStock?: boolean;
   isFromSearch?: boolean;
-  imageUrl?: string | null;
+  
+  // Champs pour la compatibilité avec d'autres parties du code
+  // Ces champs sont dépréciés et devraient à terme être supprimés
+  reference?: string;        // utiliser partNumber à la place
+  compatibleWith?: string[]; // utiliser compatibility à la place
+  quantity?: number;         // utiliser stock à la place
+  minimumStock?: number;     // utiliser reorderPoint à la place
+  imageUrl?: string | null;  // utiliser image à la place
 }
 
 export interface PartPriceInfo {
