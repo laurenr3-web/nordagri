@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Sidebar } from '@/components/ui/sidebar';
+import Navbar from '@/components/layout/Navbar';
 import EquipmentHeader from '../display/EquipmentHeader';
 import EquipmentContentSection from './EquipmentContentSection';
 import { EquipmentItem, useEquipmentFilters } from '@/hooks/equipment/useEquipmentFilters';
@@ -30,6 +32,13 @@ const EquipmentPageContent: React.FC<EquipmentPageContentProps> = ({
       navigate(`/equipment/${item.id}`);
     }
   };
+
+  // Helper function to open add equipment dialog
+  const openAddDialog = () => {
+    console.log('Opening add equipment dialog');
+    const event = new CustomEvent('open-add-equipment-dialog');
+    window.dispatchEvent(event);
+  };
   
   // Cleanup function to prevent state updates after unmounting
   useEffect(() => {
@@ -39,8 +48,14 @@ const EquipmentPageContent: React.FC<EquipmentPageContentProps> = ({
   }, []);
 
   return (
-    <div className="pt-6 pb-16 pl-4 pr-4 sm:pl-8 sm:pr-8 md:pl-12 md:pr-12 ml-0 md:ml-64">
-      <div className="max-w-7xl mx-auto">
+    <div className="flex min-h-screen w-full bg-background">
+      <Sidebar className="border-r">
+        <Navbar />
+      </Sidebar>
+      
+      <div className="flex-1 p-6">
+        <EquipmentHeader openAddDialog={openAddDialog} />
+        
         <EquipmentContentSection
           equipment={equipment || []}
           isLoading={isLoading}

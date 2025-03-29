@@ -1,5 +1,5 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { SidebarProvider } from '@/components/ui/sidebar';
 import EquipmentPageContent from '@/components/equipment/page/EquipmentPageContent';
 import EquipmentDialogs from '@/components/equipment/dialogs/EquipmentDialogs';
 import { useEquipmentData } from '@/hooks/equipment/useEquipmentData';
@@ -54,14 +54,14 @@ const EquipmentPage = () => {
   }, [equipment]);
   
   // Set up realtime updates with cleanup function
-  const realtime = useEquipmentRealtime();
+  useEquipmentRealtime();
   
-  // Afficher une erreur si le chargement des données échoue
+  // Display error if loading data fails
   useEffect(() => {
     if (error && isMounted.current) {
       console.error('Error loading equipment data:', error);
-      toast.error('Erreur de chargement des données', {
-        description: error.message || 'Impossible de charger les équipements'
+      toast.error('Error loading data', {
+        description: error.message || 'Unable to load equipment'
       });
     }
   }, [error]);
@@ -75,13 +75,13 @@ const EquipmentPage = () => {
   }, []);
   
   return (
-    <SidebarProvider>
+    <>
       <EquipmentPageContent 
         equipment={equipmentItems}
         isLoading={isLoading}
       />
       <EquipmentDialogs />
-    </SidebarProvider>
+    </>
   );
 };
 
