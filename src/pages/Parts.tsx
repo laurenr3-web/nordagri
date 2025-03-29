@@ -62,8 +62,8 @@ const Parts = () => {
               <PartsContainer 
                 parts={partsHookData.parts}
                 filteredParts={partsHookData.filteredParts}
-                isLoading={partsHookData.isLoading}
-                isError={partsHookData.isError}
+                isLoading={partsHookData.isLoading || false}
+                isError={partsHookData.isError || false}
                 categories={partsHookData.categories}
                 currentView={partsHookData.currentView}
                 setCurrentView={partsHookData.setCurrentView}

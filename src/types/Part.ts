@@ -47,3 +47,32 @@ export interface PartFilter {
   inStock?: boolean;
   searchTerm?: string;
 }
+
+// Technical info interface for part search
+export interface PartTechnicalInfo {
+  id?: string | number;
+  name?: string;
+  reference?: string;
+  description?: string;
+  category?: string;
+  manufacturer?: string;
+  compatibility?: string[];
+  compatibleWith?: string[];
+  price?: number | string;
+  imageUrl?: string;
+  stock?: number;
+  minimumStock?: number;
+  location?: string;
+}
+
+// Price information interface
+export interface PriceItem {
+  vendor: string;
+  price: number | string;
+  currency: string;
+  url: string;
+  availability: string;
+  shipping?: number | string;
+  deliveryTime?: string;
+  condition?: string;
+}
