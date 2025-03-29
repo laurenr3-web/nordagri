@@ -1,6 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
+import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { RealtimeCacheProvider } from '@/providers/RealtimeCacheProvider';
@@ -20,62 +19,55 @@ import Settings from '@/pages/Settings';
 import NotFound from '@/pages/NotFound';
 import Auth from '@/pages/Auth';
 
-// Create a client
-const queryClient = new QueryClient();
-
 function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="agri-erp-theme">
-      <QueryClientProvider client={queryClient}>
-        <RealtimeCacheProvider>
-          <Router>
-            <AuthProvider>
-              <MobileMenu />
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/dashboard" element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } />
-                <Route path="/equipment" element={
-                  <ProtectedRoute>
-                    <Equipment />
-                  </ProtectedRoute>
-                } />
-                <Route path="/equipment/:id" element={
-                  <ProtectedRoute>
-                    <EquipmentDetail />
-                  </ProtectedRoute>
-                } />
-                <Route path="/maintenance" element={
-                  <ProtectedRoute>
-                    <Maintenance />
-                  </ProtectedRoute>
-                } />
-                <Route path="/parts" element={
-                  <ProtectedRoute>
-                    <Parts />
-                  </ProtectedRoute>
-                } />
-                <Route path="/interventions" element={
-                  <ProtectedRoute>
-                    <Interventions />
-                  </ProtectedRoute>
-                } />
-                <Route path="/settings" element={
-                  <ProtectedRoute>
-                    <Settings />
-                  </ProtectedRoute>
-                } />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </AuthProvider>
-          </Router>
+      <RealtimeCacheProvider>
+        <AuthProvider>
+          <MobileMenu />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/equipment" element={
+              <ProtectedRoute>
+                <Equipment />
+              </ProtectedRoute>
+            } />
+            <Route path="/equipment/:id" element={
+              <ProtectedRoute>
+                <EquipmentDetail />
+              </ProtectedRoute>
+            } />
+            <Route path="/maintenance" element={
+              <ProtectedRoute>
+                <Maintenance />
+              </ProtectedRoute>
+            } />
+            <Route path="/parts" element={
+              <ProtectedRoute>
+                <Parts />
+              </ProtectedRoute>
+            } />
+            <Route path="/interventions" element={
+              <ProtectedRoute>
+                <Interventions />
+              </ProtectedRoute>
+            } />
+            <Route path="/settings" element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            } />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
           <Toaster />
-        </RealtimeCacheProvider>
-      </QueryClientProvider>
+        </AuthProvider>
+      </RealtimeCacheProvider>
     </ThemeProvider>
   );
 }
