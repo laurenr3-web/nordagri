@@ -7,7 +7,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { UserSettingsProvider } from '@/providers/UserSettingsProvider';
 import App from './App';
-import './index.css';
+import './styles/index.css';
 
 // Create a Query Client for React Query
 const queryClient = new QueryClient({

@@ -1,0 +1,25 @@
+
+@tailwind utilities;
+
+/* Classes utilitaires pour la sélection utilisateur */
+@layer utilities {
+  .selectable {
+    -webkit-user-select: auto;
+    user-select: auto;
+  }
+  
+  .not-selectable {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  
+  .selectable-text {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+  
+  .selectable-all {
+    -webkit-user-select: all;
+    user-select: all;
+  }
+}
