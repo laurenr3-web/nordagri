@@ -18,7 +18,7 @@ export function usePartVisionIdentification() {
   const [identifiedPart, setIdentifiedPart] = useState<IdentifiedPartResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const identifyPart = async (imageBase64: string) => {
+  const identifyPart = async (imageBase64: string): Promise<IdentifiedPartResult | null> => {
     setIsIdentifying(true);
     setError(null);
     

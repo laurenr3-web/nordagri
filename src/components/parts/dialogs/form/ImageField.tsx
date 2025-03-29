@@ -17,34 +17,43 @@ const ImageField: React.FC<ImageFieldProps> = ({ form }) => {
   const { identifyPart, isIdentifying } = usePartVisionIdentification();
 
   const handleIdentifyPart = async (imageDataUrl: string) => {
-    const result = await identifyPart(imageDataUrl);
-    
-    if (result) {
-      // Auto-remplir les champs du formulaire avec les données identifiées
-      if (result.probableName) {
-        form.setValue('name', result.probableName, { shouldValidate: true });
-      }
+    try {
+      const result = await identifyPart(imageDataUrl);
       
-      if (result.manufacturer) {
-        form.setValue('manufacturer', result.manufacturer, { shouldValidate: true });
+      if (result) {
+        // Auto-remplir les champs du formulaire avec les données identifiées
+        if (result.probableName) {
+          form.setValue('name', result.probableName, { shouldValidate: true });
+        }
+        
+        if (result.manufacturer) {
+          form.setValue('manufacturer', result.manufacturer, { shouldValidate: true });
+        }
+        
+        if (result.referenceNumber) {
+          form.setValue('partNumber', result.referenceNumber, { shouldValidate: true });
+        }
+        
+        if (result.type) {
+          form.setValue('category', result.type.toLowerCase(), { shouldValidate: true });
+        }
+        
+        if (result.possibleUses && result.possibleUses.length > 0) {
+          // Convertir le tableau en chaîne pour le champ de compatibilité
+          form.setValue('compatibility', result.possibleUses.join(', '), { shouldValidate: true });
+        }
+        
+        toast.success("Champs auto-remplis", {
+          description: "Les données identifiées ont été utilisées pour remplir le formulaire"
+        });
       }
-      
-      if (result.referenceNumber) {
-        form.setValue('partNumber', result.referenceNumber, { shouldValidate: true });
-      }
-      
-      if (result.type) {
-        form.setValue('category', result.type.toLowerCase(), { shouldValidate: true });
-      }
-      
-      if (result.possibleUses && result.possibleUses.length > 0) {
-        // Convertir le tableau en chaîne pour le champ de compatibilité
-        form.setValue('compatibility', result.possibleUses.join(', '), { shouldValidate: true });
-      }
-      
-      toast.success("Champs auto-remplis", {
-        description: "Les données identifiées ont été utilisées pour remplir le formulaire"
+      return result;
+    } catch (error) {
+      console.error("Erreur lors de l'identification:", error);
+      toast.error("Échec de l'identification", {
+        description: "Impossible d'identifier la pièce. Essayez avec une photo plus claire."
       });
+      return null;
     }
   };
   

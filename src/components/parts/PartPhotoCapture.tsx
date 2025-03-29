@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Camera, Upload, X, RotateCw } from 'lucide-react';
