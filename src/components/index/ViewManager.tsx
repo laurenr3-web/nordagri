@@ -8,7 +8,7 @@ import AllAlertsSection from './AllAlertsSection';
 import { useDashboardData } from '@/hooks/dashboard/useDashboardData';
 import LoadingSpinner from '@/components/dashboard/LoadingSpinner';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, WifiOff } from "lucide-react";
 
 interface ViewManagerProps {
   currentView: 'main' | 'calendar' | 'alerts';
@@ -24,7 +24,8 @@ const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) 
     maintenanceEvents, 
     alertItems, 
     upcomingTasks,
-    error 
+    error,
+    isOfflineMode
   } = useDashboardData();
 
   // Fonction pour gérer les clics sur les cartes de statistiques
@@ -50,6 +51,16 @@ const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) 
 
   return (
     <Tabs value={currentView} className="space-y-8">
+      {isOfflineMode && (
+        <Alert variant="warning" className="mb-4">
+          <WifiOff className="h-4 w-4" />
+          <AlertTitle>Mode Hors Ligne</AlertTitle>
+          <AlertDescription>
+            Utilisation des données de test. La connexion à la base de données n'est pas disponible.
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <TabsContent value="main">
         <Dashboard 
           statsData={statsData}
