@@ -43,7 +43,7 @@ const PerplexitySearch = () => {
       <Alert variant="default" className="bg-blue-50 text-blue-800 border-blue-200">
         <Info className="h-4 w-4" />
         <AlertDescription>
-          Ce module utilise l'API Perplexity pour rechercher des informations techniques sur les pièces agricoles.
+          Ce module utilise l'IA pour rechercher des informations techniques sur les pièces agricoles.
           Assurez-vous d'avoir configuré votre clé API dans .env.development.
         </AlertDescription>
       </Alert>
@@ -59,7 +59,7 @@ const PerplexitySearch = () => {
       
       <Tabs value={mainTab} onValueChange={setMainTab} className="w-full">
         <TabsList className="w-full justify-start mb-6">
-          <TabsTrigger value="search">Recherche de pièces</TabsTrigger>
+          <TabsTrigger value="search">Recherche technique</TabsTrigger>
           <TabsTrigger value="chat">Conversation</TabsTrigger>
         </TabsList>
         
