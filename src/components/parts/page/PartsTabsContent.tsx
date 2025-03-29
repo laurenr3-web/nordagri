@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PartsContainer from '@/components/parts/PartsContainer';
 import PartSearch from '@/components/parts/PartSearch';
+import TechnicalInfoTab from '@/components/parts/technical-info';
 import { usePartsContext } from '@/contexts/PartsContext';
 
 interface PartsTabsContentProps {
@@ -10,34 +11,54 @@ interface PartsTabsContentProps {
   setActiveTab: (tab: string) => void;
 }
 
-const PartsTabsContent: React.FC<PartsTabsContentProps> = ({ activeTab, setActiveTab }) => {
-  // Hook declarations first
+const PartsTabsContent: React.FC<PartsTabsContentProps> = ({ 
+  activeTab, 
+  setActiveTab 
+}) => {
   const {
     partsHookData,
-    handleAddPartFromSearch
+    orderNote,
+    setOrderNote,
+    partNumber,
+    setPartNumber,
+    handleAddPartFromSearch,
+    handleSearch,
+    isIdentifying
   } = usePartsContext();
-  
-  // Logging effect
+
+  // Log when this component renders and what tab is active
   useEffect(() => {
     console.log("PartsTabsContent rendered with activeTab:", activeTab);
   }, [activeTab]);
 
+  // Handle tab change
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+  };
+
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <TabsList className="grid grid-cols-2 w-[400px]">
+    <Tabs 
+      value={activeTab} 
+      onValueChange={handleTabChange}
+      className="w-full mt-6"
+    >
+      <TabsList className="grid grid-cols-3 w-full max-w-2xl mb-6">
         <TabsTrigger value="inventory">Inventaire</TabsTrigger>
-        <TabsTrigger value="search">Recherche technique</TabsTrigger>
+        <TabsTrigger value="search">Recherche</TabsTrigger>
+        <TabsTrigger value="technical">Info Technique</TabsTrigger>
       </TabsList>
-      
-      <TabsContent value="inventory" className="mt-6">
-        <PartsContainer 
+
+      <TabsContent value="inventory" className="space-y-4">
+        <PartsContainer
           parts={partsHookData.parts}
           filteredParts={partsHookData.filteredParts}
-          isLoading={partsHookData.isLoading || false}
-          isError={partsHookData.isError || false}
+          isLoading={partsHookData.isLoading}
+          isError={partsHookData.isError}
           categories={partsHookData.categories}
           currentView={partsHookData.currentView}
           setCurrentView={partsHookData.setCurrentView}
+          selectedPart={partsHookData.selectedPart}
+          setSelectedPart={partsHookData.setSelectedPart}
           searchTerm={partsHookData.searchTerm}
           setSearchTerm={partsHookData.setSearchTerm}
           selectedCategory={partsHookData.selectedCategory}
@@ -67,16 +88,10 @@ const PartsTabsContent: React.FC<PartsTabsContentProps> = ({ activeTab, setActiv
           setIsSortDialogOpen={partsHookData.setIsSortDialogOpen}
           isOrderDialogOpen={partsHookData.isOrderDialogOpen}
           setIsOrderDialogOpen={partsHookData.setIsOrderDialogOpen}
-          selectedPart={partsHookData.selectedPart}
-          setSelectedPart={partsHookData.setSelectedPart}
-          orderQuantity={partsHookData.orderQuantity || ''}
-          setOrderQuantity={(qty: string) => {
-            if (partsHookData.setOrderQuantity) {
-              partsHookData.setOrderQuantity(qty);
-            }
-          }}
-          orderNote={partsHookData.orderNote}
-          setOrderNote={partsHookData.setOrderNote}
+          orderQuantity={partsHookData.orderQuantity}
+          setOrderQuantity={partsHookData.setOrderQuantity}
+          orderNote={orderNote}
+          setOrderNote={setOrderNote}
           handleAddPart={partsHookData.handleAddPart}
           handleUpdatePart={partsHookData.handleUpdatePart}
           handleDeletePart={partsHookData.handleDeletePart}
@@ -85,9 +100,19 @@ const PartsTabsContent: React.FC<PartsTabsContentProps> = ({ activeTab, setActiv
           openOrderDialog={partsHookData.openOrderDialog}
         />
       </TabsContent>
-      
-      <TabsContent value="search" className="mt-6">
-        <PartSearch onAddPartToInventory={handleAddPartFromSearch} />
+
+      <TabsContent value="search" className="space-y-4">
+        <PartSearch
+          searchValue={partNumber}
+          onSearchChange={setPartNumber}
+          onSearch={handleSearch}
+          onAddPart={handleAddPartFromSearch}
+          isLoading={isIdentifying}
+        />
+      </TabsContent>
+
+      <TabsContent value="technical" className="space-y-4">
+        <TechnicalInfoTab />
       </TabsContent>
     </Tabs>
   );
