@@ -22,11 +22,14 @@ export const checkApiKey = (): boolean => {
     return false;
   }
   
-  // Accepter les clés commençant par "sk-" (formats standards, service accounts et projet)
-  if (!apiKey.startsWith('sk-')) {
+  // Accepter différents formats de clés OpenAI (standard, service account, projet)
+  const validPrefixes = ['sk-', 'sk-svcacct-', 'sk-proj-'];
+  const isValidFormat = validPrefixes.some(prefix => apiKey.startsWith(prefix));
+  
+  if (!isValidFormat) {
     console.error('⚠️ Format de clé API OpenAI invalide');
     toast.error('Format de clé API OpenAI invalide', {
-      description: 'La clé API doit commencer par "sk-"'
+      description: 'La clé API doit commencer par "sk-", "sk-svcacct-" ou "sk-proj-"'
     });
     return false;
   }
