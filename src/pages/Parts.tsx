@@ -4,7 +4,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { PartsContextProvider } from '@/contexts/PartsContext';
 import PartsPageContainer from '@/components/parts/page/PartsPageContainer';
 import { toast } from 'sonner';
-import { useParts } from '@/hooks/useParts';
+import { useEmergencyParts } from '@/hooks/emergencyPartsHook';
 import { partsData } from '@/data/partsData';
 
 const Parts = () => {

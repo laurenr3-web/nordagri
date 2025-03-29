@@ -1,13 +1,13 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { partsData } from '@/data/partsData';
-import { useParts } from '@/hooks/useParts';
+import { useEmergencyParts } from '@/hooks/emergencyPartsHook';
 import { Part } from '@/types/Part';
 import { LocalPart, convertToLocalPart } from '@/utils/partTypeConverters';
 import { toast } from 'sonner';
 
 interface PartsContextType {
-  partsHookData: ReturnType<typeof useParts>;
+  partsHookData: ReturnType<typeof useEmergencyParts>;
   selectedPartAsLocalPart: LocalPart | null;
   orderNote: string;
   setOrderNote: (note: string) => void;
@@ -54,7 +54,7 @@ export const PartsContextProvider: React.FC<{children: React.ReactNode}> = ({ ch
   console.log("PartsContextProvider rendering");
   
   // All hooks declarations at the beginning
-  const partsHookData = useParts(partsData);
+  const partsHookData = useEmergencyParts();
   const [orderNote, setOrderNote] = useState('');
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
   const [isIdentifying, setIsIdentifying] = useState(false);
