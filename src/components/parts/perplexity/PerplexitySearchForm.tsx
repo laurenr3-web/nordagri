@@ -6,6 +6,18 @@ import { Loader2, Search, Tag } from 'lucide-react';
 import { identifyPartCategory } from '@/utils/partCategoryIdentifier';
 import { Card, CardContent } from '@/components/ui/card';
 
+// Liste de catégories communes pour le raffinement de recherche
+const commonCategories = [
+  "Filtre",
+  "Capteur",
+  "Interrupteur", 
+  "Moteur",
+  "Transmission",
+  "Embrayage",
+  "Batterie",
+  "Démarreur"
+];
+
 interface PerplexitySearchFormProps {
   searchQuery: string;
   setSearchQuery: (value: string) => void;
@@ -24,6 +36,7 @@ const PerplexitySearchForm: React.FC<PerplexitySearchFormProps> = ({
   isLoading
 }) => {
   const [identifiedCategories, setIdentifiedCategories] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   
   // Identification automatique du fabricant et des catégories lors de la saisie
   const handlePartNumberChange = (value: string) => {
@@ -42,6 +55,16 @@ const PerplexitySearchForm: React.FC<PerplexitySearchFormProps> = ({
     } else {
       setIdentifiedCategories([]);
     }
+  };
+  
+  // Fonction de recherche avec catégorie
+  const handleCategorySearch = (category: string) => {
+    setSelectedCategory(category);
+    // Construire une requête enrichie avec la catégorie
+    const enrichedSearch = `${searchQuery} ${category}`;
+    // Passer cette requête enrichie à la fonction de recherche parent
+    setSearchQuery(enrichedSearch);
+    handleSearch();
   };
   
   return (
@@ -87,6 +110,24 @@ const PerplexitySearchForm: React.FC<PerplexitySearchFormProps> = ({
             </div>
           </CardContent>
         </Card>
+      )}
+      
+      {searchQuery && (
+        <div className="mt-4">
+          <p className="text-sm font-medium mb-2">Affiner la recherche par catégorie :</p>
+          <div className="flex flex-wrap gap-2">
+            {commonCategories.map(category => (
+              <Button
+                key={category}
+                size="sm"
+                variant={selectedCategory === category ? "default" : "outline"}
+                onClick={() => handleCategorySearch(category)}
+              >
+                {category}
+              </Button>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );
