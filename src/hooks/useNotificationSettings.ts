@@ -2,7 +2,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Json } from '@/integrations/supabase/types';
 
+// Define the interface with an index signature to be compatible with Json
 export interface NotificationPreferences {
   maintenance_reminders: {
     enabled: boolean;
@@ -26,6 +28,7 @@ export interface NotificationPreferences {
     enabled: boolean;
     channels: string[];
   };
+  [key: string]: any; // Add an index signature to be compatible with Json
 }
 
 export interface NotificationSettings {
@@ -98,10 +101,10 @@ export const useNotificationSettings = (userId: string) => {
           throw error;
         }
       } else {
-        // Parse the notification preferences object
+        // Parse the notification preferences object with explicit conversion
         const parsedSettings: NotificationSettings = {
           ...data,
-          notification_preferences: data.notification_preferences as NotificationPreferences
+          notification_preferences: data.notification_preferences as unknown as NotificationPreferences
         };
         setSettings(parsedSettings);
       }
@@ -129,16 +132,19 @@ export const useNotificationSettings = (userId: string) => {
 
       let error;
 
+      // Prepare data to send to Supabase
+      const dataToSave = {
+        email_notifications: newSettings.email_notifications,
+        push_notifications: newSettings.push_notifications,
+        sms_notifications: newSettings.sms_notifications,
+        notification_preferences: newSettings.notification_preferences as unknown as Json
+      };
+
       if (existingSettings) {
         // Update existing settings
         const { error: updateError } = await supabase
           .from('notification_settings')
-          .update({
-            email_notifications: newSettings.email_notifications,
-            push_notifications: newSettings.push_notifications,
-            sms_notifications: newSettings.sms_notifications,
-            notification_preferences: newSettings.notification_preferences
-          })
+          .update(dataToSave)
           .eq('user_id', userId);
 
         error = updateError;
@@ -146,7 +152,10 @@ export const useNotificationSettings = (userId: string) => {
         // Insert new settings
         const { error: insertError } = await supabase
           .from('notification_settings')
-          .insert(newSettings);
+          .insert({
+            user_id: userId,
+            ...dataToSave
+          });
 
         error = insertError;
       }
