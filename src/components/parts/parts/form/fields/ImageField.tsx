@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form';
+import { FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { UseFormReturn } from 'react-hook-form';
-import { PartFormValues } from './editPartFormTypes';
+import { PartFormValues } from '../partFormTypes';
 import ImageUrlInput from '@/components/equipment/form/fields/ImageUrlInput';
 import ImagePreview from '@/components/equipment/form/fields/ImagePreview';
 import PartPhotoCapture from '../../PartPhotoCapture';
@@ -46,22 +46,20 @@ const ImageField: React.FC<ImageFieldProps> = ({ form }) => {
       });
     }
   };
-  
+
   return (
     <FormField
       control={form.control}
       name="image"
       render={({ field }) => (
         <FormItem>
-          <FormLabel htmlFor="image-url">URL de l'image</FormLabel>
+          <FormLabel>Image</FormLabel>
           <div className="flex flex-col space-y-3">
             <div className="flex items-center space-x-2">
               <ImageUrlInput 
                 value={field.value || ''}
                 onChange={(value) => form.setValue('image', value)}
-                id="image-url"
-                placeholder="https://exemple.com/image.jpg"
-                aria-describedby="image-description"
+                placeholder="https://example.com/image.jpg"
               />
             </div>
             
@@ -69,7 +67,7 @@ const ImageField: React.FC<ImageFieldProps> = ({ form }) => {
               <ImagePreview 
                 imageUrl={field.value}
                 onReset={() => form.setValue('image', '')}
-                altText="Aperçu de la pièce"
+                altText="Part preview"
               />
             ) : (
               <PartPhotoCapture 
@@ -81,8 +79,8 @@ const ImageField: React.FC<ImageFieldProps> = ({ form }) => {
               />
             )}
             
-            <FormDescription id="image-description">
-              Entrez une URL pour l'image de la pièce ou prenez une photo. L'IA tentera d'identifier la pièce à partir de la photo.
+            <FormDescription>
+              Enter a URL for the part image or take a photo. The AI will attempt to identify the part from the photo.
             </FormDescription>
             <FormMessage />
           </div>

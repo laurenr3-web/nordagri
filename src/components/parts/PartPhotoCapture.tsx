@@ -3,13 +3,21 @@ import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Camera, Upload, X, RotateCw } from 'lucide-react';
 import { toast } from 'sonner';
+import { IdentifiedPartResult } from '@/hooks/parts/usePartVisionIdentification';
 
 interface PartPhotoCaptureProps {
   onPhotoTaken: (imageBase64: string) => void;
   isLoading?: boolean;
+  onIdentifyPhoto?: (imageBase64: string) => Promise<IdentifiedPartResult | null>;
+  identificationInProgress?: boolean;
 }
 
-const PartPhotoCapture: React.FC<PartPhotoCaptureProps> = ({ onPhotoTaken, isLoading = false }) => {
+const PartPhotoCapture: React.FC<PartPhotoCaptureProps> = ({ 
+  onPhotoTaken, 
+  isLoading = false,
+  onIdentifyPhoto,
+  identificationInProgress = false
+}) => {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -60,6 +68,11 @@ const PartPhotoCapture: React.FC<PartPhotoCaptureProps> = ({ onPhotoTaken, isLoa
         stopCamera();
         
         onPhotoTaken(dataUrl);
+        
+        // Si l'identification est activée, l'exécuter automatiquement
+        if (onIdentifyPhoto) {
+          onIdentifyPhoto(dataUrl);
+        }
       }
     }
   };
@@ -81,6 +94,11 @@ const PartPhotoCapture: React.FC<PartPhotoCaptureProps> = ({ onPhotoTaken, isLoa
         const dataUrl = event.target?.result as string;
         setCapturedImage(dataUrl);
         onPhotoTaken(dataUrl);
+        
+        // Si l'identification est activée, l'exécuter automatiquement
+        if (onIdentifyPhoto) {
+          onIdentifyPhoto(dataUrl);
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -165,11 +183,11 @@ const PartPhotoCapture: React.FC<PartPhotoCaptureProps> = ({ onPhotoTaken, isLoa
         </div>
       )}
       
-      {capturedImage && isLoading && (
+      {capturedImage && (isLoading || identificationInProgress) && (
         <div className="flex justify-center">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <RotateCw className="h-4 w-4 animate-spin" />
-            Analyse de l'image en cours...
+            {identificationInProgress ? "Identification de la pièce en cours..." : "Analyse de l'image en cours..."}
           </div>
         </div>
       )}
