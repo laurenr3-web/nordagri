@@ -69,7 +69,13 @@ export const useUserSettings = (userId: string) => {
           throw error;
         }
       } else {
-        setSettings(data);
+        // Convert theme to the correct type to fix TypeScript error
+        const parsedSettings: UserSettings = {
+          ...data,
+          theme: data.theme as 'light' | 'dark' | 'system',
+          widget_preferences: data.widget_preferences as UserSettings['widget_preferences']
+        };
+        setSettings(parsedSettings);
       }
     } catch (err) {
       console.error('Error fetching user settings:', err);

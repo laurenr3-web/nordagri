@@ -14,7 +14,7 @@ export const RegionalPreferencesSection = () => {
   const [temperatureUnit, setTemperatureUnit] = useState(
     settings?.units_system === 'imperial' ? 'fahrenheit' : 'celsius'
   );
-  const [dateFormat, setDateFormat] = useState(settings?.date_format || 'dd/mm/yyyy');
+  const [dateFormat, setDateFormat] = useState(settings?.date_format || 'DD/MM/YYYY');
   const [timeFormat, setTimeFormat] = useState(settings?.time_format || '24h');
   const [language, setLanguage] = useState(settings?.language || 'en');
   const [savingSettings, setSavingSettings] = useState(false);
@@ -80,9 +80,9 @@ export const RegionalPreferencesSection = () => {
               <SelectValue placeholder="Select date format" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="dd/mm/yyyy">DD/MM/YYYY</SelectItem>
-              <SelectItem value="mm/dd/yyyy">MM/DD/YYYY</SelectItem>
-              <SelectItem value="yyyy-mm-dd">YYYY-MM-DD</SelectItem>
+              <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
+              <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
+              <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
             </SelectContent>
           </Select>
         </div>
