@@ -26,17 +26,24 @@ export const useOpenAIStatus = () => {
           setIsConnected(connected);
           
           if (!connected) {
-            setError("Impossible de se connecter à l'API OpenAI");
+            setError("Impossible de se connecter à l'API OpenAI. La clé pourrait être non valide ou le service indisponible.");
+            setIsApiKeyValid(false);
           }
         } else {
           setIsConnected(false);
-          setError("Clé API OpenAI manquante ou invalide");
+          setError("Clé API OpenAI manquante ou au format incorrect. Format attendu: commençant par 'sk-'");
         }
       } catch (err) {
         console.error("Erreur vérification OpenAI:", err);
         setIsConnected(false);
         setIsApiKeyValid(false);
-        setError(err instanceof Error ? err.message : "Erreur inconnue");
+        
+        // Message d'erreur plus détaillé
+        if (err.status === 401) {
+          setError("Authentification OpenAI échouée. Vérifiez que votre clé API est valide et active.");
+        } else {
+          setError(err instanceof Error ? err.message : "Erreur inconnue lors de la connexion à OpenAI");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -58,10 +65,24 @@ export const useOpenAIStatus = () => {
       setIsApiKeyValid(apiKeyValid);
       
       if (apiKeyValid) {
-        const connected = await testOpenAIConnection();
-        setIsConnected(connected);
+        try {
+          const connected = await testOpenAIConnection();
+          setIsConnected(connected);
+          
+          if (!connected) {
+            setError("Impossible de se connecter à l'API OpenAI. La clé pourrait être non valide ou le service indisponible.");
+          }
+        } catch (err) {
+          setIsConnected(false);
+          if (err.status === 401) {
+            setError("Authentification OpenAI échouée. Vérifiez que votre clé API est valide et active.");
+          } else {
+            setError(err instanceof Error ? err.message : "Erreur inconnue lors de la connexion à OpenAI");
+          }
+        }
       } else {
         setIsConnected(false);
+        setError("Clé API OpenAI manquante ou au format incorrect");
       }
       
       setIsLoading(false);

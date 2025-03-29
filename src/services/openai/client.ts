@@ -22,7 +22,7 @@ export const checkApiKey = (): boolean => {
     return false;
   }
   
-  // Vérifier si la clé a un format valide (commence par sk-)
+  // Accepter les clés commençant par "sk-" ou "sk-proj-" (format de projet OpenAI)
   if (!apiKey.startsWith('sk-')) {
     console.error('⚠️ Format de clé API OpenAI invalide');
     toast.error('Format de clé API OpenAI invalide', {
@@ -43,6 +43,8 @@ export const testOpenAIConnection = async (): Promise<boolean> => {
   
   try {
     console.log('🔍 Test de connexion OpenAI...');
+    console.log('Clé API (premiers caractères):', apiKey?.substring(0, 8) + '...');
+    
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
@@ -63,9 +65,18 @@ export const testOpenAIConnection = async (): Promise<boolean> => {
     return true;
   } catch (error) {
     console.error('❌ Échec du test de connexion OpenAI:', error);
-    toast.error('Échec de connexion à OpenAI', {
-      description: error.message
-    });
+    
+    // Vérification spécifique pour les erreurs d'authentification
+    if (error.status === 401) {
+      toast.error('Authentification OpenAI échouée', {
+        description: 'Clé API rejetée. Vérifiez que votre clé est valide et activée.'
+      });
+    } else {
+      toast.error('Échec de connexion à OpenAI', {
+        description: error.message
+      });
+    }
+    
     return false;
   }
 };
@@ -97,9 +108,17 @@ export const simpleChatQuery = async (prompt: string): Promise<string | null> =>
     return response.choices[0].message.content;
   } catch (error) {
     console.error('❌ Erreur requête OpenAI:', error);
-    toast.error('Erreur de requête OpenAI', {
-      description: error.message
-    });
+    
+    if (error.status === 401) {
+      toast.error('Authentification OpenAI échouée', {
+        description: 'Clé API rejetée. Vérifiez que votre clé est valide et activée.'
+      });
+    } else {
+      toast.error('Erreur de requête OpenAI', {
+        description: error.message
+      });
+    }
+    
     return null;
   }
 };
