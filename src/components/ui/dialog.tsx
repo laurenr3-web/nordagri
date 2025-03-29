@@ -47,21 +47,8 @@ const DialogContent = React.forwardRef<
     };
   }, []);
 
-  // Enhanced function to safely get dialog element
-  const getDialogElement = (forwardedRef: React.ForwardedRef<HTMLDivElement> | null) => {
-    if (!forwardedRef) return null;
-    
-    // Handle RefObject (with current property)
-    if (typeof forwardedRef === 'object' && forwardedRef !== null && 'current' in forwardedRef) {
-      return forwardedRef.current;
-    }
-    
-    // For callback refs, we can't access directly
-    return null;
-  };
-
   // Enhanced handler for safe dialog closing
-  const handleEscapeKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleEscapeKeyDown = (event: DialogPrimitive.EscapeKeyDownEvent) => {
     // Prevent default browser behavior
     event.preventDefault();
     
@@ -78,32 +65,15 @@ const DialogContent = React.forwardRef<
     // Use a safer approach to closing with animation frame scheduling
     if (isMountedRef.current) {
       requestAnimationFrame(() => {
-        if (isMountedRef.current) {
-          // Try to set the dialog state to "closed" via data attribute
-          const dialog = getDialogElement(ref);
-          if (dialog && dialog instanceof HTMLElement) {
-            console.log('Dialog: Setting data-state to closed');
-            dialog.dataset.state = "closed";
-            
-            // Add a backup close trigger after animation completes
-            setTimeout(() => {
-              if (props.onEscapeKeyDown) {
-                props.onEscapeKeyDown(event);
-              }
-            }, 300);
-          } else {
-            // Fallback if we can't access the element
-            if (props.onEscapeKeyDown) {
-              props.onEscapeKeyDown(event);
-            }
-          }
+        if (isMountedRef.current && props.onEscapeKeyDown) {
+          props.onEscapeKeyDown(event);
         }
       });
     }
   };
   
   // Enhanced handler for outside clicks
-  const handlePointerDownOutside = (event: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerDownOutside = (event: DialogPrimitive.PointerDownOutsideEvent) => {
     // Only prevent outside clicks if dialog is just opening or already closing
     const timeSinceClose = Date.now() - localStateRef.current.closeStartTime;
     if (localStateRef.current.isClosing && timeSinceClose < 500) {
