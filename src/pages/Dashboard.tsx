@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
@@ -11,174 +12,288 @@ import Dashboard from '@/components/index/Dashboard';
 import CalendarView from '@/components/index/CalendarView';
 import AllAlertsSection from '@/components/index/AllAlertsSection';
 
-// Sample data
-const statsData = [{
-  title: 'Active Equipment',
-  value: '24',
-  icon: <Tractor className="text-primary h-5 w-5" />,
-  trend: {
-    value: 4,
-    isPositive: true
-  }
-}, {
-  title: 'Maintenance Tasks',
-  value: '12',
-  icon: <Wrench className="text-primary h-5 w-5" />,
-  description: '3 high priority',
-  trend: {
-    value: 2,
-    isPositive: false
-  }
-}, {
-  title: 'Parts Inventory',
-  value: '1,204',
-  icon: <Package className="text-primary h-5 w-5" />,
-  description: '8 items low stock',
-  trend: {
-    value: 12,
-    isPositive: true
-  }
-}, {
-  title: 'Field Interventions',
-  value: '8',
-  icon: <ClipboardCheck className="text-primary h-5 w-5" />,
-  description: 'This week',
-  trend: {
-    value: 15,
-    isPositive: true
-  }
-}];
+// Services
+import { equipmentService } from '@/services/supabase/equipmentService';
+import { maintenanceService } from '@/services/supabase/maintenanceService';
+import { getParts } from '@/services/supabase/parts';
+import { interventionService } from '@/services/supabase/interventionService';
 
-const equipmentData = [{
-  id: 1,
-  name: 'John Deere 8R 410',
-  type: 'Tractor',
-  image: 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=500&auto=format&fit=crop',
-  status: 'operational' as const,
-  usage: {
-    hours: 342,
-    target: 500
-  },
-  nextService: {
-    type: 'Filter Change',
-    due: 'In 3 weeks'
-  }
-}, {
-  id: 2,
-  name: 'Case IH Axial-Flow',
-  type: 'Combine Harvester',
-  image: 'https://images.unsplash.com/photo-1599033329459-cc8c31c7eb6c?q=80&w=500&auto=format&fit=crop',
-  status: 'maintenance' as const,
-  usage: {
-    hours: 480,
-    target: 500
-  },
-  nextService: {
-    type: 'Full Service',
-    due: 'In 2 days'
-  }
-}, {
-  id: 3,
-  name: 'Kubota M7-172',
-  type: 'Tractor',
-  image: 'https://images.unsplash.com/photo-1585911171167-1f66ea3de00c?q=80&w=500&auto=format&fit=crop',
-  status: 'repair' as const,
-  usage: {
-    hours: 620,
-    target: 500
-  },
-  nextService: {
-    type: 'Engine Check',
-    due: 'Overdue'
-  }
-}];
+// Types
+import { Part } from '@/types/Part';
+import { MaintenanceTask } from '@/hooks/maintenance/maintenanceSlice';
+import { Intervention } from '@/types/Intervention';
 
-// Sample maintenance events
-const maintenanceEvents = [{
-  id: '1',
-  title: 'Oil Change - Tractor #1',
-  date: new Date(2023, new Date().getMonth(), 8),
-  duration: 2,
-  priority: 'medium' as const,
-  equipment: 'John Deere 8R 410'
-}, {
-  id: '2',
-  title: 'Harvester Inspection',
-  date: new Date(2023, new Date().getMonth(), 12),
-  duration: 4,
-  priority: 'high' as const,
-  equipment: 'Case IH Axial-Flow'
-}, {
-  id: '3',
-  title: 'Filter Replacement',
-  date: new Date(2023, new Date().getMonth(), 18),
-  duration: 1,
-  priority: 'low' as const,
-  equipment: 'Kubota M7-172'
-}, {
-  id: '4',
-  title: 'Hydraulic Check',
-  date: new Date(2023, new Date().getMonth(), 18),
-  duration: 2,
-  priority: 'medium' as const,
-  equipment: 'John Deere 8R 410'
-}, {
-  id: '5',
-  title: 'Annual Service',
-  date: new Date(2023, new Date().getMonth(), 24),
-  duration: 8,
-  priority: 'high' as const,
-  equipment: 'John Deere 8R 410'
-}];
-
-const alertItems = [{
-  id: 1,
-  severity: 'high' as const,
-  message: 'Harvester engine overheating detected',
-  time: '2 hours ago',
-  equipment: 'Case IH Axial-Flow'
-}, {
-  id: 2,
-  severity: 'medium' as const,
-  message: 'Low oil pressure warning on Tractor #3',
-  time: '1 day ago',
-  equipment: 'Kubota M7-172'
-}, {
-  id: 3,
-  severity: 'low' as const,
-  message: 'Maintenance interval approaching for Tractor #1',
-  time: '2 days ago',
-  equipment: 'John Deere 8R 410'
-}];
-
-const upcomingTasks = [{
-  id: 1,
-  title: 'Oil and Filter Change',
-  equipment: 'John Deere 8R 410',
-  due: 'Tomorrow',
-  priority: 'high',
-  assignee: 'Michael Torres'
-}, {
-  id: 2,
-  title: 'Hydraulic System Check',
-  equipment: 'Case IH Axial-Flow',
-  due: 'Jun 15',
-  priority: 'medium',
-  assignee: 'Sarah Johnson'
-}, {
-  id: 3,
-  title: 'Tire Pressure Adjustment',
-  equipment: 'Kubota M7-172',
-  due: 'Jun 18',
-  priority: 'low',
-  assignee: 'David Chen'
-}];
+// Définir le type pour les stats
+interface Stat {
+  title: string;
+  value: string;
+  icon: React.ReactNode;
+  description?: string;
+  trend: {
+    value: number;
+    isPositive: boolean;
+  };
+}
 
 const DashboardPage = () => {
   // Current month for calendar
   const [currentMonth] = useState(new Date());
   const [currentView, setCurrentView] = useState<'main' | 'calendar' | 'alerts'>('main');
   const navigate = useNavigate();
+
+  // États pour les données
+  const [loading, setLoading] = useState(true);
+  const [statsData, setStatsData] = useState<Stat[]>([]);
+  const [equipmentData, setEquipmentData] = useState<any[]>([]);
+  const [maintenanceEvents, setMaintenanceEvents] = useState<any[]>([]);
+  const [alertItems, setAlertItems] = useState<any[]>([]);
+  const [upcomingTasks, setUpcomingTasks] = useState<any[]>([]);
+
+  // Chargement des données depuis Supabase
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+
+        // 1. Récupérer les équipements
+        const equipment = await equipmentService.getEquipment();
+        
+        // 2. Récupérer les tâches de maintenance
+        const maintenanceTasks = await maintenanceService.getTasks();
+        
+        // 3. Récupérer les pièces
+        const parts = await getParts();
+        
+        // 4. Récupérer les interventions
+        const interventions = await interventionService.getInterventions();
+        
+        // 5. Construire les statistiques
+        updateStatsData(equipment, maintenanceTasks, parts, interventions);
+        
+        // 6. Préparer les données d'équipement
+        updateEquipmentData(equipment, maintenanceTasks);
+        
+        // 7. Préparer les événements de maintenance
+        updateMaintenanceEvents(maintenanceTasks);
+        
+        // 8. Préparer les alertes
+        updateAlerts(equipment, parts, maintenanceTasks);
+        
+        // 9. Préparer les tâches à venir
+        updateUpcomingTasks(maintenanceTasks);
+        
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  // Mettre à jour les statistiques
+  const updateStatsData = (
+    equipment: any[], 
+    maintenanceTasks: MaintenanceTask[], 
+    parts: Part[], 
+    interventions: Intervention[]
+  ) => {
+    // 1. Nombre d'équipements actifs
+    const operationalEquipment = equipment.filter(item => item.status === 'operational').length;
+    
+    // 2. Tâches de maintenance en attente
+    const pendingMaintenance = maintenanceTasks.filter(task => 
+      task.status !== 'completed' && task.status !== 'cancelled'
+    ).length;
+    
+    // 3. Nombre de pièces à stock bas
+    const lowStockParts = parts.filter(part => 
+      part.stock <= (part.reorderPoint || 5)
+    ).length;
+    
+    // 4. Interventions de cette semaine
+    const now = new Date();
+    const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 7);
+    
+    const weeklyInterventions = interventions.filter(intervention => {
+      const date = new Date(intervention.date);
+      return date >= weekStart && date < weekEnd;
+    }).length;
+
+    // Construire les stats
+    setStatsData([
+      {
+        title: 'Active Equipment',
+        value: operationalEquipment.toString(),
+        icon: <Tractor className="text-primary h-5 w-5" />,
+        trend: {
+          value: 4, // À améliorer avec des données historiques
+          isPositive: true
+        }
+      }, 
+      {
+        title: 'Maintenance Tasks',
+        value: pendingMaintenance.toString(),
+        icon: <Wrench className="text-primary h-5 w-5" />,
+        description: `${maintenanceTasks.filter(task => task.priority === 'high' && task.status !== 'completed').length} high priority`,
+        trend: {
+          value: 2, // À améliorer avec des données historiques
+          isPositive: false
+        }
+      }, 
+      {
+        title: 'Parts Inventory',
+        value: parts.length.toString(),
+        icon: <Package className="text-primary h-5 w-5" />,
+        description: `${lowStockParts} items low stock`,
+        trend: {
+          value: 12, // À améliorer avec des données historiques
+          isPositive: true
+        }
+      }, 
+      {
+        title: 'Field Interventions',
+        value: weeklyInterventions.toString(),
+        icon: <ClipboardCheck className="text-primary h-5 w-5" />,
+        description: 'This week',
+        trend: {
+          value: 15, // À améliorer avec des données historiques
+          isPositive: true
+        }
+      }
+    ]);
+  };
+
+  // Transformer les données d'équipement
+  const updateEquipmentData = (equipment: any[], maintenanceTasks: MaintenanceTask[]) => {
+    const formattedEquipment = equipment.slice(0, 3).map(item => {
+      // Trouver la prochaine maintenance pour cet équipement
+      const nextMaintenance = maintenanceTasks
+        .filter(task => task.equipmentId === item.id && task.status !== 'completed')
+        .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())[0];
+      
+      return {
+        id: item.id,
+        name: item.name,
+        type: item.type || 'Unknown',
+        image: item.image || 'https://images.unsplash.com/photo-1585911171167-1f66ea3de00c?q=80&w=500&auto=format&fit=crop',
+        status: item.status || 'operational',
+        usage: {
+          hours: item.hours || 342,
+          target: 500
+        },
+        nextService: nextMaintenance ? {
+          type: nextMaintenance.type,
+          due: getDueString(nextMaintenance.dueDate)
+        } : {
+          type: 'No maintenance scheduled',
+          due: 'N/A'
+        }
+      };
+    });
+
+    setEquipmentData(formattedEquipment);
+  };
+
+  // Transformer les événements de maintenance
+  const updateMaintenanceEvents = (maintenanceTasks: MaintenanceTask[]) => {
+    const events = maintenanceTasks.slice(0, 5).map(task => ({
+      id: task.id.toString(),
+      title: task.title,
+      date: task.dueDate,
+      duration: task.estimatedDuration || 2,
+      priority: task.priority,
+      equipment: task.equipment
+    }));
+
+    setMaintenanceEvents(events);
+  };
+
+  // Transformer les alertes
+  const updateAlerts = (equipment: any[], parts: Part[], maintenanceTasks: MaintenanceTask[]) => {
+    const alerts = [];
+    
+    // Alertes pour les équipements en panne
+    equipment.filter(item => item.status === 'repair').forEach(item => {
+      alerts.push({
+        id: `eq-${item.id}`,
+        severity: 'high',
+        message: `${item.name} requires repair`,
+        time: '24 hours ago',
+        equipment: item.name
+      });
+    });
+    
+    // Alertes pour les pièces à stock bas
+    parts.filter(part => part.stock <= (part.reorderPoint || 5)).slice(0, 2).forEach(part => {
+      alerts.push({
+        id: `part-${part.id}`,
+        severity: 'medium',
+        message: `Low stock alert: ${part.name}`,
+        time: '48 hours ago',
+        equipment: 'Inventory'
+      });
+    });
+    
+    // Alertes pour les maintenances en retard
+    const today = new Date();
+    maintenanceTasks.filter(task => 
+      task.status !== 'completed' && 
+      task.dueDate < today
+    ).slice(0, 2).forEach(task => {
+      alerts.push({
+        id: `maint-${task.id}`,
+        severity: 'low',
+        message: `Overdue maintenance: ${task.title}`,
+        time: '72 hours ago',
+        equipment: task.equipment
+      });
+    });
+    
+    setAlertItems(alerts.slice(0, 3));
+  };
+
+  // Transformer les tâches à venir
+  const updateUpcomingTasks = (maintenanceTasks: MaintenanceTask[]) => {
+    const today = new Date();
+    const filteredTasks = maintenanceTasks.filter(task => 
+      task.status !== 'completed' && 
+      task.dueDate >= today
+    ).sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime()).slice(0, 3);
+    
+    const mappedTasks = filteredTasks.map(task => ({
+      id: task.id,
+      title: task.title,
+      equipment: task.equipment,
+      due: getDueString(task.dueDate),
+      priority: task.priority,
+      assignee: task.assignedTo || 'Unassigned'
+    }));
+    
+    setUpcomingTasks(mappedTasks);
+  };
+
+  // Helper pour les dates relatives
+  const getDueString = (date: Date): string => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const taskDate = new Date(date);
+    taskDate.setHours(0, 0, 0, 0);
+    
+    if (taskDate.getTime() === today.getTime()) return 'Today';
+    if (taskDate.getTime() === tomorrow.getTime()) return 'Tomorrow';
+    
+    if (taskDate < today) return 'Overdue';
+    
+    return `${date.toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' })}`;
+  };
 
   const handleStatsCardClick = (type: string) => {
     switch (type) {
@@ -232,35 +347,44 @@ const DashboardPage = () => {
                 setCurrentView={setCurrentView}
               />
               
-              <Tabs value={currentView} className="space-y-8">
-                <TabsContent value="main">
-                  <Dashboard 
-                    statsData={statsData}
-                    equipmentData={equipmentData}
-                    maintenanceEvents={maintenanceEvents}
-                    alertItems={alertItems}
-                    upcomingTasks={upcomingTasks}
-                    currentMonth={currentMonth}
-                    handleStatsCardClick={handleStatsCardClick}
-                    handleEquipmentViewAllClick={handleEquipmentViewAllClick}
-                    handleMaintenanceCalendarClick={handleMaintenanceCalendarClick}
-                    handleAlertsViewAllClick={handleAlertsViewAllClick}
-                    handleTasksAddClick={handleTasksAddClick}
-                    handleEquipmentClick={handleEquipmentClick}
-                  />
-                </TabsContent>
-                
-                <TabsContent value="calendar">
-                  <CalendarView 
-                    events={maintenanceEvents} 
-                    month={currentMonth} 
-                  />
-                </TabsContent>
-                
-                <TabsContent value="alerts">
-                  <AllAlertsSection alerts={alertItems.concat(alertItems.map(alert => ({...alert, id: alert.id + 100})))} />
-                </TabsContent>
-              </Tabs>
+              {loading ? (
+                <div className="flex items-center justify-center h-64">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto"></div>
+                    <p className="mt-4 text-muted-foreground">Chargement des données...</p>
+                  </div>
+                </div>
+              ) : (
+                <Tabs value={currentView} className="space-y-8">
+                  <TabsContent value="main">
+                    <Dashboard 
+                      statsData={statsData}
+                      equipmentData={equipmentData}
+                      maintenanceEvents={maintenanceEvents}
+                      alertItems={alertItems}
+                      upcomingTasks={upcomingTasks}
+                      currentMonth={currentMonth}
+                      handleStatsCardClick={handleStatsCardClick}
+                      handleEquipmentViewAllClick={handleEquipmentViewAllClick}
+                      handleMaintenanceCalendarClick={handleMaintenanceCalendarClick}
+                      handleAlertsViewAllClick={handleAlertsViewAllClick}
+                      handleTasksAddClick={handleTasksAddClick}
+                      handleEquipmentClick={handleEquipmentClick}
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="calendar">
+                    <CalendarView 
+                      events={maintenanceEvents} 
+                      month={currentMonth} 
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="alerts">
+                    <AllAlertsSection alerts={alertItems} />
+                  </TabsContent>
+                </Tabs>
+              )}
             </div>
           </div>
         </div>
