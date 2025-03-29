@@ -10,6 +10,7 @@ import { checkApiKey } from '@/services/openai/client';
 import { TechnicalInfoDisplay } from './displays/TechnicalInfoDisplay';
 import { Combobox, ComboboxOption } from '@/components/ui/combobox';
 import { useOpenAIStatus } from '@/hooks/parts/useOpenAIStatus';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 // Suggestions prédéfinies pour la recherche de pièces techniques
 const TECHNICAL_SUGGESTIONS: ComboboxOption[] = [
