@@ -14,14 +14,14 @@ interface PartsListProps {
 const PartsList: React.FC<PartsListProps> = ({ parts, openPartDetails, openOrderDialog }) => {
   // Fonction de gestion du clic sur l'image de la pièce
   const handleImageClick = (part: Part) => {
-    console.log("PartsList: Clic sur l'image", part.name);
+    console.log("[PartsList] Clic sur l'image:", part.name);
     openPartDetails(part);
   };
   
   // Fonction de gestion du clic sur le bouton détails
   const handleDetailsClick = (part: Part, e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log("PartsList: Clic sur le bouton détails", part.name);
+    console.log("[PartsList] Clic sur le bouton détails:", part.name);
     openPartDetails(part);
   };
   
@@ -29,7 +29,7 @@ const PartsList: React.FC<PartsListProps> = ({ parts, openPartDetails, openOrder
   const handleOrderClick = (part: Part, e: React.MouseEvent) => {
     if (!openOrderDialog) return;
     e.stopPropagation();
-    console.log("PartsList: Clic sur le bouton commande", part.name);
+    console.log("[PartsList] Clic sur le bouton commande:", part.name);
     openOrderDialog(part);
   };
 
@@ -67,7 +67,7 @@ const PartsList: React.FC<PartsListProps> = ({ parts, openPartDetails, openOrder
                     onClick={() => handleImageClick(part)}
                   >
                     <img 
-                      src={part.image} 
+                      src={part.image || 'https://placehold.co/200?text=No+Image'} 
                       alt={part.name}
                       className="w-full h-full object-cover"
                       onError={(e) => {
@@ -77,17 +77,17 @@ const PartsList: React.FC<PartsListProps> = ({ parts, openPartDetails, openOrder
                   </div>
                 </td>
                 <td className="p-3 font-medium">{part.name}</td>
-                <td className="p-3">{part.partNumber}</td>
-                <td className="p-3">{part.manufacturer}</td>
-                <td className="p-3">${part.price.toFixed(2)}</td>
+                <td className="p-3">{part.partNumber || part.reference}</td>
+                <td className="p-3">{part.manufacturer || 'Non spécifié'}</td>
+                <td className="p-3">${(part.price || 0).toFixed(2)}</td>
                 <td className="p-3">
-                  <span className={part.stock <= part.reorderPoint ? 'text-destructive font-medium' : ''}>
-                    {part.stock} {part.stock <= part.reorderPoint && (
+                  <span className={part.stock <= (part.reorderPoint || 0) ? 'text-destructive font-medium' : ''}>
+                    {part.stock || 0} {part.stock <= (part.reorderPoint || 0) && (
                       <AlertCircle size={14} className="inline ml-1" />
                     )}
                   </span>
                 </td>
-                <td className="p-3">{part.location}</td>
+                <td className="p-3">{part.location || 'Non spécifié'}</td>
                 <td className="p-3">
                   <div className="flex gap-1">
                     <Button 

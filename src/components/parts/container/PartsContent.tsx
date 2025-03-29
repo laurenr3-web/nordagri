@@ -12,8 +12,8 @@ interface PartsContentProps {
   isLoading?: boolean;
   isError?: boolean;
   currentView: PartsView;
-  filterCount: number;
-  clearFilters: () => void;
+  filterCount?: number;
+  clearFilters?: () => void;
   openPartDetails: (part: Part) => void;
   openOrderDialog: (part: Part) => void;
 }
@@ -24,31 +24,42 @@ const PartsContent: React.FC<PartsContentProps> = ({
   isLoading = false,
   isError = false,
   currentView,
-  filterCount,
+  filterCount = 0,
   clearFilters,
   openPartDetails,
   openOrderDialog
 }) => {
-  // Render loading state
+  // Afficher l'état de chargement
   if (isLoading) {
-    return <LoadingState />;
+    return <LoadingState message="Chargement des pièces..." />;
   }
-
-  // Render error state
+  
+  // Afficher l'état d'erreur
   if (isError) {
-    return <ErrorState onRetry={() => window.location.reload()} />;
+    return (
+      <ErrorState 
+        message="Une erreur est survenue lors du chargement des pièces." 
+        onRetry={() => window.location.reload()} 
+      />
+    );
   }
-
-  // Render empty state
+  
+  // Afficher l'état vide
   if (filteredParts.length === 0) {
-    return <EmptyState filterActive={filterCount > 0} onClearFilters={clearFilters} />;
+    return (
+      <EmptyState 
+        message="Aucune pièce trouvée avec les critères actuels." 
+        filterActive={filterCount > 0}
+        onClearFilters={clearFilters}
+      />
+    );
   }
-
-  // Render content based on selected view
+  
+  // Afficher soit la grille, soit la liste selon la vue sélectionnée
   return currentView === 'grid' ? (
     <PartsGrid 
       parts={filteredParts} 
-      openPartDetails={openPartDetails} 
+      openPartDetails={openPartDetails}
       openOrderDialog={openOrderDialog}
     />
   ) : (

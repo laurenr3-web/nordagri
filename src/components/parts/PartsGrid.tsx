@@ -15,22 +15,22 @@ interface PartsGridProps {
 const PartsGrid: React.FC<PartsGridProps> = ({ parts, openPartDetails, openOrderDialog }) => {
   // Fonction de gestion du clic sur l'image ou le conteneur
   const handlePartClick = (part: Part) => {
-    console.log("PartsGrid: Clic sur la pièce", part.name);
+    console.log("[PartsGrid] Clic sur la pièce:", part.name);
     openPartDetails(part);
   };
   
   // Fonction de gestion du clic sur le bouton détails
   const handleDetailsClick = (part: Part, e: React.MouseEvent) => {
-    e.stopPropagation(); // Arrêter la propagation mais ne pas empêcher le comportement par défaut
-    console.log("PartsGrid: Clic sur le bouton détails", part.name);
+    e.stopPropagation(); // Empêcher la propagation mais pas le comportement par défaut
+    console.log("[PartsGrid] Clic sur le bouton détails:", part.name);
     openPartDetails(part);
   };
   
   // Fonction de gestion du clic sur le bouton commande
   const handleOrderClick = (part: Part, e: React.MouseEvent) => {
     if (!openOrderDialog) return;
-    e.stopPropagation(); // Arrêter la propagation mais ne pas empêcher le comportement par défaut
-    console.log("PartsGrid: Clic sur le bouton commande", part.name);
+    e.stopPropagation(); // Empêcher la propagation mais pas le comportement par défaut
+    console.log("[PartsGrid] Clic sur le bouton commande:", part.name);
     openOrderDialog(part);
   };
 
@@ -56,14 +56,14 @@ const PartsGrid: React.FC<PartsGridProps> = ({ parts, openPartDetails, openOrder
             className="aspect-square relative overflow-hidden cursor-pointer"
           >
             <img 
-              src={part.image} 
+              src={part.image || 'https://placehold.co/400x400/png?text=Image+non+disponible'} 
               alt={part.name}
               className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
               onError={(e) => {
                 (e.target as HTMLImageElement).src = 'https://placehold.co/400x400/png?text=Image+non+disponible';
               }}
             />
-            {part.stock <= part.reorderPoint && (
+            {part.stock <= (part.reorderPoint || 0) && (
               <div className="absolute top-2 right-2">
                 <Badge variant="destructive" className="flex items-center gap-1">
                   <AlertCircle size={12} />
@@ -76,42 +76,48 @@ const PartsGrid: React.FC<PartsGridProps> = ({ parts, openPartDetails, openOrder
           <div className="p-4 flex-1 flex flex-col">
             <div className="mb-2">
               <h3 className="font-medium">{part.name}</h3>
-              <p className="text-sm text-muted-foreground">{part.partNumber}</p>
+              <p className="text-sm text-muted-foreground">{part.partNumber || part.reference || 'Sans référence'}</p>
             </div>
             
             <div className="grid grid-cols-2 gap-2 mt-4 text-sm">
               <div>
                 <p className="text-muted-foreground">Fabricant</p>
-                <p className="font-medium">{part.manufacturer}</p>
+                <p className="font-medium">{part.manufacturer || 'Non spécifié'}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Prix</p>
-                <p className="font-medium">${part.price.toFixed(2)}</p>
+                <p className="font-medium">${(part.price || 0).toFixed(2)}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Stock</p>
-                <p className={`font-medium ${part.stock <= part.reorderPoint ? 'text-destructive' : ''}`}>
-                  {part.stock} unités
+                <p className={`font-medium ${part.stock <= (part.reorderPoint || 0) ? 'text-destructive' : ''}`}>
+                  {part.stock || 0} unités
                 </p>
               </div>
               <div>
                 <p className="text-muted-foreground">Emplacement</p>
-                <p className="font-medium">{part.location}</p>
+                <p className="font-medium">{part.location || 'Non spécifié'}</p>
               </div>
             </div>
             
             <div className="mt-4">
               <p className="text-xs text-muted-foreground mb-1">Compatible avec:</p>
               <div className="flex flex-wrap gap-1">
-                {part.compatibility && part.compatibility.slice(0, 2).map((equipment, i) => (
-                  <span key={i} className="text-xs bg-secondary py-1 px-2 rounded-md">
-                    {equipment}
-                  </span>
-                ))}
-                {part.compatibility && part.compatibility.length > 2 && (
-                  <span className="text-xs bg-secondary py-1 px-2 rounded-md">
-                    +{part.compatibility.length - 2} de plus
-                  </span>
+                {(part.compatibility || part.compatibleWith || []).length > 0 ? (
+                  <>
+                    {(part.compatibility || part.compatibleWith || []).slice(0, 2).map((equipment, i) => (
+                      <span key={i} className="text-xs bg-secondary py-1 px-2 rounded-md">
+                        {equipment}
+                      </span>
+                    ))}
+                    {(part.compatibility || part.compatibleWith || []).length > 2 && (
+                      <span className="text-xs bg-secondary py-1 px-2 rounded-md">
+                        +{(part.compatibility || part.compatibleWith || []).length - 2} de plus
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-xs text-muted-foreground">Non spécifié</span>
                 )}
               </div>
             </div>

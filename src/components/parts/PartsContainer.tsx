@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { PartsHeader, PartsContent } from './container';
+import { PartsHeader, PartsContent, LoadingState, ErrorState, EmptyState } from './container';
 import PartDetailsExtended from './PartDetailsExtended';
 import { Part } from '@/types/Part';
 import { PartsView } from '@/hooks/parts/usePartsFilter';
@@ -82,19 +82,27 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
   openPartDetails,
   openOrderDialog
 }) => {
-  // If a part is selected, show the part details
+  console.log("[PartsContainer] Rendu avec selectedPart:", selectedPart?.name);
+  
+  // Si une pièce est sélectionnée, afficher les détails
   if (selectedPart) {
     return (
       <PartDetailsExtended
         part={selectedPart}
-        onClose={() => setSelectedPart(null)}
+        onClose={() => {
+          console.log("[PartsContainer] Fermeture des détails");
+          setSelectedPart(null);
+        }}
         onEdit={() => {
+          console.log("[PartsContainer] Ouverture du dialogue de modification");
           setIsPartDetailsDialogOpen(true);
         }}
         onOrder={() => {
+          console.log("[PartsContainer] Ouverture du dialogue de commande");
           openOrderDialog(selectedPart);
         }}
         onDelete={() => {
+          console.log("[PartsContainer] Suppression de la pièce");
           handleDeletePart(selectedPart.id);
           setSelectedPart(null);
         }}
@@ -102,7 +110,7 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
     );
   }
 
-  // If no part is selected, show the parts list/grid
+  // Si aucune pièce n'est sélectionnée, afficher la liste ou la grille
   return (
     <div className="space-y-4">
       <PartsHeader 
@@ -115,17 +123,34 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
         setIsAddPartDialogOpen={setIsAddPartDialogOpen}
       />
 
-      <PartsContent
-        parts={parts}
-        filteredParts={filteredParts}
-        isLoading={isLoading}
-        isError={isError}
-        currentView={currentView}
-        filterCount={filterCount}
-        clearFilters={clearFilters}
-        openPartDetails={openPartDetails}
-        openOrderDialog={openOrderDialog}
-      />
+      {isLoading ? (
+        <LoadingState message="Chargement des pièces..." />
+      ) : isError ? (
+        <ErrorState 
+          message="Une erreur est survenue lors du chargement des pièces." 
+          onRetry={() => window.location.reload()} 
+        />
+      ) : filteredParts.length === 0 ? (
+        <EmptyState 
+          message="Aucune pièce trouvée avec les critères actuels." 
+          filterActive={filterCount > 0}
+          onClearFilters={clearFilters}
+        />
+      ) : (
+        <PartsContent
+          parts={parts}
+          filteredParts={filteredParts}
+          currentView={currentView}
+          openPartDetails={(part) => {
+            console.log("[PartsContainer] Ouverture des détails de la pièce:", part.name);
+            openPartDetails(part);
+          }}
+          openOrderDialog={(part) => {
+            console.log("[PartsContainer] Ouverture de la commande pour la pièce:", part.name);
+            openOrderDialog(part);
+          }}
+        />
+      )}
     </div>
   );
 };
