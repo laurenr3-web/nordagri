@@ -17,24 +17,24 @@ const EquipmentDialogs: React.FC<EquipmentDialogsProps> = ({
   selectedEquipment,
   setSelectedEquipment
 }) => {
-  console.log('EquipmentDialogs rendering with isAddDialogOpen:', isAddDialogOpen);
-  console.log('EquipmentDialogs rendering with selectedEquipment:', selectedEquipment);
+  console.log('EquipmentDialogs render state:', { 
+    isAddDialogOpen, 
+    hasSelectedEquipment: !!selectedEquipment 
+  });
 
   return (
     <>
       {/* Add Equipment Dialog */}
-      <AddEquipmentDialog
-        isOpen={isAddDialogOpen}
+      <AddEquipmentDialog 
+        isOpen={isAddDialogOpen} 
         onOpenChange={setIsAddDialogOpen}
       />
-
-      {/* Equipment Details Dialog */}
-      {selectedEquipment && (
-        <ViewEquipmentDialog 
-          equipment={selectedEquipment}
-          onClose={() => setSelectedEquipment(null)}
-        />
-      )}
+      
+      {/* View Equipment Dialog */}
+      <ViewEquipmentDialog 
+        equipment={selectedEquipment} 
+        onClose={() => setSelectedEquipment(null)}
+      />
     </>
   );
 };

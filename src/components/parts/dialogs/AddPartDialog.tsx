@@ -1,7 +1,7 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { AddPartForm } from '@/components/parts/AddPartForm';
+import AddPartForm from '@/components/parts/AddPartForm';
 
 interface AddPartDialogProps {
   isOpen: boolean;
@@ -14,18 +14,40 @@ const AddPartDialog: React.FC<AddPartDialogProps> = ({
   onOpenChange,
   onSuccess
 }) => {
+  // Log when dialog state changes
+  useEffect(() => {
+    console.log('AddPartDialog state changed:', { isOpen });
+  }, [isOpen]);
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog 
+      open={isOpen} 
+      onOpenChange={(open) => {
+        console.log('Part dialog open state change requested:', open);
+        // Use setTimeout to prevent React DOM manipulation errors
+        setTimeout(() => {
+          onOpenChange(open);
+        }, 10);
+      }}
+    >
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add New Part</DialogTitle>
+          <DialogTitle>Ajouter une nouvelle pièce</DialogTitle>
           <DialogDescription>
-            Fill out the form below to add a new part to the inventory
+            Remplissez le formulaire ci-dessous pour ajouter une nouvelle pièce à l'inventaire
           </DialogDescription>
         </DialogHeader>
         <AddPartForm 
-          onSuccess={onSuccess}
-          onCancel={() => onOpenChange(false)}
+          onSuccess={(data) => {
+            console.log('AddPartForm success', data);
+            if (onSuccess) {
+              onSuccess(data);
+            }
+          }}
+          onCancel={() => {
+            console.log('Cancel button clicked in AddPartForm');
+            onOpenChange(false);
+          }}
         />
       </DialogContent>
     </Dialog>

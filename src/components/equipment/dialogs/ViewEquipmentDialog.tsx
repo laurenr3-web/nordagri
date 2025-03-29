@@ -35,7 +35,10 @@ const ViewEquipmentDialog: React.FC<ViewEquipmentDialogProps> = ({
       open={!!equipment} 
       onOpenChange={(open) => {
         console.log('Equipment dialog open state changed to:', open);
-        if (!open) onClose();
+        if (!open) {
+          // Use setTimeout to prevent the DOM manipulation error
+          setTimeout(() => onClose(), 10);
+        }
       }}
     >
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
