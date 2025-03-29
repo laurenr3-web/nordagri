@@ -24,29 +24,19 @@ function App() {
   // Load the fix scripts
   useEffect(() => {
     const loadFixScripts = () => {
-      const scripts = [
-        '/button-fix.js',
-        '/radix-fix.js',
-        '/fix-accessibility.js',
-        '/form-fix.js',
-        '/fix-all.js',
-        '/performance-fix.js' // Ajout du nouveau script d'optimisation
-      ];
+      // We now only need to load fix-all.js which will coordinate loading other scripts
+      const script = document.createElement('script');
+      script.src = '/fix-all.js';
+      script.async = true;
+      document.head.appendChild(script);
       
-      scripts.forEach(src => {
-        const script = document.createElement('script');
-        script.src = src;
-        script.async = true;
-        document.head.appendChild(script);
-      });
-      
-      console.log('🛠️ Scripts de réparation et d\'optimisation en cours d\'exécution...');
+      console.log('🛠️ Loading fix scripts and optimizations...');
     };
     
     loadFixScripts();
     
     return () => {
-      console.log('✅ Réparation terminée! Les boutons et formulaires devraient maintenant fonctionner correctement.');
+      console.log('✅ Repairs completed! Buttons and forms should now work correctly.');
     };
   }, []);
   
