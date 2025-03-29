@@ -22,6 +22,15 @@ interface PartDetailsExtendedProps {
 const PartDetailsExtended = ({ part, onClose, onEdit, onOrder }: PartDetailsExtendedProps) => {
   const [activeTab, setActiveTab] = useState('overview');
   
+  // Créons des fonctions de gestionnaire pour corriger les erreurs de type
+  const handleEdit = () => {
+    if (onEdit) onEdit(part);
+  };
+  
+  const handleOrder = () => {
+    if (onOrder) onOrder(part);
+  };
+  
   return (
     <div className="space-y-6">
       <div className="flex items-start">
@@ -32,8 +41,8 @@ const PartDetailsExtended = ({ part, onClose, onEdit, onOrder }: PartDetailsExte
         <PartActions 
           part={part} 
           onClose={onClose} 
-          onEdit={onEdit} 
-          onOrder={onOrder}
+          onEdit={handleEdit} 
+          onOrder={handleOrder}
         />
       </div>
       
@@ -55,7 +64,7 @@ const PartDetailsExtended = ({ part, onClose, onEdit, onOrder }: PartDetailsExte
                 <PartBasicInfo part={part} />
                 <PartInventoryInfo part={part} />
                 <PartReorderInfo part={part} />
-                <PartCompatibility part={part} />
+                <PartCompatibility compatibility={part.compatibility} />
               </CardContent>
             </Card>
           </div>

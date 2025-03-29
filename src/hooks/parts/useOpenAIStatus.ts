@@ -39,9 +39,12 @@ export const useOpenAIStatus = () => {
     checkConnection();
   }, []);
 
+  // Exposer l'erreur avec un alias pour la rétrocompatibilité
   return {
     isApiKeyValid,
     isConnecting,
-    connectionError
+    connectionError,
+    isLoading: isConnecting,
+    error: connectionError
   };
 };

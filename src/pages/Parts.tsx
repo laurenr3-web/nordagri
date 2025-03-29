@@ -53,11 +53,61 @@ const Parts = () => {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid grid-cols-2 w-[400px]">
               <TabsTrigger value="inventory">Inventaire</TabsTrigger>
-              <TabsTrigger value="search">Recherche web</TabsTrigger>
+              <TabsTrigger value="search">Recherche technique</TabsTrigger>
             </TabsList>
             
             <TabsContent value="inventory" className="mt-6">
-              <PartsContainer {...partsHookData} />
+              <PartsContainer 
+                parts={partsHookData.parts}
+                filteredParts={partsHookData.filteredParts}
+                isLoading={partsHookData.isLoading}
+                isError={partsHookData.isError}
+                categories={partsHookData.categories}
+                currentView={partsHookData.currentView}
+                setCurrentView={partsHookData.setCurrentView}
+                searchTerm={partsHookData.searchTerm}
+                setSearchTerm={partsHookData.setSearchTerm}
+                selectedCategory={partsHookData.selectedCategory}
+                setSelectedCategory={partsHookData.setSelectedCategory}
+                filterManufacturers={partsHookData.filterManufacturers}
+                manufacturers={partsHookData.manufacturers}
+                toggleManufacturerFilter={partsHookData.toggleManufacturerFilter}
+                filterMinPrice={partsHookData.filterMinPrice}
+                setFilterMinPrice={partsHookData.setFilterMinPrice}
+                filterMaxPrice={partsHookData.filterMaxPrice}
+                setFilterMaxPrice={partsHookData.setFilterMaxPrice}
+                filterInStock={partsHookData.filterInStock}
+                setFilterInStock={partsHookData.setFilterInStock}
+                filterCount={partsHookData.filterCount}
+                clearFilters={partsHookData.clearFilters}
+                sortBy={partsHookData.sortBy}
+                setSortBy={partsHookData.setSortBy}
+                isPartDetailsDialogOpen={partsHookData.isPartDetailsDialogOpen}
+                setIsPartDetailsDialogOpen={partsHookData.setIsPartDetailsDialogOpen}
+                isAddPartDialogOpen={partsHookData.isAddPartDialogOpen}
+                setIsAddPartDialogOpen={partsHookData.setIsAddPartDialogOpen}
+                isAddCategoryDialogOpen={partsHookData.isAddCategoryDialogOpen}
+                setIsAddCategoryDialogOpen={partsHookData.setIsAddCategoryDialogOpen}
+                isFilterDialogOpen={partsHookData.isFilterDialogOpen}
+                setIsFilterDialogOpen={partsHookData.setIsFilterDialogOpen}
+                isSortDialogOpen={partsHookData.isSortDialogOpen}
+                setIsSortDialogOpen={partsHookData.setIsSortDialogOpen}
+                isOrderDialogOpen={partsHookData.isOrderDialogOpen}
+                setIsOrderDialogOpen={partsHookData.setIsOrderDialogOpen}
+                selectedPart={partsHookData.selectedPart}
+                setSelectedPart={partsHookData.setSelectedPart}
+                orderQuantity={partsHookData.orderQuantity}
+                setOrderQuantity={partsHookData.setOrderQuantity}
+                orderNotes={partsHookData.orderNotes}
+                setOrderNotes={partsHookData.setOrderNotes}
+                orderStatus={partsHookData.orderStatus}
+                handleAddPart={partsHookData.handleAddPart}
+                handleUpdatePart={partsHookData.handleUpdatePart}
+                handleDeletePart={partsHookData.handleDeletePart}
+                handleOrderSubmit={partsHookData.handleOrderSubmit}
+                openPartDetails={partsHookData.openPartDetails}
+                openOrderDialog={partsHookData.openOrderDialog}
+              />
             </TabsContent>
             
             <TabsContent value="search" className="mt-6">

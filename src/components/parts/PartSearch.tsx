@@ -1,165 +1,141 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { useOpenAISearch } from '@/hooks/parts/useOpenAISearch';
+import { useOpenAIStatus } from '@/hooks/parts/useOpenAIStatus';
 import { Input } from '@/components/ui/input';
-import { Search, Loader2, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
-import { perplexityPartsService } from '@/services/perplexity/parts';
+import { AlertCircle, ArchiveIcon, Search } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Part } from '@/types/Part';
+import PerplexityResults from './perplexity/PerplexityResults';
 
 interface PartSearchProps {
   onAddPartToInventory: (part: Part) => void;
 }
 
-const PartSearch = ({ onAddPartToInventory }: PartSearchProps) => {
+const PartSearch: React.FC<PartSearchProps> = ({ onAddPartToInventory }) => {
+  const openAIStatus = useOpenAIStatus();
+  const openAISearch = useOpenAISearch();
   const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<Part[]>([]);
-  const [showResults, setShowResults] = useState(false);
-  const [hasError, setHasError] = useState(false);
-
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) {
-      toast.error('Veuillez entrer un terme de recherche');
-      return;
-    }
-
-    setIsSearching(true);
-    setShowResults(true);
-    setHasError(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [activeTab, setActiveTab] = useState('technical');
+  
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
     
-    try {
-      console.log('Lancement de la recherche pour:', searchQuery);
-      const results = await perplexityPartsService.searchParts(searchQuery);
-      console.log('Résultats reçus:', results);
-      setSearchResults(results);
-      
-      if (results.length === 0) {
-        toast.info('Aucun résultat trouvé pour cette recherche');
-      }
-    } catch (error) {
-      console.error('Erreur lors de la recherche:', error);
-      setHasError(true);
-      toast.error('Erreur lors de la recherche de pièces', {
-        description: error instanceof Error ? error.message : 'Une erreur inconnue est survenue'
-      });
-      setSearchResults([]);
-    } finally {
-      setIsSearching(false);
-    }
+    setHasSearched(true);
+    await openAISearch.searchPart(searchQuery);
   };
-
-  const handleAddToInventory = (part: Part) => {
-    // Ensure the part has compatible ID type before adding it to inventory
-    const processedPart: Part = {
-      ...part,
-      // Keep the ID as is since our Part interface now supports string | number
-      id: part.id,
-      // Ensure these fields exist for consistency
-      isFromSearch: true
+  
+  const handleRetryWithManufacturer = (manufacturer: string) => {
+    const newQuery = `${searchQuery} ${manufacturer}`;
+    setSearchQuery(newQuery);
+    openAISearch.searchPart(newQuery);
+  };
+  
+  // Créer une partie à partir des résultats de recherche
+  const handleAddToInventory = () => {
+    if (!openAISearch.technicalInfo) return;
+    
+    // Créer un objet Part à partir des données trouvées
+    const newPart: Part = {
+      id: Date.now().toString(), // ID temporaire
+      name: openAISearch.technicalInfo.name || searchQuery,
+      partNumber: openAISearch.technicalInfo.reference || searchQuery,
+      category: openAISearch.technicalInfo.category || 'Non classé',
+      compatibility: openAISearch.technicalInfo.compatibleWith || [],
+      manufacturer: openAISearch.technicalInfo.manufacturer || 'Non spécifié',
+      price: typeof openAISearch.technicalInfo.price === 'number' 
+        ? openAISearch.technicalInfo.price 
+        : 0,
+      stock: 0,
+      location: 'Non spécifié',
+      reorderPoint: 1,
+      image: openAISearch.technicalInfo.imageUrl || '/placeholder.svg'
     };
     
-    onAddPartToInventory(processedPart);
-    toast.success(`${part.name} ajouté à l'inventaire`);
+    onAddPartToInventory(newPart);
   };
+  
+  // Afficher une alerte si la clé API n'est pas configurée
+  if (!openAIStatus.isApiKeyValid && !openAIStatus.isConnecting) {
+    return (
+      <Alert variant="destructive" className="mb-6">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Configuration requise</AlertTitle>
+        <AlertDescription>
+          Pour utiliser la recherche technique, vous devez configurer une clé API OpenAI.
+          Ajoutez votre clé API dans le fichier .env.development avec la variable VITE_OPENAI_API_KEY.
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-2 w-full">
-        <Input
-          placeholder="Rechercher une pièce par nom, référence ou équipement..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          className="flex-1"
-        />
-        <Button 
-          onClick={handleSearch} 
-          disabled={isSearching}
-          className="min-w-24"
-        >
-          {isSearching ? (
-            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-          ) : (
-            <Search className="h-4 w-4 mr-2" />
+      <Card>
+        <CardHeader>
+          <CardTitle>Recherche de pièces</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSearch} className="flex space-x-2">
+            <Input
+              type="text"
+              placeholder="Référence de la pièce (ex: 1234567, RE12345)..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1"
+            />
+            <Button 
+              type="submit" 
+              disabled={openAISearch.isLoading || !searchQuery.trim()}
+            >
+              {openAISearch.isLoading ? (
+                <>Recherche en cours...</>
+              ) : (
+                <>
+                  <Search className="mr-2 h-4 w-4" />
+                  Rechercher
+                </>
+              )}
+            </Button>
+          </form>
+          
+          {openAISearch.technicalInfo && !openAISearch.isLoading && (
+            <Button 
+              variant="outline" 
+              className="mt-4" 
+              onClick={handleAddToInventory}
+            >
+              <ArchiveIcon className="mr-2 h-4 w-4" />
+              Ajouter à mon inventaire
+            </Button>
           )}
-          Rechercher
-        </Button>
-      </div>
-
-      {showResults && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl">
-              {isSearching 
-                ? 'Recherche en cours...' 
-                : `Résultats de recherche (${searchResults.length})`}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isSearching ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin mb-2" />
-                <p className="text-muted-foreground">
-                  Recherche de pièces et comparaison des prix...
-                </p>
-              </div>
-            ) : hasError ? (
-              <div className="flex flex-col items-center justify-center py-8 text-destructive">
-                <AlertTriangle className="h-8 w-8 mb-2" />
-                <h3 className="font-medium">Erreur de connexion à l'API</h3>
-                <p className="text-center text-muted-foreground mt-1">
-                  Vérifiez que votre clé API Perplexity est correctement configurée<br />
-                  dans les variables d'environnement <code>VITE_PERPLEXITY_API_KEY</code>
-                </p>
-              </div>
-            ) : searchResults.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                Aucun résultat trouvé pour "{searchQuery}"
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {searchResults.map((part) => (
-                  <div key={part.id} className="border rounded-lg p-4 hover:bg-accent/5">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-medium">{part.name}</h3>
-                        <div className="text-sm text-muted-foreground space-y-1 mt-1">
-                          <p>Référence: {part.partNumber || part.reference}</p>
-                          <p>Fabricant: {part.manufacturer}</p>
-                          <p>Compatible avec: {
-                            Array.isArray(part.compatibility) 
-                              ? part.compatibility.join(', ') 
-                              : part.compatibility || part.compatibleWith
-                          }</p>
-                          {part.estimatedPrice && (
-                            <p className="font-medium">
-                              Prix estimé: {typeof part.estimatedPrice === 'number' 
-                                ? `${part.estimatedPrice.toFixed(2)} €` 
-                                : part.estimatedPrice}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <Button 
-                        size="sm" 
-                        onClick={() => handleAddToInventory(part)}
-                      >
-                        Ajouter
-                      </Button>
-                    </div>
-                    {part.description && (
-                      <div className="mt-2 text-sm text-muted-foreground">
-                        <p>{part.description}</p>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          
+          {openAISearch.error && !openAISearch.isLoading && (
+            <Alert variant="destructive" className="mt-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Erreur</AlertTitle>
+              <AlertDescription>
+                {openAISearch.error}
+              </AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
+      
+      {hasSearched && (
+        <PerplexityResults
+          results={{
+            technicalInfo: openAISearch.technicalInfo
+          }}
+          searchQuery={searchQuery}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          onRetryWithManufacturer={handleRetryWithManufacturer}
+        />
       )}
     </div>
   );

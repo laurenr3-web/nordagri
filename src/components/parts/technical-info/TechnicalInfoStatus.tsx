@@ -6,15 +6,20 @@ import { AlertCircle, Loader2 } from 'lucide-react';
 interface TechnicalInfoStatusProps {
   openAIStatus: {
     isApiKeyValid: boolean | null;
-    isLoading: boolean;
-    error: string | null;
+    isLoading?: boolean;
+    isConnecting?: boolean;
+    error?: string | null;
+    connectionError?: string | null;
   };
 }
 
 export const TechnicalInfoStatus: React.FC<TechnicalInfoStatusProps> = ({
   openAIStatus
 }) => {
-  if (openAIStatus.isLoading) {
+  const isLoading = openAIStatus.isLoading || openAIStatus.isConnecting;
+  const errorMessage = openAIStatus.error || openAIStatus.connectionError;
+  
+  if (isLoading) {
     return (
       <Alert>
         <Loader2 className="h-4 w-4 animate-spin" />
@@ -30,7 +35,7 @@ export const TechnicalInfoStatus: React.FC<TechnicalInfoStatusProps> = ({
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          {openAIStatus.error || "Clé API OpenAI manquante ou invalide. Configurez VITE_OPENAI_API_KEY dans .env.development"}
+          {errorMessage || "Clé API OpenAI manquante ou invalide. Configurez VITE_OPENAI_API_KEY dans .env.development"}
         </AlertDescription>
       </Alert>
     );

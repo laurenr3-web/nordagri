@@ -38,7 +38,7 @@ const TechnicalInfoTab = ({ partNumber, partName }: TechnicalInfoTabProps) => {
 
     // Vérifier si la clé API est configurée
     if (!openAIStatus.isApiKeyValid) {
-      const errorMessage = openAIStatus.error || 
+      const errorMessage = openAIStatus.connectionError || openAIStatus.error || 
         "Clé API OpenAI manquante ou invalide. Pour utiliser cette fonctionnalité, veuillez configurer correctement la variable d'environnement VITE_OPENAI_API_KEY.";
       toast.error(errorMessage);
       setError(errorMessage);

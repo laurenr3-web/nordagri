@@ -22,23 +22,41 @@ export async function getPartPrices(partNumber: string, manufacturer?: string): 
           content: `Vous êtes un assistant spécialisé dans la recherche de prix de pièces agricoles. Votre tâche est de fournir une liste détaillée de prix pour la même pièce chez différents fournisseurs. 
           
           IMPORTANT: 
-          1. Incluez TOUJOURS au moins 4-6 fournisseurs différents
-          2. Chaque entrée DOIT avoir une URL complète (commençant par https://)
-          3. Les prix doivent être réalistes et variés
-          4. Précisez toujours la disponibilité actuelle`
+          1. Répondez UNIQUEMENT au format JSON avec une structure claire
+          2. Incluez toujours au moins 4-6 fournisseurs différents
+          3. Chaque entrée DOIT avoir une URL complète (commençant par https://)
+          4. Les prix doivent être réalistes et variés
+          5. Précisez toujours la disponibilité actuelle`
         },
         {
           role: "user",
           content: `Trouvez les prix pour la pièce agricole ${partNumber} ${manufacturer ? 'de ' + manufacturer : ''}.
           
-          Fournissez les informations sous forme de liste structurée avec pour chaque fournisseur:
+          Fournissez les informations sous forme de liste structurée JSON avec pour chaque fournisseur:
           - Nom du fournisseur
           - Prix (avec devise)
           - URL complète de la page produit (INDISPENSABLE)
           - Disponibilité (en stock, expédition sous X jours, etc.)
           - Frais de livraison
           - Délai de livraison estimé
-          - État du produit (neuf, reconditionné, etc.)`
+          - État du produit (neuf, reconditionné, etc.)
+          
+          Format JSON attendu:
+          {
+            "prices": [
+              {
+                "vendor": "Nom du vendeur",
+                "price": 99.99,
+                "currency": "€",
+                "url": "https://exemple.com/produit",
+                "availability": "En stock",
+                "shipping": 5.99,
+                "deliveryTime": "2-3 jours ouvrables",
+                "condition": "Neuf"
+              },
+              // autres vendeurs...
+            ]
+          }`
         }
       ],
       response_format: { type: "json_object" }
