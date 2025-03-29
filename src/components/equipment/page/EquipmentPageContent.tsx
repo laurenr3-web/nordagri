@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '@/components/ui/sidebar';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
 import EquipmentHeader from '../display/EquipmentHeader';
 import EquipmentContentSection from './EquipmentContentSection';
@@ -48,30 +49,32 @@ const EquipmentPageContent: React.FC<EquipmentPageContentProps> = ({
   }, []);
 
   return (
-    <div className="flex min-h-screen w-full bg-background">
-      <Sidebar className="border-r">
-        <Navbar />
-      </Sidebar>
-      
-      <div className="flex-1 p-6">
-        <EquipmentHeader openAddDialog={openAddDialog} />
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full bg-background">
+        <Sidebar className="border-r">
+          <Navbar />
+        </Sidebar>
         
-        <EquipmentContentSection
-          equipment={equipment || []}
-          isLoading={isLoading}
-          filterState={filterState}
-          viewState={{
-            currentView,
-            setCurrentView: (view) => {
-              if (isMounted.current) {
-                setCurrentView(view);
+        <div className="flex-1 p-6">
+          <EquipmentHeader openAddDialog={openAddDialog} />
+          
+          <EquipmentContentSection
+            equipment={equipment || []}
+            isLoading={isLoading}
+            filterState={filterState}
+            viewState={{
+              currentView,
+              setCurrentView: (view) => {
+                if (isMounted.current) {
+                  setCurrentView(view);
+                }
               }
-            }
-          }}
-          handleEquipmentClick={handleEquipmentClick}
-        />
+            }}
+            handleEquipmentClick={handleEquipmentClick}
+          />
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
