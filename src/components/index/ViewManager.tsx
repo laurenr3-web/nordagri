@@ -5,13 +5,8 @@ import { Tabs, TabsContent } from '@/components/ui/tabs';
 import Dashboard from './Dashboard';
 import CalendarView from './CalendarView';
 import AllAlertsSection from './AllAlertsSection';
-import { 
-  statsData, 
-  equipmentData, 
-  maintenanceEvents, 
-  alertItems, 
-  upcomingTasks 
-} from '@/data/dashboardData';
+import { useDashboardData } from '@/hooks/dashboard/useDashboardData';
+import LoadingSpinner from '@/components/dashboard/LoadingSpinner';
 
 interface ViewManagerProps {
   currentView: 'main' | 'calendar' | 'alerts';
@@ -19,10 +14,24 @@ interface ViewManagerProps {
 }
 
 const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) => {
-  // Remplacer l'utilisation de navigate par des liens directs
+  // Utiliser le hook useDashboardData pour récupérer les données réelles
+  const { 
+    loading, 
+    statsData, 
+    equipmentData, 
+    maintenanceEvents, 
+    alertItems, 
+    upcomingTasks 
+  } = useDashboardData();
+
+  // Fonction pour gérer les clics sur les cartes de statistiques
   const handleStatsCardClick = (type: string) => {
-    // This function will be kept but handled by links instead of navigation
+    // Implémenter la redirection avec Link plus tard si nécessaire
   };
+
+  if (loading) {
+    return <LoadingSpinner message="Chargement des données..." />;
+  }
 
   return (
     <Tabs value={currentView} className="space-y-8">
@@ -51,7 +60,7 @@ const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) 
       </TabsContent>
       
       <TabsContent value="alerts">
-        <AllAlertsSection alerts={alertItems.concat(alertItems.map(alert => ({...alert, id: alert.id + 100})))} />
+        <AllAlertsSection alerts={alertItems} />
       </TabsContent>
     </Tabs>
   );
