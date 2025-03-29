@@ -14,10 +14,10 @@ interface SearchToolbarProps {
   currentView: string;
   setCurrentView: (view: string) => void;
   filters: {
-    status: string[];
-    type: string[];
-    manufacturer: string[];
-    year: number[];
+    status?: string[];
+    type?: string[];
+    manufacturer?: string[];
+    year?: number[];
   };
   statusOptions: string[];
   typeOptions: string[];
@@ -56,6 +56,14 @@ const SearchToolbar: React.FC<SearchToolbarProps> = ({
   setSortBy,
   setSortOrder
 }) => {
+  // S'assurer que filters a des valeurs par défaut
+  const safeFilters = {
+    status: filters.status || [],
+    type: filters.type || [],
+    manufacturer: filters.manufacturer || [],
+    year: filters.year || []
+  };
+
   return (
     <BlurContainer className="p-4 mb-6">
       <div className="flex flex-col md:flex-row md:items-center gap-4">
@@ -75,7 +83,7 @@ const SearchToolbar: React.FC<SearchToolbarProps> = ({
             typeOptions={typeOptions}
             manufacturerOptions={manufacturerOptions}
             yearOptions={yearOptions}
-            filters={filters}
+            filters={safeFilters}
             activeFilterCount={activeFilterCount}
             isFilterActive={isFilterActive}
             toggleFilter={toggleFilter}
@@ -115,7 +123,7 @@ const SearchToolbar: React.FC<SearchToolbarProps> = ({
       </div>
       
       <ActiveFilters
-        filters={filters}
+        filters={safeFilters}
         toggleFilter={toggleFilter}
         clearFilters={clearFilters}
         getStatusColor={getStatusColor}

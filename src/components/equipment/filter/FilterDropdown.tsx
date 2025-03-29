@@ -1,15 +1,16 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Filter, X } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuCheckboxItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuGroup, 
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import { Check, Filter } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface FilterDropdownProps {
   statusOptions: string[];
@@ -31,11 +32,11 @@ interface FilterDropdownProps {
 }
 
 const FilterDropdown: React.FC<FilterDropdownProps> = ({
-  statusOptions,
-  typeOptions,
-  manufacturerOptions,
-  yearOptions,
-  filters,
+  statusOptions = [],
+  typeOptions = [],
+  manufacturerOptions = [],
+  yearOptions = [],
+  filters = { status: [], type: [], manufacturer: [], year: [] },
   activeFilterCount,
   isFilterActive,
   toggleFilter,
@@ -46,76 +47,94 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="gap-2" size="sm">
+        <Button variant="outline" className="gap-2">
           <Filter size={16} />
           <span>Filter</span>
           {activeFilterCount > 0 && (
-            <span className="ml-1 rounded-full bg-primary text-primary-foreground w-5 h-5 text-xs flex items-center justify-center">
+            <Badge variant="secondary" className="ml-1 h-5 px-1.5 min-w-[20px]">
               {activeFilterCount}
-            </span>
+            </Badge>
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56">
-        <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
-        {statusOptions.map(status => (
-          <DropdownMenuCheckboxItem
-            key={status}
-            checked={isFilterActive('status', status)}
-            onCheckedChange={() => toggleFilter('status', status)}
-          >
-            <span className={`inline-block w-2 h-2 rounded-full mr-2 ${getStatusColor(status)}`}></span>
-            {getStatusText(status)}
-          </DropdownMenuCheckboxItem>
-        ))}
+      
+      <DropdownMenuContent className="w-64">
+        <DropdownMenuGroup>
+          <div className="p-2 font-medium">Status</div>
+          <div className="px-2 pb-2 grid grid-cols-2 gap-1">
+            {(statusOptions || []).map(status => (
+              <DropdownMenuItem
+                key={`status-${status}`}
+                className="gap-2 cursor-pointer"
+                onSelect={(e) => {
+                  e.preventDefault();
+                  toggleFilter('status', status);
+                }}
+              >
+                <div className={`w-3 h-3 rounded-full ${getStatusColor(status)}`} />
+                <span>{getStatusText(status)}</span>
+                {isFilterActive('status', status) && <Check className="ml-auto h-4 w-4" />}
+              </DropdownMenuItem>
+            ))}
+          </div>
+        </DropdownMenuGroup>
         
         <DropdownMenuSeparator />
-        <DropdownMenuLabel>Filter by Type</DropdownMenuLabel>
-        {typeOptions.map(type => (
-          <DropdownMenuCheckboxItem
-            key={type}
-            checked={isFilterActive('type', type)}
-            onCheckedChange={() => toggleFilter('type', type)}
-          >
-            {type}
-          </DropdownMenuCheckboxItem>
-        ))}
+        
+        <DropdownMenuGroup>
+          <div className="p-2 font-medium">Type</div>
+          <div className="px-2 pb-2">
+            {(typeOptions || []).map(type => (
+              <DropdownMenuItem
+                key={`type-${type}`}
+                className="gap-2 cursor-pointer"
+                onSelect={(e) => {
+                  e.preventDefault();
+                  toggleFilter('type', type);
+                }}
+              >
+                <span>{type}</span>
+                {isFilterActive('type', type) && <Check className="ml-auto h-4 w-4" />}
+              </DropdownMenuItem>
+            ))}
+          </div>
+        </DropdownMenuGroup>
         
         <DropdownMenuSeparator />
-        <DropdownMenuLabel>Filter by Manufacturer</DropdownMenuLabel>
-        {manufacturerOptions.map(manufacturer => (
-          <DropdownMenuCheckboxItem
-            key={manufacturer}
-            checked={isFilterActive('manufacturer', manufacturer)}
-            onCheckedChange={() => toggleFilter('manufacturer', manufacturer)}
-          >
-            {manufacturer}
-          </DropdownMenuCheckboxItem>
-        ))}
         
-        <DropdownMenuSeparator />
-        <DropdownMenuLabel>Filter by Year</DropdownMenuLabel>
-        {yearOptions.map(year => (
-          <DropdownMenuCheckboxItem
-            key={year}
-            checked={isFilterActive('year', year)}
-            onCheckedChange={() => toggleFilter('year', year)}
-          >
-            {year}
-          </DropdownMenuCheckboxItem>
-        ))}
+        <DropdownMenuGroup>
+          <div className="p-2 font-medium">Manufacturer</div>
+          <div className="px-2 pb-2">
+            {(manufacturerOptions || []).map(manufacturer => (
+              <DropdownMenuItem
+                key={`manufacturer-${manufacturer}`}
+                className="gap-2 cursor-pointer truncate"
+                onSelect={(e) => {
+                  e.preventDefault();
+                  toggleFilter('manufacturer', manufacturer);
+                }}
+              >
+                <span>{manufacturer}</span>
+                {isFilterActive('manufacturer', manufacturer) && <Check className="ml-auto h-4 w-4 flex-shrink-0" />}
+              </DropdownMenuItem>
+            ))}
+          </div>
+        </DropdownMenuGroup>
         
-        <DropdownMenuSeparator />
-        <div className="px-2 py-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="w-full" 
-            onClick={clearFilters}
-          >
-            Clear All Filters
-          </Button>
-        </div>
+        {activeFilterCount > 0 && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              className="justify-center text-center cursor-pointer"
+              onSelect={(e) => {
+                e.preventDefault();
+                clearFilters();
+              }}
+            >
+              Clear all filters
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

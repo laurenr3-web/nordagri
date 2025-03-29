@@ -20,8 +20,8 @@ const EquipmentPageContent: React.FC<EquipmentPageContentProps> = ({
   // Use a ref to track mounting state to prevent state updates on unmounted components
   const isMounted = React.useRef(true);
   
-  // Set up filter state
-  const filterState = useEquipmentFilters(equipment);
+  // Set up filter state with the hook from /hooks/equipment/useEquipmentFilters
+  const filterState = useEquipmentFilters(equipment || []);
   
   // Handle clicking on an equipment item
   const handleEquipmentClick = (item: EquipmentItem) => {
@@ -42,7 +42,7 @@ const EquipmentPageContent: React.FC<EquipmentPageContentProps> = ({
     <div className="pt-6 pb-16 pl-4 pr-4 sm:pl-8 sm:pr-8 md:pl-12 md:pr-12 ml-0 md:ml-64">
       <div className="max-w-7xl mx-auto">
         <EquipmentContentSection
-          equipment={equipment}
+          equipment={equipment || []}
           isLoading={isLoading}
           filterState={filterState}
           viewState={{
