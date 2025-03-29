@@ -3,18 +3,22 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle } from 'lucide-react';
 import { Part } from '@/types/Part';
+import { ensureNumber } from '@/utils/typeAdapters';
 
 interface PartImageProps {
   part: Part;
 }
 
 const PartImage: React.FC<PartImageProps> = ({ part }) => {
-  const isLowStock = part.stock <= part.reorderPoint;
+  const stock = ensureNumber(part.stock);
+  const reorderPoint = ensureNumber(part.reorderPoint || part.minimumStock);
+  const isLowStock = stock <= reorderPoint;
+  const imageUrl = part.image || part.imageUrl || 'https://placehold.co/400x300/png?text=No+Image';
 
   return (
     <div className="relative aspect-video overflow-hidden rounded-md">
       <img 
-        src={part.image} 
+        src={imageUrl} 
         alt={part.name}
         className="w-full h-full object-cover"
         onError={(e) => {

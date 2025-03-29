@@ -1,11 +1,12 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { ensureNumericId } from '@/utils/typeAdapters';
 
 export async function deletePart(partId: string | number) {
   try {
-    // Convert string ID to number if needed
-    const numericId = typeof partId === 'string' ? parseInt(partId, 10) : partId;
+    // Utilisation de notre fonction d'adaptation pour normaliser l'ID
+    const numericId = ensureNumericId(partId);
     
     const { error } = await supabase
       .from('parts_inventory')

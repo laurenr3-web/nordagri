@@ -14,6 +14,7 @@ import PartCompatibility from './details/PartCompatibility';
 import PartReorderInfo from './details/PartReorderInfo';
 import PartPriceComparison from './PartPriceComparison';
 import PartActions from './details/PartActions';
+import { ensureNumber } from '@/utils/typeAdapters';
 
 interface PartDetailsExtendedProps {
   part: Part;
@@ -33,7 +34,9 @@ const PartDetailsExtended: React.FC<PartDetailsExtendedProps> = ({
   const [activeTab, setActiveTab] = React.useState('details');
 
   // Déterminer si le stock est bas en fonction du point de réapprovisionnement
-  const isLowStock = part.stock <= part.reorderPoint;
+  const stock = ensureNumber(part.stock);
+  const reorderPoint = ensureNumber(part.reorderPoint || part.minimumStock);
+  const isLowStock = stock <= reorderPoint;
 
   return (
     <div className="space-y-4">
@@ -59,10 +62,10 @@ const PartDetailsExtended: React.FC<PartDetailsExtendedProps> = ({
                 <CardDescription>Référence: {part.partNumber || part.reference}</CardDescription>
               </div>
               <div className="flex items-center space-x-2">
-                <Badge variant={part.stock > 0 ? "outline" : "destructive"}>
-                  {part.stock > 0 ? "En stock" : "Rupture de stock"}
+                <Badge variant={stock > 0 ? "outline" : "destructive"}>
+                  {stock > 0 ? "En stock" : "Rupture de stock"}
                 </Badge>
-                {isLowStock && part.stock > 0 && (
+                {isLowStock && stock > 0 && (
                   <Badge variant="secondary" className="flex items-center">
                     <AlertCircle className="w-3 h-3 mr-1" />
                     Stock bas
@@ -86,11 +89,7 @@ const PartDetailsExtended: React.FC<PartDetailsExtendedProps> = ({
                   
                   <Separator />
                   
-                  <PartReorderInfo 
-                    stock={part.stock}
-                    reorderPoint={part.reorderPoint || part.minimumStock}
-                    onOrder={onOrder}
-                  />
+                  <PartReorderInfo part={part} onOrder={onOrder} />
                 </TabsContent>
                 
                 <TabsContent value="compatibility" className="pt-4">
@@ -112,7 +111,7 @@ const PartDetailsExtended: React.FC<PartDetailsExtendedProps> = ({
         </div>
         
         <div>
-          <PartImage image={part.image || part.imageUrl || ''} name={part.name} />
+          <PartImage part={part} />
         </div>
       </div>
     </div>
