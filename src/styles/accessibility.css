@@ -1,14 +1,10 @@
 
-/* Correction pour les éléments de formulaire */
+/* Amélioration de l'accessibilité pour les utilisateurs de lecteurs d'écran et de claviers */
+
+/* Correction pour les éléments de formulaire - permettre la sélection de texte */
 input, textarea, select, [contentEditable="true"] {
   -webkit-user-select: text;
   user-select: text;
-}
-
-/* Correction pour l'accessibilité des éléments interactifs */
-button:not([title]),
-[role="button"]:not([title]) {
-  position: relative;
 }
 
 /* Amélioration pour la visualisation des éléments focalisés */
@@ -21,4 +17,42 @@ button:not([title]),
 button:active,
 [role="button"]:active {
   transform: translateY(1px);
+}
+
+/* Correction pour les éléments interactifs sans titre */
+button:not([title]),
+[role="button"]:not([title]),
+a[href]:not([title]):not([aria-label]) {
+  position: relative;
+}
+
+/* Amélioration du contraste pour les éléments d'interface */
+.high-contrast button,
+.high-contrast [role="button"] {
+  border: 2px solid currentColor;
+}
+
+/* Support pour la navigation au clavier */
+[tabindex]:focus-visible {
+  box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--primary));
+}
+
+/* Correction pour les éléments masqués qui doivent rester accessibles */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Indications visuelles pour l'état enfoncé des boutons */
+button[aria-pressed="true"],
+[role="button"][aria-pressed="true"] {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
 }

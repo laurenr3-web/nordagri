@@ -54,6 +54,13 @@
             const inputs = document.querySelectorAll('input');
             
             [...buttons, ...selects, ...inputs].forEach(element => {
+              // Ajouter des attributs d'accessibilité si nécessaire
+              if (element.tagName === 'BUTTON' && !element.hasAttribute('title')) {
+                const buttonText = element.textContent?.trim() || "Action";
+                element.setAttribute('title', buttonText);
+                element.setAttribute('aria-label', buttonText);
+              }
+              
               // Supprimer et réattacher pour éliminer d'éventuels gestionnaires problématiques
               const newElement = element.cloneNode(true);
               
@@ -101,5 +108,8 @@
     
     <!-- Script de réparation spécifique pour Radix UI et boutons désactivés -->
     <script src="/radix-fix.js"></script>
+    
+    <!-- Script de correction d'accessibilité -->
+    <script src="/fix-accessibility.js"></script>
   </body>
 </html>

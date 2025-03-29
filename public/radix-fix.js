@@ -12,6 +12,13 @@
       // Marquer comme corrigé
       element.setAttribute('data-radix-fixed', 'true');
       
+      // Ajouter des attributs d'accessibilité si nécessaire
+      if (element.tagName === 'BUTTON' && !element.hasAttribute('title')) {
+        const buttonText = element.textContent?.trim() || "Bouton Radix";
+        element.setAttribute('title', buttonText);
+        element.setAttribute('aria-label', buttonText);
+      }
+      
       // S'assurer que le bouton peut recevoir des clics
       element.style.pointerEvents = 'auto';
       
@@ -45,6 +52,13 @@
       
       // Marquer comme corrigé
       button.setAttribute('data-button-fixed', 'true');
+      
+      // Ajouter des attributs d'accessibilité
+      if (!button.hasAttribute('title')) {
+        const buttonText = button.textContent?.trim() || "Envoyer";
+        button.setAttribute('title', buttonText);
+        button.setAttribute('aria-label', buttonText);
+      }
       
       // Enlever l'attribut disabled
       button.removeAttribute('disabled');
