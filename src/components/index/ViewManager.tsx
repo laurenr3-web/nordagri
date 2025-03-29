@@ -52,7 +52,7 @@ const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) 
   return (
     <Tabs value={currentView} className="space-y-8">
       {isOfflineMode && (
-        <Alert variant="warning" className="mb-4">
+        <Alert className="mb-4">
           <WifiOff className="h-4 w-4" />
           <AlertTitle>Mode Hors Ligne</AlertTitle>
           <AlertDescription>
