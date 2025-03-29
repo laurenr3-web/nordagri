@@ -258,3 +258,12 @@ button:active,
 [role="button"]:active {
   transform: translateY(1px);
 }
+
+/* Styles pour les boutons réparés */
+.fixed-button {
+  opacity: 1 !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
