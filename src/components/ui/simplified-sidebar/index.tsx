@@ -9,7 +9,14 @@ interface SidebarContextType {
   setPreventAutoCollapse: (value: boolean) => void;
 }
 
-const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
+const initialSidebarContext: SidebarContextType = {
+  isExpanded: false,
+  setIsExpanded: () => {},
+  preventAutoCollapse: false,
+  setPreventAutoCollapse: () => {}
+};
+
+const SidebarContext = createContext<SidebarContextType>(initialSidebarContext);
 
 export const useSimplifiedSidebar = () => {
   const context = useContext(SidebarContext);
@@ -29,7 +36,7 @@ export const SimplifiedSidebarProvider: React.FC<{ children: React.ReactNode }> 
     if (!isExpanded) return; // Don't add listener if sidebar is collapsed
     
     const handleClickOutside = (event: MouseEvent) => {
-      // Ignore clicks inside the sidebar
+      // Only proceed if sidebarRef is valid
       if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
         // Only collapse the sidebar if auto-collapse isn't prevented
         if (!preventAutoCollapse) {
@@ -49,10 +56,15 @@ export const SimplifiedSidebarProvider: React.FC<{ children: React.ReactNode }> 
     };
   }, [isExpanded, preventAutoCollapse]);
 
+  const contextValue = {
+    isExpanded,
+    setIsExpanded,
+    preventAutoCollapse,
+    setPreventAutoCollapse
+  };
+
   return (
-    <SidebarContext.Provider 
-      value={{ isExpanded, setIsExpanded, preventAutoCollapse, setPreventAutoCollapse }}
-    >
+    <SidebarContext.Provider value={contextValue}>
       <div ref={sidebarRef}>
         {children}
       </div>

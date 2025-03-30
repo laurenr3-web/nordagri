@@ -1,5 +1,5 @@
 
-// Importer WDYR en premier pour s'assurer qu'il est chargé avant React
+// Import WDYR first to ensure it's loaded before React
 import './wdyr';
 
 import React, { Suspense } from 'react';
@@ -38,7 +38,9 @@ const queryClient = new QueryClient({
   },
 });
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+// Create stable React element tree with proper error boundaries
+const root = ReactDOM.createRoot(document.getElementById('root')!);
+root.render(
   <React.StrictMode>
     <ErrorBoundary>
       <BrowserRouter>

@@ -30,10 +30,15 @@ if (process.env.NODE_ENV === 'development') {
         /^Toast/,
         /Provider$/,
         /Context$/,
-        /^QueryClientProvider/
+        /^QueryClientProvider/,
+        /useNavigate/,
+        /useLocation/,
+        /useParams/,
+        /^ProtectedRoute/,
+        /^RealtimeCacheProvider/
       ],
       
-      // Do not track any hooks automatically
+      // Completely disable tracking hooks to prevent these errors
       trackExtraHooks: []
     });
   });
