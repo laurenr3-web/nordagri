@@ -31,28 +31,10 @@ const queryClient = new QueryClient({
         return failureCount < 2;
       },
       staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes (anciennement cacheTime)
-      // Using onSettled/meta instead of onError for React Query v5+
-      meta: {
-        onSettled: (data: unknown, error: Error | null) => {
-          if (error) {
-            const message = error?.message || 'Une erreur est survenue';
-            toast.error(message);
-          }
-        }
-      }
+      gcTime: 10 * 60 * 1000 // 10 minutes (anciennement cacheTime)
     },
     mutations: {
-      retry: 1,
-      // Using onSettled/meta instead of onError for React Query v5+
-      meta: {
-        onSettled: (data: unknown, error: Error | null) => {
-          if (error) {
-            const message = error?.message || 'Une erreur est survenue lors de la modification';
-            toast.error(message);
-          }
-        }
-      }
+      retry: 1
     }
   },
 });

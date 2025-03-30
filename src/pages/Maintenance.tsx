@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { useTasksManager } from '@/hooks/maintenance/useTasksManager';
 import { maintenanceTasks } from '@/data/maintenanceData';
@@ -25,18 +25,19 @@ const Maintenance = () => {
     deleteTask
   } = useTasksManager(maintenanceTasks);
 
-  // Memoize handlers to prevent unnecessary re-renders
-  const handleOpenNewTaskDialog = useMemo(() => (open: boolean) => {
+  // Handle open/close new task dialog
+  const handleOpenNewTaskDialog = (open: boolean) => {
     if (!open) {
       setSelectedDate(undefined);
     }
     setIsNewTaskDialogOpen(open);
-  }, []);
+  };
 
-  const handleAddTask = useMemo(() => (formData: any) => {
+  // Handle adding a task
+  const handleAddTask = (formData: any) => {
     console.log('Adding task in Maintenance component:', formData);
     return addTask(formData);
-  }, [addTask]);
+  };
 
   // Log tasks only when they change
   useEffect(() => {
