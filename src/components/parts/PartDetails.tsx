@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Part } from '@/types/Part';
 import { ArrowLeft, Edit, Trash2 } from 'lucide-react';
@@ -40,11 +39,7 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
   const deleteMutation = useDeletePart();
   const navigate = useNavigate();
 
-  const handleDelete = async (e: React.MouseEvent) => {
-    // Prevent event from bubbling up which might cause redirection
-    e.stopPropagation();
-    e.preventDefault();
-    
+  const handleDelete = async () => {
     try {
       if (onDelete) {
         await onDelete(part.id);
@@ -57,14 +52,11 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
       if (onDialogClose) {
         onDialogClose();
       }
-      
-      // Always navigate to parts page after deletion
-      navigate('/parts');
     } catch (error) {
       console.error('Error deleting part:', error);
+    } finally {
+      setIsDeleteDialogOpen(false);
     }
-    
-    setIsDeleteDialogOpen(false);
   };
 
   const handleEdit = (updatedPart: Part) => {
