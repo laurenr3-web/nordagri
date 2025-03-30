@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { LayoutGrid, List } from 'lucide-react';
 
@@ -9,14 +9,6 @@ interface ViewToggleProps {
 }
 
 const ViewToggle: React.FC<ViewToggleProps> = ({ currentView, setCurrentView }) => {
-  // Load saved view preference on component mount
-  useEffect(() => {
-    const savedView = localStorage.getItem('equipmentViewPreference');
-    if (savedView && (savedView === 'grid' || savedView === 'list')) {
-      setCurrentView(savedView);
-    }
-  }, [setCurrentView]);
-
   // Handle view toggle and save preference
   const handleViewChange = (view: string) => {
     setCurrentView(view);

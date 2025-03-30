@@ -88,9 +88,9 @@ export const useEquipmentData = (user: any) => {
       if (error) throw error;
 
       // Filter out any invalid or deleted equipment entries
+      // We don't have a deleted_at column, so just filter out items without essential data
       const validData = data.filter(item => 
-        item && item.id && item.name && 
-        !item.deleted_at // Assuming there might be a soft delete field
+        item && item.id && item.name
       );
 
       // Map the data to the expected format

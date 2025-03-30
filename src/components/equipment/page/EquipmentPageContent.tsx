@@ -25,6 +25,11 @@ const EquipmentPageContent: React.FC<EquipmentPageContentProps> = ({
     }
   }, []);
   
+  // Save view preference when it changes
+  useEffect(() => {
+    localStorage.setItem('equipmentViewPreference', currentView);
+  }, [currentView]);
+  
   const handleEquipmentClick = (equipment: EquipmentItem) => {
     navigate(`/equipment/${equipment.id}`);
   };
