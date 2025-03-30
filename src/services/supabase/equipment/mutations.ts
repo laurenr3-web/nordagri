@@ -117,13 +117,16 @@ export async function addMaintenanceTask(equipmentId: number, task: {
   priority?: string;
 }) {
   try {
+    // Conversion de Date en string ISO pour Supabase
+    const dueDateString = task.dueDate ? task.dueDate.toISOString() : null;
+    
     const { data, error } = await supabase
       .from('equipment_maintenance_schedule')
       .insert({
         equipment_id: equipmentId,
         title: task.title,
         description: task.description,
-        due_date: task.dueDate,
+        due_date: dueDateString,
         priority: task.priority || 'medium'
       })
       .select()

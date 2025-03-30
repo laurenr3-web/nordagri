@@ -19,3 +19,6 @@ export const equipmentFormSchema = z.object({
 
 // Type dérivé du schéma zod
 export type EquipmentFormValues = z.infer<typeof equipmentFormSchema>;
+
+// Types pour le statut de l'équipement
+export type EquipmentStatus = 'operational' | 'maintenance' | 'repair' | 'inactive';

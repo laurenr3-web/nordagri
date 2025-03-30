@@ -7,13 +7,17 @@ interface ImageUrlInputProps {
   onChange: (value: string) => void;
   placeholder?: string;
   onBlur?: () => void;
+  id?: string;
+  "aria-describedby"?: string;
 }
 
 const ImageUrlInput: React.FC<ImageUrlInputProps> = ({
   value,
   onChange,
   placeholder = 'URL de l\'image...',
-  onBlur
+  onBlur,
+  id,
+  "aria-describedby": ariaDescribedby
 }) => {
   return (
     <div className="flex-1">
@@ -24,6 +28,8 @@ const ImageUrlInput: React.FC<ImageUrlInputProps> = ({
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
         className="w-full"
+        id={id}
+        aria-describedby={ariaDescribedby}
       />
     </div>
   );

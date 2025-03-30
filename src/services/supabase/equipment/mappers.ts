@@ -33,7 +33,7 @@ export function mapEquipmentToDatabase(equipment: Omit<Equipment, 'id'> | Equipm
     purchaseDate = purchaseDate.toISOString();
   }
   
-  return {
+  const dbEquipment = {
     name: equipment.name,
     model: equipment.model,
     manufacturer: equipment.manufacturer,
@@ -45,7 +45,13 @@ export function mapEquipmentToDatabase(equipment: Omit<Equipment, 'id'> | Equipm
     type: equipment.type,
     category: equipment.category,
     image: equipment.image,
-    notes: equipment.notes,
-    ...(equipment.id ? { id: equipment.id } : {})
+    notes: equipment.notes
   };
+
+  // Ajouter l'id uniquement s'il existe dans l'objet d'entrée
+  if ('id' in equipment && equipment.id !== undefined) {
+    return { ...dbEquipment, id: equipment.id };
+  }
+
+  return dbEquipment;
 }

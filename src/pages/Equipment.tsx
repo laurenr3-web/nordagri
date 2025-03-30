@@ -6,6 +6,8 @@ import EquipmentDialogs from '@/components/equipment/dialogs/EquipmentDialogs';
 import { useEquipmentData } from '@/hooks/equipment/useEquipmentData';
 import { useEquipmentRealtime } from '@/hooks/equipment/useEquipmentRealtime';
 import { toast } from 'sonner';
+import { Equipment } from '@/services/supabase/equipment/types';
+import { EquipmentItem } from '@/components/equipment/hooks/useEquipmentFilters';
 
 const EquipmentPage = () => {
   // Use the equipment data hook to fetch and manage equipment
@@ -35,10 +37,37 @@ const EquipmentPage = () => {
     }
   }, [isSubscribed]);
   
+  // Transformer les équipements en EquipmentItem
+  const transformedEquipment: EquipmentItem[] = React.useMemo(() => {
+    if (!equipment) return [];
+    
+    return equipment.map((item: Equipment) => ({
+      id: item.id,
+      name: item.name,
+      type: item.type || 'Unknown',
+      category: item.category || 'Uncategorized',
+      manufacturer: item.manufacturer || '',
+      model: item.model || '',
+      year: item.year || 0,
+      status: item.status || 'unknown',
+      location: item.location || '',
+      lastMaintenance: 'N/A',
+      image: item.image || '',
+      serialNumber: item.serialNumber || '',
+      purchaseDate: item.purchaseDate 
+        ? (typeof item.purchaseDate === 'object' 
+           ? item.purchaseDate.toISOString() 
+           : String(item.purchaseDate))
+        : '',
+      usage: { hours: 0, target: 500 },
+      nextService: { type: 'Regular maintenance', due: 'In 30 days' }
+    }));
+  }, [equipment]);
+  
   return (
     <SidebarProvider>
       <EquipmentPageContent 
-        equipment={equipment || []}
+        equipment={transformedEquipment}
         isLoading={isLoading}
       />
       <EquipmentDialogs />

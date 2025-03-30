@@ -25,20 +25,16 @@ export function useEquipmentDetail(id: string | undefined) {
           throw new Error('Équipement non trouvé');
         }
         
-        // Ensure date fields are properly formatted as strings
+        // Ensure date fields are properly formatted as strings and add UI-specific properties
         const processedData = {
           ...data,
-          lastMaintenance: data.lastMaintenance 
-            ? (typeof data.lastMaintenance === 'object' 
-               ? data.lastMaintenance.toISOString() 
-               : String(data.lastMaintenance))
-            : 'N/A',
           purchaseDate: data.purchaseDate 
             ? (typeof data.purchaseDate === 'object' 
                ? data.purchaseDate.toISOString() 
                : String(data.purchaseDate))
             : '',
           // Add UI-specific properties
+          lastMaintenance: 'N/A', // Default value
           usage: { hours: 0, target: 500 },
           nextService: { type: 'Regular maintenance', due: 'In 30 days' }
         };
@@ -63,7 +59,7 @@ export function useEquipmentDetail(id: string | undefined) {
       setLoading(true);
       
       // Remove any UI-specific properties before sending to the server
-      const { usage, nextService, ...equipmentForUpdate } = updatedEquipment;
+      const { usage, nextService, lastMaintenance, ...equipmentForUpdate } = updatedEquipment;
       
       const result = await equipmentService.updateEquipment(equipmentForUpdate);
       console.log('Update result:', result);
@@ -76,17 +72,13 @@ export function useEquipmentDetail(id: string | undefined) {
           ...prev,
           ...result,
           // Convert potential Date objects to strings for UI display
-          lastMaintenance: result.lastMaintenance 
-            ? (typeof result.lastMaintenance === 'object' 
-               ? result.lastMaintenance.toISOString() 
-               : String(result.lastMaintenance))
-            : prev.lastMaintenance || 'N/A',
           purchaseDate: result.purchaseDate 
             ? (typeof result.purchaseDate === 'object' 
                ? result.purchaseDate.toISOString() 
                : String(result.purchaseDate))
             : prev.purchaseDate || '',
           // Keep UI-specific properties
+          lastMaintenance: prev.lastMaintenance || 'N/A',
           usage: prev.usage || { hours: 0, target: 500 },
           nextService: prev.nextService || { type: 'Regular maintenance', due: 'In 30 days' }
         };

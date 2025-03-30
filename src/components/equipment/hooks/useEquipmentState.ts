@@ -21,12 +21,8 @@ export const useEquipmentState = (equipment: Equipment[] | null) => {
       year: item.year || 0,
       status: item.status || 'unknown',
       location: item.location || '',
-      // Ensure date fields are converted to strings
-      lastMaintenance: item.lastMaintenance 
-        ? (typeof item.lastMaintenance === 'object' 
-           ? item.lastMaintenance.toISOString() 
-           : String(item.lastMaintenance))
-        : 'N/A',
+      // Add required properties for EquipmentItem
+      lastMaintenance: 'N/A', // Default value for lastMaintenance
       image: item.image || '',
       serialNumber: item.serialNumber || '',
       purchaseDate: item.purchaseDate 
@@ -34,7 +30,7 @@ export const useEquipmentState = (equipment: Equipment[] | null) => {
            ? item.purchaseDate.toISOString() 
            : String(item.purchaseDate))
         : '',
-      // Define default values for usage and nextService which don't exist in Equipment type
+      // Define default values for usage and nextService
       usage: { hours: 0, target: 500 }, 
       nextService: { type: 'Regular maintenance', due: 'In 30 days' }
     }));
