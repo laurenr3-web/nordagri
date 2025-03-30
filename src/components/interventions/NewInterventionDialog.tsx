@@ -1,15 +1,14 @@
-
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  SafeDialog,
+  SafeDialogContent,
+  SafeDialogDescription,
+  SafeDialogFooter,
+  SafeDialogHeader,
+  SafeDialogTitle,
+} from '@/components/ui/dialog/index';
 import {
   Select,
   SelectContent,
@@ -139,14 +138,14 @@ const NewInterventionDialog: React.FC<NewInterventionDialogProps> = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px]">
-        <DialogHeader>
-          <DialogTitle>Create New Intervention</DialogTitle>
-          <DialogDescription>
+    <SafeDialog open={open} onOpenChange={onOpenChange}>
+      <SafeDialogContent className="sm:max-w-[550px]">
+        <SafeDialogHeader>
+          <SafeDialogTitle>Create New Intervention</SafeDialogTitle>
+          <SafeDialogDescription>
             Fill in the details to schedule a new field intervention.
-          </DialogDescription>
-        </DialogHeader>
+          </SafeDialogDescription>
+        </SafeDialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
@@ -288,12 +287,12 @@ const NewInterventionDialog: React.FC<NewInterventionDialogProps> = ({
               />
             </div>
           </div>
-          <DialogFooter>
+          <SafeDialogFooter>
             <Button type="submit">Create Intervention</Button>
-          </DialogFooter>
+          </SafeDialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SafeDialogContent>
+    </SafeDialog>
   );
 };
 

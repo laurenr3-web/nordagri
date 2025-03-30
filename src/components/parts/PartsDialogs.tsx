@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Part } from '@/types/Part';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { SafeDialog, SafeDialogContent, SafeDialogHeader, SafeDialogTitle, SafeDialogDescription } from '@/components/ui/dialog/index';
 import AddPartForm from '@/components/parts/AddPartForm';
 import PartDetails from '@/components/parts/PartDetails';
 import { toast } from 'sonner';
@@ -191,47 +190,47 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
     <>
       {/* Dialogue d'ajout de pièce */}
       {(isAddPartDialogOpen || isAddDialogClosing) && (
-        <Dialog 
+        <SafeDialog 
           open={isAddPartDialogOpen && !isAddDialogClosing} 
           onOpenChange={handleAddDialogOpenChange}
         >
-          <DialogContent className="sm:max-w-[650px]">
-            <DialogHeader>
-              <DialogTitle>Ajouter une nouvelle pièce</DialogTitle>
-              <DialogDescription>
+          <SafeDialogContent className="sm:max-w-[650px]">
+            <SafeDialogHeader>
+              <SafeDialogTitle>Ajouter une nouvelle pièce</SafeDialogTitle>
+              <SafeDialogDescription>
                 Remplissez les détails pour ajouter une nouvelle pièce à l'inventaire
-              </DialogDescription>
-            </DialogHeader>
+              </SafeDialogDescription>
+            </SafeDialogHeader>
             <AddPartForm
               onSuccess={handleAddPartSubmit}
               onCancel={() => handleAddDialogOpenChange(false)}
               categories={categories}
             />
-          </DialogContent>
-        </Dialog>
+          </SafeDialogContent>
+        </SafeDialog>
       )}
       
       {/* Dialogue de détails de pièce */}
       {(isPartDetailsDialogOpen || isDetailsDialogClosing) && selectedPart && (
-        <Dialog 
+        <SafeDialog 
           open={isPartDetailsDialogOpen && !isDetailsDialogClosing} 
           onOpenChange={handleDetailsDialogOpenChange}
         >
-          <DialogContent className="sm:max-w-[650px]">
-            <DialogHeader>
-              <DialogTitle>Détails de la pièce</DialogTitle>
-              <DialogDescription>
+          <SafeDialogContent className="sm:max-w-[650px]">
+            <SafeDialogHeader>
+              <SafeDialogTitle>Détails de la pièce</SafeDialogTitle>
+              <SafeDialogDescription>
                 Informations détaillées sur cette pièce
-              </DialogDescription>
-            </DialogHeader>
+              </SafeDialogDescription>
+            </SafeDialogHeader>
             <PartDetails
               part={selectedPart}
               onEdit={handleUpdatePartSubmit}
               onDelete={handleDeletePartConfirm}
               onDialogClose={() => handleDetailsDialogOpenChange(false)}
             />
-          </DialogContent>
-        </Dialog>
+          </SafeDialogContent>
+        </SafeDialog>
       )}
     </>
   );

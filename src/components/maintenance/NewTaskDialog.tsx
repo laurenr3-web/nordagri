@@ -9,7 +9,7 @@ import {
   SafeDialogFooter,
   SafeDialogHeader,
   SafeDialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/ui/dialog/index';
 
 import { useMaintenanceForm } from '@/hooks/maintenance/useMaintenanceForm';
 import TaskFormFields from './TaskFormFields';
