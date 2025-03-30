@@ -21,7 +21,7 @@ export const usePartsData = (initialParts: Part[] = []) => {
     queryFn: () => getParts(),
     staleTime: 0,
     refetchOnWindowFocus: true,
-    refetchInterval: 10000 // Rafraîchir toutes les 10 secondes
+    refetchInterval: 5000 // Rafraîchir toutes les 5 secondes (réduit de 10s à 5s)
   });
 
   // Handle data updates
@@ -64,18 +64,20 @@ export const usePartsData = (initialParts: Part[] = []) => {
     updatePartMutation.mutate(part, {
       onSuccess: (updatedPart) => {
         console.log('🔄 Update successful:', updatedPart);
-        // Force a refetch after update
         refetch();
       },
       onError: (error) => {
         console.error('❌ Update error:', error);
-        // Try to refresh data even on error
         refetch();
       },
       onSettled: () => {
-        // This function is called whether the mutation succeeds or fails
         console.log('🔄 Forcing data refresh after update attempt');
         refetch();
+        
+        // Force reload page after 500ms
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
       }
     });
   };
@@ -85,7 +87,26 @@ export const usePartsData = (initialParts: Part[] = []) => {
     deletePartMutation.mutate(partId, {
       onSuccess: () => {
         console.log('🔄 Refetching parts after delete');
-        refetch(); // Force a refetch after deletion
+        refetch();
+        
+        // Force reload page after deletion
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
+      },
+      onError: (error) => {
+        console.error('❌ Delete error:', error);
+        
+        // Even on error, try to refetch to refresh the UI
+        refetch();
+        
+        toast({
+          title: "Erreur de suppression",
+          description: error instanceof Error 
+            ? error.message 
+            : "Une erreur est survenue lors de la suppression. Vérifiez que vous êtes bien le propriétaire de cette pièce.",
+          variant: "destructive"
+        });
       }
     });
   };

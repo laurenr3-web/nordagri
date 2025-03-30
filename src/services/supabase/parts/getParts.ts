@@ -4,14 +4,29 @@ import { Part } from '@/types/Part';
 
 export async function getParts(): Promise<Part[]> {
   console.log('🔍 Fetching all parts from Supabase...');
+  
+  // Get the current user ID from the session
+  const { data: sessionData } = await supabase.auth.getSession();
+  const userId = sessionData.session?.user.id;
+  
+  // If user is not authenticated, return empty array
+  if (!userId) {
+    console.warn('User not authenticated, returning empty parts array');
+    return [];
+  }
+  
+  // Query only parts owned by the current user
   const { data, error } = await supabase
     .from('parts_inventory')
-    .select('*');
+    .select('*')
+    .eq('owner_id', userId);
   
   if (error) {
     console.error('Error fetching parts:', error);
     throw error;
   }
+  
+  console.log(`Found ${data?.length || 0} parts for user ${userId}`);
   
   // Convert database records to Part objects
   return (data || []).map(part => ({

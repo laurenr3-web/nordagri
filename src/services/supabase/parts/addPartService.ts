@@ -16,6 +16,10 @@ export async function addPart(part: Omit<Part, 'id'>): Promise<Part> {
     const { data: sessionData } = await supabase.auth.getSession();
     const userId = sessionData.session?.user.id;
     
+    if (!userId) {
+      throw new Error("Vous devez être connecté pour ajouter une pièce");
+    }
+    
     // Validation des données obligatoires
     if (!part.name) {
       throw new Error("Le nom de la pièce est obligatoire");
@@ -37,7 +41,7 @@ export async function addPart(part: Omit<Part, 'id'>): Promise<Part> {
       location: part.location || '',
       reorder_threshold: Number(part.reorderPoint || part.minimumStock || 5),
       image_url: part.image || part.imageUrl || null,
-      owner_id: userId // Ajout de l'ID utilisateur
+      owner_id: userId // Ajout de l'ID utilisateur comme propriétaire
     };
     
     console.log("🧩 Données formatées pour Supabase:", supabasePart);

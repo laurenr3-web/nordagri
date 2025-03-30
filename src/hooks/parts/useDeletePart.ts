@@ -2,12 +2,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deletePart } from '@/services/supabase/parts';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
 
 export function useDeletePart() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   const mutation = useMutation({
     mutationFn: async (partId: number | string) => {
@@ -39,6 +37,12 @@ export function useDeletePart() {
         toast({
           title: "Erreur d'autorisation",
           description: "Vous ne pouvez supprimer que les pièces que vous avez créées.",
+          variant: "destructive",
+        });
+      } else if (error.message && error.message.includes("n'en êtes pas le propriétaire")) {
+        toast({
+          title: "Erreur d'autorisation",
+          description: error.message,
           variant: "destructive",
         });
       } else {

@@ -19,9 +19,33 @@ export async function deletePart(partId: number | string): Promise<boolean> {
       throw new Error("Vous devez être connecté pour supprimer des pièces");
     }
     
-    // Convert string id to number if needed
+    // Récupérer l'ID de l'utilisateur
+    const userId = authStatus.session?.user.id;
+    
+    // Convertir l'ID de la pièce en nombre si nécessaire
     const numericId = ensureNumberId(partId);
     
+    // Vérifier d'abord si l'utilisateur est propriétaire de la pièce
+    const { data: ownershipCheck, error: ownershipError } = await supabase
+      .from('parts_inventory')
+      .select('id, owner_id')
+      .eq('id', numericId)
+      .single();
+      
+    if (ownershipError) {
+      console.error("❌ Erreur lors de la vérification de propriété:", ownershipError);
+      throw new Error("Impossible de vérifier si vous êtes propriétaire de cette pièce");
+    }
+    
+    if (!ownershipCheck) {
+      throw new Error("Cette pièce n'existe pas");
+    }
+    
+    if (ownershipCheck.owner_id !== userId) {
+      throw new Error("Vous n'êtes pas autorisé à supprimer cette pièce car vous n'en êtes pas le propriétaire");
+    }
+    
+    // Procéder à la suppression
     const { error, data } = await supabase
       .from('parts_inventory')
       .delete()
