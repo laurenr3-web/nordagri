@@ -1,7 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/hooks/use-toast";
+import { ensureNumberId, validateEquipmentStatus } from '@/utils/typeGuards';
 
 export interface EquipmentItem {
   id: number;
@@ -159,14 +159,17 @@ export const useEquipmentData = (user: any) => {
   // Process equipment data and fetch associated maintenance tasks
   const processEquipmentData = async (equipmentItems: RawEquipmentData[]) => {
     try {
-      // Get equipment IDs as strings for the query
-      const equipmentIds = equipmentItems.map(eq => eq.id.toString());
+      // Get equipment IDs as numbers for the query
+      const equipmentIds = equipmentItems.map(eq => eq.id);
+      
+      // Convert IDs to strings for the Supabase query
+      const equipmentIdStrings = equipmentIds.map(id => id.toString());
       
       // Get scheduled maintenance tasks for these equipment
       const { data: maintenanceData, error: maintenanceError } = await supabase
         .from('maintenance_tasks')
         .select('equipment_id, title, due_date')
-        .in('equipment_id', equipmentIds)
+        .in('equipment_id', equipmentIdStrings)
         .eq('status', 'scheduled')
         .order('due_date', { ascending: true });
 
@@ -201,7 +204,7 @@ export const useEquipmentData = (user: any) => {
           id: item.id,
           name: item.name || `${item.model || 'Unknown'} Equipment`,
           type: item.type || 'Unknown',
-          status: (validateStatus(item.status) || 'operational'),
+          status: validateEquipmentStatus(item.status),
           image: item.image || defaultImage,
           usage: {
             hours: item.usage_hours || 0,
@@ -223,22 +226,12 @@ export const useEquipmentData = (user: any) => {
         id: item.id,
         name: item.name || `Equipment #${item.id}`,
         type: item.type || 'Unknown',
-        status: validateStatus(item.status) || 'operational',
+        status: validateEquipmentStatus(item.status),
         image: item.image || 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=500&auto=format&fit=crop',
       }));
       
       setEquipmentData(simpleEquipment);
     }
-  };
-
-  // Validate and ensure status is one of the accepted types
-  const validateStatus = (status?: string): EquipmentItem['status'] | undefined => {
-    if (!status) return undefined;
-    
-    const validStatuses: EquipmentItem['status'][] = ['operational', 'maintenance', 'repair', 'inactive'];
-    return validStatuses.includes(status as any) 
-      ? (status as EquipmentItem['status']) 
-      : undefined;
   };
 
   // Format due date to a user-friendly string
