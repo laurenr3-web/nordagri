@@ -3,60 +3,15 @@ import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form';
 import { UseFormReturn } from 'react-hook-form';
 import { PartFormValues } from './editPartFormTypes';
+import CameraCapture from '@/components/equipment/form/CameraCapture';
 import ImageUrlInput from '@/components/equipment/form/fields/ImageUrlInput';
 import ImagePreview from '@/components/equipment/form/fields/ImagePreview';
-import PartPhotoCapture from '../../PartPhotoCapture';
-import { usePartVisionIdentification } from '@/hooks/parts/usePartVisionIdentification';
-import { toast } from 'sonner';
 
 interface ImageFieldProps {
   form: UseFormReturn<PartFormValues>;
 }
 
 const ImageField: React.FC<ImageFieldProps> = ({ form }) => {
-  const { identifyPart, isIdentifying } = usePartVisionIdentification();
-
-  const handleIdentifyPart = async (imageDataUrl: string) => {
-    try {
-      const result = await identifyPart(imageDataUrl);
-      
-      if (result) {
-        // Auto-remplir les champs du formulaire avec les données identifiées
-        if (result.probableName) {
-          form.setValue('name', result.probableName, { shouldValidate: true });
-        }
-        
-        if (result.manufacturer) {
-          form.setValue('manufacturer', result.manufacturer, { shouldValidate: true });
-        }
-        
-        if (result.referenceNumber) {
-          form.setValue('partNumber', result.referenceNumber, { shouldValidate: true });
-        }
-        
-        if (result.type) {
-          form.setValue('category', result.type.toLowerCase(), { shouldValidate: true });
-        }
-        
-        if (result.possibleUses && result.possibleUses.length > 0) {
-          // Convertir le tableau en chaîne pour le champ de compatibilité
-          form.setValue('compatibility', result.possibleUses.join(', '), { shouldValidate: true });
-        }
-        
-        toast.success("Champs auto-remplis", {
-          description: "Les données identifiées ont été utilisées pour remplir le formulaire"
-        });
-      }
-      return result;
-    } catch (error) {
-      console.error("Erreur lors de l'identification:", error);
-      toast.error("Échec de l'identification", {
-        description: "Impossible d'identifier la pièce. Essayez avec une photo plus claire."
-      });
-      return null;
-    }
-  };
-  
   return (
     <FormField
       control={form.control}
@@ -73,26 +28,22 @@ const ImageField: React.FC<ImageFieldProps> = ({ form }) => {
                 placeholder="https://exemple.com/image.jpg"
                 aria-describedby="image-description"
               />
+              
+              <CameraCapture 
+                onCapture={(imageDataUrl) => {
+                  form.setValue('image', imageDataUrl);
+                }} 
+              />
             </div>
             
-            {field.value ? (
-              <ImagePreview 
-                imageUrl={field.value}
-                onReset={() => form.setValue('image', '')}
-                altText="Aperçu de la pièce"
-              />
-            ) : (
-              <PartPhotoCapture 
-                onPhotoTaken={(imageDataUrl) => {
-                  form.setValue('image', imageDataUrl);
-                }}
-                onIdentifyPhoto={handleIdentifyPart}
-                identificationInProgress={isIdentifying}
-              />
-            )}
+            <ImagePreview 
+              imageUrl={field.value}
+              onReset={() => form.setValue('image', '')}
+              altText="Aperçu de la pièce"
+            />
             
             <FormDescription id="image-description">
-              Entrez une URL pour l'image de la pièce ou prenez une photo. L'IA tentera d'identifier la pièce à partir de la photo.
+              Entrez une URL pour l'image de la pièce ou prenez une photo
             </FormDescription>
             <FormMessage />
           </div>

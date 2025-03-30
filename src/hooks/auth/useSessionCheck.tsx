@@ -64,38 +64,5 @@ export function useSessionCheck(
     // Vérifier la session immédiatement
     checkSession();
     
-    // Check token expiration every minute
-    const refreshInterval = setInterval(async () => {
-      const { data } = await supabase.auth.getSession();
-      const session = data?.session;
-      
-      if (session) {
-        const expiresAt = session.expires_at;
-        const now = Math.floor(Date.now() / 1000);
-        const timeLeft = expiresAt - now;
-        
-        // If less than 5 minutes remaining, refresh the session
-        if (timeLeft < 300) {
-          console.log('Token expiring soon, refreshing session...');
-          const { data: refreshData, error } = await supabase.auth.refreshSession();
-          
-          if (error) {
-            console.error('Session refresh error:', error);
-            // Redirect to login if refresh fails
-            navigate('/auth');
-          } else if (refreshData.session) {
-            // Update state with refreshed session
-            setSession(refreshData.session);
-            setUser(refreshData.session.user);
-            console.log('Session refreshed successfully');
-          }
-        }
-      }
-    }, 60000); // Check every minute
-    
-    return () => {
-      clearInterval(refreshInterval);
-    };
-    
   }, [navigate, location, requireAuth, redirectTo, setUser, setSession, setProfileData, setLoading]);
 }

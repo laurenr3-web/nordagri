@@ -3,18 +3,17 @@ import React from 'react';
 import { MaintenanceFormValues } from '@/hooks/maintenance/maintenanceSlice';
 import { Button } from '@/components/ui/button';
 import {
-  SafeDialog,
-  SafeDialogContent,
-  SafeDialogDescription,
-  SafeDialogFooter,
-  SafeDialogHeader,
-  SafeDialogTitle,
-} from '@/components/ui/dialog/index';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 import { useMaintenanceForm } from '@/hooks/maintenance/useMaintenanceForm';
 import TaskFormFields from './TaskFormFields';
 import AddStaffDialog from './dialogs/AddStaffDialog';
-import ErrorBoundary from '@/components/ErrorBoundary';
 
 interface NewTaskDialogProps {
   open: boolean;
@@ -60,20 +59,20 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({ open, onOpenChange, onSub
   } = useMaintenanceForm(onSubmit, onOpenChange, initialDate);
 
   return (
-    <ErrorBoundary>
-      <SafeDialog open={open} onOpenChange={onOpenChange}>
-        <SafeDialogContent className="sm:max-w-[550px]">
-          <SafeDialogHeader>
-            <SafeDialogTitle>Create New Maintenance Task</SafeDialogTitle>
-            <SafeDialogDescription>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[550px]">
+          <DialogHeader>
+            <DialogTitle>Create New Maintenance Task</DialogTitle>
+            <DialogDescription>
               Fill in the details to schedule a new maintenance task.
               {initialDate && (
                 <span className="block mt-1 text-sm font-medium">
                   Scheduled for: {initialDate.toLocaleDateString()}
                 </span>
               )}
-            </SafeDialogDescription>
-          </SafeDialogHeader>
+            </DialogDescription>
+          </DialogHeader>
           <form onSubmit={handleSubmit}>
             <TaskFormFields
               title={title}
@@ -97,12 +96,12 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({ open, onOpenChange, onSub
               staffOptions={staffOptions}
               onAddStaffClick={() => setIsAddStaffDialogOpen(true)}
             />
-            <SafeDialogFooter>
+            <DialogFooter>
               <Button type="submit">Create Task</Button>
-            </SafeDialogFooter>
+            </DialogFooter>
           </form>
-        </SafeDialogContent>
-      </SafeDialog>
+        </DialogContent>
+      </Dialog>
 
       <AddStaffDialog
         open={isAddStaffDialogOpen}
@@ -111,7 +110,7 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({ open, onOpenChange, onSub
         setNewStaffName={setNewStaffName}
         onAddStaff={handleAddStaff}
       />
-    </ErrorBoundary>
+    </>
   );
 };
 

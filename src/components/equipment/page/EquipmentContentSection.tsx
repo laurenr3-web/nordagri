@@ -1,6 +1,6 @@
 
-import React, { useCallback } from 'react';
-import { EquipmentItem } from '@/hooks/equipment/useEquipmentFilters';
+import React from 'react';
+import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import EquipmentHeader from '../display/EquipmentHeader';
 import SearchToolbar from '../filter/SearchToolbar';
 import CategoryTabs from '../display/CategoryTabs';
@@ -18,7 +18,6 @@ interface EquipmentContentSectionProps {
     setCurrentView: (view: string) => void;
   };
   handleEquipmentClick: (equipment: EquipmentItem) => void;
-  openAddDialog: () => void;
 }
 
 const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
@@ -26,93 +25,46 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
   isLoading,
   filterState,
   viewState,
-  handleEquipmentClick,
-  openAddDialog
+  handleEquipmentClick
 }) => {
   const { currentView, setCurrentView } = viewState;
-  
-  // Add default values for all filter state properties to avoid undefined errors
   const {
-    filters = { 
-      filterStatus: [], 
-      filterType: [], 
-      filterCategory: [], 
-      filterManufacturer: [],
-      searchTerm: '',
-      sortBy: 'name',
-      sortOrder: 'asc' 
-    },
-    filterOptions = { 
-      status: [], 
-      type: [], 
-      category: [], 
-      manufacturer: [] 
-    },
-    filteredEquipment = [],
-    setSearchTerm = () => {},
-    toggleStatusFilter = () => {},
-    toggleTypeFilter = () => {},
-    toggleCategoryFilter = () => {},
-    toggleManufacturerFilter = () => {},
-    setSortBy = () => {},
-    setSortOrder = () => {},
-    resetFilters = () => {},
-  } = filterState || {};
+    searchTerm,
+    setSearchTerm,
+    selectedCategory,
+    setSelectedCategory,
+    filters,
+    statusOptions,
+    typeOptions,
+    manufacturerOptions,
+    yearOptions,
+    toggleFilter,
+    isFilterActive,
+    clearFilters,
+    resetAllFilters,
+    activeFilterCount,
+    sortBy,
+    setSortBy,
+    sortOrder,
+    setSortOrder,
+    filteredEquipment
+  } = filterState;
 
-  // Adapter les noms de propriétés pour les composants d'interface
-  const searchTerm = filters.searchTerm || '';
-  const selectedCategory = filters.filterCategory?.[0] || 'all';
-  const setSelectedCategory = (category: string) => {
-    if (category === 'all') {
-      toggleCategoryFilter(filters.filterCategory?.[0] || '');
-    } else {
-      toggleCategoryFilter(category);
-    }
-  };
-  
-  // Ensure all filter options arrays exist with fallbacks
-  const statusOptions = filterOptions.status || [];
-  const typeOptions = filterOptions.type || [];
-  const manufacturerOptions = filterOptions.manufacturer || [];
-  const yearOptions: number[] = [];  // Non utilisé actuellement
-
-  // Adapter les fonctions de filtrage
-  const isFilterActive = (type: 'status' | 'type' | 'manufacturer' | 'year', value: string | number) => {
-    if (type === 'status') return filters.filterStatus?.includes(value as string) || false;
-    if (type === 'type') return filters.filterType?.includes(value as string) || false;
-    if (type === 'manufacturer') return filters.filterManufacturer?.includes(value as string) || false;
-    return false;
+  const openAddDialog = () => {
+    console.log('Triggering add equipment dialog');
+    const event = new CustomEvent('open-add-equipment-dialog');
+    window.dispatchEvent(event);
   };
 
-  const toggleFilter = (type: 'status' | 'type' | 'manufacturer' | 'year', value: string | number) => {
-    if (type === 'status') toggleStatusFilter(value as string);
-    else if (type === 'type') toggleTypeFilter(value as string);
-    else if (type === 'manufacturer') toggleManufacturerFilter(value as string);
-  };
-
-  const clearFilters = () => resetFilters();
-  const resetAllFilters = () => resetFilters();
-  const activeFilterCount = 
-    (filters.filterStatus?.length || 0) + 
-    (filters.filterType?.length || 0) + 
-    (filters.filterCategory?.length || 0) + 
-    (filters.filterManufacturer?.length || 0);
-
-  const sortBy = filters.sortBy || 'name';
-  const sortOrder = filters.sortOrder || 'asc';
-
-  // Use useCallback to prevent recreating functions on each render
-  const handleEquipmentItemClick = useCallback((item: EquipmentItem) => {
+  const handleEquipmentItemClick = (item: EquipmentItem) => {
     console.log('Equipment item clicked:', item);
+    // Dispatch custom event to open the equipment details dialog
+    const event = new CustomEvent('equipment-selected', { detail: item });
+    window.dispatchEvent(event);
     
-    // Call the passed handler directly
+    // Also call the passed handler
     handleEquipmentClick(item);
-  }, [handleEquipmentClick]);
-
-  // Utiliser un tableau d'équipements filtré ou le tableau original si filteredEquipment est undefined
-  const equipmentToDisplay = Array.isArray(filteredEquipment) && filteredEquipment.length > 0 
-    ? filteredEquipment 
-    : equipment;
+  };
 
   return (
     <>
@@ -123,12 +75,7 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
         setSearchTerm={setSearchTerm}
         currentView={currentView}
         setCurrentView={setCurrentView}
-        filters={{
-          status: filters.filterStatus || [],
-          type: filters.filterType || [],
-          manufacturer: filters.filterManufacturer || [],
-          year: []
-        }}
+        filters={filters}
         statusOptions={statusOptions}
         typeOptions={typeOptions}
         manufacturerOptions={manufacturerOptions}
@@ -156,27 +103,25 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
         </div>
       ) : currentView === 'grid' ? (
         <EquipmentGrid
-          key="grid-view"
-          equipment={equipmentToDisplay}
+          equipment={filteredEquipment}
           getStatusColor={getStatusColor}
           getStatusText={getStatusText}
           handleEquipmentClick={handleEquipmentItemClick}
         />
       ) : (
         <EquipmentList 
-          key="list-view"
-          equipment={equipmentToDisplay}
+          equipment={filteredEquipment}
           getStatusColor={getStatusColor}
           getStatusText={getStatusText}
           handleEquipmentClick={handleEquipmentItemClick}
         />
       )}
       
-      {!isLoading && equipmentToDisplay.length === 0 && (
+      {!isLoading && filteredEquipment.length === 0 && (
         <NoEquipmentFound resetFilters={resetAllFilters} />
       )}
     </>
   );
 };
 
-export default React.memo(EquipmentContentSection);
+export default EquipmentContentSection;

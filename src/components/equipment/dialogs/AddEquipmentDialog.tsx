@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import EquipmentForm from '@/components/equipment/EquipmentForm';
 import { EquipmentFormValues } from '@/components/equipment/form/equipmentFormTypes';
@@ -16,11 +16,6 @@ const AddEquipmentDialog: React.FC<AddEquipmentDialogProps> = ({
   onOpenChange 
 }) => {
   const { mutate, isPending } = useAddEquipment();
-
-  // Log when dialog state changes
-  useEffect(() => {
-    console.log('AddEquipmentDialog state changed:', { isOpen });
-  }, [isOpen]);
 
   const handleAddEquipment = (data: EquipmentFormValues) => {
     // Log form data for debugging
@@ -79,23 +74,14 @@ const AddEquipmentDialog: React.FC<AddEquipmentDialogProps> = ({
   };
 
   return (
-    <Dialog 
-      open={isOpen} 
-      onOpenChange={(open) => {
-        console.log('Dialog open state change requested:', open);
-        onOpenChange(open);
-      }}
-    >
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Ajouter un équipement</DialogTitle>
         </DialogHeader>
         <EquipmentForm 
           onSubmit={handleAddEquipment}
-          onCancel={() => {
-            console.log('Cancel button clicked');
-            onOpenChange(false);
-          }}
+          onCancel={() => onOpenChange(false)}
           isSubmitting={isPending}
         />
       </DialogContent>

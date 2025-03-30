@@ -27,110 +27,55 @@ export interface LocalPart {
   image: string;
 }
 
-// Fonction pour convertir Part vers LocalPart avec meilleure gestion des cas null
+// Fonction pour convertir Part vers LocalPart
 export const convertToLocalPart = (part: any): LocalPart => {
-  console.log("Conversion Part -> LocalPart:", part?.name);
-  
-  if (!part) {
-    console.error("Erreur de conversion: part est null ou undefined");
-    // Retourner un objet par défaut pour éviter les erreurs
-    return {
-      id: '',
-      name: '',
-      reference: '',
-      partNumber: '',
-      description: '',
-      category: '',
-      manufacturer: '',
-      compatibleWith: [],
-      compatibility: [],
-      inStock: false,
-      quantity: 0,
-      minimumStock: 0,
-      location: '',
-      lastUsed: null,
-      purchasePrice: 0,
-      estimatedPrice: null,
-      isFromSearch: false,
-      imageUrl: null,
-      stock: 0,
-      price: 0,
-      reorderPoint: 0,
-      image: ''
-    };
-  }
-  
   return {
     id: part.id,
     name: part.name || '',
-    reference: part.reference || part.partNumber || '',
-    partNumber: part.partNumber || part.reference || '',
+    reference: part.reference || '',
+    partNumber: part.partNumber || '',
     description: part.description || '',
     category: part.category || '',
     manufacturer: part.manufacturer || '',
-    compatibleWith: Array.isArray(part.compatibleWith) ? part.compatibleWith : 
-                   Array.isArray(part.compatibility) ? part.compatibility : [],
-    compatibility: Array.isArray(part.compatibility) ? part.compatibility : 
-                  Array.isArray(part.compatibleWith) ? part.compatibleWith : [],
+    compatibleWith: Array.isArray(part.compatibleWith) ? part.compatibleWith : [],
+    compatibility: Array.isArray(part.compatibility) ? part.compatibility : [],
     inStock: !!part.inStock,
-    quantity: part.quantity || part.stock || 0,
-    minimumStock: part.minimumStock || part.reorderPoint || 0,
+    quantity: part.quantity,
+    minimumStock: part.minimumStock,
     location: part.location || '',
     lastUsed: part.lastUsed,
     purchasePrice: part.purchasePrice,
     estimatedPrice: part.estimatedPrice,
     isFromSearch: part.isFromSearch,
-    imageUrl: part.imageUrl || part.image,
-    stock: part.stock || part.quantity || 0,
-    price: typeof part.price === 'number' ? part.price : parseFloat(String(part.price)) || 0,
-    reorderPoint: part.reorderPoint || part.minimumStock || 0,
-    image: part.image || part.imageUrl || ''
+    imageUrl: part.imageUrl,
+    stock: part.stock || 0,
+    price: part.price || 0,
+    reorderPoint: part.reorderPoint || 0,
+    image: part.image || ''
   };
 };
 
-// Fonction pour convertir LocalPart vers Part avec meilleure gestion des valeurs par défaut
+// Fonction pour convertir LocalPart vers Part
 export const convertToPart = (localPart: LocalPart): Part => {
-  console.log("Conversion LocalPart -> Part:", localPart?.name);
-  
-  if (!localPart) {
-    console.error("Erreur de conversion: localPart est null ou undefined");
-    // Retourner un objet Part par défaut pour éviter les erreurs
-    return {
-      id: '',
-      name: '',
-      partNumber: '',
-      category: '',
-      compatibility: [],
-      manufacturer: '',
-      price: 0,
-      stock: 0,
-      location: '',
-      reorderPoint: 0,
-      image: ''
-    };
-  }
-  
-  // Conversion explicite vers le type Part avec des valeurs par défaut pour éviter les erreurs
+  // Conversion explicite vers le type Part
   return {
-    id: typeof localPart.id === 'string' && !isNaN(parseInt(localPart.id)) ? 
-        parseInt(localPart.id, 10) : localPart.id,
+    id: typeof localPart.id === 'string' ? parseInt(localPart.id, 10) : localPart.id as number,
     name: localPart.name,
     partNumber: localPart.partNumber || (localPart.reference || ''),
-    category: localPart.category || '',
+    category: localPart.category,
     compatibility: Array.isArray(localPart.compatibility) ? localPart.compatibility : [],
-    manufacturer: localPart.manufacturer || '',
-    price: typeof localPart.price === 'number' ? localPart.price : parseFloat(String(localPart.price)) || 0,
-    stock: localPart.stock || localPart.quantity || 0,
-    location: localPart.location || '',
-    reorderPoint: localPart.reorderPoint || localPart.minimumStock || 0,
-    image: localPart.image || localPart.imageUrl || '',
-    description: localPart.description || '',
-    reference: localPart.reference || localPart.partNumber || '',
-    compatibleWith: Array.isArray(localPart.compatibleWith) ? localPart.compatibleWith : 
-                   Array.isArray(localPart.compatibility) ? localPart.compatibility : [],
-    estimatedPrice: localPart.estimatedPrice || null,
-    inStock: localPart.inStock || (localPart.stock > 0),
-    isFromSearch: localPart.isFromSearch || false,
-    imageUrl: localPart.imageUrl || localPart.image || null
+    manufacturer: localPart.manufacturer,
+    price: localPart.price,
+    stock: localPart.stock,
+    location: localPart.location,
+    reorderPoint: localPart.reorderPoint,
+    image: localPart.image,
+    description: localPart.description,
+    reference: localPart.reference,
+    compatibleWith: Array.isArray(localPart.compatibleWith) ? localPart.compatibleWith : [],
+    estimatedPrice: localPart.estimatedPrice,
+    inStock: localPart.inStock,
+    isFromSearch: localPart.isFromSearch,
+    imageUrl: localPart.imageUrl
   };
 };

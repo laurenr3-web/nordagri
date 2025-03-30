@@ -1,10 +1,9 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import EquipmentDetails from '@/components/equipment/EquipmentDetails';
-import { EquipmentItem } from '@/hooks/equipment/useEquipmentFilters';
+import { EquipmentItem } from '@/components/equipment/hooks/useEquipmentFilters';
 import { useEquipmentUpdate } from '@/hooks/equipment/useEquipmentUpdate';
-import { toast } from 'sonner';
 
 interface ViewEquipmentDialogProps {
   equipment: EquipmentItem | null;
@@ -16,62 +15,28 @@ const ViewEquipmentDialog: React.FC<ViewEquipmentDialogProps> = ({
   onClose 
 }) => {
   const { updateEquipment } = useEquipmentUpdate();
-  const isMountedRef = useRef(true);
-  const [isClosing, setIsClosing] = useState(false);
-  
-  // Track when component will unmount
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
 
   const handleEquipmentUpdate = async (updatedEquipment: any) => {
     try {
-      if (!isMountedRef.current) return;
-      
       const result = await updateEquipment(updatedEquipment);
       
-      // Si la mise à jour réussit, fermer le dialogue après un court délai
-      if (result && isMountedRef.current) {
-        toast.success("Équipement mis à jour avec succès");
-        setIsClosing(true);
-        
-        // Mieux gérer la fermeture du dialogue
-        setTimeout(() => {
-          if (isMountedRef.current) {
-            onClose();
-          }
-        }, 300);
+      // If the update is successful, close the dialog after a short delay
+      if (result) {
+        setTimeout(() => onClose(), 500);
       }
     } catch (error) {
       console.error('Failed to update equipment:', error);
-      toast.error("Échec de la mise à jour de l'équipement");
-      // L'erreur est déjà gérée dans le hook
-    }
-  };
-
-  // Gestion plus sécurisée des changements d'état du dialogue
-  const handleOpenChange = (open: boolean) => {
-    if (!open && !isClosing && isMountedRef.current) {
-      setIsClosing(true);
-      
-      // Utiliser requestAnimationFrame pour une meilleure synchronisation
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          if (isMountedRef.current) {
-            onClose();
-          }
-        }, 300);
-      });
+      // Error is already handled in the hook
     }
   };
 
   return (
     <Dialog 
-      open={!!equipment && !isClosing} 
-      onOpenChange={handleOpenChange}
+      open={!!equipment} 
+      onOpenChange={(open) => {
+        console.log('Equipment dialog open state changed to:', open);
+        if (!open) onClose();
+      }}
     >
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>

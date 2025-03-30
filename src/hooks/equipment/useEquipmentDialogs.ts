@@ -1,10 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { EquipmentItem } from '@/hooks/equipment/useEquipmentFilters';
+import { EquipmentItem } from '@/components/equipment/hooks/useEquipmentFilters';
 
-/**
- * Hook to manage equipment dialog states
- */
 export function useEquipmentDialogs() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedEquipment, setSelectedEquipment] = useState<EquipmentItem | null>(null);
@@ -12,10 +9,12 @@ export function useEquipmentDialogs() {
   useEffect(() => {
     // Listen for custom events to open the dialogs
     const handleOpenAddDialog = () => {
+      console.log('Opening add equipment dialog');
       setIsAddDialogOpen(true);
     };
 
     const handleEquipmentSelected = (event: CustomEvent<EquipmentItem>) => {
+      console.log('Equipment selected event received:', event.detail);
       setSelectedEquipment(event.detail);
     };
 

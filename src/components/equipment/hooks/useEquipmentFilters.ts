@@ -1,8 +1,9 @@
+
 import { useState, useMemo } from 'react';
 import { Equipment } from '@/services/supabase/equipmentService';
 
 export interface EquipmentItem {
-  id: number | string;
+  id: number;
   name: string;
   type: string;
   category: string;

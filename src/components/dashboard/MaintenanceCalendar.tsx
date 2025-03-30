@@ -10,7 +10,7 @@ type MaintenanceEvent = {
   title: string;
   date: Date;
   duration: number; // in hours
-  priority: 'low' | 'medium' | 'high' | 'critical';
+  priority: 'low' | 'medium' | 'high';
   equipment: string;
 };
 

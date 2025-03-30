@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import { useIsMobile } from "@/hooks/use-mobile"
 
@@ -19,21 +20,15 @@ type SidebarContext = {
   toggleSidebar: () => void
 }
 
-// Default context value to prevent null context issues
-const defaultContextValue: SidebarContext = {
-  state: "expanded",
-  open: true,
-  setOpen: () => {},
-  openMobile: false,
-  setOpenMobile: () => {},
-  isMobile: false,
-  toggleSidebar: () => {}
-};
-
-const SidebarContext = React.createContext<SidebarContext>(defaultContextValue);
+const SidebarContext = React.createContext<SidebarContext | null>(null)
 
 export function useSidebar() {
-  return React.useContext(SidebarContext);
+  const context = React.useContext(SidebarContext)
+  if (!context) {
+    throw new Error("useSidebar must be used within a SidebarProvider.")
+  }
+
+  return context
 }
 
 export const SidebarProvider = React.forwardRef<
@@ -56,39 +51,34 @@ export const SidebarProvider = React.forwardRef<
     },
     ref
   ) => {
-    const isMobile = useIsMobile();
-    const [openMobile, setOpenMobile] = React.useState(false);
-    
-    // Safely create ref if not provided
-    const internalRef = React.useRef<HTMLDivElement>(null);
-    const combinedRef = useCombinedRefs(ref, internalRef);
+    const isMobile = useIsMobile()
+    const [openMobile, setOpenMobile] = React.useState(false)
 
     // This is the internal state of the sidebar.
-    const [_open, _setOpen] = React.useState(defaultOpen);
-    const open = openProp ?? _open;
-    
-    // Wrapped in useCallback to prevent unnecessary re-renders
+    // We use openProp and setOpenProp for control from outside the component.
+    const [_open, _setOpen] = React.useState(defaultOpen)
+    const open = openProp ?? _open
     const setOpen = React.useCallback(
       (value: boolean | ((value: boolean) => boolean)) => {
-        const openState = typeof value === "function" ? value(open) : value;
+        const openState = typeof value === "function" ? value(open) : value
         if (setOpenProp) {
-          setOpenProp(openState);
+          setOpenProp(openState)
         } else {
-          _setOpen(openState);
+          _setOpen(openState)
         }
 
         // This sets the cookie to keep the sidebar state.
-        document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+        document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
       },
       [setOpenProp, open]
-    );
+    )
 
     // Helper to toggle the sidebar.
     const toggleSidebar = React.useCallback(() => {
       return isMobile
         ? setOpenMobile((open) => !open)
-        : setOpen((open) => !open);
-    }, [isMobile, setOpen, setOpenMobile]);
+        : setOpen((open) => !open)
+    }, [isMobile, setOpen, setOpenMobile])
 
     // Adds a keyboard shortcut to toggle the sidebar.
     React.useEffect(() => {
@@ -97,18 +87,18 @@ export const SidebarProvider = React.forwardRef<
           event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
           (event.metaKey || event.ctrlKey)
         ) {
-          event.preventDefault();
-          toggleSidebar();
+          event.preventDefault()
+          toggleSidebar()
         }
-      };
+      }
 
-      window.addEventListener("keydown", handleKeyDown);
-      return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [toggleSidebar]);
+      window.addEventListener("keydown", handleKeyDown)
+      return () => window.removeEventListener("keydown", handleKeyDown)
+    }, [toggleSidebar])
 
     // We add a state so that we can do data-state="expanded" or "collapsed".
     // This makes it easier to style the sidebar with Tailwind classes.
-    const state = open ? "expanded" : "collapsed";
+    const state = open ? "expanded" : "collapsed"
 
     const contextValue = React.useMemo<SidebarContext>(
       () => ({
@@ -121,19 +111,20 @@ export const SidebarProvider = React.forwardRef<
         toggleSidebar,
       }),
       [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
-    );
+    )
 
     // Create a properly typed style object with CSS custom properties
     const sidebarStyles = {
       ...style,
+      // Use type assertion for custom CSS properties
       '--sidebar-width': SIDEBAR_WIDTH,
       '--sidebar-width-icon': SIDEBAR_WIDTH_ICON,
-    } as React.CSSProperties;
+    } as React.CSSProperties
 
     return (
       <SidebarContext.Provider value={contextValue}>
         <div
-          ref={combinedRef}
+          ref={ref}
           style={sidebarStyles}
           className={`group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar ${className || ''}`}
           {...props}
@@ -141,30 +132,7 @@ export const SidebarProvider = React.forwardRef<
           {children}
         </div>
       </SidebarContext.Provider>
-    );
+    )
   }
-);
-
-SidebarProvider.displayName = "SidebarProvider";
-
-// Utility function to combine refs safely
-function useCombinedRefs<T>(
-  ...refs: Array<React.Ref<T> | null | undefined>
-): React.RefObject<T> {
-  const targetRef = React.useRef<T>(null);
-
-  React.useEffect(() => {
-    refs.forEach(ref => {
-      if (!ref) return;
-
-      if (typeof ref === 'function') {
-        ref(targetRef.current);
-      } else {
-        // @ts-ignore - this is safe because we're careful with the types
-        ref.current = targetRef.current;
-      }
-    });
-  }, [refs]);
-
-  return targetRef;
-}
+)
+SidebarProvider.displayName = "SidebarProvider"

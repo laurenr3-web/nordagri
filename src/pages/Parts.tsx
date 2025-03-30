@@ -1,71 +1,78 @@
 
-import React, { useState, useEffect, Suspense } from 'react';
-import { SidebarProvider } from '@/components/ui/sidebar';
-import { PartsContextProvider } from '@/contexts/PartsContext';
-import PartsPageContainer from '@/components/parts/page/PartsPageContainer';
-import { toast } from 'sonner';
-import { useEmergencyParts } from '@/hooks/emergencyPartsHook';
+import React, { useState, useEffect } from 'react';
+import Navbar from '@/components/layout/Navbar';
 import { partsData } from '@/data/partsData';
-import ErrorBoundary from '@/components/ErrorBoundary';
-import { TechnicalInfoLoading } from '@/components/parts/technical-info/TechnicalInfoLoading';
-import LoadingState from '@/components/parts/page/states/LoadingState';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { useParts } from '@/hooks/useParts';
+import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import PartsContainer from '@/components/parts/PartsContainer';
+import PartSearch from '@/components/parts/PartSearch';
+import PerplexitySearch from '@/components/parts/PerplexitySearch';
+import { Part } from '@/types/Part';
+
+// Sample parts data
+const initialPartsData = partsData;
 
 const Parts = () => {
-  // All hooks declarations at the beginning of the function
-  const [hasError, setHasError] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // The main hook now provides a cleaner interface with more focused sub-hooks
+  const partsHookData = useParts(initialPartsData);
+  const [activeTab, setActiveTab] = useState('inventory');
   
-  // Add mounting check to help with debugging
+  // Debug logging for parts data updates
   useEffect(() => {
-    console.log("Parts component mounted");
-    
-    // Simulate loading to ensure smooth UI transitions
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
-    
-    return () => {
-      console.log("Parts component unmounted");
-      clearTimeout(timer);
+    console.log("Données parts mises à jour:", partsHookData.parts);
+  }, [partsHookData.parts]);
+
+  const handleAddPartFromSearch = (part: Part) => {
+    // Pré-traiter la pièce avant de l'ajouter à l'inventaire
+    const newPart = {
+      ...part,
+      inStock: true,
+      stock: part.stock || 1, // Ensure stock field is populated
+      reorderPoint: part.reorderPoint || 1, // Ensure reorderPoint is populated
+      isFromSearch: true // Flag it as coming from search
     };
-  }, []);
-  
-  // Use the new ErrorBoundary component
+    
+    partsHookData.handleAddPart(newPart);
+  };
+
   return (
-    <React.StrictMode>
-      <ErrorBoundary
-        fallback={
-          <div className="flex min-h-screen w-full bg-background p-8">
-            <div className="w-full max-w-md mx-auto p-6 bg-card rounded-lg shadow-lg">
-              <h2 className="text-2xl font-bold mb-4 text-destructive">Error Loading Parts</h2>
-              <p className="mb-4">Unable to load the parts management interface.</p>
-              <button 
-                onClick={() => window.location.reload()} 
-                className="mt-4 bg-primary text-primary-foreground px-4 py-2 rounded"
-              >
-                Reload Page
-              </button>
-            </div>
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full bg-background">
+        <Sidebar className="border-r">
+          <Navbar />
+        </Sidebar>
+        
+        <div className="flex-1 p-6">
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold">Gestion des pièces</h1>
+            <p className="text-muted-foreground mt-1">
+              Gérez votre inventaire de pièces et recherchez de nouvelles pièces
+            </p>
           </div>
-        }
-      >
-        <SidebarProvider>
-          <PartsContextProvider>
-            <Suspense fallback={<LoadingState />}>
-              {isLoading ? (
-                <div className="flex justify-center items-center min-h-[80vh]">
-                  <LoadingSpinner size="lg" text="Loading parts management interface..." />
-                </div>
-              ) : (
-                <PartsPageContainer />
-              )}
-            </Suspense>
-          </PartsContextProvider>
-        </SidebarProvider>
-      </ErrorBoundary>
-    </React.StrictMode>
+          
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid grid-cols-3 w-[600px]">
+              <TabsTrigger value="inventory">Inventaire</TabsTrigger>
+              <TabsTrigger value="search">Recherche web</TabsTrigger>
+              <TabsTrigger value="perplexity">Recherche Perplexity</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="inventory" className="mt-6">
+              <PartsContainer {...partsHookData} />
+            </TabsContent>
+            
+            <TabsContent value="search" className="mt-6">
+              <PartSearch onAddPartToInventory={handleAddPartFromSearch} />
+            </TabsContent>
+            
+            <TabsContent value="perplexity" className="mt-6">
+              <PerplexitySearch />
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
+    </SidebarProvider>
   );
 };
 

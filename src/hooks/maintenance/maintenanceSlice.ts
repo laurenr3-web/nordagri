@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useTasksManager } from './useTasksManager';
 
-export type MaintenanceStatus = 'scheduled' | 'in-progress' | 'completed' | 'pending-parts' | 'cancelled';
+export type MaintenanceStatus = 'scheduled' | 'in-progress' | 'completed' | 'pending-parts';
 export type MaintenancePriority = 'critical' | 'high' | 'medium' | 'low';
 export type MaintenanceType = 'preventive' | 'corrective' | 'condition-based';
 

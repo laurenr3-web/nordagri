@@ -1,56 +1,39 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { SettingsSection } from '../SettingsSection';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { useUserSettingsContext } from '@/providers/UserSettingsProvider';
-import { useAuthContext } from '@/providers/AuthProvider';
 
 export const RegionalPreferencesSection = () => {
-  const { user } = useAuthContext();
-  const { settings, loading, saveSettings } = useUserSettingsContext();
-  
-  const [temperatureUnit, setTemperatureUnit] = useState(
-    settings?.units_system === 'imperial' ? 'fahrenheit' : 'celsius'
-  );
-  const [dateFormat, setDateFormat] = useState(settings?.date_format || 'DD/MM/YYYY');
-  const [timeFormat, setTimeFormat] = useState(settings?.time_format || '24h');
-  const [language, setLanguage] = useState(settings?.language || 'en');
-  const [savingSettings, setSavingSettings] = useState(false);
-
-  // Update local state when settings are loaded
-  useEffect(() => {
-    if (settings) {
-      setTemperatureUnit(settings.units_system === 'imperial' ? 'fahrenheit' : 'celsius');
-      setDateFormat(settings.date_format);
-      setTimeFormat(settings.time_format);
-      setLanguage(settings.language);
-    }
-  }, [settings]);
+  const [temperatureUnit, setTemperatureUnit] = useState('celsius');
+  const [dateFormat, setDateFormat] = useState('dd/mm/yyyy');
+  const [timeFormat, setTimeFormat] = useState('24h');
+  const [language, setLanguage] = useState('en');
+  const [loading, setLoading] = useState(false);
 
   const handleSavePreferences = async () => {
-    if (!settings || !user) {
-      toast.error('You must be logged in to save preferences');
-      return;
-    }
-
     try {
-      setSavingSettings(true);
+      setLoading(true);
       
-      await saveSettings({
-        ...settings,
-        units_system: temperatureUnit === 'celsius' ? 'metric' : 'imperial',
-        date_format: dateFormat,
-        time_format: timeFormat,
-        language: language
-      });
+      // In a real app, we would save these preferences to the database
+      // For now, we'll just simulate a delay and show a success message
+      await new Promise(resolve => setTimeout(resolve, 500));
       
+      // Save to localStorage for now
+      localStorage.setItem('regionalPreferences', JSON.stringify({
+        temperatureUnit,
+        dateFormat,
+        timeFormat,
+        language
+      }));
+      
+      toast.success('Regional preferences saved');
     } catch (error) {
       console.error('Error saving preferences:', error);
       toast.error('Failed to save preferences');
     } finally {
-      setSavingSettings(false);
+      setLoading(false);
     }
   };
 
@@ -62,7 +45,7 @@ export const RegionalPreferencesSection = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div className="space-y-2">
           <label className="text-sm font-medium">Temperature Unit</label>
-          <Select value={temperatureUnit} onValueChange={setTemperatureUnit} disabled={loading}>
+          <Select value={temperatureUnit} onValueChange={setTemperatureUnit}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select temperature unit" />
             </SelectTrigger>
@@ -75,21 +58,21 @@ export const RegionalPreferencesSection = () => {
         
         <div className="space-y-2">
           <label className="text-sm font-medium">Date Format</label>
-          <Select value={dateFormat} onValueChange={setDateFormat} disabled={loading}>
+          <Select value={dateFormat} onValueChange={setDateFormat}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select date format" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
-              <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
-              <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
+              <SelectItem value="dd/mm/yyyy">DD/MM/YYYY</SelectItem>
+              <SelectItem value="mm/dd/yyyy">MM/DD/YYYY</SelectItem>
+              <SelectItem value="yyyy-mm-dd">YYYY-MM-DD</SelectItem>
             </SelectContent>
           </Select>
         </div>
         
         <div className="space-y-2">
           <label className="text-sm font-medium">Time Format</label>
-          <Select value={timeFormat} onValueChange={setTimeFormat} disabled={loading}>
+          <Select value={timeFormat} onValueChange={setTimeFormat}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select time format" />
             </SelectTrigger>
@@ -102,7 +85,7 @@ export const RegionalPreferencesSection = () => {
         
         <div className="space-y-2">
           <label className="text-sm font-medium">Language</label>
-          <Select value={language} onValueChange={setLanguage} disabled={loading}>
+          <Select value={language} onValueChange={setLanguage}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select language" />
             </SelectTrigger>
@@ -116,11 +99,8 @@ export const RegionalPreferencesSection = () => {
         </div>
       </div>
       
-      <Button 
-        onClick={handleSavePreferences} 
-        disabled={loading || savingSettings}
-      >
-        {savingSettings ? 'Saving...' : 'Save Preferences'}
+      <Button onClick={handleSavePreferences} disabled={loading}>
+        Save Preferences
       </Button>
     </SettingsSection>
   );

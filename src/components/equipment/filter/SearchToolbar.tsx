@@ -1,5 +1,5 @@
 
-import React, { useCallback } from 'react';
+import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { BlurContainer } from '@/components/ui/blur-container';
@@ -7,7 +7,6 @@ import { Search } from 'lucide-react';
 import FilterDropdown from './FilterDropdown';
 import SortDropdown from './SortDropdown';
 import ActiveFilters from './ActiveFilters';
-import { debounce } from '@/utils/debounce';
 
 interface SearchToolbarProps {
   searchTerm: string;
@@ -15,10 +14,10 @@ interface SearchToolbarProps {
   currentView: string;
   setCurrentView: (view: string) => void;
   filters: {
-    status?: string[];
-    type?: string[];
-    manufacturer?: string[];
-    year?: number[];
+    status: string[];
+    type: string[];
+    manufacturer: string[];
+    year: number[];
   };
   statusOptions: string[];
   typeOptions: string[];
@@ -37,46 +36,26 @@ interface SearchToolbarProps {
 }
 
 const SearchToolbar: React.FC<SearchToolbarProps> = ({
-  searchTerm = '',
+  searchTerm,
   setSearchTerm,
-  currentView = 'grid',
+  currentView,
   setCurrentView,
-  filters = { status: [], type: [], manufacturer: [], year: [] },
-  statusOptions = [],
-  typeOptions = [],
-  manufacturerOptions = [],
-  yearOptions = [],
+  filters,
+  statusOptions,
+  typeOptions,
+  manufacturerOptions,
+  yearOptions,
   isFilterActive,
   toggleFilter,
   clearFilters,
   getStatusColor,
   getStatusText,
-  activeFilterCount = 0,
-  sortBy = 'name',
-  sortOrder = 'asc',
+  activeFilterCount,
+  sortBy,
+  sortOrder,
   setSortBy,
   setSortOrder
 }) => {
-  // Ensure filters object has default values for all properties
-  const safeFilters = {
-    status: filters.status || [],
-    type: filters.type || [],
-    manufacturer: filters.manufacturer || [],
-    year: filters.year || []
-  };
-
-  // Create a debounced version of setSearchTerm
-  const debouncedSetSearchTerm = useCallback(
-    debounce((value: string) => {
-      setSearchTerm(value);
-    }, 300),
-    [setSearchTerm]
-  );
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    debouncedSetSearchTerm(e.target.value);
-  };
-
   return (
     <BlurContainer className="p-4 mb-6">
       <div className="flex flex-col md:flex-row md:items-center gap-4">
@@ -85,8 +64,8 @@ const SearchToolbar: React.FC<SearchToolbarProps> = ({
           <Input 
             placeholder="Search equipment, manufacturer, model..." 
             className="pl-9"
-            defaultValue={searchTerm}
-            onChange={handleSearchChange}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         
@@ -96,7 +75,7 @@ const SearchToolbar: React.FC<SearchToolbarProps> = ({
             typeOptions={typeOptions}
             manufacturerOptions={manufacturerOptions}
             yearOptions={yearOptions}
-            filters={safeFilters}
+            filters={filters}
             activeFilterCount={activeFilterCount}
             isFilterActive={isFilterActive}
             toggleFilter={toggleFilter}
@@ -136,7 +115,7 @@ const SearchToolbar: React.FC<SearchToolbarProps> = ({
       </div>
       
       <ActiveFilters
-        filters={safeFilters}
+        filters={filters}
         toggleFilter={toggleFilter}
         clearFilters={clearFilters}
         getStatusColor={getStatusColor}

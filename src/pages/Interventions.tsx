@@ -58,27 +58,11 @@ const InterventionsPage = () => {
   }, [isSubscribed, realtimeError]);
 
   const handleViewDetails = (intervention: Intervention) => {
-    // Use setTimeout to prevent DOM manipulation conflicts
-    setTimeout(() => {
-      setSelectedIntervention(intervention);
-      console.log('Intervention détails demandés pour:', intervention.title);
-    }, 10);
+    setSelectedIntervention(intervention);
   };
 
   const handleCloseDetails = () => {
-    // Use setTimeout to prevent DOM manipulation conflicts
-    setTimeout(() => {
-      setSelectedIntervention(null);
-    }, 10);
-  };
-
-  const handleOpenNewDialog = () => {
-    console.log('Ouverture du dialogue de nouvelle intervention...');
-    // Use setTimeout to prevent DOM manipulation conflicts
-    setTimeout(() => {
-      setShowNewDialog(true);
-      console.log('État du dialogue après changement:', true);
-    }, 10);
+    setSelectedIntervention(null);
   };
 
   const handleStartWork = (intervention: Intervention) => {
@@ -167,10 +151,9 @@ const InterventionsPage = () => {
                         <span className="hidden sm:inline">Exporter</span>
                       </Button>
                       <Button 
-                        onClick={handleOpenNewDialog}
+                        onClick={() => setShowNewDialog(true)}
                         className="flex items-center gap-2"
                         size="sm"
-                        id="new-intervention-btn"
                       >
                         <Plus size={16} />
                         <span>Nouvelle intervention</span>
@@ -205,7 +188,7 @@ const InterventionsPage = () => {
                         Commencez par créer une nouvelle intervention pour un équipement.
                       </p>
                       <button
-                        onClick={handleOpenNewDialog}
+                        onClick={() => setShowNewDialog(true)}
                         className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md"
                       >
                         Créer une intervention
@@ -238,39 +221,30 @@ const InterventionsPage = () => {
         </div>
       </div>
       
-      {/* Ensure dialogs are properly controlled */}
-      <NewInterventionDialog
-        open={showNewDialog}
-        onOpenChange={(open) => {
-          console.log('Dialog onOpenChange called with:', open);
-          setTimeout(() => {
-            setShowNewDialog(open);
-          }, 50);
-        }}
-        onSubmit={(values) => {
-          interventionService.addIntervention(values)
-            .then(() => {
-              refetch();
-              setTimeout(() => setShowNewDialog(false), 50);
-              toast.success('Intervention créée avec succès');
-            })
-            .catch((err) => {
-              toast.error('Erreur lors de la création de l\'intervention', {
-                description: err.message
+      {showNewDialog && (
+        <NewInterventionDialog
+          open={showNewDialog}
+          onOpenChange={setShowNewDialog}
+          onSubmit={(values) => {
+            interventionService.addIntervention(values)
+              .then(() => {
+                refetch();
+                setShowNewDialog(false);
+                toast.success('Intervention créée avec succès');
+              })
+              .catch((err) => {
+                toast.error('Erreur lors de la création de l\'intervention', {
+                  description: err.message
+                });
               });
-            });
-        }}
-      />
+          }}
+        />
+      )}
 
       {selectedIntervention && (
         <InterventionDetailsDialog
           open={!!selectedIntervention}
-          onOpenChange={(open) => {
-            console.log('Details dialog onOpenChange called with:', open);
-            if (!open) {
-              setTimeout(() => setSelectedIntervention(null), 50);
-            }
-          }}
+          onOpenChange={() => setSelectedIntervention(null)}
           interventionId={selectedIntervention.id}
           onStartWork={() => handleStartWork(selectedIntervention)}
         />

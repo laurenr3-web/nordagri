@@ -1,70 +1,60 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
 
+/**
+ * Hook to subscribe to real-time updates for equipment
+ */
 export function useEquipmentRealtime() {
-  const queryClient = useQueryClient();
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const channelRef = useRef<any>(null);
-  const isMountedRef = useRef(true);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
-    // Mark component as mounted
-    isMountedRef.current = true;
-    
-    // Create a channel for equipment changes
-    try {
-      const channel = supabase
-        .channel('equipment-changes')
-        .on('postgres_changes', 
-          { event: '*', schema: 'public', table: 'equipment' },
-          (payload) => {
-            console.log('Equipment table change detected:', payload);
-            
-            // Only process if component is still mounted
-            if (isMountedRef.current) {
-              // Invalidate queries to refresh data
-              queryClient.invalidateQueries({ queryKey: ['equipment'] });
-              
-              // If it's an update to a specific equipment, also invalidate that query
-              if (payload.new && typeof payload.new === 'object' && 'id' in payload.new) {
-                queryClient.invalidateQueries({ 
-                  queryKey: ['equipment', payload.new.id]
-                });
-              }
-            }
+    // Set up the realtime subscription
+    const channel = supabase
+      .channel('equipment-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'equipment'
+        },
+        (payload) => {
+          console.log('Realtime update for equipment:', payload);
+          
+          // Invalidate queries to refresh the equipment data
+          queryClient.invalidateQueries({ queryKey: ['equipment'] });
+          
+          // If a specific equipment is updated, also invalidate that query
+          if (payload.new && typeof payload.new === 'object' && 'id' in payload.new) {
+            queryClient.invalidateQueries({ queryKey: ['equipment', payload.new.id] });
           }
-        )
-        .subscribe((status) => {
-          console.info('Equipment realtime subscription status:', status);
-          if (isMountedRef.current) {
-            setIsSubscribed(status === 'SUBSCRIBED');
-          }
-        });
-      
-      // Store channel reference for cleanup
-      channelRef.current = channel;
-    } catch (error) {
-      console.error('Error setting up realtime subscription:', error);
-      if (isMountedRef.current) {
-        setError(error instanceof Error ? error : new Error(String(error)));
-      }
-    }
-    
-    // Cleanup function
+          
+          // Invalidate stats query
+          queryClient.invalidateQueries({ queryKey: ['equipment-stats'] });
+        }
+      )
+      .subscribe((status) => {
+        console.log('Equipment realtime subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          setIsSubscribed(true);
+          setError(null);
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('Error subscribing to equipment realtime updates');
+          setIsSubscribed(false);
+          setError(new Error('Failed to subscribe to equipment updates'));
+        } else {
+          setIsSubscribed(false);
+        }
+      });
+
+    // Clean up the subscription when the component unmounts
     return () => {
-      // Mark component as unmounted
-      isMountedRef.current = false;
-      
-      // Remove channel subscription if it exists
-      if (channelRef.current) {
-        console.info('Unsubscribing from equipment realtime updates');
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
+      console.log('Unsubscribing from equipment realtime updates');
+      supabase.removeChannel(channel);
     };
   }, [queryClient]);
 

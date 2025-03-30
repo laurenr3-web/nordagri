@@ -3,148 +3,116 @@ import React from 'react';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, Eye, ShoppingCart } from 'lucide-react';
-import { Part } from '@/types/Part';
+import { AlertCircle } from 'lucide-react';
+
+interface Part {
+  id: number;
+  name: string;
+  partNumber: string;
+  category: string;
+  compatibility: string[];
+  manufacturer: string;
+  price: number;
+  stock: number;
+  location: string;
+  reorderPoint: number;
+  image: string;
+}
 
 interface PartsGridProps {
   parts: Part[];
   openPartDetails: (part: Part) => void;
-  openOrderDialog?: (part: Part) => void;
+  openOrderDialog: (part: Part) => void;
 }
 
 const PartsGrid: React.FC<PartsGridProps> = ({ parts, openPartDetails, openOrderDialog }) => {
-  // Fonction de gestion du clic sur l'image ou le conteneur
-  const handlePartClick = (part: Part) => {
-    console.log("[PartsGrid] Clic sur la pièce:", part.name);
-    openPartDetails(part);
-  };
-  
-  // Fonction de gestion du clic sur le bouton détails
-  const handleDetailsClick = (part: Part, e: React.MouseEvent) => {
-    e.stopPropagation(); // Empêcher la propagation mais pas le comportement par défaut
-    console.log("[PartsGrid] Clic sur le bouton détails:", part.name);
-    openPartDetails(part);
-  };
-  
-  // Fonction de gestion du clic sur le bouton commande
-  const handleOrderClick = (part: Part, e: React.MouseEvent) => {
-    if (!openOrderDialog) return;
-    e.stopPropagation(); // Empêcher la propagation mais pas le comportement par défaut
-    console.log("[PartsGrid] Clic sur le bouton commande:", part.name);
-    openOrderDialog(part);
-  };
-
-  // Vérification que les parties sont disponibles
-  if (!parts || parts.length === 0) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p>Aucune pièce disponible.</p>
-      </div>
-    );
-  }
-
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {parts.map((part, index) => (
         <BlurContainer 
           key={part.id} 
-          className="overflow-hidden animate-scale-in h-full flex flex-col"
-          style={{ animationDelay: `${index * 0.05}s` } as React.CSSProperties}
-          onClick={() => handlePartClick(part)}
+          className="overflow-hidden animate-scale-in"
+          style={{ animationDelay: `${index * 0.1}s` } as React.CSSProperties}
         >
           <div 
             className="aspect-square relative overflow-hidden cursor-pointer"
+            onClick={() => openPartDetails(part)}  
           >
             <img 
-              src={part.image || 'https://placehold.co/400x400/png?text=Image+non+disponible'} 
+              src={part.image} 
               alt={part.name}
               className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = 'https://placehold.co/400x400/png?text=Image+non+disponible';
-              }}
             />
-            {part.stock <= (part.reorderPoint || 0) && (
+            {part.stock <= part.reorderPoint && (
               <div className="absolute top-2 right-2">
                 <Badge variant="destructive" className="flex items-center gap-1">
                   <AlertCircle size={12} />
-                  <span>Stock Faible</span>
+                  <span>Low Stock</span>
                 </Badge>
               </div>
             )}
           </div>
           
-          <div className="p-4 flex-1 flex flex-col">
+          <div className="p-4">
             <div className="mb-2">
               <h3 className="font-medium">{part.name}</h3>
-              <p className="text-sm text-muted-foreground">{part.partNumber || part.reference || 'Sans référence'}</p>
+              <p className="text-sm text-muted-foreground">{part.partNumber}</p>
             </div>
             
             <div className="grid grid-cols-2 gap-2 mt-4 text-sm">
               <div>
-                <p className="text-muted-foreground">Fabricant</p>
-                <p className="font-medium">{part.manufacturer || 'Non spécifié'}</p>
+                <p className="text-muted-foreground">Manufacturer</p>
+                <p className="font-medium">{part.manufacturer}</p>
               </div>
               <div>
-                <p className="text-muted-foreground">Prix</p>
-                <p className="font-medium">${(part.price || 0).toFixed(2)}</p>
+                <p className="text-muted-foreground">Price</p>
+                <p className="font-medium">${part.price.toFixed(2)}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Stock</p>
-                <p className={`font-medium ${part.stock <= (part.reorderPoint || 0) ? 'text-destructive' : ''}`}>
-                  {part.stock || 0} unités
+                <p className={`font-medium ${part.stock <= part.reorderPoint ? 'text-destructive' : ''}`}>
+                  {part.stock} units
                 </p>
               </div>
               <div>
-                <p className="text-muted-foreground">Emplacement</p>
-                <p className="font-medium">{part.location || 'Non spécifié'}</p>
+                <p className="text-muted-foreground">Location</p>
+                <p className="font-medium">{part.location}</p>
               </div>
             </div>
             
             <div className="mt-4">
-              <p className="text-xs text-muted-foreground mb-1">Compatible avec:</p>
+              <p className="text-xs text-muted-foreground mb-1">Compatible with:</p>
               <div className="flex flex-wrap gap-1">
-                {(part.compatibility || part.compatibleWith || []).length > 0 ? (
-                  <>
-                    {(part.compatibility || part.compatibleWith || []).slice(0, 2).map((equipment, i) => (
-                      <span key={i} className="text-xs bg-secondary py-1 px-2 rounded-md">
-                        {equipment}
-                      </span>
-                    ))}
-                    {(part.compatibility || part.compatibleWith || []).length > 2 && (
-                      <span className="text-xs bg-secondary py-1 px-2 rounded-md">
-                        +{(part.compatibility || part.compatibleWith || []).length - 2} de plus
-                      </span>
-                    )}
-                  </>
-                ) : (
-                  <span className="text-xs text-muted-foreground">Non spécifié</span>
+                {part.compatibility.slice(0, 2).map((equipment, i) => (
+                  <span key={i} className="text-xs bg-secondary py-1 px-2 rounded-md">
+                    {equipment}
+                  </span>
+                ))}
+                {part.compatibility.length > 2 && (
+                  <span className="text-xs bg-secondary py-1 px-2 rounded-md">
+                    +{part.compatibility.length - 2} more
+                  </span>
                 )}
               </div>
             </div>
             
-            <div className="mt-auto pt-4 border-t border-border flex justify-between">
+            <div className="mt-4 pt-4 border-t border-border flex justify-between">
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={(e) => handleDetailsClick(part, e)}
+                onClick={() => openPartDetails(part)}
                 aria-label="Voir les détails de la pièce"
-                className="flex items-center gap-1"
               >
-                <Eye size={14} />
-                Détails
+                Details
               </Button>
-              {openOrderDialog && (
-                <Button 
-                  variant="default" 
-                  size="sm" 
-                  onClick={(e) => handleOrderClick(part, e)}
-                  aria-label="Commander cette pièce"
-                  className="flex items-center gap-1"
-                >
-                  <ShoppingCart size={14} />
-                  Commander
-                </Button>
-              )}
+              <Button 
+                variant="default" 
+                size="sm" 
+                onClick={() => openOrderDialog(part)}
+                aria-label="Commander cette pièce"
+              >
+                Order
+              </Button>
             </div>
           </div>
         </BlurContainer>

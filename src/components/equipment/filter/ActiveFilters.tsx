@@ -2,7 +2,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 
 interface ActiveFiltersProps {
   filters: {
@@ -19,89 +18,80 @@ interface ActiveFiltersProps {
 }
 
 const ActiveFilters: React.FC<ActiveFiltersProps> = ({
-  filters = { status: [], type: [], manufacturer: [], year: [] },
+  filters,
   toggleFilter,
   clearFilters,
   getStatusColor,
   getStatusText,
-  activeFilterCount = 0
+  activeFilterCount
 }) => {
-  if (activeFilterCount === 0) {
-    return null;
-  }
-  
-  // Ensure all filter arrays are defined
-  const statusFilters = filters.status || [];
-  const typeFilters = filters.type || [];
-  const manufacturerFilters = filters.manufacturer || [];
+  if (activeFilterCount === 0) return null;
   
   return (
-    <div className="flex flex-wrap gap-2 mt-4">
-      {statusFilters.map(status => (
-        <Badge 
-          key={`active-status-${status}`} 
-          variant="outline"
-          className="flex items-center gap-1 pl-1"
-        >
-          <div className={`w-2 h-2 rounded-full ${getStatusColor(status)}`} />
-          <span>Status: {getStatusText(status)}</span>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-4 w-4 ml-1 hover:bg-muted rounded-full"
-            onClick={() => toggleFilter('status', status)}
-          >
-            <X className="h-2 w-2" />
-          </Button>
-        </Badge>
-      ))}
+    <div className="mt-4 flex items-center flex-wrap gap-2">
+      <span className="text-sm text-muted-foreground">Active filters:</span>
       
-      {typeFilters.map(type => (
-        <Badge 
-          key={`active-type-${type}`} 
-          variant="outline"
-          className="flex items-center gap-1"
+      {filters.status.map(status => (
+        <Button 
+          key={`status-${status}`} 
+          variant="outline" 
+          size="sm" 
+          className="h-7 text-xs gap-1"
+          onClick={() => toggleFilter('status', status)}
         >
-          <span>Type: {type}</span>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-4 w-4 ml-1 hover:bg-muted rounded-full"
-            onClick={() => toggleFilter('type', type)}
-          >
-            <X className="h-2 w-2" />
-          </Button>
-        </Badge>
-      ))}
-      
-      {manufacturerFilters.map(manufacturer => (
-        <Badge 
-          key={`active-manufacturer-${manufacturer}`} 
-          variant="outline"
-          className="flex items-center gap-1"
-        >
-          <span>Manufacturer: {manufacturer}</span>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-4 w-4 ml-1 hover:bg-muted rounded-full"
-            onClick={() => toggleFilter('manufacturer', manufacturer)}
-          >
-            <X className="h-2 w-2" />
-          </Button>
-        </Badge>
-      ))}
-      
-      {activeFilterCount > 1 && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-xs h-6"
-          onClick={clearFilters}
-        >
-          Clear all
+          <span className={`inline-block w-2 h-2 rounded-full ${getStatusColor(status)}`}></span>
+          {getStatusText(status)}
+          <X size={12} />
         </Button>
-      )}
+      ))}
+      
+      {filters.type.map(type => (
+        <Button 
+          key={`type-${type}`} 
+          variant="outline" 
+          size="sm" 
+          className="h-7 text-xs gap-1"
+          onClick={() => toggleFilter('type', type)}
+        >
+          {type}
+          <X size={12} />
+        </Button>
+      ))}
+      
+      {filters.manufacturer.map(manufacturer => (
+        <Button 
+          key={`manufacturer-${manufacturer}`} 
+          variant="outline" 
+          size="sm" 
+          className="h-7 text-xs gap-1"
+          onClick={() => toggleFilter('manufacturer', manufacturer)}
+        >
+          {manufacturer}
+          <X size={12} />
+        </Button>
+      ))}
+      
+      {filters.year.map(year => (
+        <Button 
+          key={`year-${year}`} 
+          variant="outline" 
+          size="sm" 
+          className="h-7 text-xs gap-1"
+          onClick={() => toggleFilter('year', year)}
+        >
+          {year}
+          <X size={12} />
+        </Button>
+      ))}
+      
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        className="h-7 text-xs"
+        onClick={clearFilters}
+      >
+        Clear all
+      </Button>
     </div>
   );
 };

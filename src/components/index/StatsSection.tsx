@@ -1,10 +1,20 @@
 
 import React from 'react';
 import { StatsCard } from '@/components/dashboard/StatsCard';
-import { Stat } from '@/hooks/dashboard/useDashboardData';
+
+interface StatItem {
+  title: string;
+  value: string;
+  icon: React.ReactNode;
+  description?: string;
+  trend?: {
+    value: number;
+    isPositive: boolean;
+  };
+}
 
 interface StatsSectionProps {
-  stats: Stat[];
+  stats: StatItem[];
   onStatClick: (type: string) => void;
 }
 

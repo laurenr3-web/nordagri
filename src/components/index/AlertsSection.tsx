@@ -4,7 +4,14 @@ import { Button } from '@/components/ui/button';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { DashboardSection } from '@/components/dashboard/DashboardSection';
 import { cn } from '@/lib/utils';
-import { AlertItem } from '@/hooks/dashboard/useDashboardData';
+
+interface AlertItem {
+  id: number;
+  severity: 'high' | 'medium' | 'low';
+  message: string;
+  time: string;
+  equipment: string;
+}
 
 interface AlertsSectionProps {
   alerts: AlertItem[];

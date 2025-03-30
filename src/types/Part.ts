@@ -12,20 +12,17 @@ export interface Part {
   reorderPoint: number;
   image: string;
   
-  // Champs optionnels avec types cohérents
+  // Champs pour la rétrocompatibilité
   description?: string;
+  reference?: string;
+  compatibleWith?: string[];
   purchasePrice?: number;
-  estimatedPrice?: number | null;
+  quantity?: number;
+  minimumStock?: number;
+  estimatedPrice?: number | string | null;
   inStock?: boolean;
   isFromSearch?: boolean;
-  
-  // Champs pour la compatibilité avec d'autres parties du code
-  // Ces champs sont dépréciés et devraient à terme être supprimés
-  reference?: string;        // utiliser partNumber à la place
-  compatibleWith?: string[]; // utiliser compatibility à la place
-  quantity?: number;         // utiliser stock à la place
-  minimumStock?: number;     // utiliser reorderPoint à la place
-  imageUrl?: string | null;  // utiliser image à la place
+  imageUrl?: string | null;
 }
 
 export interface PartPriceInfo {
@@ -49,33 +46,4 @@ export interface PartFilter {
   manufacturer?: string;
   inStock?: boolean;
   searchTerm?: string;
-}
-
-// Technical info interface for part search
-export interface PartTechnicalInfo {
-  id?: string | number;
-  name?: string;
-  reference?: string;
-  description?: string;
-  category?: string;
-  manufacturer?: string;
-  compatibility?: string[];
-  compatibleWith?: string[];
-  price?: number | string;
-  imageUrl?: string;
-  stock?: number;
-  minimumStock?: number;
-  location?: string;
-}
-
-// Price information interface
-export interface PriceItem {
-  vendor: string;
-  price: number | string;
-  currency: string;
-  url: string;
-  availability: string;
-  shipping?: number | string;
-  deliveryTime?: string;
-  condition?: string;
 }

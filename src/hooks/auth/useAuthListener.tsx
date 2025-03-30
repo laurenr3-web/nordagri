@@ -3,7 +3,6 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchUserProfile } from './useProfileData';
-import { toast } from 'sonner';
 
 /**
  * Hook to listen for authentication state changes
@@ -19,49 +18,32 @@ export function useAuthListener(
   const location = useLocation();
 
   useEffect(() => {
-    // Set up auth state change subscription
+    // Configurer l'abonnement aux changements d'état d'authentification
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      // Synchronous state updates
+      // Mise à jour synchrone de l'état
       setSession(session);
       setUser(session?.user ?? null);
       
-      // Handle authentication events
+      // Si l'utilisateur vient de se connecter, récupérer ses données de profil
       if (session?.user && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
-        // Use setTimeout to avoid potential auth deadlocks
+        // Utilisez setTimeout pour éviter les blocages potentiels
         setTimeout(() => {
           fetchUserProfile(session.user.id).then(data => {
-            if (data) {
-              setProfileData(data);
-            } else {
-              toast.error("Erreur de profil", {
-                description: "Impossible de charger vos données de profil",
-              });
-            }
-          }).catch(error => {
-            console.error('Profile fetch error:', error);
-            toast.error("Erreur de profil", {
-              description: "Une erreur est survenue lors du chargement du profil",
-            });
+            setProfileData(data);
           });
         }, 0);
         
-        // Handle redirect after authentication if needed
         if (redirectTo && location.pathname === '/auth') {
           navigate(redirectTo, { replace: true });
         } 
-      } else if (event === 'SIGNED_OUT') {
-        // Clear profile data on sign out
-        setProfileData(null);
-        
-        // Redirect to auth page if authentication is required
-        if (requireAuth) {
-          const returnPath = location.pathname + location.search;
-          navigate(`/auth?returnTo=${encodeURIComponent(returnPath)}`, { replace: true });
-        }
+      } else if (requireAuth && !session && event === 'SIGNED_OUT') {
+        // L'utilisateur s'est déconnecté et cette route nécessite une authentification
+        const returnPath = location.pathname + location.search;
+        navigate(`/auth?returnTo=${encodeURIComponent(returnPath)}`, { replace: true });
       }
     });
     
-    // Clean up subscription when component unmounts
+    // Nettoyer l'abonnement lorsque le composant est démonté
     return () => {
       authListener.subscription.unsubscribe();
     };

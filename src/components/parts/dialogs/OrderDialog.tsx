@@ -5,7 +5,20 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Check } from 'lucide-react';
-import { Part } from '@/types/Part';
+
+interface Part {
+  id: number;
+  name: string;
+  partNumber: string;
+  category: string;
+  compatibility: string[];
+  manufacturer: string;
+  price: number;
+  stock: number;
+  location: string;
+  reorderPoint: number;
+  image: string;
+}
 
 interface OrderDialogProps {
   isOpen: boolean;
@@ -57,14 +70,14 @@ const OrderDialog: React.FC<OrderDialogProps> = ({
                 <div className="flex items-center gap-4">
                   <div className="h-16 w-16 rounded-md overflow-hidden flex-shrink-0">
                     <img 
-                      src={selectedPart.image || selectedPart.imageUrl || ''} 
+                      src={selectedPart.image} 
                       alt={selectedPart.name}
                       className="w-full h-full object-cover"
                     />
                   </div>
                   <div>
                     <h3 className="font-medium">{selectedPart.name}</h3>
-                    <p className="text-sm text-muted-foreground">{selectedPart.partNumber || selectedPart.reference}</p>
+                    <p className="text-sm text-muted-foreground">{selectedPart.partNumber}</p>
                     <p className="text-sm">${selectedPart.price.toFixed(2)} per unit</p>
                   </div>
                 </div>
@@ -76,7 +89,7 @@ const OrderDialog: React.FC<OrderDialogProps> = ({
                   id="quantity" 
                   type="number" 
                   min="1" 
-                  value={orderQuantity}
+                  value={orderQuantity} 
                   onChange={(e) => setOrderQuantity(e.target.value)}
                 />
               </div>

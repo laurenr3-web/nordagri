@@ -1,26 +1,17 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { useTasksManager } from '@/hooks/maintenance/useTasksManager';
 import { maintenanceTasks } from '@/data/maintenanceData';
 import NewTaskDialog from '@/components/maintenance/NewTaskDialog';
 import MaintenanceHeader from '@/components/maintenance/MaintenanceHeader';
 import MaintenanceContent from '@/components/maintenance/MaintenanceContent';
-import ErrorBoundary from '@/components/ErrorBoundary';
-import { SidebarProvider } from '@/components/ui/sidebar/sidebar-context';
-import { Sidebar } from '@/components/ui/sidebar/sidebar';
-import { useMaintenanceRealtime } from '@/hooks/maintenance/useMaintenanceRealtime';
-import { cleanupOrphanedPortals } from '@/utils/dom-helpers';
+import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 
 const Maintenance = () => {
-  // Utiliser des références stables pour éviter les re-renders inutiles
-  const [currentView, setCurrentView] = React.useState('upcoming');
-  const [currentMonth] = React.useState(new Date());
-  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(undefined);
-  const [isNewTaskDialogOpen, setIsNewTaskDialogOpen] = React.useState(false);
-  
-  // Initialize realtime subscription
-  useMaintenanceRealtime();
+  const [currentView, setCurrentView] = useState('upcoming');
+  const [currentMonth] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   
   const {
     tasks, 
@@ -32,72 +23,61 @@ const Maintenance = () => {
     deleteTask
   } = useTasksManager(maintenanceTasks);
 
-  // Réaliser le nettoyage des portails orphelins au chargement et déchargement
-  React.useEffect(() => {
-    // Nettoyer les portails orphelins au chargement
-    cleanupOrphanedPortals();
-    
-    // Nettoyer les portails orphelins au déchargement
-    return () => {
-      cleanupOrphanedPortals();
-    };
-  }, []);
+  const [isNewTaskDialogOpen, setIsNewTaskDialogOpen] = useState(false);
 
-  // Handle open/close new task dialog avec useCallback pour stabilité des refs
-  const handleOpenNewTaskDialog = React.useCallback((open: boolean) => {
+  // Handle opening dialog with a preselected date
+  const handleOpenNewTaskDialog = (open: boolean) => {
     if (!open) {
       setSelectedDate(undefined);
     }
     setIsNewTaskDialogOpen(open);
-  }, []);
+  };
 
-  // Handle adding a task avec useCallback pour stabilité des refs
-  const handleAddTask = React.useCallback((formData: any) => {
+  const handleAddTask = (formData: any) => {
     console.log('Adding task in Maintenance component:', formData);
     return addTask(formData);
-  }, [addTask]);
+  };
+
+  useEffect(() => {
+    console.log('Maintenance component loaded with tasks:', tasks);
+  }, [tasks]);
 
   return (
-    <ErrorBoundary>
+    <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
-        <SidebarProvider defaultOpen={true}>
-          <Sidebar className="border-r">
-            <Navbar />
-          </Sidebar>
-          
-          <div className="flex-1 w-full">
-            <div className="pt-6 pb-16 px-4 sm:px-8 md:px-12">
-              <div className="max-w-7xl mx-auto">
-                <MaintenanceHeader 
-                  setIsNewTaskDialogOpen={setIsNewTaskDialogOpen} 
-                />
-                
-                <MaintenanceContent 
-                  tasks={tasks}
-                  currentView={currentView}
-                  setCurrentView={setCurrentView}
-                  currentMonth={currentMonth}
-                  setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
-                  updateTaskStatus={updateTaskStatus}
-                  updateTaskPriority={updateTaskPriority}
-                  deleteTask={deleteTask}
-                />
-              </div>
+        <Sidebar className="border-r">
+          <Navbar />
+        </Sidebar>
+        
+        <div className="flex-1 w-full">
+          <div className="pt-6 pb-16 px-4 sm:px-8 md:px-12">
+            <div className="max-w-7xl mx-auto">
+              <MaintenanceHeader 
+                setIsNewTaskDialogOpen={setIsNewTaskDialogOpen} 
+              />
+              
+              <MaintenanceContent 
+                tasks={tasks}
+                currentView={currentView}
+                setCurrentView={setCurrentView}
+                currentMonth={currentMonth}
+                setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
+                updateTaskStatus={updateTaskStatus}
+                updateTaskPriority={updateTaskPriority}
+                deleteTask={deleteTask}
+              />
             </div>
           </div>
-        </SidebarProvider>
-          
-        {/* Conditionally render dialog to prevent unmounting issues */}
-        {isNewTaskDialogOpen && (
-          <NewTaskDialog 
-            open={isNewTaskDialogOpen}
-            onOpenChange={handleOpenNewTaskDialog}
-            onSubmit={handleAddTask}
-            initialDate={selectedDate}
-          />
-        )}
+        </div>
       </div>
-    </ErrorBoundary>
+      
+      <NewTaskDialog 
+        open={isNewTaskDialogOpen}
+        onOpenChange={handleOpenNewTaskDialog}
+        onSubmit={handleAddTask}
+        initialDate={selectedDate}
+      />
+    </SidebarProvider>
   );
 };
 

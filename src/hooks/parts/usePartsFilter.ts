@@ -1,42 +1,18 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Part } from '@/types/Part';
 
 export type PartsView = 'grid' | 'list';
 
 export const usePartsFilter = () => {
-  // Récupérer la préférence d'affichage depuis le localStorage lors de l'initialisation
-  const getInitialView = (): PartsView => {
-    if (typeof window !== 'undefined') {
-      const savedView = localStorage.getItem('partsView');
-      return (savedView === 'list' || savedView === 'grid') ? savedView as PartsView : 'grid';
-    }
-    return 'grid';
-  };
-
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [currentView, setCurrentView] = useState<PartsView>(getInitialView());
+  const [currentView, setCurrentView] = useState<PartsView>('grid');
   const [filterManufacturers, setFilterManufacturers] = useState<string[]>([]);
   const [filterMinPrice, setFilterMinPrice] = useState<string>('');
   const [filterMaxPrice, setFilterMaxPrice] = useState<string>('');
   const [filterInStock, setFilterInStock] = useState<boolean>(false);
   const [sortBy, setSortBy] = useState<string>('name-asc');
-
-  // Persister la vue dans localStorage quand elle change
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('partsView', currentView);
-    }
-  }, [currentView]);
-
-  // Fonction pour changer la vue qui inclut la persistance
-  const handleViewChange = (view: PartsView) => {
-    setCurrentView(view);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('partsView', view);
-    }
-  };
 
   // Calculate filter count for badge
   const getFilterCount = () => {
@@ -112,7 +88,7 @@ export const usePartsFilter = () => {
     selectedCategory,
     setSelectedCategory,
     currentView,
-    setCurrentView: handleViewChange, // Utiliser la fonction personnalisée
+    setCurrentView,
     filterManufacturers,
     setFilterManufacturers,
     filterMinPrice,

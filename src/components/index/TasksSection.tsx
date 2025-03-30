@@ -5,7 +5,15 @@ import { BlurContainer } from '@/components/ui/blur-container';
 import { DashboardSection } from '@/components/dashboard/DashboardSection';
 import { Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { TaskItem } from '@/hooks/dashboard/useDashboardData';
+
+interface TaskItem {
+  id: number;
+  title: string;
+  equipment: string;
+  due: string;
+  priority: 'high' | 'medium' | 'low';
+  assignee: string;
+}
 
 interface TasksSectionProps {
   tasks: TaskItem[];

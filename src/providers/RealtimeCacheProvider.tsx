@@ -1,89 +1,71 @@
 
-import React, { createContext, useContext, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, ReactNode } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useSupabaseRealtime } from '@/hooks/useSupabaseRealtime';
-import { toast } from 'sonner';
+import { useToast } from '@/hooks/use-toast';
 
-// Define the shape of our context
 interface RealtimeCacheContextType {
-  // Track subscriptions status for different resources
-  subscriptions: {
+  isRealtimeEnabled: boolean;
+  realtimeStatus: {
     equipment: { isSubscribed: boolean; error: Error | null };
     parts: { isSubscribed: boolean; error: Error | null };
     maintenance: { isSubscribed: boolean; error: Error | null };
-    interventions: { isSubscribed: boolean; error: Error | null };
     allSubscribed: boolean;
   };
 }
 
-// Create context with default values
-const RealtimeCacheContext = createContext<RealtimeCacheContextType>({
-  subscriptions: {
-    equipment: { isSubscribed: false, error: null },
-    parts: { isSubscribed: false, error: null },
-    maintenance: { isSubscribed: false, error: null },
-    interventions: { isSubscribed: false, error: null },
-    allSubscribed: false,
-  },
-});
+const RealtimeCacheContext = createContext<RealtimeCacheContextType | undefined>(undefined);
 
-// Provider component
-export const RealtimeCacheProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Use the custom hook to set up realtime subscriptions
+export function useRealtimeCache() {
+  const context = useContext(RealtimeCacheContext);
+  if (!context) {
+    throw new Error('useRealtimeCache must be used within a RealtimeCacheProvider');
+  }
+  return context;
+}
+
+interface RealtimeCacheProviderProps {
+  children: ReactNode;
+}
+
+export function RealtimeCacheProvider({ children }: RealtimeCacheProviderProps) {
   const realtimeStatus = useSupabaseRealtime();
-  
-  // Show toast notification when everything is successfully connected
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  // Initialize realtime status
   useEffect(() => {
     if (realtimeStatus.allSubscribed) {
-      console.log('✅ Successfully connected to Supabase');
-      toast.success('Connecté au serveur', {
-        description: 'Vous recevrez les mises à jour en temps réel',
-        duration: 3000,
+      console.log('All realtime subscriptions active');
+      toast({
+        title: 'Synchronisation active',
+        description: 'Toutes les données sont synchronisées en temps réel',
       });
     }
-  }, [realtimeStatus.allSubscribed]);
-  
-  // Show error notification if any subscription fails
-  useEffect(() => {
-    const errors = [
-      realtimeStatus.equipment.error,
-      realtimeStatus.parts.error,
-      realtimeStatus.maintenance.error,
-      realtimeStatus.interventions.error,
-    ].filter(Boolean);
-    
-    if (errors.length > 0) {
-      console.error('⚠️ Error connecting to realtime:', errors);
-      toast.error('Problème de connexion', {
-        description: 'Certaines mises à jour en temps réel peuvent être indisponibles',
-      });
-    }
-  }, [
-    realtimeStatus.equipment.error, 
-    realtimeStatus.parts.error,
-    realtimeStatus.maintenance.error,
-    realtimeStatus.interventions.error
-  ]);
+  }, [realtimeStatus.allSubscribed, toast]);
 
-  // Context value
-  const contextValue = {
-    subscriptions: {
-      equipment: { 
-        isSubscribed: realtimeStatus.equipment.isSubscribed,
-        error: realtimeStatus.equipment.error || null
+  // Configure global cache settings
+  useEffect(() => {
+    // Set up global query client defaults
+    queryClient.setDefaultOptions({
+      queries: {
+        staleTime: 1000 * 60 * 5, // 5 minutes
+        gcTime: 1000 * 60 * 30, // 30 minutes (anciennement cacheTime)
+        refetchOnWindowFocus: true,
+        refetchOnReconnect: true,
+        retry: 3,
       },
-      parts: realtimeStatus.parts,
-      maintenance: realtimeStatus.maintenance,
-      interventions: realtimeStatus.interventions,
-      allSubscribed: realtimeStatus.allSubscribed
-    },
+    });
+  }, [queryClient]);
+
+  const value: RealtimeCacheContextType = {
+    isRealtimeEnabled: true,
+    realtimeStatus,
   };
 
   return (
-    <RealtimeCacheContext.Provider value={contextValue}>
+    <RealtimeCacheContext.Provider value={value}>
       {children}
     </RealtimeCacheContext.Provider>
   );
-};
-
-// Custom hook to use the context
-export const useRealtimeCache = () => useContext(RealtimeCacheContext);
+}

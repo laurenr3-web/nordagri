@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, useEffect, memo } from 'react';
+import React from 'react';
 import { Equipment } from '@/services/supabase/equipmentService';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -14,8 +14,7 @@ interface EquipmentPartsProps {
   equipment: Equipment;
 }
 
-// Utiliser memo pour éviter les re-rendus inutiles
-const EquipmentParts: React.FC<EquipmentPartsProps> = memo(({ equipment }) => {
+const EquipmentParts: React.FC<EquipmentPartsProps> = ({ equipment }) => {
   const {
     parts,
     loading,
@@ -31,16 +30,6 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = memo(({ equipment }) => {
     isUpdating
   } = useEquipmentParts(equipment);
 
-  // Ajouter un état local pour suivre la fermeture du dialogue
-  const [isDialogClosing, setIsDialogClosing] = useState(false);
-
-  // Nettoyage lors du démontage
-  useEffect(() => {
-    return () => {
-      // Nettoyer les ressources si nécessaire
-    };
-  }, []);
-
   if (loading) {
     return <EquipmentPartsLoading />;
   }
@@ -48,32 +37,6 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = memo(({ equipment }) => {
   if (error) {
     return <EquipmentPartsError error={error} />;
   }
-  
-  // Gestionnaire d'état de dialogue optimisé avec useCallback
-  const handleDialogOpenChange = useCallback((open: boolean) => {
-    if (!open) {
-      // D'abord marquer comme fermant pour déclencher l'animation
-      setIsDialogClosing(true);
-      
-      // Puis définir l'état réel après la fin de l'animation
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          setIsEditDialogOpen(false);
-          setIsDialogClosing(false);
-        }, 300);
-      });
-    } else {
-      setIsEditDialogOpen(true);
-      setIsDialogClosing(false);
-    }
-  }, [setIsEditDialogOpen]);
-
-  // Traitement optimisé pour la mise à jour des pièces
-  const handlePartUpdatedOptimized = useCallback((updatedPart) => {
-    handlePartUpdated(updatedPart);
-    // Fermer le dialogue de manière optimisée
-    setTimeout(() => handleDialogOpenChange(false), 100);
-  }, [handlePartUpdated, handleDialogOpenChange]);
 
   return (
     <Card>
@@ -90,11 +53,8 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = memo(({ equipment }) => {
           onEditPart={handleEditPart}
         />
 
-        {/* Dialogue pour modifier une pièce - implémentation plus performante */}
-        <Dialog 
-          open={isEditDialogOpen && !isDialogClosing} 
-          onOpenChange={handleDialogOpenChange}
-        >
+        {/* Dialog pour modifier une pièce */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
@@ -104,9 +64,8 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = memo(({ equipment }) => {
             {selectedPart && (
               <EditPartForm 
                 part={selectedPart} 
-                onSubmit={handlePartUpdatedOptimized}
-                onCancel={() => handleDialogOpenChange(false)}
-                onMainDialogClose={() => handleDialogOpenChange(false)}
+                onSubmit={handlePartUpdated}
+                onCancel={() => setIsEditDialogOpen(false)}
               />
             )}
           </DialogContent>
@@ -114,8 +73,6 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = memo(({ equipment }) => {
       </CardContent>
     </Card>
   );
-});
-
-EquipmentParts.displayName = 'EquipmentParts';
+};
 
 export default EquipmentParts;

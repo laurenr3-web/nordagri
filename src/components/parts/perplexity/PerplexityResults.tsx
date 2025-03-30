@@ -2,10 +2,11 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TechnicalInfoDisplay } from '../displays/TechnicalInfoDisplay';
-import PriceComparisonTab from '../PriceComparisonTab';
+import { PriceComparisonDisplay } from '../displays/PriceComparisonDisplay';
 
 interface PerplexityResultsProps {
   results: {
+    priceData: any[] | null;
     technicalInfo: any | null;
   };
   searchQuery: string;
@@ -25,7 +26,7 @@ const PerplexityResults: React.FC<PerplexityResultsProps> = ({
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-6">
       <TabsList className="w-full justify-start">
         <TabsTrigger value="technical">Informations techniques</TabsTrigger>
-        <TabsTrigger value="prices-openai">Comparaison de prix (OpenAI)</TabsTrigger>
+        <TabsTrigger value="prices">Comparaison de prix</TabsTrigger>
       </TabsList>
       <TabsContent value="technical">
         <TechnicalInfoDisplay 
@@ -34,10 +35,8 @@ const PerplexityResults: React.FC<PerplexityResultsProps> = ({
           onRetryWithManufacturer={onRetryWithManufacturer}
         />
       </TabsContent>
-      <TabsContent value="prices-openai">
-        <PriceComparisonTab 
-          partNumber={searchQuery}
-        />
+      <TabsContent value="prices">
+        <PriceComparisonDisplay data={results.priceData} />
       </TabsContent>
     </Tabs>
   );

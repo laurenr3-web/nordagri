@@ -27,8 +27,7 @@ const Index = () => {
               
               <ViewManager 
                 currentView={currentView} 
-                currentMonth={currentMonth}
-                setCurrentView={setCurrentView}
+                currentMonth={currentMonth} 
               />
             </div>
           </div>

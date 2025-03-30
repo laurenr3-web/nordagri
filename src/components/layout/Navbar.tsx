@@ -1,66 +1,76 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Home, BarChart, Settings, Truck, Package, ListChecks } from 'lucide-react';
 
-export const navItems = [
+import React from 'react';
+import {
+  LayoutDashboard,
+  Tractor,
+  Wrench,
+  Package,
+  ClipboardList,
+} from 'lucide-react';
+import { NavLink } from 'react-router-dom';
+import { useSidebar } from '@/components/ui/sidebar';
+
+interface NavItem {
+  title: string;
+  href: string;
+  icon: React.ForwardRefExoticComponent<
+    React.PropsWithoutRef<React.SVGProps<SVGSVGElement>> & {
+      title?: string | undefined;
+      titleId?: string | undefined;
+    } & React.RefAttributes<SVGSVGElement>
+  >;
+}
+
+export const navItems: NavItem[] = [
   {
-    href: '/',
-    title: 'Dashboard',
-    icon: Home,
+    title: "Tableau de bord",
+    href: "/",
+    icon: LayoutDashboard,
   },
   {
-    href: '/equipment',
-    title: 'Equipment',
-    icon: Truck,
+    title: "Équipements",
+    href: "/equipment",
+    icon: Tractor,
   },
   {
-    href: '/maintenance',
-    title: 'Maintenance',
-    icon: ListChecks,
+    title: "Maintenance",
+    href: "/maintenance",
+    icon: Wrench,
   },
   {
-    href: '/parts',
-    title: 'Parts',
+    title: "Pièces",
+    href: "/parts",
     icon: Package,
   },
   {
-    href: '/interventions',
-    title: 'Interventions',
-    icon: BarChart,
-  },
-  {
-    href: '/settings',
-    title: 'Settings',
-    icon: Settings,
+    title: "Interventions",
+    href: "/interventions",
+    icon: ClipboardList,
   },
 ];
 
-const Navbar = () => {
-  const location = useLocation();
-  
+const Navbar: React.FC = () => {
+  const { openMobile, setOpenMobile } = useSidebar();
+
   return (
-    <nav className="w-full">
-      <div className="px-4 py-4">
-        <div className="text-xl font-bold mb-6">Agri ERP Insight</div>
-        <div className="space-y-1">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                to={item.href}
-                className={`flex items-center px-3 py-2 text-sm rounded-md transition-colors ${
-                  isActive 
-                    ? 'bg-secondary text-secondary-foreground' 
-                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
-                }`}
-              >
-                {item.title}
-              </Link>
-            );
-          })}
-        </div>
-      </div>
+    <nav className="flex flex-col space-y-0.5">
+      {navItems.map((item) => (
+        <NavLink
+          key={item.href}
+          to={item.href}
+          className={({ isActive }) =>
+            `group flex items-center space-x-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-secondary hover:text-foreground ${
+              isActive
+                ? 'bg-secondary text-foreground font-bold'
+                : 'text-muted-foreground'
+            }`
+          }
+          onClick={() => openMobile ? setOpenMobile(false) : null}
+        >
+          <item.icon className="h-4 w-4" />
+          <span>{item.title}</span>
+        </NavLink>
+      ))}
     </nav>
   );
 };
