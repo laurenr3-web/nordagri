@@ -18,13 +18,13 @@ interface EquipmentDetailsProps {
 const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment }) => {
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
+      <Card className="overflow-hidden border-2 border-primary/10">
+        <CardHeader className="bg-primary/10">
           <CardTitle>Informations générales</CardTitle>
           <CardDescription>Détails de base de l'équipement</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
             <div>
               <h4 className="text-sm font-medium text-muted-foreground mb-1">Nom</h4>
               <p className="text-lg font-medium">{equipment.name}</p>
@@ -85,14 +85,14 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment }) => {
       </Card>
       
       {equipment.notes && (
-        <Card>
-          <CardHeader>
+        <Card className="overflow-hidden border-2 border-muted/20">
+          <CardHeader className="bg-muted/10">
             <CardTitle>Notes</CardTitle>
             <CardDescription>Informations supplémentaires sur cet équipement</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="prose prose-sm max-w-none">
-              <p>{equipment.notes}</p>
+            <div className="prose prose-sm max-w-none mt-4">
+              <p className="whitespace-pre-wrap">{equipment.notes}</p>
             </div>
           </CardContent>
         </Card>

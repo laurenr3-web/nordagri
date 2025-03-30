@@ -8,6 +8,8 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { equipmentService } from '@/services/supabase/equipmentService';
 import EquipmentImageGallery from './details/EquipmentImageGallery';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface EquipmentDetailsProps {
   equipment: EquipmentItem;
@@ -71,69 +73,91 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
       <Separator />
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-6">
+        <div>
           <EquipmentImageGallery equipment={localEquipment} />
         </div>
         
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-card rounded-lg border p-4">
-              <h3 className="font-medium mb-2">Informations de base</h3>
-              <dl className="space-y-2">
-                <div>
-                  <dt className="text-sm text-muted-foreground">Nom</dt>
-                  <dd>{localEquipment.name}</dd>
+        <div className="grid grid-cols-1 gap-6">
+          <Card className="overflow-hidden border-2 border-primary/10">
+            <div className="bg-primary/10 px-6 py-4">
+              <h2 className="text-2xl font-bold text-primary">Informations de base</h2>
+            </div>
+            <CardContent className="p-0">
+              <dl className="divide-y">
+                <div className="grid grid-cols-3 px-6 py-4">
+                  <dt className="text-sm font-medium text-muted-foreground">Nom</dt>
+                  <dd className="col-span-2 text-lg font-semibold">{localEquipment.name}</dd>
                 </div>
-                <div>
-                  <dt className="text-sm text-muted-foreground">Type</dt>
-                  <dd>{localEquipment.type}</dd>
+                <div className="grid grid-cols-3 px-6 py-4">
+                  <dt className="text-sm font-medium text-muted-foreground">Type</dt>
+                  <dd className="col-span-2">{localEquipment.type}</dd>
                 </div>
-                <div>
-                  <dt className="text-sm text-muted-foreground">Fabricant</dt>
-                  <dd>{localEquipment.manufacturer}</dd>
+                <div className="grid grid-cols-3 px-6 py-4">
+                  <dt className="text-sm font-medium text-muted-foreground">Fabricant</dt>
+                  <dd className="col-span-2">{localEquipment.manufacturer || "-"}</dd>
                 </div>
-                <div>
-                  <dt className="text-sm text-muted-foreground">Modèle</dt>
-                  <dd>{localEquipment.model || "-"}</dd>
+                <div className="grid grid-cols-3 px-6 py-4">
+                  <dt className="text-sm font-medium text-muted-foreground">Modèle</dt>
+                  <dd className="col-span-2">{localEquipment.model || "-"}</dd>
                 </div>
-                <div>
-                  <dt className="text-sm text-muted-foreground">Année</dt>
-                  <dd>{localEquipment.year || "-"}</dd>
+                <div className="grid grid-cols-3 px-6 py-4">
+                  <dt className="text-sm font-medium text-muted-foreground">Année</dt>
+                  <dd className="col-span-2">{localEquipment.year || "-"}</dd>
                 </div>
               </dl>
+            </CardContent>
+          </Card>
+          
+          <Card className="overflow-hidden border-2 border-secondary/20">
+            <div className="bg-secondary/20 px-6 py-4">
+              <h2 className="text-2xl font-bold text-secondary-foreground">Détails techniques</h2>
             </div>
-            
-            <div className="bg-card rounded-lg border p-4">
-              <h3 className="font-medium mb-2">Détails techniques</h3>
-              <dl className="space-y-2">
-                <div>
-                  <dt className="text-sm text-muted-foreground">Numéro de série</dt>
-                  <dd>{localEquipment.serialNumber || "-"}</dd>
+            <CardContent className="p-0">
+              <dl className="divide-y">
+                <div className="grid grid-cols-3 px-6 py-4">
+                  <dt className="text-sm font-medium text-muted-foreground">Numéro de série</dt>
+                  <dd className="col-span-2">{localEquipment.serialNumber || "-"}</dd>
                 </div>
-                <div>
-                  <dt className="text-sm text-muted-foreground">Statut</dt>
-                  <dd className="capitalize">{localEquipment.status}</dd>
+                <div className="grid grid-cols-3 px-6 py-4">
+                  <dt className="text-sm font-medium text-muted-foreground">Statut</dt>
+                  <dd className="col-span-2">
+                    <Badge variant={
+                      localEquipment.status === 'operational' ? 'success' :
+                      localEquipment.status === 'maintenance' ? 'warning' :
+                      localEquipment.status === 'broken' ? 'destructive' : 'secondary'
+                    }>
+                      {localEquipment.status}
+                    </Badge>
+                  </dd>
                 </div>
-                <div>
-                  <dt className="text-sm text-muted-foreground">Emplacement</dt>
-                  <dd>{localEquipment.location || "-"}</dd>
+                <div className="grid grid-cols-3 px-6 py-4">
+                  <dt className="text-sm font-medium text-muted-foreground">Emplacement</dt>
+                  <dd className="col-span-2">{localEquipment.location || "-"}</dd>
                 </div>
-                <div>
-                  <dt className="text-sm text-muted-foreground">Date d'achat</dt>
-                  <dd>{localEquipment.purchaseDate 
-                    ? new Date(localEquipment.purchaseDate).toLocaleDateString() 
+                <div className="grid grid-cols-3 px-6 py-4">
+                  <dt className="text-sm font-medium text-muted-foreground">Date d'achat</dt>
+                  <dd className="col-span-2">{localEquipment.purchaseDate 
+                    ? new Date(localEquipment.purchaseDate).toLocaleDateString('fr-FR', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      }) 
                     : "-"}
                   </dd>
                 </div>
               </dl>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
           
           {localEquipment.notes && (
-            <div className="bg-card rounded-lg border p-4">
-              <h3 className="font-medium mb-2">Notes</h3>
-              <p className="text-sm whitespace-pre-wrap">{localEquipment.notes}</p>
-            </div>
+            <Card className="overflow-hidden border-2 border-muted/20">
+              <div className="bg-muted/20 px-6 py-4">
+                <h2 className="text-2xl font-bold text-foreground">Notes</h2>
+              </div>
+              <CardContent className="p-6">
+                <p className="whitespace-pre-wrap">{localEquipment.notes}</p>
+              </CardContent>
+            </Card>
           )}
         </div>
       </div>
