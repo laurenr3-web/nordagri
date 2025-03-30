@@ -1,4 +1,3 @@
-
 # Repository Cleanup Guide
 
 Ce document contient des instructions pour nettoyer le dépôt en éliminant les fichiers et dossiers non utilisés ainsi que pour améliorer la qualité du code.
@@ -14,6 +13,7 @@ Ajoutez ces scripts à votre fichier `package.json` pour simplifier l'utilisatio
     "analyze:json": "node scripts/analyze-imports.js --json",
     "cleanup": "node scripts/safe-cleanup.js",
     "cleanup:auto": "node scripts/safe-cleanup.js --auto",
+    "report": "node scripts/generate-cleanup-report.js",
     "precleanup": "npm run test",
     "postcleanup": "npm run build"
   }
@@ -33,6 +33,9 @@ npm run analyze
 
 # Générer un rapport JSON des fichiers non utilisés
 npm run analyze:json
+
+# Générer un rapport Markdown complet sur le nettoyage nécessaire
+npm run report
 
 # Supprimer automatiquement les fichiers non utilisés (ATTENTION: destructif)
 npm run cleanup
@@ -73,6 +76,14 @@ npm run analyze
 ```
 
 Ce script analysera l'arborescence des imports à partir des points d'entrée de l'application et identifiera les fichiers qui ne sont pas importés.
+
+Vous pouvez également générer un rapport complet au format Markdown:
+
+```bash
+npm run report
+```
+
+Ce rapport fournit une vue d'ensemble des fichiers non utilisés, leur répartition par dossier, et des recommandations pour le nettoyage.
 
 ### Options avancées
 
