@@ -9,9 +9,11 @@ import MaintenanceContent from '@/components/maintenance/MaintenanceContent';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 
 const Maintenance = () => {
+  // Always initialize all hooks first, before any conditional logic
   const [currentView, setCurrentView] = useState('upcoming');
   const [currentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [isNewTaskDialogOpen, setIsNewTaskDialogOpen] = useState(false);
   
   const {
     tasks, 
@@ -22,8 +24,6 @@ const Maintenance = () => {
     updateTaskPriority,
     deleteTask
   } = useTasksManager(maintenanceTasks);
-
-  const [isNewTaskDialogOpen, setIsNewTaskDialogOpen] = useState(false);
 
   // Handle opening dialog with a preselected date
   const handleOpenNewTaskDialog = (open: boolean) => {
