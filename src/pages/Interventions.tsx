@@ -8,31 +8,21 @@ import InterventionDetailsDialog from '@/components/interventions/InterventionDe
 import { toast } from "@/hooks/use-toast";
 import { Button } from '@/components/ui/button';
 import { Plus, FileText, BarChart3, Download } from 'lucide-react';
+import { Intervention } from '@/types/Intervention';
 
-interface Intervention {
-  id: number;
-  title: string;
-  equipment: string;
-  equipmentId: number;
-  location: string;
-  technician: string;
-  date: Date;
-  scheduledDuration: number;
-  duration?: number;
-  priority: 'high' | 'medium' | 'low';
-  status: 'scheduled' | 'in-progress' | 'completed' | 'canceled';
-  description?: string;
-  notes?: string;
-  partsUsed?: { id: number; name: string; quantity: number; }[];
+// Using the Intervention type from types file
+interface InterventionWithCoordinates extends Intervention {
+  // Add any missing properties needed if the imported type isn't complete
 }
 
-const sampleInterventions: Intervention[] = [
+const sampleInterventions: InterventionWithCoordinates[] = [
   {
     id: 1,
     title: 'Réparation du moteur',
     equipment: 'Tracteur John Deere',
     equipmentId: 123,
     location: 'Champ principal',
+    coordinates: { lat: 48.8566, lng: 2.3522 },
     technician: 'Jean Dupont',
     date: new Date(2024, 5, 20),
     scheduledDuration: 8,
@@ -48,6 +38,7 @@ const sampleInterventions: Intervention[] = [
     equipment: 'Moissonneuse-batteuse Claas',
     equipmentId: 456,
     location: 'Hangar principal',
+    coordinates: { lat: 48.8566, lng: 2.3522 },
     technician: 'Sophie Martin',
     date: new Date(2024, 5, 22),
     scheduledDuration: 4,
@@ -63,6 +54,7 @@ const sampleInterventions: Intervention[] = [
     equipment: 'Remorque agricole',
     equipmentId: 789,
     location: 'Atelier',
+    coordinates: { lat: 48.8566, lng: 2.3522 },
     technician: 'Pierre Leclerc',
     date: new Date(2024, 5, 25),
     scheduledDuration: 2,
@@ -79,6 +71,7 @@ const sampleInterventions: Intervention[] = [
     equipment: 'Tracteur New Holland',
     equipmentId: 101,
     location: 'Champ secondaire',
+    coordinates: { lat: 48.8566, lng: 2.3522 },
     technician: 'Jean Dupont',
     date: new Date(2024, 5, 28),
     scheduledDuration: 6,
@@ -94,6 +87,7 @@ const sampleInterventions: Intervention[] = [
     equipment: 'Ensileuse automotrice',
     equipmentId: 112,
     location: 'Hangar secondaire',
+    coordinates: { lat: 48.8566, lng: 2.3522 },
     technician: 'Sophie Martin',
     date: new Date(2024, 6, 1),
     scheduledDuration: 8,
@@ -109,6 +103,7 @@ const sampleInterventions: Intervention[] = [
     equipment: 'Tracteur John Deere',
     equipmentId: 123,
     location: 'Atelier',
+    coordinates: { lat: 48.8566, lng: 2.3522 },
     technician: 'Pierre Leclerc',
     date: new Date(2024, 6, 3),
     scheduledDuration: 3,
@@ -124,6 +119,7 @@ const sampleInterventions: Intervention[] = [
     equipment: 'Moissonneuse-batteuse Claas',
     equipmentId: 456,
     location: 'Hangar principal',
+    coordinates: { lat: 48.8566, lng: 2.3522 },
     technician: 'Jean Dupont',
     date: new Date(2024, 6, 5),
     scheduledDuration: 4,
@@ -138,6 +134,7 @@ const sampleInterventions: Intervention[] = [
     equipment: 'Remorque agricole',
     equipmentId: 789,
     location: 'Champ principal',
+    coordinates: { lat: 48.8566, lng: 2.3522 },
     technician: 'Sophie Martin',
     date: new Date(2024, 6, 8),
     scheduledDuration: 5,
@@ -153,6 +150,7 @@ const sampleInterventions: Intervention[] = [
     equipment: 'Tracteur New Holland',
     equipmentId: 101,
     location: 'Atelier',
+    coordinates: { lat: 48.8566, lng: 2.3522 },
     technician: 'Pierre Leclerc',
     date: new Date(2024, 6, 10),
     scheduledDuration: 2,
@@ -168,6 +166,7 @@ const sampleInterventions: Intervention[] = [
     equipment: 'Ensileuse automotrice',
     equipmentId: 112,
     location: 'Hangar secondaire',
+    coordinates: { lat: 48.8566, lng: 2.3522 },
     technician: 'Jean Dupont',
     date: new Date(2024, 6, 12),
     scheduledDuration: 7,
@@ -179,7 +178,7 @@ const sampleInterventions: Intervention[] = [
 ];
 
 const InterventionsPage = () => {
-  const [interventions, setInterventions] = useState<Intervention[]>(sampleInterventions);
+  const [interventions, setInterventions] = useState<InterventionWithCoordinates[]>(sampleInterventions);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPriority, setSelectedPriority] = useState<string | null>(null);
   const [isNewInterventionDialogOpen, setIsNewInterventionDialogOpen] = useState(false);
@@ -207,7 +206,7 @@ const InterventionsPage = () => {
     setIsNewInterventionDialogOpen(false);
   };
 
-  const handleCreateIntervention = (newIntervention: Intervention) => {
+  const handleCreateIntervention = (newIntervention: InterventionWithCoordinates) => {
     setInterventions([...interventions, newIntervention]);
     setIsNewInterventionDialogOpen(false);
     toast({
@@ -229,7 +228,7 @@ const InterventionsPage = () => {
     setSelectedPriority(null);
   };
 
-  const handleViewDetails = (intervention: Intervention) => {
+  const handleViewDetails = (intervention: InterventionWithCoordinates) => {
     setSelectedInterventionId(intervention.id);
     setInterventionDetailsOpen(true);
   };
@@ -239,7 +238,7 @@ const InterventionsPage = () => {
     setSelectedInterventionId(null);
   };
 
-  const handleStartWork = (intervention: Intervention) => {
+  const handleStartWork = (intervention: InterventionWithCoordinates) => {
     // Placeholder for start work logic
     toast({
       title: "Intervention démarrée",
@@ -289,6 +288,8 @@ const InterventionsPage = () => {
 
               <div className="col-span-1 hidden lg:block">
                 <InterventionsSidebar
+                  interventions={filteredInterventions}
+                  onViewDetails={handleViewDetails}
                   searchQuery={searchQuery}
                   selectedPriority={selectedPriority}
                   onSearchChange={handleSearchChange}

@@ -7,15 +7,27 @@ import { formatDate } from './utils/interventionUtils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 
 interface InterventionsSidebarProps {
   interventions: Intervention[];
   onViewDetails: (intervention: Intervention) => void;
+  searchQuery?: string;
+  selectedPriority?: string | null;
+  onSearchChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onPriorityChange?: (priority: string | null) => void;
+  onClearSearch?: () => void;
 }
 
 const InterventionsSidebar: React.FC<InterventionsSidebarProps> = ({ 
-  interventions, 
-  onViewDetails 
+  interventions = [], 
+  onViewDetails,
+  searchQuery = '',
+  selectedPriority = null,
+  onSearchChange,
+  onPriorityChange,
+  onClearSearch
 }) => {
   // Calculate statistics
   const stats = {
@@ -39,6 +51,53 @@ const InterventionsSidebar: React.FC<InterventionsSidebarProps> = ({
   
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* Search section if search props are provided */}
+      {onSearchChange && (
+        <Card className="border-blue-100 bg-gradient-to-br from-blue-50 to-white">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xl font-semibold flex items-center gap-2">
+              Recherche
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <Input
+                placeholder="Rechercher une intervention..."
+                value={searchQuery}
+                onChange={onSearchChange}
+                className="w-full"
+              />
+              
+              <div className="flex flex-wrap gap-2">
+                {['high', 'medium', 'low'].map((priority) => (
+                  <Badge
+                    key={priority}
+                    className={`cursor-pointer ${
+                      selectedPriority === priority
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    }`}
+                    onClick={() => onPriorityChange?.(selectedPriority === priority ? null : priority)}
+                  >
+                    {priority === 'high' ? 'Haute' : priority === 'medium' ? 'Moyenne' : 'Basse'}
+                  </Badge>
+                ))}
+                
+                {(searchQuery || selectedPriority) && (
+                  <Badge 
+                    variant="outline" 
+                    className="cursor-pointer hover:bg-muted"
+                    onClick={onClearSearch}
+                  >
+                    Effacer
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card className="border-agri-100 bg-gradient-to-br from-agri-50 to-white">
         <CardHeader className="pb-2">
           <CardTitle className="text-xl font-semibold flex items-center gap-2">
