@@ -15,6 +15,7 @@ export interface EquipmentItem {
   image?: string;
   serialNumber?: string;
   purchaseDate?: string;
+  notes?: string;
   usage: { hours: number; target: number };
   nextService: { type: string; due: string };
 }
