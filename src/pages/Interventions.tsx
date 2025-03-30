@@ -127,6 +127,7 @@ const sampleInterventions: InterventionWithCoordinates[] = [
     status: 'scheduled',
     description: 'Recharge et entretien du système de climatisation.',
     notes: 'Vérifier les fuites de réfrigérant.',
+    partsUsed: []
   },
   {
     id: 8,
@@ -174,6 +175,7 @@ const sampleInterventions: InterventionWithCoordinates[] = [
     status: 'scheduled',
     description: 'Inspection générale de l\'équipement.',
     notes: 'Vérifier tous les points de contrôle.',
+    partsUsed: []
   }
 ];
 
@@ -206,8 +208,16 @@ const InterventionsPage = () => {
     setIsNewInterventionDialogOpen(false);
   };
 
-  const handleCreateIntervention = (newIntervention: InterventionWithCoordinates) => {
-    setInterventions([...interventions, newIntervention]);
+  const handleCreateIntervention = (newIntervention: Partial<InterventionWithCoordinates>) => {
+    // Create a new intervention with required fields and empty partsUsed array
+    const completedIntervention: InterventionWithCoordinates = {
+      ...newIntervention as any,
+      id: interventions.length + 1,
+      partsUsed: [],  // Ensure partsUsed is included
+      status: 'scheduled',
+    } as InterventionWithCoordinates;
+    
+    setInterventions([...interventions, completedIntervention]);
     setIsNewInterventionDialogOpen(false);
     toast({
       title: "Succès",
