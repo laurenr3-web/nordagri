@@ -10,8 +10,7 @@ export function useDeletePart() {
   const mutation = useMutation({
     mutationFn: async (partId: number | string) => {
       console.log('Deleting part ID:', partId);
-      const result = await deletePart(partId);
-      return result;
+      return await deletePart(partId);
     },
     onSuccess: (_data, variables) => {
       // Invalidate and refetch parts query

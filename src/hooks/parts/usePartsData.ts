@@ -8,20 +8,20 @@ import { useCreatePart, useUpdatePart, useDeletePart } from '@/hooks/parts';
 
 export const usePartsData = (initialParts: Part[] = []) => {
   const { toast } = useToast();
-  const [parts, setParts] = useState<Part[]>(initialParts);
+  const [parts, setParts] = useState<Part[]>([]);
 
   // Mutations
   const createPartMutation = useCreatePart();
   const updatePartMutation = useUpdatePart();
   const deletePartMutation = useDeletePart();
 
-  // Fetch parts using React Query
+  // Fetch parts using React Query, staleTime 0 pour toujours rafraîchir
   const { data: supabaseParts, isLoading, isError, refetch } = useQuery({
     queryKey: ['parts'],
     queryFn: () => getParts(),
-    staleTime: 0, // Always consider data as stale
-    refetchOnWindowFocus: true, // Refetch when window regains focus
-    refetchInterval: 30000 // Refetch every 30 seconds
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchInterval: 10000 // Rafraîchir toutes les 10 secondes
   });
 
   // Handle data updates

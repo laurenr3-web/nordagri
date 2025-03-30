@@ -1,17 +1,13 @@
 
 import React from 'react';
 import Navbar from '@/components/layout/Navbar';
-import { partsData } from '@/data/partsData';
 import { useParts } from '@/hooks/useParts';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import PartsContainer from '@/components/parts/PartsContainer';
 
-// Sample parts data
-const initialPartsData = partsData;
-
 const Parts = () => {
-  // The main hook provides a cleaner interface with more focused sub-hooks
-  const partsHookData = useParts(initialPartsData);
+  // Initialiser avec un tableau vide au lieu des données d'exemple
+  const partsHookData = useParts([]);
   
   return (
     <SidebarProvider>

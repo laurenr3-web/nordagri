@@ -15,7 +15,6 @@ import { Part } from '@/types/Part';
 import { useToast } from '@/hooks/use-toast';
 import { useDeletePart } from '@/hooks/parts';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { useNavigate } from 'react-router-dom';
 
 interface EquipmentPartsTableProps {
   parts: Part[];
@@ -31,7 +30,6 @@ const EquipmentPartsTable: React.FC<EquipmentPartsTableProps> = ({
   const { toast } = useToast();
   const deletePartMutation = useDeletePart();
   const [deletingPart, setDeletingPart] = React.useState<{id: number | string, name: string} | null>(null);
-  const navigate = useNavigate();
 
   const openDeleteDialog = (partId: number | string, partName: string) => {
     setDeletingPart({ id: partId, name: partName });
@@ -50,6 +48,11 @@ const EquipmentPartsTable: React.FC<EquipmentPartsTableProps> = ({
       } else {
         await deletePartMutation.mutateAsync(deletingPart.id);
       }
+      
+      // Refresh page after deletion to ensure UI is updated
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error) {
       console.error("Erreur lors de la suppression:", error);
       toast({
