@@ -25,6 +25,6 @@ export async function getParts(): Promise<Part[]> {
     price: part.unit_price !== null ? part.unit_price : 0,
     location: part.location || '',
     reorderPoint: part.reorder_threshold || 5,
-    image: part.image || 'https://placehold.co/400x300/png?text=No+Image'
+    image: part.image_url || 'https://placehold.co/400x300/png?text=No+Image'
   }));
 }
