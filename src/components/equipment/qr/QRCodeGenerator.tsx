@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { QRCode } from 'qrcode.react';
+import { QRCodeSVG } from 'qrcode.react'; // Changed from QRCode to QRCodeSVG
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Card } from '@/components/ui/card';
@@ -21,25 +21,57 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ equipmentId, equipmen
   const qrUrl = `${baseUrl}/scan/${equipmentId}`;
 
   const handleDownload = () => {
-    const canvas = qrCodeRef.current?.querySelector('canvas');
-    if (!canvas) return;
+    const svg = qrCodeRef.current?.querySelector('svg');
+    if (!svg) return;
 
-    const url = canvas.toDataURL('image/png');
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `qrcode-equipment-${equipmentId}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Create a canvas element to convert SVG to PNG
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     
-    toast.success('QR Code téléchargé avec succès');
+    // Create a temporary image to draw the SVG
+    const img = new Image();
+    
+    // Convert the SVG to a data URL
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(svgBlob);
+    
+    img.onload = () => {
+      // Set canvas dimensions
+      canvas.width = img.width;
+      canvas.height = img.height;
+      
+      // Draw the image on the canvas
+      ctx.drawImage(img, 0, 0);
+      
+      // Convert canvas to data URL and download
+      const pngUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = pngUrl;
+      link.download = `qrcode-equipment-${equipmentId}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up
+      URL.revokeObjectURL(url);
+      
+      toast.success('QR Code téléchargé avec succès');
+    };
+    
+    img.src = url;
   };
 
   const handlePrint = () => {
-    const canvas = qrCodeRef.current?.querySelector('canvas');
-    if (!canvas) return;
+    const svgElement = qrCodeRef.current?.querySelector('svg');
+    if (!svgElement) return;
 
-    const url = canvas.toDataURL('image/png');
+    // Convert SVG to a data URL
+    const svgData = new XMLSerializer().serializeToString(svgElement);
+    const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(svgBlob);
+    
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
       toast.error('Impossible d\'ouvrir la fenêtre d\'impression');
@@ -84,6 +116,7 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ equipmentId, equipmen
     printWindow.onload = function() {
       printWindow.focus();
       printWindow.print();
+      URL.revokeObjectURL(url);
     };
   };
 
@@ -130,12 +163,11 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ equipmentId, equipmen
 
           <div className="flex flex-col items-center justify-center p-4">
             <Card className="p-4 border-2 border-primary/10" ref={qrCodeRef}>
-              <QRCode 
+              <QRCodeSVG 
                 value={qrUrl} 
                 size={200}
                 level="H"
                 includeMargin
-                renderAs="canvas"
               />
             </Card>
             

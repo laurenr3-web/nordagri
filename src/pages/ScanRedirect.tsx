@@ -10,18 +10,18 @@ const ScanRedirect: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isValidEquipment, setIsValidEquipment] = useState<boolean | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingEquipment, setIsLoadingEquipment] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   // Vérifier l'authentification
-  const { user, isLoading: authLoading } = useAuth(true, `/scan/${id}`);
+  const { user, loading: authLoading } = useAuth(true, `/scan/${id}`);
 
   useEffect(() => {
     const checkEquipment = async () => {
       if (authLoading || !user) return;
       
       try {
-        setIsLoading(true);
+        setIsLoadingEquipment(true);
         // Vérifier si l'équipement existe
         const equipment = await equipmentService.getEquipmentById(Number(id));
         
@@ -38,14 +38,14 @@ const ScanRedirect: React.FC = () => {
         setIsValidEquipment(false);
         setError(err.message || "Une erreur s'est produite lors de la validation de l'équipement");
       } finally {
-        setIsLoading(false);
+        setIsLoadingEquipment(false);
       }
     };
 
     checkEquipment();
   }, [id, navigate, user, authLoading]);
 
-  if (authLoading || isLoading) {
+  if (authLoading || isLoadingEquipment) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
