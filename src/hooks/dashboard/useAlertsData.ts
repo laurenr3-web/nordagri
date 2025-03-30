@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/hooks/use-toast";
@@ -16,11 +15,7 @@ export const useAlertsData = (user: any) => {
   const [alertItems, setAlertItems] = useState<AlertItem[]>([]);
 
   useEffect(() => {
-    if (user) {
-      fetchAlerts();
-    } else {
-      setMockData();
-    }
+    fetchAlerts();
   }, [user]);
 
   const setMockData = () => {
@@ -53,7 +48,6 @@ export const useAlertsData = (user: any) => {
       const { data: lowPartsData, error: lowPartsError } = await supabase
         .from('parts_inventory')
         .select('id, name, quantity, reorder_threshold')
-        .eq('owner_id', user?.id)
         .filter('quantity', 'lt', 'reorder_threshold');
 
       if (lowPartsError) {
@@ -61,8 +55,7 @@ export const useAlertsData = (user: any) => {
         // Try an alternative approach
         const { data: lowPartsDataAlt, error: lowPartsErrorAlt } = await supabase
           .from('parts_inventory')
-          .select('id, name, quantity, reorder_threshold')
-          .eq('owner_id', user?.id);
+          .select('id, name, quantity, reorder_threshold');
         
         if (!lowPartsErrorAlt && lowPartsDataAlt) {
           // Filter manually in JS
@@ -96,7 +89,6 @@ export const useAlertsData = (user: any) => {
       const { data: overdueMaintenanceData, error: overdueMaintenanceError } = await supabase
         .from('maintenance_tasks')
         .select('id, title, due_date, equipment')
-        .eq('owner_id', user?.id)
         .eq('status', 'scheduled')
         .lt('due_date', new Date().toISOString());
 

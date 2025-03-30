@@ -5,7 +5,6 @@ import { Tabs, TabsContent } from '@/components/ui/tabs';
 import Dashboard from './Dashboard';
 import CalendarView from './CalendarView';
 import AllAlertsSection from './AllAlertsSection';
-import { toast } from "@/hooks/use-toast";
 import { useDashboardData } from '@/hooks/dashboard/useDashboardData';
 import { 
   adaptStatsData, 
@@ -71,6 +70,10 @@ const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) 
     navigate(`/equipment/${id}`);
   };
 
+  const handleAlertsViewAllClick = () => {
+    // Do nothing - this is handled by the parent
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Loading dashboard data...</div>;
   }
@@ -88,7 +91,7 @@ const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) 
           handleStatsCardClick={handleStatsCardClick}
           handleEquipmentViewAllClick={handleEquipmentViewAllClick}
           handleMaintenanceCalendarClick={handleMaintenanceCalendarClick}
-          handleAlertsViewAllClick={() => {}} // This will be handled in the parent
+          handleAlertsViewAllClick={handleAlertsViewAllClick}
           handleTasksAddClick={handleTasksAddClick}
           handleEquipmentClick={handleEquipmentClick}
         />
@@ -102,7 +105,7 @@ const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) 
       </TabsContent>
       
       <TabsContent value="alerts">
-        <AllAlertsSection alerts={adaptedAlertItems.concat(adaptedAlertItems.map(alert => ({...alert, id: alert.id + 100})))} />
+        <AllAlertsSection alerts={adaptedAlertItems} />
       </TabsContent>
     </Tabs>
   );

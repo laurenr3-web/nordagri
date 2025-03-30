@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/hooks/use-toast";
@@ -18,42 +17,46 @@ export const useStatsData = (user: any) => {
   const [statsData, setStatsData] = useState<StatsCardData[]>([]);
 
   useEffect(() => {
-    if (user) {
-      fetchStatsData();
-    } else {
-      setMockData();
-    }
+    fetchStatsData();
   }, [user]);
 
   const setMockData = () => {
     setStatsData([
       {
         title: 'Active Equipment',
-        value: 24,
-        icon: Tractor,
-        change: 4,
-        description: ''
-      },
-      {
+        value: '24',
+        icon: React.createElement(Tractor, { className: "text-primary h-5 w-5" }),
+        trend: {
+          value: 4,
+          isPositive: true
+        }
+      }, {
         title: 'Maintenance Tasks',
-        value: 12,
-        icon: Wrench,
+        value: '12',
+        icon: React.createElement(Wrench, { className: "text-primary h-5 w-5" }),
         description: '3 high priority',
-        change: -2
-      },
-      {
+        trend: {
+          value: 2,
+          isPositive: false
+        }
+      }, {
         title: 'Parts Inventory',
-        value: 1204,
-        icon: Package,
+        value: '1,204',
+        icon: React.createElement(Package, { className: "text-primary h-5 w-5" }),
         description: '8 items low stock',
-        change: 12
-      },
-      {
+        trend: {
+          value: 12,
+          isPositive: true
+        }
+      }, {
         title: 'Field Interventions',
-        value: 8,
-        icon: ClipboardCheck,
+        value: '8',
+        icon: React.createElement(ClipboardCheck, { className: "text-primary h-5 w-5" }),
         description: 'This week',
-        change: 15
+        trend: {
+          value: 15,
+          isPositive: true
+        }
       }
     ]);
     setLoading(false);
@@ -65,30 +68,25 @@ export const useStatsData = (user: any) => {
       // Get equipment count
       const { data: equipmentData, error: equipmentError } = await supabase
         .from('equipment')
-        .select('id')
-        .eq('owner_id', user?.id);
+        .select('id');
 
       // Get maintenance tasks count
       const { data: tasksData, error: tasksError } = await supabase
         .from('maintenance_tasks')
-        .select('id, priority')
-        .eq('owner_id', user?.id);
+        .select('id, priority');
 
       // Get parts inventory count
       const { data: partsData, error: partsError } = await supabase
         .from('parts_inventory')
-        .select('id, quantity, reorder_threshold')
-        .eq('owner_id', user?.id);
+        .select('id, quantity, reorder_threshold');
 
       // Get interventions count (for this week)
       const oneWeekAgo = new Date();
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
       
-      // Fix: Change 'field_interventions' to 'interventions' which is the correct table name
       const { data: interventionsData, error: interventionsError } = await supabase
         .from('interventions')
         .select('id')
-        .eq('owner_id', user?.id)
         .gte('date', oneWeekAgo.toISOString());
 
       // Prepare stats data

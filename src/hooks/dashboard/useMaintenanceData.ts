@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/hooks/use-toast";
@@ -16,11 +15,7 @@ export const useMaintenanceData = (user: any) => {
   const [maintenanceEvents, setMaintenanceEvents] = useState<MaintenanceEvent[]>([]);
 
   useEffect(() => {
-    if (user) {
-      fetchMaintenance();
-    } else {
-      setMockData();
-    }
+    fetchMaintenance();
   }, [user]);
 
   const setMockData = () => {
@@ -46,13 +41,11 @@ export const useMaintenanceData = (user: any) => {
   const fetchMaintenance = async () => {
     setLoading(true);
     try {
-      // Using maintenance_tasks table instead of maintenance_schedule
+      // Using maintenance_tasks table
       const { data, error } = await supabase
         .from('maintenance_tasks')
         .select('id, title, due_date, status, equipment')
-        .eq('owner_id', user?.id)
-        .order('due_date', { ascending: true })
-        .limit(5);
+        .order('due_date', { ascending: true });
 
       if (error) {
         throw error;
