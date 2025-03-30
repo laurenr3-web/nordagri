@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Search } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useEquipmentParts } from '@/hooks/equipment/useEquipmentParts';
 import { Equipment } from '@/services/supabase/equipmentService';
 
@@ -14,7 +14,7 @@ const EquipmentPartsAssociation: React.FC<EquipmentPartsAssociationProps> = ({
   equipment,
   onAddPart
 }) => {
-  const { parts, isLoading } = useEquipmentParts(equipment);
+  const { parts, loading } = useEquipmentParts(equipment);
   
   return (
     <div className="space-y-4">
@@ -22,7 +22,7 @@ const EquipmentPartsAssociation: React.FC<EquipmentPartsAssociationProps> = ({
         <div>
           <h3 className="text-lg font-semibold">Pièces associées</h3>
           <p className="text-sm text-muted-foreground">
-            {isLoading 
+            {loading 
               ? 'Chargement des pièces...' 
               : `${parts.length} pièce(s) compatible(s) avec cet équipement`}
           </p>

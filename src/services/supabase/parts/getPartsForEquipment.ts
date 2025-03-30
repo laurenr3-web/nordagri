@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Part } from '@/types/Part';
+import { ensureNumberId } from '@/utils/typeGuards';
 
 /**
  * Récupère les pièces compatibles avec un équipement spécifique
@@ -12,11 +13,14 @@ export async function getPartsForEquipment(equipmentId: number | string): Promis
   console.log('🔍 Recherche des pièces pour l\'équipement:', equipmentId);
   
   try {
+    // Convert string id to number if needed
+    const numericId = ensureNumberId(equipmentId);
+    
     // Récupérer d'abord les détails de l'équipement pour connaître son type et modèle
     const { data: equipment, error: equipmentError } = await supabase
       .from('equipment')
       .select('type, model, manufacturer')
-      .eq('id', equipmentId)
+      .eq('id', numericId)
       .single();
     
     if (equipmentError) {

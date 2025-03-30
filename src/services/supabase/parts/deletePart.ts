@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { ensureNumberId } from '@/utils/typeGuards';
 
 /**
  * Supprime une pièce de l'inventaire
@@ -11,10 +12,13 @@ export async function deletePart(partId: number | string): Promise<boolean> {
   console.log("🗑️ Suppression de la pièce ID:", partId);
   
   try {
+    // Convert string id to number if needed
+    const numericId = ensureNumberId(partId);
+    
     const { error } = await supabase
       .from('parts_inventory')
       .delete()
-      .eq('id', partId);
+      .eq('id', numericId);
     
     if (error) {
       console.error("❌ Erreur Supabase lors de la suppression:", error);

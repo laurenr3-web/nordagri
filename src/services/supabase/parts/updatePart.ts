@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Part } from '@/types/Part';
+import { ensureNumberId } from '@/utils/typeGuards';
 
 /**
  * Met à jour une pièce dans l'inventaire
@@ -17,6 +18,9 @@ export async function updatePart(part: Part): Promise<Part> {
   console.log("🔄 Mise à jour de la pièce:", part);
   
   try {
+    // Convert string id to number if needed
+    const numericId = ensureNumberId(part.id);
+    
     // Conversion du modèle de données Part vers la structure de la table parts_inventory
     const updateData = {
       name: part.name,
@@ -49,7 +53,7 @@ export async function updatePart(part: Part): Promise<Part> {
     const { data, error } = await supabase
       .from('parts_inventory')
       .update(updateData)
-      .eq('id', part.id)
+      .eq('id', numericId)
       .select()
       .single();
     

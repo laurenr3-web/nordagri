@@ -25,7 +25,7 @@ const EquipmentPartsLowStockWarning: React.FC<EquipmentPartsLowStockWarningProps
   }
   
   return (
-    <Alert variant="warning" className="mb-4 bg-amber-50 border-amber-200">
+    <Alert variant="destructive" className="mb-4 bg-amber-50 border-amber-200">
       <AlertTriangle className="h-4 w-4 text-amber-600" />
       <AlertTitle className="text-amber-800">Alerte de stock faible</AlertTitle>
       <AlertDescription className="text-amber-700">
