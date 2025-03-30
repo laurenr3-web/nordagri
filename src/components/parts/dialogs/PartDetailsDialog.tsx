@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Part } from '@/types/Part';
 import PartDetails from '@/components/parts/PartDetails';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 interface PartDetailsDialogProps {
   isOpen: boolean;
@@ -21,21 +22,32 @@ const PartDetailsDialog: React.FC<PartDetailsDialogProps> = ({
   onDelete
 }) => {
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   // Function to handle part deletion
   const handleDelete = async (partId: number | string) => {
     try {
+      console.log('Tentative de suppression de la pièce:', partId);
+      
       if (onDelete) {
         await onDelete(partId);
+        
+        // Show success toast
+        toast({
+          title: "Pièce supprimée",
+          description: "La pièce a été supprimée avec succès",
+        });
+        
+        // Close the dialog after deletion
+        onOpenChange(false);
       }
-      
-      // Close the dialog after deletion
-      onOpenChange(false);
-      
-      // Navigate to parts page
-      navigate('/parts');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in PartDetailsDialog handleDelete:', error);
+      toast({
+        title: "Erreur de suppression",
+        description: error.message || "Une erreur est survenue lors de la suppression",
+        variant: "destructive",
+      });
     }
   };
 

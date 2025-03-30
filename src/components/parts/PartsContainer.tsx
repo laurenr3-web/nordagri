@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import FilterSortDialogs from './dialogs/FilterSortDialogs';
-import PartsDialogs from './PartsDialogs';
+import PartDetailsDialog from './dialogs/PartDetailsDialog';
 import { Button } from '@/components/ui/button';
 
 interface PartsContainerProps {
@@ -145,18 +145,19 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
 
       {/* Dialogs */}
       <FilterSortDialogs
-        isFilterOpen={isFilterDialogOpen}
-        onFilterOpenChange={setIsFilterDialogOpen}
-        isSortOpen={isSortDialogOpen}
-        onSortOpenChange={setIsSortDialogOpen}
+        isFilterDialogOpen={isFilterDialogOpen}
+        setIsFilterDialogOpen={setIsFilterDialogOpen}
+        isSortDialogOpen={isSortDialogOpen}
+        setIsSortDialogOpen={setIsSortDialogOpen}
       />
 
-      <PartsDialogs
+      {/* Remplacer PartsDialogs par PartDetailsDialog */}
+      <PartDetailsDialog
+        isOpen={isPartDetailsDialogOpen}
+        onOpenChange={setIsPartDetailsDialogOpen}
         selectedPart={selectedPart}
-        isPartDetailsDialogOpen={isPartDetailsDialogOpen}
-        setIsPartDetailsDialogOpen={setIsPartDetailsDialogOpen}
-        handleEditPart={handleUpdatePart}
-        handleDeletePart={handleDeletePart}
+        onEdit={handleUpdatePart}
+        onDelete={handleDeletePart}
       />
     </div>
   );

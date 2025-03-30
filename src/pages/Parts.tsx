@@ -6,6 +6,7 @@ import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import PartsContainer from '@/components/parts/PartsContainer';
 import { useToast } from '@/hooks/use-toast';
 import { checkAuthStatus } from '@/utils/authUtils';
+import { PartsView } from '@/hooks/parts/usePartsFilter';
 
 const Parts = () => {
   const { toast } = useToast();
@@ -29,6 +30,13 @@ const Parts = () => {
     checkAuth();
   }, [toast]);
   
+  // Convertir setCurrentView pour qu'il accepte un string
+  const setCurrentView = (view: string) => {
+    if (view === 'grid' || view === 'list') {
+      partsHookData.setCurrentView(view as PartsView);
+    }
+  };
+  
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
@@ -44,7 +52,10 @@ const Parts = () => {
             </p>
           </div>
           
-          <PartsContainer {...partsHookData} />
+          <PartsContainer 
+            {...partsHookData}
+            setCurrentView={setCurrentView}
+          />
         </div>
       </div>
     </SidebarProvider>

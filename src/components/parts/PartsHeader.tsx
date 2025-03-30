@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { ViewType } from '@/hooks/parts/usePartsFilter';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Filter, Grid, List, Plus, Zap } from 'lucide-react';
 import AddPartDialog from './dialogs/AddPartDialog';
@@ -12,8 +11,8 @@ import ExpressAddPartDialog from './dialogs/ExpressAddPartDialog';
 interface PartsHeaderProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
-  currentView: ViewType;
-  setCurrentView: (view: ViewType) => void;
+  currentView: string;
+  setCurrentView: (view: string) => void;
   onOpenFilterDialog: () => void;
   onOpenSortDialog: () => void;
   filterCount: number;
@@ -64,7 +63,7 @@ const PartsHeader: React.FC<PartsHeaderProps> = ({
 
         <div className="flex justify-between sm:justify-end w-full sm:w-auto">
           <div className="flex space-x-1 sm:space-x-2">
-            <ToggleGroup type="single" value={currentView} onValueChange={(view) => setCurrentView(view as ViewType)}>
+            <ToggleGroup type="single" value={currentView} onValueChange={(view) => setCurrentView(view as string)}>
               <ToggleGroupItem value="grid" aria-label="Grid view">
                 <Grid className="h-4 w-4" />
               </ToggleGroupItem>
