@@ -175,7 +175,7 @@ export const useEquipmentData = (user: any) => {
       const simpleDueMap = new Map<string, string>();
       
       if (maintenanceData && !maintenanceError) {
-        (maintenanceData as MaintenanceTask[]).forEach(task => {
+        (maintenanceData as any[]).forEach(task => {
           if (!maintenanceMap.has(task.equipment_id)) {
             const formattedDue = formatDueDate(new Date(task.due_date));
             maintenanceMap.set(task.equipment_id, {

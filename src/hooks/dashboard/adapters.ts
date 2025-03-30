@@ -1,4 +1,3 @@
-
 import { 
   StatsCardData 
 } from './useStatsData';
@@ -42,7 +41,7 @@ export const adaptEquipmentData = (equipmentData: EquipmentItem[]) => {
     },
     nextService: item.nextService || {
       type: 'Maintenance Check',
-      due: item.nextMaintenance || 'Not scheduled'
+      due: 'Not scheduled'
     }
   }));
 };
