@@ -1,4 +1,3 @@
-
 #!/usr/bin/env node
 
 const fs = require('fs');
@@ -175,6 +174,30 @@ function generateReport(unusedFiles) {
       unusedByDirectory: {}
     };
   }
+}
+
+/**
+ * Generates a JSON report for programmatic use
+ * @returns {Object} - The report object
+ */
+function generateJsonReport() {
+  const unusedFiles = [...allFiles.entries()]
+    .filter(([_, info]) => !info.used)
+    .map(([file]) => file);
+
+  const unusedByDir = {};
+  unusedFiles.forEach(file => {
+    const dir = path.dirname(file);
+    if (!unusedByDir[dir]) unusedByDir[dir] = [];
+    unusedByDir[dir].push(file);
+  });
+
+  return {
+    totalFiles: allFiles.size,
+    usedFiles: allFiles.size - unusedFiles.length,
+    unusedFiles,
+    unusedByDir
+  };
 }
 
 /**
@@ -412,6 +435,8 @@ function analyzeProject() {
     if (unusedFiles.length > 0 && !isQuiet && !shouldCleanup && !shouldGenerateReport && !outputJson) {
       process.exit(1);
     }
+
+    return { usedFiles, unusedFiles };
   } catch (error) {
     log(`Critical error: ${error.message}`, 'error');
     log(error.stack, 'error');
@@ -420,4 +445,9 @@ function analyzeProject() {
 }
 
 // Run the analysis
-analyzeProject();
+if (require.main === module) {
+  analyzeProject();
+}
+
+// Export for programmatic use
+module.exports = { analyzeProject, generateJsonReport };

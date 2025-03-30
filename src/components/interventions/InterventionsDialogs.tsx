@@ -13,6 +13,7 @@ interface InterventionsDialogsProps {
   onCloseInterventionDetails: () => void;
   onStartWork: (intervention: Intervention) => void;
   interventions: Intervention[];
+  filteredInterventions?: Intervention[];
 }
 
 const InterventionsDialogs: React.FC<InterventionsDialogsProps> = ({
@@ -23,7 +24,8 @@ const InterventionsDialogs: React.FC<InterventionsDialogsProps> = ({
   selectedInterventionId,
   onCloseInterventionDetails,
   onStartWork,
-  interventions
+  interventions,
+  filteredInterventions = interventions
 }) => {
   return (
     <>
@@ -39,7 +41,11 @@ const InterventionsDialogs: React.FC<InterventionsDialogsProps> = ({
         onOpenChange={onCloseInterventionDetails}
         onStartWork={() => {
           if (selectedInterventionId) {
-            const intervention = interventions.find(i => i.id === selectedInterventionId);
+            // First search in filtered interventions, then fall back to all interventions
+            let intervention = filteredInterventions.find(i => i.id === selectedInterventionId);
+            if (!intervention) {
+              intervention = interventions.find(i => i.id === selectedInterventionId);
+            }
             if (intervention) {
               onStartWork(intervention);
             }
