@@ -264,7 +264,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">Aucune pièce spécifique</SelectItem>
+                  <SelectItem value="none">Aucune pièce spécifique</SelectItem>
                   {parts.map((part) => (
                     <SelectItem key={part.id} value={part.id.toString()}>
                       {part.name} - {part.partNumber}
