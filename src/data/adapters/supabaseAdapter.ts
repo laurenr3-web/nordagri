@@ -144,8 +144,9 @@ export const supabaseAdapter = {
         const { data: sessionData } = await supabase.auth.getSession();
         
         // Prepare equipment data with dates converted to ISO strings
+        const equipmentData = mapEquipmentToDb(equipment);
         const dbEquipment = convertDatesToISOStrings({
-          ...mapEquipmentToDb(equipment),
+          ...equipmentData,
           owner_id: sessionData.session?.user.id,
           created_at: new Date(),
           updated_at: new Date()
@@ -170,8 +171,9 @@ export const supabaseAdapter = {
     async update(equipment: Equipment): Promise<Equipment> {
       try {
         // Prepare equipment data with dates converted to ISO strings
+        const equipmentData = mapEquipmentToDb(equipment);
         const dbEquipment = convertDatesToISOStrings({
-          ...mapEquipmentToDb(equipment),
+          ...equipmentData,
           updated_at: new Date()
         });
         
