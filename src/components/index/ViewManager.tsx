@@ -5,7 +5,7 @@ import { Tabs, TabsContent } from '@/components/ui/tabs';
 import Dashboard from './Dashboard';
 import CalendarView from './CalendarView';
 import AllAlertsSection from './AllAlertsSection';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/toast';
 import { useDashboardData } from '@/hooks/dashboard/useDashboardData';
 import { 
   adaptStatsData, 

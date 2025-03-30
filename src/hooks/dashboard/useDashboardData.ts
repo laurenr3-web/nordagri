@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/toast';
 import { useAuthContext } from '@/providers/AuthProvider';
 
 export interface StatsCardData {

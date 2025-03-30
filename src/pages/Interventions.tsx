@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
@@ -7,7 +6,7 @@ import InterventionsList from '@/components/interventions/InterventionsList';
 import InterventionsSidebar from '@/components/interventions/InterventionsSidebar';
 import NewInterventionDialog from '@/components/interventions/NewInterventionDialog';
 import InterventionDetailsDialog from '@/components/interventions/InterventionDetailsDialog';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/toast';
 import { Button } from '@/components/ui/button';
 import { Plus, FileText, BarChart3, Download } from 'lucide-react';
 
