@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import { useTasksManager } from '@/hooks/maintenance/useTasksManager';
+import { MaintenanceStatus, MaintenanceType, MaintenancePriority } from '@/hooks/maintenance/maintenanceSlice';
 import NewMaintenanceDialog from './maintenance/NewMaintenanceDialog';
 import MaintenanceSummaryCards from './maintenance/MaintenanceSummaryCards';
 import MaintenanceCalendarTable from './maintenance/MaintenanceCalendarTable';
@@ -61,9 +62,9 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
         title: maintenance.title,
         equipment: equipment.name,
         equipmentId: equipment.id,
-        type: maintenance.type,
-        status: 'scheduled',
-        priority: maintenance.priority,
+        type: maintenance.type as MaintenanceType,
+        status: 'scheduled' as MaintenanceStatus,
+        priority: maintenance.priority as MaintenancePriority,
         dueDate: maintenance.dueDate,
         estimatedDuration: maintenance.estimatedDuration,
         assignedTo: '',
@@ -109,7 +110,7 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
 
   const handleChangeStatus = (taskId: number, newStatus: string) => {
     try {
-      updateTaskStatus(taskId, newStatus as any);
+      updateTaskStatus(taskId, newStatus as MaintenanceStatus);
       toast.success(`Statut mis à jour: ${newStatus}`);
     } catch (error) {
       console.error('Erreur lors de la mise à jour du statut:', error);

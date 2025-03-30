@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { useTasksManager } from '@/hooks/maintenance/useTasksManager';
-import { maintenanceTasks } from '@/data/maintenanceData';
+import { MaintenanceTask, MaintenanceStatus, MaintenancePriority } from '@/hooks/maintenance/maintenanceSlice';
 import NewTaskDialog from '@/components/maintenance/NewTaskDialog';
 import MaintenanceHeader from '@/components/maintenance/MaintenanceHeader';
 import MaintenanceContent from '@/components/maintenance/MaintenanceContent';
@@ -16,12 +16,11 @@ const Maintenance = () => {
   const {
     tasks, 
     isLoading,
-    isError,
     addTask,
     updateTaskStatus,
     updateTaskPriority,
     deleteTask
-  } = useTasksManager(maintenanceTasks);
+  } = useTasksManager();
 
   const [isNewTaskDialogOpen, setIsNewTaskDialogOpen] = useState(false);
 
@@ -35,7 +34,10 @@ const Maintenance = () => {
 
   const handleAddTask = (formData: any) => {
     console.log('Adding task in Maintenance component:', formData);
-    return addTask(formData);
+    return addTask({
+      ...formData,
+      status: 'scheduled' as MaintenanceStatus
+    });
   };
 
   useEffect(() => {
@@ -62,7 +64,7 @@ const Maintenance = () => {
                 setCurrentView={setCurrentView}
                 currentMonth={currentMonth}
                 setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
-                updateTaskStatus={updateTaskStatus}
+                updateTaskStatus={(taskId, status) => updateTaskStatus(taskId, status)}
                 updateTaskPriority={updateTaskPriority}
                 deleteTask={deleteTask}
               />

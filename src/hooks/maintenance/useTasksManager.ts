@@ -1,12 +1,18 @@
+
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { MaintenanceTask, MaintenancePriority, MaintenanceType } from './maintenanceSlice';
+import { MaintenanceTask, MaintenancePriority, MaintenanceStatus, MaintenanceType } from './maintenanceSlice';
 
-export function useTasksManager() {
-  const [tasks, setTasks] = useState<MaintenanceTask[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export function useTasksManager(initialTasks?: MaintenanceTask[]) {
+  const [tasks, setTasks] = useState<MaintenanceTask[]>(initialTasks || []);
+  const [isLoading, setIsLoading] = useState(initialTasks ? false : true);
 
   useEffect(() => {
+    if (initialTasks) {
+      setTasks(initialTasks);
+      return;
+    }
+
     const fetchTasks = async () => {
       try {
         setIsLoading(true);
@@ -20,7 +26,7 @@ export function useTasksManager() {
               equipment: 'New Holland T6.180',
               equipmentId: 1,
               type: 'preventive' as MaintenanceType,
-              status: 'completed',
+              status: 'completed' as MaintenanceStatus,
               priority: 'medium' as MaintenancePriority,
               dueDate: new Date('2023-06-08'),
               completedDate: new Date('2023-06-08'),
@@ -44,7 +50,7 @@ export function useTasksManager() {
     };
 
     fetchTasks();
-  }, []);
+  }, [initialTasks]);
 
   const addTask = (task: Omit<MaintenanceTask, 'id'>) => {
     // Ajouter une nouvelle tâche
@@ -70,7 +76,7 @@ export function useTasksManager() {
     }
   };
 
-  const updateTaskStatus = (taskId: number, newStatus: 'scheduled' | 'in-progress' | 'completed' | 'canceled') => {
+  const updateTaskStatus = (taskId: number, newStatus: MaintenanceStatus) => {
     // Mettre à jour le statut d'une tâche
     setTasks(prevTasks => 
       prevTasks.map(task => 
