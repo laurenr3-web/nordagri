@@ -1,53 +1,61 @@
 
-import React from 'react';
-import { FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import React, { useState } from 'react';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { UseFormReturn } from 'react-hook-form';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
 import { PartFormValues } from '../partFormTypes';
-import CameraCapture from '@/components/equipment/form/CameraCapture';
-import ImageUrlInput from '@/components/equipment/form/fields/ImageUrlInput';
-import ImagePreview from '@/components/equipment/form/fields/ImagePreview';
 
 interface ImageFieldProps {
   form: UseFormReturn<PartFormValues>;
 }
 
 const ImageField: React.FC<ImageFieldProps> = ({ form }) => {
+  const [imageError, setImageError] = useState(false);
+  
+  // Reset image error when URL changes
+  React.useEffect(() => {
+    setImageError(false);
+  }, [form.watch('image')]);
+
   return (
-    <FormField
-      control={form.control}
-      name="image"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Image</FormLabel>
-          <div className="flex flex-col space-y-3">
-            <div className="flex items-center space-x-2">
-              <ImageUrlInput 
-                value={field.value || ''}
-                onChange={(value) => form.setValue('image', value)}
-                placeholder="https://example.com/image.jpg"
+    <div className="space-y-4">
+      <FormField
+        control={form.control}
+        name="image"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Image URL</FormLabel>
+            <FormControl>
+              <Input 
+                placeholder="https://exemple.com/image.jpg" 
+                {...field} 
               />
-              
-              <CameraCapture 
-                onCapture={(imageDataUrl) => {
-                  form.setValue('image', imageDataUrl);
-                }} 
-              />
-            </div>
-            
-            <ImagePreview 
-              imageUrl={field.value}
-              onReset={() => form.setValue('image', '')}
-              altText="Part preview"
-            />
-            
-            <FormDescription>
-              Enter a URL for the part image or take a photo
-            </FormDescription>
+            </FormControl>
             <FormMessage />
-          </div>
-        </FormItem>
+          </FormItem>
+        )}
+      />
+      
+      {form.watch('image') && (
+        <Card className="overflow-hidden">
+          <CardContent className="p-2">
+            <img 
+              src={form.watch('image')} 
+              alt="Aperçu de l'image"
+              className="w-full h-auto object-contain max-h-[200px]"
+              onError={() => setImageError(true)}
+              style={{ display: imageError ? 'none' : 'block' }}
+            />
+            {imageError && (
+              <div className="flex items-center justify-center h-[200px] bg-muted text-muted-foreground">
+                URL d'image invalide ou inaccessible
+              </div>
+            )}
+          </CardContent>
+        </Card>
       )}
-    />
+    </div>
   );
 };
 

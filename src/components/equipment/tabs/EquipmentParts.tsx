@@ -8,6 +8,7 @@ import EquipmentPartsLoading from './parts/EquipmentPartsLoading';
 import EquipmentPartsError from './parts/EquipmentPartsError';
 import EquipmentPartsHeader from './parts/EquipmentPartsHeader';
 import EquipmentPartsTable from './parts/EquipmentPartsTable';
+import EquipmentPartsLowStockWarning from './parts/EquipmentPartsLowStockWarning';
 import { useEquipmentParts } from '@/hooks/equipment/useEquipmentParts';
 
 interface EquipmentPartsProps {
@@ -48,6 +49,9 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = ({ equipment }) => {
         />
       </CardHeader>
       <CardContent>
+        {/* Afficher l'alerte de stock bas si nécessaire */}
+        <EquipmentPartsLowStockWarning parts={parts} />
+        
         <EquipmentPartsTable 
           parts={parts}
           onEditPart={handleEditPart}

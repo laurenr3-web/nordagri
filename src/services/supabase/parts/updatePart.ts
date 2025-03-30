@@ -3,97 +3,100 @@ import { supabase } from '@/integrations/supabase/client';
 import { Part } from '@/types/Part';
 
 /**
- * Met à jour une pièce existante dans la base de données
- * @param part La pièce avec les valeurs mises à jour
- * @returns Promise résolvant vers la pièce mise à jour
+ * Met à jour une pièce dans l'inventaire
+ * 
+ * @param part Les données complètes de la pièce à mettre à jour
+ * @returns Promise résolvant à la pièce mise à jour
  */
 export async function updatePart(part: Part): Promise<Part> {
-  console.log('🔄 Début de la mise à jour de pièce avec ID:', part.id);
+  // Validation de l'ID
+  if (!part.id) {
+    throw new Error("L'ID de la pièce est requis pour la mise à jour");
+  }
+  
+  console.log("🔄 Mise à jour de la pièce:", part);
   
   try {
-    // Validation des champs obligatoires
-    if (!part.name) {
-      throw new Error("Le champ obligatoire 'name' doit être défini");
-    }
-
-    // Vérification que l'ID est un nombre pour les opérations Supabase
-    // Si l'ID est une chaîne qui peut être convertie en nombre, le faire
-    const partId = typeof part.id === 'string' && !isNaN(Number(part.id)) 
-      ? Number(part.id) 
-      : part.id;
-      
-    // Si après conversion ce n'est toujours pas un nombre, rejeter
-    if (typeof partId !== 'number') {
-      throw new Error("L'ID de la pièce doit être un nombre pour la mise à jour dans Supabase");
-    }
-
-    // Préparation des données avec correspondance exacte des noms de colonnes
+    // Conversion du modèle de données Part vers la structure de la table parts_inventory
     const updateData = {
       name: part.name,
-      part_number: part.partNumber || '',
-      category: part.category || '',
-      supplier: part.manufacturer || '',
-      compatible_with: Array.isArray(part.compatibility) ? part.compatibility : [],
-      quantity: part.stock || 0,
-      unit_price: part.price !== undefined ? part.price : 0,
-      location: part.location || '',
-      reorder_threshold: part.reorderPoint || 0,
-      image_url: part.image || null,
-      updated_at: new Date().toISOString()
+      part_number: part.partNumber || part.reference,
+      category: part.category,
+      supplier: part.manufacturer,
+      compatible_with: Array.isArray(part.compatibility) 
+        ? part.compatibility 
+        : Array.isArray(part.compatibleWith)
+          ? part.compatibleWith
+          : [],
+      quantity: typeof part.stock === 'number' 
+        ? part.stock 
+        : typeof part.quantity === 'number'
+          ? part.quantity
+          : 0,
+      unit_price: typeof part.price === 'number' ? part.price : 0,
+      location: part.location,
+      reorder_threshold: typeof part.reorderPoint === 'number' 
+        ? part.reorderPoint 
+        : typeof part.minimumStock === 'number'
+          ? part.minimumStock
+          : 5,
+      image_url: part.image || part.imageUrl
     };
     
-    console.log('Données envoyées à Supabase:', updateData);
+    console.log("🧩 Données formatées pour la mise à jour:", updateData);
     
-    // Exécution de la requête avec debug complet
-    const { data, error, status } = await supabase
+    // Mise à jour en base de données
+    const { data, error } = await supabase
       .from('parts_inventory')
       .update(updateData)
-      .eq('id', partId)
-      .select('*')
+      .eq('id', part.id)
+      .select()
       .single();
     
     if (error) {
-      console.error('Erreur Supabase:', error);
-      console.error('Code de statut HTTP:', status);
+      console.error("❌ Erreur Supabase lors de la mise à jour:", error);
       
-      // Messages d'erreur plus détaillés et descriptifs
+      // Messages d'erreur spécifiques basés sur les codes d'erreur
       if (error.code === '23505') {
-        throw new Error(`Référence de pièce en doublon: "${part.partNumber}" existe déjà dans la base de données`);
+        throw new Error("Une pièce avec cette référence existe déjà");
       } else if (error.code === '23502') {
-        throw new Error("Champs obligatoires manquants: vérifiez que tous les champs requis sont remplis");
-      } else if (error.code === '42703') {
-        throw new Error("Structure de données incorrecte: veuillez contacter l'administrateur système");
+        throw new Error("Certains champs obligatoires sont manquants");
       } else if (error.code === '42501') {
-        throw new Error("Permissions insuffisantes: vous n'avez pas les droits nécessaires pour modifier cette pièce");
+        throw new Error("Vous n'avez pas les permissions nécessaires pour mettre à jour cette pièce");
       } else {
         throw new Error(`Erreur lors de la mise à jour: ${error.message || "Problème inconnu"}`);
       }
     }
     
     if (!data) {
-      console.error('Aucune donnée retournée après la mise à jour');
-      throw new Error('Pièce non trouvée ou problème de permissions');
+      throw new Error("La mise à jour a réussi mais aucune donnée n'a été retournée");
     }
     
-    console.log('Mise à jour réussie, données retournées:', data);
+    console.log("✅ Pièce mise à jour avec succès:", data);
     
-    // Mappage correct des données retournées
-    return {
+    // Convertir les données retournées au format Part
+    const updatedPart: Part = {
       id: data.id,
       name: data.name,
       partNumber: data.part_number || '',
+      reference: data.part_number || '',
       category: data.category || '',
       manufacturer: data.supplier || '',
       compatibility: data.compatible_with || [],
-      stock: data.quantity || 0,
-      price: data.unit_price !== null ? data.unit_price : 0,
+      compatibleWith: data.compatible_with || [],
+      stock: data.quantity,
+      quantity: data.quantity,
+      price: data.unit_price || 0,
       location: data.location || '',
       reorderPoint: data.reorder_threshold || 5,
+      minimumStock: data.reorder_threshold || 5,
       image: data.image_url || 'https://placehold.co/100x100/png',
-      reference: data.part_number || '' // Ajout du champ reference pour compatibilité
+      imageUrl: data.image_url
     };
+    
+    return updatedPart;
   } catch (err: any) {
-    console.error('Exception lors de la mise à jour:', err);
+    console.error("❌ Exception lors de la mise à jour de la pièce:", err);
     throw err;
   }
 }

@@ -13,12 +13,12 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Part } from '@/types/Part';
-import BasicInfoFields from './BasicInfoFields';
-import InventoryFields from './InventoryFields';
-import CompatibilityField from './CompatibilityField';
-import FormActions from './FormActions';
-import ImageField from './ImageField';
-import { partFormSchema } from './editPartFormTypes';
+import BasicInfoFields from '@/components/parts/form/fields/BasicInfoFields';
+import InventoryFields from '@/components/parts/form/fields/InventoryFields';
+import CompatibilityField from '@/components/parts/form/fields/CompatibilityField';
+import FormActions from '@/components/parts/form/FormActions';
+import ImageField from '@/components/parts/form/fields/ImageField';
+import { partFormSchema } from '@/components/parts/form/partFormTypes';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { useUpdatePart } from '@/hooks/parts/useUpdatePart';

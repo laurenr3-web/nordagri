@@ -1,62 +1,67 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Part } from '@/types/Part';
-import { getParts } from './getParts';
 
-export async function getPartsForEquipment(equipmentId: number): Promise<Part[]> {
-  console.log('🔍 Fetching parts compatible with equipment ID:', equipmentId);
+/**
+ * Récupère les pièces compatibles avec un équipement spécifique
+ * 
+ * @param equipmentId L'ID de l'équipement
+ * @returns Une promesse résolvant à un tableau de pièces
+ */
+export async function getPartsForEquipment(equipmentId: number | string): Promise<Part[]> {
+  console.log('🔍 Recherche des pièces pour l\'équipement:', equipmentId);
   
   try {
-    // 1. First fetch the equipment details to get type, model, etc.
+    // Récupérer d'abord les détails de l'équipement pour connaître son type et modèle
     const { data: equipment, error: equipmentError } = await supabase
       .from('equipment')
-      .select('*')
+      .select('type, model, manufacturer')
       .eq('id', equipmentId)
       .single();
     
     if (equipmentError) {
-      console.error('Error fetching equipment details:', equipmentError);
+      console.error('Erreur lors de la récupération des détails de l\'équipement:', equipmentError);
       throw equipmentError;
     }
     
-    if (!equipment) {
-      throw new Error(`Equipment with ID ${equipmentId} not found`);
+    // Récupérer les pièces compatibles avec cet équipement
+    // Cette requête utilise une logique pour trouver des pièces basée sur la compatibilité
+    const { data, error } = await supabase
+      .from('parts_inventory')
+      .select('*')
+      .or(
+        // Vérifie si l'équipement est dans le tableau compatible_with
+        equipment.model ? 
+        `compatible_with.cs.{${equipment.model}},compatible_with.cs.{${equipment.type}}` : 
+        `compatible_with.cs.{${equipment.type}}`
+      );
+    
+    if (error) {
+      console.error('Erreur lors de la récupération des pièces compatibles:', error);
+      throw error;
     }
     
-    // 2. Create search terms based on equipment properties
-    const searchTerms = [
-      equipment.name,
-      equipment.model,
-      equipment.manufacturer,
-      equipment.type,
-      equipment.category
-    ].filter(Boolean).map(term => term.toLowerCase());
-    
-    // 3. Get all parts
-    const allParts = await getParts();
-    
-    // 4. Filter parts that are compatible with this equipment
-    const compatibleParts = allParts.filter(part => {
-      // Check if equipment id is directly in the compatibility array
-      if (part.compatibility.some(comp => 
-          typeof comp === 'number' && comp === equipmentId ||
-          typeof comp === 'string' && comp === equipmentId.toString()
-      )) {
-        return true;
-      }
-      
-      // Check if any equipment property matches any compatibility string
-      return part.compatibility.some(comp => {
-        if (typeof comp !== 'string') return false;
-        const compLower = comp.toLowerCase();
-        return searchTerms.some(term => compLower.includes(term));
-      });
-    });
-    
-    console.log(`✅ Found ${compatibleParts.length} parts compatible with equipment ID ${equipmentId}`);
-    return compatibleParts;
-  } catch (error) {
-    console.error('Error in getPartsForEquipment:', error);
-    throw error;
+    // Convertir la réponse de la base de données en objets Part
+    return (data || []).map(part => ({
+      id: part.id,
+      name: part.name,
+      partNumber: part.part_number || '',
+      reference: part.part_number || '',
+      category: part.category || '',
+      manufacturer: part.supplier || '',
+      compatibility: part.compatible_with || [],
+      compatibleWith: part.compatible_with || [],
+      stock: part.quantity,
+      quantity: part.quantity,
+      price: part.unit_price !== null ? part.unit_price : 0,
+      location: part.location || '',
+      reorderPoint: part.reorder_threshold || 5,
+      minimumStock: part.reorder_threshold || 5,
+      image: part.image_url || 'https://placehold.co/100x100/png',
+      imageUrl: part.image_url
+    }));
+  } catch (err) {
+    console.error('Erreur inattendue lors de la récupération des pièces:', err);
+    throw err;
   }
 }

@@ -16,16 +16,16 @@ const CompatibilityField: React.FC<CompatibilityFieldProps> = ({ form }) => {
       name="compatibility"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Equipment Compatibility</FormLabel>
+          <FormLabel>Compatibilité</FormLabel>
           <FormControl>
             <Textarea 
-              placeholder="John Deere 8R 410, John Deere 7R Series"
-              className="min-h-[80px]"
+              placeholder="Séparez les modèles compatibles par des virgules (JD6920, NH T7.210, etc.)" 
+              className="h-20 resize-none"
               {...field} 
             />
           </FormControl>
           <FormDescription>
-            List equipment models separated by commas
+            Indiquez les modèles d'équipement compatibles avec cette pièce
           </FormDescription>
           <FormMessage />
         </FormItem>

@@ -10,13 +10,13 @@ import { PartFormValues } from '../partFormTypes';
 
 interface BasicInfoFieldsProps {
   form: UseFormReturn<PartFormValues>;
-  customCategories: string[];
-  onAddCategoryClick: () => void;
+  customCategories?: string[];
+  onAddCategoryClick?: () => void;
 }
 
 const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({ 
   form, 
-  customCategories,
+  customCategories = [],
   onAddCategoryClick
 }) => {
   return (
@@ -26,9 +26,9 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
         name="name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Part Name</FormLabel>
+            <FormLabel>Nom de la pièce</FormLabel>
             <FormControl>
-              <Input placeholder="Air Filter" {...field} />
+              <Input placeholder="Filtre à air" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -40,7 +40,7 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
         name="partNumber"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Part Number</FormLabel>
+            <FormLabel>Référence</FormLabel>
             <FormControl>
               <Input placeholder="AF-JD-4290" {...field} />
             </FormControl>
@@ -54,22 +54,22 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
         name="category"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Category</FormLabel>
+            <FormLabel>Catégorie</FormLabel>
             <div className="flex items-center gap-2">
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder="Sélectionner une catégorie" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="filters">Filters</SelectItem>
-                  <SelectItem value="engine">Engine</SelectItem>
-                  <SelectItem value="drive">Drive System</SelectItem>
-                  <SelectItem value="hydraulic">Hydraulic</SelectItem>
-                  <SelectItem value="electrical">Electrical</SelectItem>
-                  <SelectItem value="brake">Brake System</SelectItem>
-                  <SelectItem value="cooling">Cooling System</SelectItem>
+                  <SelectItem value="Filtres">Filtres</SelectItem>
+                  <SelectItem value="Moteur">Moteur</SelectItem>
+                  <SelectItem value="Transmission">Transmission</SelectItem>
+                  <SelectItem value="Hydraulique">Hydraulique</SelectItem>
+                  <SelectItem value="Électrique">Électrique</SelectItem>
+                  <SelectItem value="Freinage">Freinage</SelectItem>
+                  <SelectItem value="Refroidissement">Refroidissement</SelectItem>
                   {customCategories.map((category) => (
                     <SelectItem key={category} value={category}>
                       {category}
@@ -77,14 +77,16 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
                   ))}
                 </SelectContent>
               </Select>
-              <Button 
-                type="button" 
-                variant="outline" 
-                size="icon"
-                onClick={onAddCategoryClick}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
+              {onAddCategoryClick && (
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="icon"
+                  onClick={onAddCategoryClick}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              )}
             </div>
             <FormMessage />
           </FormItem>
@@ -96,11 +98,11 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
         name="manufacturer"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Manufacturer</FormLabel>
+            <FormLabel>Fabricant</FormLabel>
             <Select onValueChange={field.onChange} defaultValue={field.value}>
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select manufacturer" />
+                  <SelectValue placeholder="Sélectionner un fabricant" />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
@@ -110,7 +112,7 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
                 <SelectItem value="Kubota">Kubota</SelectItem>
                 <SelectItem value="Fendt">Fendt</SelectItem>
                 <SelectItem value="Massey Ferguson">Massey Ferguson</SelectItem>
-                <SelectItem value="Universal">Universal</SelectItem>
+                <SelectItem value="Universel">Universel</SelectItem>
               </SelectContent>
             </Select>
             <FormMessage />
