@@ -1,13 +1,16 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/hooks/use-toast";
 
 export interface UpcomingTask {
-  id: number;
+  id: string | number;
   title: string;
-  equipment: string;
-  date: Date;
+  description: string;
+  dueDate: Date;
+  status: string;
   priority: string;
+  assignedTo: string;
 }
 
 export const useTasksData = (user: any) => {
@@ -15,64 +18,72 @@ export const useTasksData = (user: any) => {
   const [upcomingTasks, setUpcomingTasks] = useState<UpcomingTask[]>([]);
 
   useEffect(() => {
-    fetchTasks();
+    fetchTasksData();
   }, [user]);
 
-  const setMockData = () => {
-    setUpcomingTasks([
-      {
-        id: 1,
-        title: 'Oil and Filter Change',
-        equipment: 'John Deere 8R 410',
-        date: new Date(),
-        priority: 'high'
-      },
-      {
-        id: 2,
-        title: 'Hydraulic System Check',
-        equipment: 'Case IH Axial-Flow',
-        date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-        priority: 'medium'
-      }
-    ]);
-    setLoading(false);
-  };
-
-  const fetchTasks = async () => {
+  const fetchTasksData = async () => {
     setLoading(true);
     try {
-      // Using maintenance_tasks
+      // Fetch tasks from Supabase
       const { data, error } = await supabase
         .from('maintenance_tasks')
-        .select('id, title, equipment, due_date, priority')
+        .select('*')
         .eq('status', 'scheduled')
-        .gte('due_date', new Date().toISOString())
         .order('due_date', { ascending: true })
         .limit(5);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       if (data) {
-        const mappedTasks: UpcomingTask[] = data.map(task => ({
-          id: task.id,
-          title: task.title,
-          equipment: task.equipment,
-          date: new Date(task.due_date),
-          priority: task.priority || 'medium'
+        const tasks: UpcomingTask[] = data.map(item => ({
+          id: item.id,
+          title: item.title,
+          description: item.notes || 'Pas de description',
+          dueDate: new Date(item.due_date),
+          status: item.status,
+          priority: item.priority,
+          assignedTo: item.assigned_to || 'Non assigné'
         }));
-        setUpcomingTasks(mappedTasks);
+        setUpcomingTasks(tasks);
       }
     } catch (error) {
-      console.error("Error fetching tasks:", error);
-      // If there's an error, set an empty array to avoid UI issues
-      setUpcomingTasks([]);
+      console.error('Error fetching tasks data:', error);
       toast({
-        title: "Error",
-        description: "Failed to fetch tasks data. Please try again.",
+        title: "Erreur",
+        description: "Impossible de récupérer les tâches à venir.",
         variant: "destructive",
       });
+      
+      // Données par défaut en cas d'échec
+      setUpcomingTasks([
+        {
+          id: 1,
+          title: "Changement filtre à huile",
+          description: "Remplacer le filtre à huile du moteur",
+          dueDate: new Date(new Date().setDate(new Date().getDate() + 2)),
+          status: "pending",
+          priority: "high",
+          assignedTo: "Michael Torres"
+        },
+        {
+          id: 2,
+          title: "Calibration du système GPS",
+          description: "Calibrer le système de navigation GPS",
+          dueDate: new Date(new Date().setDate(new Date().getDate() + 5)),
+          status: "pending",
+          priority: "medium",
+          assignedTo: "David Chen"
+        },
+        {
+          id: 3,
+          title: "Vérification système hydraulique",
+          description: "Inspecter les fuites potentielles",
+          dueDate: new Date(new Date().setDate(new Date().getDate() + 7)),
+          status: "pending",
+          priority: "low",
+          assignedTo: "Sarah Johnson"
+        }
+      ]);
     } finally {
       setLoading(false);
     }
@@ -80,7 +91,8 @@ export const useTasksData = (user: any) => {
 
   return {
     loading,
-    upcomingTasks,
-    fetchTasks
+    upcomingTasks
   };
 };
+
+export default useTasksData;

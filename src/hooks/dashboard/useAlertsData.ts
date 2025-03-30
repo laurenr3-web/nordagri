@@ -1,13 +1,18 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/hooks/use-toast";
 
 export interface AlertItem {
-  id: number;
-  type: 'error' | 'warning' | 'info';
+  id: string | number;
+  title: string;
   message: string;
+  severity: 'high' | 'medium' | 'low';
   date: Date;
-  action?: string;
+  equipmentId: number;
+  equipmentName: string;
+  status: 'new' | 'acknowledged' | 'resolved';
+  type: string;
 }
 
 export const useAlertsData = (user: any) => {
@@ -15,109 +20,90 @@ export const useAlertsData = (user: any) => {
   const [alertItems, setAlertItems] = useState<AlertItem[]>([]);
 
   useEffect(() => {
-    fetchAlerts();
+    fetchAlertsData();
   }, [user]);
 
-  const setMockData = () => {
-    setAlertItems([
-      {
-        id: 1,
-        type: 'error',
-        message: 'Harvester engine overheating detected',
-        date: new Date(),
-        action: 'Check Engine'
-      },
-      {
-        id: 2,
-        type: 'warning',
-        message: 'Low oil pressure warning on Tractor #3',
-        date: new Date(),
-        action: 'Schedule Service'
-      }
-    ]);
-    setLoading(false);
-  };
-
-  const fetchAlerts = async () => {
+  const fetchAlertsData = async () => {
     setLoading(true);
     try {
-      const alerts: AlertItem[] = [];
-      let alertId = 1;
-      
-      // Get low parts inventory
-      const { data: lowPartsData, error: lowPartsError } = await supabase
-        .from('parts_inventory')
-        .select('id, name, quantity, reorder_threshold')
-        .filter('quantity', 'lt', 'reorder_threshold');
+      // Récupérer les alertes depuis Supabase
+      const { data, error } = await supabase
+        .from('alerts')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(5);
 
-      if (lowPartsError) {
-        console.error('Error retrieving alerts:', lowPartsError);
-        // Try an alternative approach
-        const { data: lowPartsDataAlt, error: lowPartsErrorAlt } = await supabase
-          .from('parts_inventory')
-          .select('id, name, quantity, reorder_threshold');
-        
-        if (!lowPartsErrorAlt && lowPartsDataAlt) {
-          // Filter manually in JS
-          const filteredData = lowPartsDataAlt.filter(part => 
-            part.quantity < (part.reorder_threshold || 0)
-          );
-          
-          filteredData.forEach(part => {
-            alerts.push({
-              id: alertId++,
-              type: 'warning',
-              message: `Low stock: ${part.name} (Current: ${part.quantity}, Reorder at: ${part.reorder_threshold || 0})`,
-              date: new Date(),
-              action: 'Reorder Parts'
-            });
-          });
-        }
-      } else if (lowPartsData && lowPartsData.length > 0) {
-        lowPartsData.forEach(part => {
-          alerts.push({
-            id: alertId++,
-            type: 'warning',
-            message: `Low stock: ${part.name} (Current: ${part.quantity}, Reorder at: ${part.reorder_threshold || 0})`,
-            date: new Date(),
-            action: 'Reorder Parts'
-          });
-        });
+      if (error) throw error;
+
+      if (data) {
+        const alerts: AlertItem[] = data.map(item => ({
+          id: item.id,
+          title: item.title,
+          message: item.message,
+          severity: item.severity,
+          date: new Date(item.created_at),
+          equipmentId: item.equipment_id,
+          equipmentName: item.equipment_name,
+          status: item.status,
+          type: item.type
+        }));
+        setAlertItems(alerts);
       }
-
-      // Get overdue maintenance
-      const { data: overdueMaintenanceData, error: overdueMaintenanceError } = await supabase
-        .from('maintenance_tasks')
-        .select('id, title, due_date, equipment')
-        .eq('status', 'scheduled')
-        .lt('due_date', new Date().toISOString());
-
-      if (overdueMaintenanceError) {
-        throw overdueMaintenanceError;
-      }
-
-      if (overdueMaintenanceData && overdueMaintenanceData.length > 0) {
-        overdueMaintenanceData.forEach(maintenance => {
-          alerts.push({
-            id: alertId++,
-            type: 'error',
-            message: `Overdue maintenance: ${maintenance.title} due on ${new Date(maintenance.due_date).toLocaleDateString()}`,
-            date: new Date(),
-            action: 'Schedule Maintenance'
-          });
-        });
-      }
-
-      setAlertItems(alerts);
     } catch (error) {
-      console.error('Error retrieving alerts:', error);
-      // If there's an error, set an empty array to avoid UI issues
-      setAlertItems([]);
+      console.error('Error fetching alerts data:', error);
       toast({
-        title: "Error",
-        description: "Failed to fetch alerts data. Please try again.",
+        title: "Erreur",
+        description: "Impossible de récupérer les alertes.",
         variant: "destructive",
       });
+      
+      // Données par défaut en cas d'échec
+      setAlertItems([
+        {
+          id: 1,
+          title: "Niveau d'huile bas",
+          message: "Le tracteur John Deere 8R 410 a un niveau d'huile critique",
+          severity: "high",
+          date: new Date(),
+          equipmentId: 1,
+          equipmentName: "John Deere 8R 410",
+          status: "new",
+          type: "maintenance"
+        },
+        {
+          id: 2,
+          title: "Maintenance planifiée",
+          message: "Maintenance programmée pour Case IH Axial-Flow demain",
+          severity: "medium",
+          date: new Date(new Date().setDate(new Date().getDate() - 1)),
+          equipmentId: 2,
+          equipmentName: "Case IH Axial-Flow",
+          status: "acknowledged",
+          type: "reminder"
+        },
+        {
+          id: 3,
+          title: "Stock faible de pièces",
+          message: "Le stock de filtres à carburant est en dessous du niveau minimum",
+          severity: "medium",
+          date: new Date(new Date().setDate(new Date().getDate() - 2)),
+          equipmentId: 0,
+          equipmentName: "",
+          status: "new",
+          type: "inventory"
+        },
+        {
+          id: 4,
+          title: "Batterie faible",
+          message: "La batterie du Kubota M7-172 est faible",
+          severity: "low",
+          date: new Date(new Date().setDate(new Date().getDate() - 3)),
+          equipmentId: 3,
+          equipmentName: "Kubota M7-172",
+          status: "new",
+          type: "maintenance"
+        }
+      ]);
     } finally {
       setLoading(false);
     }
@@ -125,7 +111,8 @@ export const useAlertsData = (user: any) => {
 
   return {
     loading,
-    alertItems,
-    fetchAlerts
+    alertItems
   };
 };
+
+export default useAlertsData;

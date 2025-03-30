@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { MaintenanceTask, MaintenancePriority, MaintenanceType } from '@/hooks/maintenance/maintenanceSlice';
+import { Part } from '@/types/Part';
 
 const maintenanceFormSchema = z.object({
   title: z.string().min(3, 'Le titre doit contenir au moins 3 caractères'),
@@ -39,6 +40,7 @@ const maintenanceFormSchema = z.object({
   }),
   estimatedDuration: z.coerce.number().min(0.5, 'La durée minimum est de 0.5 heure'),
   notes: z.string().optional(),
+  partId: z.string().optional(),
 });
 
 type MaintenanceFormValues = z.infer<typeof maintenanceFormSchema>;
@@ -56,6 +58,55 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
   onCancel,
   isSubmitting = false,
 }) => {
+  const [parts, setParts] = useState<Part[]>([]);
+
+  useEffect(() => {
+    // Simulation de récupération des pièces compatibles avec cet équipement
+    const mockParts: Part[] = [
+      {
+        id: "P001",
+        name: "Filtre à huile",
+        partNumber: "FH-JD-8R-001",
+        category: "Filtres",
+        compatibility: ["John Deere 8R 410"],
+        manufacturer: "John Deere",
+        price: 35.50,
+        stock: 12,
+        location: "Rayon A3",
+        reorderPoint: 5,
+        image: "/placeholder.svg",
+      },
+      {
+        id: "P002",
+        name: "Kit courroie distribution",
+        partNumber: "KCD-JD-8R-002",
+        category: "Transmission",
+        compatibility: ["John Deere 8R 410"],
+        manufacturer: "John Deere",
+        price: 145.99,
+        stock: 3,
+        location: "Rayon B2",
+        reorderPoint: 2,
+        image: "/placeholder.svg",
+      },
+      {
+        id: "P003",
+        name: "Filtre à carburant",
+        partNumber: "FC-JD-8R-003",
+        category: "Filtres",
+        compatibility: ["John Deere 8R 410"],
+        manufacturer: "John Deere",
+        price: 29.75,
+        stock: 8,
+        location: "Rayon A3",
+        reorderPoint: 4,
+        image: "/placeholder.svg",
+      },
+    ];
+
+    setParts(mockParts);
+  }, []);
+
   const form = useForm<MaintenanceFormValues>({
     resolver: zodResolver(maintenanceFormSchema),
     defaultValues: {
@@ -65,6 +116,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
       dueDate: new Date(),
       estimatedDuration: 1,
       notes: '',
+      partId: '',
     },
   });
 
@@ -198,6 +250,32 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
             )}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name="partId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Pièce concernée</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner une pièce (optionnel)" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="">Aucune pièce spécifique</SelectItem>
+                  {parts.map((part) => (
+                    <SelectItem key={part.id} value={part.id.toString()}>
+                      {part.name} - {part.partNumber}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}

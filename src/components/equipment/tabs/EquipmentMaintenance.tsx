@@ -9,6 +9,7 @@ import { useTasksManager } from '@/hooks/maintenance/useTasksManager';
 import NewMaintenanceDialog from './maintenance/NewMaintenanceDialog';
 import MaintenanceSummaryCards from './maintenance/MaintenanceSummaryCards';
 import MaintenanceCalendarTable from './maintenance/MaintenanceCalendarTable';
+import MaintenanceQuoteDialog from './maintenance/MaintenanceQuoteDialog';
 import { formatDate, getStatusBadge, getPriorityColor } from './maintenance/maintenanceUtils';
 
 interface EquipmentMaintenanceProps {
@@ -30,6 +31,8 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
 
   // État pour stocker la tâche sélectionnée pour voir le devis
   const [selectedTaskForQuote, setSelectedTaskForQuote] = useState<number | null>(null);
+  const [isQuoteDialogOpen, setIsQuoteDialogOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
 
   useEffect(() => {
     // Déjà géré par useTasksManager, mais on ajoute un délai simulé pour l'UX
@@ -57,7 +60,8 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
         dueDate: maintenance.dueDate,
         estimatedDuration: maintenance.estimatedDuration,
         assignedTo: '',
-        notes: maintenance.notes || ''
+        notes: maintenance.notes || '',
+        partId: maintenance.partId || null
       };
       
       // Ajouter la tâche via le hook
@@ -65,6 +69,8 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
       
       // Fermer la boîte de dialogue
       setIsNewMaintenanceOpen(false);
+      
+      toast.success('Tâche de maintenance créée avec succès!');
     } catch (error) {
       console.error('Erreur lors de l\'ajout de la tâche:', error);
       toast.error('Impossible d\'ajouter la tâche de maintenance');
@@ -72,9 +78,16 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
   };
 
   const handleViewQuote = (taskId: number) => {
-    setSelectedTaskForQuote(taskId);
-    toast.info(`Affichage du devis pour la tâche ${taskId}`);
-    // Dans une implémentation réelle, vous pourriez ouvrir un dialogue pour afficher le devis
+    const task = maintenanceTasks.find(t => t.id === taskId);
+    if (task) {
+      setSelectedTask({
+        ...task,
+        equipment: equipment // Pour avoir les infos complètes de l'équipement
+      });
+      setIsQuoteDialogOpen(true);
+    } else {
+      toast.error('Impossible de trouver la tâche');
+    }
   };
 
   const handleChangeStatus = (taskId: number, newStatus: string) => {
@@ -129,6 +142,13 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
           onSubmit={handleCreateMaintenance}
         />
       )}
+      
+      {/* Dialog pour voir le devis */}
+      <MaintenanceQuoteDialog 
+        isOpen={isQuoteDialogOpen}
+        onClose={() => setIsQuoteDialogOpen(false)}
+        maintenance={selectedTask}
+      />
     </div>
   );
 };
