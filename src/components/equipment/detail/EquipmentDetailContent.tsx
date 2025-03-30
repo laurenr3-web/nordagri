@@ -6,6 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import EquipmentDetails from '@/components/equipment/EquipmentDetails';
 import EquipmentParts from '@/components/equipment/tabs/EquipmentParts';
+import EquipmentMaintenance from '@/components/equipment/tabs/EquipmentMaintenance';
+import EquipmentHistory from '@/components/equipment/tabs/EquipmentHistory';
 
 interface EquipmentDetailContentProps {
   equipment: any;
@@ -51,21 +53,11 @@ const EquipmentDetailContent: React.FC<EquipmentDetailContentProps> = ({
         </TabsContent>
         
         <TabsContent value="maintenance">
-          <div className="p-8 text-center bg-card border rounded-lg">
-            <h3 className="text-xl font-medium mb-2">Maintenance</h3>
-            <p className="text-muted-foreground">
-              Le module de maintenance sera disponible prochainement.
-            </p>
-          </div>
+          <EquipmentMaintenance equipment={equipment} />
         </TabsContent>
         
         <TabsContent value="history">
-          <div className="p-8 text-center bg-card border rounded-lg">
-            <h3 className="text-xl font-medium mb-2">Historique</h3>
-            <p className="text-muted-foreground">
-              L'historique d'utilisation sera disponible prochainement.
-            </p>
-          </div>
+          <EquipmentHistory equipment={equipment} />
         </TabsContent>
       </Tabs>
     </div>
