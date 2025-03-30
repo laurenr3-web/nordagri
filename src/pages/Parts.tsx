@@ -1,41 +1,18 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { partsData } from '@/data/partsData';
 import { useParts } from '@/hooks/useParts';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PartsContainer from '@/components/parts/PartsContainer';
-import PartSearch from '@/components/parts/PartSearch';
-import PerplexitySearch from '@/components/parts/PerplexitySearch';
-import { Part } from '@/types/Part';
 
 // Sample parts data
 const initialPartsData = partsData;
 
 const Parts = () => {
-  // The main hook now provides a cleaner interface with more focused sub-hooks
+  // The main hook provides a cleaner interface with more focused sub-hooks
   const partsHookData = useParts(initialPartsData);
-  const [activeTab, setActiveTab] = useState('inventory');
   
-  // Debug logging for parts data updates
-  useEffect(() => {
-    console.log("Données parts mises à jour:", partsHookData.parts);
-  }, [partsHookData.parts]);
-
-  const handleAddPartFromSearch = (part: Part) => {
-    // Pré-traiter la pièce avant de l'ajouter à l'inventaire
-    const newPart = {
-      ...part,
-      inStock: true,
-      stock: part.stock || 1, // Ensure stock field is populated
-      reorderPoint: part.reorderPoint || 1, // Ensure reorderPoint is populated
-      isFromSearch: true // Flag it as coming from search
-    };
-    
-    partsHookData.handleAddPart(newPart);
-  };
-
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
@@ -47,29 +24,11 @@ const Parts = () => {
           <div className="mb-6">
             <h1 className="text-3xl font-bold">Gestion des pièces</h1>
             <p className="text-muted-foreground mt-1">
-              Gérez votre inventaire de pièces et recherchez de nouvelles pièces
+              Gérez votre inventaire de pièces et commandez de nouvelles pièces
             </p>
           </div>
           
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-3 w-[600px]">
-              <TabsTrigger value="inventory">Inventaire</TabsTrigger>
-              <TabsTrigger value="search">Recherche web</TabsTrigger>
-              <TabsTrigger value="perplexity">Recherche Perplexity</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="inventory" className="mt-6">
-              <PartsContainer {...partsHookData} />
-            </TabsContent>
-            
-            <TabsContent value="search" className="mt-6">
-              <PartSearch onAddPartToInventory={handleAddPartFromSearch} />
-            </TabsContent>
-            
-            <TabsContent value="perplexity" className="mt-6">
-              <PerplexitySearch />
-            </TabsContent>
-          </Tabs>
+          <PartsContainer {...partsHookData} />
         </div>
       </div>
     </SidebarProvider>

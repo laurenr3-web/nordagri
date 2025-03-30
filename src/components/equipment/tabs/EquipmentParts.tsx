@@ -9,6 +9,8 @@ import EquipmentPartsError from './parts/EquipmentPartsError';
 import EquipmentPartsHeader from './parts/EquipmentPartsHeader';
 import EquipmentPartsTable from './parts/EquipmentPartsTable';
 import EquipmentPartsLowStockWarning from './parts/EquipmentPartsLowStockWarning';
+import EquipmentPartsAssociation from './parts/EquipmentPartsAssociation';
+import AddPartDialog from '@/components/parts/dialogs/AddPartDialog';
 import { useEquipmentParts } from '@/hooks/equipment/useEquipmentParts';
 
 interface EquipmentPartsProps {
@@ -25,9 +27,12 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = ({ equipment }) => {
     selectedPart,
     isEditDialogOpen,
     setIsEditDialogOpen,
+    isAddPartDialogOpen,
+    setIsAddPartDialogOpen,
     handleEditPart,
     handlePartUpdated,
     handleAddPart,
+    handleDeletePart,
     isUpdating
   } = useEquipmentParts(equipment);
 
@@ -49,12 +54,19 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = ({ equipment }) => {
         />
       </CardHeader>
       <CardContent>
+        {/* Section d'association */}
+        <EquipmentPartsAssociation 
+          equipment={equipment}
+          onAddPart={handleAddPart}
+        />
+
         {/* Afficher l'alerte de stock bas si nécessaire */}
         <EquipmentPartsLowStockWarning parts={parts} />
         
         <EquipmentPartsTable 
           parts={parts}
           onEditPart={handleEditPart}
+          onDeletePart={handleDeletePart}
         />
 
         {/* Dialog pour modifier une pièce */}
@@ -74,6 +86,16 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = ({ equipment }) => {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Dialog pour ajouter une pièce */}
+        <AddPartDialog
+          isOpen={isAddPartDialogOpen}
+          onOpenChange={setIsAddPartDialogOpen}
+          onSuccess={(newPart) => {
+            console.log("Nouvelle pièce ajoutée:", newPart);
+            // La logique d'ajout sera implémentée dans le hook useEquipmentParts
+          }}
+        />
       </CardContent>
     </Card>
   );

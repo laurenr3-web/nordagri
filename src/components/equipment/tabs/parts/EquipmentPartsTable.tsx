@@ -12,6 +12,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Part } from '@/types/Part';
+import { useToast } from '@/hooks/use-toast';
+import { useDeletePart } from '@/hooks/parts';
 
 interface EquipmentPartsTableProps {
   parts: Part[];
@@ -21,9 +23,37 @@ interface EquipmentPartsTableProps {
 
 const EquipmentPartsTable: React.FC<EquipmentPartsTableProps> = ({ 
   parts, 
-  onEditPart, 
-  onDeletePart 
+  onEditPart,
+  onDeletePart
 }) => {
+  const { toast } = useToast();
+  const deletePartMutation = useDeletePart();
+
+  const handleDeletePart = async (partId: number | string, partName: string) => {
+    if (!onDeletePart && !confirm(`Êtes-vous sûr de vouloir supprimer la pièce "${partName}"?`)) {
+      return;
+    }
+
+    try {
+      if (onDeletePart) {
+        onDeletePart(partId);
+      } else {
+        await deletePartMutation.mutateAsync(partId);
+        toast({
+          title: "Pièce supprimée",
+          description: `La pièce "${partName}" a été supprimée avec succès`,
+        });
+      }
+    } catch (error) {
+      console.error("Erreur lors de la suppression:", error);
+      toast({
+        title: "Erreur",
+        description: error instanceof Error ? error.message : "Erreur lors de la suppression de la pièce",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (parts.length === 0) {
     return (
       <div className="text-center py-6">
@@ -74,20 +104,14 @@ const EquipmentPartsTable: React.FC<EquipmentPartsTableProps> = ({
                     <Edit className="h-4 w-4" />
                   </Button>
                   
-                  {onDeletePart && (
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => {
-                        if (confirm(`Êtes-vous sûr de vouloir supprimer la pièce "${part.name}"?`)) {
-                          onDeletePart(part.id);
-                        }
-                      }}
-                      title="Supprimer la pièce"
-                    >
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
-                  )}
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => handleDeletePart(part.id, part.name)}
+                    title="Supprimer la pièce"
+                  >
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
                 </div>
               </TableCell>
             </TableRow>

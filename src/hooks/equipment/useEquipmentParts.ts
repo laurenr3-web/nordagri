@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { Equipment } from '@/services/supabase/equipmentService';
 import { Part } from '@/types/Part';
-import { getPartsForEquipment } from '@/services/supabase/parts';
-import { useUpdatePart } from '@/hooks/parts';
+import { getPartsForEquipment, deletePart } from '@/services/supabase/parts';
+import { useUpdatePart, useDeletePart } from '@/hooks/parts';
 import { useToast } from '@/hooks/use-toast';
 
 export function useEquipmentParts(equipment: Equipment) {
@@ -12,8 +13,11 @@ export function useEquipmentParts(equipment: Equipment) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPart, setSelectedPart] = useState<Part | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isAddPartDialogOpen, setIsAddPartDialogOpen] = useState(false);
   const { toast } = useToast();
+  
   const updatePartMutation = useUpdatePart();
+  const deletePartMutation = useDeletePart();
 
   useEffect(() => {
     const fetchParts = async () => {
@@ -64,11 +68,19 @@ export function useEquipmentParts(equipment: Equipment) {
           );
           setIsEditDialogOpen(false);
           setSelectedPart(null);
+          
+          toast({
+            title: "Succès",
+            description: `La pièce ${result.name} a été mise à jour avec succès`,
+          });
         },
         onError: (error: any) => {
-          // L'erreur est déjà gérée par le hook useUpdatePart
           console.error('Erreur lors de la mise à jour de la pièce:', error);
-          // Ne pas fermer le dialogue pour permettre à l'utilisateur de corriger l'erreur
+          toast({
+            title: "Erreur",
+            description: error.message || "Erreur lors de la mise à jour de la pièce",
+            variant: "destructive",
+          });
         }
       });
     } catch (err: any) {
@@ -81,13 +93,33 @@ export function useEquipmentParts(equipment: Equipment) {
     }
   };
 
+  const handleDeletePart = async (partId: number | string) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette pièce?')) {
+      return;
+    }
+    
+    try {
+      await deletePartMutation.mutateAsync(partId);
+      
+      // Mise à jour de l'état local après suppression
+      setParts(prevParts => prevParts.filter(part => part.id !== partId));
+      
+      toast({
+        title: "Succès",
+        description: "La pièce a été supprimée avec succès",
+      });
+    } catch (err: any) {
+      console.error('Erreur lors de la suppression:', err);
+      toast({
+        title: "Erreur",
+        description: err.message || "Erreur lors de la suppression de la pièce",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleAddPart = () => {
-    // To be implemented when adding parts functionality is needed
-    console.log('Add part clicked');
-    toast({
-      title: "Information",
-      description: "La fonctionnalité d'ajout de pièce n'est pas encore implémentée.",
-    });
+    setIsAddPartDialogOpen(true);
   };
 
   return {
@@ -99,8 +131,11 @@ export function useEquipmentParts(equipment: Equipment) {
     selectedPart,
     isEditDialogOpen,
     setIsEditDialogOpen,
+    isAddPartDialogOpen,
+    setIsAddPartDialogOpen,
     handleEditPart,
     handlePartUpdated,
+    handleDeletePart,
     handleAddPart,
     isUpdating: updatePartMutation.isPending
   };
