@@ -53,10 +53,11 @@ export function useEquipmentDetail(id: string | undefined) {
             : '',
           // Add UI-specific properties based on maintenance data
           lastMaintenance: getLastMaintenanceDate(maintenanceTasks),
-          // Create a usage property if it doesn't exist
+          // Extract usage data from appropriate properties based on the data structure
+          // Check for different possible property names where usage data might be stored
           usage: {
-            hours: data.usageHours || 0,
-            target: data.usageTarget || 500
+            hours: data.current_hours || 0,
+            target: data.usage_target || 500
           },
           nextService: getNextServiceInfo(maintenanceTasks)
         };
