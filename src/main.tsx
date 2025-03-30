@@ -29,20 +29,16 @@ const queryClient = new QueryClient({
       },
       staleTime: 5 * 60 * 1000, // 5 minutes
       gcTime: 10 * 60 * 1000, // 10 minutes (anciennement cacheTime)
-      onSettled: (_data, error) => {
-        if (error) {
-          const message = (error as Error)?.message || 'Une erreur est survenue';
-          toast.error(message);
-        }
+      onError: (error) => {
+        const message = (error as Error)?.message || 'Une erreur est survenue';
+        toast.error(message);
       }
     },
     mutations: {
       retry: 1,
-      onSettled: (_data, error) => {
-        if (error) {
-          const message = (error as Error)?.message || 'Une erreur est survenue lors de la modification';
-          toast.error(message);
-        }
+      onError: (error) => {
+        const message = (error as Error)?.message || 'Une erreur est survenue lors de la modification';
+        toast.error(message);
       }
     }
   },
