@@ -19,11 +19,11 @@ const PartDetailsDialog: React.FC<PartDetailsDialogProps> = ({
   onEdit,
   onDelete
 }) => {
-  // Fonction pour gérer la suppression d'une pièce
+  // Function to handle part deletion
   const handleDelete = (partId: number | string) => {
     if (onDelete) {
       onDelete(partId);
-      // Fermer le dialogue après la suppression
+      // Close the dialog after deletion
       onOpenChange(false);
     }
   };

@@ -19,34 +19,37 @@ export const usePartsData = (initialParts: Part[] = []) => {
   const { data: supabaseParts, isLoading, isError, refetch } = useQuery({
     queryKey: ['parts'],
     queryFn: () => getParts(),
-    staleTime: 0, // Toujours considérer les données comme périmées
-    refetchOnWindowFocus: true, // Refetch quand la fenêtre récupère le focus
-    refetchInterval: 30000 // Refetch toutes les 30 secondes
+    staleTime: 0, // Always consider data as stale
+    refetchOnWindowFocus: true, // Refetch when window regains focus
+    refetchInterval: 30000 // Refetch every 30 seconds
   });
 
   // Handle data updates
   useEffect(() => {
     if (supabaseParts && supabaseParts.length > 0) {
       console.log('📥 Setting parts from Supabase:', supabaseParts);
-      setParts(supabaseParts);
-    } else if (supabaseParts && supabaseParts.length === 0 && initialParts.length > 0) {
-      console.log('ℹ️ Using initial data as Supabase returned empty');
-      setParts(initialParts);
+      
+      // Filter only real parts (we ensure they have an ID and name)
+      const validParts = supabaseParts.filter(part => part.id && part.name);
+      
+      setParts(validParts);
+    } else if (supabaseParts && supabaseParts.length === 0) {
+      console.log('ℹ️ No parts in Supabase, setting empty list');
+      setParts([]);
     }
-  }, [supabaseParts, initialParts]);
+  }, [supabaseParts]);
 
   // Handle error cases
   useEffect(() => {
-    if (isError && initialParts.length > 0) {
-      console.log('⚠️ Using initial data due to Supabase error');
-      setParts(initialParts);
+    if (isError) {
+      console.log('⚠️ Error fetching from Supabase, falling back to local data');
       toast({
         title: "Erreur de connexion",
         description: "Impossible de charger les données depuis Supabase",
         variant: "destructive",
       });
     }
-  }, [isError, initialParts, toast]);
+  }, [isError, toast]);
 
   // Action handlers
   const handleAddPart = (part: Omit<Part, 'id'>) => {
@@ -57,21 +60,20 @@ export const usePartsData = (initialParts: Part[] = []) => {
   const handleUpdatePart = (part: Part) => {
     console.log('👉 Updating part:', part);
     
-    // Forcer le rechargement des données après la mise à jour,
-    // quelle que soit la réponse de la mutation
+    // Force a data refresh after update, regardless of the mutation response
     updatePartMutation.mutate(part, {
       onSuccess: (updatedPart) => {
         console.log('🔄 Update successful:', updatedPart);
-        // Force un refetch après la mise à jour
+        // Force a refetch after update
         refetch();
       },
       onError: (error) => {
         console.error('❌ Update error:', error);
-        // Même en cas d'erreur, on peut essayer de rafraîchir les données
+        // Try to refresh data even on error
         refetch();
       },
       onSettled: () => {
-        // Cette fonction est appelée que la mutation réussisse ou échoue
+        // This function is called whether the mutation succeeds or fails
         console.log('🔄 Forcing data refresh after update attempt');
         refetch();
       }
@@ -83,7 +85,7 @@ export const usePartsData = (initialParts: Part[] = []) => {
     deletePartMutation.mutate(partId, {
       onSuccess: () => {
         console.log('🔄 Refetching parts after delete');
-        refetch(); // Force un refetch après la suppression
+        refetch(); // Force a refetch after deletion
       }
     });
   };

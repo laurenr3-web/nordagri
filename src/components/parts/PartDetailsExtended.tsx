@@ -8,9 +8,9 @@ import TechnicalInfoTab from './TechnicalInfoTab';
 import { useToast } from '@/hooks/use-toast';
 import { useDeletePart } from '@/hooks/parts';
 
-// Utilisez LocalPart ou votre interface Part selon votre configuration
+// Use LocalPart or your interface Part according to your configuration
 interface PartProps {
-  part: any; // Remplacez par votre type réel
+  part: any; // Replace with your real type
   onBack: () => void;
   onEdit: (part: any) => void;
   onDelete: (partId: string | number) => void;
@@ -23,14 +23,14 @@ const PartDetailsExtended = ({ part, onBack, onEdit, onDelete }: PartProps) => {
 
   const handleDelete = () => {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette pièce ?')) {
-      // Utiliser la mutation directement pour bénéficier de son système de gestion d'erreurs
+      // Use the deletion mutation directly for error handling
       deleteMutation.mutate(part.id, {
         onSuccess: () => {
           toast({
             title: "Pièce supprimée",
             description: `La pièce ${part.name} a été supprimée avec succès`,
           });
-          // Rediriger vers la liste des pièces
+          // Navigate back after successful deletion
           onBack();
         },
         onError: (error: any) => {

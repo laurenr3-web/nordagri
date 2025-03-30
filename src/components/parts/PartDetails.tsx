@@ -45,15 +45,15 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
     if (onDelete) {
       onDelete(part.id);
     } else {
-      // Utiliser la mutation de suppression si aucun gestionnaire n'est fourni
+      // Use mutation for deletion if no handler is provided
       deleteMutation.mutate(part.id, {
         onSuccess: () => {
-          // Fermer le dialogue principal après la suppression réussie
+          // Close dialogs after successful deletion
           if (onDialogClose) {
-            setTimeout(() => onDialogClose(), 300);
+            onDialogClose();
           }
           
-          // Rediriger vers la liste des pièces si onBack est fourni
+          // Navigate back if available
           if (onBack) {
             onBack();
           }
@@ -69,10 +69,10 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
       onEdit(updatedPart);
     }
     
-    // Fermer d'abord le dialogue d'édition
+    // First close the edit dialog
     setIsEditDialogOpen(false);
     
-    // Puis fermer le dialogue principal après confirmation de la mise à jour
+    // Then close the main dialog after the update is confirmed
     if (onDialogClose) {
       setTimeout(() => onDialogClose(), 300);
     }
@@ -84,7 +84,7 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
     setIsEditDialogOpen(true);
   };
 
-  // Nouveau gestionnaire pour ouvrir le dialogue de confirmation de suppression
+  // Handler to open the delete confirmation dialog
   const openDeleteDialog = (e: React.MouseEvent) => {
     // Prevent event from bubbling up which might cause redirection
     e.stopPropagation();

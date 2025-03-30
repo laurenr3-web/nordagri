@@ -30,7 +30,7 @@ export function AddPartForm({ onSuccess, onCancel }: AddPartFormProps) {
       reorderPoint: '',
       location: 'Warehouse A',
       compatibility: '',
-      image: 'https://images.unsplash.com/photo-1642742381109-81e94659e783?q=80&w=500&auto=format&fit=crop'
+      image: ''
     }
   });
 
