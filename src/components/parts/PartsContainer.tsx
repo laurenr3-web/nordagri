@@ -62,6 +62,8 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
   setIsPartDetailsDialogOpen,
   handleUpdatePart,
   handleDeletePart,
+  isAddPartDialogOpen,
+  setIsAddPartDialogOpen,
   refetch
 }) => {
   if (isLoading) {
@@ -111,12 +113,14 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
         {currentView === 'grid' ? (
           <PartsGrid
             parts={filteredParts as any}
-            onPartClick={openPartDetails}
+            openPartDetails={openPartDetails}
+            openOrderDialog={() => {}}
           />
         ) : (
           <PartsList
             parts={filteredParts as any}
-            onPartClick={openPartDetails}
+            openPartDetails={openPartDetails}
+            openOrderDialog={() => {}}
           />
         )}
 
@@ -139,6 +143,12 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
             <p className="mb-4 text-center text-muted-foreground">
               Votre inventaire de pièces est vide. Ajoutez votre première pièce.
             </p>
+            <Button
+              variant="default"
+              onClick={() => setIsAddPartDialogOpen(true)}
+            >
+              Ajouter une pièce
+            </Button>
           </div>
         )}
       </Card>
