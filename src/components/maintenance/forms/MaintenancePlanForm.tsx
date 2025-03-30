@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -72,7 +71,23 @@ export default function MaintenancePlanForm({
 
   // Gestionnaire de soumission du formulaire
   const handleSubmit = (values: MaintenancePlanFormValues) => {
-    onSubmit(values);
+    // Ensure all required fields are present with proper types
+    const maintenancePlan: Omit<MaintenancePlan, 'id' | 'active'> = {
+      title: values.title,
+      description: values.description || '',
+      equipmentId: values.equipmentId,
+      equipmentName: values.equipmentName,
+      frequency: values.frequency,
+      interval: values.interval,
+      unit: values.unit,
+      type: values.type,
+      priority: values.priority,
+      engineHours: values.engineHours,
+      nextDueDate: values.nextDueDate,
+      assignedTo: values.assignedTo
+    };
+    
+    onSubmit(maintenancePlan);
   };
 
   // Options pour les fréquences de maintenance

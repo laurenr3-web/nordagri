@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { usePathname } from 'next/navigation';
+import { useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Tractor,
@@ -9,11 +10,45 @@ import {
   Settings,
 } from "lucide-react";
 
-import { UserMenu } from "@/components/user-menu";
 import MaintenanceNotificationsPopover from '../maintenance/notifications/MaintenanceNotificationsPopover';
 
+// Export navItems for use in MobileMenu
+export const navItems = [
+  {
+    title: "Tableau de bord",
+    href: "/",
+    icon: LayoutDashboard
+  },
+  {
+    title: "Équipements",
+    href: "/equipment",
+    icon: Tractor
+  },
+  {
+    title: "Maintenance",
+    href: "/maintenance",
+    icon: Calendar
+  },
+  {
+    title: "Pièces",
+    href: "/parts",
+    icon: BoxIcon
+  },
+  {
+    title: "Interventions",
+    href: "/interventions",
+    icon: ScrollIcon
+  },
+  {
+    title: "Paramètres",
+    href: "/settings",
+    icon: Settings
+  }
+];
+
 const Navbar = () => {
-  const currentPath = usePathname() || "";
+  const location = useLocation();
+  const currentPath = location.pathname || "";
 
   return (
     <div>
@@ -30,65 +65,31 @@ const Navbar = () => {
           <div className="hidden md:flex">
             <MaintenanceNotificationsPopover />
           </div>
-          <UserMenu />
+          <div className="ml-2">
+            {/* Placeholder for UserMenu */}
+            <button className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <span className="text-xs font-medium">U</span>
+            </button>
+          </div>
         </div>
       </div>
       <div className="flex-1 overflow-auto py-2">
         <nav className="grid items-start px-4 text-sm font-medium">
-          <a
-            href="/"
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 ${
-              currentPath === "/" ? "bg-secondary text-primary" : "text-muted-foreground"
-            } transition-all hover:text-primary`}
-          >
-            <LayoutDashboard className="h-4 w-4" />
-            Tableau de bord
-          </a>
-          <a
-            href="/equipment"
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 ${
-              currentPath.includes("equipment") ? "bg-secondary text-primary" : "text-muted-foreground"
-            } transition-all hover:text-primary`}
-          >
-            <Tractor className="h-4 w-4" />
-            Équipements
-          </a>
-          <a
-            href="/maintenance"
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 ${
-              currentPath.includes("maintenance") ? "bg-secondary text-primary" : "text-muted-foreground"
-            } transition-all hover:text-primary`}
-          >
-            <Calendar className="h-4 w-4" />
-            Maintenance
-          </a>
-          <a
-            href="/parts"
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 ${
-              currentPath.includes("parts") ? "bg-secondary text-primary" : "text-muted-foreground"
-            } transition-all hover:text-primary`}
-          >
-            <BoxIcon className="h-4 w-4" />
-            Pièces
-          </a>
-          <a
-            href="/interventions"
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 ${
-              currentPath.includes("interventions") ? "bg-secondary text-primary" : "text-muted-foreground"
-            } transition-all hover:text-primary`}
-          >
-            <ScrollIcon className="h-4 w-4" />
-            Interventions
-          </a>
-          <a
-            href="/settings"
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 ${
-              currentPath.includes("settings") ? "bg-secondary text-primary" : "text-muted-foreground"
-            } transition-all hover:text-primary`}
-          >
-            <Settings className="h-4 w-4" />
-            Paramètres
-          </a>
+          {navItems.map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2 ${
+                currentPath === item.href || 
+                (item.href !== "/" && currentPath.includes(item.href)) 
+                  ? "bg-secondary text-primary" 
+                  : "text-muted-foreground"
+              } transition-all hover:text-primary`}
+            >
+              <item.icon className="h-4 w-4" />
+              {item.title}
+            </a>
+          ))}
         </nav>
       </div>
     </div>

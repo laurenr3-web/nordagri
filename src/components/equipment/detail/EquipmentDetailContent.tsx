@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import EquipmentHeader from './EquipmentHeader';
@@ -64,9 +65,9 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
       {isEditDialogOpen && (
         <EditEquipmentDialog
           isOpen={isEditDialogOpen}
-          onClose={() => setIsEditDialogOpen(false)}
+          onOpenChange={setIsEditDialogOpen}
           equipment={equipment}
-          onSave={handleEquipmentUpdate}
+          onSubmit={handleEquipmentUpdate}
         />
       )}
     </div>

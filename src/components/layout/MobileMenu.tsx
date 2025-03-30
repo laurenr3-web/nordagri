@@ -5,14 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { navItems } from './Navbar';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 const MobileMenu = () => {
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
-  
-  // Only render the mobile menu on mobile devices
-  if (!isMobile) return null;
   
   return (
     <Sheet>
