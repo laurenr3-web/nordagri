@@ -1,3 +1,7 @@
+
+// Importer WDYR en premier pour s'assurer qu'il est chargé avant React
+import './wdyr';
+
 import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
