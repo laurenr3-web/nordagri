@@ -55,7 +55,13 @@ const InterventionsPage = () => {
         <Navbar />
 
         <div className="flex flex-1 flex-col">
-          <InterventionsHeader onNewIntervention={handleOpenNewInterventionDialog} />
+          <InterventionsHeader 
+            onNewIntervention={handleOpenNewInterventionDialog} 
+            searchQuery={searchQuery}
+            onSearchChange={(query) => handleSearchChange({ target: { value: query } } as React.ChangeEvent<HTMLInputElement>)}
+            selectedPriority={selectedPriority}
+            onPriorityChange={handlePriorityChange}
+          />
 
           <InterventionsContainer
             filteredInterventions={filteredInterventions}
@@ -79,6 +85,7 @@ const InterventionsPage = () => {
             onCloseInterventionDetails={handleCloseInterventionDetails}
             onStartWork={handleStartWork}
             interventions={interventions}
+            filteredInterventions={filteredInterventions}
           />
         </div>
       </div>
