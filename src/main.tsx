@@ -10,13 +10,24 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import App from './App';
 import './styles/index.css';
 
-// Create a Query Client for React Query
+// Create a Query Client for React Query with enhanced configuration
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
       staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      onError: (error) => {
+        console.error('Query error:', error);
+      }
     },
+    mutations: {
+      retry: 2,
+      onError: (error) => {
+        console.error('Mutation error:', error);
+      }
+    }
   },
 });
 
