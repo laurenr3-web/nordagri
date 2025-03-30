@@ -12,7 +12,7 @@ export const maintenanceTasks: MaintenanceTask[] = [
     status: 'scheduled' as MaintenanceStatus,
     priority: 'medium' as MaintenancePriority,
     dueDate: new Date(2023, 5, 15),
-    estimatedDuration: 2,
+    engineHours: 2,
     assignedTo: 'Michael Torres',
     notes: 'Use synthetic oil as specified in manual. Check fuel filters as well.'
   },
@@ -25,7 +25,7 @@ export const maintenanceTasks: MaintenanceTask[] = [
     status: 'in-progress' as MaintenanceStatus,
     priority: 'high' as MaintenancePriority,
     dueDate: new Date(2023, 5, 12),
-    estimatedDuration: 3,
+    engineHours: 3,
     assignedTo: 'David Chen',
     notes: 'Previous inspection showed minor leak in rear hydraulic line. Check carefully.'
   },
@@ -38,7 +38,7 @@ export const maintenanceTasks: MaintenanceTask[] = [
     status: 'in-progress' as MaintenanceStatus,
     priority: 'critical' as MaintenancePriority,
     dueDate: new Date(2023, 5, 10),
-    estimatedDuration: 8,
+    engineHours: 8,
     assignedTo: 'Sarah Johnson',
     notes: 'Engine overheating issue. Suspected damaged radiator and cooling system problems.'
   },
@@ -52,7 +52,7 @@ export const maintenanceTasks: MaintenanceTask[] = [
     priority: 'medium' as MaintenancePriority,
     dueDate: new Date(2023, 5, 8),
     completedDate: new Date(2023, 5, 8),
-    estimatedDuration: 2,
+    engineHours: 2,
     actualDuration: 1.5,
     assignedTo: 'Michael Torres',
     notes: 'Routine inspection completed. Brake pads still in good condition.'
@@ -66,7 +66,7 @@ export const maintenanceTasks: MaintenanceTask[] = [
     status: 'scheduled' as MaintenanceStatus,
     priority: 'high' as MaintenancePriority,
     dueDate: new Date(2023, 5, 14),
-    estimatedDuration: 4,
+    engineHours: 4,
     assignedTo: 'David Chen',
     notes: 'Due to hours of operation. Follow service manual procedure F-942-TS.'
   },
@@ -79,7 +79,7 @@ export const maintenanceTasks: MaintenanceTask[] = [
     status: 'scheduled' as MaintenanceStatus,
     priority: 'medium' as MaintenancePriority,
     dueDate: new Date(2023, 5, 20),
-    estimatedDuration: 3,
+    engineHours: 3,
     assignedTo: 'Sarah Johnson',
     notes: 'Replace worn rear tires. New tires ordered and expected to arrive on June 18.'
   },
@@ -92,7 +92,7 @@ export const maintenanceTasks: MaintenanceTask[] = [
     status: 'scheduled' as MaintenanceStatus,
     priority: 'medium' as MaintenancePriority,
     dueDate: new Date(2023, 6, 5),
-    estimatedDuration: 6,
+    engineHours: 6,
     assignedTo: 'Michael Torres',
     notes: 'Complete annual service according to manufacturer specifications.'
   },
@@ -105,7 +105,7 @@ export const maintenanceTasks: MaintenanceTask[] = [
     status: 'pending-parts' as MaintenanceStatus,
     priority: 'high' as MaintenancePriority,
     dueDate: new Date(2023, 5, 16),
-    estimatedDuration: 4,
+    engineHours: 4,
     assignedTo: 'David Chen',
     notes: 'Intermittent electrical issues. Waiting for diagnostic module to arrive.'
   }

@@ -55,7 +55,7 @@ const MaintenanceCalendarTable: React.FC<MaintenanceCalendarTableProps> = ({
           <TableHead>Statut</TableHead>
           <TableHead>Priorité</TableHead>
           <TableHead>Date prévue</TableHead>
-          <TableHead>Durée estimée</TableHead>
+          <TableHead>Heures moteur</TableHead>
           <TableHead>Assigné à</TableHead>
           <TableHead>Actions</TableHead>
         </TableRow>
@@ -79,7 +79,7 @@ const MaintenanceCalendarTable: React.FC<MaintenanceCalendarTableProps> = ({
               </Badge>
             </TableCell>
             <TableCell>{formatDate(task.dueDate)}</TableCell>
-            <TableCell>{task.estimatedDuration}h</TableCell>
+            <TableCell>{task.engineHours}h</TableCell>
             <TableCell>{task.assignedTo || '-'}</TableCell>
             <TableCell>
               <div className="flex space-x-1">

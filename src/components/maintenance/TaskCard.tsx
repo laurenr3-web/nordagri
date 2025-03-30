@@ -35,11 +35,11 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onViewDetails }) => {
             <p className="font-medium">{formatDate(task.dueDate)}</p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground mb-1">Duration</p>
+            <p className="text-sm text-muted-foreground mb-1">Engine Hours</p>
             <p className="font-medium">
               {task.status === 'completed' && task.actualDuration ? 
                 `${task.actualDuration} hrs (Actual)` : 
-                `${task.estimatedDuration} hrs (Est.)`
+                `${task.engineHours} hrs`
               }
             </p>
           </div>

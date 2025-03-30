@@ -39,11 +39,11 @@ export const TaskMetadata: React.FC<TaskMetadataProps> = ({ task }) => {
         <div className="flex gap-2 items-start">
           <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
           <div>
-            <p className="text-sm text-muted-foreground">Duration</p>
+            <p className="text-sm text-muted-foreground">Engine Hours</p>
             <p className="font-medium">
               {task.status === 'completed' && task.actualDuration ? 
                 `${task.actualDuration} hrs (Actual)` : 
-                `${task.estimatedDuration} hrs (Est.)`
+                `${task.engineHours} hrs`
               }
             </p>
           </div>

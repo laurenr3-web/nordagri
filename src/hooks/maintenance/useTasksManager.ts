@@ -30,7 +30,7 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
               priority: 'medium' as MaintenancePriority,
               dueDate: new Date('2023-06-08'),
               completedDate: new Date('2023-06-08'),
-              estimatedDuration: 2,
+              engineHours: 2500,
               actualDuration: 1.5,
               assignedTo: 'Michael Torres',
               notes: 'Routine inspection completed. Brake pads still in good condition.'

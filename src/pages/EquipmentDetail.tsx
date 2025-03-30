@@ -33,7 +33,10 @@ const EquipmentDetail = () => {
               {!loading && !error && equipment && (
                 <EquipmentDetailContent 
                   equipment={equipment}
-                  onUpdate={handleEquipmentUpdate}
+                  onUpdate={async (updatedData) => {
+                    await handleEquipmentUpdate(updatedData);
+                    return;
+                  }}
                 />
               )}
             </div>

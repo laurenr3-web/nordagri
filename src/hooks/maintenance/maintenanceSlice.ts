@@ -1,6 +1,6 @@
 
 // Types for maintenance tasks
-export type MaintenanceStatus = 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
+export type MaintenanceStatus = 'scheduled' | 'in-progress' | 'completed' | 'cancelled' | 'pending-parts';
 export type MaintenancePriority = 'low' | 'medium' | 'high' | 'critical';
 export type MaintenanceType = 'preventive' | 'corrective' | 'condition-based';
 

@@ -46,7 +46,7 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
         status: 'scheduled' as MaintenanceStatus,
         priority: maintenance.priority as MaintenancePriority,
         dueDate: maintenance.dueDate,
-        estimatedDuration: maintenance.estimatedDuration,
+        engineHours: maintenance.engineHours,
         assignedTo: maintenance.assignedTo || '',
         notes: maintenance.notes || '',
         partId: maintenance.partId || null
