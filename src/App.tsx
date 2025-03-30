@@ -25,7 +25,6 @@ function App() {
   return (
     <RealtimeCacheProvider>
       <AuthProvider>
-        <MobileMenu />
         <ErrorBoundary 
           fallback={
             <div className="flex items-center justify-center h-screen bg-background">
@@ -42,6 +41,7 @@ function App() {
             </div>
           }
         >
+          <MobileMenu />
           <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
             <Routes>
               <Route path="/" element={<Index />} />
@@ -101,8 +101,8 @@ function App() {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
+          <Toaster />
         </ErrorBoundary>
-        <Toaster />
       </AuthProvider>
     </RealtimeCacheProvider>
   );
