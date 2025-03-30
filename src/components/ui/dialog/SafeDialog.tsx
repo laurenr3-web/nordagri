@@ -3,7 +3,6 @@ import React, { useRef, useEffect, useCallback } from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { 
   Dialog as ShadcnDialog, 
-  DialogProps,
   DialogContent,
   DialogHeader,
   DialogFooter,
@@ -12,9 +11,11 @@ import {
   DialogClose
 } from '@/components/ui/dialog';
 
-export interface SafeDialogProps extends DialogProps {
+export interface SafeDialogProps {
   children: React.ReactNode;
+  open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  [key: string]: any; // For additional props
 }
 
 export const SafeDialog: React.FC<SafeDialogProps> = ({ 
@@ -63,6 +64,5 @@ export const SafeDialogTitle = DialogTitle;
 export const SafeDialogDescription = DialogDescription;
 export const SafeDialogClose = DialogClose;
 
-// Create a barrel export file
-export { SafeDialog };
+// Export types
 export type { SafeDialogProps };
