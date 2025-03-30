@@ -3,6 +3,23 @@
 
 Ce document contient des instructions pour nettoyer le dépôt en éliminant les fichiers et dossiers non utilisés ainsi que pour améliorer la qualité du code.
 
+## Scripts recommandés pour package.json
+
+Ajoutez ces scripts à votre fichier `package.json` pour simplifier l'utilisation des outils de nettoyage:
+
+```json
+{
+  "scripts": {
+    "analyze": "node scripts/analyze-imports.js --report",
+    "analyze:json": "node scripts/analyze-imports.js --json",
+    "cleanup": "node scripts/safe-cleanup.js",
+    "cleanup:auto": "node scripts/safe-cleanup.js --auto",
+    "precleanup": "npm run test",
+    "postcleanup": "npm run build"
+  }
+}
+```
+
 ## Commandes disponibles
 
 ### Analyse des imports
@@ -12,13 +29,16 @@ Ce document contient des instructions pour nettoyer le dépôt en éliminant les
 npm run lint:unused
 
 # Générer un rapport détaillé des fichiers non utilisés
-npm run lint:unused -- --report
+npm run analyze
+
+# Générer un rapport JSON des fichiers non utilisés
+npm run analyze:json
 
 # Supprimer automatiquement les fichiers non utilisés (ATTENTION: destructif)
 npm run cleanup
 
-# Effectuer une simulation de nettoyage (dry run)
-npm run cleanup -- --dry-run
+# Supprimer automatiquement les fichiers non utilisés sans confirmation
+npm run cleanup:auto
 ```
 
 ### Vérification des types
@@ -49,7 +69,7 @@ npm run validate
 Exécutez le script d'analyse pour identifier les fichiers potentiellement non utilisés:
 
 ```bash
-npm run lint:unused
+npm run analyze
 ```
 
 Ce script analysera l'arborescence des imports à partir des points d'entrée de l'application et identifiera les fichiers qui ne sont pas importés.
@@ -78,14 +98,14 @@ Une fois que vous avez vérifié quels fichiers peuvent être supprimés en tout
 2. Exécutez le script de nettoyage avec l'option dry-run:
 
 ```bash
-npm run cleanup -- --dry-run
+npm run cleanup
 ```
 
 3. Vérifiez la liste des fichiers qui seraient supprimés
-4. Si tout semble correct, exécutez le nettoyage réel:
+4. Si tout semble correct, exécutez le nettoyage automatique:
 
 ```bash
-npm run cleanup
+npm run cleanup:auto
 ```
 
 5. Vérifiez que l'application compile et fonctionne correctement
