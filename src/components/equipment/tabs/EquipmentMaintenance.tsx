@@ -10,7 +10,6 @@ import { MaintenanceStatus, MaintenanceType, MaintenancePriority } from '@/hooks
 import NewMaintenanceDialog from './maintenance/NewMaintenanceDialog';
 import MaintenanceSummaryCards from './maintenance/MaintenanceSummaryCards';
 import MaintenanceCalendarTable from './maintenance/MaintenanceCalendarTable';
-import MaintenanceQuoteDialog from './maintenance/MaintenanceQuoteDialog';
 import AddPartDialog from '@/components/parts/dialogs/AddPartDialog';
 import { formatDate, getStatusBadge, getPriorityColor } from './maintenance/maintenanceUtils';
 
@@ -33,10 +32,8 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
     deleteTask
   } = useTasksManager();
 
-  // État pour stocker la tâche sélectionnée pour voir le devis
-  const [selectedTaskForQuote, setSelectedTaskForQuote] = useState<number | null>(null);
-  const [isQuoteDialogOpen, setIsQuoteDialogOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<any>(null);
+  // État pour stocker l'identifiant de la tâche sélectionnée
+  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
 
   useEffect(() => {
     // Déjà géré par useTasksManager, mais on ajoute un délai simulé pour l'UX
@@ -86,26 +83,7 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
   };
 
   const handleViewQuote = (taskId: number) => {
-    const task = maintenanceTasks.find(t => t.id === taskId);
-    if (task) {
-      setSelectedTask({
-        ...task,
-        equipment: equipment // Pour avoir les infos complètes de l'équipement
-      });
-      setIsQuoteDialogOpen(true);
-    } else {
-      toast.error('Impossible de trouver la tâche');
-    }
-  };
-
-  const handleDeleteTask = (taskId: number) => {
-    try {
-      deleteTask(taskId);
-      toast.success('Devis supprimé avec succès');
-    } catch (error) {
-      console.error('Erreur lors de la suppression du devis:', error);
-      toast.error('Impossible de supprimer le devis');
-    }
+    toast.info('La fonctionnalité de visualisation des devis a été désactivée');
   };
 
   const handleChangeStatus = (taskId: number, newStatus: string) => {
@@ -171,14 +149,6 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
           onSubmit={handleCreateMaintenance}
         />
       )}
-      
-      {/* Dialog pour voir le devis */}
-      <MaintenanceQuoteDialog 
-        isOpen={isQuoteDialogOpen}
-        onClose={() => setIsQuoteDialogOpen(false)}
-        maintenance={selectedTask}
-        onDelete={handleDeleteTask}
-      />
 
       {/* Dialog pour ajouter une pièce */}
       <AddPartDialog
