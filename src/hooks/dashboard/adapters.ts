@@ -21,10 +21,11 @@ export const adaptStatsData = (statsData: StatsCardData[]) => {
     title: stat.title,
     value: stat.value.toString(),
     icon: stat.icon,
-    trend: {
+    description: stat.description,
+    trend: stat.change !== undefined ? {
       value: Math.abs(stat.change),
       isPositive: stat.change >= 0
-    }
+    } : undefined
   }));
 };
 
@@ -33,13 +34,13 @@ export const adaptEquipmentData = (equipmentData: EquipmentItem[]) => {
     id: item.id,
     name: item.name,
     type: item.type,
-    image: `https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=500&auto=format&fit=crop`,
-    status: item.status as 'operational' | 'maintenance' | 'repair',
-    usage: {
+    image: item.image || `https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=500&auto=format&fit=crop`,
+    status: item.status,
+    usage: item.usage || {
       hours: Math.floor(Math.random() * 500),
       target: 500
     },
-    nextService: {
+    nextService: item.nextService || {
       type: 'Maintenance Check',
       due: item.nextMaintenance || 'Not scheduled'
     }
@@ -51,8 +52,8 @@ export const adaptMaintenanceEvents = (maintenanceEvents: MaintenanceEvent[]) =>
     id: event.id.toString(),
     title: event.title,
     date: event.date,
-    duration: Math.floor(Math.random() * 4) + 1,
-    priority: (['low', 'medium', 'high'] as const)[Math.floor(Math.random() * 3)],
+    duration: event.duration || Math.floor(Math.random() * 4) + 1,
+    priority: event.priority || (['low', 'medium', 'high'] as const)[Math.floor(Math.random() * 3)],
     equipment: event.equipment
   }));
 };
@@ -60,11 +61,11 @@ export const adaptMaintenanceEvents = (maintenanceEvents: MaintenanceEvent[]) =>
 export const adaptAlertItems = (alertItems: AlertItem[]) => {
   return alertItems.map(alert => ({
     id: alert.id,
-    severity: alert.type === 'error' ? 'high' as const : 
-             alert.type === 'warning' ? 'medium' as const : 'low' as const,
+    severity: alert.severity || (alert.type === 'error' ? 'high' as const : 
+              alert.type === 'warning' ? 'medium' as const : 'low' as const),
     message: alert.message,
-    time: getRelativeTime(alert.date),
-    equipment: extractEquipmentName(alert.message)
+    time: alert.time || getRelativeTime(alert.date),
+    equipment: alert.equipment || extractEquipmentName(alert.message)
   }));
 };
 
@@ -73,9 +74,9 @@ export const adaptUpcomingTasks = (upcomingTasks: UpcomingTask[]) => {
     id: task.id,
     title: task.title,
     equipment: task.equipment,
-    due: formatDueDate(task.date),
+    due: task.due || formatDueDate(task.date),
     priority: task.priority as 'high' | 'medium' | 'low',
-    assignee: getRandomAssignee()
+    assignee: task.assignee || getRandomAssignee()
   }));
 };
 
