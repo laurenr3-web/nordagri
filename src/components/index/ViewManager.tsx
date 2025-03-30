@@ -5,13 +5,15 @@ import { Tabs, TabsContent } from '@/components/ui/tabs';
 import Dashboard from './Dashboard';
 import CalendarView from './CalendarView';
 import AllAlertsSection from './AllAlertsSection';
+import { toast } from '@/hooks/use-toast';
+import { useDashboardData } from '@/hooks/dashboard/useDashboardData';
 import { 
-  statsData, 
-  equipmentData, 
-  maintenanceEvents, 
-  alertItems, 
-  upcomingTasks 
-} from '@/data/dashboardData';
+  adaptStatsData, 
+  adaptEquipmentData, 
+  adaptMaintenanceEvents, 
+  adaptAlertItems, 
+  adaptUpcomingTasks 
+} from '@/hooks/dashboard/adapters';
 
 interface ViewManagerProps {
   currentView: 'main' | 'calendar' | 'alerts';
@@ -20,6 +22,21 @@ interface ViewManagerProps {
 
 const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) => {
   const navigate = useNavigate();
+  const { 
+    loading, 
+    statsData, 
+    equipmentData, 
+    maintenanceEvents, 
+    alertItems, 
+    upcomingTasks 
+  } = useDashboardData();
+
+  // Adapt data for UI components
+  const adaptedStatsData = adaptStatsData(statsData);
+  const adaptedEquipmentData = adaptEquipmentData(equipmentData);
+  const adaptedMaintenanceEvents = adaptMaintenanceEvents(maintenanceEvents);
+  const adaptedAlertItems = adaptAlertItems(alertItems);
+  const adaptedUpcomingTasks = adaptUpcomingTasks(upcomingTasks);
 
   const handleStatsCardClick = (type: string) => {
     switch (type) {
@@ -54,15 +71,19 @@ const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) 
     navigate(`/equipment/${id}`);
   };
 
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading dashboard data...</div>;
+  }
+
   return (
     <Tabs value={currentView} className="space-y-8">
       <TabsContent value="main">
         <Dashboard 
-          statsData={statsData}
-          equipmentData={equipmentData}
-          maintenanceEvents={maintenanceEvents}
-          alertItems={alertItems}
-          upcomingTasks={upcomingTasks}
+          statsData={adaptedStatsData}
+          equipmentData={adaptedEquipmentData}
+          maintenanceEvents={adaptedMaintenanceEvents}
+          alertItems={adaptedAlertItems}
+          upcomingTasks={adaptedUpcomingTasks}
           currentMonth={currentMonth}
           handleStatsCardClick={handleStatsCardClick}
           handleEquipmentViewAllClick={handleEquipmentViewAllClick}
@@ -75,13 +96,13 @@ const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) 
       
       <TabsContent value="calendar">
         <CalendarView 
-          events={maintenanceEvents} 
+          events={adaptedMaintenanceEvents} 
           month={currentMonth} 
         />
       </TabsContent>
       
       <TabsContent value="alerts">
-        <AllAlertsSection alerts={alertItems.concat(alertItems.map(alert => ({...alert, id: alert.id + 100})))} />
+        <AllAlertsSection alerts={adaptedAlertItems.concat(adaptedAlertItems.map(alert => ({...alert, id: alert.id + 100})))} />
       </TabsContent>
     </Tabs>
   );

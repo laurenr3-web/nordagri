@@ -154,37 +154,61 @@ export type Database = {
       }
       farms: {
         Row: {
+          address: string | null
+          company_name: string | null
           created_at: string
+          default_currency: string | null
           description: string | null
+          email: string | null
           id: string
           location: string | null
           name: string
           owner_id: string
+          phone: string | null
+          registration_number: string | null
           size: number | null
           size_unit: string | null
           updated_at: string
+          vat_number: string | null
+          website: string | null
         }
         Insert: {
+          address?: string | null
+          company_name?: string | null
           created_at?: string
+          default_currency?: string | null
           description?: string | null
+          email?: string | null
           id?: string
           location?: string | null
           name: string
           owner_id: string
+          phone?: string | null
+          registration_number?: string | null
           size?: number | null
           size_unit?: string | null
           updated_at?: string
+          vat_number?: string | null
+          website?: string | null
         }
         Update: {
+          address?: string | null
+          company_name?: string | null
           created_at?: string
+          default_currency?: string | null
           description?: string | null
+          email?: string | null
           id?: string
           location?: string | null
           name?: string
           owner_id?: string
+          phone?: string | null
+          registration_number?: string | null
           size?: number | null
           size_unit?: string | null
           updated_at?: string
+          vat_number?: string | null
+          website?: string | null
         }
         Relationships: []
       }
@@ -355,6 +379,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_settings: {
+        Row: {
+          created_at: string
+          email_notifications: boolean
+          id: string
+          notification_preferences: Json
+          push_notifications: boolean
+          sms_notifications: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_notifications?: boolean
+          id?: string
+          notification_preferences?: Json
+          push_notifications?: boolean
+          sms_notifications?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_notifications?: boolean
+          id?: string
+          notification_preferences?: Json
+          push_notifications?: boolean
+          sms_notifications?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       parts_inventory: {
         Row: {
           category: string | null
@@ -436,6 +493,45 @@ export type Database = {
         }
         Relationships: []
       }
+      regional_preferences: {
+        Row: {
+          created_at: string
+          currency: string
+          date_format: string
+          id: string
+          language: string
+          number_format: string
+          time_format: string
+          units_system: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          date_format?: string
+          id?: string
+          language?: string
+          number_format?: string
+          time_format?: string
+          units_system?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          date_format?: string
+          id?: string
+          language?: string
+          number_format?: string
+          time_format?: string
+          units_system?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       team_members: {
         Row: {
           created_at: string
@@ -495,6 +591,63 @@ export type Database = {
           id?: string
           role?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          animations_enabled: boolean
+          created_at: string
+          date_format: string
+          default_layout: string
+          high_contrast: boolean
+          id: string
+          language: string
+          notification_email: boolean
+          notification_push: boolean
+          notification_sms: boolean
+          theme: string
+          time_format: string
+          units_system: string
+          updated_at: string
+          user_id: string
+          widget_preferences: Json
+        }
+        Insert: {
+          animations_enabled?: boolean
+          created_at?: string
+          date_format?: string
+          default_layout?: string
+          high_contrast?: boolean
+          id?: string
+          language?: string
+          notification_email?: boolean
+          notification_push?: boolean
+          notification_sms?: boolean
+          theme?: string
+          time_format?: string
+          units_system?: string
+          updated_at?: string
+          user_id: string
+          widget_preferences?: Json
+        }
+        Update: {
+          animations_enabled?: boolean
+          created_at?: string
+          date_format?: string
+          default_layout?: string
+          high_contrast?: boolean
+          id?: string
+          language?: string
+          notification_email?: boolean
+          notification_push?: boolean
+          notification_sms?: boolean
+          theme?: string
+          time_format?: string
+          units_system?: string
+          updated_at?: string
+          user_id?: string
+          widget_preferences?: Json
         }
         Relationships: []
       }

@@ -10,6 +10,10 @@ const Index = () => {
   const [currentMonth] = useState(new Date());
   const [currentView, setCurrentView] = useState<'main' | 'calendar' | 'alerts'>('main');
 
+  const handleViewChange = (view: 'main' | 'calendar' | 'alerts') => {
+    setCurrentView(view);
+  };
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
@@ -22,7 +26,7 @@ const Index = () => {
             <div className="max-w-7xl mx-auto">
               <Header 
                 currentView={currentView}
-                setCurrentView={setCurrentView}
+                setCurrentView={handleViewChange}
               />
               
               <ViewManager 
