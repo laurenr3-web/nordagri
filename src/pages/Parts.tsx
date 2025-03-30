@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { PartsContextProvider } from '@/contexts/PartsContext';
 import PartsPageContainer from '@/components/parts/page/PartsPageContainer';
@@ -7,6 +7,8 @@ import { toast } from 'sonner';
 import { useEmergencyParts } from '@/hooks/emergencyPartsHook';
 import { partsData } from '@/data/partsData';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { TechnicalInfoLoading } from '@/components/parts/technical-info/TechnicalInfoLoading';
+import LoadingState from '@/components/parts/page/states/LoadingState';
 
 const Parts = () => {
   // All hooks declarations at the beginning of the function
@@ -42,7 +44,9 @@ const Parts = () => {
       >
         <SidebarProvider>
           <PartsContextProvider>
-            <PartsPageContainer />
+            <Suspense fallback={<LoadingState />}>
+              <PartsPageContainer />
+            </Suspense>
           </PartsContextProvider>
         </SidebarProvider>
       </ErrorBoundary>
