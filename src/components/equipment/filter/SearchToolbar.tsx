@@ -21,8 +21,8 @@ import { Badge } from '@/components/ui/badge';
 import { Search, X, Filter, LayoutGrid, List, ArrowDownAZ, ArrowUpZA, ArrowDownUp } from 'lucide-react';
 
 interface SearchToolbarProps {
-  searchQuery: string;
-  onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  searchTerm: string;
+  setSearchTerm: (value: string) => void;
   currentView: string;
   setCurrentView: (view: string) => void;
   filters: any;
@@ -43,8 +43,8 @@ interface SearchToolbarProps {
 }
 
 const SearchToolbar: React.FC<SearchToolbarProps> = ({
-  searchQuery,
-  onSearchChange,
+  searchTerm,
+  setSearchTerm,
   currentView,
   setCurrentView,
   filters,
@@ -63,6 +63,10 @@ const SearchToolbar: React.FC<SearchToolbarProps> = ({
   setSortBy,
   setSortOrder
 }) => {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
+
   return (
     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
       {/* Barre de recherche */}
@@ -72,15 +76,15 @@ const SearchToolbar: React.FC<SearchToolbarProps> = ({
           type="search"
           placeholder="Rechercher un équipement..."
           className="pl-9 w-full"
-          value={searchQuery}
-          onChange={onSearchChange}
+          value={searchTerm}
+          onChange={handleSearchChange}
         />
-        {searchQuery && (
+        {searchTerm && (
           <Button
             variant="ghost"
             size="sm"
             className="absolute right-1 top-1.5 h-7 w-7 px-0"
-            onClick={() => onSearchChange({ target: { value: '' } } as React.ChangeEvent<HTMLInputElement>)}
+            onClick={() => setSearchTerm('')}
           >
             <X className="h-4 w-4" />
             <span className="sr-only">Effacer la recherche</span>
