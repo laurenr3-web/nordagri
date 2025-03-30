@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Search, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { CardTitle } from '@/components/ui/card';
+import { debounce } from '@/utils/debounce';
 
 interface EquipmentPartsHeaderProps {
   searchTerm: string;
@@ -16,6 +17,18 @@ const EquipmentPartsHeader: React.FC<EquipmentPartsHeaderProps> = ({
   onSearchChange,
   onAddPart
 }) => {
+  // Create a debounced version of onSearchChange
+  const debouncedSearchChange = useCallback(
+    debounce((value: string) => {
+      onSearchChange(value);
+    }, 300),
+    [onSearchChange]
+  );
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    debouncedSearchChange(e.target.value);
+  };
+
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between">
       <CardTitle>Pièces compatibles</CardTitle>
@@ -25,8 +38,8 @@ const EquipmentPartsHeader: React.FC<EquipmentPartsHeaderProps> = ({
           <Input
             placeholder="Rechercher..."
             className="pl-8"
-            value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
+            defaultValue={searchTerm}
+            onChange={handleSearchChange}
           />
         </div>
         <Button className="flex items-center" onClick={onAddPart}>

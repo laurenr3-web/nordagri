@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { BlurContainer } from '@/components/ui/blur-container';
@@ -7,6 +7,7 @@ import { Search } from 'lucide-react';
 import FilterDropdown from './FilterDropdown';
 import SortDropdown from './SortDropdown';
 import ActiveFilters from './ActiveFilters';
+import { debounce } from '@/utils/debounce';
 
 interface SearchToolbarProps {
   searchTerm: string;
@@ -64,6 +65,18 @@ const SearchToolbar: React.FC<SearchToolbarProps> = ({
     year: filters.year || []
   };
 
+  // Create a debounced version of setSearchTerm
+  const debouncedSetSearchTerm = useCallback(
+    debounce((value: string) => {
+      setSearchTerm(value);
+    }, 300),
+    [setSearchTerm]
+  );
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    debouncedSetSearchTerm(e.target.value);
+  };
+
   return (
     <BlurContainer className="p-4 mb-6">
       <div className="flex flex-col md:flex-row md:items-center gap-4">
@@ -72,8 +85,8 @@ const SearchToolbar: React.FC<SearchToolbarProps> = ({
           <Input 
             placeholder="Search equipment, manufacturer, model..." 
             className="pl-9"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            defaultValue={searchTerm}
+            onChange={handleSearchChange}
           />
         </div>
         

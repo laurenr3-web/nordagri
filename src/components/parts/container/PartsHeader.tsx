@@ -1,10 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { FilterIcon, SortAsc } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PlusCircle } from 'lucide-react';
 import { PartsView } from '@/hooks/parts/usePartsFilter';
+import { debounce } from '@/utils/debounce';
 
 interface PartsHeaderProps {
   searchTerm: string;
@@ -32,10 +33,18 @@ const PartsHeader: React.FC<PartsHeaderProps> = ({
     setLocalSearchValue(searchTerm);
   }, [searchTerm]);
 
+  // Create a debounced version of setSearchTerm
+  const debouncedSetSearchTerm = useCallback(
+    debounce((value: string) => {
+      setSearchTerm(value);
+    }, 300),
+    [setSearchTerm]
+  );
+
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setLocalSearchValue(value);
-    setSearchTerm(value);
+    debouncedSetSearchTerm(value);
   };
 
   return (
