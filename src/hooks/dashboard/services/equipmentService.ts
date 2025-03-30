@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { EquipmentItem, RawEquipmentData, MaintenanceTask } from '../types/equipmentTypes';
 import { transformEquipmentData, formatDueDate } from '../utils/equipmentUtils';
+import { validateEquipmentStatus } from '@/utils/typeGuards';
 import { toast } from "@/hooks/use-toast";
 
 /**
