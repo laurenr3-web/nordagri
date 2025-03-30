@@ -10,6 +10,7 @@ import NewMaintenanceDialog from './maintenance/NewMaintenanceDialog';
 import MaintenanceSummaryCards from './maintenance/MaintenanceSummaryCards';
 import MaintenanceCalendarTable from './maintenance/MaintenanceCalendarTable';
 import MaintenanceQuoteDialog from './maintenance/MaintenanceQuoteDialog';
+import AddPartDialog from '@/components/parts/dialogs/AddPartDialog';
 import { formatDate, getStatusBadge, getPriorityColor } from './maintenance/maintenanceUtils';
 
 interface EquipmentMaintenanceProps {
@@ -19,6 +20,7 @@ interface EquipmentMaintenanceProps {
 const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }) => {
   const [loading, setLoading] = useState(true);
   const [isNewMaintenanceOpen, setIsNewMaintenanceOpen] = useState(false);
+  const [isAddPartDialogOpen, setIsAddPartDialogOpen] = useState(false);
   
   // Utiliser le hook useTasksManager pour gérer les tâches de maintenance
   const {
@@ -26,7 +28,8 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
     isLoading: tasksLoading,
     addTask,
     updateTaskStatus,
-    updateTaskPriority
+    updateTaskPriority,
+    deleteTask
   } = useTasksManager();
 
   // État pour stocker la tâche sélectionnée pour voir le devis
@@ -45,6 +48,10 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
 
   const handleAddTask = () => {
     setIsNewMaintenanceOpen(true);
+  };
+
+  const handleAddPart = () => {
+    setIsAddPartDialogOpen(true);
   };
 
   const handleCreateMaintenance = (maintenance: any) => {
@@ -90,6 +97,16 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
     }
   };
 
+  const handleDeleteTask = (taskId: number) => {
+    try {
+      deleteTask(taskId);
+      toast.success('Devis supprimé avec succès');
+    } catch (error) {
+      console.error('Erreur lors de la suppression du devis:', error);
+      toast.error('Impossible de supprimer le devis');
+    }
+  };
+
   const handleChangeStatus = (taskId: number, newStatus: string) => {
     try {
       updateTaskStatus(taskId, newStatus as any);
@@ -100,14 +117,25 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
     }
   };
 
+  const handlePartAdded = (partData: any) => {
+    toast.success(`La pièce ${partData.name} a été ajoutée avec succès!`);
+    setIsAddPartDialogOpen(false);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Maintenance de l'équipement</h2>
-        <Button onClick={handleAddTask}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nouvelle tâche
-        </Button>
+        <div className="flex space-x-2">
+          <Button onClick={handleAddPart} variant="outline">
+            <Plus className="h-4 w-4 mr-2" />
+            Nouvelle pièce
+          </Button>
+          <Button onClick={handleAddTask}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nouvelle tâche
+          </Button>
+        </div>
       </div>
 
       <MaintenanceSummaryCards 
@@ -148,6 +176,14 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
         isOpen={isQuoteDialogOpen}
         onClose={() => setIsQuoteDialogOpen(false)}
         maintenance={selectedTask}
+        onDelete={handleDeleteTask}
+      />
+
+      {/* Dialog pour ajouter une pièce */}
+      <AddPartDialog
+        isOpen={isAddPartDialogOpen}
+        onOpenChange={setIsAddPartDialogOpen}
+        onSuccess={handlePartAdded}
       />
     </div>
   );
