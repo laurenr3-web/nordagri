@@ -44,3 +44,9 @@
 .radix-tooltip-content {
   z-index: 1400 !important;
 }
+
+/* Dialog portal management - prevent portal z-index issues */
+[data-radix-portal] {
+  position: relative;
+  z-index: 1500;
+}

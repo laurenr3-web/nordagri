@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { SafeDialog, SafeDialogContent, SafeDialogHeader, SafeDialogTitle, SafeDialogDescription } from '@/components/ui/dialog/SafeDialog';
 import AddPartForm from '@/components/parts/AddPartForm';
 
 interface AddPartDialogProps {
@@ -29,43 +29,24 @@ const AddPartDialog: React.FC<AddPartDialogProps> = ({
 
   // Safe method to close the dialog
   const safeCloseDialog = () => {
-    console.log('Fermeture sécurisée de la boîte de dialogue');
-    // Use requestAnimationFrame instead of setTimeout for better synchronization with browser rendering
+    console.log('Safely closing dialog');
     if (isMountedRef.current) {
-      requestAnimationFrame(() => {
-        if (isMountedRef.current) {
-          onOpenChange(false);
-        }
-      });
-    }
-  };
-
-  // Enhanced error handling when opening/closing the dialog
-  const handleOpenChange = (open: boolean) => {
-    console.log('Part dialog open state change requested:', open);
-    
-    if (open !== isOpen && isMountedRef.current) {
-      // Use requestAnimationFrame for better timing with rendering cycle
-      requestAnimationFrame(() => {
-        if (isMountedRef.current) {
-          onOpenChange(open);
-        }
-      });
+      onOpenChange(false);
     }
   };
 
   return (
-    <Dialog 
+    <SafeDialog 
       open={isOpen} 
-      onOpenChange={handleOpenChange}
+      onOpenChange={onOpenChange}
     >
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Ajouter une nouvelle pièce</DialogTitle>
-          <DialogDescription>
+      <SafeDialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <SafeDialogHeader>
+          <SafeDialogTitle>Ajouter une nouvelle pièce</SafeDialogTitle>
+          <SafeDialogDescription>
             Remplissez le formulaire ci-dessous pour ajouter une nouvelle pièce à l'inventaire
-          </DialogDescription>
-        </DialogHeader>
+          </SafeDialogDescription>
+        </SafeDialogHeader>
         <AddPartForm 
           onSuccess={(data) => {
             console.log('AddPartForm success', data);
@@ -79,8 +60,8 @@ const AddPartDialog: React.FC<AddPartDialogProps> = ({
             safeCloseDialog();
           }}
         />
-      </DialogContent>
-    </Dialog>
+      </SafeDialogContent>
+    </SafeDialog>
   );
 };
 
