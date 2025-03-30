@@ -48,8 +48,8 @@ export function mapEquipmentToDatabase(equipment: Omit<Equipment, 'id'> | Equipm
     notes: equipment.notes
   };
 
-  // Ajouter l'id uniquement s'il existe dans l'objet d'entrée
-  if ('id' in equipment && equipment.id !== undefined) {
+  // Add id only if it exists
+  if ('id' in equipment) {
     return { ...dbEquipment, id: equipment.id };
   }
 

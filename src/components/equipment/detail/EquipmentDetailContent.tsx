@@ -20,56 +20,54 @@ const EquipmentDetailContent: React.FC<EquipmentDetailContentProps> = ({
   const [activeTab, setActiveTab] = useState('details');
   
   return (
-    <div className="pt-6 pb-16 pl-4 pr-4 sm:pl-8 sm:pr-8 md:pl-12 md:pl-12 ml-0 md:ml-64">
-      <div className="max-w-7xl mx-auto">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="mb-4"
-          onClick={() => navigate('/equipment')}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Retour aux équipements
-        </Button>
+    <div className="max-w-7xl mx-auto">
+      <Button 
+        variant="outline" 
+        size="sm" 
+        className="mb-4"
+        onClick={() => navigate('/equipment')}
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Retour aux équipements
+      </Button>
+      
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="mb-6">
+          <TabsTrigger value="details">Détails</TabsTrigger>
+          <TabsTrigger value="parts">Pièces</TabsTrigger>
+          <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
+          <TabsTrigger value="history">Historique</TabsTrigger>
+        </TabsList>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="details">Détails</TabsTrigger>
-            <TabsTrigger value="parts">Pièces</TabsTrigger>
-            <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
-            <TabsTrigger value="history">Historique</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="details">
-            <EquipmentDetails 
-              equipment={equipment} 
-              onUpdate={onUpdate} 
-            />
-          </TabsContent>
-          
-          <TabsContent value="parts">
-            <EquipmentParts equipment={equipment} />
-          </TabsContent>
-          
-          <TabsContent value="maintenance">
-            <div className="p-8 text-center bg-card border rounded-lg">
-              <h3 className="text-xl font-medium mb-2">Maintenance</h3>
-              <p className="text-muted-foreground">
-                Le module de maintenance sera disponible prochainement.
-              </p>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="history">
-            <div className="p-8 text-center bg-card border rounded-lg">
-              <h3 className="text-xl font-medium mb-2">Historique</h3>
-              <p className="text-muted-foreground">
-                L'historique d'utilisation sera disponible prochainement.
-              </p>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
+        <TabsContent value="details">
+          <EquipmentDetails 
+            equipment={equipment} 
+            onUpdate={onUpdate} 
+          />
+        </TabsContent>
+        
+        <TabsContent value="parts">
+          <EquipmentParts equipment={equipment} />
+        </TabsContent>
+        
+        <TabsContent value="maintenance">
+          <div className="p-8 text-center bg-card border rounded-lg">
+            <h3 className="text-xl font-medium mb-2">Maintenance</h3>
+            <p className="text-muted-foreground">
+              Le module de maintenance sera disponible prochainement.
+            </p>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="history">
+          <div className="p-8 text-center bg-card border rounded-lg">
+            <h3 className="text-xl font-medium mb-2">Historique</h3>
+            <p className="text-muted-foreground">
+              L'historique d'utilisation sera disponible prochainement.
+            </p>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

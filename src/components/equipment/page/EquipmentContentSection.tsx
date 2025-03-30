@@ -20,29 +20,6 @@ interface EquipmentContentSectionProps {
   handleEquipmentClick: (equipment: EquipmentItem) => void;
 }
 
-// Définir explicitement les props pour SearchToolbar
-interface SearchToolbarProps {
-  currentView: string;
-  setCurrentView: (view: string) => void;
-  filters: any;
-  statusOptions: string[];
-  typeOptions: string[];
-  manufacturerOptions: string[];
-  yearOptions: number[];
-  isFilterActive: (type: 'status' | 'type' | 'manufacturer' | 'year', value: string | number) => boolean;
-  toggleFilter: (type: 'status' | 'type' | 'manufacturer' | 'year', value: string | number) => void;
-  clearFilters: () => void;
-  getStatusColor: (status: string) => string;
-  getStatusText: (status: string) => string;
-  activeFilterCount: number;
-  sortBy: string;
-  sortOrder: string;
-  setSortBy: (value: string) => void;
-  setSortOrder: (value: string) => void;
-  searchTerm: string;
-  setSearchTerm: (value: string) => void;
-}
-
 const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
   equipment,
   isLoading,
@@ -94,8 +71,6 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
       <EquipmentHeader openAddDialog={openAddDialog} />
       
       <SearchToolbar
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
         currentView={currentView}
         setCurrentView={setCurrentView}
         filters={filters}
@@ -113,6 +88,8 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
         sortOrder={sortOrder}
         setSortBy={setSortBy}
         setSortOrder={setSortOrder}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
       />
       
       <CategoryTabs 

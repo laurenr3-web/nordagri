@@ -3,10 +3,10 @@ import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { EquipmentFormValues } from '../equipmentFormTypes';
+import { EquipmentFormValues, EquipmentStatus } from '../equipmentFormTypes';
 
 interface StatusOption {
-  value: string;
+  value: EquipmentStatus;
   label: string;
 }
 
@@ -25,7 +25,7 @@ const StatusField: React.FC<StatusFieldProps> = ({
     { value: 'operational', label: 'Operational' },
     { value: 'maintenance', label: 'In Maintenance' },
     { value: 'repair', label: 'Needs Repair' },
-    { value: 'retired', label: 'Retired' },
+    { value: 'inactive', label: 'Retired' },
   ]
 }) => {
   return (

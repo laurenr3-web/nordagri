@@ -10,7 +10,7 @@ import AdditionalInfoFields from '../form/AdditionalInfoFields';
 import ImageField from '../form/ImageField';
 import NotesField from '../form/NotesField';
 import AddCategorySection from './form/AddCategorySection';
-import { equipmentFormSchema, type EquipmentFormValues } from './form/EquipmentFormSchema';
+import { equipmentFormSchema, type EquipmentFormValues, type EquipmentStatus } from '../form/equipmentFormTypes';
 import { Form } from '@/components/ui/form';
 
 interface EditEquipmentDialogProps {
@@ -40,7 +40,7 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
     model: equipment.model,
     year: equipment.year.toString(),
     serialNumber: equipment.serialNumber || '',
-    status: equipment.status,
+    status: equipment.status as EquipmentStatus,
     location: equipment.location,
     purchaseDate: equipment.purchaseDate ? new Date(equipment.purchaseDate) : undefined,
     notes: equipment.notes || '',
@@ -66,7 +66,7 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
         category: data.category.charAt(0).toUpperCase() + data.category.slice(1),
         manufacturer: data.manufacturer,
         model: data.model,
-        year: parseInt(data.year),
+        year: parseInt(data.year || '0'),
         serialNumber: data.serialNumber,
         status: data.status,
         location: data.location,
