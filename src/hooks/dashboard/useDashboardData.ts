@@ -44,7 +44,7 @@ export interface MaintenanceEvent {
   date: Date;
   equipment: string;
   status: string;
-  priority: string;
+  priority: 'low' | 'medium' | 'high'; // Changed from string to union type
   assignedTo: string;
   duration: number; // Required property
 }

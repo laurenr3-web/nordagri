@@ -16,16 +16,27 @@ export const adaptEquipmentData = (data: any[]): EquipmentItem[] => {
 };
 
 export const adaptMaintenanceEvents = (data: any[]): MaintenanceEvent[] => {
-  return data.map((event: any) => ({
-    id: String(event.id || Math.random().toString()), // Convert id to string
-    title: event.title || 'Maintenance',
-    date: event.dueDate ? new Date(event.dueDate) : new Date(),
-    equipment: event.equipment || 'Équipement non spécifié',
-    status: event.status || 'scheduled',
-    priority: event.priority || 'medium',
-    assignedTo: event.assignedTo || 'Non assigné',
-    duration: event.estimatedDuration || 0 // Adding the duration property
-  }));
+  return data.map((event: any) => {
+    // Convert priority to one of the allowed values
+    let priority: 'low' | 'medium' | 'high' = 'medium';
+    if (event.priority) {
+      const lowerPriority = event.priority.toLowerCase();
+      if (lowerPriority === 'low' || lowerPriority === 'medium' || lowerPriority === 'high') {
+        priority = lowerPriority as 'low' | 'medium' | 'high';
+      }
+    }
+    
+    return {
+      id: String(event.id || Math.random().toString()), // Convert id to string
+      title: event.title || 'Maintenance',
+      date: event.dueDate ? new Date(event.dueDate) : new Date(),
+      equipment: event.equipment || 'Équipement non spécifié',
+      status: event.status || 'scheduled',
+      priority: priority,
+      assignedTo: event.assignedTo || 'Non assigné',
+      duration: event.estimatedDuration || 0 // Adding the duration property
+    };
+  });
 };
 
 export const adaptAlertItems = (data: any[]): AlertItem[] => {

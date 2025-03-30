@@ -9,7 +9,7 @@ export interface MaintenanceEvent {
   date: Date;
   equipment: string;
   status: string;
-  priority: string;
+  priority: 'low' | 'medium' | 'high'; // Updated to union type
   assignedTo: string;
   duration: number; // Added missing property
 }
@@ -34,16 +34,27 @@ export const useMaintenanceData = (user: any) => {
       if (error) throw error;
 
       if (data) {
-        const events: MaintenanceEvent[] = data.map(item => ({
-          id: item.id,
-          title: item.title,
-          date: new Date(item.due_date),
-          equipment: item.equipment,
-          status: item.status,
-          priority: item.priority,
-          assignedTo: item.assigned_to || 'Non assigné',
-          duration: item.estimated_duration || 0 // Added duration property
-        }));
+        const events: MaintenanceEvent[] = data.map(item => {
+          // Convert priority to one of the allowed values
+          let priority: 'low' | 'medium' | 'high' = 'medium';
+          if (item.priority) {
+            const lowerPriority = item.priority.toLowerCase();
+            if (lowerPriority === 'low' || lowerPriority === 'medium' || lowerPriority === 'high') {
+              priority = lowerPriority as 'low' | 'medium' | 'high';
+            }
+          }
+          
+          return {
+            id: item.id,
+            title: item.title,
+            date: new Date(item.due_date),
+            equipment: item.equipment,
+            status: item.status,
+            priority: priority,
+            assignedTo: item.assigned_to || 'Non assigné',
+            duration: item.estimated_duration || 0 // Added duration property
+          };
+        });
         setMaintenanceEvents(events);
       }
     } catch (error) {
@@ -62,7 +73,7 @@ export const useMaintenanceData = (user: any) => {
           date: new Date(new Date().setDate(new Date().getDate() + 5)),
           equipment: "John Deere 8R 410",
           status: "scheduled",
-          priority: "high",
+          priority: "high" as 'high',
           assignedTo: "Michael Torres",
           duration: 2.5
         },
@@ -72,7 +83,7 @@ export const useMaintenanceData = (user: any) => {
           date: new Date(new Date().setDate(new Date().getDate() + 10)),
           equipment: "Massey Ferguson 8S.245",
           status: "scheduled",
-          priority: "medium",
+          priority: "medium" as 'medium',
           assignedTo: "David Chen",
           duration: 1
         },
@@ -82,7 +93,7 @@ export const useMaintenanceData = (user: any) => {
           date: new Date(new Date().setDate(new Date().getDate() + 15)),
           equipment: "Fendt 942 Vario",
           status: "scheduled",
-          priority: "low",
+          priority: "low" as 'low',
           assignedTo: "Sarah Johnson",
           duration: 3
         }
