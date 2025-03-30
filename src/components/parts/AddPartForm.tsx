@@ -17,6 +17,7 @@ export function AddPartForm({ onSuccess, onCancel }: AddPartFormProps) {
   const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
   const [newCategory, setNewCategory] = useState('');
   const [customCategories, setCustomCategories] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const createPartMutation = useCreatePart();
   
   const form = useForm<PartFormValues>({
@@ -45,7 +46,15 @@ export function AddPartForm({ onSuccess, onCancel }: AddPartFormProps) {
   };
 
   function onSubmit(data: PartFormValues) {
+    // Prevent multiple submissions
+    if (isSubmitting) {
+      console.log('Submission already in progress, ignoring duplicate attempt');
+      return;
+    }
+    
     try {
+      setIsSubmitting(true);
+      
       // Convert form values to Part format (without id) for the API
       const partData: Omit<Part, 'id'> = {
         name: data.name,
@@ -67,11 +76,18 @@ export function AddPartForm({ onSuccess, onCancel }: AddPartFormProps) {
           if (onSuccess) {
             onSuccess(data);
           }
+          setIsSubmitting(false);
+        },
+        onError: (error) => {
+          console.error('Error adding part:', error);
+          toast.error('Erreur lors de l\'ajout de la pièce');
+          setIsSubmitting(false);
         }
       });
     } catch (error) {
       // Error handling is managed by the mutation hook
       console.error(error);
+      setIsSubmitting(false);
     }
   }
 
@@ -95,8 +111,11 @@ export function AddPartForm({ onSuccess, onCancel }: AddPartFormProps) {
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancel
             </Button>
-            <Button type="submit" disabled={createPartMutation.isPending}>
-              {createPartMutation.isPending ? 'Adding...' : 'Add Part'}
+            <Button 
+              type="submit" 
+              disabled={isSubmitting || createPartMutation.isPending}
+            >
+              {isSubmitting || createPartMutation.isPending ? 'Adding...' : 'Add Part'}
             </Button>
           </div>
         </form>

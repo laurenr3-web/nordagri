@@ -15,6 +15,7 @@ const AddPartDialog: React.FC<AddPartDialogProps> = ({
   onOpenChange,
   onSuccess
 }) => {
+  // The function will be called only once when the form submission is successful
   const handleSuccess = (data: PartFormValues) => {
     // First call the parent's onSuccess handler if provided
     if (onSuccess) {
