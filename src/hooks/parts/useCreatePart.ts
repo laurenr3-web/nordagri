@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { addPart } from '@/services/supabase/parts/addPartService';
 import { useToast } from '@/hooks/use-toast';
 import { Part } from '@/types/Part';
+import { assertType } from '@/utils/typeAssertions';
 
 /**
  * Hook pour créer une nouvelle pièce avec les mutations React Query
@@ -15,6 +16,14 @@ export function useCreatePart() {
   return useMutation({
     mutationFn: (newPart: Omit<Part, 'id'>) => {
       console.log('📝 Tentative de création de pièce:', newPart);
+      
+      // Validation des propriétés critiques avant l'envoi
+      assertType<string>(
+        newPart.name, 
+        (value): value is string => typeof value === 'string' && value.trim() !== '', 
+        "Le nom de la pièce doit être une chaîne non vide"
+      );
+      
       return addPart(newPart);
     },
     onSuccess: (data: Part) => {

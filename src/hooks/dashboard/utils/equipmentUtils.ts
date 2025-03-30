@@ -1,6 +1,7 @@
 
 import { EquipmentItem, RawEquipmentData } from '../types/equipmentTypes';
 import { validateEquipmentStatus } from '@/utils/typeGuards';
+import { assertIsString, assertIsObject, assertType } from '@/utils/typeAssertions';
 
 /**
  * Format due date to a user-friendly string
@@ -34,18 +35,29 @@ export const transformEquipmentData = (
   simpleDueMap: Map<string, string>
 ): EquipmentItem[] => {
   return equipmentItems.map(item => {
+    // Validation de l'objet item
+    assertIsObject(item);
+    
     // Default image based on equipment type
     let defaultImage = 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=500&auto=format&fit=crop';
-    if (item.type?.toLowerCase().includes('combine') || item.type?.toLowerCase().includes('harvester')) {
+    
+    // Validation du type d'équipement
+    const itemType = assertType<string | undefined>(
+      item.type, 
+      (v): v is string | undefined => typeof v === 'string' || v === undefined,
+      "Equipment type must be a string or undefined"
+    );
+    
+    if (itemType?.toLowerCase().includes('combine') || itemType?.toLowerCase().includes('harvester')) {
       defaultImage = 'https://images.unsplash.com/photo-1599033329459-cc8c31c7eb6c?q=80&w=500&auto=format&fit=crop';
     }
 
-    const itemId = item.id.toString();
+    const itemId = assertIsString(item.id.toString());
     
     return {
       id: item.id,
       name: item.name || `${item.model || 'Unknown'} Equipment`,
-      type: item.type || 'Unknown',
+      type: itemType || 'Unknown',
       status: validateEquipmentStatus(item.status),
       image: item.image || defaultImage,
       usage: {

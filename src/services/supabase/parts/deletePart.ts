@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { normalizePartId } from '@/services/perplexity/adapters';
+import { assertIsValidId, assertIsDefined } from '@/utils/typeAssertions';
 
 /**
  * Supprime une pièce de l'inventaire
@@ -13,6 +14,9 @@ export async function deletePart(partId: string | number): Promise<boolean> {
   console.log("🗑️ Tentative de suppression de la pièce ID:", partId);
   
   try {
+    // Validation explicite de l'ID
+    assertIsValidId(partId);
+    
     // Récupération de l'ID utilisateur actuel
     const { data: sessionData } = await supabase.auth.getSession();
     const userId = sessionData.session?.user.id;
