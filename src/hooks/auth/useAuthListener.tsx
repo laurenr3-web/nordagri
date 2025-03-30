@@ -58,10 +58,6 @@ export function useAuthListener(
           const returnPath = location.pathname + location.search;
           navigate(`/auth?returnTo=${encodeURIComponent(returnPath)}`, { replace: true });
         }
-      } else if (requireAuth && !session && event === 'SIGNED_OUT') {
-        // User is signed out and this route requires authentication
-        const returnPath = location.pathname + location.search;
-        navigate(`/auth?returnTo=${encodeURIComponent(returnPath)}`, { replace: true });
       }
     });
     
