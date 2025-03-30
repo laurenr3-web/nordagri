@@ -16,6 +16,11 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
   async (config) => {
     try {
+      // Check if we're online first
+      if (!navigator.onLine) {
+        return Promise.reject(new Error('Vous êtes actuellement hors ligne'));
+      }
+      
       // Get the current session from Supabase
       const { data } = await supabase.auth.getSession();
       const session = data.session;
@@ -37,6 +42,12 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Check for network connectivity issue first
+    if (!navigator.onLine) {
+      toast.error('Vous êtes actuellement hors ligne');
+      return Promise.reject(new Error('Vous êtes actuellement hors ligne'));
+    }
+    
     // Handle common error cases
     if (error.response) {
       // Server responded with error

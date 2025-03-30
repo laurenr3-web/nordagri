@@ -6,6 +6,7 @@ import Dashboard from './Dashboard';
 import CalendarView from './CalendarView';
 import AllAlertsSection from './AllAlertsSection';
 import { useDashboardData } from '@/hooks/dashboard/useDashboardData';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import LoadingSpinner from '@/components/dashboard/LoadingSpinner';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, WifiOff } from "lucide-react";
@@ -22,6 +23,7 @@ const ViewManager: React.FC<ViewManagerProps> = ({
   setCurrentView 
 }) => {
   const navigate = useNavigate();
+  const isOnline = useNetworkStatus();
   
   // Utiliser le hook pour obtenir les données réelles
   const { 
@@ -91,6 +93,16 @@ const ViewManager: React.FC<ViewManagerProps> = ({
 
   return (
     <Tabs value={currentView} className="space-y-8">
+      {!isOnline && (
+        <Alert className="mb-4 border-amber-500">
+          <WifiOff className="h-4 w-4" />
+          <AlertTitle>Mode Hors Ligne</AlertTitle>
+          <AlertDescription>
+            Vous êtes actuellement hors ligne. Certaines fonctionnalités peuvent être limitées.
+          </AlertDescription>
+        </Alert>
+      )}
+      
       {isOfflineMode && (
         <Alert className="mb-4">
           <WifiOff className="h-4 w-4" />

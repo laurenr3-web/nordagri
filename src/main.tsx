@@ -18,15 +18,9 @@ const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000, // 5 minutes
       retry: 3,
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-      onError: (error) => {
-        console.error('Query error:', error);
-      }
     },
     mutations: {
       retry: 2,
-      onError: (error) => {
-        console.error('Mutation error:', error);
-      }
     }
   },
 });
