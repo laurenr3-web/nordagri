@@ -1,7 +1,9 @@
 
+
 import { supabase } from '@/integrations/supabase/client';
 import { Equipment } from './types';
 import { mapEquipmentToDatabase, mapEquipmentFromDatabase } from './mappers';
+import { ensureNumberId } from '@/utils/typeGuards';
 
 /**
  * Add a new equipment item to the database
@@ -78,15 +80,16 @@ export async function updateEquipment(equipment: Equipment): Promise<Equipment> 
 /**
  * Delete an equipment item from the database
  */
-export async function deleteEquipment(id: number): Promise<void> {
+export async function deleteEquipment(id: string | number): Promise<void> {
   try {
-    console.log('Deleting equipment with ID:', id);
+    const numericId = ensureNumberId(id);
+    console.log('Deleting equipment with ID:', numericId);
     
     // Delete the equipment
     const { error } = await supabase
       .from('equipment')
       .delete()
-      .eq('id', id);
+      .eq('id', numericId);
     
     if (error) {
       console.error('Error deleting equipment:', error.message);
@@ -99,3 +102,4 @@ export async function deleteEquipment(id: number): Promise<void> {
     throw error;
   }
 }
+
