@@ -49,6 +49,7 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({ open, onOpenChange, onSub
     setNewStaffName,
     staffOptions,
     handleAddStaff,
+    isLoadingStaff,
     
     // Equipment options
     equipmentOptions,
@@ -97,6 +98,7 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({ open, onOpenChange, onSub
               staffOptions={staffOptions}
               onAddStaffClick={() => setIsAddStaffDialogOpen(true)}
               isLoading={isLoading}
+              isLoadingStaff={isLoadingStaff}
             />
             <DialogFooter>
               <Button type="submit">Créer la tâche</Button>

@@ -42,6 +42,7 @@ interface TaskFormFieldsProps {
   staffOptions: string[];
   onAddStaffClick: () => void;
   isLoading?: boolean;
+  isLoadingStaff?: boolean;
 }
 
 const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
@@ -65,6 +66,7 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
   staffOptions,
   onAddStaffClick,
   isLoading = false,
+  isLoadingStaff = false,
 }) => {
   return (
     <div className="grid gap-4 py-4">
@@ -174,18 +176,28 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
           <Label htmlFor="assignedTo">Assigné à</Label>
           <div className="flex items-center gap-2">
             <div className="flex-1">
-              <Select value={assignedTo} onValueChange={setAssignedTo} required>
-                <SelectTrigger id="assignedTo">
-                  <SelectValue placeholder="Sélectionner un technicien" />
-                </SelectTrigger>
-                <SelectContent>
-                  {staffOptions.map((staff) => (
-                    <SelectItem key={staff} value={staff}>
-                      {staff}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {isLoadingStaff ? (
+                <Skeleton className="h-10 w-full" />
+              ) : (
+                <Select value={assignedTo} onValueChange={setAssignedTo}>
+                  <SelectTrigger id="assignedTo">
+                    <SelectValue placeholder="Sélectionner un technicien" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {staffOptions.length > 0 ? (
+                      staffOptions.map((staff) => (
+                        <SelectItem key={staff} value={staff}>
+                          {staff}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="" disabled>
+                        Aucun personnel disponible
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
             <Button 
               type="button" 
