@@ -10,7 +10,7 @@ import {
 import MaintenanceForm from './MaintenanceForm';
 import MaintenanceQuote from './MaintenanceQuote';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, Save } from 'lucide-react';
+import { ArrowLeft, Save } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface NewMaintenanceDialogProps {

@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface TaskFormFieldsProps {
   title: string;
@@ -40,6 +41,7 @@ interface TaskFormFieldsProps {
   handleEquipmentChange: (value: string) => void;
   staffOptions: string[];
   onAddStaffClick: () => void;
+  isLoading?: boolean;
 }
 
 const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
@@ -62,11 +64,12 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
   handleEquipmentChange,
   staffOptions,
   onAddStaffClick,
+  isLoading = false,
 }) => {
   return (
     <div className="grid gap-4 py-4">
       <div className="grid gap-2">
-        <Label htmlFor="title">Task Title</Label>
+        <Label htmlFor="title">Titre de la tâche</Label>
         <Input
           id="title"
           value={title}
@@ -77,31 +80,35 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
       
       <div className="grid grid-cols-2 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="equipment">Equipment</Label>
-          <Select value={equipment} onValueChange={handleEquipmentChange} required>
-            <SelectTrigger id="equipment">
-              <SelectValue placeholder="Select equipment" />
-            </SelectTrigger>
-            <SelectContent>
-              {equipmentOptions.map((eq) => (
-                <SelectItem key={eq.id} value={eq.name}>
-                  {eq.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Label htmlFor="equipment">Équipement</Label>
+          {isLoading ? (
+            <Skeleton className="h-10 w-full" />
+          ) : (
+            <Select value={equipment} onValueChange={handleEquipmentChange} required>
+              <SelectTrigger id="equipment">
+                <SelectValue placeholder="Sélectionner un équipement" />
+              </SelectTrigger>
+              <SelectContent>
+                {equipmentOptions.map((eq) => (
+                  <SelectItem key={eq.id} value={eq.name}>
+                    {eq.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
         
         <div className="grid gap-2">
-          <Label htmlFor="taskType">Task Type</Label>
+          <Label htmlFor="taskType">Type de tâche</Label>
           <Select value={type} onValueChange={(value: MaintenanceType) => setType(value)}>
             <SelectTrigger id="taskType">
-              <SelectValue placeholder="Select task type" />
+              <SelectValue placeholder="Sélectionner un type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="preventive">Preventive</SelectItem>
+              <SelectItem value="preventive">Préventive</SelectItem>
               <SelectItem value="corrective">Corrective</SelectItem>
-              <SelectItem value="condition-based">Condition-based</SelectItem>
+              <SelectItem value="condition-based">Conditionnelle</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -109,25 +116,25 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
       
       <div className="grid grid-cols-2 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="priority">Priority</Label>
+          <Label htmlFor="priority">Priorité</Label>
           <Select 
             value={priority} 
             onValueChange={(value: MaintenancePriority) => setPriority(value)}
           >
             <SelectTrigger id="priority">
-              <SelectValue placeholder="Select priority" />
+              <SelectValue placeholder="Sélectionner une priorité" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="critical">Critical</SelectItem>
-              <SelectItem value="high">High</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="low">Low</SelectItem>
+              <SelectItem value="critical">Critique</SelectItem>
+              <SelectItem value="high">Haute</SelectItem>
+              <SelectItem value="medium">Moyenne</SelectItem>
+              <SelectItem value="low">Basse</SelectItem>
             </SelectContent>
           </Select>
         </div>
         
         <div className="grid gap-2">
-          <Label htmlFor="dueDate">Due Date</Label>
+          <Label htmlFor="dueDate">Date d'échéance</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -135,7 +142,7 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
                 className="justify-start text-left font-normal"
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {dueDate ? format(dueDate, 'PPP', { locale: fr }) : <span>Select date</span>}
+                {dueDate ? format(dueDate, 'PPP', { locale: fr }) : <span>Sélectionner une date</span>}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -152,7 +159,7 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
       
       <div className="grid grid-cols-2 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="engineHours">Engine Hours</Label>
+          <Label htmlFor="engineHours">Heures moteur</Label>
           <Input
             id="engineHours"
             type="number"
@@ -164,12 +171,12 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
         </div>
         
         <div className="grid gap-2">
-          <Label htmlFor="assignedTo">Assign To</Label>
+          <Label htmlFor="assignedTo">Assigné à</Label>
           <div className="flex items-center gap-2">
             <div className="flex-1">
               <Select value={assignedTo} onValueChange={setAssignedTo} required>
                 <SelectTrigger id="assignedTo">
-                  <SelectValue placeholder="Select staff member" />
+                  <SelectValue placeholder="Sélectionner un technicien" />
                 </SelectTrigger>
                 <SelectContent>
                   {staffOptions.map((staff) => (
@@ -185,7 +192,7 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
               size="icon" 
               variant="outline"
               onClick={onAddStaffClick}
-              title="Add new staff member"
+              title="Ajouter un nouveau technicien"
             >
               <UserPlus className="h-4 w-4" />
             </Button>

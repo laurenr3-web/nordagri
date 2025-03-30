@@ -30,6 +30,7 @@ import {
 import { toast } from 'sonner';
 import { MaintenanceTask, MaintenancePriority, MaintenanceType } from '@/hooks/maintenance/maintenanceSlice';
 import { Part } from '@/types/Part';
+import { equipmentService } from '@/services/supabase/equipmentService';
 
 const maintenanceFormSchema = z.object({
   title: z.string().min(3, 'Le titre doit contenir au moins 3 caractères'),
@@ -59,8 +60,29 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
   isSubmitting = false,
 }) => {
   const [parts, setParts] = useState<Part[]>([]);
+  const [equipmentList, setEquipmentList] = useState<Array<{ id: number; name: string }>>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    // Fetch actual equipment list from the database
+    const fetchEquipment = async () => {
+      setIsLoading(true);
+      try {
+        const data = await equipmentService.getEquipment();
+        setEquipmentList(data.map(item => ({
+          id: item.id,
+          name: item.name
+        })));
+      } catch (error) {
+        console.error('Error fetching equipment:', error);
+        toast.error("Erreur lors du chargement des équipements");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchEquipment();
+
     // Simulation de récupération des pièces compatibles avec cet équipement
     const mockParts: Part[] = [
       {

@@ -53,6 +53,7 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({ open, onOpenChange, onSub
     // Equipment options
     equipmentOptions,
     handleEquipmentChange,
+    isLoading,
     
     // Form submission
     handleSubmit,
@@ -63,12 +64,12 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({ open, onOpenChange, onSub
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[550px]">
           <DialogHeader>
-            <DialogTitle>Create New Maintenance Task</DialogTitle>
+            <DialogTitle>Créer une nouvelle tâche de maintenance</DialogTitle>
             <DialogDescription>
-              Fill in the details to schedule a new maintenance task.
+              Remplissez les détails pour planifier une nouvelle tâche de maintenance.
               {initialDate && (
                 <span className="block mt-1 text-sm font-medium">
-                  Scheduled for: {initialDate.toLocaleDateString()}
+                  Planifiée pour: {initialDate.toLocaleDateString()}
                 </span>
               )}
             </DialogDescription>
@@ -95,9 +96,10 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({ open, onOpenChange, onSub
               handleEquipmentChange={handleEquipmentChange}
               staffOptions={staffOptions}
               onAddStaffClick={() => setIsAddStaffDialogOpen(true)}
+              isLoading={isLoading}
             />
             <DialogFooter>
-              <Button type="submit">Create Task</Button>
+              <Button type="submit">Créer la tâche</Button>
             </DialogFooter>
           </form>
         </DialogContent>
