@@ -67,6 +67,7 @@ const EquipmentPartsTable: React.FC<EquipmentPartsTableProps> = ({
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead>Image</TableHead>
             <TableHead>Nom</TableHead>
             <TableHead>N° de pièce</TableHead>
             <TableHead>Fabricant</TableHead>
@@ -79,6 +80,20 @@ const EquipmentPartsTable: React.FC<EquipmentPartsTableProps> = ({
         <TableBody>
           {parts.map((part) => (
             <TableRow key={part.id}>
+              <TableCell>
+                <div className="h-10 w-10 rounded-md overflow-hidden">
+                  <img 
+                    src={part.image} 
+                    alt={part.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // Set a default image if the part image fails to load
+                      const target = e.target as HTMLImageElement;
+                      target.src = 'https://placehold.co/100x100/png?text=No+Image';
+                    }}
+                  />
+                </div>
+              </TableCell>
               <TableCell className="font-medium">{part.name}</TableCell>
               <TableCell>{part.partNumber}</TableCell>
               <TableCell>{part.manufacturer}</TableCell>

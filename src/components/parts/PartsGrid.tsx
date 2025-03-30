@@ -42,6 +42,11 @@ const PartsGrid: React.FC<PartsGridProps> = ({ parts, openPartDetails, openOrder
               src={part.image} 
               alt={part.name}
               className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+              onError={(e) => {
+                // Set a default image if the part image fails to load
+                const target = e.target as HTMLImageElement;
+                target.src = 'https://placehold.co/400x400/png?text=No+Image';
+              }}
             />
             {part.stock <= part.reorderPoint && (
               <div className="absolute top-2 right-2">

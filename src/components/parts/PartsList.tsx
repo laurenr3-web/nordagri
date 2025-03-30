@@ -53,6 +53,11 @@ const PartsList: React.FC<PartsListProps> = ({ parts, openPartDetails, openOrder
                       src={part.image} 
                       alt={part.name}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Set a default image if the part image fails to load
+                        const target = e.target as HTMLImageElement;
+                        target.src = 'https://placehold.co/100x100/png?text=No+Image';
+                      }}
                     />
                   </div>
                 </td>

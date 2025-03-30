@@ -16,7 +16,7 @@ const PartImage: React.FC<PartImageProps> = ({ part }) => {
       <img 
         src={part.image} 
         alt={part.name}
-        className="w-full h-full object-cover"
+        className="w-full h-full object-contain"
         onError={(e) => {
           // If image fails to load, set a placeholder
           const target = e.target as HTMLImageElement;
