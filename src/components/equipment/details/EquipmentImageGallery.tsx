@@ -23,9 +23,9 @@ const EquipmentImageGallery: React.FC<EquipmentImageGalleryProps> = ({ equipment
       <CardContent>
         <div className="aspect-video w-full overflow-hidden rounded-md">
           <img
-            src={equipment.image || "https://images.unsplash.com/photo-1585911171167-1f66ea3de00c?q=80&w=500&auto=format&fit=crop"}
+            src={equipment.image || "https://images.unsplash.com/photo-1585911171167-1f66ea3de00c?q=80&w=1280&auto=format&fit=crop"}
             alt={equipment.name}
-            className="object-cover w-full h-full"
+            className="object-cover w-full h-full hover:scale-105 transition-transform duration-300"
           />
         </div>
       </CardContent>

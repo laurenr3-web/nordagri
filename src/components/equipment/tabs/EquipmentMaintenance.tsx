@@ -10,7 +10,6 @@ import { MaintenanceStatus, MaintenanceType, MaintenancePriority } from '@/hooks
 import NewMaintenanceDialog from './maintenance/NewMaintenanceDialog';
 import MaintenanceSummaryCards from './maintenance/MaintenanceSummaryCards';
 import MaintenanceCalendarTable from './maintenance/MaintenanceCalendarTable';
-import MaintenanceQuoteDialog from './maintenance/MaintenanceQuoteDialog';
 import AddPartDialog from '@/components/parts/dialogs/AddPartDialog';
 import { formatDate, getStatusBadge, getPriorityColor } from './maintenance/maintenanceUtils';
 
@@ -29,14 +28,8 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
     isLoading: tasksLoading,
     addTask,
     updateTaskStatus,
-    updateTaskPriority,
     deleteTask
   } = useTasksManager();
-
-  // État pour stocker la tâche sélectionnée pour voir le devis
-  const [selectedTaskForQuote, setSelectedTaskForQuote] = useState<number | null>(null);
-  const [isQuoteDialogOpen, setIsQuoteDialogOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<any>(null);
 
   useEffect(() => {
     // Déjà géré par useTasksManager, mais on ajoute un délai simulé pour l'UX
@@ -85,26 +78,13 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
     }
   };
 
-  const handleViewQuote = (taskId: number) => {
-    const task = maintenanceTasks.find(t => t.id === taskId);
-    if (task) {
-      setSelectedTask({
-        ...task,
-        equipment: equipment // Pour avoir les infos complètes de l'équipement
-      });
-      setIsQuoteDialogOpen(true);
-    } else {
-      toast.error('Impossible de trouver la tâche');
-    }
-  };
-
   const handleDeleteTask = (taskId: number) => {
     try {
       deleteTask(taskId);
-      toast.success('Devis supprimé avec succès');
+      toast.success('Tâche supprimée avec succès');
     } catch (error) {
-      console.error('Erreur lors de la suppression du devis:', error);
-      toast.error('Impossible de supprimer le devis');
+      console.error('Erreur lors de la suppression de la tâche:', error);
+      toast.error('Impossible de supprimer la tâche');
     }
   };
 
@@ -139,6 +119,22 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
         </div>
       </div>
 
+      {/* Afficher une grande image de l'équipement */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Image de l'équipement</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="aspect-video w-full overflow-hidden rounded-md">
+            <img
+              src={equipment.image || "https://images.unsplash.com/photo-1585911171167-1f66ea3de00c?q=80&w=1280&auto=format&fit=crop"}
+              alt={equipment.name}
+              className="object-cover w-full h-full"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       <MaintenanceSummaryCards 
         maintenanceTasks={maintenanceTasks} 
         formatDate={formatDate} 
@@ -155,9 +151,9 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
             formatDate={formatDate}
             getStatusBadge={getStatusBadge}
             getPriorityColor={getPriorityColor}
-            handleViewQuote={handleViewQuote}
             handleChangeStatus={handleChangeStatus}
             handleAddTask={handleAddTask}
+            handleDeleteTask={handleDeleteTask}
           />
         </CardContent>
       </Card>
@@ -172,14 +168,6 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
         />
       )}
       
-      {/* Dialog pour voir le devis */}
-      <MaintenanceQuoteDialog 
-        isOpen={isQuoteDialogOpen}
-        onClose={() => setIsQuoteDialogOpen(false)}
-        maintenance={selectedTask}
-        onDelete={handleDeleteTask}
-      />
-
       {/* Dialog pour ajouter une pièce */}
       <AddPartDialog
         isOpen={isAddPartDialogOpen}
