@@ -9,7 +9,7 @@ const shouldFix = args.includes('--fix');
 const isVerbose = args.includes('--verbose');
 const checkAll = args.includes('--all');
 
-// Get only changed files to improve performance (unless --all is specified)
+// Get only changed TypeScript files to improve performance (unless --all is specified)
 function getChangedTypeScriptFiles() {
   if (checkAll) {
     return [];  // Empty array will cause tsc to check all files
