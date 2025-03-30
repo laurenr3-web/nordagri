@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { useTasksManager } from '@/hooks/maintenance/useTasksManager';
 import { maintenanceTasks } from '@/data/maintenanceData';
@@ -7,18 +7,19 @@ import NewTaskDialog from '@/components/maintenance/NewTaskDialog';
 import MaintenanceHeader from '@/components/maintenance/MaintenanceHeader';
 import MaintenanceContent from '@/components/maintenance/MaintenanceContent';
 import ErrorBoundary from '@/components/ErrorBoundary';
-
-// Importations explicites des composants Sidebar 
-// au lieu d'utiliser des importations groupées
 import { SidebarProvider } from '@/components/ui/sidebar/sidebar-context';
 import { Sidebar } from '@/components/ui/sidebar/sidebar';
+import { useMaintenanceRealtime } from '@/hooks/maintenance/useMaintenanceRealtime';
 
 const Maintenance = () => {
-  // Always initialize all hooks first, before any conditional logic
-  const [currentView, setCurrentView] = useState('upcoming');
-  const [currentMonth] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [isNewTaskDialogOpen, setIsNewTaskDialogOpen] = useState(false);
+  // Use React.useState instead of useState directly
+  const [currentView, setCurrentView] = React.useState('upcoming');
+  const [currentMonth] = React.useState(new Date());
+  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(undefined);
+  const [isNewTaskDialogOpen, setIsNewTaskDialogOpen] = React.useState(false);
+  
+  // Initialize realtime subscription
+  useMaintenanceRealtime();
   
   const {
     tasks, 
@@ -31,23 +32,23 @@ const Maintenance = () => {
   } = useTasksManager(maintenanceTasks);
 
   // Handle open/close new task dialog
-  const handleOpenNewTaskDialog = (open: boolean) => {
+  const handleOpenNewTaskDialog = React.useCallback((open: boolean) => {
     if (!open) {
       setSelectedDate(undefined);
     }
     setIsNewTaskDialogOpen(open);
-  };
+  }, []);
 
   // Handle adding a task
-  const handleAddTask = (formData: any) => {
+  const handleAddTask = React.useCallback((formData: any) => {
     console.log('Adding task in Maintenance component:', formData);
     return addTask(formData);
-  };
+  }, [addTask]);
 
   return (
     <ErrorBoundary>
-      <SidebarProvider defaultOpen={true}>
-        <div className="flex min-h-screen w-full bg-background">
+      <div className="flex min-h-screen w-full bg-background">
+        <SidebarProvider defaultOpen={true}>
           <Sidebar className="border-r">
             <Navbar />
           </Sidebar>
@@ -72,15 +73,15 @@ const Maintenance = () => {
               </div>
             </div>
           </div>
-        </div>
-        
-        <NewTaskDialog 
-          open={isNewTaskDialogOpen}
-          onOpenChange={handleOpenNewTaskDialog}
-          onSubmit={handleAddTask}
-          initialDate={selectedDate}
-        />
-      </SidebarProvider>
+          
+          <NewTaskDialog 
+            open={isNewTaskDialogOpen}
+            onOpenChange={handleOpenNewTaskDialog}
+            onSubmit={handleAddTask}
+            initialDate={selectedDate}
+          />
+        </SidebarProvider>
+      </div>
     </ErrorBoundary>
   );
 };

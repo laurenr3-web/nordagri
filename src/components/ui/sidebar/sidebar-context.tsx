@@ -33,9 +33,7 @@ const defaultContextValue: SidebarContext = {
 const SidebarContext = React.createContext<SidebarContext>(defaultContextValue);
 
 export function useSidebar() {
-  const context = React.useContext(SidebarContext);
-  // Context should never be null now
-  return context;
+  return React.useContext(SidebarContext);
 }
 
 export const SidebarProvider = React.forwardRef<
@@ -60,13 +58,16 @@ export const SidebarProvider = React.forwardRef<
   ) => {
     const isMobile = useIsMobile();
     const [openMobile, setOpenMobile] = React.useState(false);
+    
+    // Safely create ref if not provided
     const internalRef = React.useRef<HTMLDivElement>(null);
-    const combinedRef = ref || internalRef;
+    const combinedRef = useCombinedRefs(ref, internalRef);
 
     // This is the internal state of the sidebar.
-    // We use openProp and setOpenProp for control from outside the component.
     const [_open, _setOpen] = React.useState(defaultOpen);
     const open = openProp ?? _open;
+    
+    // Wrapped in useCallback to prevent unnecessary re-renders
     const setOpen = React.useCallback(
       (value: boolean | ((value: boolean) => boolean)) => {
         const openState = typeof value === "function" ? value(open) : value;
@@ -125,7 +126,6 @@ export const SidebarProvider = React.forwardRef<
     // Create a properly typed style object with CSS custom properties
     const sidebarStyles = {
       ...style,
-      // Use type assertion for custom CSS properties
       '--sidebar-width': SIDEBAR_WIDTH,
       '--sidebar-width-icon': SIDEBAR_WIDTH_ICON,
     } as React.CSSProperties;
@@ -144,4 +144,27 @@ export const SidebarProvider = React.forwardRef<
     );
   }
 );
+
 SidebarProvider.displayName = "SidebarProvider";
+
+// Utility function to combine refs safely
+function useCombinedRefs<T>(
+  ...refs: Array<React.Ref<T> | null | undefined>
+): React.RefObject<T> {
+  const targetRef = React.useRef<T>(null);
+
+  React.useEffect(() => {
+    refs.forEach(ref => {
+      if (!ref) return;
+
+      if (typeof ref === 'function') {
+        ref(targetRef.current);
+      } else {
+        // @ts-ignore - this is safe because we're careful with the types
+        ref.current = targetRef.current;
+      }
+    });
+  }, [refs]);
+
+  return targetRef;
+}

@@ -1,15 +1,15 @@
 
+// This file is intentionally empty - WDYR is temporarily disabled to resolve
+// the "Cannot read properties of null (reading 'current')" error.
+// To re-enable WDYR, uncomment the code below and adjust the exclusions as needed.
+
+/*
 import React from 'react';
 
 if (process.env.NODE_ENV === 'development') {
-  // Import dynamically instead of using require
   import('@welldone-software/why-did-you-render').then((whyDidYouRender) => {
     whyDidYouRender.default(React, {
-      // Reduce component tracking to only components that have 
-      // whyDidYouRender = true flag to avoid performance issues
       trackAllPureComponents: false,
-      
-      // Exclude problematic React Router components to prevent hook errors
       exclude: [
         /^BrowserRouter/, 
         /^Router/, 
@@ -40,9 +40,8 @@ if (process.env.NODE_ENV === 'development') {
         /^ProtectedRoute/,
         /^RealtimeCacheProvider/
       ],
-      
-      // Completely disable tracking hooks to prevent these errors
       trackExtraHooks: []
     });
   });
 }
+*/

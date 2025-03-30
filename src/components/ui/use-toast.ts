@@ -1,6 +1,7 @@
 
-// Safely import from hooks directory
-import { useToast, toast } from "@/hooks/use-toast";
+// Import directement du hook
+import { useToast as useShadcnToast, toast } from "@/hooks/use-toast";
 
-// Re-export for convenience
-export { useToast, toast };
+// Exporter pour une utilisation cohérente dans l'application
+export const useToast = useShadcnToast;
+export { toast };
