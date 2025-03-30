@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 interface StatsCardProps {
   title: string;
   value: string | number;
-  icon: React.ReactNode;
+  icon: React.ComponentType<any>;
   description?: string;
   trend?: {
     value: number;
@@ -20,7 +20,7 @@ interface StatsCardProps {
 export function StatsCard({ 
   title, 
   value, 
-  icon, 
+  icon: Icon, 
   description, 
   trend, 
   className,
@@ -55,7 +55,7 @@ export function StatsCard({
           )}
         </div>
         <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-          {icon}
+          <Icon className="text-primary h-5 w-5" />
         </div>
       </div>
     </BlurContainer>

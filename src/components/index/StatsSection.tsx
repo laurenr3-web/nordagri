@@ -5,7 +5,7 @@ import { StatsCard } from '@/components/dashboard/StatsCard';
 interface StatItem {
   title: string;
   value: string;
-  icon: React.ReactNode;
+  icon: React.ComponentType<any>;
   description?: string;
   trend?: {
     value: number;

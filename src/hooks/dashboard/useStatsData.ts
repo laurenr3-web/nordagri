@@ -8,7 +8,7 @@ import React from 'react';
 export interface StatsCardData {
   title: string;
   value: number | string;
-  icon: React.ReactNode;
+  icon: React.ComponentType<any>;
   change: number;
   description?: string;
 }
@@ -30,28 +30,28 @@ export const useStatsData = (user: any) => {
       {
         title: 'Active Equipment',
         value: 24,
-        icon: <Tractor className="text-primary h-5 w-5" />,
+        icon: Tractor,
         change: 4,
         description: ''
       },
       {
         title: 'Maintenance Tasks',
         value: 12,
-        icon: <Wrench className="text-primary h-5 w-5" />,
+        icon: Wrench,
         description: '3 high priority',
         change: -2
       },
       {
         title: 'Parts Inventory',
         value: 1204,
-        icon: <Package className="text-primary h-5 w-5" />,
+        icon: Package,
         description: '8 items low stock',
         change: 12
       },
       {
         title: 'Field Interventions',
         value: 8,
-        icon: <ClipboardCheck className="text-primary h-5 w-5" />,
+        icon: ClipboardCheck,
         description: 'This week',
         change: 15
       }
@@ -102,28 +102,28 @@ export const useStatsData = (user: any) => {
         {
           title: 'Active Equipment',
           value: equipmentCount,
-          icon: <Tractor className="text-primary h-5 w-5" />,
+          icon: Tractor,
           change: 0,
           description: ''
         },
         {
           title: 'Maintenance Tasks',
           value: tasksCount,
-          icon: <Wrench className="text-primary h-5 w-5" />,
+          icon: Wrench,
           description: highPriorityTasks > 0 ? `${highPriorityTasks} high priority` : '',
           change: 0
         },
         {
           title: 'Parts Inventory',
           value: partsCount,
-          icon: <Package className="text-primary h-5 w-5" />,
+          icon: Package,
           description: lowStockItems > 0 ? `${lowStockItems} items low stock` : '',
           change: 0
         },
         {
           title: 'Field Interventions',
           value: interventionsCount,
-          icon: <ClipboardCheck className="text-primary h-5 w-5" />,
+          icon: ClipboardCheck,
           description: 'This week',
           change: 0
         }
