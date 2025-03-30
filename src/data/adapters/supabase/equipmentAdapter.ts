@@ -5,6 +5,26 @@ import { mapDbToEquipment, mapEquipmentToDb } from './mappers';
 import { convertDatesToISOStrings } from './utils';
 import { applyFilters } from './filters';
 
+// Define type for database equipment record
+type EquipmentRecord = {
+  id: number;
+  name: string;
+  model?: string;
+  manufacturer?: string;
+  year?: number;
+  serial_number?: string;
+  purchase_date?: string;
+  location?: string;
+  status?: string;
+  type?: string;
+  category?: string;
+  image?: string;
+  notes?: string;
+  owner_id?: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
 /**
  * Adaptateur Supabase pour les équipements
  */
@@ -62,7 +82,7 @@ export const equipmentAdapter = {
         owner_id: sessionData.session?.user.id,
         created_at: new Date(),
         updated_at: new Date()
-      });
+      }) as EquipmentRecord;
       
       // Insert the equipment
       const { data, error } = await supabase
@@ -87,7 +107,7 @@ export const equipmentAdapter = {
       const dbEquipment = convertDatesToISOStrings({
         ...equipmentData,
         updated_at: new Date()
-      });
+      }) as EquipmentRecord;
       
       // Update the equipment
       const { data, error } = await supabase

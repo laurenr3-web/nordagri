@@ -1,11 +1,14 @@
 
 import { EquipmentFilter } from '@/data/models/equipment';
-import { PostgrestFilterBuilder } from '@supabase/supabase-js';
+import { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 
 /**
  * Application des filtres à la requête Supabase
  */
-export const applyFilters = (query: PostgrestFilterBuilder<any>, filters?: EquipmentFilter) => {
+export const applyFilters = <T>(
+  query: PostgrestFilterBuilder<any, any, T>,
+  filters?: EquipmentFilter
+): PostgrestFilterBuilder<any, any, T> => {
   if (!filters) return query;
 
   if (filters.search) {
