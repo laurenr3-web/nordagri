@@ -38,8 +38,12 @@ export function ensureStringId(id: string | number): string {
  * Validates that a status string is one of the allowed equipment statuses
  */
 export function validateEquipmentStatus(status?: string): 'operational' | 'maintenance' | 'repair' | 'inactive' {
-  const validStatuses = ['operational', 'maintenance', 'repair', 'inactive'];
-  return (status && validStatuses.includes(status)) 
-    ? (status as 'operational' | 'maintenance' | 'repair' | 'inactive') 
-    : 'operational';
+  const validStatuses = ['operational', 'maintenance', 'repair', 'inactive'] as const;
+  type ValidStatus = typeof validStatuses[number];
+  
+  if (status && validStatuses.includes(status as ValidStatus)) {
+    return status as ValidStatus;
+  }
+  
+  return 'operational';
 }

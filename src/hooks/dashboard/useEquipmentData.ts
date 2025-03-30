@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { toast } from "@/hooks/use-toast";
 import { EquipmentItem } from './types/equipmentTypes';
 import { supabase } from '@/integrations/supabase/client';
+import { validateEquipmentStatus } from '@/utils/typeGuards';
 
 /**
  * Hook for fetching and managing equipment data
@@ -92,7 +93,7 @@ export const useEquipmentData = (user: any) => {
         name: item.name,
         type: item.type || 'Unknown',
         image: item.image || 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=500&auto=format&fit=crop',
-        status: item.status || 'operational',
+        status: validateEquipmentStatus(item.status),
         usage: {
           hours: 342, // Placeholder until we have real usage data
           target: 500

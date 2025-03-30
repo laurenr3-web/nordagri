@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/hooks/use-toast";
@@ -25,38 +26,27 @@ export const useStatsData = (user: any) => {
       {
         title: 'Active Equipment',
         value: '24',
-        icon: React.createElement(Tractor, { className: "text-primary h-5 w-5" }),
-        trend: {
-          value: 4,
-          isPositive: true
-        }
+        icon: Tractor,
+        change: 4,
+        description: ''
       }, {
         title: 'Maintenance Tasks',
         value: '12',
-        icon: React.createElement(Wrench, { className: "text-primary h-5 w-5" }),
+        icon: Wrench,
         description: '3 high priority',
-        trend: {
-          value: 2,
-          isPositive: false
-        }
+        change: -2
       }, {
         title: 'Parts Inventory',
         value: '1,204',
-        icon: React.createElement(Package, { className: "text-primary h-5 w-5" }),
+        icon: Package,
         description: '8 items low stock',
-        trend: {
-          value: 12,
-          isPositive: true
-        }
+        change: 12
       }, {
         title: 'Field Interventions',
         value: '8',
-        icon: React.createElement(ClipboardCheck, { className: "text-primary h-5 w-5" }),
+        icon: ClipboardCheck,
         description: 'This week',
-        trend: {
-          value: 15,
-          isPositive: true
-        }
+        change: 15
       }
     ]);
     setLoading(false);
