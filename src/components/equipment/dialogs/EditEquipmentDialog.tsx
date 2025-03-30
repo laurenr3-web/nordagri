@@ -35,7 +35,6 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
   const defaultValues: EquipmentFormValues = {
     name: equipment.name,
     type: equipment.type,
-    category: equipment.category.toLowerCase(),
     manufacturer: equipment.manufacturer,
     model: equipment.model,
     year: equipment.year.toString(),
@@ -63,7 +62,6 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
         ...equipment,
         name: data.name,
         type: data.type,
-        category: data.category.charAt(0).toUpperCase() + data.category.slice(1),
         manufacturer: data.manufacturer,
         model: data.model,
         year: parseInt(data.year || '0'),
@@ -86,7 +84,7 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
 
   const addNewCategory = (category: string) => {
     setCustomCategories([...customCategories, category]);
-    form.setValue('category', category);
+    form.setValue('type', category);
   };
 
   return (

@@ -36,7 +36,6 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
     defaultValues: {
       name: initialData?.name || '',
       type: initialData?.type || '',
-      category: initialData?.category || '',
       manufacturer: initialData?.manufacturer || '',
       model: initialData?.model || '',
       year: initialData?.year || new Date().getFullYear().toString(),
@@ -63,7 +62,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
 
   const addNewCategory = (category: string) => {
     setCustomCategories([...customCategories, category]);
-    form.setValue('category', category);
+    form.setValue('type', category);
   };
 
   return (

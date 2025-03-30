@@ -5,7 +5,6 @@ import { z } from 'zod';
 export const equipmentFormSchema = z.object({
   name: z.string().min(2, 'Le nom doit comporter au moins 2 caractères'),
   type: z.string().min(1, 'Le type est requis'),
-  category: z.string().min(1, 'La catégorie est requise'),
   manufacturer: z.string().optional(),
   model: z.string().optional(),
   year: z.string().optional(),

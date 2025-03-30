@@ -31,13 +31,11 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
     fr: {
       name: 'Nom',
       type: 'Type',
-      category: 'Catégorie',
       manufacturer: 'Fabricant',
       model: 'Modèle',
       year: 'Année',
       addCategoryBtn: 'Ajouter une catégorie',
       selectType: 'Sélectionner un type',
-      selectCategory: 'Sélectionner une catégorie',
       namePlaceholder: 'Nom de l\'équipement',
       manufacturerPlaceholder: 'Fabricant',
       modelPlaceholder: 'Modèle',
@@ -46,13 +44,11 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
     en: {
       name: 'Name',
       type: 'Type',
-      category: 'Category',
       manufacturer: 'Manufacturer',
       model: 'Model',
       year: 'Year',
       addCategoryBtn: 'Add category',
       selectType: 'Select a type',
-      selectCategory: 'Select a category',
       namePlaceholder: 'Equipment name',
       manufacturerPlaceholder: 'Manufacturer',
       modelPlaceholder: 'Model',
@@ -101,49 +97,6 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
                 <SelectItem value="other">Autre</SelectItem>
               </SelectContent>
             </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      
-      {/* Catégorie */}
-      <FormField
-        control={form.control}
-        name="category"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>{t.category}</FormLabel>
-            <div className="flex items-center gap-2">
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder={t.selectCategory} />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="tracteurs">Tracteurs</SelectItem>
-                  <SelectItem value="moissonneuses">Moissonneuses</SelectItem>
-                  <SelectItem value="outils">Outils</SelectItem>
-                  <SelectItem value="irrigation">Irrigation</SelectItem>
-                  <SelectItem value="semoirs">Semoirs</SelectItem>
-                  <SelectItem value="pulvérisateurs">Pulvérisateurs</SelectItem>
-                  {customCategories.map((category) => (
-                    <SelectItem key={category} value={category.toLowerCase()}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button 
-                type="button" 
-                variant="outline" 
-                size="icon"
-                onClick={onAddCategoryClick}
-                aria-label={t.addCategoryBtn}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
             <FormMessage />
           </FormItem>
         )}

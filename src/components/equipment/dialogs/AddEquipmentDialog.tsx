@@ -26,7 +26,6 @@ const AddEquipmentDialog: React.FC<AddEquipmentDialogProps> = ({
       const newEquipment = {
         name: data.name,
         type: data.type,
-        category: data.category.charAt(0).toUpperCase() + data.category.slice(1),
         manufacturer: data.manufacturer,
         model: data.model || '',
         year: data.year ? parseInt(data.year) : null,
