@@ -29,7 +29,7 @@ export function FormWrapper<T extends z.ZodType>({
 }: FormWrapperProps<T>) {
   const methods = useForm<z.infer<T>>({
     resolver: zodResolver(schema),
-    defaultValues,
+    defaultValues: defaultValues as any, // Type cast pour résoudre l'erreur TS2322
   });
   
   return (
