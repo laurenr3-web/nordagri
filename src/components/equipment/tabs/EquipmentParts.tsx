@@ -3,6 +3,7 @@ import React from 'react';
 import { Equipment } from '@/services/supabase/equipmentService';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useEquipmentParts } from '@/hooks/equipment/useEquipmentParts';
 import EditPartForm from '@/components/parts/dialogs/form/EditPartForm';
 import EquipmentPartsLoading from './parts/EquipmentPartsLoading';
 import EquipmentPartsError from './parts/EquipmentPartsError';
@@ -11,7 +12,6 @@ import EquipmentPartsTable from './parts/EquipmentPartsTable';
 import EquipmentPartsLowStockWarning from './parts/EquipmentPartsLowStockWarning';
 import EquipmentPartsAssociation from './parts/EquipmentPartsAssociation';
 import AddPartDialog from '@/components/parts/dialogs/AddPartDialog';
-import { useEquipmentParts } from '@/hooks/equipment/useEquipmentParts';
 
 interface EquipmentPartsProps {
   equipment: Equipment;
@@ -93,7 +93,8 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = ({ equipment }) => {
           onOpenChange={setIsAddPartDialogOpen}
           onSuccess={(newPart) => {
             console.log("Nouvelle pièce ajoutée:", newPart);
-            // La logique d'ajout sera implémentée dans le hook useEquipmentParts
+            // Rafraîchir la liste des pièces
+            window.location.reload();
           }}
         />
       </CardContent>

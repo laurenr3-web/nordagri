@@ -2,9 +2,10 @@
 import { useState, useEffect } from 'react';
 import { Equipment } from '@/services/supabase/equipmentService';
 import { Part } from '@/types/Part';
-import { getPartsForEquipment, deletePart } from '@/services/supabase/parts';
-import { useUpdatePart, useDeletePart } from '@/hooks/parts';
+import { getPartsForEquipment } from '@/services/supabase/parts/getPartsForEquipment';
 import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
+import { useUpdatePart, useDeletePart } from '@/hooks/parts';
 
 export function useEquipmentParts(equipment: Equipment) {
   const [parts, setParts] = useState<Part[]>([]);
@@ -15,6 +16,7 @@ export function useEquipmentParts(equipment: Equipment) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddPartDialogOpen, setIsAddPartDialogOpen] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const updatePartMutation = useUpdatePart();
   const deletePartMutation = useDeletePart();
@@ -24,8 +26,12 @@ export function useEquipmentParts(equipment: Equipment) {
       try {
         setLoading(true);
         setError(null);
+        
+        console.log('Fetching parts for equipment ID:', equipment.id);
         // Charger les pièces associées à cet équipement
         const equipmentParts = await getPartsForEquipment(equipment.id);
+        console.log('Fetched parts:', equipmentParts);
+        
         setParts(equipmentParts);
       } catch (err: any) {
         console.error('Error fetching parts:', err);
@@ -40,14 +46,16 @@ export function useEquipmentParts(equipment: Equipment) {
       }
     };
 
-    fetchParts();
+    if (equipment && equipment.id) {
+      fetchParts();
+    }
   }, [equipment.id, toast]);
 
   // Filtrer les pièces en fonction du terme de recherche
   const filteredParts = parts.filter(part => 
     part.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    part.partNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    part.category.toLowerCase().includes(searchTerm.toLowerCase())
+    (part.partNumber && part.partNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (part.category && part.category.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleEditPart = (part: Part) => {
@@ -66,8 +74,12 @@ export function useEquipmentParts(equipment: Equipment) {
               part.id === result.id ? result : part
             )
           );
+          
           setIsEditDialogOpen(false);
           setSelectedPart(null);
+          
+          // Invalider les requêtes pour rafraîchir les données
+          queryClient.invalidateQueries({ queryKey: ['parts'] });
           
           toast({
             title: "Succès",
@@ -103,6 +115,9 @@ export function useEquipmentParts(equipment: Equipment) {
       
       // Mise à jour de l'état local après suppression
       setParts(prevParts => prevParts.filter(part => part.id !== partId));
+      
+      // Invalider les requêtes pour rafraîchir les données
+      queryClient.invalidateQueries({ queryKey: ['parts'] });
       
       toast({
         title: "Succès",
