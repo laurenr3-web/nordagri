@@ -78,10 +78,10 @@ const PartsDialogs: React.FC<PartsDialogsProps> = (props) => {
       {/* Filter, Sort and Category Dialogs */}
       <FilterSortDialogs
         isFilterDialogOpen={props.isFilterDialogOpen}
-        isSortDialogOpen={props.isSortDialogOpen}
-        isAddCategoryDialogOpen={props.isAddCategoryDialogOpen}
         setIsFilterDialogOpen={props.setIsFilterDialogOpen}
+        isSortDialogOpen={props.isSortDialogOpen}
         setIsSortDialogOpen={props.setIsSortDialogOpen}
+        isAddCategoryDialogOpen={props.isAddCategoryDialogOpen} 
         setIsAddCategoryDialogOpen={props.setIsAddCategoryDialogOpen}
         manufacturers={props.manufacturers}
         filterManufacturers={props.filterManufacturers}

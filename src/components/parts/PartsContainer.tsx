@@ -110,12 +110,12 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
 
         {currentView === 'grid' ? (
           <PartsGrid
-            parts={filteredParts}
+            parts={filteredParts as any}
             onPartClick={openPartDetails}
           />
         ) : (
           <PartsList
-            parts={filteredParts}
+            parts={filteredParts as any}
             onPartClick={openPartDetails}
           />
         )}
@@ -151,7 +151,6 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
         setIsSortDialogOpen={setIsSortDialogOpen}
       />
 
-      {/* Remplacer PartsDialogs par PartDetailsDialog */}
       <PartDetailsDialog
         isOpen={isPartDetailsDialogOpen}
         onOpenChange={setIsPartDetailsDialogOpen}
