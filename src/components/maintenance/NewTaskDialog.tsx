@@ -3,12 +3,12 @@ import React from 'react';
 import { MaintenanceFormValues } from '@/hooks/maintenance/maintenanceSlice';
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+  SafeDialog,
+  SafeDialogContent,
+  SafeDialogDescription,
+  SafeDialogFooter,
+  SafeDialogHeader,
+  SafeDialogTitle,
 } from '@/components/ui/dialog';
 
 import { useMaintenanceForm } from '@/hooks/maintenance/useMaintenanceForm';
@@ -60,19 +60,19 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({ open, onOpenChange, onSub
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[550px]">
-          <DialogHeader>
-            <DialogTitle>Create New Maintenance Task</DialogTitle>
-            <DialogDescription>
+      <SafeDialog open={open} onOpenChange={onOpenChange}>
+        <SafeDialogContent className="sm:max-w-[550px]">
+          <SafeDialogHeader>
+            <SafeDialogTitle>Create New Maintenance Task</SafeDialogTitle>
+            <SafeDialogDescription>
               Fill in the details to schedule a new maintenance task.
               {initialDate && (
                 <span className="block mt-1 text-sm font-medium">
                   Scheduled for: {initialDate.toLocaleDateString()}
                 </span>
               )}
-            </DialogDescription>
-          </DialogHeader>
+            </SafeDialogDescription>
+          </SafeDialogHeader>
           <form onSubmit={handleSubmit}>
             <TaskFormFields
               title={title}
@@ -96,12 +96,12 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({ open, onOpenChange, onSub
               staffOptions={staffOptions}
               onAddStaffClick={() => setIsAddStaffDialogOpen(true)}
             />
-            <DialogFooter>
+            <SafeDialogFooter>
               <Button type="submit">Create Task</Button>
-            </DialogFooter>
+            </SafeDialogFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SafeDialogContent>
+      </SafeDialog>
 
       <AddStaffDialog
         open={isAddStaffDialogOpen}

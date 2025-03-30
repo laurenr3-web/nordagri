@@ -31,15 +31,29 @@ const SafeDialog: React.FC<SafeDialogProps> = ({
     isMountedRef.current = true;
     return () => { 
       isMountedRef.current = false; 
+      
+      // Cleanup orphaned portal elements on unmount
+      setTimeout(() => {
+        const portals = document.querySelectorAll('[data-radix-portal]');
+        portals.forEach(portal => {
+          if (portal.children.length === 0 && portal.parentNode) {
+            try {
+              portal.parentNode.removeChild(portal);
+            } catch (e) {
+              console.warn('Portal cleanup error:', e);
+            }
+          }
+        });
+      }, 100); // Small delay to ensure React has finished with portals
     };
   }, []);
   
-  const handleOpenChange = useCallback((open: boolean) => {
+  const handleOpenChange = useCallback((newOpen: boolean) => {
     if (isMountedRef.current && onOpenChange) {
       // Use requestAnimationFrame for better synchronization with browser rendering
       requestAnimationFrame(() => {
         if (isMountedRef.current) {
-          onOpenChange(open);
+          onOpenChange(newOpen);
         }
       });
     }
