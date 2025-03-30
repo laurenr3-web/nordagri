@@ -111,14 +111,12 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
         {currentView === 'grid' ? (
           <PartsGrid
             parts={filteredParts as any}
-            openPartDetails={openPartDetails}
-            openOrderDialog={() => {}} // Adding required prop with empty function
+            onPartClick={openPartDetails}
           />
         ) : (
           <PartsList
             parts={filteredParts as any}
-            openPartDetails={openPartDetails}
-            openOrderDialog={() => {}} // Adding required prop with empty function
+            onPartClick={openPartDetails}
           />
         )}
 
