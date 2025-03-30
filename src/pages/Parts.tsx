@@ -9,17 +9,26 @@ import { partsData } from '@/data/partsData';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { TechnicalInfoLoading } from '@/components/parts/technical-info/TechnicalInfoLoading';
 import LoadingState from '@/components/parts/page/states/LoadingState';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 const Parts = () => {
   // All hooks declarations at the beginning of the function
   const [hasError, setHasError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Add mounting check to help with debugging
   useEffect(() => {
     console.log("Parts component mounted");
+    
+    // Simulate loading to ensure smooth UI transitions
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+    
     return () => {
       console.log("Parts component unmounted");
+      clearTimeout(timer);
     };
   }, []);
   
@@ -45,7 +54,13 @@ const Parts = () => {
         <SidebarProvider>
           <PartsContextProvider>
             <Suspense fallback={<LoadingState />}>
-              <PartsPageContainer />
+              {isLoading ? (
+                <div className="flex justify-center items-center min-h-[80vh]">
+                  <LoadingSpinner size="lg" text="Loading parts management interface..." />
+                </div>
+              ) : (
+                <PartsPageContainer />
+              )}
             </Suspense>
           </PartsContextProvider>
         </SidebarProvider>

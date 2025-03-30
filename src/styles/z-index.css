@@ -1,0 +1,46 @@
+
+/**
+ * Z-index hierarchy
+ * 
+ * This file establishes a consistent z-index system to avoid conflicts
+ * between overlapping UI elements like dialogs, dropdowns and toasts.
+ */
+
+/* Base UI elements */
+.sidebar {
+  z-index: 40;
+}
+
+.header, .navbar {
+  z-index: 30;
+}
+
+/* Dropdown elements */
+.radix-dropdown-content,
+[data-radix-popper-content-wrapper],
+.radix-popover-content,
+.radix-select-content {
+  z-index: 1000 !important;
+}
+
+/* Dialog/Modal elements */
+.radix-dialog-overlay,
+.radix-alert-dialog-overlay {
+  z-index: 1100 !important;
+}
+
+.radix-dialog-content,
+.radix-alert-dialog-content {
+  z-index: 1200 !important;
+}
+
+/* Toast notifications (highest priority) */
+.radix-toast-viewport,
+.sonner-toast-container {
+  z-index: 1300 !important;
+}
+
+/* Tooltips should always be visible */
+.radix-tooltip-content {
+  z-index: 1400 !important;
+}
