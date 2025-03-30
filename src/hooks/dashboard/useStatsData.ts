@@ -84,8 +84,9 @@ export const useStatsData = (user: any) => {
       const oneWeekAgo = new Date();
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
       
+      // Fix: Change 'field_interventions' to 'interventions' which is the correct table name
       const { data: interventionsData, error: interventionsError } = await supabase
-        .from('field_interventions')
+        .from('interventions')
         .select('id')
         .eq('owner_id', user?.id)
         .gte('date', oneWeekAgo.toISOString());
