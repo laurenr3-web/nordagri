@@ -1,38 +1,33 @@
 
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
 import { EquipmentFormValues } from './equipmentFormTypes';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form';
+import { Textarea } from '@/components/ui/textarea';
 
 interface NotesFieldProps {
   form: UseFormReturn<EquipmentFormValues>;
-  label?: string;
-  placeholder?: string;
-  description?: string;
 }
 
-const NotesField: React.FC<NotesFieldProps> = ({ 
-  form,
-  label = "Notes",
-  placeholder = "Entrez des informations supplémentaires sur cet équipement",
-  description
-}) => {
+const NotesField: React.FC<NotesFieldProps> = ({ form }) => {
   return (
     <FormField
       control={form.control}
       name="notes"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{label}</FormLabel>
+          <FormLabel>Notes</FormLabel>
           <FormControl>
-            <Textarea
-              placeholder={placeholder}
-              className="resize-none"
+            <Textarea 
+              placeholder="Ajouter des notes ou informations supplémentaires..." 
+              className="min-h-[100px]" 
               {...field}
+              value={field.value || ''}
             />
           </FormControl>
-          {description && <FormDescription>{description}</FormDescription>}
+          <FormDescription>
+            Ajoutez ici toute information complémentaire concernant cet équipement.
+          </FormDescription>
           <FormMessage />
         </FormItem>
       )}

@@ -1,46 +1,39 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
-import { Sidebar } from '@/components/ui/sidebar';
-import { useEquipmentState } from '@/components/equipment/hooks/useEquipmentState';
 import EquipmentContentSection from './EquipmentContentSection';
-import { Equipment } from '@/services/supabase/equipmentService';
+import { useNavigate } from 'react-router-dom';
+import { useEquipmentFilters, EquipmentItem } from '../hooks/useEquipmentFilters';
 
 interface EquipmentPageContentProps {
-  equipment: Equipment[] | null;
+  equipment: EquipmentItem[];
   isLoading: boolean;
 }
 
-const EquipmentPageContent: React.FC<EquipmentPageContentProps> = ({
-  equipment,
-  isLoading
+const EquipmentPageContent: React.FC<EquipmentPageContentProps> = ({ 
+  equipment, 
+  isLoading 
 }) => {
-  const {
-    transformedEquipment,
-    filterState,
-    viewState,
-    setSelectedEquipment,
-    handleEquipmentClick
-  } = useEquipmentState(equipment);
-
+  const navigate = useNavigate();
+  const [currentView, setCurrentView] = useState('grid');
+  const filterState = useEquipmentFilters(equipment);
+  
+  const handleEquipmentClick = (equipment: EquipmentItem) => {
+    navigate(`/equipment/${equipment.id}`);
+  };
+  
   return (
-    <div className="flex min-h-screen w-full bg-background">
-      <Sidebar className="border-r">
+    <div className="min-h-screen bg-background pt-6 pb-16 pl-4 pr-4 sm:pl-8 sm:pr-8 md:pl-12 md:pr-12 ml-0 md:ml-64">
+      <div className="max-w-7xl mx-auto">
         <Navbar />
-      </Sidebar>
-      
-      <div className="flex-1 w-full">
-        <div className="pt-6 pb-16 px-4 sm:px-8 md:px-12">
-          <div className="max-w-7xl mx-auto">
-            <EquipmentContentSection
-              equipment={transformedEquipment}
-              isLoading={isLoading}
-              filterState={filterState}
-              viewState={viewState}
-              handleEquipmentClick={handleEquipmentClick}
-            />
-          </div>
-        </div>
+        
+        <EquipmentContentSection
+          equipment={equipment}
+          isLoading={isLoading}
+          filterState={filterState}
+          viewState={{ currentView, setCurrentView }}
+          handleEquipmentClick={handleEquipmentClick}
+        />
       </div>
     </div>
   );

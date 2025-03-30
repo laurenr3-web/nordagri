@@ -66,6 +66,30 @@ export type Database = {
         }
         Relationships: []
       }
+      equipment_categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: number
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       equipment_documents: {
         Row: {
           content_type: string | null
@@ -106,6 +130,53 @@ export type Database = {
             columns: ["equipment_id"]
             isOneToOne: false
             referencedRelation: "equipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipment_maintenance_schedule: {
+        Row: {
+          completed: boolean | null
+          completed_date: string | null
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          equipment_id: number | null
+          id: number
+          priority: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_date?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          equipment_id?: number | null
+          id?: number
+          priority?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          completed?: boolean | null
+          completed_date?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          equipment_id?: number | null
+          id?: number
+          priority?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_maintenance_schedule_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
             referencedColumns: ["id"]
           },
         ]

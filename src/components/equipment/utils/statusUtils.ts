@@ -1,26 +1,51 @@
 
-export const getStatusColor = (status: string) => {
+/**
+ * Couleurs pour les différents statuts d'équipement
+ */
+export function getStatusColor(status: string | undefined): string {
   switch (status) {
     case 'operational':
-      return 'bg-agri-100 text-agri-800';
+      return 'bg-green-500/10 text-green-500 hover:bg-green-500/20';
     case 'maintenance':
-      return 'bg-harvest-100 text-harvest-800';
+      return 'bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20';
     case 'repair':
-      return 'bg-destructive/20 text-destructive';
+      return 'bg-red-500/10 text-red-500 hover:bg-red-500/20';
+    case 'inactive':
+      return 'bg-gray-500/10 text-gray-500 hover:bg-gray-500/20';
     default:
-      return 'bg-secondary text-muted-foreground';
+      return 'bg-blue-500/10 text-blue-500 hover:bg-blue-500/20';
   }
-};
+}
 
-export const getStatusText = (status: string) => {
+/**
+ * Texte pour les différents statuts d'équipement
+ */
+export function getStatusText(status: string | undefined): string {
   switch (status) {
     case 'operational':
-      return 'Operational';
+      return 'Opérationnel';
     case 'maintenance':
-      return 'In Maintenance';
+      return 'En maintenance';
     case 'repair':
-      return 'Needs Repair';
+      return 'En réparation';
+    case 'inactive':
+      return 'Inactif';
     default:
-      return status;
+      return 'Inconnu';
   }
-};
+}
+
+/**
+ * Formate une date pour l'affichage
+ */
+export function formatDate(date: Date | string | undefined): string {
+  if (!date) return 'Non spécifié';
+  
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  
+  return dateObj.toLocaleDateString('fr-FR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+}

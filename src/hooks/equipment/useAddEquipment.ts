@@ -1,72 +1,32 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { equipmentService, Equipment } from '@/services/supabase/equipmentService';
+import { equipmentService } from '@/services/supabase/equipmentService';
 import { toast } from 'sonner';
-import { isDataUrl, dataUrlToFile } from '@/services/supabase/equipment/utils';
 
-/**
- * Hook for adding new equipment items
- * @returns Mutation object for adding equipment
- */
-export const useAddEquipment = () => {
+export function useAddEquipment() {
   const queryClient = useQueryClient();
   
-  return useMutation({
-    mutationFn: async (newEquipment: Omit<Equipment, 'id'>) => {
-      console.log('Tentative d\'ajout d\'équipement:', newEquipment);
-      
-      // Check if image is a data URL from camera capture
-      let imageFile: File | undefined;
-      if (newEquipment.image && isDataUrl(newEquipment.image)) {
-        // Convert data URL to File
-        console.log('Converting data URL to File');
-        imageFile = dataUrlToFile(
-          newEquipment.image, 
-          `equipment-${Date.now()}.jpg`
-        );
-        // Clear the image URL since we're uploading a file
-        newEquipment.image = undefined;
-      }
-      
-      // Make sure serialNumber is properly handled (null, not empty string)
-      if (newEquipment.serialNumber === '') {
-        console.log('Serial number is empty, setting to null');
-        newEquipment.serialNumber = null;
-      }
-
-      // Create a clean copy of the equipment for debugging
-      const cleanEquipment = { ...newEquipment };
-      
-      // Log the final equipment data being sent to the API
-      console.log('Sending equipment data to API:', JSON.stringify(cleanEquipment, null, 2));
-      
+  const mutation = useMutation({
+    mutationFn: (newEquipment: any) => {
+      console.log('Adding new equipment:', newEquipment);
       return equipmentService.addEquipment(newEquipment);
     },
     onSuccess: (data) => {
-      console.log('Équipement ajouté avec succès:', data);
+      console.log('Equipment added successfully:', data);
+      
+      // Mettre à jour le cache des requêtes
       queryClient.invalidateQueries({ queryKey: ['equipment'] });
       queryClient.invalidateQueries({ queryKey: ['equipment-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['equipment-filter-options'] });
       
       toast.success('Équipement ajouté avec succès');
     },
     onError: (error: any) => {
-      console.error('Erreur lors de l\'ajout d\'équipement:', error);
-      // Add more detailed error logging to help debug the issue
-      if (error.message) {
-        console.error('Message d\'erreur:', error.message);
-      }
-      if (error.details) {
-        console.error('Détails de l\'erreur:', error.details);
-      }
-      if (error.code) {
-        console.error('Code d\'erreur:', error.code);
-      }
-      if (error.hint) {
-        console.error('Suggestion:', error.hint);
-      }
-      
-      toast.error(`Erreur: ${error.message || 'Impossible d\'ajouter l\'équipement'}`);
+      console.error('Error adding equipment:', error);
+      toast.error('Erreur lors de l\'ajout de l\'équipement', {
+        description: error.message
+      });
     }
   });
-};
+  
+  return mutation;
+}

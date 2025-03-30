@@ -1,47 +1,42 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil } from 'lucide-react';
-import { EquipmentItem } from '../hooks/useEquipmentFilters';
-import StatusBadge from './StatusBadge';
+import { Edit, Trash2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { getStatusText, getStatusColor } from '../utils/statusUtils';
 
 interface EquipmentHeaderProps {
-  equipment: EquipmentItem;
+  equipment: any;
   onEditClick: () => void;
 }
 
 const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({ equipment, onEditClick }) => {
   return (
-    <>
-      <div className="relative aspect-video overflow-hidden rounded-md">
-        <img 
-          src={equipment.image} 
-          alt={equipment.name}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute top-2 right-2">
-          <StatusBadge status={equipment.status} />
+    <div className="flex flex-col sm:flex-row justify-between gap-4">
+      <div>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold tracking-tight">{equipment.name}</h1>
+          <Badge className={getStatusColor(equipment.status)} variant="secondary">
+            {getStatusText(equipment.status)}
+          </Badge>
+        </div>
+        
+        <div className="text-muted-foreground mt-1">
+          {equipment.manufacturer && equipment.model ? (
+            <p>{equipment.manufacturer} {equipment.model} {equipment.year && `(${equipment.year})`}</p>
+          ) : (
+            <p>{equipment.type || 'Équipement'} {equipment.year && `(${equipment.year})`}</p>
+          )}
         </div>
       </div>
-
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-semibold">{equipment.name}</h2>
-          <p className="text-muted-foreground">
-            {equipment.manufacturer} • {equipment.model} • {equipment.year}
-          </p>
-        </div>
-        <Button 
-          onClick={onEditClick} 
-          variant="outline" 
-          size="sm"
-          className="flex items-center gap-1"
-        >
-          <Pencil size={16} />
+      
+      <div className="flex gap-2 self-start">
+        <Button variant="outline" size="sm" onClick={onEditClick}>
+          <Edit className="mr-2 h-4 w-4" />
           Modifier
         </Button>
       </div>
-    </>
+    </div>
   );
 };
 

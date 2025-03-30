@@ -1,14 +1,13 @@
 
 import React from 'react';
-import { BlurContainer } from '@/components/ui/blur-container';
-import { Button } from '@/components/ui/button';
-import { Tractor, TractorIcon, Truck, Cog, BarChart, ChevronRight } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
 
 interface EquipmentGridProps {
   equipment: EquipmentItem[];
-  getStatusColor: (status: string) => string;
-  getStatusText: (status: string) => string;
+  getStatusColor: (status: string | undefined) => string;
+  getStatusText: (status: string | undefined) => string;
   handleEquipmentClick: (equipment: EquipmentItem) => void;
 }
 
@@ -18,110 +17,54 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({
   getStatusText,
   handleEquipmentClick
 }) => {
-  const getEquipmentIcon = (type: string) => {
-    switch (type.toLowerCase()) {
-      case 'tractor':
-        return <Tractor className="h-5 w-5" />;
-      case 'harvester':
-        return <TractorIcon className="h-5 w-5" />;
-      case 'truck':
-        return <Truck className="h-5 w-5" />;
-      default:
-        return <Cog className="h-5 w-5" />;
-    }
-  };
-
-  // Function to safely get usage hours
-  const getUsageHours = (item: EquipmentItem) => {
-    return item.usage?.hours !== undefined ? item.usage.hours : 0;
-  };
-
-  // Function to safely get next service type
-  const getNextServiceType = (item: EquipmentItem) => {
-    return item.nextService?.type || 'N/A';
-  };
-
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {equipment.map((item, index) => (
-        <BlurContainer 
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {equipment.map((item) => (
+        <Card 
           key={item.id} 
-          className="overflow-hidden animate-scale-in cursor-pointer"
-          style={{ animationDelay: `${index * 0.1}s` } as React.CSSProperties}
-          raised
+          className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
           onClick={() => handleEquipmentClick(item)}
         >
           <div className="aspect-video relative overflow-hidden">
-            <img 
-              src={item.image} 
+            <img
+              src={item.image || "https://images.unsplash.com/photo-1585911171167-1f66ea3de00c?q=80&w=500&auto=format&fit=crop"}
               alt={item.name}
-              className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+              className="object-cover w-full h-full transition-transform hover:scale-105"
             />
-            <div className="absolute top-2 right-2">
-              <span className={`text-xs font-medium px-2 py-1 rounded-full ${getStatusColor(item.status)}`}>
-                {getStatusText(item.status)}
-              </span>
-            </div>
+            <Badge 
+              className={`absolute top-2 right-2 ${getStatusColor(item.status)}`}
+              variant="secondary"
+            >
+              {getStatusText(item.status)}
+            </Badge>
           </div>
           
-          <div className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center">
-                  {getEquipmentIcon(item.type)}
-                </div>
-                <div>
-                  <h3 className="font-medium">{item.name}</h3>
-                  <p className="text-sm text-muted-foreground">{item.manufacturer} • {item.model}</p>
-                </div>
-              </div>
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-start">
+              <h3 className="font-semibold text-lg">{item.name}</h3>
+              {item.year && (
+                <Badge variant="outline">{item.year}</Badge>
+              )}
             </div>
-            
-            <div className="grid grid-cols-2 gap-2 mt-4 text-sm">
-              <div>
-                <p className="text-muted-foreground">Serial Number</p>
-                <p className="font-medium">{item.serialNumber}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Year</p>
-                <p className="font-medium">{item.year}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Location</p>
-                <p className="font-medium">{item.location}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Usage</p>
-                <p className="font-medium">{getUsageHours(item)} hrs</p>
-              </div>
+          </CardHeader>
+          
+          <CardContent className="pb-2">
+            <div className="text-sm text-muted-foreground">
+              {item.manufacturer && item.model ? (
+                <p>{item.manufacturer} {item.model}</p>
+              ) : (
+                <p>{item.manufacturer || item.model || item.type || 'Équipement'}</p>
+              )}
+              {item.location && (
+                <p className="mt-1">Emplacement: {item.location}</p>
+              )}
             </div>
-            
-            <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">Next:</span> {getNextServiceType(item)}
-              </span>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="h-8 px-2 gap-1" onClick={(e) => {
-                  e.stopPropagation();
-                  handleEquipmentClick(item);
-                }}
-                aria-label="Voir les détails de l'équipement"
-                >
-                  <span>Details</span>
-                  <ChevronRight size={14} />
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="h-8 px-2"
-                  aria-label="Voir les statistiques de l'équipement"
-                >
-                  <BarChart size={14} />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </BlurContainer>
+          </CardContent>
+          
+          <CardFooter className="text-xs text-muted-foreground pt-0">
+            {item.serialNumber && <p>S/N: {item.serialNumber}</p>}
+          </CardFooter>
+        </Card>
       ))}
     </div>
   );

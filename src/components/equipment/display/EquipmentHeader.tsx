@@ -9,24 +9,23 @@ interface EquipmentHeaderProps {
 
 const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({ openAddDialog }) => {
   return (
-    <header className="mb-8 animate-fade-in">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="chip chip-primary mb-2">Equipment Fleet</div>
-          <h1 className="text-3xl font-medium tracking-tight mb-1">Farm Equipment</h1>
-          <p className="text-muted-foreground">
-            Monitor and manage your agricultural machinery
-          </p>
-        </div>
-        
-        <div className="mt-4 sm:mt-0">
-          <Button className="gap-2" onClick={openAddDialog}>
-            <Plus size={16} />
-            <span>Add Equipment</span>
-          </Button>
-        </div>
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 space-y-4 sm:space-y-0">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Équipements</h1>
+        <p className="text-muted-foreground mt-1">
+          Gérez votre flotte d'équipements et matériels agricoles
+        </p>
       </div>
-    </header>
+      
+      <Button 
+        onClick={openAddDialog}
+        size="sm"
+        className="sm:self-start"
+      >
+        <Plus className="mr-2 h-4 w-4" />
+        Ajouter un équipement
+      </Button>
+    </div>
   );
 };
 

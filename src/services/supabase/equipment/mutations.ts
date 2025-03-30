@@ -1,32 +1,33 @@
 
-
 import { supabase } from '@/integrations/supabase/client';
 import { Equipment } from './types';
 import { mapEquipmentToDatabase, mapEquipmentFromDatabase } from './mappers';
-import { ensureNumberId } from '@/utils/typeGuards';
 
 /**
- * Add a new equipment item to the database
+ * Ajoute un nouvel équipement
  */
 export async function addEquipment(equipment: Omit<Equipment, 'id'>): Promise<Equipment> {
   try {
-    console.log('Adding equipment:', equipment);
-    
-    // Get the current user session
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-    
-    if (sessionError) {
-      console.error('Error getting session:', sessionError);
-      throw sessionError;
+    // Vérification des champs requis
+    if (!equipment.name) {
+      throw new Error('Le nom de l\'équipement est requis');
     }
     
-    // Map equipment to database format
+    // Récupérer l'ID de l'utilisateur connecté
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      throw new Error('Utilisateur non authentifié');
+    }
+    
+    // Préparation des données pour la base de données
     const dbEquipment = {
       ...mapEquipmentToDatabase(equipment),
-      owner_id: sessionData.session?.user.id
+      owner_id: sessionData.session.user.id,
+      created_at: new Date(),
+      updated_at: new Date()
     };
     
-    // Insert the equipment
+    // Insertion dans la base de données
     const { data, error } = await supabase
       .from('equipment')
       .insert(dbEquipment)
@@ -34,11 +35,10 @@ export async function addEquipment(equipment: Omit<Equipment, 'id'>): Promise<Eq
       .single();
     
     if (error) {
-      console.error('Error adding equipment:', error.message);
+      console.error('Error adding equipment:', error);
       throw error;
     }
     
-    console.log('Equipment added successfully:', data);
     return mapEquipmentFromDatabase(data);
   } catch (error) {
     console.error('Error in addEquipment:', error);
@@ -47,16 +47,25 @@ export async function addEquipment(equipment: Omit<Equipment, 'id'>): Promise<Eq
 }
 
 /**
- * Update an existing equipment item in the database
+ * Met à jour un équipement existant
  */
 export async function updateEquipment(equipment: Equipment): Promise<Equipment> {
   try {
-    console.log('Updating equipment:', equipment);
+    // Vérification des champs requis
+    if (!equipment.id) {
+      throw new Error('L\'ID de l\'équipement est requis pour la mise à jour');
+    }
+    if (!equipment.name) {
+      throw new Error('Le nom de l\'équipement est requis');
+    }
     
-    // Map equipment to database format
-    const dbEquipment = mapEquipmentToDatabase(equipment);
+    // Préparation des données pour la base de données
+    const dbEquipment = {
+      ...mapEquipmentToDatabase(equipment),
+      updated_at: new Date()
+    };
     
-    // Update the equipment
+    // Mise à jour dans la base de données
     const { data, error } = await supabase
       .from('equipment')
       .update(dbEquipment)
@@ -65,11 +74,10 @@ export async function updateEquipment(equipment: Equipment): Promise<Equipment> 
       .single();
     
     if (error) {
-      console.error('Error updating equipment:', error.message);
+      console.error('Error updating equipment:', error);
       throw error;
     }
     
-    console.log('Equipment updated successfully:', data);
     return mapEquipmentFromDatabase(data);
   } catch (error) {
     console.error('Error in updateEquipment:', error);
@@ -78,28 +86,57 @@ export async function updateEquipment(equipment: Equipment): Promise<Equipment> 
 }
 
 /**
- * Delete an equipment item from the database
+ * Supprime un équipement
  */
-export async function deleteEquipment(id: string | number): Promise<void> {
+export async function deleteEquipment(id: number | string): Promise<void> {
   try {
-    const numericId = ensureNumberId(id);
-    console.log('Deleting equipment with ID:', numericId);
+    const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
     
-    // Delete the equipment
     const { error } = await supabase
       .from('equipment')
       .delete()
       .eq('id', numericId);
     
     if (error) {
-      console.error('Error deleting equipment:', error.message);
+      console.error('Error deleting equipment:', error);
       throw error;
     }
-    
-    console.log('Equipment deleted successfully');
   } catch (error) {
     console.error('Error in deleteEquipment:', error);
     throw error;
   }
 }
 
+/**
+ * Ajoute une tâche de maintenance pour un équipement
+ */
+export async function addMaintenanceTask(equipmentId: number, task: {
+  title: string;
+  description?: string;
+  dueDate?: Date;
+  priority?: string;
+}) {
+  try {
+    const { data, error } = await supabase
+      .from('equipment_maintenance_schedule')
+      .insert({
+        equipment_id: equipmentId,
+        title: task.title,
+        description: task.description,
+        due_date: task.dueDate,
+        priority: task.priority || 'medium'
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error adding maintenance task:', error);
+      throw error;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error in addMaintenanceTask:', error);
+    throw error;
+  }
+}

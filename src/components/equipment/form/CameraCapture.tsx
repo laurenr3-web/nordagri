@@ -1,55 +1,51 @@
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Camera } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Camera, Image } from 'lucide-react';
 
 interface CameraCaptureProps {
   onCapture: (imageDataUrl: string) => void;
 }
 
 const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [streamActive, setStreamActive] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
 
-  // Clean up camera stream when component unmounts or popover closes
-  useEffect(() => {
-    if (!isOpen) {
-      stopCamera();
-    }
-    return () => {
-      stopCamera();
-    };
-  }, [isOpen]);
-
+  // Démarrer la caméra
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
         video: { facingMode: 'environment' } 
       });
+      setStream(mediaStream);
       
       if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        setStreamActive(true);
+        videoRef.current.srcObject = mediaStream;
       }
+      
+      setCapturedImage(null);
+      setIsDialogOpen(true);
     } catch (error) {
-      console.error('Error accessing camera:', error);
-      toast.error('Could not access camera. Please check permissions.');
+      console.error('Erreur lors de l\'accès à la caméra:', error);
+      alert('Impossible d\'accéder à la caméra. Veuillez vérifier les permissions.');
     }
   };
 
+  // Arrêter la caméra
   const stopCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
-      tracks.forEach(track => track.stop());
-      videoRef.current.srcObject = null;
-      setStreamActive(false);
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
     }
+    setCapturedImage(null);
+    setIsDialogOpen(false);
   };
 
+  // Capturer une image
   const captureImage = () => {
     if (videoRef.current && canvasRef.current) {
       const video = videoRef.current;
@@ -57,73 +53,98 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
       const context = canvas.getContext('2d');
       
       if (context) {
-        // Set canvas dimensions to match video
+        // Ajuster la taille du canvas
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         
-        // Draw the video frame to the canvas
+        // Dessiner la vidéo sur le canvas
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         
-        // Convert canvas content to data URL
+        // Convertir en URL de données
         const imageDataUrl = canvas.toDataURL('image/jpeg');
-        onCapture(imageDataUrl);
-        
-        // Close popover and stop camera
-        setIsOpen(false);
-        toast.success('Photo capturée avec succès');
+        setCapturedImage(imageDataUrl);
       }
     }
   };
 
-  return (
-    <Popover open={isOpen} onOpenChange={(open) => {
-      setIsOpen(open);
-      if (open) {
-        // Start camera when popover opens
-        setTimeout(() => startCamera(), 300);
-      }
-    }}>
-      <PopoverTrigger asChild>
-        <Button variant="outline" size="icon" type="button" title="Prendre une photo">
-          <Camera className="h-4 w-4" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-80 p-0">
-        <div className="p-4 space-y-4">
-          <h4 className="font-medium">Prendre une photo</h4>
-          
-          {/* Video preview for camera */}
-          <div className="relative bg-muted rounded-md overflow-hidden">
-            <video 
-              ref={videoRef} 
-              autoPlay 
-              playsInline
-              className="w-full aspect-square object-cover"
-            />
-            {/* Hidden canvas for image capture */}
-            <canvas ref={canvasRef} className="hidden" />
-          </div>
+  // Utiliser l'image capturée
+  const useImage = () => {
+    if (capturedImage) {
+      onCapture(capturedImage);
+      stopCamera();
+    }
+  };
 
-          <div className="flex justify-between">
-            {!streamActive ? (
-              <Button type="button" onClick={startCamera} className="w-full">
-                <Camera className="mr-2 h-4 w-4" />
-                Démarrer la caméra
-              </Button>
+  return (
+    <>
+      <Button
+        type="button"
+        variant="secondary"
+        size="icon"
+        onClick={startCamera}
+        aria-label="Prendre une photo"
+      >
+        <Camera className="h-4 w-4" />
+      </Button>
+
+      <Dialog open={isDialogOpen} onOpenChange={(open) => {
+        if (!open) stopCamera();
+        setIsDialogOpen(open);
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Prendre une photo</DialogTitle>
+          </DialogHeader>
+          
+          <div className="flex flex-col items-center space-y-4">
+            {!capturedImage ? (
+              <div className="relative w-full max-h-[70vh] bg-muted rounded-md overflow-hidden">
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+              </div>
             ) : (
-              <div className="flex space-x-2 w-full">
-                <Button type="button" onClick={captureImage} variant="secondary" className="flex-1">
-                  Prendre une photo
-                </Button>
-                <Button type="button" onClick={() => setIsOpen(false)} variant="outline" className="flex-1">
-                  Annuler
-                </Button>
+              <div className="relative w-full max-h-[70vh] bg-muted rounded-md overflow-hidden">
+                <img
+                  src={capturedImage}
+                  alt="Aperçu"
+                  className="w-full h-full object-cover"
+                />
               </div>
             )}
+            
+            <canvas ref={canvasRef} style={{ display: 'none' }} />
           </div>
-        </div>
-      </PopoverContent>
-    </Popover>
+          
+          <DialogFooter className="flex justify-between">
+            {!capturedImage ? (
+              <>
+                <Button type="button" variant="outline" onClick={stopCamera}>
+                  Annuler
+                </Button>
+                <Button type="button" onClick={captureImage}>
+                  <Camera className="mr-2 h-4 w-4" />
+                  Capturer
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button type="button" variant="outline" onClick={() => setCapturedImage(null)}>
+                  Reprendre
+                </Button>
+                <Button type="button" onClick={useImage}>
+                  <Image className="mr-2 h-4 w-4" />
+                  Utiliser
+                </Button>
+              </>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

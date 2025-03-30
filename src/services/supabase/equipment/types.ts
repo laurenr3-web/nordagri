@@ -1,3 +1,4 @@
+
 export interface Equipment {
   id: number;
   name: string;
@@ -5,17 +6,14 @@ export interface Equipment {
   manufacturer?: string;
   year?: number;
   serialNumber?: string;
-  purchaseDate?: Date;
-  purchasePrice?: number;
-  status?: string;
+  purchaseDate?: Date | string;
   location?: string;
-  lastMaintenance?: Date;
-  nextMaintenance?: Date;
-  notes?: string;
-  image?: string; // Client-side property only, not stored in database
+  status?: 'operational' | 'maintenance' | 'repair' | 'inactive';
   type?: string;
   category?: string;
-  owner_id?: string; // Added owner_id field
+  image?: string;
+  notes?: string;
+  owner_id?: string;
 }
 
 export interface EquipmentFilter {
@@ -27,7 +25,6 @@ export interface EquipmentFilter {
   location?: string[];
   yearMin?: number;
   yearMax?: number;
-  nextMaintenanceBefore?: Date;
 }
 
 export interface EquipmentStats {
@@ -35,14 +32,22 @@ export interface EquipmentStats {
   operational: number;
   maintenance: number;
   repair: number;
+  inactive: number;
+  byCategory: Record<string, number>;
   byType: Record<string, number>;
-  byManufacturer: Record<string, number>;
 }
 
 export interface FilterOptions {
-  manufacturers: string[];
-  types: string[];
-  categories: string[];
-  statuses: string[];
-  locations: string[];
+  status: string[];
+  type: string[];
+  category: string[];
+  manufacturer: string[];
+  location: string[];
+  yearRange: { min: number; max: number };
+}
+
+export interface Category {
+  id: number;
+  name: string;
+  description?: string;
 }

@@ -6,30 +6,26 @@ interface ImageUrlInputProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  id?: string;
-  'aria-describedby'?: string;
-  onBlur?: () => void; // Ajout d'un handler onBlur
+  onBlur?: () => void;
 }
 
-const ImageUrlInput: React.FC<ImageUrlInputProps> = ({ 
-  value, 
-  onChange, 
-  placeholder = "https://example.com/image.jpg",
-  id,
-  'aria-describedby': ariaDescribedby,
+const ImageUrlInput: React.FC<ImageUrlInputProps> = ({
+  value,
+  onChange,
+  placeholder = 'URL de l\'image...',
   onBlur
 }) => {
   return (
-    <Input 
-      type="text" 
-      placeholder={placeholder}
-      value={value || ''} 
-      onChange={(e) => onChange(e.target.value)} 
-      onBlur={onBlur} // Utiliser le handler onBlur
-      className="flex-1"
-      id={id}
-      aria-describedby={ariaDescribedby}
-    />
+    <div className="flex-1">
+      <Input
+        type="text"
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
+        className="w-full"
+      />
+    </div>
   );
 };
 
