@@ -7,9 +7,10 @@ import React from 'react';
 
 export interface StatsCardData {
   title: string;
-  value: number;
+  value: number | string;
   icon: React.ReactNode;
   change: number;
+  description?: string;
 }
 
 export const useStatsData = (user: any) => {
@@ -18,7 +19,7 @@ export const useStatsData = (user: any) => {
 
   useEffect(() => {
     if (user) {
-      fetchStats();
+      fetchStatsData();
     } else {
       setMockData();
     }
@@ -29,103 +30,114 @@ export const useStatsData = (user: any) => {
       {
         title: 'Active Equipment',
         value: 24,
-        icon: React.createElement(Tractor, { className: "text-primary h-5 w-5" }),
-        change: 4
+        icon: <Tractor className="text-primary h-5 w-5" />,
+        change: 4,
+        description: ''
       },
       {
         title: 'Maintenance Tasks',
         value: 12,
-        icon: React.createElement(Wrench, { className: "text-primary h-5 w-5" }),
+        icon: <Wrench className="text-primary h-5 w-5" />,
+        description: '3 high priority',
         change: -2
       },
       {
         title: 'Parts Inventory',
         value: 1204,
-        icon: React.createElement(Package, { className: "text-primary h-5 w-5" }),
+        icon: <Package className="text-primary h-5 w-5" />,
+        description: '8 items low stock',
         change: 12
       },
       {
         title: 'Field Interventions',
         value: 8,
-        icon: React.createElement(ClipboardCheck, { className: "text-primary h-5 w-5" }),
+        icon: <ClipboardCheck className="text-primary h-5 w-5" />,
+        description: 'This week',
         change: 15
       }
     ]);
     setLoading(false);
   };
 
-  const fetchStats = async () => {
+  const fetchStatsData = async () => {
     setLoading(true);
     try {
-      // Count active equipment
-      const { count: equipmentCount, error: equipmentError } = await supabase
+      // Get equipment count
+      const { data: equipmentData, error: equipmentError } = await supabase
         .from('equipment')
-        .select('*', { count: 'exact', head: true })
-        .eq('owner_id', user?.id)
-        .eq('status', 'operational');
+        .select('id')
+        .eq('owner_id', user?.id);
 
-      if (equipmentError) throw equipmentError;
-
-      // Count maintenance tasks
-      const { count: tasksCount, error: tasksError } = await supabase
+      // Get maintenance tasks count
+      const { data: tasksData, error: tasksError } = await supabase
         .from('maintenance_tasks')
-        .select('*', { count: 'exact', head: true })
+        .select('id, priority')
         .eq('owner_id', user?.id);
 
-      if (tasksError) throw tasksError;
-
-      // Count parts inventory
-      const { count: partsCount, error: partsError } = await supabase
+      // Get parts inventory count
+      const { data: partsData, error: partsError } = await supabase
         .from('parts_inventory')
-        .select('*', { count: 'exact', head: true })
+        .select('id, quantity, reorder_threshold')
         .eq('owner_id', user?.id);
 
-      if (partsError) throw partsError;
+      // Get interventions count (for this week)
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      
+      const { data: interventionsData, error: interventionsError } = await supabase
+        .from('field_interventions')
+        .select('id')
+        .eq('owner_id', user?.id)
+        .gte('date', oneWeekAgo.toISOString());
 
-      // Count field interventions
-      const { count: interventionsCount, error: interventionsError } = await supabase
-        .from('interventions')
-        .select('*', { count: 'exact', head: true })
-        .eq('owner_id', user?.id);
+      // Prepare stats data
+      const equipmentCount = equipmentData?.length || 0;
+      const tasksCount = tasksData?.length || 0;
+      const highPriorityTasks = tasksData?.filter(task => task.priority === 'high').length || 0;
+      const partsCount = partsData?.reduce((sum, part) => sum + (part.quantity || 0), 0) || 0;
+      const lowStockItems = partsData?.filter(part => part.quantity < (part.reorder_threshold || 5)).length || 0;
+      const interventionsCount = interventionsData?.length || 0;
 
-      if (interventionsError) throw interventionsError;
-
-      // Create stats data
       const newStatsData: StatsCardData[] = [
         {
           title: 'Active Equipment',
-          value: equipmentCount || 0,
-          icon: React.createElement(Tractor, { className: "text-primary h-5 w-5" }),
-          change: 0 // We don't have change data yet
+          value: equipmentCount,
+          icon: <Tractor className="text-primary h-5 w-5" />,
+          change: 0,
+          description: ''
         },
         {
           title: 'Maintenance Tasks',
-          value: tasksCount || 0,
-          icon: React.createElement(Wrench, { className: "text-primary h-5 w-5" }),
+          value: tasksCount,
+          icon: <Wrench className="text-primary h-5 w-5" />,
+          description: highPriorityTasks > 0 ? `${highPriorityTasks} high priority` : '',
           change: 0
         },
         {
           title: 'Parts Inventory',
-          value: partsCount || 0,
-          icon: React.createElement(Package, { className: "text-primary h-5 w-5" }),
+          value: partsCount,
+          icon: <Package className="text-primary h-5 w-5" />,
+          description: lowStockItems > 0 ? `${lowStockItems} items low stock` : '',
           change: 0
         },
         {
           title: 'Field Interventions',
-          value: interventionsCount || 0,
-          icon: React.createElement(ClipboardCheck, { className: "text-primary h-5 w-5" }),
+          value: interventionsCount,
+          icon: <ClipboardCheck className="text-primary h-5 w-5" />,
+          description: 'This week',
           change: 0
         }
       ];
-      
+
       setStatsData(newStatsData);
     } catch (error) {
-      console.error("Error fetching stats:", error);
+      console.error("Error fetching stats data:", error);
       toast({
         title: "Error",
-        description: "Failed to fetch stats data. Please try again.",
+        description: "Failed to fetch dashboard statistics. Using default values.",
         variant: "destructive",
       });
+      setMockData();
     } finally {
       setLoading(false);
     }
@@ -133,7 +145,6 @@ export const useStatsData = (user: any) => {
 
   return {
     loading,
-    statsData,
-    fetchStats
+    statsData
   };
 };

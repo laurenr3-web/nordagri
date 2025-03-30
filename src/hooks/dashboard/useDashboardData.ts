@@ -4,14 +4,21 @@ import { useAuthContext } from '@/providers/AuthProvider';
 import { toast } from "@/hooks/use-toast";
 
 // Import specialized hooks
-import { useStatsData, StatsCardData } from './useStatsData';
-import { useEquipmentData, EquipmentItem } from './useEquipmentData';
-import { useMaintenanceData, MaintenanceEvent } from './useMaintenanceData';
-import { useAlertsData, AlertItem } from './useAlertsData';
-import { useTasksData, UpcomingTask } from './useTasksData';
+import { useStatsData } from './useStatsData';
+import { useEquipmentData } from './useEquipmentData';
+import { useMaintenanceData } from './useMaintenanceData';
+import { useAlertsData } from './useAlertsData';
+import { useTasksData } from './useTasksData';
 
-// Re-export interfaces for consumers
-export { StatsCardData, EquipmentItem, MaintenanceEvent, AlertItem, UpcomingTask };
+// Import types from specialized hooks
+import type { StatsCardData } from './useStatsData';
+import type { EquipmentItem } from './useEquipmentData';
+import type { MaintenanceEvent } from './useMaintenanceData';
+import type { AlertItem } from './useAlertsData';
+import type { UpcomingTask } from './useTasksData';
+
+// Re-export types for consumers
+export type { StatsCardData, EquipmentItem, MaintenanceEvent, AlertItem, UpcomingTask };
 
 export const useDashboardData = () => {
   const [loading, setLoading] = useState(true);
