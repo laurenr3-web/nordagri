@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import Navbar from '@/components/layout/Navbar';
 import EquipmentContentSection from './EquipmentContentSection';
 import { useNavigate } from 'react-router-dom';
 import { useEquipmentFilters, EquipmentItem } from '../hooks/useEquipmentFilters';
@@ -23,18 +22,14 @@ const EquipmentPageContent: React.FC<EquipmentPageContentProps> = ({
   };
   
   return (
-    <div className="min-h-screen bg-background pt-6 pb-16 pl-4 pr-4 sm:pl-8 sm:pr-8 md:pl-12 md:pr-12 ml-0 md:ml-64">
-      <div className="max-w-7xl mx-auto">
-        <Navbar />
-        
-        <EquipmentContentSection
-          equipment={equipment}
-          isLoading={isLoading}
-          filterState={filterState}
-          viewState={{ currentView, setCurrentView }}
-          handleEquipmentClick={handleEquipmentClick}
-        />
-      </div>
+    <div className="flex-1 p-6">
+      <EquipmentContentSection
+        equipment={equipment}
+        isLoading={isLoading}
+        filterState={filterState}
+        viewState={{ currentView, setCurrentView }}
+        handleEquipmentClick={handleEquipmentClick}
+      />
     </div>
   );
 };

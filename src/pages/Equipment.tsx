@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import MainLayout from '@/ui/layouts/MainLayout';
 import EquipmentPageContent from '@/components/equipment/page/EquipmentPageContent';
 import EquipmentDialogs from '@/components/equipment/dialogs/EquipmentDialogs';
 import { useEquipmentData } from '@/hooks/equipment/useEquipmentData';
@@ -65,13 +65,13 @@ const EquipmentPage = () => {
   }, [equipment]);
   
   return (
-    <SidebarProvider>
+    <MainLayout>
       <EquipmentPageContent 
         equipment={transformedEquipment}
         isLoading={isLoading}
       />
       <EquipmentDialogs />
-    </SidebarProvider>
+    </MainLayout>
   );
 };
 

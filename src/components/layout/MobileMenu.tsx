@@ -17,7 +17,7 @@ const MobileMenu = () => {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="fixed top-4 right-4 z-50">
+        <Button variant="ghost" size="icon" className="fixed bottom-4 right-4 z-50 md:hidden">
           <Menu className="h-6 w-6" />
         </Button>
       </SheetTrigger>
@@ -33,6 +33,7 @@ const MobileMenu = () => {
                 navigate(item.href);
               }}
             >
+              <item.icon className="mr-2 h-4 w-4" />
               {item.title}
             </Button>
           ))}

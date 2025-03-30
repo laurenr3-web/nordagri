@@ -30,7 +30,6 @@ function App() {
         <RealtimeCacheProvider>
           <Router>
             <AuthProvider>
-              <MobileMenu />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
@@ -71,9 +70,10 @@ function App() {
                 } />
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              <MobileMenu />
+              <Toaster />
             </AuthProvider>
           </Router>
-          <Toaster />
         </RealtimeCacheProvider>
       </QueryClientProvider>
     </ThemeProvider>
