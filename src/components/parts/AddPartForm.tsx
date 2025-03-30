@@ -63,6 +63,7 @@ export function AddPartForm({ onSuccess, onCancel }: AddPartFormProps) {
       // Use the mutation hook to save the part
       createPartMutation.mutate(partData, {
         onSuccess: () => {
+          toast.success(`Pièce "${data.name}" ajoutée avec succès`);
           if (onSuccess) {
             onSuccess(data);
           }

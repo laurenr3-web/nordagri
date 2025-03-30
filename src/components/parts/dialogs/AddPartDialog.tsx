@@ -2,6 +2,7 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { AddPartForm } from '@/components/parts/AddPartForm';
+import { PartFormValues } from '@/components/parts/form/partFormTypes';
 
 interface AddPartDialogProps {
   isOpen: boolean;
@@ -14,6 +15,16 @@ const AddPartDialog: React.FC<AddPartDialogProps> = ({
   onOpenChange,
   onSuccess
 }) => {
+  const handleSuccess = (data: PartFormValues) => {
+    // First call the parent's onSuccess handler if provided
+    if (onSuccess) {
+      onSuccess(data);
+    }
+    
+    // Then close the dialog
+    onOpenChange(false);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -24,7 +35,7 @@ const AddPartDialog: React.FC<AddPartDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         <AddPartForm 
-          onSuccess={onSuccess}
+          onSuccess={handleSuccess}
           onCancel={() => onOpenChange(false)}
         />
       </DialogContent>

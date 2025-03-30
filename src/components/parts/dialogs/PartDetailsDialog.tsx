@@ -23,7 +23,7 @@ const PartDetailsDialog: React.FC<PartDetailsDialogProps> = ({
   const handleDelete = (partId: number | string) => {
     if (onDelete) {
       onDelete(partId);
-      // Close the dialog after deletion
+      // Explicitly close the dialog after deletion
       onOpenChange(false);
     }
   };
