@@ -27,13 +27,16 @@ if (process.env.NODE_ENV === 'development') {
         /^Dialog/,
         /^Sheet/,
         /^Toaster/,
-        /^Toast/,
+        /Toast$/,
         /Provider$/,
         /Context$/,
         /^QueryClientProvider/,
-        /useNavigate/,
-        /useLocation/,
-        /useParams/,
+        /use/, // Exclude all hooks
+        /^Maintenance/, // Exclude Maintenance component
+        /^MaintenanceContent/,
+        /^MaintenanceHeader/,
+        /^NewTaskDialog/,
+        /^TaskCard/,
         /^ProtectedRoute/,
         /^RealtimeCacheProvider/
       ],

@@ -6,9 +6,12 @@ import { maintenanceTasks } from '@/data/maintenanceData';
 import NewTaskDialog from '@/components/maintenance/NewTaskDialog';
 import MaintenanceHeader from '@/components/maintenance/MaintenanceHeader';
 import MaintenanceContent from '@/components/maintenance/MaintenanceContent';
-import { Sidebar } from '@/components/ui/sidebar';
-import { SidebarProvider } from '@/components/ui/sidebar';
 import ErrorBoundary from '@/components/ErrorBoundary';
+
+// Importations explicites des composants Sidebar 
+// au lieu d'utiliser des importations groupées
+import { SidebarProvider } from '@/components/ui/sidebar/sidebar-context';
+import { Sidebar } from '@/components/ui/sidebar/sidebar';
 
 const Maintenance = () => {
   // Always initialize all hooks first, before any conditional logic
@@ -43,7 +46,7 @@ const Maintenance = () => {
 
   return (
     <ErrorBoundary>
-      <SidebarProvider>
+      <SidebarProvider defaultOpen={true}>
         <div className="flex min-h-screen w-full bg-background">
           <Sidebar className="border-r">
             <Navbar />
