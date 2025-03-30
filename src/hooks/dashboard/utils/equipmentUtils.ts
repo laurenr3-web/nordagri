@@ -1,5 +1,5 @@
 
-import { EquipmentItem, RawEquipmentData, MaintenanceTask } from '../types/equipmentTypes';
+import { EquipmentItem, RawEquipmentData } from '../types/equipmentTypes';
 import { validateEquipmentStatus } from '@/utils/typeGuards';
 
 /**

@@ -25,16 +25,21 @@ export function useCreatePart() {
         description: `${data.name} a été ajoutée à l'inventaire.`,
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       // Analyse détaillée des erreurs
       let errorMessage = "Impossible d'ajouter la pièce";
       
-      if (error.code === '23505') {
+      const errorObj = error as Error & { 
+        code?: string; 
+        message: string 
+      };
+      
+      if (errorObj.code === '23505') {
         errorMessage = "Cette référence de pièce existe déjà.";
-      } else if (error.code === '23502') {
+      } else if (errorObj.code === '23502') {
         errorMessage = "Des champs obligatoires sont manquants.";
-      } else if (error.message) {
-        errorMessage = error.message;
+      } else if (errorObj.message) {
+        errorMessage = errorObj.message;
       }
       
       console.error("❌ Erreur lors de l'ajout de pièce:", errorMessage, error);

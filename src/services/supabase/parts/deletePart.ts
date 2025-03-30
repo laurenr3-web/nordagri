@@ -25,11 +25,15 @@ export async function deletePart(partId: string | number): Promise<boolean> {
     const numericId = normalizePartId(partId);
     
     // Vérifier si l'utilisateur est propriétaire de la pièce
-    const { data: part } = await supabase
+    const { data: part, error: partError } = await supabase
       .from('parts_inventory')
       .select('owner_id')
       .eq('id', numericId)
       .single();
+    
+    if (partError) {
+      throw new Error(`Erreur lors de la vérification de la pièce: ${partError.message}`);
+    }
       
     // Si la pièce n'a pas de propriétaire ou si l'utilisateur est le propriétaire
     if (part && (part.owner_id === userId || part.owner_id === null)) {
@@ -57,8 +61,12 @@ export async function deletePart(partId: string | number): Promise<boolean> {
     } else {
       throw new Error("Vous n'êtes pas autorisé à supprimer cette pièce");
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("❌ Exception lors de la suppression:", error);
-    throw error;
+    if (error instanceof Error) {
+      throw error;
+    } else {
+      throw new Error("Une erreur inconnue est survenue lors de la suppression");
+    }
   }
 }
