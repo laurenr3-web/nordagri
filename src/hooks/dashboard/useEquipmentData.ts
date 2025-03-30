@@ -35,8 +35,23 @@ export const useEquipmentData = (user: any) => {
   const fetchEquipment = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Recherche de la table correcte (equipment ou equipments)
+      let tableToUse = 'equipment';
+      
+      // Test pour voir si la table 'equipment' existe
+      const { error: testError } = await supabase
         .from('equipment')
+        .select('id')
+        .limit(1);
+        
+      // Si erreur, essayer avec 'equipments'
+      if (testError) {
+        tableToUse = 'equipments';
+      }
+      
+      // Get equipment data
+      const { data, error } = await supabase
+        .from(tableToUse)
         .select('id, name, type, status')
         .eq('owner_id', user?.id)
         .limit(6);
@@ -46,13 +61,36 @@ export const useEquipmentData = (user: any) => {
       }
 
       if (data) {
+        // Get maintenance tasks for each equipment
+        const { data: maintenanceData, error: maintenanceError } = await supabase
+          .from('maintenance_tasks')
+          .select('equipment_id, title, due_date')
+          .in('equipment_id', data.map(eq => eq.id.toString()))
+          .eq('status', 'scheduled')
+          .order('due_date', { ascending: true });
+
+        if (maintenanceError) {
+          console.error("Error fetching maintenance data:", maintenanceError);
+        }
+
+        // Create a map of equipment IDs to their next maintenance task
+        const maintenanceMap = new Map();
+        if (maintenanceData) {
+          maintenanceData.forEach(task => {
+            // Only add to map if this is the first (earliest) task for this equipment
+            if (!maintenanceMap.has(task.equipment_id)) {
+              maintenanceMap.set(task.equipment_id, formatDueDate(new Date(task.due_date)));
+            }
+          });
+        }
+
         // Transform the data to match the EquipmentItem type
         const mappedEquipment: EquipmentItem[] = data.map(item => ({
           id: item.id,
           name: item.name,
           type: item.type || 'Unknown',
           status: item.status || 'operational',
-          nextMaintenance: null // We'll calculate this separately
+          nextMaintenance: maintenanceMap.get(item.id.toString()) || null
         }));
         setEquipmentData(mappedEquipment);
       }
@@ -65,6 +103,27 @@ export const useEquipmentData = (user: any) => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Format due date to a user-friendly string
+  const formatDueDate = (dueDate: Date) => {
+    const now = new Date();
+    const diffTime = dueDate.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+      return 'Overdue';
+    } else if (diffDays === 0) {
+      return 'Today';
+    } else if (diffDays === 1) {
+      return 'Tomorrow';
+    } else if (diffDays <= 7) {
+      return `In ${diffDays} days`;
+    } else if (diffDays <= 30) {
+      return `In ${Math.ceil(diffDays / 7)} weeks`;
+    } else {
+      return `In ${Math.ceil(diffDays / 30)} months`;
     }
   };
 
