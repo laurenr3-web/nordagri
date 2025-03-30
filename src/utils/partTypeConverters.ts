@@ -33,8 +33,14 @@ export const convertToLocalPart = (part: unknown): LocalPart => {
   // S'assurer que part est bien un objet
   const typedPart = assertIsObject(part);
   
+  // Pour l'ID, on doit spécifiquement vérifier si c'est un string ou un number
+  const id = typedPart.id;
+  const safeId: string | number = typeof id === 'string' ? id : 
+                                 typeof id === 'number' ? id : 
+                                 0; // Valeur par défaut si ni string ni number
+  
   return {
-    id: typedPart.id ?? 0,
+    id: safeId,
     name: assertIsString(typedPart.name ?? ''),
     reference: typedPart.reference as string | undefined ?? '',
     partNumber: assertIsString(typedPart.partNumber ?? ''),
