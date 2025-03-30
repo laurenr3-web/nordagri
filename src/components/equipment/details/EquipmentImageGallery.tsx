@@ -28,20 +28,17 @@ const EquipmentImageGallery: React.FC<EquipmentImageGalleryProps> = ({ equipment
     const equipmentImages = [];
     
     // Ajouter l'image principale de l'équipement si elle existe
-    if (equipment.image) {
+    if (equipment.image && equipment.image !== 'nul') {
       equipmentImages.push(equipment.image);
     }
     
     // Ajouter une image par défaut si aucune image n'est disponible
-    // ou une deuxième image de démonstration
     if (equipmentImages.length === 0) {
       equipmentImages.push("https://images.unsplash.com/photo-1585911171167-1f66ea3de00c?q=80&w=500&auto=format&fit=crop");
-    } else {
-      // Ajouter l'image uploadée comme seconde image pour démonstration
-      equipmentImages.push("/lovable-uploads/ec804880-63d5-4999-8bd9-4b853ec3360d.png");
     }
     
     setImages(equipmentImages);
+    setCurrentIndex(0); // Reset to first image when equipment changes
   }, [equipment]);
   
   const navigateImage = (direction: 'prev' | 'next') => {

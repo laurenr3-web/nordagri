@@ -13,6 +13,7 @@ const CameraSection: React.FC<CameraSectionProps> = ({ onCapture }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [streamActive, setStreamActive] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   // Clean up camera stream when component unmounts
   useEffect(() => {
@@ -23,17 +24,29 @@ const CameraSection: React.FC<CameraSectionProps> = ({ onCapture }) => {
 
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
-      });
+      setIsOpen(true);
       
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        setStreamActive(true);
-      }
+      // Short delay to ensure the popover is open before requesting camera
+      setTimeout(async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'environment' } 
+          });
+          
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            videoRef.current.play().catch(err => console.error("Error playing video:", err));
+            setStreamActive(true);
+          }
+        } catch (error) {
+          console.error('Error accessing camera:', error);
+          toast.error('Could not access camera. Please check permissions.');
+          setIsOpen(false);
+        }
+      }, 300);
     } catch (error) {
-      console.error('Error accessing camera:', error);
-      toast.error('Could not access camera. Please check permissions.');
+      console.error('Error initializing camera:', error);
+      toast.error('Error initializing camera');
     }
   };
 
@@ -42,8 +55,9 @@ const CameraSection: React.FC<CameraSectionProps> = ({ onCapture }) => {
       const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
       tracks.forEach(track => track.stop());
       videoRef.current.srcObject = null;
-      setStreamActive(false);
     }
+    setStreamActive(false);
+    setIsOpen(false);
   };
 
   const captureImage = () => {
@@ -70,10 +84,17 @@ const CameraSection: React.FC<CameraSectionProps> = ({ onCapture }) => {
     }
   };
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      stopCamera();
+    }
+    setIsOpen(open);
+  };
+
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="icon" type="button">
+        <Button variant="outline" size="icon" type="button" onClick={startCamera}>
           <Camera className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
@@ -95,10 +116,10 @@ const CameraSection: React.FC<CameraSectionProps> = ({ onCapture }) => {
 
           <div className="flex justify-between">
             {!streamActive ? (
-              <Button type="button" onClick={startCamera} className="w-full">
-                <Camera className="mr-2 h-4 w-4" />
-                Start Camera
-              </Button>
+              <div className="w-full text-center py-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-2 text-sm text-muted-foreground">Accessing camera...</p>
+              </div>
             ) : (
               <div className="flex space-x-2 w-full">
                 <Button type="button" onClick={captureImage} variant="secondary" className="flex-1">

@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Camera, Image } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface CameraCaptureProps {
   onCapture: (imageDataUrl: string) => void;
@@ -18,20 +19,30 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
   // Démarrer la caméra
   const startCamera = async () => {
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
-      });
-      setStream(mediaStream);
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
-      
       setCapturedImage(null);
       setIsDialogOpen(true);
+      
+      // Delay requesting camera until dialog is visible
+      setTimeout(async () => {
+        try {
+          const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'environment' } 
+          });
+          
+          setStream(mediaStream);
+          
+          if (videoRef.current) {
+            videoRef.current.srcObject = mediaStream;
+          }
+        } catch (error) {
+          console.error('Erreur lors de l\'accès à la caméra:', error);
+          toast.error('Impossible d\'accéder à la caméra. Veuillez vérifier les permissions.');
+          setIsDialogOpen(false);
+        }
+      }, 500);
     } catch (error) {
-      console.error('Erreur lors de l\'accès à la caméra:', error);
-      alert('Impossible d\'accéder à la caméra. Veuillez vérifier les permissions.');
+      console.error('Erreur lors de l\'initialisation de la caméra:', error);
+      toast.error('Erreur lors de l\'initialisation de la caméra');
     }
   };
 
@@ -125,7 +136,7 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
                 <Button type="button" variant="outline" onClick={stopCamera}>
                   Annuler
                 </Button>
-                <Button type="button" onClick={captureImage}>
+                <Button type="button" onClick={captureImage} disabled={!stream}>
                   <Camera className="mr-2 h-4 w-4" />
                   Capturer
                 </Button>
