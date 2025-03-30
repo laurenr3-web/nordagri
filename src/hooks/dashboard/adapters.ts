@@ -4,15 +4,38 @@ import {
 import { 
   EquipmentItem 
 } from './useEquipmentData';
-import { 
-  MaintenanceEvent 
-} from './useMaintenanceData';
-import { 
-  AlertItem 
-} from './useAlertsData';
-import { 
-  UpcomingTask 
-} from './useTasksData';
+
+// Define the correct interfaces with all required properties
+export interface MaintenanceEvent {
+  id: number | string;
+  title: string;
+  date: Date;
+  duration?: number;
+  priority?: 'low' | 'medium' | 'high';
+  equipment: string;
+  status?: string;
+}
+
+export interface AlertItem {
+  id: number;
+  type: 'error' | 'warning' | 'info';
+  message: string;
+  date: Date;
+  severity?: 'low' | 'medium' | 'high';
+  time?: string;
+  equipment?: string;
+  action?: string;
+}
+
+export interface UpcomingTask {
+  id: number;
+  title: string;
+  equipment: string;
+  date: Date;
+  priority: string;
+  due?: string;
+  assignee?: string;
+}
 
 // Adapter functions to transform data for UI components
 export const adaptStatsData = (statsData: StatsCardData[]) => {

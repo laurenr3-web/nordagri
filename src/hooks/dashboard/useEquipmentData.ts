@@ -23,7 +23,7 @@ export interface EquipmentItem {
 // Define a type for raw equipment data from database
 interface RawEquipmentData {
   id: number;
-  name: string;
+  name?: string;
   type?: string;
   status?: string;
   image?: string;
@@ -131,14 +131,14 @@ export const useEquipmentData = (user: any) => {
 
         // Use equipment data if available
         if (equipmentData && equipmentData.length > 0) {
-          await processEquipmentData(equipmentData as RawEquipmentData[]);
+          await processEquipmentData(equipmentData as unknown as RawEquipmentData[]);
         } else {
           setEquipmentData([]);
         }
       } else {
         // Use equipments data if available
         if (equipmentsData && equipmentsData.length > 0) {
-          await processEquipmentData(equipmentsData as RawEquipmentData[]);
+          await processEquipmentData(equipmentsData as unknown as RawEquipmentData[]);
         } else {
           setEquipmentData([]);
         }
@@ -175,7 +175,7 @@ export const useEquipmentData = (user: any) => {
       const simpleDueMap = new Map<string, string>();
       
       if (maintenanceData && !maintenanceError) {
-        (maintenanceData as any[]).forEach(task => {
+        (maintenanceData as unknown as MaintenanceTask[]).forEach(task => {
           if (!maintenanceMap.has(task.equipment_id)) {
             const formattedDue = formatDueDate(new Date(task.due_date));
             maintenanceMap.set(task.equipment_id, {
