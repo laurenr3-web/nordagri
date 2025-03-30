@@ -8,11 +8,13 @@ export function useDeletePart() {
   const { toast } = useToast();
 
   const mutation = useMutation({
-    mutationFn: (partId: number | string) => {
-      return deletePart(partId);
+    mutationFn: async (partId: number | string) => {
+      console.log('Deleting part ID:', partId);
+      return await deletePart(partId);
     },
     onSuccess: (_data, variables) => {
       // Invalidate and refetch parts query
+      console.log('Successfully deleted part ID:', variables);
       queryClient.invalidateQueries({ queryKey: ['parts'] });
       
       toast({
@@ -21,6 +23,7 @@ export function useDeletePart() {
       });
     },
     onError: (error: any) => {
+      console.error('Error in deletePart mutation:', error);
       toast({
         title: "Erreur",
         description: error.message || "Une erreur est survenue lors de la suppression de la pièce",

@@ -14,6 +14,7 @@ import {
 import { Part } from '@/types/Part';
 import { useToast } from '@/hooks/use-toast';
 import { useDeletePart } from '@/hooks/parts';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 interface EquipmentPartsTableProps {
   parts: Part[];
@@ -28,21 +29,24 @@ const EquipmentPartsTable: React.FC<EquipmentPartsTableProps> = ({
 }) => {
   const { toast } = useToast();
   const deletePartMutation = useDeletePart();
+  const [deletingPart, setDeletingPart] = React.useState<{id: number | string, name: string} | null>(null);
 
-  const handleDeletePart = async (partId: number | string, partName: string) => {
-    if (!onDeletePart && !confirm(`Êtes-vous sûr de vouloir supprimer la pièce "${partName}"?`)) {
-      return;
-    }
+  const openDeleteDialog = (partId: number | string, partName: string) => {
+    setDeletingPart({ id: partId, name: partName });
+  };
 
+  const handleDeletePart = async () => {
+    if (!deletingPart) return;
+    
     try {
       if (onDeletePart) {
-        onDeletePart(partId);
-      } else {
-        await deletePartMutation.mutateAsync(partId);
+        await onDeletePart(deletingPart.id);
         toast({
           title: "Pièce supprimée",
-          description: `La pièce "${partName}" a été supprimée avec succès`,
+          description: `La pièce "${deletingPart.name}" a été supprimée avec succès`,
         });
+      } else {
+        await deletePartMutation.mutateAsync(deletingPart.id);
       }
     } catch (error) {
       console.error("Erreur lors de la suppression:", error);
@@ -51,7 +55,13 @@ const EquipmentPartsTable: React.FC<EquipmentPartsTableProps> = ({
         description: error instanceof Error ? error.message : "Erreur lors de la suppression de la pièce",
         variant: "destructive",
       });
+    } finally {
+      setDeletingPart(null);
     }
+  };
+
+  const cancelDelete = () => {
+    setDeletingPart(null);
   };
 
   if (parts.length === 0) {
@@ -122,7 +132,7 @@ const EquipmentPartsTable: React.FC<EquipmentPartsTableProps> = ({
                   <Button 
                     variant="ghost" 
                     size="icon"
-                    onClick={() => handleDeletePart(part.id, part.name)}
+                    onClick={() => openDeleteDialog(part.id, part.name)}
                     title="Supprimer la pièce"
                   >
                     <Trash2 className="h-4 w-4 text-red-500" />
@@ -133,6 +143,27 @@ const EquipmentPartsTable: React.FC<EquipmentPartsTableProps> = ({
           ))}
         </TableBody>
       </Table>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deletingPart} onOpenChange={(open) => !open && setDeletingPart(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Êtes-vous sûr?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action ne peut pas être annulée. {deletingPart?.name} sera supprimé définitivement.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelDelete}>Annuler</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeletePart}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

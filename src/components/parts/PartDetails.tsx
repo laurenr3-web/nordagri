@@ -15,6 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useNavigate } from 'react-router-dom';
 
 import PartImage from './details/PartImage';
 import PartActions from './details/PartActions';
@@ -37,28 +38,30 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const deleteMutation = useDeletePart();
+  const navigate = useNavigate();
 
-  const handleDelete = (e: React.MouseEvent) => {
+  const handleDelete = async (e: React.MouseEvent) => {
     // Prevent event from bubbling up which might cause redirection
     e.stopPropagation();
+    e.preventDefault();
     
-    if (onDelete) {
-      onDelete(part.id);
-    } else {
-      // Use mutation for deletion if no handler is provided
-      deleteMutation.mutate(part.id, {
-        onSuccess: () => {
-          // Close dialogs after successful deletion
-          if (onDialogClose) {
-            onDialogClose();
-          }
-          
-          // Navigate back if available
-          if (onBack) {
-            onBack();
-          }
-        }
-      });
+    try {
+      if (onDelete) {
+        await onDelete(part.id);
+      } else {
+        // Use mutation for deletion if no handler is provided
+        await deleteMutation.mutateAsync(part.id);
+      }
+      
+      // Close dialogs after successful deletion
+      if (onDialogClose) {
+        onDialogClose();
+      }
+      
+      // Always navigate to parts page after deletion
+      navigate('/parts');
+    } catch (error) {
+      console.error('Error deleting part:', error);
     }
     
     setIsDeleteDialogOpen(false);

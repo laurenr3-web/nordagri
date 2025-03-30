@@ -3,6 +3,7 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Part } from '@/types/Part';
 import PartDetails from '@/components/parts/PartDetails';
+import { useNavigate } from 'react-router-dom';
 
 interface PartDetailsDialogProps {
   isOpen: boolean;
@@ -19,12 +20,22 @@ const PartDetailsDialog: React.FC<PartDetailsDialogProps> = ({
   onEdit,
   onDelete
 }) => {
+  const navigate = useNavigate();
+
   // Function to handle part deletion
-  const handleDelete = (partId: number | string) => {
-    if (onDelete) {
-      onDelete(partId);
-      // Explicitly close the dialog after deletion
+  const handleDelete = async (partId: number | string) => {
+    try {
+      if (onDelete) {
+        await onDelete(partId);
+      }
+      
+      // Close the dialog after deletion
       onOpenChange(false);
+      
+      // Navigate to parts page
+      navigate('/parts');
+    } catch (error) {
+      console.error('Error in PartDetailsDialog handleDelete:', error);
     }
   };
 
