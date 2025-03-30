@@ -18,7 +18,7 @@ export interface SafeDialogProps {
   [key: string]: any; // For additional props
 }
 
-export const SafeDialog: React.FC<SafeDialogProps> = ({ 
+const SafeDialog: React.FC<SafeDialogProps> = ({ 
   children, 
   open, 
   onOpenChange,
@@ -66,3 +66,6 @@ export const SafeDialogClose = DialogClose;
 
 // Export types
 export type { SafeDialogProps };
+
+// Default export
+export default SafeDialog;
