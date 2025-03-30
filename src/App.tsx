@@ -19,6 +19,7 @@ import Dashboard from '@/pages/Dashboard';
 import Settings from '@/pages/Settings';
 import NotFound from '@/pages/NotFound';
 import Auth from '@/pages/Auth';
+import ScanRedirect from '@/pages/ScanRedirect';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -68,6 +69,8 @@ function App() {
                     <Settings />
                   </ProtectedRoute>
                 } />
+                {/* Nouvelle route pour le scan de QR code */}
+                <Route path="/scan/:id" element={<ScanRedirect />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <MobileMenu />

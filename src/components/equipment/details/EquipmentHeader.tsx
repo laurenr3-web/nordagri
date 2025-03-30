@@ -15,6 +15,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import QRCodeGenerator from '../qr/QRCodeGenerator';
 
 interface EquipmentHeaderProps {
   equipment: any;
@@ -43,6 +44,8 @@ const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({ equipment, onEditClic
       </div>
       
       <div className="flex gap-2 self-start">
+        <QRCodeGenerator equipmentId={equipment.id} equipmentName={equipment.name} />
+        
         <Button variant="outline" size="sm" onClick={onEditClick}>
           <Edit className="mr-2 h-4 w-4" />
           Modifier
