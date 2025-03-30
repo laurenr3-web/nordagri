@@ -10,6 +10,7 @@ import {
   DialogDescription,
   DialogClose
 } from '@/components/ui/dialog';
+import { cleanupOrphanedPortals } from '@/utils/dom-helpers';
 
 export interface SafeDialogProps {
   children: React.ReactNode;
@@ -34,16 +35,7 @@ const SafeDialog: React.FC<SafeDialogProps> = ({
       
       // Cleanup orphaned portal elements on unmount
       setTimeout(() => {
-        const portals = document.querySelectorAll('[data-radix-portal]');
-        portals.forEach(portal => {
-          if (portal.children.length === 0 && portal.parentNode) {
-            try {
-              portal.parentNode.removeChild(portal);
-            } catch (e) {
-              console.warn('Portal cleanup error:', e);
-            }
-          }
-        });
+        cleanupOrphanedPortals();
       }, 100); // Small delay to ensure React has finished with portals
     };
   }, []);
