@@ -52,6 +52,9 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
       if (onDialogClose) {
         onDialogClose();
       }
+      
+      // Navigate to parts page after successful deletion
+      navigate('/parts');
     } catch (error) {
       console.error('Error deleting part:', error);
     } finally {

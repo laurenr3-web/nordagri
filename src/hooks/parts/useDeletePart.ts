@@ -2,12 +2,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deletePart } from '@/services/supabase/parts';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
 
 export function useDeletePart() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   const mutation = useMutation({
     mutationFn: async (partId: number | string) => {
@@ -25,8 +23,8 @@ export function useDeletePart() {
         description: `La pièce a été supprimée avec succès.`,
       });
       
-      // Rediriger vers la page des pièces après suppression
-      navigate('/parts');
+      // We're removing the navigation from here to avoid issues
+      // Navigation will be handled by the components that use this hook
     },
     onError: (error: any) => {
       console.error('Error in deletePart mutation:', error);

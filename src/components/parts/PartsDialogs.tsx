@@ -1,10 +1,8 @@
-
 import React from 'react';
 import { LocalPart, convertToLocalPart } from '@/utils/partTypeConverters';
 import PartManagementDialogs from '@/components/parts/dialogs/PartManagementDialogs';
 import FilterSortDialogs from '@/components/parts/dialogs/FilterSortDialogs';
 import OrderManagementDialog from '@/components/parts/dialogs/OrderManagementDialog';
-import PartPriceComparison from '@/components/parts/PartPriceComparison';
 
 interface PartsDialogsProps {
   // Part and selection
@@ -115,15 +113,6 @@ const PartsDialogs: React.FC<PartsDialogsProps> = (props) => {
         isOrderSuccess={props.isOrderSuccess}
         handleOrderSubmit={props.handleOrderSubmit}
       />
-
-      {/* Price Comparison Component */}
-      {props.selectedPart && (
-        <PartPriceComparison
-          partReference={props.selectedPart.partNumber || props.selectedPart.reference || ''}
-          partName={props.selectedPart.name}
-          partManufacturer={props.selectedPart.manufacturer}
-        />
-      )}
     </>
   );
 };
