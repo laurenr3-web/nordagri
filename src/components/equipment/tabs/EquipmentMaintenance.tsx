@@ -1,12 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Calendar, Clock, Plus, Wrench, AlertTriangle } from 'lucide-react';
+import { Calendar, Clock, Plus, Wrench, AlertTriangle, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { maintenanceService } from '@/core/maintenance';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import { toast } from 'sonner';
+import NewMaintenanceDialog from './maintenance/NewMaintenanceDialog';
+import { useTasksManager } from '@/hooks/maintenance/useTasksManager';
 
 interface EquipmentMaintenanceProps {
   equipment: EquipmentItem;
@@ -14,61 +17,27 @@ interface EquipmentMaintenanceProps {
 
 const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }) => {
   const [loading, setLoading] = useState(true);
-  const [maintenanceTasks, setMaintenanceTasks] = useState<any[]>([]);
+  const [isNewMaintenanceOpen, setIsNewMaintenanceOpen] = useState(false);
+  
+  // Utiliser le hook useTasksManager pour gérer les tâches de maintenance
+  const {
+    tasks: maintenanceTasks,
+    isLoading: tasksLoading,
+    addTask,
+    updateTaskStatus,
+    updateTaskPriority
+  } = useTasksManager();
+
+  // État pour stocker la tâche sélectionnée pour voir le devis
+  const [selectedTaskForQuote, setSelectedTaskForQuote] = useState<number | null>(null);
 
   useEffect(() => {
-    const fetchMaintenanceTasks = async () => {
-      try {
-        setLoading(true);
-        // We'll modify this to fetch from real data when available
-        // For now, we're using mock data
-        const mockTasks = [
-          {
-            id: 1,
-            title: 'Vidange et changement de filtres',
-            type: 'preventive',
-            status: 'scheduled',
-            priority: 'medium',
-            dueDate: new Date(2023, 7, 15),
-            estimatedDuration: 2,
-            assignedTo: 'Martin Dubois'
-          },
-          {
-            id: 2,
-            title: 'Inspection des courroies',
-            type: 'condition-based',
-            status: 'in-progress',
-            priority: 'high',
-            dueDate: new Date(2023, 6, 28),
-            estimatedDuration: 1,
-            assignedTo: 'Sophie Martin'
-          },
-          {
-            id: 3,
-            title: 'Remplacement du système hydraulique',
-            type: 'corrective',
-            status: 'completed',
-            priority: 'critical',
-            dueDate: new Date(2023, 5, 10),
-            completedDate: new Date(2023, 5, 12),
-            estimatedDuration: 4,
-            actualDuration: 5,
-            assignedTo: 'Luc Bernard'
-          }
-        ];
-        
-        setTimeout(() => {
-          setMaintenanceTasks(mockTasks);
-          setLoading(false);
-        }, 500);
-      } catch (error) {
-        console.error('Error fetching maintenance tasks:', error);
-        toast.error('Impossible de charger les tâches de maintenance');
-        setLoading(false);
-      }
-    };
-
-    fetchMaintenanceTasks();
+    // Déjà géré par useTasksManager, mais on ajoute un délai simulé pour l'UX
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 500);
+    
+    return () => clearTimeout(timer);
   }, [equipment.id]);
 
   const getPriorityColor = (priority: string) => {
@@ -105,7 +74,50 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
   };
 
   const handleAddTask = () => {
-    toast.info('Fonctionnalité à venir : Ajouter une tâche de maintenance');
+    setIsNewMaintenanceOpen(true);
+  };
+
+  const handleCreateMaintenance = (maintenance: any) => {
+    try {
+      // Préparer les données pour l'API
+      const maintenanceTask = {
+        title: maintenance.title,
+        equipment: equipment.name,
+        equipmentId: equipment.id,
+        type: maintenance.type,
+        status: 'scheduled',
+        priority: maintenance.priority,
+        dueDate: maintenance.dueDate,
+        estimatedDuration: maintenance.estimatedDuration,
+        assignedTo: '',
+        notes: maintenance.notes || ''
+      };
+      
+      // Ajouter la tâche via le hook
+      addTask(maintenanceTask);
+      
+      // Fermer la boîte de dialogue
+      setIsNewMaintenanceOpen(false);
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout de la tâche:', error);
+      toast.error('Impossible d\'ajouter la tâche de maintenance');
+    }
+  };
+
+  const handleViewQuote = (taskId: number) => {
+    setSelectedTaskForQuote(taskId);
+    toast.info(`Affichage du devis pour la tâche ${taskId}`);
+    // Dans une implémentation réelle, vous pourriez ouvrir un dialogue pour afficher le devis
+  };
+
+  const handleChangeStatus = (taskId: number, newStatus: string) => {
+    try {
+      updateTaskStatus(taskId, newStatus as any);
+      toast.success(`Statut mis à jour: ${newStatus}`);
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du statut:', error);
+      toast.error('Impossible de mettre à jour le statut');
+    }
   };
 
   return (
@@ -199,6 +211,7 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
                   <TableHead>Date prévue</TableHead>
                   <TableHead>Durée estimée</TableHead>
                   <TableHead>Assigné à</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -221,7 +234,30 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
                     </TableCell>
                     <TableCell>{formatDate(task.dueDate)}</TableCell>
                     <TableCell>{task.estimatedDuration}h</TableCell>
-                    <TableCell>{task.assignedTo}</TableCell>
+                    <TableCell>{task.assignedTo || '-'}</TableCell>
+                    <TableCell>
+                      <div className="flex space-x-1">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => handleViewQuote(task.id)}
+                          title="Voir le devis"
+                        >
+                          <FileText className="h-4 w-4 text-blue-500" />
+                        </Button>
+                        
+                        {task.status !== 'completed' && (
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => handleChangeStatus(task.id, 'completed')}
+                            title="Marquer comme terminé"
+                          >
+                            <Wrench className="h-4 w-4 text-green-500" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -236,6 +272,16 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
           )}
         </CardContent>
       </Card>
+
+      {/* Dialog pour créer une nouvelle maintenance */}
+      {isNewMaintenanceOpen && (
+        <NewMaintenanceDialog
+          equipment={equipment}
+          isOpen={isNewMaintenanceOpen}
+          onClose={() => setIsNewMaintenanceOpen(false)}
+          onSubmit={handleCreateMaintenance}
+        />
+      )}
     </div>
   );
 };
