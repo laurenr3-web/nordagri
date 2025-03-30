@@ -6,6 +6,8 @@ import { EquipmentItem } from './hooks/useEquipmentFilters';
 import EquipmentHeader from './details/EquipmentHeader';
 import EquipmentTabs from './details/EquipmentTabs';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
+import { equipmentService } from '@/services/supabase/equipmentService';
 
 interface EquipmentDetailsProps {
   equipment: EquipmentItem;
@@ -16,6 +18,7 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [localEquipment, setLocalEquipment] = useState(equipment);
+  const navigate = useNavigate();
 
   const handleEquipmentUpdate = (updatedEquipment: any) => {
     console.log('EquipmentDetails received updated equipment:', updatedEquipment);
@@ -36,11 +39,25 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
     setIsEditDialogOpen(false);
   };
 
+  const handleEquipmentDelete = async () => {
+    console.log('Deleting equipment with ID:', localEquipment.id);
+    
+    try {
+      await equipmentService.deleteEquipment(localEquipment.id);
+      toast.success(`L'équipement ${localEquipment.name} a été supprimé avec succès`);
+      navigate('/equipment');
+    } catch (error) {
+      console.error('Error deleting equipment:', error);
+      toast.error('Impossible de supprimer cet équipement');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <EquipmentHeader 
         equipment={localEquipment} 
         onEditClick={() => setIsEditDialogOpen(true)} 
+        onDeleteClick={handleEquipmentDelete}
       />
 
       <Separator />
