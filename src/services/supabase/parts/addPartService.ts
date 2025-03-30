@@ -25,6 +25,24 @@ export async function addPart(part: Omit<Part, 'id'>): Promise<Part> {
       throw new Error("Le nom de la pièce est obligatoire");
     }
     
+    // Vérifier si une pièce avec le même nom existe déjà pour cet utilisateur
+    const { data: existingParts, error: checkError } = await supabase
+      .from('parts_inventory')
+      .select('id, name, part_number')
+      .eq('owner_id', userId)
+      .or(`name.eq.${part.name},part_number.eq.${part.partNumber || ''}`)
+      .limit(1);
+    
+    if (checkError) {
+      console.error("❌ Erreur lors de la vérification des doublons:", checkError);
+    } else if (existingParts && existingParts.length > 0) {
+      // Une pièce avec le même nom ou numéro existe déjà
+      const existingPart = existingParts[0];
+      const duplicateField = existingPart.name === part.name ? 'nom' : 'numéro de référence';
+      
+      throw new Error(`Une pièce avec le même ${duplicateField} existe déjà (ID: ${existingPart.id})`);
+    }
+    
     // Formatage pour la structure de la table Supabase
     const supabasePart = {
       name: part.name,

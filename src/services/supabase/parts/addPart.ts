@@ -11,16 +11,40 @@ import { Part } from '@/types/Part';
 export async function addPart(part: Omit<Part, 'id'>): Promise<Part> {
   console.log('➕ Adding new part:', part);
   
-  // First check if a part with the same part number already exists
+  // Get the current user ID from the session
+  const { data: sessionData } = await supabase.auth.getSession();
+  const userId = sessionData.session?.user.id;
+  
+  if (!userId) {
+    throw new Error("Vous devez être connecté pour ajouter une pièce");
+  }
+  
+  // First check if a part with the same name already exists for this user
+  const { data: existingNameCheck, error: nameCheckError } = await supabase
+    .from('parts_inventory')
+    .select('id, name')
+    .eq('owner_id', userId)
+    .eq('name', part.name)
+    .limit(1);
+  
+  if (nameCheckError) {
+    console.error('Error checking for existing part name:', nameCheckError);
+  } else if (existingNameCheck && existingNameCheck.length > 0) {
+    console.warn('A part with this name already exists:', existingNameCheck[0]);
+    throw new Error(`Une pièce avec le nom "${part.name}" existe déjà.`);
+  }
+  
+  // Then check if a part with the same part number exists
   if (part.partNumber) {
     const { data: existingParts, error: checkError } = await supabase
       .from('parts_inventory')
       .select('id, name')
+      .eq('owner_id', userId)
       .eq('part_number', part.partNumber)
       .limit(1);
     
     if (checkError) {
-      console.error('Error checking for existing part:', checkError);
+      console.error('Error checking for existing part number:', checkError);
     } else if (existingParts && existingParts.length > 0) {
       console.warn('A part with this part number already exists:', existingParts[0]);
       throw new Error(`Une pièce avec le numéro "${part.partNumber}" existe déjà.`);
@@ -38,7 +62,8 @@ export async function addPart(part: Omit<Part, 'id'>): Promise<Part> {
     unit_price: part.price,
     location: part.location,
     reorder_threshold: part.reorderPoint,
-    image_url: part.image
+    image_url: part.image,
+    owner_id: userId // Explicitly set the owner_id to the current user
   };
   
   // Insert the part
@@ -50,7 +75,14 @@ export async function addPart(part: Omit<Part, 'id'>): Promise<Part> {
   
   if (error) {
     console.error('Error adding part:', error);
-    throw error;
+    // Provide more user-friendly error messages
+    if (error.code === '23505') {
+      throw new Error("Une pièce avec ces informations existe déjà");
+    } else if (error.code === '23502') {
+      throw new Error("Des informations requises sont manquantes");
+    } else {
+      throw error;
+    }
   }
   
   if (!data) {
