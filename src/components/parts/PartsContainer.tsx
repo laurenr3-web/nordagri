@@ -1,149 +1,163 @@
 
 import React from 'react';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Part } from '@/types/Part';
+import PartsHeader from './PartsHeader';
+import PartsGrid from './PartsGrid';
+import PartsList from './PartsList';
+import { Card } from '@/components/ui/card';
+import { AlertCircle, Loader2 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import FilterSortDialogs from './dialogs/FilterSortDialogs';
+import PartsDialogs from './PartsDialogs';
 import { Button } from '@/components/ui/button';
-import { Menu } from 'lucide-react';
 
-// Import components
-import PartsHeader from '@/components/parts/PartsHeader';
-import PartsToolbar from '@/components/parts/PartsToolbar';
-import PartsGrid from '@/components/parts/PartsGrid';
-import PartsList from '@/components/parts/PartsList';
-import PartDetailsExtended from './PartDetailsExtended';
+interface PartsContainerProps {
+  parts: Part[];
+  filteredParts: Part[];
+  isLoading: boolean;
+  isError: boolean;
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  selectedCategory: string;
+  setSelectedCategory: (category: string) => void;
+  handleAddPart: (part: Omit<Part, 'id'>) => void;
+  handleUpdatePart: (part: Part) => void;
+  handleDeletePart: (partId: number | string) => void;
+  currentView: string;
+  setCurrentView: (view: string) => void;
+  openPartDetails: (part: Part) => void;
+  filterCount: number;
+  clearFilters: () => void;
+  // Dialog state
+  isFilterDialogOpen: boolean;
+  setIsFilterDialogOpen: (open: boolean) => void;
+  isSortDialogOpen: boolean;
+  setIsSortDialogOpen: (open: boolean) => void;
+  selectedPart: Part | null;
+  isPartDetailsDialogOpen: boolean;
+  setIsPartDetailsDialogOpen: (open: boolean) => void;
+  isAddPartDialogOpen: boolean;
+  setIsAddPartDialogOpen: (open: boolean) => void;
+  refetch?: () => void;
+}
 
-// Import dialogs
-import PartsDialogs from '@/components/parts/PartsDialogs';
-
-const PartsContainer = ({
-  // State
+const PartsContainer: React.FC<PartsContainerProps> = ({
+  parts,
   filteredParts,
-  selectedPart,
-  categories,
+  isLoading,
+  isError,
   searchTerm,
-  selectedCategory,
-  currentView,
-  filterCount,
-  
-  // Setters
   setSearchTerm,
-  setSelectedCategory,
+  currentView,
   setCurrentView,
-  
-  // Dialog states
-  isPartDetailsDialogOpen,
-  isAddPartDialogOpen,
-  isAddCategoryDialogOpen,
+  openPartDetails,
+  filterCount,
+  clearFilters,
   isFilterDialogOpen,
-  isSortDialogOpen,
-  isOrderDialogOpen,
-  
-  // Setters for dialogs
-  setIsPartDetailsDialogOpen,
-  setIsAddPartDialogOpen,
-  setIsAddCategoryDialogOpen,
   setIsFilterDialogOpen,
+  isSortDialogOpen,
   setIsSortDialogOpen,
-  setIsOrderDialogOpen,
-  
-  // Actions
-  ...actions
+  selectedPart,
+  isPartDetailsDialogOpen,
+  setIsPartDetailsDialogOpen,
+  handleUpdatePart,
+  handleDeletePart,
+  refetch
 }) => {
-  return (
-    <div className="flex-1 w-full">
-      <div className="pt-6 pb-16 px-4 sm:px-8 md:px-12">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <PartsHeader 
-            openAddCategoryDialog={() => setIsAddCategoryDialogOpen(true)}
-            openAddPartDialog={() => setIsAddPartDialogOpen(true)}
-          />
-          
-          {/* Si une pièce est sélectionnée, afficher ses détails étendus */}
-          {selectedPart ? (
-            <PartDetailsExtended
-              part={selectedPart}
-              onBack={() => actions.openPartDetails(null)}
-              onEdit={actions.handleEditPart}
-              onDelete={actions.handleDeletePart}
-            />
-          ) : (
-            <>
-              {/* Search and Filter Toolbar */}
-              <PartsToolbar 
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-                currentView={currentView}
-                setCurrentView={setCurrentView}
-                openFilterDialog={() => setIsFilterDialogOpen(true)}
-                openSortDialog={() => setIsSortDialogOpen(true)}
-                filterCount={filterCount}
-              />
-              
-              {/* Category Tabs */}
-              <Tabs defaultValue="all" className="mb-6" value={selectedCategory} onValueChange={setSelectedCategory}>
-                <TabsList className="flex flex-wrap h-auto p-1">
-                  {categories.map(category => (
-                    <TabsTrigger key={category} value={category} className="mb-1 mr-1">
-                      {category === 'all' ? 'All Parts' : 
-                        category.charAt(0).toUpperCase() + category.slice(1)}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
-              
-              {/* Parts Display (Grid or List) */}
-              {currentView === 'grid' ? (
-                <PartsGrid 
-                  parts={filteredParts} 
-                  openPartDetails={actions.openPartDetails} 
-                  openOrderDialog={actions.openOrderDialog} 
-                />
-              ) : (
-                <PartsList 
-                  parts={filteredParts} 
-                  openPartDetails={actions.openPartDetails} 
-                  openOrderDialog={actions.openOrderDialog} 
-                />
-              )}
-              
-              {/* Empty State */}
-              {filteredParts.length === 0 && (
-                <div className="mt-10 text-center">
-                  <p className="text-muted-foreground">No parts found matching your criteria.</p>
-                  <Button variant="link" onClick={() => { setSearchTerm(''); setSelectedCategory('all'); }}>
-                    Reset filters
-                  </Button>
-                </div>
-              )}
-            </>
-          )}
-          
-          {/* Dialogs */}
-          <PartsDialogs 
-            // Parts and selection
-            selectedPart={selectedPart}
-            
-            // Dialogs state
-            isPartDetailsDialogOpen={isPartDetailsDialogOpen}
-            isAddPartDialogOpen={isAddPartDialogOpen}
-            isAddCategoryDialogOpen={isAddCategoryDialogOpen}
-            isFilterDialogOpen={isFilterDialogOpen}
-            isSortDialogOpen={isSortDialogOpen}
-            isOrderDialogOpen={isOrderDialogOpen}
-            
-            // Dialog setters
-            setIsPartDetailsDialogOpen={setIsPartDetailsDialogOpen}
-            setIsAddPartDialogOpen={setIsAddPartDialogOpen}
-            setIsAddCategoryDialogOpen={setIsAddCategoryDialogOpen}
-            setIsFilterDialogOpen={setIsFilterDialogOpen}
-            setIsSortDialogOpen={setIsSortDialogOpen}
-            setIsOrderDialogOpen={setIsOrderDialogOpen}
-            
-            // Actions, filters, and dialogs props
-            {...actions}
-          />
-        </div>
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] bg-background/80">
+        <Loader2 className="h-8 w-8 animate-spin opacity-70" />
+        <p className="mt-2 text-sm text-muted-foreground">Chargement des pièces...</p>
       </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Alert variant="destructive" className="my-4">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Erreur</AlertTitle>
+        <AlertDescription>
+          Impossible de charger les pièces. Veuillez réessayer plus tard.
+          {refetch && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mt-2"
+              onClick={() => refetch()}
+            >
+              Réessayer
+            </Button>
+          )}
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card className="p-6">
+        <PartsHeader
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          currentView={currentView}
+          setCurrentView={setCurrentView}
+          onOpenFilterDialog={() => setIsFilterDialogOpen(true)}
+          onOpenSortDialog={() => setIsSortDialogOpen(true)}
+          filterCount={filterCount}
+        />
+
+        {currentView === 'grid' ? (
+          <PartsGrid
+            parts={filteredParts}
+            onPartClick={openPartDetails}
+          />
+        ) : (
+          <PartsList
+            parts={filteredParts}
+            onPartClick={openPartDetails}
+          />
+        )}
+
+        {filteredParts.length === 0 && parts.length > 0 && (
+          <div className="flex flex-col items-center justify-center py-12 px-4">
+            <p className="mb-4 text-center text-muted-foreground">
+              Aucune pièce ne correspond à vos critères de recherche ou filtres.
+            </p>
+            <Button
+              variant="outline"
+              onClick={clearFilters}
+            >
+              Réinitialiser les filtres
+            </Button>
+          </div>
+        )}
+
+        {parts.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-12 px-4">
+            <p className="mb-4 text-center text-muted-foreground">
+              Votre inventaire de pièces est vide. Ajoutez votre première pièce.
+            </p>
+          </div>
+        )}
+      </Card>
+
+      {/* Dialogs */}
+      <FilterSortDialogs
+        isFilterOpen={isFilterDialogOpen}
+        onFilterOpenChange={setIsFilterDialogOpen}
+        isSortOpen={isSortDialogOpen}
+        onSortOpenChange={setIsSortDialogOpen}
+      />
+
+      <PartsDialogs
+        selectedPart={selectedPart}
+        isPartDetailsDialogOpen={isPartDetailsDialogOpen}
+        setIsPartDetailsDialogOpen={setIsPartDetailsDialogOpen}
+        handleEditPart={handleUpdatePart}
+        handleDeletePart={handleDeletePart}
+      />
     </div>
   );
 };

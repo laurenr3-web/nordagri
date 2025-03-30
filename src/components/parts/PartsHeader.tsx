@@ -1,40 +1,100 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { ViewType } from '@/hooks/parts/usePartsFilter';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Filter, Grid, List, Plus, Zap } from 'lucide-react';
+import AddPartDialog from './dialogs/AddPartDialog';
+import ExpressAddPartDialog from './dialogs/ExpressAddPartDialog';
 
 interface PartsHeaderProps {
-  openAddCategoryDialog: () => void;
-  openAddPartDialog: () => void;
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  currentView: ViewType;
+  setCurrentView: (view: ViewType) => void;
+  onOpenFilterDialog: () => void;
+  onOpenSortDialog: () => void;
+  filterCount: number;
 }
 
-const PartsHeader: React.FC<PartsHeaderProps> = ({ 
-  openAddCategoryDialog, 
-  openAddPartDialog 
+const PartsHeader: React.FC<PartsHeaderProps> = ({
+  searchTerm,
+  setSearchTerm,
+  currentView,
+  setCurrentView,
+  onOpenFilterDialog,
+  onOpenSortDialog,
+  filterCount,
 }) => {
+  const [isAddPartDialogOpen, setIsAddPartDialogOpen] = useState(false);
+  const [isExpressAddOpen, setIsExpressAddOpen] = useState(false);
+
   return (
-    <header className="mb-8 animate-fade-in">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="chip chip-secondary mb-2">Inventory Management</div>
-          <h1 className="text-3xl font-medium tracking-tight mb-1">Parts Catalog</h1>
-          <p className="text-muted-foreground">
-            Manage your agricultural equipment parts inventory
-          </p>
-        </div>
-        
-        <div className="mt-4 sm:mt-0 flex gap-2">
-          <Button className="gap-2" onClick={openAddCategoryDialog}>
-            <Plus size={16} />
-            <span>Add Category</span>
+    <div className="flex flex-col space-y-4">
+      <div className="flex flex-col space-y-2 sm:flex-row sm:justify-between sm:space-y-0">
+        <h2 className="text-3xl font-bold tracking-tight">Pièces</h2>
+        <div className="flex space-x-2">
+          <Button 
+            variant="secondary" 
+            onClick={() => setIsExpressAddOpen(true)}
+            className="flex items-center"
+          >
+            <Zap className="mr-2 h-4 w-4" />
+            Ajout Express
           </Button>
-          <Button className="gap-2" onClick={openAddPartDialog}>
-            <Plus size={16} />
-            <span>Add Parts</span>
+          <Button onClick={() => setIsAddPartDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Ajouter une pièce
           </Button>
         </div>
       </div>
-    </header>
+
+      <div className="flex flex-col space-y-2 sm:flex-row sm:justify-between sm:items-center sm:space-y-0">
+        <div className="relative sm:max-w-xs w-full">
+          <Search className="absolute left-2 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Rechercher..."
+            className="pl-8"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        <div className="flex justify-between sm:justify-end w-full sm:w-auto">
+          <div className="flex space-x-1 sm:space-x-2">
+            <ToggleGroup type="single" value={currentView} onValueChange={(view) => setCurrentView(view as ViewType)}>
+              <ToggleGroupItem value="grid" aria-label="Grid view">
+                <Grid className="h-4 w-4" />
+              </ToggleGroupItem>
+              <ToggleGroupItem value="list" aria-label="List view">
+                <List className="h-4 w-4" />
+              </ToggleGroupItem>
+            </ToggleGroup>
+            <Button variant="outline" size="icon" onClick={onOpenFilterDialog} className="relative">
+              <Filter className="h-4 w-4" />
+              {filterCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] text-primary-foreground flex items-center justify-center">
+                  {filterCount}
+                </span>
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Dialogs */}
+      <AddPartDialog 
+        isOpen={isAddPartDialogOpen}
+        onOpenChange={setIsAddPartDialogOpen}
+      />
+      
+      <ExpressAddPartDialog
+        isOpen={isExpressAddOpen}
+        onOpenChange={setIsExpressAddOpen}
+      />
+    </div>
   );
 };
 
