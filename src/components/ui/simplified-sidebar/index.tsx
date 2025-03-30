@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -25,28 +26,27 @@ export const SimplifiedSidebarProvider: React.FC<{ children: React.ReactNode }> 
 
   // Handle clicks outside the sidebar
   useEffect(() => {
+    if (!isExpanded) return; // Don't add listener if sidebar is collapsed
+    
     const handleClickOutside = (event: MouseEvent) => {
       // Ignore clicks inside the sidebar
       if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
-        // Only collapse the sidebar if it's expanded and auto-collapse isn't prevented
-        if (isExpanded && !preventAutoCollapse) {
+        // Only collapse the sidebar if auto-collapse isn't prevented
+        if (!preventAutoCollapse) {
           setIsExpanded(false);
         }
       }
     };
 
-    // Only add the listener if the sidebar is expanded
-    if (isExpanded) {
-      // Use a timeout to prevent the handler from executing immediately after expansion
-      const timeoutId = setTimeout(() => {
-        document.addEventListener('mousedown', handleClickOutside);
-      }, 100);
-      
-      return () => {
-        clearTimeout(timeoutId);
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
+    // Add the listener with a timeout to prevent immediate execution
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, [isExpanded, preventAutoCollapse]);
 
   return (

@@ -6,7 +6,8 @@ import { maintenanceTasks } from '@/data/maintenanceData';
 import NewTaskDialog from '@/components/maintenance/NewTaskDialog';
 import MaintenanceHeader from '@/components/maintenance/MaintenanceHeader';
 import MaintenanceContent from '@/components/maintenance/MaintenanceContent';
-import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
+import { Sidebar } from '@/components/ui/sidebar';
+import { SidebarProvider } from '@/components/ui/sidebar';
 
 const Maintenance = () => {
   // Always initialize all hooks first, before any conditional logic

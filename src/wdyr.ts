@@ -22,10 +22,13 @@ if (process.env.NODE_ENV === 'development') {
         /^ErrorBoundary$/,
         /^SimplifiedSidebarProvider$/,
         /^SidebarProvider$/,
-        /Sidebar$/
+        /Sidebar$/,
+        /^TooltipProvider$/,
+        /^Dialog/,
+        /^Sheet/
       ],
       
-      // Only track hooks with explicit whyDidYouRender = true property
+      // Do not track any hooks automatically
       trackExtraHooks: []
     });
   });
