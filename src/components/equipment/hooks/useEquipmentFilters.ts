@@ -1,22 +1,21 @@
 
 import { useState, useMemo } from 'react';
-import { Equipment } from '@/services/supabase/equipmentService';
 
 export interface EquipmentItem {
   id: number;
   name: string;
   type: string;
-  category: string;
-  manufacturer: string;
-  model: string;
-  year: number;
-  status: string;
-  location: string;
-  lastMaintenance: string;
-  image: string;
+  category?: string;
+  manufacturer?: string;
+  model?: string;
+  year?: number;
+  status?: string;
+  location?: string;
+  lastMaintenance?: string;
+  image?: string;
+  serialNumber?: string;
+  purchaseDate?: string;
   usage: { hours: number; target: number };
-  serialNumber: string;
-  purchaseDate: string;
   nextService: { type: string; due: string };
 }
 
@@ -51,10 +50,13 @@ export const useEquipmentFilters = (equipmentData: EquipmentItem[]) => {
     [equipmentData]
   );
   
-  const yearOptions = useMemo(() => 
-    Array.from(new Set(equipmentData.map(item => item.year))).sort((a, b) => b - a),
-    [equipmentData]
-  );
+  const yearOptions = useMemo(() => {
+    const years = equipmentData
+      .map(item => item.year)
+      .filter((year): year is number => typeof year === 'number')
+      .sort((a, b) => b - a);
+    return Array.from(new Set(years));
+  }, [equipmentData]);
 
   // Toggle filter value
   const toggleFilter = (type: 'status' | 'type' | 'manufacturer' | 'year', value: string | number) => {
@@ -100,23 +102,27 @@ export const useEquipmentFilters = (equipmentData: EquipmentItem[]) => {
     return equipmentData.filter(equipment => {
       // Search term filtering
       const matchesSearch = equipment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           equipment.manufacturer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           equipment.model.toLowerCase().includes(searchTerm.toLowerCase());
+                           (equipment.manufacturer?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                           (equipment.model?.toLowerCase() || '').includes(searchTerm.toLowerCase());
       
-      // Category filtering
-      const matchesCategory = selectedCategory === 'all' || equipment.category === selectedCategory;
+      // Category filtering - modification ici pour filtrer par type au lieu de catégorie
+      const matchesCategory = selectedCategory === 'all' || equipment.type === selectedCategory;
       
       // Status filtering
-      const matchesStatus = filters.status.length === 0 || filters.status.includes(equipment.status);
+      const matchesStatus = filters.status.length === 0 || 
+                           (equipment.status && filters.status.includes(equipment.status));
       
       // Type filtering
-      const matchesType = filters.type.length === 0 || filters.type.includes(equipment.type);
+      const matchesType = filters.type.length === 0 || 
+                         (equipment.type && filters.type.includes(equipment.type));
       
       // Manufacturer filtering
-      const matchesManufacturer = filters.manufacturer.length === 0 || filters.manufacturer.includes(equipment.manufacturer);
+      const matchesManufacturer = filters.manufacturer.length === 0 || 
+                                 (equipment.manufacturer && filters.manufacturer.includes(equipment.manufacturer));
       
       // Year filtering
-      const matchesYear = filters.year.length === 0 || filters.year.includes(equipment.year);
+      const matchesYear = filters.year.length === 0 || 
+                         (equipment.year && filters.year.includes(equipment.year));
       
       return matchesSearch && matchesCategory && matchesStatus && matchesType && matchesManufacturer && matchesYear;
     }).sort((a, b) => {
@@ -126,11 +132,17 @@ export const useEquipmentFilters = (equipmentData: EquipmentItem[]) => {
       if (sortBy === 'name') {
         comparison = a.name.localeCompare(b.name);
       } else if (sortBy === 'year') {
-        comparison = a.year - b.year;
+        const yearA = a.year || 0;
+        const yearB = b.year || 0;
+        comparison = yearA - yearB;
       } else if (sortBy === 'manufacturer') {
-        comparison = a.manufacturer.localeCompare(b.manufacturer);
+        const mfgA = a.manufacturer || '';
+        const mfgB = b.manufacturer || '';
+        comparison = mfgA.localeCompare(mfgB);
       } else if (sortBy === 'status') {
-        comparison = a.status.localeCompare(b.status);
+        const statusA = a.status || '';
+        const statusB = b.status || '';
+        comparison = statusA.localeCompare(statusB);
       }
       
       // Apply sort order

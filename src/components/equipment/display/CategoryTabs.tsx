@@ -18,22 +18,22 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
           <TabsTrigger value="all">
             Tous
           </TabsTrigger>
-          <TabsTrigger value="tracteurs">
+          <TabsTrigger value="Tractor">
             Tracteurs
           </TabsTrigger>
-          <TabsTrigger value="moissonneuses">
+          <TabsTrigger value="harvester">
             Moissonneuses
           </TabsTrigger>
-          <TabsTrigger value="semoirs">
+          <TabsTrigger value="seeder">
             Semoirs
           </TabsTrigger>
-          <TabsTrigger value="pulvérisateurs">
+          <TabsTrigger value="sprayer">
             Pulvérisateurs
           </TabsTrigger>
           <TabsTrigger value="irrigation">
             Irrigation
           </TabsTrigger>
-          <TabsTrigger value="outils">
+          <TabsTrigger value="other">
             Outils
           </TabsTrigger>
         </TabsList>
