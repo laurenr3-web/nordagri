@@ -1,253 +1,326 @@
 import React, { useState, useEffect } from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
-import { Sidebar } from '@/components/ui/sidebar';
 import InterventionsList from '@/components/interventions/InterventionsList';
 import InterventionsSidebar from '@/components/interventions/InterventionsSidebar';
 import NewInterventionDialog from '@/components/interventions/NewInterventionDialog';
 import InterventionDetailsDialog from '@/components/interventions/InterventionDetailsDialog';
-import { toast } from '@/components/ui/toast';
+import { toast } from "@/hooks/use-toast";
 import { Button } from '@/components/ui/button';
 import { Plus, FileText, BarChart3, Download } from 'lucide-react';
 
-import { useQuery } from '@tanstack/react-query';
-import { interventionService } from '@/services/supabase/interventionService';
-import { Intervention } from '@/types/Intervention';
-import { useInterventionsRealtime } from '@/hooks/interventions/useInterventionsRealtime';
+interface Intervention {
+  id: number;
+  title: string;
+  equipment: string;
+  equipmentId: number;
+  location: string;
+  technician: string;
+  date: Date;
+  scheduledDuration: number;
+  duration?: number;
+  priority: 'high' | 'medium' | 'low';
+  status: 'scheduled' | 'in-progress' | 'completed' | 'canceled';
+  description?: string;
+  notes?: string;
+  partsUsed?: { id: number; name: string; quantity: number; }[];
+}
+
+const sampleInterventions: Intervention[] = [
+  {
+    id: 1,
+    title: 'Réparation du moteur',
+    equipment: 'Tracteur John Deere',
+    equipmentId: 123,
+    location: 'Champ principal',
+    technician: 'Jean Dupont',
+    date: new Date(2024, 5, 20),
+    scheduledDuration: 8,
+    priority: 'high',
+    status: 'scheduled',
+    description: 'Réparation complète du moteur suite à une surchauffe.',
+    notes: 'Vérifier le système de refroidissement.',
+    partsUsed: [{ id: 1, name: 'Bougie', quantity: 4 }]
+  },
+  {
+    id: 2,
+    title: 'Maintenance préventive',
+    equipment: 'Moissonneuse-batteuse Claas',
+    equipmentId: 456,
+    location: 'Hangar principal',
+    technician: 'Sophie Martin',
+    date: new Date(2024, 5, 22),
+    scheduledDuration: 4,
+    priority: 'medium',
+    status: 'in-progress',
+    description: 'Vérification et remplacement des filtres et huiles.',
+    notes: 'Graisser tous les points de friction.',
+    partsUsed: [{ id: 2, name: 'Filtre à huile', quantity: 1 }]
+  },
+  {
+    id: 3,
+    title: 'Remplacement des pneus',
+    equipment: 'Remorque agricole',
+    equipmentId: 789,
+    location: 'Atelier',
+    technician: 'Pierre Leclerc',
+    date: new Date(2024, 5, 25),
+    scheduledDuration: 2,
+    priority: 'low',
+    status: 'completed',
+    description: 'Remplacement des pneus usés par des neufs.',
+    notes: 'Serrer les écrous de roue correctement.',
+    partsUsed: [{ id: 3, name: 'Pneu', quantity: 2 }],
+    duration: 2
+  },
+  {
+    id: 4,
+    title: 'Diagnostic électrique',
+    equipment: 'Tracteur New Holland',
+    equipmentId: 101,
+    location: 'Champ secondaire',
+    technician: 'Jean Dupont',
+    date: new Date(2024, 5, 28),
+    scheduledDuration: 6,
+    priority: 'medium',
+    status: 'scheduled',
+    description: 'Diagnostic et réparation du système électrique.',
+    notes: 'Vérifier le câblage et les fusibles.',
+    partsUsed: [{ id: 4, name: 'Fusible 10A', quantity: 5 }]
+  },
+  {
+    id: 5,
+    title: 'Révision du système hydraulique',
+    equipment: 'Ensileuse automotrice',
+    equipmentId: 112,
+    location: 'Hangar secondaire',
+    technician: 'Sophie Martin',
+    date: new Date(2024, 6, 1),
+    scheduledDuration: 8,
+    priority: 'high',
+    status: 'scheduled',
+    description: 'Révision complète du système hydraulique.',
+    notes: 'Remplacer l\'huile hydraulique et vérifier les joints.',
+    partsUsed: [{ id: 5, name: 'Huile hydraulique', quantity: 20 }]
+  },
+  {
+    id: 6,
+    title: 'Contrôle des freins',
+    equipment: 'Tracteur John Deere',
+    equipmentId: 123,
+    location: 'Atelier',
+    technician: 'Pierre Leclerc',
+    date: new Date(2024, 6, 3),
+    scheduledDuration: 3,
+    priority: 'medium',
+    status: 'scheduled',
+    description: 'Vérification et réglage des freins.',
+    notes: 'Nettoyer les tambours de frein.',
+    partsUsed: [{ id: 6, name: 'Plaquettes de frein', quantity: 4 }]
+  },
+  {
+    id: 7,
+    title: 'Entretien de la climatisation',
+    equipment: 'Moissonneuse-batteuse Claas',
+    equipmentId: 456,
+    location: 'Hangar principal',
+    technician: 'Jean Dupont',
+    date: new Date(2024, 6, 5),
+    scheduledDuration: 4,
+    priority: 'low',
+    status: 'scheduled',
+    description: 'Recharge et entretien du système de climatisation.',
+    notes: 'Vérifier les fuites de réfrigérant.',
+  },
+  {
+    id: 8,
+    title: 'Réparation du système de direction',
+    equipment: 'Remorque agricole',
+    equipmentId: 789,
+    location: 'Champ principal',
+    technician: 'Sophie Martin',
+    date: new Date(2024, 6, 8),
+    scheduledDuration: 5,
+    priority: 'medium',
+    status: 'scheduled',
+    description: 'Réparation du système de direction assistée.',
+    notes: 'Vérifier la pompe de direction assistée.',
+    partsUsed: [{ id: 7, name: 'Liquide de direction assistée', quantity: 1 }]
+  },
+  {
+    id: 9,
+    title: 'Remplacement de la courroie',
+    equipment: 'Tracteur New Holland',
+    equipmentId: 101,
+    location: 'Atelier',
+    technician: 'Pierre Leclerc',
+    date: new Date(2024, 6, 10),
+    scheduledDuration: 2,
+    priority: 'low',
+    status: 'scheduled',
+    description: 'Remplacement de la courroie d\'entraînement.',
+    notes: 'Tendre la courroie correctement.',
+    partsUsed: [{ id: 8, name: 'Courroie', quantity: 1 }]
+  },
+  {
+    id: 10,
+    title: 'Inspection générale',
+    equipment: 'Ensileuse automotrice',
+    equipmentId: 112,
+    location: 'Hangar secondaire',
+    technician: 'Jean Dupont',
+    date: new Date(2024, 6, 12),
+    scheduledDuration: 7,
+    priority: 'medium',
+    status: 'scheduled',
+    description: 'Inspection générale de l\'équipement.',
+    notes: 'Vérifier tous les points de contrôle.',
+  }
+];
 
 const InterventionsPage = () => {
-  const [showNewDialog, setShowNewDialog] = React.useState(false);
-  const [selectedIntervention, setSelectedIntervention] = useState<Intervention | null>(null);
+  const [interventions, setInterventions] = useState<Intervention[]>(sampleInterventions);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedPriority, setSelectedPriority] = useState<string | null>(null);
+  const [isNewInterventionDialogOpen, setIsNewInterventionDialogOpen] = useState(false);
+  const [interventionDetailsOpen, setInterventionDetailsOpen] = useState(false);
+  const [selectedInterventionId, setSelectedInterventionId] = useState<number | string | null>(null);
   const [currentView, setCurrentView] = useState('scheduled');
-  
-  // Enable realtime updates
-  const { isSubscribed, error: realtimeError } = useInterventionsRealtime();
-  
-  // Fetch interventions
-  const {
-    data: interventions = [],
-    isLoading,
-    isError,
-    error,
-    refetch
-  } = useQuery({
-    queryKey: ['interventions'],
-    queryFn: () => interventionService.getInterventions(),
+
+  // Filter interventions based on search query and priority
+  const filteredInterventions = interventions.filter(intervention => {
+    const searchMatch = intervention.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      intervention.equipment.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      intervention.technician.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const priorityMatch = selectedPriority ? intervention.priority === selectedPriority : true;
+
+    return searchMatch && priorityMatch;
   });
 
-  // Handle errors
-  React.useEffect(() => {
-    if (isError && error) {
-      toast.error('Erreur lors du chargement des interventions', { 
-        description: error.message
-      });
-    }
-  }, [isError, error]);
-
-  // Monitor realtime subscription
-  useEffect(() => {
-    if (realtimeError) {
-      console.error('Error with realtime subscription:', realtimeError);
-      toast.error('Erreur de synchronisation en temps réel', {
-        description: 'Les mises à jour en temps réel des interventions peuvent ne pas fonctionner correctement.'
-      });
-    } else if (isSubscribed) {
-      console.log('Successfully subscribed to realtime updates for interventions');
-    }
-  }, [isSubscribed, realtimeError]);
-
-  const handleViewDetails = (intervention: Intervention) => {
-    setSelectedIntervention(intervention);
+  // Handlers
+  const handleOpenNewInterventionDialog = () => {
+    setIsNewInterventionDialogOpen(true);
   };
 
-  const handleCloseDetails = () => {
-    setSelectedIntervention(null);
+  const handleCloseNewInterventionDialog = () => {
+    setIsNewInterventionDialogOpen(false);
   };
 
-  const handleStartWork = (intervention: Intervention) => {
-    // Implementation for starting work
-    interventionService.updateInterventionStatus(intervention.id, 'in-progress')
-      .then(() => {
-        toast.success('Intervention démarrée');
-        refetch();
-      })
-      .catch((err) => {
-        toast.error('Erreur lors du démarrage de l\'intervention', {
-          description: err.message
-        });
-      });
+  const handleCreateIntervention = (newIntervention: Intervention) => {
+    setInterventions([...interventions, newIntervention]);
+    setIsNewInterventionDialogOpen(false);
+    toast({
+      title: "Succès",
+      description: "Nouvelle intervention créée avec succès.",
+    });
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handlePriorityChange = (priority: string | null) => {
+    setSelectedPriority(priority);
   };
 
   const handleClearSearch = () => {
-    // Implementation for clearing search
-    console.log('Clearing search');
+    setSearchQuery('');
+    setSelectedPriority(null);
   };
 
-  const exportInterventionsReport = () => {
-    // Implementation for exporting interventions report to CSV
-    try {
-      const headers = ['ID', 'Titre', 'Équipement', 'Statut', 'Priorité', 'Date', 'Technicien', 'Durée', 'Lieu'];
-      
-      const csvRows = [
-        headers.join(','),
-        ...interventions.map(i => [
-          i.id,
-          `"${i.title.replace(/"/g, '""')}"`, // Escape quotes in CSV
-          `"${i.equipment.replace(/"/g, '""')}"`,
-          i.status,
-          i.priority,
-          i.date.toISOString().split('T')[0],
-          `"${i.technician.replace(/"/g, '""')}"`,
-          i.duration || i.scheduledDuration || '',
-          `"${i.location.replace(/"/g, '""')}"`
-        ].join(','))
-      ];
-      
-      const csvContent = csvRows.join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-      link.setAttribute('download', `interventions_report_${new Date().toISOString().split('T')[0]}.csv`);
-      link.style.visibility = 'hidden';
-      
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      toast.success('Rapport d\'interventions exporté avec succès');
-    } catch (error) {
-      toast.error('Erreur lors de l\'exportation du rapport', {
-        description: error instanceof Error ? error.message : 'Une erreur inconnue est survenue'
-      });
-    }
+  const handleViewDetails = (intervention: Intervention) => {
+    setSelectedInterventionId(intervention.id);
+    setInterventionDetailsOpen(true);
+  };
+
+  const handleCloseInterventionDetails = () => {
+    setInterventionDetailsOpen(false);
+    setSelectedInterventionId(null);
+  };
+
+  const handleStartWork = (intervention: Intervention) => {
+    // Placeholder for start work logic
+    toast({
+      title: "Intervention démarrée",
+      description: `L'intervention ${intervention.title} a été marquée comme démarrée.`,
+    });
   };
 
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
-        <Sidebar className="border-r">
-          <Navbar />
-        </Sidebar>
-        
-        <div className="flex-1 w-full overflow-x-hidden">
-          <div className="container mx-auto py-8 px-4 md:px-8">
-            <div className="flex flex-col lg:flex-row gap-6">
-              {/* Main content area */}
-              <div className="w-full lg:w-3/4 order-2 lg:order-1">
-                <div className="bg-card rounded-xl shadow-subtle p-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
-                    <h1 className="text-3xl font-bold text-foreground">Interventions</h1>
-                    <div className="flex items-center gap-3">
-                      <Button 
-                        onClick={exportInterventionsReport}
-                        variant="outline"
-                        size="sm"
-                        className="flex items-center gap-2"
-                      >
-                        <Download size={16} />
-                        <span className="hidden sm:inline">Exporter</span>
-                      </Button>
-                      <Button 
-                        onClick={() => setShowNewDialog(true)}
-                        className="flex items-center gap-2"
-                        size="sm"
-                      >
-                        <Plus size={16} />
-                        <span>Nouvelle intervention</span>
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  {isLoading ? (
-                    <div className="text-center p-8 my-8">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
-                      <p className="mt-4 text-muted-foreground">Chargement des interventions...</p>
-                    </div>
-                  ) : isError ? (
-                    <div className="p-8 text-center border rounded-lg border-destructive/10 bg-destructive/5 my-8">
-                      <p className="text-lg font-medium text-destructive">
-                        Impossible de charger les interventions
-                      </p>
-                      <p className="mt-2 text-muted-foreground">
-                        {error instanceof Error ? error.message : 'Une erreur inconnue est survenue'}
-                      </p>
-                      <button
-                        onClick={() => refetch()}
-                        className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md"
-                      >
-                        Réessayer
-                      </button>
-                    </div>
-                  ) : interventions.length === 0 ? (
-                    <div className="p-8 text-center border rounded-lg border-dashed my-8">
-                      <p className="text-lg font-medium">Aucune intervention planifiée</p>
-                      <p className="mt-2 text-muted-foreground">
-                        Commencez par créer une nouvelle intervention pour un équipement.
-                      </p>
-                      <button
-                        onClick={() => setShowNewDialog(true)}
-                        className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md"
-                      >
-                        Créer une intervention
-                      </button>
-                    </div>
-                  ) : (
-                    <InterventionsList 
-                      filteredInterventions={interventions}
-                      currentView={currentView}
-                      setCurrentView={setCurrentView}
-                      onClearSearch={handleClearSearch}
-                      onViewDetails={handleViewDetails}
-                      onStartWork={handleStartWork}
-                    />
-                  )}
-                </div>
+        <Navbar />
+
+        <div className="flex flex-1 flex-col">
+          <div className="border-b">
+            <div className="flex items-center justify-between p-4">
+              <div className="flex-1 space-y-1.5">
+                <h1 className="text-lg font-semibold">Interventions</h1>
+                <p className="text-sm text-muted-foreground">
+                  Gérez et suivez les interventions de maintenance.
+                </p>
               </div>
-              
-              {/* Right sidebar for upcoming interventions and stats */}
-              <div className="w-full lg:w-1/4 order-1 lg:order-2">
-                <div className="sticky top-4">
-                  <InterventionsSidebar 
-                    interventions={interventions}
-                    onViewDetails={handleViewDetails}
-                  />
-                </div>
+              <div className="flex items-center space-x-2">
+                <Button variant="outline" size="sm">
+                  <Download className="mr-2 h-4 w-4" />
+                  Exporter
+                </Button>
+                <Button size="sm" onClick={handleOpenNewInterventionDialog}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nouvelle Intervention
+                </Button>
               </div>
             </div>
           </div>
+
+          <div className="container relative pb-6 pt-8 md:pb-12 md:pt-12 lg:px-8 max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
+              <div className="col-span-1 lg:col-span-3">
+                <InterventionsList
+                  filteredInterventions={filteredInterventions}
+                  currentView={currentView}
+                  setCurrentView={setCurrentView}
+                  onClearSearch={handleClearSearch}
+                  onViewDetails={handleViewDetails}
+                  onStartWork={handleStartWork}
+                />
+              </div>
+
+              <div className="col-span-1 hidden lg:block">
+                <InterventionsSidebar
+                  searchQuery={searchQuery}
+                  selectedPriority={selectedPriority}
+                  onSearchChange={handleSearchChange}
+                  onPriorityChange={handlePriorityChange}
+                  onClearSearch={handleClearSearch}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Dialogs */}
+          <NewInterventionDialog
+            open={isNewInterventionDialogOpen}
+            onOpenChange={handleCloseNewInterventionDialog}
+            onCreate={handleCreateIntervention}
+          />
+
+          <InterventionDetailsDialog
+            interventionId={selectedInterventionId || ''}
+            open={interventionDetailsOpen}
+            onOpenChange={handleCloseInterventionDetails}
+            onStartWork={() => {
+              if (selectedInterventionId) {
+                const intervention = interventions.find(i => i.id === selectedInterventionId);
+                if (intervention) {
+                  handleStartWork(intervention);
+                }
+              }
+            }}
+          />
         </div>
       </div>
-      
-      {showNewDialog && (
-        <NewInterventionDialog
-          open={showNewDialog}
-          onOpenChange={setShowNewDialog}
-          onSubmit={(values) => {
-            interventionService.addIntervention(values)
-              .then(() => {
-                refetch();
-                setShowNewDialog(false);
-                toast.success('Intervention créée avec succès');
-              })
-              .catch((err) => {
-                toast.error('Erreur lors de la création de l\'intervention', {
-                  description: err.message
-                });
-              });
-          }}
-        />
-      )}
-
-      {selectedIntervention && (
-        <InterventionDetailsDialog
-          open={!!selectedIntervention}
-          onOpenChange={() => setSelectedIntervention(null)}
-          interventionId={selectedIntervention.id}
-          onStartWork={() => handleStartWork(selectedIntervention)}
-        />
-      )}
     </SidebarProvider>
   );
 };
