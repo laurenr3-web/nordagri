@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import EquipmentContentSection from './EquipmentContentSection';
 import { useNavigate } from 'react-router-dom';
 import { useEquipmentFilters, EquipmentItem } from '../hooks/useEquipmentFilters';
@@ -16,6 +16,14 @@ const EquipmentPageContent: React.FC<EquipmentPageContentProps> = ({
   const navigate = useNavigate();
   const [currentView, setCurrentView] = useState('grid');
   const filterState = useEquipmentFilters(equipment);
+  
+  // Load saved view preference on component mount
+  useEffect(() => {
+    const savedView = localStorage.getItem('equipmentViewPreference');
+    if (savedView && (savedView === 'grid' || savedView === 'list')) {
+      setCurrentView(savedView);
+    }
+  }, []);
   
   const handleEquipmentClick = (equipment: EquipmentItem) => {
     navigate(`/equipment/${equipment.id}`);

@@ -87,8 +87,14 @@ export const useEquipmentData = (user: any) => {
 
       if (error) throw error;
 
+      // Filter out any invalid or deleted equipment entries
+      const validData = data.filter(item => 
+        item && item.id && item.name && 
+        !item.deleted_at // Assuming there might be a soft delete field
+      );
+
       // Map the data to the expected format
-      const mappedData: EquipmentItem[] = data.map(item => ({
+      const mappedData: EquipmentItem[] = validData.map(item => ({
         id: item.id,
         name: item.name,
         type: item.type || 'Unknown',
