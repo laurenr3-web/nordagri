@@ -23,7 +23,8 @@ export const adaptMaintenanceEvents = (data: any[]): MaintenanceEvent[] => {
     equipment: event.equipment || 'Équipement non spécifié',
     status: event.status || 'scheduled',
     priority: event.priority || 'medium',
-    assignedTo: event.assignedTo || 'Non assigné'
+    assignedTo: event.assignedTo || 'Non assigné',
+    duration: event.estimatedDuration || 0 // Adding the duration property
   }));
 };
 
@@ -37,7 +38,9 @@ export const adaptAlertItems = (data: any[]): AlertItem[] => {
     equipmentId: alert.equipmentId || 0,
     equipmentName: alert.equipmentName || 'Équipement non spécifié',
     status: alert.status || 'new',
-    type: alert.type || 'maintenance'
+    type: alert.type || 'maintenance',
+    time: alert.time || '12:00', // Adding the missing time property
+    equipment: alert.equipment || 'N/A' // Adding the missing equipment property
   }));
 };
 

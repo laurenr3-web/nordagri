@@ -10,15 +10,68 @@ import { useMaintenanceData } from './useMaintenanceData';
 import { useAlertsData } from './useAlertsData';
 import { useTasksData } from './useTasksData';
 
-// Import types from specialized hooks
-import type { StatsCardData } from './useStatsData';
-import type { EquipmentItem } from './useEquipmentData';
-import type { MaintenanceEvent } from './useMaintenanceData';
-import type { AlertItem } from './useAlertsData';
-import type { UpcomingTask } from './useTasksData';
+// Export interfaces with all required properties
+export interface StatsCardData {
+  title: string;
+  value: string | number;
+  change?: number;
+  status?: 'increase' | 'decrease' | 'neutral';
+  icon?: React.ReactNode;
+  iconBg?: string;
+  iconColor?: string;
+}
 
-// Re-export types for consumers
-export type { StatsCardData, EquipmentItem, MaintenanceEvent, AlertItem, UpcomingTask };
+export interface EquipmentItem {
+  id: number;
+  name: string;
+  type: string;
+  status: 'operational' | 'maintenance' | 'repair' | 'inactive';
+  image?: string;
+  usage?: {
+    hours: number;
+    target: number;
+  };
+  nextService?: {
+    type: string;
+    due: string;
+  };
+  nextMaintenance?: string | null;
+}
+
+export interface MaintenanceEvent {
+  id: string | number;
+  title: string;
+  date: Date;
+  equipment: string;
+  status: string;
+  priority: string;
+  assignedTo: string;
+  duration: number; // Required property
+}
+
+export interface AlertItem {
+  id: string | number;
+  title: string;
+  message: string;
+  severity: 'high' | 'medium' | 'low';
+  date: Date;
+  equipmentId: number;
+  equipmentName: string;
+  status: 'new' | 'acknowledged' | 'resolved';
+  type: string;
+  time: string; // Required property
+  equipment: string; // Required property
+}
+
+export interface UpcomingTask {
+  id: string | number;
+  title: string;
+  description: string;
+  dueDate: Date;
+  status: string;
+  priority: string;
+  assignedTo: string;
+}
 
 export const useDashboardData = () => {
   const [loading, setLoading] = useState(true);

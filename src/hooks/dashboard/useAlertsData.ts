@@ -13,6 +13,8 @@ export interface AlertItem {
   equipmentName: string;
   status: 'new' | 'acknowledged' | 'resolved';
   type: string;
+  time: string; // Added missing property
+  equipment: string; // Added missing property
 }
 
 export const useAlertsData = (user: any) => {
@@ -26,38 +28,10 @@ export const useAlertsData = (user: any) => {
   const fetchAlertsData = async () => {
     setLoading(true);
     try {
-      // Récupérer les alertes depuis Supabase
-      const { data, error } = await supabase
-        .from('alerts')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      if (error) throw error;
-
-      if (data) {
-        const alerts: AlertItem[] = data.map(item => ({
-          id: item.id,
-          title: item.title,
-          message: item.message,
-          severity: item.severity,
-          date: new Date(item.created_at),
-          equipmentId: item.equipment_id,
-          equipmentName: item.equipment_name,
-          status: item.status,
-          type: item.type
-        }));
-        setAlertItems(alerts);
-      }
-    } catch (error) {
-      console.error('Error fetching alerts data:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de récupérer les alertes.",
-        variant: "destructive",
-      });
+      // Comme la table 'alerts' n'existe pas encore, on utilise des données mockées
+      // Dans une implémentation réelle, on ferait:
+      // const { data, error } = await supabase.from('alerts').select('*')
       
-      // Données par défaut en cas d'échec
       setAlertItems([
         {
           id: 1,
@@ -68,7 +42,9 @@ export const useAlertsData = (user: any) => {
           equipmentId: 1,
           equipmentName: "John Deere 8R 410",
           status: "new",
-          type: "maintenance"
+          type: "maintenance",
+          time: "09:15",
+          equipment: "John Deere 8R 410"
         },
         {
           id: 2,
@@ -79,7 +55,9 @@ export const useAlertsData = (user: any) => {
           equipmentId: 2,
           equipmentName: "Case IH Axial-Flow",
           status: "acknowledged",
-          type: "reminder"
+          type: "reminder",
+          time: "14:30",
+          equipment: "Case IH Axial-Flow"
         },
         {
           id: 3,
@@ -90,7 +68,9 @@ export const useAlertsData = (user: any) => {
           equipmentId: 0,
           equipmentName: "",
           status: "new",
-          type: "inventory"
+          type: "inventory",
+          time: "10:45",
+          equipment: "N/A"
         },
         {
           id: 4,
@@ -101,9 +81,18 @@ export const useAlertsData = (user: any) => {
           equipmentId: 3,
           equipmentName: "Kubota M7-172",
           status: "new",
-          type: "maintenance"
+          type: "maintenance",
+          time: "16:20",
+          equipment: "Kubota M7-172"
         }
       ]);
+    } catch (error) {
+      console.error('Error fetching alerts data:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de récupérer les alertes.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }

@@ -11,6 +11,7 @@ export interface MaintenanceEvent {
   status: string;
   priority: string;
   assignedTo: string;
+  duration: number; // Added missing property
 }
 
 export const useMaintenanceData = (user: any) => {
@@ -40,7 +41,8 @@ export const useMaintenanceData = (user: any) => {
           equipment: item.equipment,
           status: item.status,
           priority: item.priority,
-          assignedTo: item.assigned_to || 'Non assigné'
+          assignedTo: item.assigned_to || 'Non assigné',
+          duration: item.estimated_duration || 0 // Added duration property
         }));
         setMaintenanceEvents(events);
       }
@@ -61,7 +63,8 @@ export const useMaintenanceData = (user: any) => {
           equipment: "John Deere 8R 410",
           status: "scheduled",
           priority: "high",
-          assignedTo: "Michael Torres"
+          assignedTo: "Michael Torres",
+          duration: 2.5
         },
         {
           id: 2,
@@ -70,7 +73,8 @@ export const useMaintenanceData = (user: any) => {
           equipment: "Massey Ferguson 8S.245",
           status: "scheduled",
           priority: "medium",
-          assignedTo: "David Chen"
+          assignedTo: "David Chen",
+          duration: 1
         },
         {
           id: 3,
@@ -79,7 +83,8 @@ export const useMaintenanceData = (user: any) => {
           equipment: "Fendt 942 Vario",
           status: "scheduled",
           priority: "low",
-          assignedTo: "Sarah Johnson"
+          assignedTo: "Sarah Johnson",
+          duration: 3
         }
       ]);
     } finally {

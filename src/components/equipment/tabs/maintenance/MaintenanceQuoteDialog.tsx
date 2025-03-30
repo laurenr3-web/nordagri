@@ -2,6 +2,7 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import MaintenanceQuote from './MaintenanceQuote';
+import { toast } from "@/hooks/use-toast";
 
 interface MaintenanceQuoteDialogProps {
   isOpen: boolean;
@@ -24,7 +25,10 @@ const MaintenanceQuoteDialog: React.FC<MaintenanceQuoteDialogProps> = ({
   const handleDownload = () => {
     console.log('Téléchargement du devis');
     // Dans une implémentation réelle, on génèrerait un PDF
-    toast.success('Devis téléchargé au format PDF');
+    toast({
+      title: "Succès",
+      description: "Devis téléchargé au format PDF",
+    });
   };
   
   return (
