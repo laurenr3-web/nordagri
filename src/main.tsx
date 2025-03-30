@@ -9,6 +9,12 @@ import { UserSettingsProvider } from '@/providers/UserSettingsProvider';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import App from './App';
 import './styles/index.css';
+import { monitorPerformance } from './lib/performance';
+
+// Initialize performance monitoring in development
+if (process.env.NODE_ENV === 'development') {
+  monitorPerformance();
+}
 
 // Create a Query Client for React Query with enhanced configuration
 const queryClient = new QueryClient({

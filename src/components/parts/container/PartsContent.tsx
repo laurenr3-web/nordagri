@@ -5,6 +5,7 @@ import PartsList from '@/components/parts/PartsList';
 import { Part } from '@/types/Part';
 import { PartsView } from '@/hooks/parts/usePartsFilter';
 import { LoadingState, ErrorState, EmptyState } from './PartsStatusStates';
+import { withPerformanceTracking } from '@/lib/performance';
 
 interface PartsContentProps {
   parts: Part[];
@@ -71,4 +72,7 @@ const PartsContent: React.FC<PartsContentProps> = ({
   );
 };
 
-export default PartsContent;
+// Apply performance tracking in development mode
+export default process.env.NODE_ENV === 'development' 
+  ? withPerformanceTracking(PartsContent, 'PartsContent')
+  : PartsContent;
