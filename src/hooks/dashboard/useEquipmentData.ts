@@ -169,7 +169,7 @@ export const useEquipmentData = (user: any) => {
       const { data: maintenanceData, error: maintenanceError } = await supabase
         .from('maintenance_tasks')
         .select('equipment_id, title, due_date')
-        .in('equipment_id', equipmentIdStrings)
+        .in('equipment_id', equipmentIds)
         .eq('status', 'scheduled')
         .order('due_date', { ascending: true });
 
