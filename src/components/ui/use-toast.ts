@@ -1,10 +1,10 @@
 
 import { useToast, toast } from "@/hooks/use-toast";
 
-// Ajouter la configuration WDYR pour ce composant
+// La propriété whyDidYouRender doit être définie sur la fonction elle-même,
+// et non sur l'export qui n'est pas une fonction
 if (process.env.NODE_ENV === 'development') {
-  // We need to set the property on the function itself
-  // @ts-ignore - We know this property doesn't exist in the type definition
+  // @ts-ignore - Nous savons que cette propriété n'existe pas dans la définition de type
   useToast.whyDidYouRender = true;
 }
 
