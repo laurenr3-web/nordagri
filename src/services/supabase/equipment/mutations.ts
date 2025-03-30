@@ -90,17 +90,38 @@ export async function updateEquipment(equipment: Equipment): Promise<Equipment> 
  */
 export async function deleteEquipment(id: number | string): Promise<void> {
   try {
+    // Ensure we have a valid numeric ID
     const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
     
+    if (isNaN(numericId)) {
+      throw new Error(`Invalid equipment ID: ${id}`);
+    }
+    
+    console.log(`Attempting to delete equipment with ID: ${numericId}`);
+    
+    // First try to delete maintenance tasks associated with this equipment
+    const { error: maintenanceError } = await supabase
+      .from('equipment_maintenance_schedule')
+      .delete()
+      .eq('equipment_id', numericId);
+    
+    if (maintenanceError) {
+      console.warn(`Error deleting maintenance tasks for equipment ${numericId}:`, maintenanceError);
+      // Continue with deletion even if maintenance task deletion fails
+    }
+    
+    // Delete the equipment
     const { error } = await supabase
       .from('equipment')
       .delete()
       .eq('id', numericId);
     
     if (error) {
-      console.error('Error deleting equipment:', error);
+      console.error(`Error deleting equipment with ID ${numericId}:`, error);
       throw error;
     }
+    
+    console.log(`Successfully deleted equipment with ID: ${numericId}`);
   } catch (error) {
     console.error('Error in deleteEquipment:', error);
     throw error;

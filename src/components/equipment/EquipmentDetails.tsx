@@ -43,8 +43,17 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
     console.log('Deleting equipment with ID:', localEquipment.id);
     
     try {
-      await equipmentService.deleteEquipment(localEquipment.id);
+      // Convert ID to number if it's a string
+      const equipmentId = typeof localEquipment.id === 'string' 
+        ? parseInt(localEquipment.id, 10) 
+        : localEquipment.id;
+        
+      // Call the deleteEquipment service
+      await equipmentService.deleteEquipment(equipmentId);
+      
       toast.success(`L'équipement ${localEquipment.name} a été supprimé avec succès`);
+      
+      // Navigate away from the deleted equipment page
       navigate('/equipment');
     } catch (error) {
       console.error('Error deleting equipment:', error);
