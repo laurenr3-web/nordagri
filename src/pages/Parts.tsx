@@ -1,13 +1,33 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { useParts } from '@/hooks/useParts';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import PartsContainer from '@/components/parts/PartsContainer';
+import { useToast } from '@/hooks/use-toast';
+import { checkAuthStatus } from '@/utils/authUtils';
 
 const Parts = () => {
-  // Initialiser avec un tableau vide au lieu des données d'exemple
+  const { toast } = useToast();
+  // Initialize with an empty array - no example data
   const partsHookData = useParts([]);
+  
+  // Check authentication status on page load
+  useEffect(() => {
+    const checkAuth = async () => {
+      const status = await checkAuthStatus();
+      
+      if (!status.isAuthenticated) {
+        toast({
+          title: "Connexion requise",
+          description: "Vous devez être connecté pour gérer vos pièces",
+          variant: "destructive",
+        });
+      }
+    };
+    
+    checkAuth();
+  }, [toast]);
   
   return (
     <SidebarProvider>

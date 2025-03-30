@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { ensureNumberId } from '@/utils/typeGuards';
+import { checkAuthStatus } from '@/utils/authUtils';
 
 /**
  * Supprime une pièce de l'inventaire
@@ -12,25 +13,38 @@ export async function deletePart(partId: number | string): Promise<boolean> {
   console.log("🗑️ Suppression de la pièce ID:", partId);
   
   try {
+    // Vérifier l'état de l'authentification
+    const authStatus = await checkAuthStatus();
+    if (!authStatus.isAuthenticated) {
+      throw new Error("Vous devez être connecté pour supprimer des pièces");
+    }
+    
     // Convert string id to number if needed
     const numericId = ensureNumberId(partId);
     
-    const { error } = await supabase
+    const { error, data } = await supabase
       .from('parts_inventory')
       .delete()
-      .eq('id', numericId);
+      .eq('id', numericId)
+      .select('id');
     
     if (error) {
       console.error("❌ Erreur Supabase lors de la suppression:", error);
       
-      // Messages d'erreur spécifiques
-      if (error.code === '42501') {
+      // Vérifier si c'est une erreur de RLS
+      if (error.code === '42501' || error.message.includes('row-level security')) {
         throw new Error("Vous n'avez pas les permissions nécessaires pour supprimer cette pièce");
       } else if (error.code === '23503') {
         throw new Error("Cette pièce est utilisée ailleurs et ne peut pas être supprimée");
       } else {
         throw new Error(`Erreur lors de la suppression: ${error.message || "Problème inconnu"}`);
       }
+    }
+    
+    // Si aucune donnée n'est retournée, la pièce n'existe peut-être pas
+    if (!data || data.length === 0) {
+      console.warn("⚠️ Aucune pièce n'a été supprimée, vérifiez l'ID:", partId);
+      return false;
     }
     
     console.log("✅ Pièce supprimée avec succès");

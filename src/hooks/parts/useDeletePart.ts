@@ -2,10 +2,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deletePart } from '@/services/supabase/parts';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 export function useDeletePart() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const mutation = useMutation({
     mutationFn: async (partId: number | string) => {
@@ -15,6 +17,8 @@ export function useDeletePart() {
     onSuccess: (_data, variables) => {
       // Invalidate and refetch parts query
       console.log('Successfully deleted part ID:', variables);
+      
+      // Invalidate the query to refresh the data
       queryClient.invalidateQueries({ queryKey: ['parts'] });
       
       toast({
@@ -22,16 +26,28 @@ export function useDeletePart() {
         description: `La pièce a été supprimée avec succès.`,
       });
       
-      // We're removing the navigation from here to avoid issues
-      // Navigation will be handled by the components that use this hook
+      // Force a page refresh to ensure UI is updated
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     },
     onError: (error: any) => {
       console.error('Error in deletePart mutation:', error);
-      toast({
-        title: "Erreur",
-        description: error.message || "Une erreur est survenue lors de la suppression de la pièce",
-        variant: "destructive",
-      });
+      
+      // Check if this is an RLS policy violation
+      if (error.message && error.message.includes('row-level security')) {
+        toast({
+          title: "Erreur d'autorisation",
+          description: "Vous ne pouvez supprimer que les pièces que vous avez créées.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Erreur",
+          description: error.message || "Une erreur est survenue lors de la suppression de la pièce",
+          variant: "destructive",
+        });
+      }
     }
   });
 
