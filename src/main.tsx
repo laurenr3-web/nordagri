@@ -29,7 +29,6 @@ const queryClient = new QueryClient({
       },
       staleTime: 5 * 60 * 1000, // 5 minutes
       gcTime: 10 * 60 * 1000, // 10 minutes (anciennement cacheTime)
-      // Using onSettled for handling errors instead of direct onError
       onSettled: (_data, error) => {
         if (error) {
           const message = (error as Error)?.message || 'Une erreur est survenue';
@@ -39,7 +38,6 @@ const queryClient = new QueryClient({
     },
     mutations: {
       retry: 1,
-      // Using onSettled for mutations as well
       onSettled: (_data, error) => {
         if (error) {
           const message = (error as Error)?.message || 'Une erreur est survenue lors de la modification';
