@@ -13,6 +13,7 @@ import MaintenanceSummaryCards from './maintenance/MaintenanceSummaryCards';
 import MaintenanceCalendarTable from './maintenance/MaintenanceCalendarTable';
 import AddPartDialog from '@/components/parts/dialogs/AddPartDialog';
 import { formatDate, getStatusBadge, getPriorityColor } from './maintenance/maintenanceUtils';
+import MaintenanceQuoteDialog from './maintenance/MaintenanceQuoteDialog';
 
 interface EquipmentMaintenanceProps {
   equipment: any;
@@ -24,6 +25,8 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
   const [loading, setLoading] = useState(false);
   const [isNewMaintenanceOpen, setIsNewMaintenanceOpen] = useState(false);
   const [isAddPartDialogOpen, setIsAddPartDialogOpen] = useState(false);
+  const [selectedMaintenanceTask, setSelectedMaintenanceTask] = useState<any>(null);
+  const [isQuoteDialogOpen, setIsQuoteDialogOpen] = useState(false);
 
   const handleAddTask = () => {
     setIsNewMaintenanceOpen(true);
@@ -71,7 +74,35 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
   };
 
   const handleViewQuote = (taskId: number) => {
-    toast.info('La fonctionnalité de visualisation des devis a été désactivée');
+    // Find the task with the matching ID
+    const task = maintenanceTasks?.find(task => task.id === taskId);
+    if (task) {
+      setSelectedMaintenanceTask({
+        ...task,
+        equipment: equipment,
+        estimatedDuration: task.engineHours
+      });
+      setIsQuoteDialogOpen(true);
+    } else {
+      toast.error('Tâche non trouvée');
+    }
+  };
+
+  const handleDeleteTask = async (taskId: number) => {
+    try {
+      setLoading(true);
+      await maintenanceService.deleteTask(taskId);
+      toast.success('Tâche supprimée avec succès');
+      
+      // Rafraîchir la page pour voir les changements
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (error: any) {
+      console.error('Erreur lors de la suppression de la tâche:', error);
+      toast.error('Impossible de supprimer la tâche: ' + error.message);
+    } finally {
+      setLoading(false);
+      setIsQuoteDialogOpen(false);
+    }
   };
 
   const handleChangeStatus = async (taskId: number, newStatus: string) => {
@@ -149,6 +180,14 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
         isOpen={isAddPartDialogOpen}
         onOpenChange={setIsAddPartDialogOpen}
         onSuccess={handlePartAdded}
+      />
+
+      {/* Dialog pour afficher le devis de maintenance */}
+      <MaintenanceQuoteDialog
+        isOpen={isQuoteDialogOpen}
+        onClose={() => setIsQuoteDialogOpen(false)}
+        maintenance={selectedMaintenanceTask}
+        onDelete={handleDeleteTask}
       />
     </div>
   );

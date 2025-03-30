@@ -35,7 +35,6 @@ const EquipmentDetail = () => {
                   equipment={equipment}
                   onUpdate={async (updatedData) => {
                     await handleEquipmentUpdate(updatedData);
-                    return;
                   }}
                 />
               )}
