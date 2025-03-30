@@ -10,9 +10,10 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import { SidebarProvider } from '@/components/ui/sidebar/sidebar-context';
 import { Sidebar } from '@/components/ui/sidebar/sidebar';
 import { useMaintenanceRealtime } from '@/hooks/maintenance/useMaintenanceRealtime';
+import { cleanupOrphanedPortals } from '@/utils/dom-helpers';
 
 const Maintenance = () => {
-  // Use React.useState instead of useState directly
+  // Utiliser des références stables pour éviter les re-renders inutiles
   const [currentView, setCurrentView] = React.useState('upcoming');
   const [currentMonth] = React.useState(new Date());
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(undefined);
@@ -31,7 +32,18 @@ const Maintenance = () => {
     deleteTask
   } = useTasksManager(maintenanceTasks);
 
-  // Handle open/close new task dialog
+  // Réaliser le nettoyage des portails orphelins au chargement et déchargement
+  React.useEffect(() => {
+    // Nettoyer les portails orphelins au chargement
+    cleanupOrphanedPortals();
+    
+    // Nettoyer les portails orphelins au déchargement
+    return () => {
+      cleanupOrphanedPortals();
+    };
+  }, []);
+
+  // Handle open/close new task dialog avec useCallback pour stabilité des refs
   const handleOpenNewTaskDialog = React.useCallback((open: boolean) => {
     if (!open) {
       setSelectedDate(undefined);
@@ -39,7 +51,7 @@ const Maintenance = () => {
     setIsNewTaskDialogOpen(open);
   }, []);
 
-  // Handle adding a task
+  // Handle adding a task avec useCallback pour stabilité des refs
   const handleAddTask = React.useCallback((formData: any) => {
     console.log('Adding task in Maintenance component:', formData);
     return addTask(formData);
@@ -73,14 +85,17 @@ const Maintenance = () => {
               </div>
             </div>
           </div>
+        </SidebarProvider>
           
+        {/* Conditionally render dialog to prevent unmounting issues */}
+        {isNewTaskDialogOpen && (
           <NewTaskDialog 
             open={isNewTaskDialogOpen}
             onOpenChange={handleOpenNewTaskDialog}
             onSubmit={handleAddTask}
             initialDate={selectedDate}
           />
-        </SidebarProvider>
+        )}
       </div>
     </ErrorBoundary>
   );

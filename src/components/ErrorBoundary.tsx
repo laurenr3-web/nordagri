@@ -1,6 +1,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { toast } from 'sonner';
+import { cleanupOrphanedPortals, patchDomOperations } from '@/utils/dom-helpers';
 
 interface Props {
   children: ReactNode;
@@ -27,7 +28,7 @@ class ErrorBoundary extends Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
     
     // Show toast notification for the error
-    toast.error("An error occurred", {
+    toast.error("Une erreur s'est produite", {
       description: error.message,
     });
     
@@ -46,38 +47,40 @@ class ErrorBoundary extends Component<Props, State> {
     }
   }
   
+  componentDidMount() {
+    // Apply DOM operation patches when the component mounts
+    patchDomOperations();
+  }
+  
   handleDOMError = (): void => {
-    console.log("Attempting to recover from DOM error...");
+    console.log("Tentative de récupération après erreur DOM...");
     
     // Clean up orphaned portals
-    try {
-      const portals = document.querySelectorAll('[data-radix-portal]');
-      portals.forEach(portal => {
-        if (portal.children.length === 0 && portal.parentNode) {
-          try {
-            portal.parentNode.removeChild(portal);
-            console.log("Cleaned up orphaned portal");
-          } catch (e) {
-            console.warn('Portal cleanup error:', e);
-          }
-        }
-      });
-    } catch (error) {
-      console.error("Error during portal cleanup:", error);
-    }
+    cleanupOrphanedPortals();
+    
+    // Attempt to patch DOM methods if not already done
+    patchDomOperations();
+    
+    // Force update after a small delay to allow React to stabilize
+    setTimeout(() => {
+      this.setState({ hasError: false });
+    }, 100);
   }
 
   render(): ReactNode {
     if (this.state.hasError) {
       return this.props.fallback || (
-        <div className="p-4 border border-red-300 rounded bg-red-50">
-          <h2 className="text-lg font-semibold text-red-700">Something went wrong</h2>
+        <div className="p-6 border border-red-300 rounded bg-red-50">
+          <h2 className="text-xl font-semibold text-red-700">Une erreur est survenue</h2>
           <p className="text-red-600 mt-2">{this.state.error?.message}</p>
           <button 
-            onClick={() => this.setState({ hasError: false })}
-            className="mt-2 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-800"
+            onClick={() => {
+              cleanupOrphanedPortals();
+              this.setState({ hasError: false });
+            }}
+            className="mt-4 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-800"
           >
-            Try again
+            Réessayer
           </button>
         </div>
       );

@@ -28,17 +28,30 @@ const SafeDialog: React.FC<SafeDialogProps> = ({
   // Use a ref to track mount state
   const isMountedRef = useRef(true);
   
+  // Cleanup function to handle orphaned portals
+  const cleanupOnClose = useCallback(() => {
+    if (open === false) {
+      setTimeout(() => {
+        cleanupOrphanedPortals();
+      }, 100);
+    }
+  }, [open]);
+  
   useEffect(() => {
     isMountedRef.current = true;
+    
+    // Cleanup when open state changes
+    cleanupOnClose();
+    
     return () => { 
       isMountedRef.current = false; 
       
       // Cleanup orphaned portal elements on unmount
       setTimeout(() => {
         cleanupOrphanedPortals();
-      }, 100); // Small delay to ensure React has finished with portals
+      }, 100);
     };
-  }, []);
+  }, [open, cleanupOnClose]);
   
   const handleOpenChange = useCallback((newOpen: boolean) => {
     if (isMountedRef.current && onOpenChange) {
@@ -46,6 +59,13 @@ const SafeDialog: React.FC<SafeDialogProps> = ({
       requestAnimationFrame(() => {
         if (isMountedRef.current) {
           onOpenChange(newOpen);
+          
+          // Cleanup orphaned portals after dialog closes
+          if (!newOpen) {
+            setTimeout(() => {
+              cleanupOrphanedPortals();
+            }, 100);
+          }
         }
       });
     }

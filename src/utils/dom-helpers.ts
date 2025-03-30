@@ -44,7 +44,12 @@ export function safeAppendChild(parent: Node, child: Node): boolean {
   try {
     // If the node already has a parent, remove it first
     if (child.parentNode && child.parentNode !== parent) {
-      safeRemoveChild(child.parentNode, child);
+      try {
+        child.parentNode.removeChild(child);
+      } catch (e) {
+        console.warn('Error removing child from previous parent:', e);
+        // Continue anyway to try the append
+      }
     }
     
     // Append the child to the parent
@@ -70,7 +75,12 @@ export function safeInsertBefore(parent: Node, newNode: Node, referenceNode: Nod
   try {
     // If the new node already has a parent, remove it first
     if (newNode.parentNode && newNode.parentNode !== parent) {
-      safeRemoveChild(newNode.parentNode, newNode);
+      try {
+        newNode.parentNode.removeChild(newNode);
+      } catch (e) {
+        console.warn('Error removing node from previous parent:', e);
+        // Continue anyway to try the insert
+      }
     }
     
     // If reference node is null or not a child of parent, append the child
@@ -101,10 +111,130 @@ export function cleanupOrphanedPortals(): void {
     const portals = document.querySelectorAll('[data-radix-portal]');
     portals.forEach(portal => {
       if (portal.children.length === 0 && portal.parentNode) {
-        safeRemoveChild(portal.parentNode, portal);
+        try {
+          portal.parentNode.removeChild(portal);
+          console.log('Cleaned up orphaned portal');
+        } catch (e) {
+          console.warn('Portal cleanup error:', e);
+        }
+      }
+    });
+    
+    // Also clean up other common React portal elements
+    const reactModals = document.querySelectorAll('.ReactModal__Overlay, .ReactModal__Content');
+    reactModals.forEach(modal => {
+      if (modal.parentNode && (modal as HTMLElement).style.display === 'none') {
+        try {
+          modal.parentNode.removeChild(modal);
+          console.log('Cleaned up hidden React modal');
+        } catch (e) {
+          console.warn('Modal cleanup error:', e);
+        }
       }
     });
   } catch (error) {
     console.warn('Portal cleanup error:', error);
   }
+}
+
+/**
+ * Patches common DOM APIs to make them safe against React bugs
+ */
+export function patchDomOperations(): void {
+  // Backup original methods
+  const originalRemoveChild = Node.prototype.removeChild;
+  const originalAppendChild = Node.prototype.appendChild;
+  const originalInsertBefore = Node.prototype.insertBefore;
+  
+  // Patch removeChild
+  Node.prototype.removeChild = function(child) {
+    if (!child) {
+      console.warn('Safe DOM: Prevented removeChild call with null/undefined child');
+      return null;
+    }
+    
+    try {
+      // Check if child is actually a child of this node
+      if (this.contains(child)) {
+        return originalRemoveChild.call(this, child);
+      } else {
+        console.warn('Safe DOM: removeChild called for non-child node');
+        
+        // Try to find and remove from actual parent if possible
+        if (child.parentNode) {
+          console.log('Found actual parent, removing properly');
+          return child.parentNode.removeChild(child);
+        }
+        
+        return child;
+      }
+    } catch (e) {
+      console.warn('Caught error in removeChild:', e);
+      return child;
+    }
+  };
+  
+  // Patch appendChild to be safer
+  Node.prototype.appendChild = function(child) {
+    if (!child) {
+      console.warn('Safe DOM: Prevented appendChild call with null/undefined child');
+      return null;
+    }
+    
+    try {
+      // If the node already has a parent, remove it first to avoid DOM hierarchy issues
+      if (child.parentNode && child.parentNode !== this) {
+        try {
+          child.parentNode.removeChild(child);
+        } catch (e) {
+          console.warn('Error removing from previous parent:', e);
+        }
+      }
+      return originalAppendChild.call(this, child);
+    } catch (e) {
+      console.warn('Caught error in appendChild:', e);
+      return child;
+    }
+  };
+  
+  // Patch insertBefore
+  Node.prototype.insertBefore = function(newNode, referenceNode) {
+    if (!newNode) {
+      console.warn('Safe DOM: Prevented insertBefore call with null/undefined newNode');
+      return null;
+    }
+    
+    try {
+      // If the new node already has a parent, remove it first
+      if (newNode.parentNode && newNode.parentNode !== this) {
+        try {
+          newNode.parentNode.removeChild(newNode);
+        } catch (e) {
+          console.warn('Error removing from previous parent:', e);
+        }
+      }
+      
+      // Handle null referenceNode (appendChild behavior)
+      if (!referenceNode) {
+        return this.appendChild(newNode);
+      }
+      
+      // Check if reference node is actually a child
+      if (!this.contains(referenceNode)) {
+        console.warn('Reference node is not a child in insertBefore');
+        return this.appendChild(newNode);
+      }
+      
+      return originalInsertBefore.call(this, newNode, referenceNode);
+    } catch (e) {
+      console.warn('Caught error in insertBefore:', e);
+      try {
+        // Fallback to appendChild if insertBefore fails
+        return this.appendChild(newNode);
+      } catch (e2) {
+        console.warn('Fallback appendChild also failed:', e2);
+        return newNode;
+      }
+    }
+  };
 }

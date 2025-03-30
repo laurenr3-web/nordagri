@@ -13,11 +13,32 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import App from './App';
 import './styles/index.css';
 import { monitorPerformance } from './lib/performance';
+import { patchDomOperations, cleanupOrphanedPortals } from './utils/dom-helpers';
 
 // Initialize performance monitoring in development
 if (process.env.NODE_ENV === 'development') {
   monitorPerformance();
+  
+  // Apply DOM operation patches
+  patchDomOperations();
 }
+
+// Créer un script pour corriger les erreurs DOM
+const initDomFixing = () => {
+  // Rendre disponible globalement pour les corrections d'urgence
+  (window as any).__fixDOMErrors = () => {
+    patchDomOperations();
+    cleanupOrphanedPortals();
+  };
+  
+  // Cleanup périodique des portails
+  setInterval(() => {
+    cleanupOrphanedPortals();
+  }, 10000);
+};
+
+// Initialiser les correctifs DOM
+initDomFixing();
 
 // Create a Query Client for React Query with enhanced configuration and error handling
 const queryClient = new QueryClient({
@@ -27,6 +48,17 @@ const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000, // 5 minutes
       gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
       refetchOnWindowFocus: false,
+    },
+    mutations: {
+      // Configuration pour éviter les mutations simultanées
+      // qui peuvent causer des erreurs DOM
+      retry: 1,
+      onSettled: () => {
+        // Nettoyer les éléments de portail orphelins après chaque mutation
+        setTimeout(() => {
+          cleanupOrphanedPortals();
+        }, 100);
+      },
     },
   },
 });

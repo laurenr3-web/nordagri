@@ -1,9 +1,4 @@
 
-// This file is intentionally empty - WDYR is temporarily disabled to resolve
-// the "Cannot read properties of null (reading 'current')" error.
-// To re-enable WDYR, uncomment the code below and adjust the exclusions as needed.
-
-/*
 import React from 'react';
 
 if (process.env.NODE_ENV === 'development') {
@@ -32,16 +27,19 @@ if (process.env.NODE_ENV === 'development') {
         /Context$/,
         /^QueryClientProvider/,
         /use/, // Exclude all hooks
-        /^Maintenance/, // Exclude Maintenance component
+        /^Maintenance/, // Exclude Maintenance component and children
         /^MaintenanceContent/,
         /^MaintenanceHeader/,
+        /^MaintenanceStats/,
         /^NewTaskDialog/,
         /^TaskCard/,
+        /^TaskTabs/,
+        /^TaskDetails/,
         /^ProtectedRoute/,
-        /^RealtimeCacheProvider/
+        /^RealtimeCacheProvider/,
+        /^SafeDialog/
       ],
       trackExtraHooks: []
     });
   });
 }
-*/
