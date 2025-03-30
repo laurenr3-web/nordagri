@@ -5,7 +5,6 @@ import { RealtimeCacheProvider } from '@/providers/RealtimeCacheProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import MobileMenu from '@/components/layout/MobileMenu';
-import { useEffect } from 'react';
 
 // Pages
 import Index from '@/pages/Index';
@@ -21,24 +20,7 @@ import NotFound from '@/pages/NotFound';
 import Auth from '@/pages/Auth';
 
 function App() {
-  // Load the fix scripts
-  useEffect(() => {
-    const loadFixScripts = () => {
-      // We now only need to load fix-all.js which will coordinate loading other scripts
-      const script = document.createElement('script');
-      script.src = '/fix-all.js';
-      script.async = true;
-      document.head.appendChild(script);
-      
-      console.log('🛠️ Loading fix scripts and optimizations...');
-    };
-    
-    loadFixScripts();
-    
-    return () => {
-      console.log('✅ Repairs completed! Buttons and forms should now work correctly.');
-    };
-  }, []);
+  // The fix scripts loading code has been removed
   
   return (
     <RealtimeCacheProvider>
