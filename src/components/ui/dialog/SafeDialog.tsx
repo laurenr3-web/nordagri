@@ -64,8 +64,5 @@ export const SafeDialogTitle = DialogTitle;
 export const SafeDialogDescription = DialogDescription;
 export const SafeDialogClose = DialogClose;
 
-// Export types
-export type { SafeDialogProps };
-
 // Default export
 export default SafeDialog;

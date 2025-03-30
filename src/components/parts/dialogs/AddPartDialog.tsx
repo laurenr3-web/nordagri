@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef } from 'react';
-import { SafeDialog, SafeDialogContent, SafeDialogHeader, SafeDialogTitle, SafeDialogDescription } from '@/components/ui/dialog/SafeDialog';
+import SafeDialog, { SafeDialogContent, SafeDialogHeader, SafeDialogTitle, SafeDialogDescription } from '@/components/ui/dialog/SafeDialog';
 import AddPartForm from '@/components/parts/AddPartForm';
 
 interface AddPartDialogProps {
