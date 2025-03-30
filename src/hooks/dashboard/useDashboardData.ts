@@ -266,7 +266,7 @@ export const useDashboardData = () => {
           name: item.name,
           type: item.type || 'Unknown',
           status: item.status || 'operational',
-          nextMaintenance: null // We'll have to calculate this separately
+          nextMaintenance: null // We'll calculate this separately
         }));
         setEquipmentData(mappedEquipment);
       }
@@ -277,7 +277,7 @@ export const useDashboardData = () => {
 
   const fetchMaintenance = async () => {
     try {
-      // Using maintenance_tasks instead of maintenance_schedule
+      // Using maintenance_tasks table instead of maintenance_schedule
       const { data, error } = await supabase
         .from('maintenance_tasks')
         .select('id, title, due_date, status, equipment')
@@ -294,13 +294,15 @@ export const useDashboardData = () => {
           id: task.id,
           title: task.title,
           date: new Date(task.due_date),
-          status: task.status,
+          status: task.status || 'scheduled',
           equipment: task.equipment
         }));
         setMaintenanceEvents(mappedEvents);
       }
     } catch (error) {
       console.error("Error fetching maintenance schedule:", error);
+      // If there's an error, let's set empty data so we don't break the UI
+      setMaintenanceEvents([]);
     }
   };
 
@@ -317,15 +319,35 @@ export const useDashboardData = () => {
         .filter('quantity', 'lt', 'reorder_threshold');
 
       if (lowPartsError) {
-        throw lowPartsError;
-      }
-
-      if (lowPartsData && lowPartsData.length > 0) {
+        console.error('Error retrieving alerts:', lowPartsError);
+        // Try an alternative approach
+        const { data: lowPartsDataAlt, error: lowPartsErrorAlt } = await supabase
+          .from('parts_inventory')
+          .select('id, name, quantity, reorder_threshold')
+          .eq('owner_id', user?.id);
+        
+        if (!lowPartsErrorAlt && lowPartsDataAlt) {
+          // Filter manually in JS
+          const filteredData = lowPartsDataAlt.filter(part => 
+            part.quantity < (part.reorder_threshold || 0)
+          );
+          
+          filteredData.forEach(part => {
+            alerts.push({
+              id: alertId++,
+              type: 'warning',
+              message: `Low stock: ${part.name} (Current: ${part.quantity}, Reorder at: ${part.reorder_threshold || 0})`,
+              date: new Date(),
+              action: 'Reorder Parts'
+            });
+          });
+        }
+      } else if (lowPartsData && lowPartsData.length > 0) {
         lowPartsData.forEach(part => {
           alerts.push({
             id: alertId++,
             type: 'warning',
-            message: `Low stock: ${part.name} (Current: ${part.quantity}, Reorder at: ${part.reorder_threshold})`,
+            message: `Low stock: ${part.name} (Current: ${part.quantity}, Reorder at: ${part.reorder_threshold || 0})`,
             date: new Date(),
             action: 'Reorder Parts'
           });
@@ -359,6 +381,8 @@ export const useDashboardData = () => {
       setAlertItems(alerts);
     } catch (error) {
       console.error('Error retrieving alerts:', error);
+      // If there's an error, set an empty array to avoid UI issues
+      setAlertItems([]);
     }
   };
 
@@ -384,12 +408,14 @@ export const useDashboardData = () => {
           title: task.title,
           equipment: task.equipment,
           date: new Date(task.due_date),
-          priority: task.priority
+          priority: task.priority || 'medium'
         }));
         setUpcomingTasks(mappedTasks);
       }
     } catch (error) {
       console.error("Error fetching tasks:", error);
+      // If there's an error, set an empty array to avoid UI issues
+      setUpcomingTasks([]);
     }
   };
 

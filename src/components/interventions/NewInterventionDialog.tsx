@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Intervention, InterventionFormValues } from '@/types/Intervention';
@@ -33,6 +34,7 @@ const NewInterventionDialog: React.FC<NewInterventionDialogProps> = ({
       technician: 'Technicien Test',
       description: 'Description de la nouvelle intervention',
       notes: 'Notes pour la nouvelle intervention',
+      partsUsed: [], // Add this to fix the type error
     };
     
     // Call the parent component's onCreate function
