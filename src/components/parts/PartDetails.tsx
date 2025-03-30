@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,7 +23,6 @@ import PartInventoryInfo from './details/PartInventoryInfo';
 import PartCompatibility from './details/PartCompatibility';
 import PartReorderInfo from './details/PartReorderInfo';
 import EditPartDialog from './dialogs/EditPartDialog';
-import PartPriceComparison from './PartPriceComparison';
 import { useDeletePart } from '@/hooks/parts';
 
 interface PartDetailsProps {
@@ -51,6 +51,11 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
           // Fermer le dialogue principal après la suppression réussie
           if (onDialogClose) {
             setTimeout(() => onDialogClose(), 300);
+          }
+          
+          // Rediriger vers la liste des pièces si onBack est fourni
+          if (onBack) {
+            onBack();
           }
         }
       });
@@ -130,13 +135,6 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
       <PartCompatibility compatibility={part.compatibility} />
 
       <PartReorderInfo part={part} />
-
-      {/* Price Comparison Component */}
-      <PartPriceComparison 
-        partReference={part.partNumber || part.reference || ''}
-        partName={part.name}
-        partManufacturer={part.manufacturer}
-      />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

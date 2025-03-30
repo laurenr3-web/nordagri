@@ -3,9 +3,10 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Edit, Trash2, DollarSign, Info } from 'lucide-react';
-import PriceComparisonTab from './PriceComparisonTab';
+import { ArrowLeft, Edit, Trash2, Info } from 'lucide-react';
 import TechnicalInfoTab from './TechnicalInfoTab';
+import { useToast } from '@/hooks/use-toast';
+import { useDeletePart } from '@/hooks/parts';
 
 // Utilisez LocalPart ou votre interface Part selon votre configuration
 interface PartProps {
@@ -17,10 +18,29 @@ interface PartProps {
 
 const PartDetailsExtended = ({ part, onBack, onEdit, onDelete }: PartProps) => {
   const [activeTab, setActiveTab] = useState('details');
+  const { toast } = useToast();
+  const deleteMutation = useDeletePart();
 
   const handleDelete = () => {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette pièce ?')) {
-      onDelete(part.id);
+      // Utiliser la mutation directement pour bénéficier de son système de gestion d'erreurs
+      deleteMutation.mutate(part.id, {
+        onSuccess: () => {
+          toast({
+            title: "Pièce supprimée",
+            description: `La pièce ${part.name} a été supprimée avec succès`,
+          });
+          // Rediriger vers la liste des pièces
+          onBack();
+        },
+        onError: (error: any) => {
+          toast({
+            title: "Erreur",
+            description: error.message || "Erreur lors de la suppression de la pièce",
+            variant: "destructive",
+          });
+        }
+      });
     }
   };
 
@@ -53,10 +73,6 @@ const PartDetailsExtended = ({ part, onBack, onEdit, onDelete }: PartProps) => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full">
           <TabsTrigger value="details" className="flex-1">Détails</TabsTrigger>
-          <TabsTrigger value="prices" className="flex-1 flex items-center">
-            <DollarSign className="h-4 w-4 mr-2" />
-            Comparaison des prix
-          </TabsTrigger>
           <TabsTrigger value="technical" className="flex-1 flex items-center">
             <Info className="h-4 w-4 mr-2" />
             Informations techniques
@@ -114,13 +130,6 @@ const PartDetailsExtended = ({ part, onBack, onEdit, onDelete }: PartProps) => {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
-        
-        <TabsContent value="prices">
-          <PriceComparisonTab 
-            partNumber={part.reference} 
-            partName={part.name} 
-          />
         </TabsContent>
         
         <TabsContent value="technical">

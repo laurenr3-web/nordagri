@@ -19,6 +19,15 @@ const PartDetailsDialog: React.FC<PartDetailsDialogProps> = ({
   onEdit,
   onDelete
 }) => {
+  // Fonction pour gérer la suppression d'une pièce
+  const handleDelete = (partId: number | string) => {
+    if (onDelete) {
+      onDelete(partId);
+      // Fermer le dialogue après la suppression
+      onOpenChange(false);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent 
@@ -26,16 +35,16 @@ const PartDetailsDialog: React.FC<PartDetailsDialogProps> = ({
         onClick={e => e.stopPropagation()}
       >
         <DialogHeader>
-          <DialogTitle>Part Details</DialogTitle>
+          <DialogTitle>Détails de la pièce</DialogTitle>
           <DialogDescription>
-            Detailed information about the selected part
+            Informations détaillées sur la pièce sélectionnée
           </DialogDescription>
         </DialogHeader>
         {selectedPart && (
           <PartDetails 
             part={selectedPart} 
             onEdit={onEdit}
-            onDelete={onDelete}
+            onDelete={handleDelete}
             onDialogClose={() => onOpenChange(false)}
           />
         )}
