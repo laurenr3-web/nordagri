@@ -37,6 +37,21 @@ const mapEquipmentToDb = (equipment: Omit<Equipment, 'id'>) => ({
 });
 
 /**
+ * Fonction utilitaire pour convertir les dates en strings ISO
+ */
+function convertDatesToISOStrings(obj: Record<string, any>): Record<string, any> {
+  const result = { ...obj };
+  
+  for (const key in result) {
+    if (result[key] instanceof Date) {
+      result[key] = result[key].toISOString();
+    }
+  }
+  
+  return result;
+}
+
+/**
  * Application des filtres à la requête Supabase
  */
 const applyFilters = (query: any, filters?: EquipmentFilter) => {
@@ -125,15 +140,18 @@ export const supabaseAdapter = {
     
     async add(equipment: Omit<Equipment, 'id'>): Promise<Equipment> {
       try {
+        // Get the current user session
         const { data: sessionData } = await supabase.auth.getSession();
         
-        const dbEquipment = {
+        // Prepare equipment data with dates converted to ISO strings
+        const dbEquipment = convertDatesToISOStrings({
           ...mapEquipmentToDb(equipment),
           owner_id: sessionData.session?.user.id,
           created_at: new Date(),
           updated_at: new Date()
-        };
+        });
         
+        // Insert the equipment
         const { data, error } = await supabase
           .from('equipment')
           .insert(dbEquipment)
@@ -151,11 +169,13 @@ export const supabaseAdapter = {
     
     async update(equipment: Equipment): Promise<Equipment> {
       try {
-        const dbEquipment = {
+        // Prepare equipment data with dates converted to ISO strings
+        const dbEquipment = convertDatesToISOStrings({
           ...mapEquipmentToDb(equipment),
           updated_at: new Date()
-        };
+        });
         
+        // Update the equipment
         const { data, error } = await supabase
           .from('equipment')
           .update(dbEquipment)
