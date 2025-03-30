@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Card, 
   CardContent, 
@@ -18,14 +18,31 @@ interface EquipmentImageGalleryProps {
 }
 
 const EquipmentImageGallery: React.FC<EquipmentImageGalleryProps> = ({ equipment }) => {
-  // Pour l'instant, nous travaillons avec une seule image, mais préparons la structure pour plusieurs
-  const [images, setImages] = useState<string[]>([
-    equipment.image || "https://images.unsplash.com/photo-1585911171167-1f66ea3de00c?q=80&w=500&auto=format&fit=crop",
-    "/lovable-uploads/8836399b-f872-4bf0-a7c1-427cebe79e97.png"
-  ].filter(Boolean));
-  
+  // Initialiser les images avec l'image fournie par l'équipement
+  const [images, setImages] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isZoomOpen, setIsZoomOpen] = useState(false);
+  
+  // Mettre à jour les images lorsque l'équipement change
+  useEffect(() => {
+    const equipmentImages = [];
+    
+    // Ajouter l'image principale de l'équipement si elle existe
+    if (equipment.image) {
+      equipmentImages.push(equipment.image);
+    }
+    
+    // Ajouter une image par défaut si aucune image n'est disponible
+    // ou une deuxième image de démonstration
+    if (equipmentImages.length === 0) {
+      equipmentImages.push("https://images.unsplash.com/photo-1585911171167-1f66ea3de00c?q=80&w=500&auto=format&fit=crop");
+    } else {
+      // Ajouter l'image uploadée comme seconde image pour démonstration
+      equipmentImages.push("/lovable-uploads/ec804880-63d5-4999-8bd9-4b853ec3360d.png");
+    }
+    
+    setImages(equipmentImages);
+  }, [equipment]);
   
   const navigateImage = (direction: 'prev' | 'next') => {
     if (direction === 'prev') {

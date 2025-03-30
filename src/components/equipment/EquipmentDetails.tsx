@@ -4,10 +4,10 @@ import { Separator } from '@/components/ui/separator';
 import EditEquipmentDialog from './dialogs/EditEquipmentDialog';
 import { EquipmentItem } from './hooks/useEquipmentFilters';
 import EquipmentHeader from './details/EquipmentHeader';
-import EquipmentTabs from './details/EquipmentTabs';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { equipmentService } from '@/services/supabase/equipmentService';
+import EquipmentOverview from './details/EquipmentOverview';
 
 interface EquipmentDetailsProps {
   equipment: EquipmentItem;
@@ -16,7 +16,6 @@ interface EquipmentDetailsProps {
 
 const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate }) => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("overview");
   const [localEquipment, setLocalEquipment] = useState(equipment);
   const navigate = useNavigate();
 
@@ -71,11 +70,7 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
 
       <Separator />
       
-      <EquipmentTabs
-        equipment={localEquipment}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-      />
+      <EquipmentOverview equipment={localEquipment} />
       
       {/* Edit Equipment Dialog */}
       {isEditDialogOpen && (
