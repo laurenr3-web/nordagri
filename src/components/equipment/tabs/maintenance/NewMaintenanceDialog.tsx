@@ -42,6 +42,8 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
       },
       status: 'scheduled',
       id: Date.now(), // ID temporaire pour la démo
+      // Conserver les heures moteur pour Supabase
+      engine_hours: values.engineHours
     };
     
     setMaintenanceData(maintenance);

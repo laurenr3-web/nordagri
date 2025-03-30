@@ -38,7 +38,7 @@ const maintenanceFormSchema = z.object({
   dueDate: z.date({
     required_error: "Veuillez sélectionner une date",
   }),
-  estimatedDuration: z.coerce.number().min(0.5, 'La durée minimum est de 0.5 heure'),
+  engineHours: z.coerce.number().min(0, 'Les heures moteur doivent être un nombre positif'),
   notes: z.string().optional(),
   partId: z.string().optional(),
 });
@@ -114,7 +114,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
       type: 'preventive',
       priority: 'medium',
       dueDate: new Date(),
-      estimatedDuration: 1,
+      engineHours: equipment?.current_hours || 0,
       notes: '',
       partId: '',
     },
@@ -238,12 +238,12 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
 
           <FormField
             control={form.control}
-            name="estimatedDuration"
+            name="engineHours"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Durée estimée (heures)</FormLabel>
+                <FormLabel>Heures moteur</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.5" min="0.5" {...field} />
+                  <Input type="number" min="0" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

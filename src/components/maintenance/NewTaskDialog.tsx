@@ -35,8 +35,8 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({ open, onOpenChange, onSub
     setPriority,
     dueDate,
     setDueDate,
-    estimatedDuration,
-    setEstimatedDuration,
+    engineHours,
+    setEngineHours,
     assignedTo,
     setAssignedTo,
     notes,
@@ -85,8 +85,8 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({ open, onOpenChange, onSub
               setPriority={setPriority}
               dueDate={dueDate}
               setDueDate={setDueDate}
-              estimatedDuration={estimatedDuration}
-              setEstimatedDuration={setEstimatedDuration}
+              engineHours={engineHours}
+              setEngineHours={setEngineHours}
               assignedTo={assignedTo}
               setAssignedTo={setAssignedTo}
               notes={notes}

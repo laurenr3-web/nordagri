@@ -15,7 +15,7 @@ export const useMaintenanceForm = (
   const [type, setType] = useState<MaintenanceType>('preventive');
   const [priority, setPriority] = useState<MaintenancePriority>('medium');
   const [dueDate, setDueDate] = useState<Date>(initialDate || new Date());
-  const [estimatedDuration, setEstimatedDuration] = useState('2');
+  const [engineHours, setEngineHours] = useState('0');
   const [assignedTo, setAssignedTo] = useState('');
   const [notes, setNotes] = useState('');
   
@@ -87,7 +87,7 @@ export const useMaintenanceForm = (
       type,
       priority,
       dueDate,
-      estimatedDuration: parseFloat(estimatedDuration),
+      engineHours: parseFloat(engineHours),
       assignedTo,
       notes,
     };
@@ -102,7 +102,7 @@ export const useMaintenanceForm = (
     setType('preventive');
     setPriority('medium');
     setDueDate(new Date());
-    setEstimatedDuration('2');
+    setEngineHours('0');
     setAssignedTo('');
     setNotes('');
   };
@@ -120,8 +120,8 @@ export const useMaintenanceForm = (
     setPriority,
     dueDate,
     setDueDate,
-    estimatedDuration,
-    setEstimatedDuration,
+    engineHours,
+    setEngineHours,
     assignedTo,
     setAssignedTo,
     notes,

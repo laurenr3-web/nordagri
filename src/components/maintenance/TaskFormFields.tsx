@@ -30,8 +30,8 @@ interface TaskFormFieldsProps {
   setPriority: (priority: MaintenancePriority) => void;
   dueDate: Date;
   setDueDate: (date: Date) => void;
-  estimatedDuration: string;
-  setEstimatedDuration: (duration: string) => void;
+  engineHours: string;
+  setEngineHours: (hours: string) => void;
   assignedTo: string;
   setAssignedTo: (staff: string) => void;
   notes: string;
@@ -52,8 +52,8 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
   setPriority,
   dueDate,
   setDueDate,
-  estimatedDuration,
-  setEstimatedDuration,
+  engineHours,
+  setEngineHours,
   assignedTo,
   setAssignedTo,
   notes,
@@ -152,14 +152,13 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
       
       <div className="grid grid-cols-2 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="estimatedDuration">Estimated Duration (hours)</Label>
+          <Label htmlFor="engineHours">Engine Hours</Label>
           <Input
-            id="estimatedDuration"
+            id="engineHours"
             type="number"
-            min="0.5"
-            step="0.5"
-            value={estimatedDuration}
-            onChange={(e) => setEstimatedDuration(e.target.value)}
+            min="0"
+            value={engineHours}
+            onChange={(e) => setEngineHours(e.target.value)}
             required
           />
         </div>
