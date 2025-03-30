@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Calendar, Clock, Plus, Tool, AlertTriangle } from 'lucide-react';
+import { Calendar, Clock, Plus, Wrench, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { maintenanceService } from '@/core/maintenance';
@@ -144,7 +143,7 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center">
-              <Tool className="h-4 w-4 mr-2 text-green-500" />
+              <Wrench className="h-4 w-4 mr-2 text-green-500" />
               Maintenances complétées
             </CardTitle>
           </CardHeader>
