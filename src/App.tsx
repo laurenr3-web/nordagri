@@ -1,25 +1,27 @@
-
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
-import { Suspense } from 'react';
 import { Toaster } from '@/components/ui/sonner';
 import { RealtimeCacheProvider } from '@/providers/RealtimeCacheProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import MobileMenu from '@/components/layout/MobileMenu';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import MobileMenu from '@/components/layout/MobileMenu';
+import { Loading } from '@/components/ui/loading';
 
-// Pages
+// Regular import for the Index page to keep initial load fast
 import Index from '@/pages/Index';
-import Equipment from '@/pages/Equipment';
-import EquipmentDetail from '@/pages/EquipmentDetail';
-import Maintenance from '@/pages/Maintenance';
-import Parts from '@/pages/Parts';
-import EmergencyParts from '@/pages/EmergencyParts'; 
-import Interventions from '@/pages/Interventions';
-import Dashboard from '@/pages/Dashboard';
-import Settings from '@/pages/Settings';
-import NotFound from '@/pages/NotFound';
 import Auth from '@/pages/Auth';
+
+// Lazy load other pages
+const Dashboard = lazy(() => import('@/pages/Dashboard'));
+const Equipment = lazy(() => import('@/pages/Equipment'));
+const EquipmentDetail = lazy(() => import('@/pages/EquipmentDetail'));
+const Maintenance = lazy(() => import('@/pages/Maintenance'));
+const Parts = lazy(() => import('@/pages/Parts'));
+const EmergencyParts = lazy(() => import('@/pages/EmergencyParts'));
+const Interventions = lazy(() => import('@/pages/Interventions'));
+const Settings = lazy(() => import('@/pages/Settings'));
+const NotFound = lazy(() => import('@/pages/NotFound'));
 
 function App() {
   return (
@@ -42,7 +44,7 @@ function App() {
           }
         >
           <MobileMenu />
-          <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+          <Suspense fallback={<Loading text="Chargement de l'application..." />}>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
