@@ -1,5 +1,5 @@
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Camera } from 'lucide-react';
@@ -18,6 +18,23 @@ const PhotoCaptureModal: React.FC<PhotoCaptureModalProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isCapturing, setIsCapturing] = useState<boolean>(false);
+  const timeoutRef = useRef<number | null>(null);
+  
+  // Clean up any ongoing processes when the component unmounts or dialog closes
+  useEffect(() => {
+    return () => {
+      // Clear any pending timeouts
+      if (timeoutRef.current) {
+        window.clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      
+      // Reset capturing state if component unmounts while capturing
+      if (isCapturing) {
+        setIsCapturing(false);
+      }
+    };
+  }, [isCapturing]);
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -45,6 +62,13 @@ const PhotoCaptureModal: React.FC<PhotoCaptureModalProps> = ({
     };
     reader.readAsDataURL(file);
   };
+
+  // Reset file input when dialog closes
+  useEffect(() => {
+    if (!isOpen && fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, [isOpen]);
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>

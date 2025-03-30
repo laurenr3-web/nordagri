@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Sidebar } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/button';
@@ -12,21 +12,53 @@ interface ErrorStateProps {
 
 const ErrorState: React.FC<ErrorStateProps> = ({ error }) => {
   const isOnline = useNetworkStatus();
+  const scriptRef = useRef<HTMLScriptElement | null>(null);
+  const timeoutRef = useRef<number | null>(null);
+  
+  // Cleanup function for any resources
+  useEffect(() => {
+    return () => {
+      // Clean up any script elements that were created
+      if (scriptRef.current && scriptRef.current.parentNode) {
+        scriptRef.current.parentNode.removeChild(scriptRef.current);
+      }
+      
+      // Clean up any pending timeouts
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
   
   const handleReload = () => {
     console.log('Tentative de rechargement de la page...');
     
     // Charger les scripts de réparation avant de recharger
     try {
+      if (scriptRef.current) {
+        // Remove existing script if it exists
+        document.head.removeChild(scriptRef.current);
+        scriptRef.current = null;
+      }
+      
       const script = document.createElement('script');
       script.src = '/fix-all.js';
       document.head.appendChild(script);
+      scriptRef.current = script;
       
       script.onload = () => {
         console.log('Scripts de réparation chargés, rechargement...');
-        setTimeout(() => {
-          window.location.reload();
-        }, 500);
+        // Use requestAnimationFrame for better timing
+        requestAnimationFrame(() => {
+          timeoutRef.current = window.setTimeout(() => {
+            window.location.reload();
+          }, 500);
+        });
+      };
+      
+      script.onerror = (e) => {
+        console.error('Erreur lors du chargement des scripts de réparation:', e);
+        window.location.reload();
       };
     } catch (e) {
       console.error('Erreur lors du chargement des scripts de réparation:', e);

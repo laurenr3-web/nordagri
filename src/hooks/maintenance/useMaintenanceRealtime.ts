@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { MaintenanceTask } from '@/hooks/maintenance/maintenanceSlice';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
@@ -12,12 +12,15 @@ import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 export function useMaintenanceRealtime() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const isMountedRef = useRef(true);
   
   // Set up the realtime subscription
   const { isSubscribed, error } = useRealtimeSubscription<MaintenanceTask>({
     tableName: 'maintenance_tasks',
     showNotifications: false,
     onInsert: (payload: RealtimePostgresChangesPayload<MaintenanceTask>) => {
+      if (!isMountedRef.current) return;
+      
       console.log('Maintenance task added:', payload.new);
       // Invalidate maintenance queries to refetch data
       queryClient.invalidateQueries({ queryKey: ['maintenanceTasks'] });
@@ -31,6 +34,8 @@ export function useMaintenanceRealtime() {
       }
     },
     onUpdate: (payload: RealtimePostgresChangesPayload<MaintenanceTask>) => {
+      if (!isMountedRef.current) return;
+      
       console.log('Maintenance task updated:', payload.new);
       
       if (payload.new && 'id' in payload.new) {
@@ -82,6 +87,8 @@ export function useMaintenanceRealtime() {
       }
     },
     onDelete: (payload: RealtimePostgresChangesPayload<MaintenanceTask>) => {
+      if (!isMountedRef.current) return;
+      
       console.log('Maintenance task deleted:', payload.old);
       
       if (payload.old && 'id' in payload.old) {
@@ -107,6 +114,9 @@ export function useMaintenanceRealtime() {
   });
   
   useEffect(() => {
+    // Mark component as mounted
+    isMountedRef.current = true;
+    
     if (isSubscribed) {
       console.log('Successfully subscribed to maintenance_tasks table changes');
     } else if (error) {
@@ -117,6 +127,11 @@ export function useMaintenanceRealtime() {
         variant: 'destructive',
       });
     }
+    
+    // Cleanup function
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [isSubscribed, error, toast]);
   
   return { isSubscribed, error };

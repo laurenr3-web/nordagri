@@ -1,4 +1,5 @@
-import React, { useRef, useState } from 'react';
+
+import React, { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Camera, Upload, X, RotateCw } from 'lucide-react';
 import { toast } from 'sonner';
@@ -20,6 +21,7 @@ const PartPhotoCapture: React.FC<PartPhotoCaptureProps> = ({
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
   
   // Activer la caméra
@@ -32,6 +34,8 @@ const PartPhotoCapture: React.FC<PartPhotoCaptureProps> = ({
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.play();
+        // Store stream reference for cleanup
+        streamRef.current = stream;
         setIsCameraActive(true);
       }
     } catch (err) {
@@ -44,12 +48,17 @@ const PartPhotoCapture: React.FC<PartPhotoCaptureProps> = ({
   
   // Arrêter la caméra
   const stopCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+    if (streamRef.current) {
+      const tracks = streamRef.current.getTracks();
       tracks.forEach(track => track.stop());
-      videoRef.current.srcObject = null;
-      setIsCameraActive(false);
+      streamRef.current = null;
     }
+    
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    
+    setIsCameraActive(false);
   };
   
   // Prendre une photo
@@ -110,9 +119,15 @@ const PartPhotoCapture: React.FC<PartPhotoCaptureProps> = ({
   };
   
   // Nettoyage lors du démontage du composant
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
+      // Stop camera when component unmounts
       stopCamera();
+      
+      // Reset file input if it exists
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     };
   }, []);
   

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { getParts } from '@/services/supabase/parts';
 import { useQueryClient } from '@tanstack/react-query';
@@ -11,9 +11,13 @@ export function usePartsRealtime() {
   const [error, setError] = useState<Error | null>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const channelRef = useRef<any>(null);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
     console.log('👂 Setting up parts realtime subscription');
+    // Mark component as mounted
+    isMountedRef.current = true;
 
     try {
       const channel = supabase
@@ -27,6 +31,9 @@ export function usePartsRealtime() {
           },
           async (payload) => {
             console.log('🔄 Realtime parts update received:', payload);
+            
+            // Only process if component is still mounted
+            if (!isMountedRef.current) return;
             
             // Option 1: Simply invalidate the query to trigger a refetch
             queryClient.invalidateQueries({ queryKey: ['parts'] });
@@ -44,28 +51,44 @@ export function usePartsRealtime() {
               console.error('Error updating parts cache:', error);
             }
             
-            // Notify the user
-            toast({
-              title: "Inventaire mis à jour",
-              description: "Les données des pièces ont été mises à jour",
-            });
+            // Notify the user only if component is still mounted
+            if (isMountedRef.current) {
+              toast({
+                title: "Inventaire mis à jour",
+                description: "Les données des pièces ont été mises à jour",
+              });
+            }
           }
         )
         .subscribe();
       
-      setIsSubscribed(true);
+      // Store channel reference for cleanup
+      channelRef.current = channel;
       
-      // Clean up subscription
-      return () => {
-        console.log('🛑 Removing parts realtime subscription');
-        supabase.removeChannel(channel);
-        setIsSubscribed(false);
-      };
+      if (isMountedRef.current) {
+        setIsSubscribed(true);
+      }
+      
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       console.error('Error setting up realtime subscription:', error);
-      setError(error);
+      if (isMountedRef.current) {
+        setError(error);
+      }
     }
+    
+    // Clean up subscription
+    return () => {
+      console.log('🛑 Removing parts realtime subscription');
+      isMountedRef.current = false;
+      
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+      
+      setIsSubscribed(false);
+    };
   }, [queryClient, toast]);
   
   return { isSubscribed, error };
