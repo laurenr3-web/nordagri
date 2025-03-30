@@ -15,7 +15,11 @@ export function isNumeric(value: any): boolean {
  */
 export function ensureNumberId(id: string | number): number {
   if (typeof id === 'string') {
-    return parseInt(id, 10);
+    const num = parseInt(id, 10);
+    if (isNaN(num)) {
+      throw new TypeError(`Invalid ID format: ${id}. Expected a numeric string.`);
+    }
+    return num;
   }
   return id;
 }
