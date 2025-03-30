@@ -39,7 +39,7 @@ export interface EquipmentItem {
 }
 
 export interface MaintenanceEvent {
-  id: string | number;
+  id: string; // Changed to string to match CalendarView component expectations
   title: string;
   date: Date;
   equipment: string;
@@ -50,7 +50,7 @@ export interface MaintenanceEvent {
 }
 
 export interface AlertItem {
-  id: string | number;
+  id: number; // Changed to number to match AlertsSection component expectations
   title: string;
   message: string;
   severity: 'high' | 'medium' | 'low';

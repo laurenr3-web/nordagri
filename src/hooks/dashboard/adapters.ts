@@ -17,7 +17,7 @@ export const adaptEquipmentData = (data: any[]): EquipmentItem[] => {
 
 export const adaptMaintenanceEvents = (data: any[]): MaintenanceEvent[] => {
   return data.map((event: any) => ({
-    id: event.id || Math.random().toString(),
+    id: String(event.id || Math.random().toString()), // Convert id to string
     title: event.title || 'Maintenance',
     date: event.dueDate ? new Date(event.dueDate) : new Date(),
     equipment: event.equipment || 'Équipement non spécifié',
@@ -30,7 +30,7 @@ export const adaptMaintenanceEvents = (data: any[]): MaintenanceEvent[] => {
 
 export const adaptAlertItems = (data: any[]): AlertItem[] => {
   return data.map((alert: any) => ({
-    id: alert.id || Math.random().toString(),
+    id: Number(alert.id) || Math.floor(Math.random() * 1000), // Convert id to number
     title: alert.title || 'Alerte',
     message: alert.message || 'Description de l\'alerte',
     severity: alert.severity || 'medium',

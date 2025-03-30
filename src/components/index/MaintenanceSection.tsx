@@ -5,7 +5,7 @@ import { MaintenanceCalendar } from '@/components/dashboard/MaintenanceCalendar'
 import { DashboardSection } from '@/components/dashboard/DashboardSection';
 
 interface MaintenanceEvent {
-  id: string;
+  id: string; // Updated to string to match our interface
   title: string;
   date: Date;
   duration: number;

@@ -6,7 +6,7 @@ import { DashboardSection } from '@/components/dashboard/DashboardSection';
 import { cn } from '@/lib/utils';
 
 interface AlertItem {
-  id: number;
+  id: number; // Ensure this is number to match our interface
   severity: 'high' | 'medium' | 'low';
   message: string;
   time: string;
