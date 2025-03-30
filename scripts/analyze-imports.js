@@ -5,10 +5,17 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
+// Process command line arguments
+const args = process.argv.slice(2);
+const shouldGenerateReport = args.includes('--report');
+const shouldCleanup = args.includes('--clean');
+const isQuiet = args.includes('--quiet');
+
 // Configuration
 const ROOT_DIR = path.resolve(__dirname, '..');
 const SRC_DIR = path.join(ROOT_DIR, 'src');
 const EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx'];
+const REPORT_FILE = path.join(ROOT_DIR, 'unused-files-report.json');
 
 // Track all files and their usage
 const allFiles = new Map();
@@ -92,22 +99,135 @@ function analyzeImports(filePath) {
       }
     }
   } catch (error) {
-    console.error(`Error analyzing imports in ${filePath}:`, error.message);
+    if (!isQuiet) {
+      console.error(`Error analyzing imports in ${filePath}:`, error.message);
+    }
+  }
+}
+
+// Function to generate a JSON report of unused files
+function generateReport(unusedFiles) {
+  const report = {
+    timestamp: new Date().toISOString(),
+    totalFiles: allFiles.size,
+    unusedCount: unusedFiles.length,
+    unusedFiles: unusedFiles.map(([file]) => file),
+    unusedByDirectory: {}
+  };
+  
+  // Group by directory
+  unusedFiles.forEach(([file]) => {
+    const dir = path.dirname(file);
+    if (!report.unusedByDirectory[dir]) {
+      report.unusedByDirectory[dir] = [];
+    }
+    report.unusedByDirectory[dir].push(file);
+  });
+  
+  fs.writeFileSync(REPORT_FILE, JSON.stringify(report, null, 2));
+  if (!isQuiet) {
+    console.log(`Report generated at ${REPORT_FILE}`);
+  }
+}
+
+// Function to suggest cleanup actions
+function suggestCleanup(unusedFiles) {
+  if (shouldCleanup) {
+    if (!isQuiet) {
+      console.log('\nCleanup suggestions:');
+      console.log('⚠️  This is a destructive operation. Make sure to commit your changes first!');
+      console.log('Run the following commands to remove unused files:');
+    }
+    
+    unusedFiles.forEach(([file]) => {
+      if (shouldCleanup) {
+        try {
+          const fullPath = path.join(ROOT_DIR, file);
+          fs.unlinkSync(fullPath);
+          if (!isQuiet) {
+            console.log(`✅ Removed: ${file}`);
+          }
+        } catch (error) {
+          if (!isQuiet) {
+            console.error(`❌ Failed to remove ${file}: ${error.message}`);
+          }
+        }
+      } else {
+        if (!isQuiet) {
+          console.log(`rm "${file}"`);
+        }
+      }
+    });
+    
+    // Clean up empty directories
+    cleanupEmptyDirs(SRC_DIR);
+  }
+}
+
+// Function to cleanup empty directories
+function cleanupEmptyDirs(directory) {
+  const files = fs.readdirSync(directory);
+  
+  if (files.length === 0) {
+    const relativePath = path.relative(ROOT_DIR, directory);
+    // Don't remove the src directory
+    if (relativePath !== 'src') {
+      try {
+        fs.rmdirSync(directory);
+        if (!isQuiet && shouldCleanup) {
+          console.log(`✅ Removed empty directory: ${relativePath}`);
+        }
+      } catch (error) {
+        if (!isQuiet) {
+          console.error(`❌ Failed to remove directory ${relativePath}: ${error.message}`);
+        }
+      }
+    }
+    return;
+  }
+  
+  for (const file of files) {
+    const filePath = path.join(directory, file);
+    if (fs.statSync(filePath).isDirectory()) {
+      cleanupEmptyDirs(filePath);
+    }
+  }
+  
+  // Check if directory is empty now, after processing subdirectories
+  const remainingFiles = fs.readdirSync(directory);
+  if (remainingFiles.length === 0) {
+    const relativePath = path.relative(ROOT_DIR, directory);
+    // Don't remove the src directory
+    if (relativePath !== 'src') {
+      try {
+        fs.rmdirSync(directory);
+        if (!isQuiet && shouldCleanup) {
+          console.log(`✅ Removed empty directory: ${relativePath}`);
+        }
+      } catch (error) {
+        if (!isQuiet) {
+          console.error(`❌ Failed to remove directory ${relativePath}: ${error.message}`);
+        }
+      }
+    }
   }
 }
 
 // Main function
 function analyzeProject() {
-  console.log('Collecting all source files...');
+  if (!isQuiet) {
+    console.log('Collecting all source files...');
+  }
   collectFiles(SRC_DIR);
   
-  console.log(`Found ${allFiles.size} source files.`);
+  if (!isQuiet) {
+    console.log(`Found ${allFiles.size} source files.`);
+    console.log('Analyzing imports...');
+  }
   
   // Start with entry points
   let filesToProcess = entryPoints.map(entry => path.resolve(ROOT_DIR, entry));
   let processedFiles = new Set();
-  
-  console.log('Analyzing imports...');
   
   // Process files breadth-first
   while (filesToProcess.length > 0) {
@@ -137,49 +257,64 @@ function analyzeProject() {
   const usedFiles = [...allFiles.entries()].filter(([_, info]) => info.used);
   const unusedFiles = [...allFiles.entries()].filter(([_, info]) => !info.used);
   
-  console.log(`\nResults:`);
-  console.log(`- Total source files: ${allFiles.size}`);
-  console.log(`- Used files: ${usedFiles.length}`);
-  console.log(`- Unused files: ${unusedFiles.length}`);
-  
-  console.log('\nPotentially unused files:');
-  unusedFiles.forEach(([file]) => {
-    console.log(`- ${file}`);
-  });
-  
-  // Group unused files by directory
-  const unusedByDir = {};
-  unusedFiles.forEach(([file]) => {
-    const dir = path.dirname(file);
-    if (!unusedByDir[dir]) unusedByDir[dir] = 0;
-    unusedByDir[dir]++;
-  });
-  
-  console.log('\nUnused files by directory:');
-  Object.entries(unusedByDir)
-    .sort((a, b) => b[1] - a[1])
-    .forEach(([dir, count]) => {
-      console.log(`- ${dir}: ${count} file(s)`);
+  if (!isQuiet) {
+    console.log(`\nResults:`);
+    console.log(`- Total source files: ${allFiles.size}`);
+    console.log(`- Used files: ${usedFiles.length}`);
+    console.log(`- Unused files: ${unusedFiles.length}`);
+    
+    console.log('\nPotentially unused files:');
+    unusedFiles.forEach(([file]) => {
+      console.log(`- ${file}`);
     });
-  
-  // Check for completely unused directories
-  const dirs = new Set([...allFiles.keys()].map(file => path.dirname(file)));
-  const unusedDirs = [];
-  
-  dirs.forEach(dir => {
-    const dirFiles = [...allFiles.entries()].filter(([file]) => path.dirname(file) === dir);
-    const allUnused = dirFiles.every(([_, info]) => !info.used);
-    if (allUnused && dirFiles.length > 0) {
-      unusedDirs.push([dir, dirFiles.length]);
-    }
-  });
-  
-  console.log('\nCompletely unused directories:');
-  unusedDirs
-    .sort((a, b) => b[1] - a[1])
-    .forEach(([dir, count]) => {
-      console.log(`- ${dir}: ${count} file(s)`);
+    
+    // Group unused files by directory
+    const unusedByDir = {};
+    unusedFiles.forEach(([file]) => {
+      const dir = path.dirname(file);
+      if (!unusedByDir[dir]) unusedByDir[dir] = 0;
+      unusedByDir[dir]++;
     });
+    
+    console.log('\nUnused files by directory:');
+    Object.entries(unusedByDir)
+      .sort((a, b) => b[1] - a[1])
+      .forEach(([dir, count]) => {
+        console.log(`- ${dir}: ${count} file(s)`);
+      });
+    
+    // Check for completely unused directories
+    const dirs = new Set([...allFiles.keys()].map(file => path.dirname(file)));
+    const unusedDirs = [];
+    
+    dirs.forEach(dir => {
+      const dirFiles = [...allFiles.entries()].filter(([file]) => path.dirname(file) === dir);
+      const allUnused = dirFiles.every(([_, info]) => !info.used);
+      if (allUnused && dirFiles.length > 0) {
+        unusedDirs.push([dir, dirFiles.length]);
+      }
+    });
+    
+    console.log('\nCompletely unused directories:');
+    unusedDirs
+      .sort((a, b) => b[1] - a[1])
+      .forEach(([dir, count]) => {
+        console.log(`- ${dir}: ${count} file(s)`);
+      });
+  }
+  
+  // Generate report if requested
+  if (shouldGenerateReport) {
+    generateReport(unusedFiles);
+  }
+  
+  // Suggest cleanup if requested
+  suggestCleanup(unusedFiles);
+  
+  // Exit with error code if there are unused files
+  if (unusedFiles.length > 0 && !isQuiet && !shouldCleanup && !shouldGenerateReport) {
+    process.exit(1);
+  }
 }
 
 // Run the analysis
