@@ -11,8 +11,15 @@ import Dashboard from '@/components/index/Dashboard';
 import CalendarView from '@/components/index/CalendarView';
 import AllAlertsSection from '@/components/index/AllAlertsSection';
 
-// Import du hook pour les données
+// Import du hook pour les données et des adaptateurs
 import { useDashboardData } from '@/hooks/dashboard/useDashboardData';
+import { 
+  adaptStatsData, 
+  adaptEquipmentData, 
+  adaptMaintenanceEvents, 
+  adaptAlertItems, 
+  adaptUpcomingTasks 
+} from '@/hooks/dashboard/adapters';
 
 const DashboardPage = () => {
   // Récupération des données réelles avec le hook
@@ -29,6 +36,13 @@ const DashboardPage = () => {
   const [currentMonth] = useState(new Date());
   const [currentView, setCurrentView] = useState<'main' | 'calendar' | 'alerts'>('main');
   const navigate = useNavigate();
+
+  // Adapt data for components
+  const adaptedStatsData = loading ? [] : adaptStatsData(statsData);
+  const adaptedEquipmentData = loading ? [] : adaptEquipmentData(equipmentData);
+  const adaptedMaintenanceEvents = loading ? [] : adaptMaintenanceEvents(maintenanceEvents);
+  const adaptedAlertItems = loading ? [] : adaptAlertItems(alertItems);
+  const adaptedTasks = loading ? [] : adaptUpcomingTasks(upcomingTasks);
 
   const handleStatsCardClick = (type: string) => {
     switch (type) {
@@ -90,11 +104,11 @@ const DashboardPage = () => {
                     </div>
                   ) : (
                     <Dashboard 
-                      statsData={statsData}
-                      equipmentData={equipmentData}
-                      maintenanceEvents={maintenanceEvents}
-                      alertItems={alertItems}
-                      upcomingTasks={upcomingTasks}
+                      statsData={adaptedStatsData}
+                      equipmentData={adaptedEquipmentData}
+                      maintenanceEvents={adaptedMaintenanceEvents}
+                      alertItems={adaptedAlertItems}
+                      upcomingTasks={adaptedTasks}
                       currentMonth={currentMonth}
                       handleStatsCardClick={handleStatsCardClick}
                       handleEquipmentViewAllClick={handleEquipmentViewAllClick}
@@ -108,13 +122,13 @@ const DashboardPage = () => {
                 
                 <TabsContent value="calendar">
                   <CalendarView 
-                    events={maintenanceEvents} 
+                    events={adaptedMaintenanceEvents} 
                     month={currentMonth} 
                   />
                 </TabsContent>
                 
                 <TabsContent value="alerts">
-                  <AllAlertsSection alerts={alertItems} />
+                  <AllAlertsSection alerts={adaptedAlertItems} />
                 </TabsContent>
               </Tabs>
             </div>
