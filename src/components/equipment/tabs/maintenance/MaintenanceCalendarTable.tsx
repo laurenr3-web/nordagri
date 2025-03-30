@@ -1,39 +1,20 @@
 
 import React from 'react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { 
-  CalendarPlus, 
-  Loader2, 
-  PenLine,
-  Trash
-} from 'lucide-react';
+import { FileText, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MaintenanceTask } from '@/hooks/maintenance/maintenanceSlice';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
-import { MoreHorizontal } from 'lucide-react';
 
 interface MaintenanceCalendarTableProps {
   tasks: MaintenanceTask[];
   loading: boolean;
   formatDate: (date: Date) => string;
-  getStatusBadge: (status: string) => string;
+  getStatusBadge: (status: string) => React.ReactNode;
   getPriorityColor: (priority: string) => string;
+  handleViewQuote: (taskId: number) => void;
   handleChangeStatus: (taskId: number, newStatus: string) => void;
   handleAddTask: () => void;
-  handleDeleteTask: (taskId: number) => void;
 }
 
 const MaintenanceCalendarTable: React.FC<MaintenanceCalendarTableProps> = ({
@@ -42,96 +23,91 @@ const MaintenanceCalendarTable: React.FC<MaintenanceCalendarTableProps> = ({
   formatDate,
   getStatusBadge,
   getPriorityColor,
+  handleViewQuote,
   handleChangeStatus,
-  handleAddTask,
-  handleDeleteTask
+  handleAddTask
 }) => {
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
+  if (tasks.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">Aucune tâche de maintenance n'a été trouvée pour cet équipement</p>
+        <Button variant="outline" className="mt-4" onClick={handleAddTask}>
+          Planifier une maintenance
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      {loading ? (
-        <div className="flex justify-center items-center p-8">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      ) : tasks.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-8 text-center border rounded-lg bg-muted/10">
-          <p className="mb-4 text-muted-foreground">Aucune tâche de maintenance programmée</p>
-          <Button onClick={handleAddTask}>
-            <CalendarPlus className="h-4 w-4 mr-2" />
-            Planifier une maintenance
-          </Button>
-        </div>
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Titre</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Statut</TableHead>
-              <TableHead>Priorité</TableHead>
-              <TableHead>Échéance</TableHead>
-              <TableHead>Durée est.</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {tasks.map(task => (
-              <TableRow key={task.id}>
-                <TableCell className="font-medium">
-                  {task.title}
-                </TableCell>
-                <TableCell>{task.type}</TableCell>
-                <TableCell>
-                  <Badge className={getStatusBadge(task.status)}>
-                    {task.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className={getPriorityColor(task.priority)}>
-                    {task.priority}
-                  </Badge>
-                </TableCell>
-                <TableCell>{formatDate(new Date(task.dueDate))}</TableCell>
-                <TableCell>{task.estimatedDuration}h</TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Menu</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleChangeStatus(task.id, 'scheduled')}>
-                        Marquer comme planifiée
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleChangeStatus(task.id, 'in-progress')}>
-                        Marquer comme en cours
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleChangeStatus(task.id, 'completed')}>
-                        Marquer comme terminée
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleChangeStatus(task.id, 'pending-parts')}>
-                        En attente de pièces
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleChangeStatus(task.id, 'canceled')}>
-                        Marquer comme annulée
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        className="text-destructive" 
-                        onClick={() => handleDeleteTask(task.id)}
-                      >
-                        <Trash className="h-4 w-4 mr-2" />
-                        Supprimer
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
-    </div>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Tâche</TableHead>
+          <TableHead>Type</TableHead>
+          <TableHead>Statut</TableHead>
+          <TableHead>Priorité</TableHead>
+          <TableHead>Date prévue</TableHead>
+          <TableHead>Durée estimée</TableHead>
+          <TableHead>Assigné à</TableHead>
+          <TableHead>Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {tasks.map((task) => (
+          <TableRow key={task.id}>
+            <TableCell className="font-medium">{task.title}</TableCell>
+            <TableCell>
+              {task.type === 'preventive' ? 'Préventive' : 
+               task.type === 'corrective' ? 'Corrective' : 
+               task.type === 'condition-based' ? 'Conditionnelle' : task.type}
+            </TableCell>
+            <TableCell>{getStatusBadge(task.status)}</TableCell>
+            <TableCell>
+              <Badge className={getPriorityColor(task.priority)}>
+                {task.priority === 'critical' ? 'Critique' :
+                 task.priority === 'high' ? 'Haute' :
+                 task.priority === 'medium' ? 'Moyenne' :
+                 task.priority === 'low' ? 'Basse' : task.priority}
+              </Badge>
+            </TableCell>
+            <TableCell>{formatDate(task.dueDate)}</TableCell>
+            <TableCell>{task.estimatedDuration}h</TableCell>
+            <TableCell>{task.assignedTo || '-'}</TableCell>
+            <TableCell>
+              <div className="flex space-x-1">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => handleViewQuote(task.id)}
+                  title="Voir le devis"
+                >
+                  <FileText className="h-4 w-4 text-blue-500" />
+                </Button>
+                
+                {task.status !== 'completed' && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => handleChangeStatus(task.id, 'completed')}
+                    title="Marquer comme terminé"
+                  >
+                    <Wrench className="h-4 w-4 text-green-500" />
+                  </Button>
+                )}
+              </div>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 };
 
