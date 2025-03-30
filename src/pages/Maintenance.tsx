@@ -40,11 +40,6 @@ const Maintenance = () => {
     return addTask(formData);
   };
 
-  // Log tasks only when they change
-  useEffect(() => {
-    console.log('Maintenance component loaded with tasks:', tasks);
-  }, [tasks]);
-
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">

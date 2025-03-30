@@ -25,12 +25,12 @@ const queryClient = new QueryClient({
     queries: {
       refetchOnWindowFocus: false,
       retry: (failureCount, error: any) => {
-        // Ne pas réessayer en cas d'erreur d'authentification
+        // Don't retry on auth errors
         if (error?.status === 401 || error?.status === 403) return false;
         return failureCount < 2;
       },
       staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000 // 10 minutes (anciennement cacheTime)
+      gcTime: 10 * 60 * 1000 // 10 minutes (formerly cacheTime)
     },
     mutations: {
       retry: 1

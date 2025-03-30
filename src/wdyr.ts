@@ -25,7 +25,12 @@ if (process.env.NODE_ENV === 'development') {
         /Sidebar$/,
         /^TooltipProvider$/,
         /^Dialog/,
-        /^Sheet/
+        /^Sheet/,
+        /^Toaster/,
+        /^Toast/,
+        /Provider$/,
+        /Context$/,
+        /^QueryClientProvider/
       ],
       
       // Do not track any hooks automatically
