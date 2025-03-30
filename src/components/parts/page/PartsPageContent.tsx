@@ -7,6 +7,7 @@ import PhotoCaptureModal from '@/components/parts/PhotoCaptureModal';
 import PartsHeader from './PartsHeader';
 import PartsDialogs from './PartsDialogs';
 import PartsTabsContent from './PartsTabsContent';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 interface PartsPageContentProps {
   activeTab: string;
@@ -42,10 +43,12 @@ const PartsPageContent: React.FC<PartsPageContentProps> = ({
           onPhotoClick={() => setIsPhotoModalOpen(true)} 
         />
         
-        <PartsTabsContent 
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab} 
-        />
+        <ErrorBoundary>
+          <PartsTabsContent 
+            activeTab={activeTab} 
+            setActiveTab={setActiveTab} 
+          />
+        </ErrorBoundary>
         
         {/* Render dialogs explicitly to ensure they're always in the DOM */}
         <PartsDialogs />

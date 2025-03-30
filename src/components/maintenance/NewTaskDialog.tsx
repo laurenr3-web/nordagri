@@ -14,6 +14,7 @@ import {
 import { useMaintenanceForm } from '@/hooks/maintenance/useMaintenanceForm';
 import TaskFormFields from './TaskFormFields';
 import AddStaffDialog from './dialogs/AddStaffDialog';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 interface NewTaskDialogProps {
   open: boolean;
@@ -59,7 +60,7 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({ open, onOpenChange, onSub
   } = useMaintenanceForm(onSubmit, onOpenChange, initialDate);
 
   return (
-    <>
+    <ErrorBoundary>
       <SafeDialog open={open} onOpenChange={onOpenChange}>
         <SafeDialogContent className="sm:max-w-[550px]">
           <SafeDialogHeader>
@@ -110,7 +111,7 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({ open, onOpenChange, onSub
         setNewStaffName={setNewStaffName}
         onAddStaff={handleAddStaff}
       />
-    </>
+    </ErrorBoundary>
   );
 };
 

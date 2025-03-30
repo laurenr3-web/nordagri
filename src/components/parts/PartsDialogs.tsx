@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Part } from '@/types/Part';
 import { SafeDialog, SafeDialogContent, SafeDialogHeader, SafeDialogTitle, SafeDialogDescription } from '@/components/ui/dialog/index';
 import AddPartForm from '@/components/parts/AddPartForm';
 import PartDetails from '@/components/parts/PartDetails';
 import { toast } from 'sonner';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 interface PartsDialogsProps {
   // États des dialogues
@@ -187,7 +189,7 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
   };
   
   return (
-    <>
+    <ErrorBoundary>
       {/* Dialogue d'ajout de pièce */}
       {(isAddPartDialogOpen || isAddDialogClosing) && (
         <SafeDialog 
@@ -232,7 +234,7 @@ const PartsDialogs: React.FC<PartsDialogsProps> = ({
           </SafeDialogContent>
         </SafeDialog>
       )}
-    </>
+    </ErrorBoundary>
   );
 };
 
