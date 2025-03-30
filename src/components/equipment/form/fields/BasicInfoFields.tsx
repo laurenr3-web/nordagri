@@ -27,9 +27,9 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
         form={form} 
         customCategories={customCategories} 
         onAddCategoryClick={onAddCategoryClick}
-        label="Catégorie"
-        placeholder="Sélectionner une catégorie"
-        addButtonText="Ajouter une catégorie"
+        label="Type d'équipement"
+        placeholder="Sélectionner un type"
+        addButtonText="Ajouter un type"
       />
     </div>
   );

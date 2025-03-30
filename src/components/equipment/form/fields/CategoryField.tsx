@@ -20,14 +20,14 @@ const CategoryField: React.FC<CategoryFieldProps> = ({
   form, 
   customCategories, 
   onAddCategoryClick,
-  label = "Category",
-  placeholder = "Select category",
-  addButtonText = "Add Category"
+  label = "Catégorie",
+  placeholder = "Sélectionner un type",
+  addButtonText = "Ajouter une catégorie"
 }) => {
   return (
     <FormField
       control={form.control}
-      name="category"
+      name="type"
       render={({ field }) => (
         <FormItem>
           <FormLabel>{label}</FormLabel>
@@ -39,10 +39,12 @@ const CategoryField: React.FC<CategoryFieldProps> = ({
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="heavy">Heavy Machinery</SelectItem>
-                <SelectItem value="medium">Medium Machinery</SelectItem>
-                <SelectItem value="light">Light Equipment</SelectItem>
-                <SelectItem value="attachments">Attachments</SelectItem>
+                <SelectItem value="tractor">Tracteur</SelectItem>
+                <SelectItem value="harvester">Moissonneuse</SelectItem>
+                <SelectItem value="seeder">Semoir</SelectItem>
+                <SelectItem value="sprayer">Pulvérisateur</SelectItem>
+                <SelectItem value="tool">Outil</SelectItem>
+                <SelectItem value="other">Autre</SelectItem>
                 {customCategories.map((category) => (
                   <SelectItem key={category} value={category}>
                     {category}
