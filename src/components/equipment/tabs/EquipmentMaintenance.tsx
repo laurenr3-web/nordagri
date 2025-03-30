@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus } from 'lucide-react';
+import { Plus, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useEquipmentDetail } from '@/hooks/equipment/useEquipmentDetail';
@@ -14,6 +14,8 @@ import MaintenanceCalendarTable from './maintenance/MaintenanceCalendarTable';
 import AddPartDialog from '@/components/parts/dialogs/AddPartDialog';
 import { formatDate, getStatusBadge, getPriorityColor } from './maintenance/maintenanceUtils';
 import MaintenanceQuoteDialog from './maintenance/MaintenanceQuoteDialog';
+import MaintenanceCompletionDialog from '@/components/maintenance/dialogs/MaintenanceCompletionDialog';
+import MaintenancePlanDialog from '@/components/maintenance/dialogs/MaintenancePlanDialog';
 
 interface EquipmentMaintenanceProps {
   equipment: any;
@@ -27,13 +29,30 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
   const [isAddPartDialogOpen, setIsAddPartDialogOpen] = useState(false);
   const [selectedMaintenanceTask, setSelectedMaintenanceTask] = useState<any>(null);
   const [isQuoteDialogOpen, setIsQuoteDialogOpen] = useState(false);
+  const [isCompletionDialogOpen, setIsCompletionDialogOpen] = useState(false);
+  const [isPlanDialogOpen, setIsPlanDialogOpen] = useState(false);
 
   const handleAddTask = () => {
     setIsNewMaintenanceOpen(true);
   };
 
+  const handleCreatePlan = () => {
+    setIsPlanDialogOpen(true);
+  };
+
   const handleAddPart = () => {
     setIsAddPartDialogOpen(true);
+  };
+
+  const handleCompleteTask = (taskId: number) => {
+    // Trouver la tâche avec l'ID correspondant
+    const task = maintenanceTasks?.find(task => task.id === taskId);
+    if (task) {
+      setSelectedMaintenanceTask(task);
+      setIsCompletionDialogOpen(true);
+    } else {
+      toast.error('Tâche non trouvée');
+    }
   };
 
   const handleCreateMaintenance = async (maintenance: any) => {
@@ -131,6 +150,10 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Maintenance de l'équipement</h2>
         <div className="flex space-x-2">
+          <Button onClick={handleCreatePlan} variant="outline">
+            <Calendar className="h-4 w-4 mr-2" />
+            Nouveau plan
+          </Button>
           <Button onClick={handleAddPart} variant="outline">
             <Plus className="h-4 w-4 mr-2" />
             Nouvelle pièce
@@ -161,6 +184,7 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
             handleViewQuote={handleViewQuote}
             handleChangeStatus={handleChangeStatus}
             handleAddTask={handleAddTask}
+            handleCompleteTask={handleCompleteTask}
           />
         </CardContent>
       </Card>
@@ -188,6 +212,20 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
         onClose={() => setIsQuoteDialogOpen(false)}
         maintenance={selectedMaintenanceTask}
         onDelete={handleDeleteTask}
+      />
+
+      {/* Dialog pour compléter une tâche de maintenance */}
+      <MaintenanceCompletionDialog
+        isOpen={isCompletionDialogOpen}
+        onClose={() => setIsCompletionDialogOpen(false)}
+        task={selectedMaintenanceTask}
+      />
+
+      {/* Dialog pour créer un plan de maintenance */}
+      <MaintenancePlanDialog
+        isOpen={isPlanDialogOpen}
+        onClose={() => setIsPlanDialogOpen(false)}
+        equipment={{ id: Number(equipment?.id), name: equipment?.name }}
       />
     </div>
   );

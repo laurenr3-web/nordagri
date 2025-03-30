@@ -1,55 +1,46 @@
-
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import EquipmentDetails from '@/components/equipment/EquipmentDetails';
-import EquipmentParts from '@/components/equipment/tabs/EquipmentParts';
-import EquipmentMaintenance from '@/components/equipment/tabs/EquipmentMaintenance';
-import EquipmentHistory from '@/components/equipment/tabs/EquipmentHistory';
+import { EquipmentItem } from '../hooks/useEquipmentFilters';
+import EquipmentHeader from './EquipmentHeader';
+import EquipmentOverview from '../details/EquipmentOverview';
+import EquipmentParts from '../details/EquipmentParts';
+import EquipmentPerformance from '../tabs/EquipmentPerformance';
+import EditEquipmentDialog from '../dialogs/EditEquipmentDialog';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import EquipmentMaintenance from '../tabs/EquipmentMaintenance';
+import EquipmentMaintenanceHistory from '../tabs/EquipmentMaintenanceHistory';
 
 interface EquipmentDetailContentProps {
-  equipment: any;
-  onUpdate: (updatedEquipment: any) => Promise<void>;
+  equipment: EquipmentItem;
+  onUpdate: (data: EquipmentItem) => Promise<void>;
 }
 
-const EquipmentDetailContent: React.FC<EquipmentDetailContentProps> = ({ 
-  equipment, 
-  onUpdate 
-}) => {
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('details');
-  
+const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentProps) => {
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  const handleEditEquipment = () => {
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEquipmentUpdate = async (updatedData: EquipmentItem) => {
+    await onUpdate(updatedData);
+    setIsEditDialogOpen(false);
+  };
+
   return (
-    <div className="max-w-7xl mx-auto">
-      <Button 
-        variant="outline" 
-        size="sm" 
-        className="mb-4"
-        onClick={() => navigate('/equipment')}
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Retour aux équipements
-      </Button>
+    <div className="space-y-8">
+      <EquipmentHeader equipment={equipment} onEdit={handleEditEquipment} />
       
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="mb-6">
-          <TabsTrigger value="details">Détails</TabsTrigger>
-          <TabsTrigger value="parts">Pièces</TabsTrigger>
+      <Tabs defaultValue="overview">
+        <TabsList className="mb-8 flex flex-wrap">
+          <TabsTrigger value="overview">Aperçu</TabsTrigger>
           <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
           <TabsTrigger value="history">Historique</TabsTrigger>
+          <TabsTrigger value="parts">Pièces</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="details">
-          <EquipmentDetails 
-            equipment={equipment} 
-            onUpdate={onUpdate} 
-          />
-        </TabsContent>
-        
-        <TabsContent value="parts">
-          <EquipmentParts equipment={equipment} />
+        <TabsContent value="overview">
+          <EquipmentOverview equipment={equipment} />
         </TabsContent>
         
         <TabsContent value="maintenance">
@@ -57,9 +48,27 @@ const EquipmentDetailContent: React.FC<EquipmentDetailContentProps> = ({
         </TabsContent>
         
         <TabsContent value="history">
-          <EquipmentHistory equipment={equipment} />
+          <EquipmentMaintenanceHistory equipment={equipment} />
+        </TabsContent>
+        
+        <TabsContent value="parts">
+          <EquipmentParts equipment={equipment} />
+        </TabsContent>
+        
+        <TabsContent value="performance">
+          <EquipmentPerformance equipment={equipment} />
         </TabsContent>
       </Tabs>
+      
+      {/* Dialogs */}
+      {isEditDialogOpen && (
+        <EditEquipmentDialog
+          isOpen={isEditDialogOpen}
+          onClose={() => setIsEditDialogOpen(false)}
+          equipment={equipment}
+          onSave={handleEquipmentUpdate}
+        />
+      )}
     </div>
   );
 };

@@ -44,6 +44,13 @@ export const getStatusBadge = (status: string) => {
           <span>Pending Parts</span>
         </Badge>
       );
+    case 'cancelled':
+      return (
+        <Badge variant="destructive" className="flex items-center gap-1">
+          <XCircle size={12} />
+          <span>Cancelled</span>
+        </Badge>
+      );
     default:
       return (
         <Badge variant="outline" className="bg-secondary text-muted-foreground">
@@ -82,6 +89,22 @@ export const getPriorityBadge = (priority: string) => {
       return (
         <Badge variant="outline">{priority}</Badge>
       );
+  }
+};
+
+// Helper function to get priority color
+export const getPriorityColor = (priority: string) => {
+  switch (priority) {
+    case 'critical':
+      return 'bg-red-100 text-red-800';
+    case 'high':
+      return 'bg-orange-100 text-orange-800';
+    case 'medium':
+      return 'bg-blue-100 text-blue-800';
+    case 'low':
+      return 'bg-green-100 text-green-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
   }
 };
 

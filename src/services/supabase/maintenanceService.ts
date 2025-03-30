@@ -138,5 +138,33 @@ export const maintenanceService = {
       console.error('Error deleting task:', error);
       throw error;
     }
+  },
+  
+  // Compléter une tâche de maintenance avec des informations supplémentaires
+  async completeTask(taskId: number, completionData: { 
+    completedDate: Date; 
+    actualDuration: number; 
+    notes?: string;
+    technician?: string;
+  }): Promise<void> {
+    console.log('Completing task in Supabase:', taskId, completionData);
+    
+    const updates = {
+      status: 'completed' as MaintenanceStatus,
+      completed_date: completionData.completedDate.toISOString(),
+      actual_duration: completionData.actualDuration,
+      notes: completionData.notes,
+      assigned_to: completionData.technician
+    };
+    
+    const { error } = await supabase
+      .from('maintenance_tasks')
+      .update(updates)
+      .eq('id', taskId);
+    
+    if (error) {
+      console.error('Error completing task:', error);
+      throw error;
+    }
   }
 };
