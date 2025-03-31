@@ -117,8 +117,12 @@ export const useDashboardData = () => {
   const { upcomingTasks } = useTasksData(user);
   
   // New data fetching for additional dashboard features
-  const { data: interventions = [] } = useInterventionsData();
-  const { data: parts = [] } = usePartsData();
+  const interventionsResult = useInterventionsData();
+  const partsResult = usePartsData();
+  
+  // Get the actual data from the query results
+  const interventions = interventionsResult.interventions || [];
+  const parts = partsResult.data || [];
 
   // Derive urgent interventions from interventions data
   const urgentInterventions = interventions

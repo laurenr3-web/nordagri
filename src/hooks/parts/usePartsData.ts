@@ -40,8 +40,8 @@ export function usePartsData() {
         })) as Part[];
       } catch (error) {
         console.error('Error fetching parts data:', error);
-        // Return fallback mock data
-        return [].concat(window.partsData || []);
+        // Return fallback empty array instead of using a global window property
+        return [];
       }
     }
   });

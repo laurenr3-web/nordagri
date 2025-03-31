@@ -20,9 +20,41 @@ interface DashboardProps {
   handleEquipmentClick: (id: number) => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = (props) => {
+const Dashboard: React.FC<DashboardProps> = ({
+  statsData,
+  equipmentData,
+  maintenanceEvents,
+  alertItems,
+  upcomingTasks,
+  urgentInterventions,
+  stockAlerts,
+  weeklyCalendarEvents,
+  currentMonth,
+  handleStatsCardClick,
+  handleEquipmentViewAllClick,
+  handleMaintenanceCalendarClick,
+  handleAlertsViewAllClick,
+  handleTasksAddClick,
+  handleEquipmentClick
+}) => {
   return (
-    <EnhancedDashboard {...props} />
+    <EnhancedDashboard 
+      statsData={statsData}
+      equipmentData={equipmentData}
+      maintenanceEvents={maintenanceEvents}
+      alertItems={alertItems}
+      upcomingTasks={upcomingTasks}
+      urgentInterventions={urgentInterventions}
+      stockAlerts={stockAlerts}
+      weeklyCalendarEvents={weeklyCalendarEvents}
+      currentMonth={currentMonth}
+      handleStatsCardClick={handleStatsCardClick}
+      handleEquipmentViewAllClick={handleEquipmentViewAllClick}
+      handleMaintenanceCalendarClick={handleMaintenanceCalendarClick}
+      handleAlertsViewAllClick={handleAlertsViewAllClick}
+      handleTasksAddClick={handleTasksAddClick}
+      handleEquipmentClick={handleEquipmentClick}
+    />
   );
 };
 

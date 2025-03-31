@@ -29,7 +29,10 @@ const DashboardPage = () => {
     equipmentData,
     maintenanceEvents,
     alertItems,
-    upcomingTasks
+    upcomingTasks,
+    urgentInterventions,
+    stockAlerts,
+    weeklyCalendarEvents
   } = useDashboardData();
 
   // Current month for calendar
@@ -109,6 +112,9 @@ const DashboardPage = () => {
                       maintenanceEvents={adaptedMaintenanceEvents}
                       alertItems={adaptedAlertItems}
                       upcomingTasks={adaptedTasks}
+                      urgentInterventions={urgentInterventions || []}
+                      stockAlerts={stockAlerts || []}
+                      weeklyCalendarEvents={weeklyCalendarEvents || []}
                       currentMonth={currentMonth}
                       handleStatsCardClick={handleStatsCardClick}
                       handleEquipmentViewAllClick={handleEquipmentViewAllClick}
