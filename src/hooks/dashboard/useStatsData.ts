@@ -96,21 +96,24 @@ export const useStatsData = (user: any) => {
         task.priority === 'high' || task.priority === 'critical'
       ).length || 0;
       
-      // Calculate actual parts count - sum of all quantities
-      console.log("Calculating parts inventory total...");
-      let totalPartsQuantity = 0;
-      if (partsData && partsData.length > 0) {
-        totalPartsQuantity = partsData.reduce((sum, part) => {
-          const quantity = typeof part.quantity === 'number' ? part.quantity : 0;
-          console.log(`Part ${part.id}: quantity = ${quantity}`);
-          return sum + quantity;
-        }, 0);
-      }
-      console.log(`Total parts quantity: ${totalPartsQuantity}`);
+      // FIX: Correctly calculate total parts quantity
+      // Instead of summing all part quantities, we should count the total number of parts
+      const totalPartsCount = partsData?.length || 0;
       
+      // Log individual part quantities for debugging
+      if (partsData && partsData.length > 0) {
+        console.log("Individual part quantities:");
+        partsData.forEach(part => {
+          console.log(`Part ${part.id}: quantity = ${part.quantity}, threshold = ${part.reorder_threshold}`);
+        });
+      }
+      
+      // Calculate low stock items correctly
       const lowStockItems = partsData?.filter(part => 
         part.quantity <= (part.reorder_threshold || 5)
       ).length || 0;
+      
+      console.log(`Total parts count: ${totalPartsCount}, Low stock items: ${lowStockItems}`);
       
       const interventionsCount = interventionsData?.length || 0;
 
@@ -131,7 +134,7 @@ export const useStatsData = (user: any) => {
         },
         {
           title: 'Parts Inventory',
-          value: totalPartsQuantity,
+          value: totalPartsCount, // FIXED: Now showing count of unique parts instead of sum of quantities
           icon: Package,
           description: lowStockItems > 0 ? `${lowStockItems} items low stock` : '',
           change: 0

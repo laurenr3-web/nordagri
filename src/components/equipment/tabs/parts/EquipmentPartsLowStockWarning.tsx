@@ -9,16 +9,22 @@ interface EquipmentPartsLowStockWarningProps {
 }
 
 const EquipmentPartsLowStockWarning: React.FC<EquipmentPartsLowStockWarningProps> = ({ parts }) => {
-  // Filtrer les pièces avec stock faible (en dessous du point de réapprovisionnement)
-  const lowStockParts = parts.filter(part => {
-    const stock = typeof part.stock === 'number' ? part.stock : 
-                 typeof part.quantity === 'number' ? part.quantity : 0;
-                 
-    const reorderPoint = typeof part.reorderPoint === 'number' ? part.reorderPoint : 
-                         typeof part.minimumStock === 'number' ? part.minimumStock : 5;
-                         
-    return stock <= reorderPoint;
-  });
+  if (!parts || parts.length === 0) {
+    return null;
+  }
+  
+  // Ensure we're working with valid part objects and handling different property names
+  const normalizedParts = parts.map(part => ({
+    ...part,
+    normalizedStock: typeof part.stock === 'number' ? part.stock : 
+                    (typeof part.quantity === 'number' ? part.quantity : 0),
+    normalizedReorderPoint: typeof part.reorderPoint === 'number' ? part.reorderPoint : 
+                          (typeof part.minimumStock === 'number' ? part.minimumStock : 
+                          (typeof part.reorder_threshold === 'number' ? part.reorder_threshold : 5))
+  }));
+  
+  // Filter the parts with stock below reorder point
+  const lowStockParts = normalizedParts.filter(part => part.normalizedStock <= part.normalizedReorderPoint);
   
   if (lowStockParts.length === 0) {
     return null;
@@ -37,7 +43,7 @@ const EquipmentPartsLowStockWarning: React.FC<EquipmentPartsLowStockWarningProps
             <ul className="list-disc pl-5 mt-2">
               {lowStockParts.slice(0, 3).map(part => (
                 <li key={part.id}>
-                  <strong>{part.name}</strong> - Stock actuel: {part.stock || part.quantity || 0}
+                  <strong>{part.name}</strong> - Stock actuel: {part.normalizedStock || 0}
                 </li>
               ))}
               {lowStockParts.length > 3 && (

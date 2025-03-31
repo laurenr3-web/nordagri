@@ -26,25 +26,44 @@ export const deriveUrgentInterventions = (interventions: any[]): UrgentIntervent
  */
 export const deriveStockAlerts = (parts: any[]): StockAlert[] => {
   console.log("Deriving stock alerts from parts data:", parts);
-  return parts
-    .filter(item => {
-      const stock = typeof item.quantity === 'number' ? item.quantity : 0;
-      const reorderPoint = typeof item.reorder_threshold === 'number' ? item.reorder_threshold : 5;
-      console.log(`Part ${item.id} - ${item.name}: stock=${stock}, reorderPoint=${reorderPoint}`);
-      return stock <= reorderPoint;
-    })
-    .map(item => {
-      const stock = typeof item.quantity === 'number' ? item.quantity : 0;
-      const reorderPoint = typeof item.reorder_threshold === 'number' ? item.reorder_threshold : 5;
-      return {
-        id: typeof item.id === 'string' ? parseInt(item.id) : item.id,
-        name: item.name,
-        currentStock: stock,
-        reorderPoint: reorderPoint,
-        percentRemaining: reorderPoint > 0 ? Math.round((stock / reorderPoint) * 100) : 0,
-        category: item.category || 'Non catégorisé'
-      };
-    });
+  
+  // Filter parts with low stock
+  const lowStockParts = parts.filter(item => {
+    // Ensure we're working with numbers for comparison
+    const stock = typeof item.quantity === 'number' ? item.quantity : 
+                (typeof item.stock === 'number' ? item.stock : 0);
+                
+    const reorderPoint = typeof item.reorder_threshold === 'number' ? item.reorder_threshold : 
+                       (typeof item.reorderPoint === 'number' ? item.reorderPoint : 5);
+                       
+    console.log(`Part ${item.id} - ${item.name}: stock=${stock}, reorderPoint=${reorderPoint}, isLow=${stock <= reorderPoint}`);
+    return stock <= reorderPoint;
+  });
+  
+  console.log(`Found ${lowStockParts.length} parts with low stock`);
+  
+  // Map to StockAlert objects
+  return lowStockParts.map(item => {
+    const stock = typeof item.quantity === 'number' ? item.quantity : 
+                (typeof item.stock === 'number' ? item.stock : 0);
+                
+    const reorderPoint = typeof item.reorder_threshold === 'number' ? item.reorder_threshold : 
+                       (typeof item.reorderPoint === 'number' ? item.reorderPoint : 5);
+                       
+    // Calculate percent remaining (capped at 100%)
+    const percentRemaining = reorderPoint > 0 
+                           ? Math.min(Math.round((stock / reorderPoint) * 100), 100) 
+                           : 0;
+    
+    return {
+      id: typeof item.id === 'string' ? parseInt(item.id) : item.id,
+      name: item.name,
+      currentStock: stock,
+      reorderPoint: reorderPoint,
+      percentRemaining: percentRemaining,
+      category: item.category || 'Non catégorisé'
+    };
+  });
 };
 
 /**
