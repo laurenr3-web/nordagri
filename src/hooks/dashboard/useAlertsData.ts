@@ -42,7 +42,7 @@ export const useAlertsData = (user: any) => {
       const { data: partsData, error: partsError } = await supabase
         .from('parts_inventory')
         .select('*')
-        .lt('quantity', supabase.raw('reorder_threshold'))
+        .lt('quantity', 'reorder_threshold')
         .order('quantity', { ascending: true })
         .limit(5);
         
