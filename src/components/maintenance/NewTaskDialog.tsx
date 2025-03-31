@@ -14,6 +14,7 @@ import {
 import { useMaintenanceForm } from '@/hooks/maintenance/useMaintenanceForm';
 import TaskFormFields from './TaskFormFields';
 import AddStaffDialog from './dialogs/AddStaffDialog';
+import DialogWrapper from './dialogs/DialogWrapper';
 
 interface NewTaskDialogProps {
   open: boolean;
@@ -60,6 +61,16 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({ open, onOpenChange, onSub
     handleSubmit,
   } = useMaintenanceForm(onSubmit, onOpenChange, initialDate);
 
+  const renderInitialDateInfo = () => {
+    if (!initialDate) return null;
+    
+    return (
+      <span className="block mt-1 text-sm font-medium">
+        Planifiée pour: {initialDate.toLocaleDateString()}
+      </span>
+    );
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -68,11 +79,7 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({ open, onOpenChange, onSub
             <DialogTitle>Créer une nouvelle tâche de maintenance</DialogTitle>
             <DialogDescription>
               Remplissez les détails pour planifier une nouvelle tâche de maintenance.
-              {initialDate && (
-                <span className="block mt-1 text-sm font-medium">
-                  Planifiée pour: {initialDate.toLocaleDateString()}
-                </span>
-              )}
+              {renderInitialDateInfo()}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
