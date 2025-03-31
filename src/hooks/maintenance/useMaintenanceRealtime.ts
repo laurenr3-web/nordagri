@@ -7,13 +7,13 @@ import { useToast } from '@/hooks/use-toast';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
 /**
- * Hook to subscribe to maintenance_tasks table changes
+ * Hook optimisé pour s'abonner aux changements de la table maintenance_tasks
  */
 export function useMaintenanceRealtime() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
-  // Set up the realtime subscription
+  // Set up the realtime subscription with improved error handling
   const { isSubscribed, error } = useRealtimeSubscription<MaintenanceTask>({
     tableName: 'maintenance_tasks',
     showNotifications: false,
@@ -75,15 +75,20 @@ export function useMaintenanceRealtime() {
     }
   });
   
-  // Log subscription status
+  // Log subscription status with improved messaging
   useEffect(() => {
     if (isSubscribed) {
-      console.log('Successfully subscribed to maintenance_tasks table changes');
+      console.log('✅ Successfully subscribed to maintenance_tasks table changes');
     }
     if (error) {
-      console.error('Error subscribing to maintenance_tasks changes:', error);
+      console.error('❌ Error subscribing to maintenance_tasks changes:', error);
+      toast({
+        title: 'Problème de connexion',
+        description: 'La synchronisation des tâches de maintenance rencontre des problèmes. Certaines mises à jour pourraient être manquantes.',
+        variant: 'destructive'
+      });
     }
-  }, [isSubscribed, error]);
+  }, [isSubscribed, error, toast]);
   
   return { isSubscribed, error };
 }
