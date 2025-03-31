@@ -65,6 +65,21 @@ const NewInterventionDialog: React.FC<NewInterventionDialogProps> = ({
   equipments = [],
   technicians = []
 }) => {
+  // Si aucune donnée n'est fournie, utiliser des données fictives pour les tests
+  const defaultEquipments = equipments.length > 0 ? equipments : [
+    { id: 1, name: "John Deere 8R 410" },
+    { id: 2, name: "New Holland T7.315" },
+    { id: 3, name: "Kubota M7-172" },
+    { id: 4, name: "Fendt 724 Vario" }
+  ];
+
+  const defaultTechnicians = technicians.length > 0 ? technicians : [
+    { id: "1", name: "Robert Taylor" },
+    { id: "2", name: "Sarah Johnson" },
+    { id: "3", name: "David Chen" },
+    { id: "4", name: "Maria Rodriguez" }
+  ];
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -83,11 +98,13 @@ const NewInterventionDialog: React.FC<NewInterventionDialogProps> = ({
   
   const onSubmit = (values: FormValues) => {
     onCreate(values as InterventionFormValues);
+    form.reset();
+    onOpenChange(false);
   };
 
   // Gérer le changement d'équipement pour mettre à jour l'ID
   const handleEquipmentChange = (value: string) => {
-    const selectedEquipment = equipments.find(eq => eq.name === value);
+    const selectedEquipment = defaultEquipments.find(eq => eq.name === value);
     if (selectedEquipment) {
       form.setValue('equipmentId', selectedEquipment.id);
     }
@@ -136,7 +153,7 @@ const NewInterventionDialog: React.FC<NewInterventionDialogProps> = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {equipments.map((eq) => (
+                        {defaultEquipments.map((eq) => (
                           <SelectItem key={eq.id} value={eq.name}>
                             {eq.name}
                           </SelectItem>
@@ -270,7 +287,7 @@ const NewInterventionDialog: React.FC<NewInterventionDialogProps> = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {technicians.map((tech) => (
+                        {defaultTechnicians.map((tech) => (
                           <SelectItem key={tech.id} value={tech.name}>
                             {tech.name}
                           </SelectItem>
