@@ -125,23 +125,19 @@ const InterventionsHeader: React.FC<InterventionsHeaderProps> = ({
               className="w-full sm:w-auto"
               onValueChange={setCurrentView}
             >
-              <TabsList className="grid w-full sm:w-auto">
-                <div className="grid grid-cols-4 w-full gap-1 px-1 py-1">
-                  <TabsTrigger value="scheduled" className="px-3 text-xs sm:text-sm whitespace-nowrap flex items-center justify-center gap-1">
-                    <List className="h-4 w-4 hidden sm:block" />
-                    <span>Liste</span>
+              <TabsList className="bg-muted/60 p-0 rounded-md">
+                <div className="flex">
+                  <TabsTrigger value="scheduled" className="px-4 py-2 text-sm rounded-md">
+                    Liste
                   </TabsTrigger>
-                  <TabsTrigger value="calendar" className="px-3 text-xs sm:text-sm whitespace-nowrap flex items-center justify-center gap-1">
-                    <Calendar className="h-4 w-4 hidden sm:block" />
-                    <span>Calendrier</span>
+                  <TabsTrigger value="calendar" className="px-4 py-2 text-sm rounded-md">
+                    Calendrier
                   </TabsTrigger>
-                  <TabsTrigger value="field-tracking" className="px-3 text-xs sm:text-sm whitespace-nowrap flex items-center justify-center gap-1">
-                    <MapPin className="h-4 w-4 hidden sm:block" />
-                    <span>Suivi</span>
+                  <TabsTrigger value="field-tracking" className="px-4 py-2 text-sm rounded-md">
+                    Suivi
                   </TabsTrigger>
-                  <TabsTrigger value="requests" className="px-3 text-xs sm:text-sm whitespace-nowrap flex items-center justify-center gap-1">
-                    <FileText className="h-4 w-4 hidden sm:block" />
-                    <span>Demandes</span>
+                  <TabsTrigger value="requests" className="px-4 py-2 text-sm rounded-md">
+                    Demandes
                   </TabsTrigger>
                 </div>
               </TabsList>
