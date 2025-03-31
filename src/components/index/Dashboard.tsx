@@ -1,16 +1,26 @@
 
 import React from 'react';
 import EnhancedDashboard from './EnhancedDashboard';
+import { 
+  StatsCardData, 
+  EquipmentItem, 
+  MaintenanceEvent, 
+  AlertItem, 
+  UpcomingTask,
+  UrgentIntervention,
+  StockAlert,
+  CalendarEvent
+} from '@/hooks/dashboard/types/dashboardTypes';
 
 interface DashboardProps {
-  statsData: any[];
-  equipmentData: any[];
-  maintenanceEvents: any[];
-  alertItems: any[];
-  upcomingTasks: any[];
-  urgentInterventions: any[];
-  stockAlerts: any[];
-  weeklyCalendarEvents: any[];
+  statsData: StatsCardData[];
+  equipmentData: EquipmentItem[];
+  maintenanceEvents: MaintenanceEvent[];
+  alertItems: AlertItem[];
+  upcomingTasks: UpcomingTask[];
+  urgentInterventions: UrgentIntervention[];
+  stockAlerts: StockAlert[];
+  weeklyCalendarEvents: CalendarEvent[];
   currentMonth: Date;
   handleStatsCardClick: (type: string) => void;
   handleEquipmentViewAllClick: () => void;
