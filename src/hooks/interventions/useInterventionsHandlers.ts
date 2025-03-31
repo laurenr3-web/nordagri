@@ -1,10 +1,10 @@
 
 import { Intervention } from '@/types/Intervention';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 export interface InterventionsHandlersProps {
   interventions: Intervention[];
-  setInterventions: React.Dispatch<React.SetStateAction<Intervention[]>>;
+  setInterventions?: React.Dispatch<React.SetStateAction<Intervention[]>>;
   setIsNewInterventionDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setInterventionDetailsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setSelectedInterventionId: React.Dispatch<React.SetStateAction<number | string | null>>;
@@ -39,7 +39,9 @@ export function useInterventionsHandlers({
       status: 'scheduled',
     } as Intervention;
     
-    setInterventions([...interventions, completedIntervention]);
+    if (setInterventions) {
+      setInterventions([...interventions, completedIntervention]);
+    }
     setIsNewInterventionDialogOpen(false);
     toast({
       title: "Succès",

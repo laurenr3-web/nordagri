@@ -43,7 +43,7 @@ export function useInterventionsData() {
 
   // Mutation pour mettre à jour le statut d'une intervention
   const updateStatusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: number; status: string }) => {
+    mutationFn: ({ id, status }: { id: number; status: Intervention['status'] }) => {
       setIsLoading(true);
       return interventionService.updateInterventionStatus(id, status);
     },
@@ -83,7 +83,7 @@ export function useInterventionsData() {
   };
 
   // Mettre à jour le statut d'une intervention
-  const updateInterventionStatus = (id: number, status: string) => {
+  const updateInterventionStatus = (id: number, status: Intervention['status']) => {
     updateStatusMutation.mutate({ id, status });
   };
 
@@ -99,9 +99,9 @@ export function useInterventionsData() {
     notes: string;
     partsUsed: Array<{ id: number; name: string; quantity: number; }>;
   }) => {
-    const updatedIntervention = {
+    const updatedIntervention: Intervention = {
       ...intervention,
-      status: 'completed',
+      status: 'completed' as Intervention['status'],
       duration: report.duration,
       notes: report.notes,
       partsUsed: report.partsUsed

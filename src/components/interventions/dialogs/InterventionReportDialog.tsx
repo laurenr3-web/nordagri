@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Clock, Tool, FileCheck, CheckCircle } from 'lucide-react';
+import { Clock, Wrench, FileCheck, CheckCircle } from 'lucide-react';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -182,7 +182,7 @@ const InterventionReportDialog: React.FC<InterventionReportDialogProps> = ({
                           className="h-7 text-xs"
                           onClick={() => addPart(part)}
                         >
-                          <Tool className="h-3 w-3 mr-1" />
+                          <Wrench className="h-3 w-3 mr-1" />
                           {part.name}
                         </Button>
                       ))}
@@ -194,7 +194,7 @@ const InterventionReportDialog: React.FC<InterventionReportDialogProps> = ({
                   {form.watch('partsUsed')?.map((part, index) => (
                     <div key={index} className="flex items-center justify-between bg-muted/30 p-2 rounded-md">
                       <div className="flex items-center">
-                        <Tool className="h-4 w-4 mr-2 text-muted-foreground" />
+                        <Wrench className="h-4 w-4 mr-2 text-muted-foreground" />
                         <span>{part.name}</span>
                       </div>
                       <div className="flex items-center space-x-2">
