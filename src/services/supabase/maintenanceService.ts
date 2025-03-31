@@ -1,9 +1,10 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { MaintenanceTask, MaintenancePriority, MaintenanceStatus, MaintenanceType } from '@/hooks/maintenance/maintenanceSlice';
+import { MaintenanceTask, MaintenanceStatus, MaintenanceType } from '@/hooks/maintenance/maintenanceSlice';
+import type { MaintenancePriority } from '@/hooks/maintenance/maintenanceSlice';
 import { MaintenancePlan, MaintenanceFrequency, MaintenanceUnit } from '@/hooks/maintenance/useMaintenancePlanner';
 
-// Types exportés
+// Types export using the correct syntax for 'isolatedModules' mode
 export type { MaintenanceTask, MaintenancePriority, MaintenanceStatus, MaintenanceType };
 
 /**
