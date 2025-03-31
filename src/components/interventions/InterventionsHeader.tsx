@@ -125,23 +125,25 @@ const InterventionsHeader: React.FC<InterventionsHeaderProps> = ({
               className="w-full sm:w-auto"
               onValueChange={setCurrentView}
             >
-              <TabsList className="grid grid-cols-4 w-full sm:w-auto">
-                <TabsTrigger value="scheduled" className="flex items-center">
-                  <List className="h-4 w-4 mr-2 hidden sm:block" />
-                  Liste
-                </TabsTrigger>
-                <TabsTrigger value="calendar" className="flex items-center">
-                  <Calendar className="h-4 w-4 mr-2 hidden sm:block" />
-                  Calendrier
-                </TabsTrigger>
-                <TabsTrigger value="field-tracking" className="flex items-center">
-                  <MapPin className="h-4 w-4 mr-2 hidden sm:block" />
-                  Suivi
-                </TabsTrigger>
-                <TabsTrigger value="requests" className="flex items-center">
-                  <FileText className="h-4 w-4 mr-2 hidden sm:block" />
-                  Demandes
-                </TabsTrigger>
+              <TabsList className="grid w-full sm:w-auto">
+                <div className="grid grid-cols-4 w-full gap-1 px-1 py-1">
+                  <TabsTrigger value="scheduled" className="px-3 text-xs sm:text-sm whitespace-nowrap flex items-center justify-center">
+                    <List className="h-4 w-4 mr-1 hidden sm:block" />
+                    Liste
+                  </TabsTrigger>
+                  <TabsTrigger value="calendar" className="px-3 text-xs sm:text-sm whitespace-nowrap flex items-center justify-center">
+                    <Calendar className="h-4 w-4 mr-1 hidden sm:block" />
+                    Calendrier
+                  </TabsTrigger>
+                  <TabsTrigger value="field-tracking" className="px-3 text-xs sm:text-sm whitespace-nowrap flex items-center justify-center">
+                    <MapPin className="h-4 w-4 mr-1 hidden sm:block" />
+                    Suivi
+                  </TabsTrigger>
+                  <TabsTrigger value="requests" className="px-3 text-xs sm:text-sm whitespace-nowrap flex items-center justify-center">
+                    <FileText className="h-4 w-4 mr-1 hidden sm:block" />
+                    Demandes
+                  </TabsTrigger>
+                </div>
               </TabsList>
             </Tabs>
           )}
