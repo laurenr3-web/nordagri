@@ -346,6 +346,69 @@ export type Database = {
         }
         Relationships: []
       }
+      maintenance_plans: {
+        Row: {
+          active: boolean
+          assigned_to: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          engine_hours: number | null
+          equipment_id: number
+          equipment_name: string
+          frequency: string
+          id: number
+          interval: number
+          last_performed_date: string | null
+          next_due_date: string
+          priority: string
+          title: string
+          type: string
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          engine_hours?: number | null
+          equipment_id: number
+          equipment_name: string
+          frequency: string
+          id?: number
+          interval: number
+          last_performed_date?: string | null
+          next_due_date: string
+          priority: string
+          title: string
+          type: string
+          unit: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          engine_hours?: number | null
+          equipment_id?: number
+          equipment_name?: string
+          frequency?: string
+          id?: number
+          interval?: number
+          last_performed_date?: string | null
+          next_due_date?: string
+          priority?: string
+          title?: string
+          type?: string
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       maintenance_records: {
         Row: {
           completed: boolean | null
