@@ -1,25 +1,25 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
 import InterventionsHeader from '@/components/interventions/InterventionsHeader';
 import InterventionsContainer from '@/components/interventions/InterventionsContainer';
-import InterventionsDialogs from '@/components/interventions/InterventionsDialogs';
 import { useInterventionsState } from '@/hooks/interventions/useInterventionsState';
 import { useInterventionsHandlers } from '@/hooks/interventions/useInterventionsHandlers';
-import { sampleInterventions } from '@/data/sampleInterventions';
+import { useInterventionsData } from '@/hooks/interventions/useInterventionsData';
+import InterventionDetailsDialog from '@/components/interventions/InterventionDetailsDialog';
+import { toast } from 'sonner';
 
 const InterventionsPage = () => {
-  // Use the custom hooks to manage state and handlers
+  // Utiliser le hook pour récupérer les données des interventions depuis Supabase
+  const { interventions, isLoading } = useInterventionsData();
+  
+  // Gérer l'état local des interventions et des filtres
   const {
-    interventions,
-    setInterventions,
     searchQuery,
     setSearchQuery,
     selectedPriority,
     setSelectedPriority,
-    isNewInterventionDialogOpen,
-    setIsNewInterventionDialogOpen,
     interventionDetailsOpen,
     setInterventionDetailsOpen,
     selectedInterventionId,
@@ -27,8 +27,19 @@ const InterventionsPage = () => {
     currentView,
     setCurrentView,
     filteredInterventions
-  } = useInterventionsState({ initialInterventions: sampleInterventions });
+  } = useInterventionsState({ 
+    initialInterventions: interventions
+  });
+  
+  // Mettre à jour les interventions filtrées quand les interventions changent
+  useEffect(() => {
+    if (interventions.length > 0) {
+      // Mettre à jour l'état avec les interventions récupérées
+      console.log('Interventions récupérées:', interventions);
+    }
+  }, [interventions]);
 
+  // Utiliser les gestionnaires pour les actions sur les interventions
   const {
     handleOpenNewInterventionDialog,
     handleCloseNewInterventionDialog,
@@ -41,13 +52,29 @@ const InterventionsPage = () => {
     handleStartWork
   } = useInterventionsHandlers({
     interventions,
-    setInterventions,
-    setIsNewInterventionDialogOpen,
+    setIsNewInterventionDialogOpen: (open) => {
+      // Ouvrir le dialogue de création
+      handleOpenNewInterventionDialog();
+    },
     setInterventionDetailsOpen,
     setSelectedInterventionId,
     setSearchQuery,
     setSelectedPriority
   });
+
+  // Afficher un loader pendant le chargement
+  if (isLoading) {
+    return (
+      <SidebarProvider>
+        <div className="flex min-h-screen w-full bg-background">
+          <Navbar />
+          <div className="flex flex-1 flex-col items-center justify-center">
+            <p>Chargement des interventions...</p>
+          </div>
+        </div>
+      </SidebarProvider>
+    );
+  }
 
   return (
     <SidebarProvider>
@@ -61,31 +88,39 @@ const InterventionsPage = () => {
             onSearchChange={(query) => handleSearchChange({ target: { value: query } } as React.ChangeEvent<HTMLInputElement>)}
             selectedPriority={selectedPriority}
             onPriorityChange={handlePriorityChange}
+            currentView={currentView}
+            setCurrentView={setCurrentView}
           />
 
           <InterventionsContainer
-            filteredInterventions={filteredInterventions}
+            filteredInterventions={filteredInterventions.length > 0 ? filteredInterventions : interventions}
             currentView={currentView}
             setCurrentView={setCurrentView}
             onClearSearch={handleClearSearch}
             onViewDetails={handleViewDetails}
-            onStartWork={handleStartWork}
+            onStartWork={(intervention) => {
+              handleStartWork(intervention);
+              toast.success(`Intervention "${intervention.title}" démarrée`);
+            }}
             searchQuery={searchQuery}
             selectedPriority={selectedPriority}
             onSearchChange={handleSearchChange}
             onPriorityChange={handlePriorityChange}
           />
 
-          <InterventionsDialogs
-            isNewInterventionDialogOpen={isNewInterventionDialogOpen}
-            onCloseNewInterventionDialog={handleCloseNewInterventionDialog}
-            onCreate={handleCreateIntervention}
-            interventionDetailsOpen={interventionDetailsOpen}
-            selectedInterventionId={selectedInterventionId}
-            onCloseInterventionDetails={handleCloseInterventionDetails}
-            onStartWork={handleStartWork}
-            interventions={interventions}
-            filteredInterventions={filteredInterventions}
+          {/* Dialog des détails d'intervention */}
+          <InterventionDetailsDialog
+            interventionId={selectedInterventionId || ''}
+            open={interventionDetailsOpen}
+            onOpenChange={handleCloseInterventionDetails}
+            onStartWork={() => {
+              if (selectedInterventionId) {
+                const intervention = interventions.find(i => i.id === selectedInterventionId);
+                if (intervention) {
+                  handleStartWork(intervention);
+                }
+              }
+            }}
           />
         </div>
       </div>
