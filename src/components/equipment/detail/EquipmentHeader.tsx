@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Edit } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
+import QRCodeGenerator from '../qr/QRCodeGenerator';
 
 interface EquipmentHeaderProps {
   equipment: EquipmentItem;
@@ -33,6 +34,11 @@ const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({ equipment, onEdit }) 
       </div>
       
       <div className="flex gap-2 self-start">
+        <QRCodeGenerator 
+          equipmentId={equipment.id} 
+          equipmentName={equipment.name} 
+        />
+        
         <Button variant="outline" size="sm" onClick={onEdit}>
           <Edit className="mr-2 h-4 w-4" />
           Modifier
