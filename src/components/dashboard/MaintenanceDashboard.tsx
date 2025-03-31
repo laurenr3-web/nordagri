@@ -17,12 +17,14 @@ interface MaintenanceDashboardProps {
   tasks: MaintenanceTask[];
   periodStart?: Date;
   periodEnd?: Date;
+  userName?: string;
 }
 
 const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({ 
   tasks,
   periodStart = subMonths(new Date(), 3),
-  periodEnd = new Date()
+  periodEnd = new Date(),
+  userName = 'Utilisateur'
 }) => {
   // Filtrer les tâches pour la période spécifiée
   const tasksInPeriod = tasks.filter(task => {
@@ -87,6 +89,11 @@ const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({
 
   return (
     <div className="space-y-6">
+      <div className="text-sm text-muted-foreground mb-4">
+        <h2 className="text-xl font-bold text-foreground">Tableau de bord de maintenance</h2>
+        <p>Bienvenue, {userName}. Voici l'état actuel de vos maintenances.</p>
+      </div>
+    
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
@@ -323,7 +330,7 @@ const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({
               <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-4" />
               <h3 className="text-xl font-medium mb-2">Aucune tâche en attente</h3>
               <p className="text-muted-foreground">
-                Toutes les tâches de maintenance ont été complétées.
+                {userName}, toutes les tâches de maintenance ont été complétées.
               </p>
             </div>
           )}

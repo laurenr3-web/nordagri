@@ -1,34 +1,24 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, CalendarPlus } from 'lucide-react';
 
 interface MaintenanceHeaderProps {
   setIsNewTaskDialogOpen: (open: boolean) => void;
+  userName?: string;
 }
 
 const MaintenanceHeader: React.FC<MaintenanceHeaderProps> = ({ 
-  setIsNewTaskDialogOpen 
+  setIsNewTaskDialogOpen,
+  userName = 'Utilisateur'
 }) => {
   return (
-    <header className="mb-8 animate-fade-in">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="chip chip-accent mb-2">Maintenance Management</div>
-          <h1 className="text-3xl font-medium tracking-tight mb-1">Maintenance Planner</h1>
-          <p className="text-muted-foreground">
-            Schedule and track maintenance activities for your equipment
-          </p>
-        </div>
-        
-        <div className="mt-4 sm:mt-0">
-          <Button className="gap-2" onClick={() => setIsNewTaskDialogOpen(true)}>
-            <Plus size={16} />
-            <span>New Task</span>
-          </Button>
-        </div>
-      </div>
-    </header>
+    <div className="flex space-x-2">
+      <Button onClick={() => setIsNewTaskDialogOpen(true)}>
+        <Plus className="h-4 w-4 mr-2" />
+        <span>Nouvelle tâche</span>
+      </Button>
+    </div>
   );
 };
 

@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import MaintenanceDashboard from '@/components/dashboard/MaintenanceDashboard';
 import MaintenanceNotificationsPopover from '@/components/maintenance/notifications/MaintenanceNotificationsPopover';
 import MaintenanceCompletionDialog from '@/components/maintenance/dialogs/MaintenanceCompletionDialog';
+import { useAuthContext } from '@/providers/AuthProvider';
 
 const Maintenance = () => {
   const [currentView, setCurrentView] = useState('upcoming');
@@ -19,6 +20,9 @@ const Maintenance = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTask, setSelectedTask] = useState<MaintenanceTask | null>(null);
   const [isCompletionDialogOpen, setIsCompletionDialogOpen] = useState(false);
+  
+  // Get user information from the auth context
+  const { user, profileData, isAuthenticated } = useAuthContext();
   
   const {
     tasks, 
@@ -57,7 +61,18 @@ const Maintenance = () => {
 
   useEffect(() => {
     console.log('Maintenance component loaded with tasks:', tasks);
-  }, [tasks]);
+    // Log user information
+    console.log('Current user:', user);
+    console.log('Profile data:', profileData);
+  }, [tasks, user, profileData]);
+  
+  // Get user display name for the maintenance context
+  const getUserDisplayName = () => {
+    if (profileData && (profileData.first_name || profileData.last_name)) {
+      return `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim();
+    }
+    return user?.email || 'Utilisateur';
+  };
 
   return (
     <SidebarProvider>
@@ -67,7 +82,14 @@ const Maintenance = () => {
         </Sidebar>
         
         <div className="flex-1 w-full">
-          <div className="flex justify-end p-4 border-b">
+          <div className="flex justify-between items-center p-4 border-b">
+            <div className="text-sm text-muted-foreground">
+              {isAuthenticated ? (
+                <span>Connecté en tant que : <span className="font-medium">{getUserDisplayName()}</span></span>
+              ) : (
+                <span>Non connecté</span>
+              )}
+            </div>
             <MaintenanceNotificationsPopover />
           </div>
           
@@ -81,7 +103,8 @@ const Maintenance = () => {
                   </TabsList>
                   
                   <MaintenanceHeader 
-                    setIsNewTaskDialogOpen={setIsNewTaskDialogOpen} 
+                    setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
+                    userName={getUserDisplayName()}
                   />
                 </div>
                 
@@ -95,11 +118,15 @@ const Maintenance = () => {
                     updateTaskStatus={(taskId, status) => updateTaskStatus(taskId, status)}
                     updateTaskPriority={updateTaskPriority}
                     deleteTask={deleteTask}
+                    userName={getUserDisplayName()}
                   />
                 </TabsContent>
                 
                 <TabsContent value="dashboard">
-                  <MaintenanceDashboard tasks={tasks} />
+                  <MaintenanceDashboard 
+                    tasks={tasks} 
+                    userName={getUserDisplayName()}
+                  />
                 </TabsContent>
               </Tabs>
             </div>
@@ -112,6 +139,7 @@ const Maintenance = () => {
         onOpenChange={handleOpenNewTaskDialog}
         onSubmit={handleAddTask}
         initialDate={selectedDate}
+        userName={getUserDisplayName()}
       />
       
       <MaintenanceCompletionDialog
@@ -122,6 +150,7 @@ const Maintenance = () => {
           setIsCompletionDialogOpen(false);
           // Rafraîchir la liste des tâches
         }}
+        userName={getUserDisplayName()}
       />
     </SidebarProvider>
   );

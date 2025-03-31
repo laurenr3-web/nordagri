@@ -5,88 +5,89 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from '@/components/ui/dialog';
-import MaintenanceCompletionForm from '../forms/MaintenanceCompletionForm';
-import { toast } from 'sonner';
 import { MaintenanceTask } from '@/hooks/maintenance/maintenanceSlice';
+import { useToast } from '@/hooks/use-toast';
 import { maintenanceService } from '@/services/supabase/maintenanceService';
+import MaintenanceCompletionForm from '@/components/maintenance/forms/MaintenanceCompletionForm';
 
 interface MaintenanceCompletionDialogProps {
   isOpen: boolean;
   onClose: () => void;
   task: MaintenanceTask | null;
   onCompleted?: () => void;
+  userName?: string;
 }
 
-export default function MaintenanceCompletionDialog({ 
-  isOpen, 
-  onClose, 
+const MaintenanceCompletionDialog: React.FC<MaintenanceCompletionDialogProps> = ({
+  isOpen,
+  onClose,
   task,
-  onCompleted 
-}: MaintenanceCompletionDialogProps) {
+  onCompleted,
+  userName = 'Utilisateur'
+}) => {
+  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  if (!task) return null;
 
-  const handleSubmit = async (formData: any) => {
+  const handleSubmit = async (data: any) => {
     if (!task) return;
     
     try {
       setIsSubmitting(true);
       
-      // Mettre à jour la tâche avec les données de complétion
-      const updatedTask = {
-        ...task,
-        status: 'completed' as const,
-        completedDate: formData.completedDate,
-        actualDuration: formData.actualDuration,
-        notes: formData.notes,
-        assignedTo: formData.technician
-      };
+      // Ensure technician is set to user's name if empty
+      if (!data.technician) {
+        data.technician = userName;
+      }
       
-      // Appeler le service pour mettre à jour la tâche
-      await maintenanceService.updateTaskStatus(task.id, 'completed');
+      await maintenanceService.completeTask(task.id, {
+        completedDate: data.completedDate,
+        actualDuration: data.actualDuration,
+        notes: data.notes,
+        technician: data.technician
+      });
       
-      // Fermer la boîte de dialogue
+      toast({
+        title: "Tâche complétée avec succès",
+        description: "La tâche de maintenance a été marquée comme terminée.",
+      });
+      
       onClose();
-      
-      // Notification de succès
-      toast.success("Maintenance marquée comme complétée");
-      
-      // Callback après complétion
       if (onCompleted) {
         onCompleted();
       }
       
-      // Recharger la page pour voir les mises à jour
+      // Reload the page after a short delay
       setTimeout(() => window.location.reload(), 1000);
-      
     } catch (error: any) {
-      console.error("Erreur lors de la complétion de la maintenance:", error);
-      toast.error(`Impossible de compléter la maintenance: ${error.message}`);
+      console.error('Error completing task:', error);
+      toast({
+        title: "Erreur",
+        description: `Impossible de compléter la tâche: ${error.message}`,
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Si pas de tâche sélectionnée, ne rien afficher
-  if (!task) return null;
-
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Compléter la maintenance</DialogTitle>
-          <DialogDescription>
-            Enregistrez les détails de la maintenance effectuée
-          </DialogDescription>
+          <DialogTitle>Compléter la tâche de maintenance</DialogTitle>
         </DialogHeader>
         
-        <MaintenanceCompletionForm
-          task={task}
-          onSubmit={handleSubmit}
-          isSubmitting={isSubmitting}
+        <MaintenanceCompletionForm 
+          task={task} 
+          onSubmit={handleSubmit} 
+          isSubmitting={isSubmitting} 
         />
       </DialogContent>
     </Dialog>
   );
-}
+};
+
+export default MaintenanceCompletionDialog;
