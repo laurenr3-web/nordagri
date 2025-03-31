@@ -29,14 +29,8 @@ const NewInterventionDialog: React.FC<NewInterventionDialogProps> = ({
   isLoadingEquipment = false,
   isLoadingTechnicians = false
 }) => {
-  // Si aucune donnée n'est fournie, utiliser des données fictives pour les tests
-  const defaultEquipments = equipments.length > 0 ? equipments : [
-    { id: 1, name: "John Deere 8R 410" },
-    { id: 2, name: "New Holland T7.315" },
-    { id: 3, name: "Kubota M7-172" },
-    { id: 4, name: "Fendt 724 Vario" }
-  ];
-
+  // Ne pas utiliser de données fictives si on a des équipements réels
+  const defaultEquipments = equipments;
   const defaultTechnicians = technicians.length > 0 ? technicians : [
     { id: "1", name: "Robert Taylor" },
     { id: "2", name: "Sarah Johnson" },

@@ -6,7 +6,7 @@ import { interventionFormSchema, InterventionFormValues } from './interventionFo
 import { InterventionFormValues as ServiceInterventionFormValues } from '@/types/Intervention';
 
 interface UseInterventionFormProps {
-  onCreate: (intervention: ServiceInterventionFormValues) => void;
+  onCreate: (intervention: ServiceInterventionFormValues) => Promise<void>;
   onClose: () => void;
   equipments: { id: number; name: string }[];
 }
@@ -45,8 +45,10 @@ export function useInterventionForm({ onCreate, onClose, equipments }: UseInterv
       await onCreate(values as ServiceInterventionFormValues);
       form.reset();
       onClose();
+      return Promise.resolve();
     } catch (error) {
       console.error("Error creating intervention:", error);
+      return Promise.reject(error);
     } finally {
       setIsSubmitting(false);
     }

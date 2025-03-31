@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
 import InterventionsList from '@/components/interventions/InterventionsList';
-import { Intervention } from '@/types/Intervention';
+import { Intervention, InterventionFormValues } from '@/types/Intervention';
 import { useInterventionsData } from '@/hooks/interventions/useInterventionsData';
+import { useEquipmentOptions } from '@/hooks/equipment/useEquipmentOptions';
 import NewInterventionDialog from './NewInterventionDialog';
 import InterventionReportDialog from './dialogs/InterventionReportDialog';
 import CalendarView from './views/CalendarView';
@@ -40,15 +41,13 @@ const InterventionsContainer: React.FC<InterventionsContainerProps> = ({
     submitInterventionReport 
   } = useInterventionsData();
 
+  // Utiliser le hook pour récupérer les équipements réels
+  const { data: realEquipments = [], isLoading: isLoadingEquipments } = useEquipmentOptions();
+
   // États pour les dialogs
   const [isNewInterventionOpen, setIsNewInterventionOpen] = useState(false);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [selectedIntervention, setSelectedIntervention] = useState<Intervention | null>(null);
-  
-  // Liste des équipements pour le formulaire (extrait des interventions)
-  const equipmentList = Array.from(
-    new Set(filteredInterventions.map(i => i.equipment))
-  ).map((name, index) => ({ id: index + 1, name }));
   
   // Gérer la sélection d'une intervention pour le rapport
   const handleCompleteIntervention = (intervention: Intervention) => {
@@ -110,7 +109,8 @@ const InterventionsContainer: React.FC<InterventionsContainerProps> = ({
           // Return a resolved promise to satisfy the type
           return Promise.resolve();
         }}
-        equipments={equipmentList}
+        equipments={realEquipments}
+        isLoadingEquipment={isLoadingEquipments}
       />
       
       {/* Dialog de rapport d'intervention */}

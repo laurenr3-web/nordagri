@@ -4,13 +4,13 @@ import NewInterventionDialog from './NewInterventionDialog';
 import InterventionDetailsDialog from './InterventionDetailsDialog';
 import { Intervention, InterventionFormValues } from '@/types/Intervention';
 import { useInterventionsData } from '@/hooks/interventions/useInterventionsData';
-import { useQuery } from '@tanstack/react-query';
+import { useEquipmentOptions } from '@/hooks/equipment/useEquipmentOptions';
 import { toast } from 'sonner';
 
 interface InterventionsDialogsProps {
   isNewInterventionDialogOpen: boolean;
   onCloseNewInterventionDialog: () => void;
-  onCreate: (intervention: InterventionFormValues) => void;
+  onCreate: (intervention: InterventionFormValues) => Promise<void>;
   interventionDetailsOpen: boolean;
   selectedInterventionId: number | null;
   onCloseInterventionDetails: () => void;
@@ -32,29 +32,11 @@ const InterventionsDialogs: React.FC<InterventionsDialogsProps> = ({
 }) => {
   const { createIntervention } = useInterventionsData();
   
-  // Récupérer les équipements depuis la base de données
-  const { data: equipments = [], isLoading: isLoadingEquipments } = useQuery({
-    queryKey: ['equipments'],
-    queryFn: async () => {
-      try {
-        // Simuler une récupération des équipements
-        // Dans un cas réel, vous appellerez votre API
-        return [
-          { id: 1, name: "John Deere 8R 410" },
-          { id: 2, name: "New Holland T7.315" },
-          { id: 3, name: "Kubota M7-172" },
-          { id: 4, name: "Fendt 724 Vario" }
-        ];
-      } catch (error) {
-        console.error('Error fetching equipments:', error);
-        toast.error('Impossible de récupérer les équipements');
-        return [];
-      }
-    }
-  });
+  // Utiliser le hook pour récupérer les équipements réels
+  const { data: equipments = [], isLoading: isLoadingEquipments } = useEquipmentOptions();
   
   // Récupérer les techniciens depuis la base de données
-  const { data: technicians = [], isLoading: isLoadingTechnicians } = useQuery({
+  const { data: technicians = [], isLoading: isLoadingTechnicians } = useEquipmentOptions({
     queryKey: ['technicians'],
     queryFn: async () => {
       try {
@@ -84,7 +66,7 @@ const InterventionsDialogs: React.FC<InterventionsDialogsProps> = ({
       await createIntervention(values);
       toast.success("Intervention créée avec succès");
       // Appeler le onCreate du parent pour mettre à jour l'UI
-      onCreate(values);
+      await onCreate(values);
       return Promise.resolve();
     } catch (error) {
       console.error("Error in handleCreateIntervention:", error);
