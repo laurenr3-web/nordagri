@@ -68,11 +68,13 @@ const TaskTabs: React.FC<TaskTabsProps> = ({
     id: task.id.toString(),
     title: task.title,
     date: task.dueDate,
-    duration: task.engineHours,
+    equipment: task.equipment,
+    status: task.status,
     priority: task.priority === 'critical' ? 'high' : 
              task.priority === 'low' ? 'low' : 
              'medium' as 'high' | 'medium' | 'low',
-    equipment: task.equipment
+    assignedTo: task.assignedTo || 'Non assigné',
+    duration: task.engineHours || 0
   }));
 
   return (
