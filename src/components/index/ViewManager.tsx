@@ -27,7 +27,10 @@ const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) 
     equipmentData, 
     maintenanceEvents, 
     alertItems, 
-    upcomingTasks 
+    upcomingTasks,
+    urgentInterventions,
+    stockAlerts,
+    weeklyCalendarEvents
   } = useDashboardData();
 
   // Adapt data for UI components
@@ -88,6 +91,9 @@ const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) 
           alertItems={adaptedAlertItems}
           upcomingTasks={adaptedUpcomingTasks}
           currentMonth={currentMonth}
+          urgentInterventions={urgentInterventions}
+          stockAlerts={stockAlerts}
+          weeklyCalendarEvents={weeklyCalendarEvents}
           handleStatsCardClick={handleStatsCardClick}
           handleEquipmentViewAllClick={handleEquipmentViewAllClick}
           handleMaintenanceCalendarClick={handleMaintenanceCalendarClick}
