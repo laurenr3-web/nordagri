@@ -10,7 +10,7 @@ export function useInterventionsData() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Récupérer toutes les interventions
-  const { data: interventions = [], isLoading: isLoadingInterventions } = useQuery({
+  const { data: interventions = [], isLoading: isLoadingInterventions, refetch } = useQuery({
     queryKey: ['interventions'],
     queryFn: async () => {
       try {
@@ -35,6 +35,7 @@ export function useInterventionsData() {
       queryClient.invalidateQueries({ queryKey: ['interventions'] });
       toast.success('Intervention créée avec succès');
       setIsLoading(false);
+      refetch(); // Force refetch after creation
     },
     onError: (error: any) => {
       console.error('Error creating intervention:', error);
@@ -54,6 +55,7 @@ export function useInterventionsData() {
       queryClient.invalidateQueries({ queryKey: ['interventions'] });
       toast.success('Statut mis à jour avec succès');
       setIsLoading(false);
+      refetch(); // Force refetch after status update
     },
     onError: (error: any) => {
       console.error('Error updating intervention status:', error);
@@ -72,6 +74,7 @@ export function useInterventionsData() {
       queryClient.invalidateQueries({ queryKey: ['interventions'] });
       toast.success('Intervention mise à jour avec succès');
       setIsLoading(false);
+      refetch(); // Force refetch after update
     },
     onError: (error: any) => {
       console.error('Error updating intervention:', error);
@@ -83,7 +86,7 @@ export function useInterventionsData() {
   // Créer une nouvelle intervention
   const createIntervention = async (intervention: InterventionFormValues) => {
     console.log('Creating intervention:', intervention);
-    return createMutation.mutate(intervention);
+    return createMutation.mutateAsync(intervention);
   };
 
   // Mettre à jour le statut d'une intervention
@@ -119,6 +122,7 @@ export function useInterventionsData() {
     createIntervention,
     updateInterventionStatus,
     assignTechnician,
-    submitInterventionReport
+    submitInterventionReport,
+    refetch
   };
 }

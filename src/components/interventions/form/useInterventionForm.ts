@@ -12,6 +12,8 @@ interface UseInterventionFormProps {
 }
 
 export function useInterventionForm({ onCreate, onClose, equipments }: UseInterventionFormProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const form = useForm<InterventionFormValues>({
     resolver: zodResolver(interventionFormSchema),
     defaultValues: {
@@ -37,15 +39,23 @@ export function useInterventionForm({ onCreate, onClose, equipments }: UseInterv
     return value;
   };
   
-  const onSubmit = (values: InterventionFormValues) => {
-    onCreate(values as ServiceInterventionFormValues);
-    form.reset();
-    onClose();
+  const onSubmit = async (values: InterventionFormValues) => {
+    setIsSubmitting(true);
+    try {
+      await onCreate(values as ServiceInterventionFormValues);
+      form.reset();
+      onClose();
+    } catch (error) {
+      console.error("Error creating intervention:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return {
     form,
     onSubmit,
-    handleEquipmentChange
+    handleEquipmentChange,
+    isSubmitting
   };
 }

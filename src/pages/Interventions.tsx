@@ -10,8 +10,12 @@ import { useInterventionsData } from '@/hooks/interventions/useInterventionsData
 import InterventionDetailsDialog from '@/components/interventions/InterventionDetailsDialog';
 import { toast } from 'sonner';
 import InterventionsDialogs from '@/components/interventions/InterventionsDialogs';
+import { useQueryClient } from '@tanstack/react-query';
+import { InterventionFormValues } from '@/types/Intervention';
 
 const InterventionsPage = () => {
+  const queryClient = useQueryClient();
+  
   // Utiliser le hook pour récupérer les données des interventions depuis Supabase
   const { interventions, isLoading } = useInterventionsData();
   
@@ -64,6 +68,13 @@ const InterventionsPage = () => {
     setSelectedPriority
   });
 
+  // Gestionnaire pour après la création d'une intervention
+  const handleAfterCreateIntervention = (intervention: InterventionFormValues) => {
+    // Rafraîchir les données après création
+    queryClient.invalidateQueries({ queryKey: ['interventions'] });
+    handleCreateIntervention(intervention);
+  };
+
   // Afficher un loader pendant le chargement
   if (isLoading) {
     return (
@@ -114,7 +125,7 @@ const InterventionsPage = () => {
           <InterventionsDialogs
             isNewInterventionDialogOpen={isNewInterventionDialogOpen}
             onCloseNewInterventionDialog={handleCloseNewInterventionDialog}
-            onCreate={handleCreateIntervention}
+            onCreate={handleAfterCreateIntervention}
             interventionDetailsOpen={interventionDetailsOpen}
             selectedInterventionId={selectedInterventionId}
             onCloseInterventionDetails={handleCloseInterventionDetails}
