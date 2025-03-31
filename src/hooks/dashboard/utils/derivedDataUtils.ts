@@ -27,13 +27,13 @@ export const deriveUrgentInterventions = (interventions: any[]): UrgentIntervent
 export const deriveStockAlerts = (parts: any[]): StockAlert[] => {
   return parts
     .filter(item => {
-      const stock = typeof item.stock === 'number' ? item.stock : 0;
-      const reorderPoint = typeof item.reorderPoint === 'number' ? item.reorderPoint : 5;
+      const stock = typeof item.quantity === 'number' ? item.quantity : 0;
+      const reorderPoint = typeof item.reorder_threshold === 'number' ? item.reorder_threshold : 5;
       return stock <= reorderPoint;
     })
     .map(item => {
-      const stock = typeof item.stock === 'number' ? item.stock : 0;
-      const reorderPoint = typeof item.reorderPoint === 'number' ? item.reorderPoint : 5;
+      const stock = typeof item.quantity === 'number' ? item.quantity : 0;
+      const reorderPoint = typeof item.reorder_threshold === 'number' ? item.reorder_threshold : 5;
       return {
         id: typeof item.id === 'string' ? parseInt(item.id) : item.id,
         name: item.name,
@@ -61,7 +61,8 @@ export const createCalendarEvents = (
       end: new Date(event.date.getTime() + (event.duration * 60 * 60 * 1000)),
       type: 'maintenance' as const,
       priority: event.priority,
-      status: event.status
+      status: event.status,
+      assignedTo: event.assignedTo
     })),
     ...interventions.map(item => ({
       id: item.id,
@@ -70,7 +71,8 @@ export const createCalendarEvents = (
       end: new Date(new Date(item.date).getTime() + ((item.duration || 1) * 60 * 60 * 1000)),
       type: 'intervention' as const,
       priority: normalizePriority(item.priority),
-      status: item.status
+      status: item.status,
+      assignedTo: item.technician || 'Non assigné'
     })),
     ...upcomingTasks.map(task => ({
       id: task.id,
@@ -79,7 +81,8 @@ export const createCalendarEvents = (
       end: new Date(task.dueDate.getTime() + (3 * 60 * 60 * 1000)), // Assuming 3 hours for tasks
       type: 'task' as const,
       priority: normalizePriority(task.priority),
-      status: task.status
+      status: task.status,
+      assignedTo: task.assignedTo || 'Non assigné'
     }))
   ];
 };

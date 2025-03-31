@@ -97,7 +97,7 @@ export const useStatsData = (user: any) => {
         sum + (typeof part.quantity === 'number' ? part.quantity : 0), 0) || 0;
       
       const lowStockItems = partsData?.filter(part => 
-        (part.quantity < (part.reorder_threshold || 5))
+        part.quantity <= (part.reorder_threshold || 5)
       ).length || 0;
       
       const interventionsCount = interventionsData?.length || 0;
