@@ -1,10 +1,13 @@
-import React from 'react';
-import { format, isToday, isSameDay, addDays, startOfWeek } from 'date-fns';
+
+import React, { useState } from 'react';
+import { format, isToday, isSameDay, addDays, startOfWeek, subWeeks, addWeeks } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { cn } from '@/lib/utils';
 import { CalendarEvent } from '@/hooks/dashboard/types/dashboardTypes';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
 
 interface WeeklyCalendarProps {
   events: CalendarEvent[];
@@ -13,14 +16,41 @@ interface WeeklyCalendarProps {
 }
 
 export function WeeklyCalendar({ events, onViewEvent, className }: WeeklyCalendarProps) {
-  const today = new Date();
-  const weekStart = startOfWeek(today, { weekStartsOn: 1 }); // Start from Monday
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 }); // Start from Monday
+
+  // Navigation functions
+  const goToPreviousWeek = () => setCurrentDate(subWeeks(currentDate, 1));
+  const goToNextWeek = () => setCurrentDate(addWeeks(currentDate, 1));
+  const goToCurrentWeek = () => setCurrentDate(new Date());
 
   // Create array of days for this week
   const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
 
+  // Filter events for the current week
+  const weekEvents = events.filter(event => {
+    return weekDays.some(day => isSameDay(day, event.start));
+  });
+
   return (
     <div className={cn("space-y-4", className)}>
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-sm font-medium">
+          {format(weekStart, 'd MMM', { locale: fr })} - {format(addDays(weekStart, 6), 'd MMM yyyy', { locale: fr })}
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button variant="outline" size="sm" onClick={goToPreviousWeek}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={goToCurrentWeek}>
+            <CalendarDays className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={goToNextWeek}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-7 gap-1">
         {weekDays.map((day, index) => (
           <div 
@@ -37,8 +67,8 @@ export function WeeklyCalendar({ events, onViewEvent, className }: WeeklyCalenda
       </div>
 
       <div className="space-y-2.5">
-        {events.length > 0 ? (
-          events.map((event) => {
+        {weekEvents.length > 0 ? (
+          weekEvents.map((event) => {
             const eventDay = weekDays.findIndex(day => isSameDay(day, event.start));
             if (eventDay === -1) return null;
 

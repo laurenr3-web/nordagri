@@ -13,8 +13,8 @@ export interface AlertItem {
   equipmentName: string;
   status: 'new' | 'acknowledged' | 'resolved';
   type: string;
-  time: string; // Added missing property
-  equipment: string; // Added missing property
+  time: string;
+  equipment: string;
 }
 
 export const useAlertsData = (user: any) => {
@@ -28,10 +28,112 @@ export const useAlertsData = (user: any) => {
   const fetchAlertsData = async () => {
     setLoading(true);
     try {
-      // Comme la table 'alerts' n'existe pas encore, on utilise des données mockées
-      // Dans une implémentation réelle, on ferait:
-      // const { data, error } = await supabase.from('alerts').select('*')
+      // Récupérer les alertes de maintenance
+      const { data: maintenanceData, error: maintenanceError } = await supabase
+        .from('maintenance_tasks')
+        .select('*')
+        .eq('status', 'pending')
+        .order('due_date', { ascending: true })
+        .limit(10);
       
+      if (maintenanceError) throw maintenanceError;
+      
+      // Récupérer les pièces en stock faible
+      const { data: partsData, error: partsError } = await supabase
+        .from('parts_inventory')
+        .select('*')
+        .lt('quantity', supabase.raw('reorder_threshold'))
+        .order('quantity', { ascending: true })
+        .limit(5);
+        
+      if (partsError) throw partsError;
+      
+      // Combiner les alertes
+      const alerts: AlertItem[] = [];
+      
+      // Transformer les tâches de maintenance en alertes
+      if (maintenanceData) {
+        maintenanceData.forEach(task => {
+          const dueDate = new Date(task.due_date);
+          const now = new Date();
+          const daysDiff = Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 3600 * 24));
+          
+          // Déterminer la sévérité basée sur la date d'échéance et la priorité
+          let severity: 'high' | 'medium' | 'low' = 'medium';
+          if (daysDiff <= 2 || task.priority === 'high' || task.priority === 'critical') {
+            severity = 'high';
+          } else if (daysDiff <= 7) {
+            severity = 'medium';
+          } else {
+            severity = 'low';
+          }
+          
+          alerts.push({
+            id: task.id,
+            title: 'Maintenance planifiée',
+            message: `${task.title} pour ${task.equipment}`,
+            severity,
+            date: dueDate,
+            equipmentId: task.equipment_id || 0,
+            equipmentName: task.equipment,
+            status: 'new',
+            type: 'maintenance',
+            time: dueDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+            equipment: task.equipment
+          });
+        });
+      }
+      
+      // Transformer les pièces en stock faible en alertes
+      if (partsData) {
+        partsData.forEach(part => {
+          // Plus le stock est bas par rapport au seuil, plus la sévérité est élevée
+          const ratio = part.quantity / (part.reorder_threshold || 1);
+          let severity: 'high' | 'medium' | 'low' = 'medium';
+          
+          if (ratio <= 0.3) {
+            severity = 'high';
+          } else if (ratio <= 0.7) {
+            severity = 'medium';
+          } else {
+            severity = 'low';
+          }
+          
+          alerts.push({
+            id: `part-${part.id}`,
+            title: 'Stock faible',
+            message: `${part.name} en stock faible (${part.quantity}/${part.reorder_threshold})`,
+            severity,
+            date: new Date(),
+            equipmentId: 0,
+            equipmentName: '',
+            status: 'new',
+            type: 'inventory',
+            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+            equipment: 'N/A'
+          });
+        });
+      }
+      
+      // Trier les alertes par sévérité et date
+      alerts.sort((a, b) => {
+        if (a.severity === 'high' && b.severity !== 'high') return -1;
+        if (a.severity !== 'high' && b.severity === 'high') return 1;
+        if (a.severity === 'medium' && b.severity === 'low') return -1;
+        if (a.severity === 'low' && b.severity === 'medium') return 1;
+        return b.date.getTime() - a.date.getTime();
+      });
+      
+      setAlertItems(alerts);
+    } catch (error) {
+      console.error('Error fetching alerts data:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de récupérer les alertes.",
+        variant: "destructive",
+      });
+      
+      // Données par défaut en cas d'échec
       setAlertItems([
         {
           id: 1,
@@ -58,41 +160,8 @@ export const useAlertsData = (user: any) => {
           type: "reminder",
           time: "14:30",
           equipment: "Case IH Axial-Flow"
-        },
-        {
-          id: 3,
-          title: "Stock faible de pièces",
-          message: "Le stock de filtres à carburant est en dessous du niveau minimum",
-          severity: "medium",
-          date: new Date(new Date().setDate(new Date().getDate() - 2)),
-          equipmentId: 0,
-          equipmentName: "",
-          status: "new",
-          type: "inventory",
-          time: "10:45",
-          equipment: "N/A"
-        },
-        {
-          id: 4,
-          title: "Batterie faible",
-          message: "La batterie du Kubota M7-172 est faible",
-          severity: "low",
-          date: new Date(new Date().setDate(new Date().getDate() - 3)),
-          equipmentId: 3,
-          equipmentName: "Kubota M7-172",
-          status: "new",
-          type: "maintenance",
-          time: "16:20",
-          equipment: "Kubota M7-172"
         }
       ]);
-    } catch (error) {
-      console.error('Error fetching alerts data:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de récupérer les alertes.",
-        variant: "destructive",
-      });
     } finally {
       setLoading(false);
     }

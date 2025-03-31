@@ -65,7 +65,7 @@ export const useStatsData = (user: any) => {
         .from('maintenance_tasks')
         .select('id, priority');
 
-      // Get parts inventory count
+      // Get parts inventory count and total sum
       const { data: partsData, error: partsError } = await supabase
         .from('parts_inventory')
         .select('id, quantity, reorder_threshold');
@@ -79,12 +79,27 @@ export const useStatsData = (user: any) => {
         .select('id')
         .gte('date', oneWeekAgo.toISOString());
 
+      // Handle errors
+      if (equipmentError || tasksError || partsError || interventionsError) {
+        console.error("Data fetch errors:", { equipmentError, tasksError, partsError, interventionsError });
+        throw new Error("Error fetching dashboard stats");
+      }
+
       // Prepare stats data
       const equipmentCount = equipmentData?.length || 0;
       const tasksCount = tasksData?.length || 0;
-      const highPriorityTasks = tasksData?.filter(task => task.priority === 'high').length || 0;
-      const partsCount = partsData?.reduce((sum, part) => sum + (part.quantity || 0), 0) || 0;
-      const lowStockItems = partsData?.filter(part => part.quantity < (part.reorder_threshold || 5)).length || 0;
+      const highPriorityTasks = tasksData?.filter(task => 
+        task.priority === 'high' || task.priority === 'critical'
+      ).length || 0;
+      
+      // Calculate actual parts count - sum of all quantities
+      const totalPartsQuantity = partsData?.reduce((sum, part) => 
+        sum + (typeof part.quantity === 'number' ? part.quantity : 0), 0) || 0;
+      
+      const lowStockItems = partsData?.filter(part => 
+        (part.quantity < (part.reorder_threshold || 5))
+      ).length || 0;
+      
       const interventionsCount = interventionsData?.length || 0;
 
       const newStatsData: StatsCardData[] = [
@@ -104,7 +119,7 @@ export const useStatsData = (user: any) => {
         },
         {
           title: 'Parts Inventory',
-          value: partsCount,
+          value: totalPartsQuantity,
           icon: Package,
           description: lowStockItems > 0 ? `${lowStockItems} items low stock` : '',
           change: 0
