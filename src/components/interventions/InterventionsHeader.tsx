@@ -127,21 +127,21 @@ const InterventionsHeader: React.FC<InterventionsHeaderProps> = ({
             >
               <TabsList className="grid w-full sm:w-auto">
                 <div className="grid grid-cols-4 w-full gap-1 px-1 py-1">
-                  <TabsTrigger value="scheduled" className="px-3 text-xs sm:text-sm whitespace-nowrap flex items-center justify-center">
-                    <List className="h-4 w-4 mr-1 hidden sm:block" />
-                    Liste
+                  <TabsTrigger value="scheduled" className="px-3 text-xs sm:text-sm whitespace-nowrap flex items-center justify-center gap-1">
+                    <List className="h-4 w-4 hidden sm:block" />
+                    <span>Liste</span>
                   </TabsTrigger>
-                  <TabsTrigger value="calendar" className="px-3 text-xs sm:text-sm whitespace-nowrap flex items-center justify-center">
-                    <Calendar className="h-4 w-4 mr-1 hidden sm:block" />
-                    Calendrier
+                  <TabsTrigger value="calendar" className="px-3 text-xs sm:text-sm whitespace-nowrap flex items-center justify-center gap-1">
+                    <Calendar className="h-4 w-4 hidden sm:block" />
+                    <span>Calendrier</span>
                   </TabsTrigger>
-                  <TabsTrigger value="field-tracking" className="px-3 text-xs sm:text-sm whitespace-nowrap flex items-center justify-center">
-                    <MapPin className="h-4 w-4 mr-1 hidden sm:block" />
-                    Suivi
+                  <TabsTrigger value="field-tracking" className="px-3 text-xs sm:text-sm whitespace-nowrap flex items-center justify-center gap-1">
+                    <MapPin className="h-4 w-4 hidden sm:block" />
+                    <span>Suivi</span>
                   </TabsTrigger>
-                  <TabsTrigger value="requests" className="px-3 text-xs sm:text-sm whitespace-nowrap flex items-center justify-center">
-                    <FileText className="h-4 w-4 mr-1 hidden sm:block" />
-                    Demandes
+                  <TabsTrigger value="requests" className="px-3 text-xs sm:text-sm whitespace-nowrap flex items-center justify-center gap-1">
+                    <FileText className="h-4 w-4 hidden sm:block" />
+                    <span>Demandes</span>
                   </TabsTrigger>
                 </div>
               </TabsList>
