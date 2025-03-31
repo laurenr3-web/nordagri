@@ -6,3 +6,6 @@ export * from './queries';
 export * from './mutations';
 export * from './filters';
 export * from './utils';
+export * from './stats';
+export * from './options';
+export * from './maintenance';

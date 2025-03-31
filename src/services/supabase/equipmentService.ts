@@ -11,10 +11,20 @@ import {
   getEquipment,
   searchEquipment,
   getEquipmentById,
-  getEquipmentStats,
-  getEquipmentMaintenanceHistory,
-  getFilterOptions
 } from './equipment/queries';
+
+import {
+  getEquipmentStats
+} from './equipment/stats';
+
+import {
+  getFilterOptions,
+  getCategories
+} from './equipment/options';
+
+import {
+  getEquipmentMaintenanceHistory
+} from './equipment/maintenance';
 
 import {
   addEquipment,
@@ -39,6 +49,7 @@ export const equipmentService = {
   getEquipmentStats,
   getEquipmentMaintenanceHistory,
   getFilterOptions,
+  getCategories,
   
   // Mutations
   addEquipment,
@@ -54,6 +65,7 @@ export {
   getEquipmentStats,
   getEquipmentMaintenanceHistory,
   getFilterOptions,
+  getCategories,
   addEquipment,
   updateEquipment,
   deleteEquipment
