@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import InterventionsList from '@/components/interventions/InterventionsList';
 import { Intervention, InterventionFormValues } from '@/types/Intervention';

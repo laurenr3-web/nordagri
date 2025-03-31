@@ -6,6 +6,7 @@ import { Intervention, InterventionFormValues } from '@/types/Intervention';
 import { useInterventionsData } from '@/hooks/interventions/useInterventionsData';
 import { useEquipmentOptions } from '@/hooks/equipment/useEquipmentOptions';
 import { toast } from 'sonner';
+import { useTechnicians } from '@/hooks/team/useTechnicians';
 
 interface InterventionsDialogsProps {
   isNewInterventionDialogOpen: boolean;
@@ -36,24 +37,7 @@ const InterventionsDialogs: React.FC<InterventionsDialogsProps> = ({
   const { data: equipments = [], isLoading: isLoadingEquipments } = useEquipmentOptions();
   
   // Récupérer les techniciens depuis la base de données
-  const { data: technicians = [], isLoading: isLoadingTechnicians } = useEquipmentOptions({
-    queryKey: ['technicians'],
-    queryFn: async () => {
-      try {
-        // Simuler une récupération des techniciens
-        return [
-          { id: "1", name: "Robert Taylor" },
-          { id: "2", name: "Sarah Johnson" },
-          { id: "3", name: "David Chen" },
-          { id: "4", name: "Maria Rodriguez" }
-        ];
-      } catch (error) {
-        console.error('Error fetching technicians:', error);
-        toast.error('Impossible de récupérer les techniciens');
-        return [];
-      }
-    }
-  });
+  const { data: technicians = [], isLoading: isLoadingTechnicians } = useTechnicians();
   
   // Trouver l'intervention sélectionnée pour les détails
   const selectedIntervention = selectedInterventionId

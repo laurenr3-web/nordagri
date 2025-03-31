@@ -69,10 +69,11 @@ const InterventionsPage = () => {
   });
 
   // Gestionnaire pour après la création d'une intervention
-  const handleAfterCreateIntervention = (intervention: InterventionFormValues) => {
+  const handleAfterCreateIntervention = async (intervention: InterventionFormValues): Promise<void> => {
     // Rafraîchir les données après création
     queryClient.invalidateQueries({ queryKey: ['interventions'] });
     handleCreateIntervention(intervention);
+    return Promise.resolve();
   };
 
   // Afficher un loader pendant le chargement
