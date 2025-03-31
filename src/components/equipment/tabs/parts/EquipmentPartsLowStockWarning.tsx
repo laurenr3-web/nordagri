@@ -20,7 +20,7 @@ const EquipmentPartsLowStockWarning: React.FC<EquipmentPartsLowStockWarningProps
                     (typeof part.quantity === 'number' ? part.quantity : 0),
     normalizedReorderPoint: typeof part.reorderPoint === 'number' ? part.reorderPoint : 
                           (typeof part.minimumStock === 'number' ? part.minimumStock : 
-                          (typeof part.reorder_threshold === 'number' ? part.reorder_threshold : 5))
+                          (typeof part.reorderPoint === 'number' ? part.reorderPoint : 5))
   }));
   
   // Filter the parts with stock below reorder point
