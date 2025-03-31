@@ -39,6 +39,9 @@ export function useMaintenanceRealtime() {
           return { ...(oldData as object || {}), ...payload.new };
         });
         
+        // Invalidate queries to reflect changes in lists
+        queryClient.invalidateQueries({ queryKey: ['maintenanceTasks'] });
+        
         // Check if status changed to completed
         if (payload.new && 'status' in payload.new && payload.old && 'status' in payload.old) {
           if (payload.new.status === 'completed' && payload.old.status !== 'completed') {
@@ -50,74 +53,37 @@ export function useMaintenanceRealtime() {
             });
           }
         }
-        
-        // Check if due date is approaching for high priority tasks
-        if (payload.new && 'priority' in payload.new && payload.new.priority === 'high') {
-          if (payload.new && 'dueDate' in payload.new) {
-            const dueDate = new Date(payload.new.dueDate);
-            const today = new Date();
-            const diffDays = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-            
-            if (diffDays <= 2 && diffDays > 0) {
-              toast({
-                title: 'Rappel de maintenance',
-                description: payload.new && 'title' in payload.new ? 
-                  `La tâche prioritaire ${payload.new.title} est due dans ${diffDays} jour(s)` :
-                  `Une tâche prioritaire est due dans ${diffDays} jour(s)`,
-                variant: 'destructive',
-              });
-            }
-          }
-        }
-        
-        // Invalidate the list query
-        queryClient.invalidateQueries({ queryKey: ['maintenanceTasks'] });
-        
-        if (payload.new && 'title' in payload.new) {
-          toast({
-            title: 'Tâche mise à jour',
-            description: `${payload.new.title} a été mise à jour`,
-          });
-        }
       }
     },
     onDelete: (payload: RealtimePostgresChangesPayload<MaintenanceTask>) => {
       console.log('Maintenance task deleted:', payload.old);
       
       if (payload.old && 'id' in payload.old) {
-        // Remove from cache if exists
+        // Remove the task from the cache
         queryClient.removeQueries({ queryKey: ['maintenanceTasks', payload.old.id] });
-      }
-      
-      // Invalidate maintenance queries
-      queryClient.invalidateQueries({ queryKey: ['maintenanceTasks'] });
-      
-      if (payload.old && 'title' in payload.old) {
+        
+        // Invalidate queries to reflect changes in lists
+        queryClient.invalidateQueries({ queryKey: ['maintenanceTasks'] });
+        
         toast({
           title: 'Tâche supprimée',
-          description: `${payload.old.title} a été supprimée`,
-        });
-      } else {
-        toast({
-          title: 'Tâche supprimée',
-          description: `Une tâche de maintenance a été supprimée`,
+          description: payload.old && 'title' in payload.old ? 
+            `La tâche ${payload.old.title} a été supprimée` : 
+            'Une tâche a été supprimée',
         });
       }
     }
   });
   
+  // Log subscription status
   useEffect(() => {
     if (isSubscribed) {
       console.log('Successfully subscribed to maintenance_tasks table changes');
-    } else if (error) {
-      console.error('Failed to subscribe to maintenance_tasks table changes:', error);
-      toast({
-        title: 'Erreur de connexion',
-        description: 'Impossible de recevoir les mises à jour en temps réel des tâches',
-        variant: 'destructive',
-      });
     }
-  }, [isSubscribed, error, toast]);
+    if (error) {
+      console.error('Error subscribing to maintenance_tasks changes:', error);
+    }
+  }, [isSubscribed, error]);
   
   return { isSubscribed, error };
 }

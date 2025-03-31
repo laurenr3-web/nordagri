@@ -6,6 +6,13 @@ import { MaintenanceEvent, UrgentIntervention, StockAlert, CalendarEvent } from 
  * Derive urgent interventions from interventions data
  */
 export const deriveUrgentInterventions = (interventions: any[]): UrgentIntervention[] => {
+  if (!interventions || interventions.length === 0) {
+    console.log('No interventions data provided to deriveUrgentInterventions');
+    return [];
+  }
+
+  console.log(`Processing ${interventions.length} interventions for urgent display`);
+  
   return interventions
     .filter(item => item.priority === 'high' || item.status === 'in-progress')
     .slice(0, 5)
@@ -80,8 +87,13 @@ export const createCalendarEvents = (
     tasksCount: upcomingTasks.length 
   });
   
+  // Ensure all inputs are arrays to avoid errors
+  const safeMaintenanceEvents = Array.isArray(maintenanceEvents) ? maintenanceEvents : [];
+  const safeInterventions = Array.isArray(interventions) ? interventions : [];
+  const safeUpcomingTasks = Array.isArray(upcomingTasks) ? upcomingTasks : [];
+  
   return [
-    ...maintenanceEvents.map(event => ({
+    ...safeMaintenanceEvents.map(event => ({
       id: event.id,
       title: event.title,
       start: event.date,
@@ -91,7 +103,7 @@ export const createCalendarEvents = (
       status: event.status,
       assignedTo: event.assignedTo
     })),
-    ...interventions.map(item => ({
+    ...safeInterventions.map(item => ({
       id: item.id,
       title: item.title,
       start: new Date(item.date),
@@ -101,7 +113,7 @@ export const createCalendarEvents = (
       status: item.status,
       assignedTo: item.technician || 'Non assigné'
     })),
-    ...upcomingTasks.map(task => ({
+    ...safeUpcomingTasks.map(task => ({
       id: task.id,
       title: task.title,
       start: task.dueDate,

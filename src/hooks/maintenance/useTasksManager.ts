@@ -2,13 +2,16 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { MaintenanceTask, MaintenancePriority, MaintenanceStatus, MaintenanceType } from './maintenanceSlice';
+import { maintenanceService } from '@/services/supabase/maintenanceService';
 
 export function useTasksManager(initialTasks?: MaintenanceTask[]) {
   const [tasks, setTasks] = useState<MaintenanceTask[]>(initialTasks || []);
   const [isLoading, setIsLoading] = useState(initialTasks ? false : true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialTasks) {
+      console.log("Using provided initial tasks:", initialTasks);
       setTasks(initialTasks);
       return;
     }
@@ -16,8 +19,16 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
     const fetchTasks = async () => {
       try {
         setIsLoading(true);
-        // Simuler un appel API pour obtenir les tâches de maintenance
-        setTimeout(() => {
+        setError(null);
+        
+        console.log("Fetching maintenance tasks from service...");
+        const fetchedTasks = await maintenanceService.getTasks();
+        
+        if (fetchedTasks && fetchedTasks.length > 0) {
+          console.log(`Found ${fetchedTasks.length} maintenance tasks:`, fetchedTasks);
+          setTasks(fetchedTasks);
+        } else {
+          console.log("No maintenance tasks found, using mock data");
           // Données fictives pour la démo
           const mockTasks: MaintenanceTask[] = [
             {
@@ -35,17 +46,63 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
               assignedTo: 'Michael Torres',
               notes: 'Routine inspection completed. Brake pads still in good condition.'
             },
-            // ... autres tâches fictives
+            {
+              id: 5,
+              title: 'Vidange moteur',
+              equipment: 'John Deere 6M',
+              equipmentId: 2,
+              type: 'preventive' as MaintenanceType,
+              status: 'scheduled' as MaintenanceStatus,
+              priority: 'high' as MaintenancePriority,
+              dueDate: new Date(new Date().setDate(new Date().getDate() + 5)),
+              engineHours: 500,
+              assignedTo: 'Laurent Delisle',
+              notes: 'Vidange à effectuer avant la saison des récoltes.'
+            },
+            {
+              id: 6,
+              title: 'Remplacement filtres',
+              equipment: 'Fendt 724 Vario',
+              equipmentId: 3,
+              type: 'preventive' as MaintenanceType,
+              status: 'scheduled' as MaintenanceStatus,
+              priority: 'medium' as MaintenancePriority,
+              dueDate: new Date(new Date().setDate(new Date().getDate() + 14)),
+              engineHours: 250,
+              assignedTo: 'Marie Dubois',
+              notes: 'Changer tous les filtres.'
+            }
           ];
           
           setTasks(mockTasks);
-          setIsLoading(false);
-          console.info('Updated tasks state with Supabase data:', mockTasks);
-        }, 1000);
-      } catch (error) {
+        }
+      } catch (error: any) {
         console.error('Error fetching maintenance tasks:', error);
-        setIsLoading(false);
+        setError(error.message || "Une erreur est survenue lors de la récupération des tâches");
         toast.error('Impossible de charger les tâches de maintenance');
+        
+        // Utiliser des données fictives en cas d'erreur
+        const mockTasks: MaintenanceTask[] = [
+          {
+            id: 4,
+            title: 'Brake System Check',
+            equipment: 'New Holland T6.180',
+            equipmentId: 1,
+            type: 'preventive' as MaintenanceType,
+            status: 'completed' as MaintenanceStatus,
+            priority: 'medium' as MaintenancePriority,
+            dueDate: new Date('2023-06-08'),
+            completedDate: new Date('2023-06-08'),
+            engineHours: 2500,
+            actualDuration: 1.5,
+            assignedTo: 'Michael Torres',
+            notes: 'Routine inspection completed. Brake pads still in good condition.'
+          }
+        ];
+        
+        setTasks(mockTasks);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -78,6 +135,8 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
 
   const updateTaskStatus = (taskId: number, newStatus: MaintenanceStatus) => {
     // Mettre à jour le statut d'une tâche
+    console.log(`Updating task ${taskId} status to ${newStatus}`);
+    
     setTasks(prevTasks => 
       prevTasks.map(task => 
         task.id === taskId 
@@ -93,6 +152,8 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
 
   const updateTaskPriority = (taskId: number, newPriority: MaintenancePriority) => {
     // Mettre à jour la priorité d'une tâche
+    console.log(`Updating task ${taskId} priority to ${newPriority}`);
+    
     setTasks(prevTasks => 
       prevTasks.map(task => 
         task.id === taskId 
@@ -119,9 +180,11 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
   return { 
     tasks, 
     isLoading, 
+    error,
     addTask, 
     updateTaskStatus, 
     updateTaskPriority,
-    deleteTask
+    deleteTask,
+    refreshTasks: () => setIsLoading(true) // Déclenchera un rechargement des données
   };
 }
