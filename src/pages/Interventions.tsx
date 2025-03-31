@@ -9,10 +9,14 @@ import { useInterventionsHandlers } from '@/hooks/interventions/useInterventions
 import { useInterventionsData } from '@/hooks/interventions/useInterventionsData';
 import InterventionDetailsDialog from '@/components/interventions/InterventionDetailsDialog';
 import { toast } from 'sonner';
+import InterventionsDialogs from '@/components/interventions/InterventionsDialogs';
 
 const InterventionsPage = () => {
   // Utiliser le hook pour récupérer les données des interventions depuis Supabase
   const { interventions, isLoading } = useInterventionsData();
+  
+  // État pour le dialogue de nouvelle intervention
+  const [isNewInterventionDialogOpen, setIsNewInterventionDialogOpen] = useState(false);
   
   // Gérer l'état local des interventions et des filtres
   const {
@@ -52,10 +56,8 @@ const InterventionsPage = () => {
     handleStartWork
   } = useInterventionsHandlers({
     interventions,
-    setIsNewInterventionDialogOpen: (open) => {
-      // Ouvrir le dialogue de création
-      handleOpenNewInterventionDialog();
-    },
+    isNewInterventionDialogOpen,
+    setIsNewInterventionDialogOpen,
     setInterventionDetailsOpen,
     setSelectedInterventionId,
     setSearchQuery,
@@ -108,19 +110,17 @@ const InterventionsPage = () => {
             onPriorityChange={handlePriorityChange}
           />
 
-          {/* Dialog des détails d'intervention */}
-          <InterventionDetailsDialog
-            interventionId={selectedInterventionId || ''}
-            open={interventionDetailsOpen}
-            onOpenChange={handleCloseInterventionDetails}
-            onStartWork={() => {
-              if (selectedInterventionId) {
-                const intervention = interventions.find(i => i.id === selectedInterventionId);
-                if (intervention) {
-                  handleStartWork(intervention);
-                }
-              }
-            }}
+          {/* Dialogs for interventions */}
+          <InterventionsDialogs
+            isNewInterventionDialogOpen={isNewInterventionDialogOpen}
+            onCloseNewInterventionDialog={handleCloseNewInterventionDialog}
+            onCreate={handleCreateIntervention}
+            interventionDetailsOpen={interventionDetailsOpen}
+            selectedInterventionId={selectedInterventionId}
+            onCloseInterventionDetails={handleCloseInterventionDetails}
+            onStartWork={handleStartWork}
+            interventions={interventions}
+            filteredInterventions={filteredInterventions}
           />
         </div>
       </div>

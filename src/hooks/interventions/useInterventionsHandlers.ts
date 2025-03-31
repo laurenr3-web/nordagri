@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 export interface InterventionsHandlersProps {
   interventions: Intervention[];
   setInterventions?: React.Dispatch<React.SetStateAction<Intervention[]>>;
+  isNewInterventionDialogOpen: boolean;
   setIsNewInterventionDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setInterventionDetailsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setSelectedInterventionId: React.Dispatch<React.SetStateAction<number | string | null>>;
@@ -15,6 +16,7 @@ export interface InterventionsHandlersProps {
 export function useInterventionsHandlers({
   interventions,
   setInterventions,
+  isNewInterventionDialogOpen,
   setIsNewInterventionDialogOpen,
   setInterventionDetailsOpen,
   setSelectedInterventionId,
