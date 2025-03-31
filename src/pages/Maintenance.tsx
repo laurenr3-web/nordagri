@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { useTasksManager } from '@/hooks/maintenance/useTasksManager';
-import { MaintenanceTask, MaintenanceStatus, MaintenancePriority } from '@/hooks/maintenance/maintenanceSlice';
+import { MaintenanceTask, MaintenanceStatus, MaintenancePriority, MaintenanceFormValues } from '@/hooks/maintenance/maintenanceSlice';
 import NewTaskDialog from '@/components/maintenance/NewTaskDialog';
 import MaintenanceHeader from '@/components/maintenance/MaintenanceHeader';
 import MaintenanceContent from '@/components/maintenance/MaintenanceContent';
@@ -43,7 +43,7 @@ const Maintenance = () => {
     setIsNewTaskDialogOpen(open);
   };
 
-  const handleAddTask = (formData: any) => {
+  const handleAddTask = async (formData: MaintenanceFormValues): Promise<any> => {
     console.log('Adding task in Maintenance component:', formData);
     return addTask({
       ...formData,
@@ -115,7 +115,7 @@ const Maintenance = () => {
                     setCurrentView={setCurrentView}
                     currentMonth={currentMonth}
                     setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
-                    updateTaskStatus={(taskId, status) => updateTaskStatus(taskId, status)}
+                    updateTaskStatus={(taskId, status: MaintenanceStatus) => updateTaskStatus(taskId, status)}
                     updateTaskPriority={updateTaskPriority}
                     deleteTask={deleteTask}
                     userName={getUserDisplayName()}

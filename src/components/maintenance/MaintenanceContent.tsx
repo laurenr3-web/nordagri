@@ -4,7 +4,7 @@ import { format, isToday, isPast, isFuture } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MaintenanceTable } from '@/components/maintenance/MaintenanceTable';
-import { MaintenanceTask } from '@/hooks/maintenance/maintenanceSlice';
+import { MaintenanceTask, MaintenanceStatus, MaintenancePriority } from '@/hooks/maintenance/maintenanceSlice';
 import { MaintenanceFilters } from '@/components/maintenance/MaintenanceFilters';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { useFilter } from '@/hooks/maintenance/useFilter';
@@ -16,8 +16,8 @@ interface MaintenanceContentProps {
   setCurrentView: (view: string) => void;
   currentMonth: Date;
   setIsNewTaskDialogOpen: (open: boolean) => void;
-  updateTaskStatus: (taskId: number, status: string) => void;
-  updateTaskPriority: (taskId: number, priority: string) => void;
+  updateTaskStatus: (taskId: number, status: MaintenanceStatus) => void;
+  updateTaskPriority: (taskId: number, priority: MaintenancePriority) => void;
   deleteTask: (taskId: number) => void;
   userName?: string;
 }
