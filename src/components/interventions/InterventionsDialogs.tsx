@@ -112,7 +112,11 @@ const InterventionsDialogs: React.FC<InterventionsDialogsProps> = ({
           open={interventionDetailsOpen}
           onOpenChange={onCloseInterventionDetails}
           intervention={selectedIntervention}
-          onStartWork={onStartWork}
+          onStartWork={() => {
+            if (selectedIntervention) {
+              onStartWork(selectedIntervention);
+            }
+          }}
         />
       )}
     </>

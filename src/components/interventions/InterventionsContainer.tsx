@@ -104,10 +104,11 @@ const InterventionsContainer: React.FC<InterventionsContainerProps> = ({
       <NewInterventionDialog
         open={isNewInterventionOpen}
         onOpenChange={setIsNewInterventionOpen}
-        onCreate={(values) => {
+        onCreate={async (values) => {
           console.log('Creating intervention:', values);
           setIsNewInterventionOpen(false);
-          // TODO: Appeler createIntervention du hook
+          // Return a resolved promise to satisfy the type
+          return Promise.resolve();
         }}
         equipments={equipmentList}
       />

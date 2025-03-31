@@ -89,6 +89,13 @@ const InterventionsPage = () => {
     );
   }
 
+  // Ensure selectedInterventionId is a number or null for the InterventionsDialogs component
+  const numericSelectedInterventionId = selectedInterventionId === null 
+    ? null 
+    : typeof selectedInterventionId === 'string' 
+      ? parseInt(selectedInterventionId, 10) 
+      : selectedInterventionId;
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
@@ -127,7 +134,7 @@ const InterventionsPage = () => {
             onCloseNewInterventionDialog={handleCloseNewInterventionDialog}
             onCreate={handleAfterCreateIntervention}
             interventionDetailsOpen={interventionDetailsOpen}
-            selectedInterventionId={selectedInterventionId}
+            selectedInterventionId={numericSelectedInterventionId}
             onCloseInterventionDetails={handleCloseInterventionDetails}
             onStartWork={handleStartWork}
             interventions={interventions}
