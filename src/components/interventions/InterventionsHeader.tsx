@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ModeToggle } from '@/components/ui/mode-toggle';
+import { ModeToggle } from '../ui/mode-toggle';
 
 interface InterventionsHeaderProps {
   onNewIntervention: () => void;

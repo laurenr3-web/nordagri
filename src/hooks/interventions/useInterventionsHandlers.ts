@@ -43,10 +43,7 @@ export function useInterventionsHandlers({
       setInterventions([...interventions, completedIntervention]);
     }
     setIsNewInterventionDialogOpen(false);
-    toast({
-      title: "Succès",
-      description: "Nouvelle intervention créée avec succès.",
-    });
+    toast.success("Nouvelle intervention créée avec succès.");
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,10 +71,7 @@ export function useInterventionsHandlers({
 
   const handleStartWork = (intervention: Intervention) => {
     // Placeholder for start work logic
-    toast({
-      title: "Intervention démarrée",
-      description: `L'intervention ${intervention.title} a été marquée comme démarrée.`,
-    });
+    toast.success(`L'intervention ${intervention.title} a été marquée comme démarrée.`);
   };
 
   return {
