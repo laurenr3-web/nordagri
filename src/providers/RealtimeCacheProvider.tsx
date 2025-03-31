@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, ReactNode, useState } from
 import { useQueryClient } from '@tanstack/react-query';
 import { useSupabaseRealtime } from '@/hooks/useSupabaseRealtime';
 import { useToast } from '@/hooks/use-toast';
-import { SkeletonDemo } from '@/components/ui/skeleton';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface RealtimeCacheContextType {
   isRealtimeEnabled: boolean;

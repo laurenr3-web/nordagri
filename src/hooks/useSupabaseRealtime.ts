@@ -25,11 +25,12 @@ export function useSupabaseRealtime() {
     maintenance.isSubscribed &&
     interventions.isSubscribed;
   
-  const hasError = 
+  const hasError = !!(
     equipment.error || 
     parts.error || 
     maintenance.error ||
-    interventions.error;
+    interventions.error
+  );
     
   // Afficher un toast uniquement lorsque l'état change pour éviter les notifications répétées
   useEffect(() => {
