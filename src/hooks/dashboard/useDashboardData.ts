@@ -159,6 +159,20 @@ export const useDashboardData = () => {
       };
     });
 
+  // Helper function to normalize priority to one of the allowed values
+  const normalizePriority = (priority: string): 'high' | 'medium' | 'low' => {
+    switch(priority.toLowerCase()) {
+      case 'high':
+      case 'critical':
+        return 'high';
+      case 'medium':
+        return 'medium';
+      case 'low':
+      default:
+        return 'low';
+    }
+  };
+
   // Create calendar events combining maintenance, interventions, and tasks
   const calendarEvents: CalendarEvent[] = [
     ...maintenanceEvents.map(event => ({
@@ -176,7 +190,7 @@ export const useDashboardData = () => {
       start: new Date(item.date),
       end: new Date(new Date(item.date).getTime() + ((item.duration || 1) * 60 * 60 * 1000)),
       type: 'intervention' as const,
-      priority: item.priority,
+      priority: normalizePriority(item.priority),
       status: item.status
     })),
     ...upcomingTasks.map(task => ({
@@ -185,7 +199,7 @@ export const useDashboardData = () => {
       start: task.dueDate,
       end: new Date(task.dueDate.getTime() + (3 * 60 * 60 * 1000)), // Assuming 3 hours for tasks
       type: 'task' as const,
-      priority: task.priority,
+      priority: normalizePriority(task.priority),
       status: task.status
     }))
   ];

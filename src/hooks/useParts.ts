@@ -17,9 +17,9 @@ export const useParts = () => {
   const partsDialogs = usePartsDialogs();
   
   // Get the parts data from the query result
-  const parts = partsQuery.data || [];
+  const data = partsQuery.data || [];
   
-  const partsCategories = usePartsCategories(parts);
+  const partsCategories = usePartsCategories(data);
   const partsActions = usePartsActions(partsDialogs, orderParts);
   
   // Get mutation hooks
@@ -28,7 +28,7 @@ export const useParts = () => {
   const deletePartMutation = useDeletePart();
   
   // Apply filters to get filtered parts
-  const filteredParts = partsFilter.filterParts(parts);
+  const filteredParts = partsFilter.filterParts(data);
   
   // Part mutation handlers
   const handleAddPart = (part: Omit<Part, 'id'>) => {
@@ -45,7 +45,7 @@ export const useParts = () => {
   
   return {
     // Parts data
-    parts,
+    parts: data,
     isLoading: partsQuery.isLoading,
     isError: partsQuery.isError,
     

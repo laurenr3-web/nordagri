@@ -10,8 +10,8 @@ import { PartsView } from '@/hooks/parts/usePartsFilter';
 
 const Parts = () => {
   const { toast } = useToast();
-  // Initialize with an empty array - no example data
-  const partsHookData = useParts([]);
+  // Initialize without arguments
+  const partsHookData = useParts();
   
   // Check authentication status on page load
   useEffect(() => {
