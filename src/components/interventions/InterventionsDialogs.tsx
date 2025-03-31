@@ -3,6 +3,8 @@ import React from 'react';
 import { Intervention } from '@/types/Intervention';
 import NewInterventionDialog from './NewInterventionDialog';
 import InterventionDetailsDialog from './InterventionDetailsDialog';
+import { useEquipmentOptions } from '@/hooks/equipment/useEquipmentOptions';
+import { useTechnicians } from '@/hooks/team/useTechnicians';
 
 interface InterventionsDialogsProps {
   isNewInterventionDialogOpen: boolean;
@@ -27,15 +29,21 @@ const InterventionsDialogs: React.FC<InterventionsDialogsProps> = ({
   interventions,
   filteredInterventions
 }) => {
-  // Mock data for dropdown menus
-  const equipments = [
+  // Fetch real equipment data from Supabase
+  const { data: equipments = [], isLoading: isLoadingEquipment } = useEquipmentOptions();
+  
+  // Fetch real technicians data from Supabase
+  const { data: technicians = [], isLoading: isLoadingTechnicians } = useTechnicians();
+
+  // Provide fallback data when loading or if no data returned
+  const equipmentList = equipments.length > 0 ? equipments : [
     { id: 1, name: "John Deere 8R 410" },
     { id: 2, name: "New Holland T7.315" },
     { id: 3, name: "Kubota M7-172" },
     { id: 4, name: "Fendt 724 Vario" }
   ];
 
-  const technicians = [
+  const technicianList = technicians.length > 0 ? technicians : [
     { id: "1", name: "Robert Taylor" },
     { id: "2", name: "Sarah Johnson" },
     { id: "3", name: "David Chen" },
@@ -56,8 +64,10 @@ const InterventionsDialogs: React.FC<InterventionsDialogsProps> = ({
           if (!open) onCloseNewInterventionDialog();
         }}
         onCreate={onCreate}
-        equipments={equipments}
-        technicians={technicians}
+        equipments={equipmentList}
+        technicians={technicianList}
+        isLoadingEquipment={isLoadingEquipment}
+        isLoadingTechnicians={isLoadingTechnicians}
       />
       
       {/* Dialog des détails d'intervention */}

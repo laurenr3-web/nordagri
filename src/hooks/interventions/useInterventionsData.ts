@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { interventionService } from '@/services/supabase/interventionService';
 import { Intervention, InterventionFormValues } from '@/types/Intervention';
 import { toast } from 'sonner';
@@ -14,6 +14,7 @@ export function useInterventionsData() {
     queryKey: ['interventions'],
     queryFn: async () => {
       try {
+        console.log('Fetching interventions from Supabase...');
         return await interventionService.getInterventions();
       } catch (error) {
         console.error('Error fetching interventions:', error);
@@ -27,6 +28,7 @@ export function useInterventionsData() {
   const createMutation = useMutation({
     mutationFn: (intervention: InterventionFormValues) => {
       setIsLoading(true);
+      console.log('Creating intervention with data:', intervention);
       return interventionService.addIntervention(intervention);
     },
     onSuccess: () => {
@@ -45,6 +47,7 @@ export function useInterventionsData() {
   const updateStatusMutation = useMutation({
     mutationFn: ({ id, status }: { id: number; status: Intervention['status'] }) => {
       setIsLoading(true);
+      console.log(`Updating intervention ${id} status to ${status}`);
       return interventionService.updateInterventionStatus(id, status);
     },
     onSuccess: () => {
@@ -79,6 +82,7 @@ export function useInterventionsData() {
 
   // Créer une nouvelle intervention
   const createIntervention = async (intervention: InterventionFormValues) => {
+    console.log('Creating intervention:', intervention);
     return createMutation.mutate(intervention);
   };
 

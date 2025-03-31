@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { CalendarIcon, Clock, Users } from 'lucide-react';
+import { CalendarIcon, Clock, Loader2, Users } from 'lucide-react';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -56,6 +56,8 @@ interface NewInterventionDialogProps {
   onCreate: (intervention: InterventionFormValues) => void;
   equipments?: { id: number; name: string }[];
   technicians?: { id: string; name: string }[];
+  isLoadingEquipment?: boolean;
+  isLoadingTechnicians?: boolean;
 }
 
 const NewInterventionDialog: React.FC<NewInterventionDialogProps> = ({ 
@@ -63,7 +65,9 @@ const NewInterventionDialog: React.FC<NewInterventionDialogProps> = ({
   onOpenChange,
   onCreate,
   equipments = [],
-  technicians = []
+  technicians = [],
+  isLoadingEquipment = false,
+  isLoadingTechnicians = false
 }) => {
   // Si aucune donnée n'est fournie, utiliser des données fictives pour les tests
   const defaultEquipments = equipments.length > 0 ? equipments : [
@@ -146,6 +150,7 @@ const NewInterventionDialog: React.FC<NewInterventionDialogProps> = ({
                     <Select 
                       onValueChange={(value) => field.onChange(handleEquipmentChange(value))}
                       value={field.value}
+                      disabled={isLoadingEquipment}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -153,11 +158,18 @@ const NewInterventionDialog: React.FC<NewInterventionDialogProps> = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {defaultEquipments.map((eq) => (
-                          <SelectItem key={eq.id} value={eq.name}>
-                            {eq.name}
-                          </SelectItem>
-                        ))}
+                        {isLoadingEquipment ? (
+                          <div className="flex items-center justify-center p-2">
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            <span>Chargement...</span>
+                          </div>
+                        ) : (
+                          defaultEquipments.map((eq) => (
+                            <SelectItem key={eq.id} value={eq.name}>
+                              {eq.name}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -275,7 +287,11 @@ const NewInterventionDialog: React.FC<NewInterventionDialogProps> = ({
                 render={({ field }) => (
                   <FormItem className="md:col-span-2">
                     <FormLabel>Technicien</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value || ""} 
+                      disabled={isLoadingTechnicians}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner un technicien">
@@ -287,11 +303,18 @@ const NewInterventionDialog: React.FC<NewInterventionDialogProps> = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {defaultTechnicians.map((tech) => (
-                          <SelectItem key={tech.id} value={tech.name}>
-                            {tech.name}
-                          </SelectItem>
-                        ))}
+                        {isLoadingTechnicians ? (
+                          <div className="flex items-center justify-center p-2">
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            <span>Chargement...</span>
+                          </div>
+                        ) : (
+                          defaultTechnicians.map((tech) => (
+                            <SelectItem key={tech.id} value={tech.name}>
+                              {tech.name}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
