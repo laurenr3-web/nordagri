@@ -1,20 +1,10 @@
-
 import React from 'react';
 import { format, isToday, isSameDay, addDays, startOfWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { cn } from '@/lib/utils';
-
-interface CalendarEvent {
-  id: string | number;
-  title: string;
-  start: Date;
-  end: Date;
-  type: 'maintenance' | 'intervention' | 'task';
-  priority: string;
-  status: string;
-}
+import { CalendarEvent } from '@/hooks/dashboard/types/dashboardTypes';
 
 interface WeeklyCalendarProps {
   events: CalendarEvent[];

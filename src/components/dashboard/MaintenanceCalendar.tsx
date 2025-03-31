@@ -1,25 +1,16 @@
-
 import React from 'react';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Plus, CalendarPlus } from 'lucide-react';
-
-type MaintenanceEvent = {
-  id: string;
-  title: string;
-  date: Date;
-  duration: number; // in hours
-  priority: 'low' | 'medium' | 'high';
-  equipment: string;
-};
+import { MaintenanceEvent } from '@/hooks/dashboard/types/dashboardTypes';
 
 interface MaintenanceCalendarProps {
   events: MaintenanceEvent[];
   month: Date;
   className?: string;
   onAddTask?: (date?: Date) => void;
-  onViewTask?: (taskId: string) => void;
+  onViewTask?: (taskId: string | number) => void;
 }
 
 export function MaintenanceCalendar({

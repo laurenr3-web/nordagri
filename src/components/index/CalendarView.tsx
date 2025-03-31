@@ -2,15 +2,7 @@
 import React from 'react';
 import { DashboardSection } from '@/components/dashboard/DashboardSection';
 import { MaintenanceCalendar } from '@/components/dashboard/MaintenanceCalendar';
-
-interface MaintenanceEvent {
-  id: string; // Ensure this is string to match our updated interface
-  title: string;
-  date: Date;
-  duration: number;
-  priority: 'low' | 'medium' | 'high';
-  equipment: string;
-}
+import { MaintenanceEvent } from '@/hooks/dashboard/types/dashboardTypes';
 
 interface CalendarViewProps {
   events: MaintenanceEvent[];

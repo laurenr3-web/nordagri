@@ -5,7 +5,7 @@ import {
   MaintenanceEvent, 
   AlertItem, 
   UpcomingTask 
-} from './useDashboardData';
+} from './types/dashboardTypes';
 
 export const adaptStatsData = (data: any[]): StatsCardData[] => {
   return data;
@@ -27,21 +27,21 @@ export const adaptMaintenanceEvents = (data: any[]): MaintenanceEvent[] => {
     }
     
     return {
-      id: String(event.id || Math.random().toString()), // Convert id to string
+      id: event.id || Math.random().toString(), // Keep the id as is, might be string or number
       title: event.title || 'Maintenance',
       date: event.dueDate ? new Date(event.dueDate) : new Date(),
       equipment: event.equipment || 'Équipement non spécifié',
       status: event.status || 'scheduled',
       priority: priority,
       assignedTo: event.assignedTo || 'Non assigné',
-      duration: event.estimatedDuration || 0 // Adding the duration property
+      duration: event.estimatedDuration || 0 
     };
   });
 };
 
 export const adaptAlertItems = (data: any[]): AlertItem[] => {
   return data.map((alert: any) => ({
-    id: Number(alert.id) || Math.floor(Math.random() * 1000), // Convert id to number
+    id: Number(alert.id) || Math.floor(Math.random() * 1000),
     title: alert.title || 'Alerte',
     message: alert.message || 'Description de l\'alerte',
     severity: alert.severity || 'medium',
@@ -50,8 +50,8 @@ export const adaptAlertItems = (data: any[]): AlertItem[] => {
     equipmentName: alert.equipmentName || 'Équipement non spécifié',
     status: alert.status || 'new',
     type: alert.type || 'maintenance',
-    time: alert.time || '12:00', // Adding the missing time property
-    equipment: alert.equipment || 'N/A' // Adding the missing equipment property
+    time: alert.time || '12:00',
+    equipment: alert.equipment || 'N/A'
   }));
 };
 

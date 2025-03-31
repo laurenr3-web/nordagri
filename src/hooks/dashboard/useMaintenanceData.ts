@@ -2,17 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/hooks/use-toast";
-
-export interface MaintenanceEvent {
-  id: string | number;
-  title: string;
-  date: Date;
-  equipment: string;
-  status: string;
-  priority: 'low' | 'medium' | 'high'; // Updated to union type
-  assignedTo: string;
-  duration: number; // Added missing property
-}
+import { MaintenanceEvent } from './types/dashboardTypes';
 
 export const useMaintenanceData = (user: any) => {
   const [loading, setLoading] = useState(true);
@@ -52,7 +42,7 @@ export const useMaintenanceData = (user: any) => {
             status: item.status,
             priority: priority,
             assignedTo: item.assigned_to || 'Non assigné',
-            duration: item.estimated_duration || 0 // Added duration property
+            duration: item.estimated_duration || 0
           };
         });
         setMaintenanceEvents(events);
@@ -73,7 +63,7 @@ export const useMaintenanceData = (user: any) => {
           date: new Date(new Date().setDate(new Date().getDate() + 5)),
           equipment: "John Deere 8R 410",
           status: "scheduled",
-          priority: "high" as 'high',
+          priority: "high",
           assignedTo: "Michael Torres",
           duration: 2.5
         },
@@ -83,7 +73,7 @@ export const useMaintenanceData = (user: any) => {
           date: new Date(new Date().setDate(new Date().getDate() + 10)),
           equipment: "Massey Ferguson 8S.245",
           status: "scheduled",
-          priority: "medium" as 'medium',
+          priority: "medium",
           assignedTo: "David Chen",
           duration: 1
         },
@@ -93,7 +83,7 @@ export const useMaintenanceData = (user: any) => {
           date: new Date(new Date().setDate(new Date().getDate() + 15)),
           equipment: "Fendt 942 Vario",
           status: "scheduled",
-          priority: "low" as 'low',
+          priority: "low",
           assignedTo: "Sarah Johnson",
           duration: 3
         }

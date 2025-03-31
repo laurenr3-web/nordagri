@@ -3,15 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { MaintenanceCalendar } from '@/components/dashboard/MaintenanceCalendar';
 import { DashboardSection } from '@/components/dashboard/DashboardSection';
-
-interface MaintenanceEvent {
-  id: string; // Updated to string to match our interface
-  title: string;
-  date: Date;
-  duration: number;
-  priority: 'low' | 'medium' | 'high';
-  equipment: string;
-}
+import { MaintenanceEvent } from '@/hooks/dashboard/types/dashboardTypes';
 
 interface MaintenanceSectionProps {
   events: MaintenanceEvent[];
