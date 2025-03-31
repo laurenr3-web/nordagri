@@ -15,6 +15,7 @@ export const useMaintenanceData = (user: any) => {
   const fetchMaintenanceEvents = async () => {
     setLoading(true);
     try {
+      console.log("Fetching maintenance events...");
       const { data, error } = await supabase
         .from('maintenance_tasks')
         .select('*')
@@ -24,6 +25,7 @@ export const useMaintenanceData = (user: any) => {
       if (error) throw error;
 
       if (data) {
+        console.log("Received maintenance data:", data);
         const events: MaintenanceEvent[] = data.map(item => {
           // Convert priority to one of the allowed values
           let priority: 'low' | 'medium' | 'high' = 'medium';
@@ -45,6 +47,7 @@ export const useMaintenanceData = (user: any) => {
             duration: item.estimated_duration || 0
           };
         });
+        console.log("Transformed maintenance events:", events);
         setMaintenanceEvents(events);
       }
     } catch (error) {

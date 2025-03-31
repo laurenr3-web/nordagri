@@ -28,6 +28,8 @@ export const useAlertsData = (user: any) => {
   const fetchAlertsData = async () => {
     setLoading(true);
     try {
+      console.log("Fetching alerts data...");
+      
       // Récupérer les alertes de maintenance
       const { data: maintenanceData, error: maintenanceError } = await supabase
         .from('maintenance_tasks')
@@ -37,16 +39,24 @@ export const useAlertsData = (user: any) => {
         .limit(10);
       
       if (maintenanceError) throw maintenanceError;
+      console.log("Maintenance alerts data:", maintenanceData);
       
       // Récupérer les pièces en stock faible
       const { data: partsData, error: partsError } = await supabase
         .from('parts_inventory')
         .select('*')
-        .lt('quantity', 'reorder_threshold')
         .order('quantity', { ascending: true })
-        .limit(5);
+        .limit(15);
         
       if (partsError) throw partsError;
+      console.log("Parts inventory data for alerts:", partsData);
+      
+      // Filtrer les pièces avec un stock inférieur au seuil
+      const lowStockParts = partsData ? partsData.filter(part => 
+        part.quantity <= (part.reorder_threshold || 5)
+      ).slice(0, 5) : [];
+      
+      console.log("Low stock parts:", lowStockParts);
       
       // Combiner les alertes
       const alerts: AlertItem[] = [];
@@ -85,8 +95,8 @@ export const useAlertsData = (user: any) => {
       }
       
       // Transformer les pièces en stock faible en alertes
-      if (partsData) {
-        partsData.forEach(part => {
+      if (lowStockParts.length > 0) {
+        lowStockParts.forEach(part => {
           // Plus le stock est bas par rapport au seuil, plus la sévérité est élevée
           const ratio = part.quantity / (part.reorder_threshold || 1);
           let severity: 'high' | 'medium' | 'low' = 'medium';
@@ -124,6 +134,7 @@ export const useAlertsData = (user: any) => {
         return b.date.getTime() - a.date.getTime();
       });
       
+      console.log("Generated alerts:", alerts);
       setAlertItems(alerts);
     } catch (error) {
       console.error('Error fetching alerts data:', error);

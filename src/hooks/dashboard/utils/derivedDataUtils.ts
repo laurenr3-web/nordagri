@@ -25,10 +25,12 @@ export const deriveUrgentInterventions = (interventions: any[]): UrgentIntervent
  * Derive stock alerts from parts data
  */
 export const deriveStockAlerts = (parts: any[]): StockAlert[] => {
+  console.log("Deriving stock alerts from parts data:", parts);
   return parts
     .filter(item => {
       const stock = typeof item.quantity === 'number' ? item.quantity : 0;
       const reorderPoint = typeof item.reorder_threshold === 'number' ? item.reorder_threshold : 5;
+      console.log(`Part ${item.id} - ${item.name}: stock=${stock}, reorderPoint=${reorderPoint}`);
       return stock <= reorderPoint;
     })
     .map(item => {
@@ -53,6 +55,12 @@ export const createCalendarEvents = (
   interventions: any[], 
   upcomingTasks: any[]
 ): CalendarEvent[] => {
+  console.log("Creating calendar events from:", { 
+    maintenanceEvents, 
+    interventionsCount: interventions.length, 
+    tasksCount: upcomingTasks.length 
+  });
+  
   return [
     ...maintenanceEvents.map(event => ({
       id: event.id,

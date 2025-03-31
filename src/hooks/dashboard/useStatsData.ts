@@ -55,6 +55,8 @@ export const useStatsData = (user: any) => {
   const fetchStatsData = async () => {
     setLoading(true);
     try {
+      console.log("Fetching dashboard stats data...");
+      
       // Get equipment count
       const { data: equipmentData, error: equipmentError } = await supabase
         .from('equipment')
@@ -70,6 +72,8 @@ export const useStatsData = (user: any) => {
         .from('parts_inventory')
         .select('id, quantity, reorder_threshold');
 
+      console.log("Parts data received:", partsData);
+      
       // Get interventions count (for this week)
       const oneWeekAgo = new Date();
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
@@ -93,8 +97,16 @@ export const useStatsData = (user: any) => {
       ).length || 0;
       
       // Calculate actual parts count - sum of all quantities
-      const totalPartsQuantity = partsData?.reduce((sum, part) => 
-        sum + (typeof part.quantity === 'number' ? part.quantity : 0), 0) || 0;
+      console.log("Calculating parts inventory total...");
+      let totalPartsQuantity = 0;
+      if (partsData && partsData.length > 0) {
+        totalPartsQuantity = partsData.reduce((sum, part) => {
+          const quantity = typeof part.quantity === 'number' ? part.quantity : 0;
+          console.log(`Part ${part.id}: quantity = ${quantity}`);
+          return sum + quantity;
+        }, 0);
+      }
+      console.log(`Total parts quantity: ${totalPartsQuantity}`);
       
       const lowStockItems = partsData?.filter(part => 
         part.quantity <= (part.reorder_threshold || 5)
@@ -133,6 +145,7 @@ export const useStatsData = (user: any) => {
         }
       ];
 
+      console.log("New stats data:", newStatsData);
       setStatsData(newStatsData);
     } catch (error) {
       console.error("Error fetching stats data:", error);
