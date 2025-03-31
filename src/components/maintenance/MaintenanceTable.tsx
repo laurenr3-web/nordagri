@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { format, isPast, isToday } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
@@ -29,6 +29,7 @@ interface MaintenanceTableProps {
   updateTaskPriority: (taskId: number, priority: string) => void;
   deleteTask: (taskId: number) => void;
   userName?: string;
+  highlightedTaskId?: number;
 }
 
 export const MaintenanceTable: React.FC<MaintenanceTableProps> = ({
@@ -36,10 +37,33 @@ export const MaintenanceTable: React.FC<MaintenanceTableProps> = ({
   updateTaskStatus,
   updateTaskPriority,
   deleteTask,
-  userName = 'Utilisateur'
+  userName = 'Utilisateur',
+  highlightedTaskId
 }) => {
   const [selectedTask, setSelectedTask] = useState<MaintenanceTask | null>(null);
   const [isTaskDetailsOpen, setIsTaskDetailsOpen] = useState(false);
+  const highlightedRowRef = useRef<HTMLTableRowElement>(null);
+  
+  // Scroll to and open details for highlighted task
+  useEffect(() => {
+    if (highlightedTaskId) {
+      const task = tasks.find(t => t.id === highlightedTaskId);
+      if (task) {
+        setSelectedTask(task);
+        setIsTaskDetailsOpen(true);
+        
+        // Give time for the row to render before scrolling
+        setTimeout(() => {
+          if (highlightedRowRef.current) {
+            highlightedRowRef.current.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center' 
+            });
+          }
+        }, 100);
+      }
+    }
+  }, [highlightedTaskId, tasks]);
   
   const getStatusBadge = (dueDate: Date, status: string) => {
     if (status === 'completed') {
@@ -112,7 +136,13 @@ export const MaintenanceTable: React.FC<MaintenanceTableProps> = ({
             </TableHeader>
             <TableBody>
               {tasks.map((task) => (
-                <TableRow key={task.id} className="cursor-pointer hover:bg-muted/50">
+                <TableRow 
+                  key={task.id} 
+                  className={`cursor-pointer hover:bg-muted/50 ${
+                    task.id === highlightedTaskId ? 'bg-primary/10 border-l-4 border-primary' : ''
+                  }`}
+                  ref={task.id === highlightedTaskId ? highlightedRowRef : null}
+                >
                   <TableCell 
                     onClick={() => {
                       setSelectedTask(task);

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,10 +9,12 @@ import { BlurContainer } from '@/components/ui/blur-container';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useMaintenanceNotifications } from '@/hooks/maintenance/useMaintenanceNotifications';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 
 const MaintenanceNotificationsPopover: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [open, setOpen] = useState(false);
   const { 
     notifications, 
@@ -24,8 +25,14 @@ const MaintenanceNotificationsPopover: React.FC = () => {
   } = useMaintenanceNotifications();
   
   const handleNotificationClick = (taskId: number) => {
-    // Naviguer vers la page de maintenance et mettre en évidence la tâche
-    navigate(`/maintenance?highlight=${taskId}`);
+    // If already on maintenance page, update search params to highlight the task
+    if (location.pathname === '/maintenance') {
+      setSearchParams({ highlight: taskId.toString() });
+    } else {
+      // Otherwise navigate to maintenance page with highlight parameter
+      navigate(`/maintenance?highlight=${taskId}`);
+    }
+    
     setOpen(false);
   };
   

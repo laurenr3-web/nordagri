@@ -2,9 +2,9 @@
 import { useState, useEffect } from 'react';
 import { MaintenanceTask } from './maintenanceSlice';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
-import { addDays, format, isWithinInterval } from 'date-fns';
+import { addDays, format, isWithinInterval, isPast, isToday } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useTasksManager } from './useTasksManager';
 
 // Types pour les notifications de maintenance
 interface MaintenanceNotification {
@@ -22,37 +22,21 @@ export function useMaintenanceNotifications() {
   const [notifications, setNotifications] = useState<MaintenanceNotification[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Charger les tâches de maintenance à venir
+  // Get tasks from the task manager to ensure consistency
+  const { tasks } = useTasksManager();
+  
+  // Create notifications based on tasks
   useEffect(() => {
-    const loadMaintenanceTasks = async () => {
+    const createNotifications = () => {
       try {
         setLoading(true);
         
-        // Récupérer les tâches de maintenance depuis Supabase
-        const { data, error } = await supabase
-          .from('maintenance_tasks')
-          .select('*')
-          .in('status', ['scheduled', 'in-progress']);
+        // Filter tasks - we only want scheduled or in-progress tasks
+        const relevantTasks = tasks.filter(task => 
+          task.status === 'scheduled' || task.status === 'in-progress'
+        );
         
-        if (error) throw error;
-        
-        // Convertir les données en tâches
-        const tasks = data.map((task) => ({
-          id: task.id,
-          title: task.title,
-          equipment: task.equipment,
-          equipmentId: task.equipment_id,
-          type: task.type,
-          status: task.status,
-          priority: task.priority,
-          dueDate: new Date(task.due_date),
-          engineHours: task.estimated_duration,
-          assignedTo: task.assigned_to || '',
-          notes: task.notes || ''
-        }));
-        
-        // Créer des notifications pour les tâches à venir dans les 7 prochains jours
-        // ou en retard
+        // Create notifications for upcoming, today, or overdue tasks
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
@@ -61,25 +45,25 @@ export function useMaintenanceNotifications() {
         
         const newNotifications: MaintenanceNotification[] = [];
         
-        tasks.forEach(task => {
+        relevantTasks.forEach(task => {
           const taskDate = new Date(task.dueDate);
           taskDate.setHours(0, 0, 0, 0);
           
           let status: 'upcoming' | 'overdue' | 'today';
           
-          if (taskDate.getTime() < today.getTime()) {
+          if (isPast(taskDate) && !isToday(taskDate)) {
             status = 'overdue';
-          } else if (taskDate.getTime() === today.getTime()) {
+          } else if (isToday(taskDate)) {
             status = 'today';
           } else if (isWithinInterval(taskDate, { start: today, end: nextWeek })) {
             status = 'upcoming';
           } else {
-            // Tâche pas encore à notifier
+            // Task not yet to notify
             return;
           }
           
           newNotifications.push({
-            id: Date.now() + Math.floor(Math.random() * 1000),
+            id: Date.now() + Math.floor(Math.random() * 1000) + task.id,
             taskId: task.id,
             title: task.title,
             equipment: task.equipment,
@@ -90,27 +74,27 @@ export function useMaintenanceNotifications() {
           });
         });
         
-        // Trier les notifications (en retard, aujourd'hui, à venir)
+        // Sort notifications (overdue, today, upcoming)
         newNotifications.sort((a, b) => {
-          // D'abord par statut
+          // First by status
           const statusOrder = { overdue: 0, today: 1, upcoming: 2 };
           const statusComparison = statusOrder[a.status] - statusOrder[b.status];
           if (statusComparison !== 0) return statusComparison;
           
-          // Ensuite par priorité
+          // Then by priority
           const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
           const priorityA = priorityOrder[a.priority as keyof typeof priorityOrder] ?? 4;
           const priorityB = priorityOrder[b.priority as keyof typeof priorityOrder] ?? 4;
           const priorityComparison = priorityA - priorityB;
           if (priorityComparison !== 0) return priorityComparison;
           
-          // Enfin par date d'échéance
+          // Finally by due date
           return a.dueDate.getTime() - b.dueDate.getTime();
         });
         
         setNotifications(newNotifications);
         
-        // Afficher des toasts pour les notifications non lues
+        // Show toasts for critical notifications
         const criticalNotifications = newNotifications.filter(
           n => n.status === 'overdue' || (n.status === 'today' && n.priority === 'critical')
         );
@@ -134,16 +118,12 @@ export function useMaintenanceNotifications() {
       }
     };
     
-    // Charger les notifications au démarrage
-    loadMaintenanceTasks();
+    // Create notifications when tasks change
+    createNotifications();
     
-    // Mettre en place un intervalle pour vérifier régulièrement les nouvelles notifications
-    const intervalId = setInterval(loadMaintenanceTasks, 3600000); // Toutes les heures
-    
-    return () => clearInterval(intervalId);
-  }, []);
+  }, [tasks]);
   
-  // Marquer une notification comme lue
+  // Mark a notification as read
   const markAsRead = (notificationId: number) => {
     setNotifications(prev => 
       prev.map(n => 
@@ -152,12 +132,12 @@ export function useMaintenanceNotifications() {
     );
   };
   
-  // Marquer toutes les notifications comme lues
+  // Mark all notifications as read
   const markAllAsRead = () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
   
-  // Obtenir la description de la notification
+  // Get notification description
   const getNotificationDescription = (notification: MaintenanceNotification): string => {
     switch (notification.status) {
       case 'overdue':
@@ -170,7 +150,7 @@ export function useMaintenanceNotifications() {
     }
   };
   
-  // Nombre de notifications non lues
+  // Count unread notifications
   const unreadCount = notifications.filter(n => !n.read).length;
   
   return {

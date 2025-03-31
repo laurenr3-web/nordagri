@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { format, isToday, isPast, isFuture } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +9,8 @@ import { MaintenanceFilters } from '@/components/maintenance/MaintenanceFilters'
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { useFilter } from '@/hooks/maintenance/useFilter';
 import CalendarView from '@/components/maintenance/CalendarView';
+import { useSearchParams } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface MaintenanceContentProps {
   tasks: MaintenanceTask[];
@@ -33,6 +35,9 @@ const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
   deleteTask,
   userName = 'Utilisateur'
 }) => {
+  const [searchParams] = useSearchParams();
+  const highlightedTaskId = searchParams.get('highlight');
+  
   const { 
     filteredTasks, 
     filterValue, 
@@ -41,6 +46,32 @@ const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
     setSearchQuery, 
     filterOptions 
   } = useFilter(tasks);
+  
+  // Handle highlighted task from notifications
+  useEffect(() => {
+    if (highlightedTaskId) {
+      const taskId = parseInt(highlightedTaskId);
+      const task = tasks.find(t => t.id === taskId);
+      
+      if (task) {
+        // Set the appropriate view based on task status and date
+        if (task.status === 'completed') {
+          setCurrentView('completed');
+        } else if (isPast(task.dueDate) && !isToday(task.dueDate)) {
+          setCurrentView('overdue');
+        } else if (isToday(task.dueDate)) {
+          setCurrentView('today');
+        } else if (isFuture(task.dueDate)) {
+          setCurrentView('upcoming');
+        }
+        
+        // Notify the user that the task has been found
+        toast.info(`Tâche sélectionnée : ${task.title}`, {
+          description: `Pour l'équipement : ${task.equipment}`,
+        });
+      }
+    }
+  }, [highlightedTaskId, tasks, setCurrentView]);
   
   // Organizing tasks into categories
   const upcomingTasks = filteredTasks.filter(task => 
@@ -118,6 +149,7 @@ const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
                 updateTaskPriority={updateTaskPriority}
                 deleteTask={deleteTask}
                 userName={userName}
+                highlightedTaskId={highlightedTaskId ? parseInt(highlightedTaskId) : undefined}
               />
             </CardContent>
           </Card>
