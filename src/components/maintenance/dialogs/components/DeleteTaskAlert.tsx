@@ -26,11 +26,11 @@ export const DeleteTaskAlert: React.FC<DeleteTaskAlertProps> = ({
   const handleConfirm = () => {
     // Fermer d'abord la boîte de dialogue de confirmation
     onOpenChange(false);
-    // Puis déclencher l'action de confirmation après que le dialogue soit fermé
-    // Increased timeout to ensure UI updates properly
+    // Ensuite déclencher l'action de confirmation une fois que le dialogue est complètement fermé
+    // avec un délai suffisant pour éviter les problèmes d'UI
     setTimeout(() => {
       onConfirm();
-    }, 200);
+    }, 300);
   };
   
   return (

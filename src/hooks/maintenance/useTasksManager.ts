@@ -168,12 +168,18 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
     console.info('Deleting task with ID:', taskId);
     
     try {
-      // Utiliser un setTimeout avec une durée plus longue pour laisser le temps aux dialogues de se fermer
-      // et au DOM de se mettre à jour correctement
-      setTimeout(() => {
-        // Mettre à jour l'état local
-        setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
-      }, 400);
+      // Pour éviter les problèmes d'UI, utiliser requestAnimationFrame et setTimeout
+      // pour s'assurer que le DOM est complètement mis à jour avant de modifier l'état
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          // Mettre à jour l'état local de manière sûre
+          setTasks(prevTasks => {
+            console.log('Filtering tasks, current count:', prevTasks.length);
+            return prevTasks.filter(task => task.id !== taskId);
+          });
+          console.log(`Task ${taskId} has been removed from state`);
+        }, 500);
+      });
       
       return true;
     } catch (error) {
