@@ -168,11 +168,12 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
     console.info('Deleting task with ID:', taskId);
     
     try {
-      // Utiliser un setTimeout pour laisser le temps aux dialogues de se fermer
+      // Utiliser un setTimeout avec une durée plus longue pour laisser le temps aux dialogues de se fermer
+      // et au DOM de se mettre à jour correctement
       setTimeout(() => {
         // Mettre à jour l'état local
         setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
-      }, 200);
+      }, 400);
       
       return true;
     } catch (error) {
