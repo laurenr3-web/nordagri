@@ -181,6 +181,41 @@ export type Database = {
           },
         ]
       }
+      equipment_qrcodes: {
+        Row: {
+          active: boolean
+          created_at: string
+          equipment_id: number
+          id: string
+          last_scanned: string | null
+          qr_code_hash: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          equipment_id: number
+          id?: string
+          last_scanned?: string | null
+          qr_code_hash: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          equipment_id?: number
+          id?: string
+          last_scanned?: string | null
+          qr_code_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_qrcodes_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       equipments: {
         Row: {
           acquisition_date: string | null

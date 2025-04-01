@@ -1,49 +1,60 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Loader2, AlertTriangle } from 'lucide-react';
+import { Loader2, AlertTriangle, QrCode } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { equipmentService } from '@/services/supabase/equipmentService';
+import { qrCodeService } from '@/services/supabase/qrCodeService';
 import { Button } from '@/components/ui/button';
 
 const ScanRedirect: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id: qrCodeHash } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isValidEquipment, setIsValidEquipment] = useState<boolean | null>(null);
   const [isLoadingEquipment, setIsLoadingEquipment] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   // Vérifier l'authentification
-  const { user, loading: authLoading } = useAuth(true, `/scan/${id}`);
+  const { user, loading: authLoading } = useAuth(true, `/scan/${qrCodeHash}`);
 
   useEffect(() => {
-    const checkEquipment = async () => {
-      if (authLoading || !user) return;
+    const redirectToEquipment = async () => {
+      if (authLoading || !user || !qrCodeHash) return;
       
       try {
         setIsLoadingEquipment(true);
-        // Vérifier si l'équipement existe
-        const equipment = await equipmentService.getEquipmentById(Number(id));
+        
+        // Vérifier le QR code dans la base de données
+        const equipmentQrCode = await qrCodeService.getEquipmentByQRCodeHash(qrCodeHash);
+        
+        if (!equipmentQrCode) {
+          setIsValidEquipment(false);
+          setError("QR code invalide ou expiré. Veuillez scanner un QR code valide.");
+          return;
+        }
+        
+        // Vérifier si l'équipement existe toujours
+        const equipment = await equipmentService.getEquipmentById(equipmentQrCode.equipment_id);
         
         if (equipment) {
           setIsValidEquipment(true);
-          // Rediriger immédiatement vers la page détaillée de l'équipement
-          navigate(`/equipment/${id}`);
+          // Rediriger vers la page détaillée de l'équipement
+          navigate(`/equipment/${equipmentQrCode.equipment_id}`);
         } else {
           setIsValidEquipment(false);
-          setError("Équipement non trouvé. Vérifiez que le QR code est correct.");
+          setError("L'équipement associé à ce QR code n'existe plus.");
         }
       } catch (err: any) {
-        console.error('Erreur lors de la vérification de l\'équipement:', err);
+        console.error('Erreur lors de la redirection:', err);
         setIsValidEquipment(false);
-        setError(err.message || "Une erreur s'est produite lors de la validation de l'équipement");
+        setError(err.message || "Une erreur s'est produite lors de la redirection");
       } finally {
         setIsLoadingEquipment(false);
       }
     };
 
-    checkEquipment();
-  }, [id, navigate, user, authLoading]);
+    redirectToEquipment();
+  }, [qrCodeHash, navigate, user, authLoading]);
 
   if (authLoading || isLoadingEquipment) {
     return (
@@ -58,12 +69,18 @@ const ScanRedirect: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         <div className="bg-destructive/10 p-6 rounded-lg text-center max-w-md">
-          <AlertTriangle className="h-12 w-12 mx-auto text-destructive" />
-          <h1 className="text-2xl font-bold mt-4">Erreur de redirection</h1>
+          <div className="flex items-center justify-center mb-4">
+            <QrCode className="h-12 w-12 text-destructive" />
+            <AlertTriangle className="h-12 w-12 text-destructive ml-2" />
+          </div>
+          <h1 className="text-2xl font-bold">QR Code non valide</h1>
           <p className="mt-2 text-muted-foreground">{error}</p>
-          <div className="mt-6">
+          <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
             <Button onClick={() => navigate('/equipment')}>
               Voir tous les équipements
+            </Button>
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              Réessayer
             </Button>
           </div>
         </div>

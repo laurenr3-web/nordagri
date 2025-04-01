@@ -9,6 +9,7 @@ import EditEquipmentDialog from '../dialogs/EditEquipmentDialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import EquipmentMaintenance from '../tabs/EquipmentMaintenance';
 import EquipmentMaintenanceHistory from '../tabs/EquipmentMaintenanceHistory';
+import EquipmentQRCode from '../tabs/EquipmentQRCode';
 
 interface EquipmentDetailContentProps {
   equipment: EquipmentItem;
@@ -38,6 +39,7 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
           <TabsTrigger value="history">Historique</TabsTrigger>
           <TabsTrigger value="parts">Pièces</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="qrcode">QR Code</TabsTrigger>
         </TabsList>
         
         <TabsContent value="overview">
@@ -58,6 +60,10 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
         
         <TabsContent value="performance">
           <EquipmentPerformance equipment={equipment} />
+        </TabsContent>
+        
+        <TabsContent value="qrcode">
+          <EquipmentQRCode equipment={equipment} />
         </TabsContent>
       </Tabs>
       
