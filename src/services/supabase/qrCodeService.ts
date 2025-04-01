@@ -101,7 +101,7 @@ export const qrCodeService = {
   /**
    * Récupère un équipement par son hash de QR code
    */
-  async getEquipmentByQRCodeHash(hash: string): Promise<{equipment_id: number, id: string} | null> {
+  async getEquipmentByQRCodeHash(hash: string): Promise<{equipment_id: number; id: string} | null> {
     try {
       const { data, error } = await supabase
         .from('equipment_qrcodes')
@@ -121,7 +121,7 @@ export const qrCodeService = {
       // Mettre à jour la date du dernier scan
       await this.updateLastScanned(data.id);
       
-      return data as {equipment_id: number, id: string};
+      return data as {equipment_id: number; id: string};
     } catch (error: any) {
       console.error('Erreur lors de la recherche du QR code:', error);
       throw error;
