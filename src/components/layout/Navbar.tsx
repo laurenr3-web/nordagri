@@ -51,15 +51,15 @@ const Navbar = () => {
   const currentPath = location.pathname || "";
 
   return (
-    <div>
-      <div className="flex h-16 items-center px-6 border-b">
+    <div className="flex flex-col h-full">
+      <div className="flex h-16 items-center px-6 border-b border-sidebar-border">
         <a className="flex items-center gap-2" href="/">
           <img
             src="/lovable-uploads/ec804880-63d5-4999-8bd9-4b853ec3360d.png"
             alt="Agri ERP Insight"
-            className="h-7 w-auto"
+            className="h-8 w-auto"
           />
-          <span className="text-xl font-bold">Agri ERP</span>
+          <span className="text-xl font-bold text-white">Agri ERP</span>
         </a>
         <div className="ml-auto flex items-center gap-2">
           <div className="hidden md:flex">
@@ -67,26 +67,31 @@ const Navbar = () => {
           </div>
           <div className="ml-2">
             {/* Placeholder for UserMenu */}
-            <button className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="text-xs font-medium">U</span>
+            <button className="w-8 h-8 rounded-full bg-agri-primary/20 flex items-center justify-center">
+              <span className="text-xs font-medium text-white">U</span>
             </button>
           </div>
         </div>
       </div>
-      <div className="flex-1 overflow-auto py-2">
+      <div className="flex-1 overflow-auto py-2 bg-polka">
         <nav className="grid items-start px-4 text-sm font-medium">
           {navItems.map((item) => (
             <a
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2 ${
+              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 my-1 transition-all duration-200 ${
                 currentPath === item.href || 
                 (item.href !== "/" && currentPath.includes(item.href)) 
-                  ? "bg-secondary text-primary" 
-                  : "text-muted-foreground"
-              } transition-all hover:text-primary`}
+                  ? "bg-sidebar-accent text-white" 
+                  : "text-agri-light hover:bg-sidebar-accent/50 hover:text-white"
+              }`}
             >
-              <item.icon className="h-4 w-4" />
+              <item.icon className={`h-5 w-5 ${
+                currentPath === item.href || 
+                (item.href !== "/" && currentPath.includes(item.href))
+                  ? "text-agri-primary"
+                  : "text-current"
+              }`} />
               {item.title}
             </a>
           ))}

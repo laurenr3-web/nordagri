@@ -4,6 +4,7 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { Clock, AlertTriangle, CheckCircle } from 'lucide-react';
 
 interface UrgentIntervention {
   id: number;
@@ -24,16 +25,42 @@ interface UrgentInterventionsTableProps {
 export function UrgentInterventionsTable({ interventions, onViewDetails }: UrgentInterventionsTableProps) {
   if (!interventions || interventions.length === 0) {
     return (
-      <div className="text-center py-8 bg-muted/20 rounded-md">
+      <div className="text-center py-8 bg-bg-light rounded-lg flex flex-col items-center justify-center">
+        <CheckCircle className="h-10 w-10 text-agri-primary mb-2" />
         <p className="text-muted-foreground">Aucune intervention urgente en cours</p>
       </div>
     );
   }
 
+  const getPriorityBadge = (priority: 'high' | 'medium' | 'low') => {
+    switch (priority) {
+      case 'high':
+        return (
+          <Badge variant="outline" className="bg-alert-red/10 text-alert-red border-alert-red/20 flex items-center gap-1">
+            <AlertTriangle size={12} />
+            Haute
+          </Badge>
+        );
+      case 'medium':
+        return (
+          <Badge variant="outline" className="bg-alert-orange/10 text-alert-orange border-alert-orange/20 flex items-center gap-1">
+            <Clock size={12} />
+            Moyenne
+          </Badge>
+        );
+      case 'low':
+        return (
+          <Badge variant="outline" className="bg-agri-primary/10 text-agri-primary border-agri-primary/20">
+            Basse
+          </Badge>
+        );
+    }
+  };
+
   return (
     <Table>
       <TableCaption>Interventions urgentes en cours</TableCaption>
-      <TableHeader>
+      <TableHeader className="bg-muted/30">
         <TableRow>
           <TableHead>Titre</TableHead>
           <TableHead>Équipement</TableHead>
@@ -46,25 +73,17 @@ export function UrgentInterventionsTable({ interventions, onViewDetails }: Urgen
         {interventions.map((intervention) => (
           <TableRow 
             key={intervention.id} 
-            className="cursor-pointer hover:bg-muted/50"
+            className="cursor-pointer hover:bg-muted/30 transition-colors"
             onClick={() => onViewDetails && onViewDetails(intervention.id)}
           >
             <TableCell className="font-medium">{intervention.title}</TableCell>
             <TableCell>{intervention.equipment}</TableCell>
             <TableCell>
-              <Badge
-                variant={
-                  intervention.priority === 'high' ? 'destructive' : 
-                  intervention.priority === 'medium' ? 'default' : 
-                  'outline'
-                }
-              >
-                {intervention.priority === 'high' ? 'Haute' : 
-                 intervention.priority === 'medium' ? 'Moyenne' : 
-                 'Basse'}
-              </Badge>
+              {getPriorityBadge(intervention.priority)}
             </TableCell>
-            <TableCell>
+            <TableCell className={
+              intervention.date.getTime() < Date.now() ? "text-alert-red font-medium" : ""
+            }>
               {formatDistanceToNow(intervention.date, { addSuffix: true, locale: fr })}
             </TableCell>
             <TableCell>{intervention.technician}</TableCell>

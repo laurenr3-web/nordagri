@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { BlurContainer } from '@/components/ui/blur-container';
 import { cn } from '@/lib/utils';
 
 interface StatsCardProps {
@@ -28,10 +27,12 @@ export function StatsCard({
   onClick
 }: StatsCardProps) {
   return (
-    <BlurContainer 
-      className={cn("p-6 animate-fade-in", className)}
-      intensity="light"
-      raised
+    <div 
+      className={cn(
+        "p-6 animate-fade-in bg-white rounded-xl border border-border shadow-card card-hover",
+        className,
+        onClick && "cursor-pointer"
+      )}
       style={style}
       onClick={onClick}
     >
@@ -46,7 +47,7 @@ export function StatsCard({
             <div className="flex items-center mt-2">
               <span className={cn(
                 "text-xs font-medium",
-                trend.isPositive ? "text-agri-600" : "text-destructive"
+                trend.isPositive ? "text-agri-primary" : "text-alert-red"
               )}>
                 {trend.isPositive ? '+' : ''}{trend.value}%
               </span>
@@ -54,10 +55,14 @@ export function StatsCard({
             </div>
           )}
         </div>
-        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-          <Icon className="text-primary h-5 w-5" />
+        <div className="h-12 w-12 rounded-full flex items-center justify-center text-white"
+             style={{
+               background: `linear-gradient(135deg, var(--agri-primary) 0%, var(--agri-secondary) 100%)`,
+               boxShadow: '0 4px 10px rgba(45, 157, 100, 0.2)'
+             }}>
+          <Icon className="h-6 w-6" />
         </div>
       </div>
-    </BlurContainer>
+    </div>
   );
 }

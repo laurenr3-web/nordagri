@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { BlurContainer } from '@/components/ui/blur-container';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 
@@ -23,12 +22,23 @@ interface EquipmentCardProps {
 }
 
 export function EquipmentCard({ name, type, image, status, usage, nextService, className, style, onClick }: EquipmentCardProps) {
+  const getStatusClass = (status: 'operational' | 'maintenance' | 'repair') => {
+    switch (status) {
+      case 'operational':
+        return 'status-operational';
+      case 'maintenance':
+        return 'status-maintenance';
+      case 'repair':
+        return 'status-repair';
+    }
+  };
+
   return (
-    <BlurContainer 
+    <div 
       className={cn(
-        "overflow-hidden animate-scale-in", 
+        "overflow-hidden animate-scale-in bg-white rounded-xl border border-border shadow-card card-hover", 
         className,
-        onClick ? "cursor-pointer hover:shadow-md transition-shadow" : ""
+        onClick ? "cursor-pointer" : ""
       )}
       style={style}
       onClick={onClick}
@@ -43,12 +53,10 @@ export function EquipmentCard({ name, type, image, status, usage, nextService, c
             e.currentTarget.classList.add('bg-muted-foreground/10');
           }}
         />
-        <div className="absolute top-2 right-2">
+        <div className="absolute top-3 right-3">
           <div className={cn(
-            "px-2 py-1 rounded-md text-xs font-medium",
-            status === 'operational' ? "bg-agri-100 text-agri-800" : 
-            status === 'maintenance' ? "bg-harvest-100 text-harvest-800" : 
-            "bg-destructive/20 text-destructive"
+            "px-2.5 py-1 rounded-full text-xs font-medium",
+            getStatusClass(status)
           )}>
             {status === 'operational' ? 'Operational' : 
              status === 'maintenance' ? 'Maintenance' : 
@@ -58,28 +66,36 @@ export function EquipmentCard({ name, type, image, status, usage, nextService, c
       </div>
       
       <div className="p-4">
-        <h3 className="font-medium mb-1">{name}</h3>
+        <h3 className="font-medium mb-1 text-lg">{name}</h3>
         <p className="text-sm text-muted-foreground mb-4">{type}</p>
         
         <div className="space-y-4">
           <div>
-            <div className="flex justify-between text-sm mb-1">
+            <div className="flex justify-between text-sm mb-1.5">
               <span>Usage</span>
               <span className="font-medium">{usage.hours} / {usage.target} hrs</span>
             </div>
-            <Progress value={(usage.hours / usage.target) * 100} />
+            <Progress 
+              value={(usage.hours / usage.target) * 100} 
+              className="h-2"
+              indicatorClassName={cn(
+                (usage.hours / usage.target) > 0.8 ? "bg-alert-red" : 
+                (usage.hours / usage.target) > 0.6 ? "bg-alert-orange" : 
+                "bg-agri-primary"
+              )}
+            />
           </div>
           
           <div className="text-sm">
             <p className="text-muted-foreground mb-1">Next Service:</p>
             <p className="font-medium">{nextService.type}</p>
             <p className={cn(
-              nextService.due.includes('Overdue') ? "text-destructive" : 
-              nextService.due.includes('days') ? "text-harvest-600" : ""
+              nextService.due.includes('Overdue') ? "text-alert-red font-medium" : 
+              nextService.due.includes('days') ? "text-alert-orange" : "text-muted-foreground"
             )}>{nextService.due}</p>
           </div>
         </div>
       </div>
-    </BlurContainer>
+    </div>
   );
 }

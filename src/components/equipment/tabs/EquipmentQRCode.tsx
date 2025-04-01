@@ -11,14 +11,14 @@ interface EquipmentQRCodeProps {
 const EquipmentQRCode: React.FC<EquipmentQRCodeProps> = ({ equipment }) => {
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
+      <Card className="shadow-card overflow-hidden border-border">
+        <CardHeader className="bg-gradient-to-r from-agri-dark to-agri-dark-hover text-white">
           <CardTitle>QR Code de l'équipement</CardTitle>
-          <CardDescription>
+          <CardDescription className="text-agri-light">
             Générez, imprimez et gérez le QR code pour accéder rapidement à cet équipement
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           <EquipmentQRCodeManager 
             equipmentId={Number(equipment.id)} 
             equipmentName={equipment.name} 

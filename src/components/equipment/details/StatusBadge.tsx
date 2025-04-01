@@ -9,11 +9,11 @@ interface StatusBadgeProps {
 export const getStatusColor = (status: string) => {
   switch (status) {
     case 'operational':
-      return 'bg-agri-100 text-agri-800';
+      return 'status-operational';
     case 'maintenance':
-      return 'bg-harvest-100 text-harvest-800';
+      return 'status-maintenance';
     case 'repair':
-      return 'bg-destructive/20 text-destructive';
+      return 'status-repair';
     default:
       return 'bg-secondary text-muted-foreground';
   }

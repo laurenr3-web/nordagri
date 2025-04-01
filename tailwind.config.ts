@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -63,7 +62,15 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Custom ERP colors
+				'agri-dark': '#0f3520',
+				'agri-dark-hover': '#13402a',
+				'agri-primary': '#2d9d64',
+				'agri-secondary': '#76ae8e',
+				'agri-light': '#a6c9b5',
+				'alert-red': '#E53935',
+				'alert-orange': '#FF9800',
+				'bg-light': '#F5F7FA',
+				'card-white': '#FFFFFF',
 				agri: {
 					'50': '#f0f9f4',
 					'100': '#ddf2e4',
@@ -104,10 +111,21 @@ export default {
 					'950': '#341c14',
 				}
 			},
+			fontFamily: {
+				sans: ['Inter', 'sans-serif'],
+			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
+			},
+			boxShadow: {
+				'card': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+				'hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+				'glass': '0 4px 30px rgba(0, 0, 0, 0.1)',
+				'neo': '5px 5px 10px rgba(163, 177, 198, 0.15), -5px -5px 10px rgba(255, 255, 255, 0.6)',
+				'subtle': '0 2px 10px rgba(0, 0, 0, 0.05)',
+				'elevated': '0 10px 30px rgba(0, 0, 0, 0.08)'
 			},
 			keyframes: {
 				'accordion-down': {
@@ -185,12 +203,6 @@ export default {
 				'slide-in-right': 'slide-in-right 0.4s ease-out',
 				'slide-in-left': 'slide-in-left 0.4s ease-out',
 				'scale-in': 'scale-in 0.3s ease-out'
-			},
-			boxShadow: {
-				'glass': '0 4px 30px rgba(0, 0, 0, 0.1)',
-				'neo': '5px 5px 10px rgba(163, 177, 198, 0.15), -5px -5px 10px rgba(255, 255, 255, 0.6)',
-				'subtle': '0 2px 10px rgba(0, 0, 0, 0.05)',
-				'elevated': '0 10px 30px rgba(0, 0, 0, 0.08)'
 			}
 		}
 	},
