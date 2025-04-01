@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/hooks/use-toast";
@@ -142,7 +141,7 @@ export const useStatsData = (user: any) => {
         {
           title: 'Field Interventions',
           value: interventionsCount,
-          icon: ClipboardCheck,
+          icon: MapPin,
           description: 'This week',
           change: 0
         }
