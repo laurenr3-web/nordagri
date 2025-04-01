@@ -64,13 +64,18 @@ const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
 
   const handleDeleteConfirm = () => {
     if (onDeleteTask && task) {
-      onDeleteTask(task.id);
+      // Fermer d'abord la boîte de dialogue de détails avant de supprimer
       onOpenChange(false);
+      // Ensuite fermer la boîte de dialogue de confirmation
       setShowDeleteDialog(false);
-      toast({
-        title: "Task deleted",
-        description: "The maintenance task has been deleted",
-      });
+      // Finalement supprimer la tâche
+      setTimeout(() => {
+        onDeleteTask(task.id);
+        toast({
+          title: "Task deleted",
+          description: "The maintenance task has been deleted",
+        });
+      }, 100);
     }
   };
 

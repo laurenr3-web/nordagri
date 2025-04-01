@@ -23,6 +23,15 @@ export const DeleteTaskAlert: React.FC<DeleteTaskAlertProps> = ({
   onOpenChange, 
   onConfirm 
 }) => {
+  const handleConfirm = () => {
+    // Fermer d'abord la boîte de dialogue de confirmation
+    onOpenChange(false);
+    // Puis déclencher l'action de confirmation après que le dialogue soit fermé
+    setTimeout(() => {
+      onConfirm();
+    }, 100);
+  };
+  
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
@@ -36,7 +45,7 @@ export const DeleteTaskAlert: React.FC<DeleteTaskAlertProps> = ({
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction 
-            onClick={onConfirm}
+            onClick={handleConfirm}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1"
           >
             <Trash2 size={16} />
