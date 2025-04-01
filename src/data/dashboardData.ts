@@ -1,12 +1,12 @@
 
-import { Tractor, Wrench, Package, ClipboardCheck } from 'lucide-react';
+import { Tractor, Wrench, Package, MapPin } from 'lucide-react';
 import React from 'react';
 
 // Stats data for the dashboard
 export const statsData = [{
   title: 'Active Equipment',
   value: '24',
-  icon: React.createElement(Tractor, { className: "text-primary h-5 w-5" }),
+  icon: Tractor,
   trend: {
     value: 4,
     isPositive: true
@@ -14,7 +14,7 @@ export const statsData = [{
 }, {
   title: 'Maintenance Tasks',
   value: '12',
-  icon: React.createElement(Wrench, { className: "text-primary h-5 w-5" }),
+  icon: Wrench,
   description: '3 high priority',
   trend: {
     value: 2,
@@ -23,7 +23,7 @@ export const statsData = [{
 }, {
   title: 'Parts Inventory',
   value: '1,204',
-  icon: React.createElement(Package, { className: "text-primary h-5 w-5" }),
+  icon: Package,
   description: '8 items low stock',
   trend: {
     value: 12,
@@ -32,7 +32,7 @@ export const statsData = [{
 }, {
   title: 'Field Interventions',
   value: '8',
-  icon: React.createElement(ClipboardCheck, { className: "text-primary h-5 w-5" }),
+  icon: MapPin,
   description: 'This week',
   trend: {
     value: 15,

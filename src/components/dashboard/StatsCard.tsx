@@ -55,12 +55,17 @@ export function StatsCard({
             </div>
           )}
         </div>
-        <div className="h-12 w-12 rounded-full flex items-center justify-center text-white"
-             style={{
-               background: `linear-gradient(135deg, var(--agri-primary) 0%, var(--agri-secondary) 100%)`,
-               boxShadow: '0 4px 10px rgba(45, 157, 100, 0.2)'
-             }}>
-          <Icon className="h-6 w-6" />
+        <div className="relative">
+          <div className="h-12 w-12 rounded-full bg-white shadow-md flex items-center justify-center">
+            <Icon className="h-6 w-6 text-agri-primary" />
+          </div>
+          <div className="absolute inset-0 rounded-full" 
+               style={{
+                 background: `linear-gradient(135deg, var(--agri-primary) 0%, var(--agri-secondary) 100%)`,
+                 opacity: 0.1,
+                 zIndex: -1
+               }}>
+          </div>
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/hooks/use-toast";
-import { Tractor, Wrench, Package, ClipboardCheck } from 'lucide-react';
+import { Tractor, Wrench, Package, MapPin } from 'lucide-react';
 import React from 'react';
 
 export interface StatsCardData {
@@ -44,7 +44,7 @@ export const useStatsData = (user: any) => {
       }, {
         title: 'Field Interventions',
         value: '8',
-        icon: ClipboardCheck,
+        icon: MapPin,
         description: 'This week',
         change: 15
       }
