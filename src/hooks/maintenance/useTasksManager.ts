@@ -163,11 +163,15 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
     );
   };
 
-  const deleteTask = (taskId: number) => {
+  const deleteTask = async (taskId: number) => {
     // Supprimer une tâche
     console.info('Deleting task with ID:', taskId);
     
     try {
+      // Persister la suppression dans la base de données
+      await maintenanceService.deleteTask(taskId);
+      console.log(`Task ${taskId} has been deleted from the database`);
+      
       // Pour éviter les problèmes d'UI, utiliser requestAnimationFrame et setTimeout
       // pour s'assurer que le DOM est complètement mis à jour avant de modifier l'état
       requestAnimationFrame(() => {
@@ -178,12 +182,16 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
             return prevTasks.filter(task => task.id !== taskId);
           });
           console.log(`Task ${taskId} has been removed from state`);
-        }, 500);
+          
+          // Afficher un toast pour confirmer la suppression
+          toast.success('Tâche supprimée avec succès');
+        }, 300);
       });
       
       return true;
     } catch (error) {
       console.error('Error deleting task:', error);
+      toast.error('Erreur lors de la suppression de la tâche');
       throw error;
     }
   };
@@ -196,6 +204,10 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
     updateTaskStatus, 
     updateTaskPriority,
     deleteTask,
-    refreshTasks: () => setIsLoading(true) // Déclenchera un rechargement des données
+    refreshTasks: () => {
+      setIsLoading(true);
+      // Réinitialiser l'état actuel
+      setTasks([]);
+    } // Déclenchera un rechargement des données
   };
 }

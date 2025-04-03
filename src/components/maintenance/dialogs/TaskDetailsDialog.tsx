@@ -46,8 +46,8 @@ const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
     if (onStatusChange && task) {
       onStatusChange(task.id, value as MaintenanceStatus);
       toast({
-        title: "Status updated",
-        description: `Task status updated to ${value}`,
+        title: "Statut mis à jour",
+        description: `Statut de la tâche changé à ${value}`,
       });
     }
   };
@@ -56,31 +56,40 @@ const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
     if (onPriorityChange && task) {
       onPriorityChange(task.id, value as MaintenancePriority);
       toast({
-        title: "Priority updated",
-        description: `Task priority updated to ${value}`,
+        title: "Priorité mise à jour",
+        description: `Priorité de la tâche changée à ${value}`,
       });
     }
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (onDeleteTask && task) {
-      // Fermer d'abord la boîte de dialogue de détails
-      onOpenChange(false);
-      
-      // Important: utiliser requestAnimationFrame pour s'assurer que l'interface est mise à jour
-      // avant de procéder à la suppression
-      requestAnimationFrame(() => {
-        // Utiliser un délai pour s'assurer que les animations sont terminées
-        setTimeout(() => {
-          if (onDeleteTask) {
-            onDeleteTask(task.id);
-            toast({
-              title: "Task deleted",
-              description: "The maintenance task has been deleted",
-            });
-          }
-        }, 350);
-      });
+      try {
+        // Fermer d'abord la boîte de dialogue de détails
+        onOpenChange(false);
+        
+        // Utiliser requestAnimationFrame et setTimeout pour s'assurer que l'interface est mise à jour
+        // avant de procéder à la suppression
+        requestAnimationFrame(() => {
+          // Utiliser un délai pour s'assurer que les animations sont terminées
+          setTimeout(async () => {
+            if (onDeleteTask) {
+              await onDeleteTask(task.id);
+              toast({
+                title: "Tâche supprimée",
+                description: "La tâche de maintenance a été supprimée définitivement",
+              });
+            }
+          }, 350);
+        });
+      } catch (error) {
+        console.error('Error deleting task:', error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de supprimer la tâche de maintenance",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -109,7 +118,7 @@ const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
           
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">Close</Button>
+              <Button variant="outline">Fermer</Button>
             </DialogClose>
           </DialogFooter>
         </DialogContent>

@@ -37,21 +37,21 @@ export const DeleteTaskAlert: React.FC<DeleteTaskAlertProps> = ({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete Task</AlertDialogTitle>
+          <AlertDialogTitle>Supprimer la tâche</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete this maintenance task?
-            This action cannot be undone.
+            Êtes-vous sûr de vouloir supprimer cette tâche de maintenance?
+            Cette action ne peut pas être annulée.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>Annuler</AlertDialogCancel>
           <AlertDialogAction 
             onClick={handleConfirm}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1"
             aria-label="Supprimer la tâche"
           >
             <Trash2 size={16} />
-            <span>Delete</span>
+            <span>Supprimer</span>
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
