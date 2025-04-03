@@ -4,13 +4,14 @@ import { Drawer as DrawerPrimitive } from "vaul"
 
 import { cn } from "@/lib/utils"
 
-// Define the DrawerProps interface correctly
-const Drawer = React.forwardRef<
-  React.ElementRef<typeof DrawerPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Root> & {
-    direction?: "top" | "bottom" | "left" | "right";
-  }
->(({ shouldScaleBackground = true, direction = "bottom", ...props }, ref) => {
+// Define the correct Drawer component with proper ref forwarding
+const Drawer = ({
+  shouldScaleBackground = true,
+  direction = "bottom",
+  ...props
+}: React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Root> & {
+  direction?: "top" | "bottom" | "left" | "right";
+}) => {
   // Handle direction specific logic
   const modalProps = direction === "top" || direction === "bottom"
     ? {}
@@ -18,13 +19,12 @@ const Drawer = React.forwardRef<
 
   return (
     <DrawerPrimitive.Root
-      ref={ref}
       shouldScaleBackground={shouldScaleBackground}
       {...props}
       {...modalProps}
     />
   )
-})
+}
 Drawer.displayName = "Drawer"
 
 const DrawerTrigger = DrawerPrimitive.Trigger
