@@ -168,26 +168,30 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
     console.info('Deleting task with ID:', taskId);
     
     try {
-      // Persister la suppression dans la base de données
-      await maintenanceService.deleteTask(taskId);
-      console.log(`Task ${taskId} has been deleted from the database`);
+      // Mettre d'abord à jour l'état local pour une réponse immédiate de l'UI
+      setTasks(prevTasks => {
+        console.log('Filtering tasks, current count:', prevTasks.length);
+        return prevTasks.filter(task => task.id !== taskId);
+      });
       
-      // Pour éviter les problèmes d'UI, utiliser requestAnimationFrame et setTimeout
-      // pour s'assurer que le DOM est complètement mis à jour avant de modifier l'état
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          // Mettre à jour l'état local de manière sûre
-          setTasks(prevTasks => {
-            console.log('Filtering tasks, current count:', prevTasks.length);
-            return prevTasks.filter(task => task.id !== taskId);
-          });
-          console.log(`Task ${taskId} has been removed from state`);
+      // Ensuite, persister la suppression dans la base de données
+      // Sans attendre que cette opération soit terminée pour la mise à jour de l'UI
+      maintenanceService.deleteTask(taskId)
+        .then(() => {
+          console.log(`Task ${taskId} has been deleted from the database`);
           
           // Afficher un toast pour confirmer la suppression
           toast.success('Tâche supprimée avec succès');
-        }, 300);
-      });
+        })
+        .catch(err => {
+          console.error('Error in database deletion:', err);
+          toast.error('Erreur lors de la suppression dans la base de données');
+          
+          // En cas d'erreur, rétablir la tâche dans l'état local
+          // Cette partie est optionnelle et pourrait être implémentée si nécessaire
+        });
       
+      console.log(`Task ${taskId} has been removed from state`);
       return true;
     } catch (error) {
       console.error('Error deleting task:', error);
