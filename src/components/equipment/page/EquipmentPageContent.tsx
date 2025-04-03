@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import EquipmentContentSection from './EquipmentContentSection';
 import { useNavigate } from 'react-router-dom';
 import { useEquipmentFilters, EquipmentItem } from '../hooks/useEquipmentFilters';
+import { toast } from 'sonner';
 
 interface EquipmentPageContentProps {
   equipment: EquipmentItem[];
@@ -16,23 +17,41 @@ const EquipmentPageContent: React.FC<EquipmentPageContentProps> = ({
   const navigate = useNavigate();
   const [currentView, setCurrentView] = useState('grid');
   const filterState = useEquipmentFilters(equipment);
+  const [error, setError] = useState<string | null>(null);
   
   // Load saved view preference on component mount
   useEffect(() => {
-    const savedView = localStorage.getItem('equipmentViewPreference');
-    if (savedView && (savedView === 'grid' || savedView === 'list')) {
-      setCurrentView(savedView);
+    try {
+      const savedView = localStorage.getItem('equipmentViewPreference');
+      if (savedView && (savedView === 'grid' || savedView === 'list')) {
+        setCurrentView(savedView);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la récupération des préférences:', error);
+      setError('Impossible de charger vos préférences d\'affichage');
+      // Utiliser la vue par défaut en cas d'erreur
+      setCurrentView('grid');
     }
   }, []);
   
   // Save view preference when it changes
   useEffect(() => {
-    localStorage.setItem('equipmentViewPreference', currentView);
+    try {
+      localStorage.setItem('equipmentViewPreference', currentView);
+    } catch (error) {
+      console.error('Erreur lors de l\'enregistrement des préférences:', error);
+      toast.error('Impossible d\'enregistrer vos préférences d\'affichage');
+    }
   }, [currentView]);
   
   const handleEquipmentClick = (equipment: EquipmentItem) => {
     navigate(`/equipment/${equipment.id}`);
   };
+  
+  // Si une erreur se produit, on affiche quand même le contenu avec la vue par défaut
+  if (error) {
+    toast.error(error, { id: 'equipment-view-error' });
+  }
   
   return (
     <div className="flex-1 p-6">

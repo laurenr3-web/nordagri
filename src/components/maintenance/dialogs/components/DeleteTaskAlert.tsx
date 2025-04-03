@@ -48,6 +48,7 @@ export const DeleteTaskAlert: React.FC<DeleteTaskAlertProps> = ({
           <AlertDialogAction 
             onClick={handleConfirm}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1"
+            aria-label="Supprimer la tâche"
           >
             <Trash2 size={16} />
             <span>Delete</span>

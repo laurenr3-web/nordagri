@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import StatsSection from './StatsSection';
 import EquipmentSection from './EquipmentSection';
 import MaintenanceSection from './MaintenanceSection';
@@ -50,8 +50,8 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
 }) => {
   const navigate = useNavigate();
   
-  // Generate search items from all available data
-  const searchItems = [
+  // Mémoisation des éléments de recherche pour éviter des recalculs inutiles
+  const searchItems = useMemo(() => [
     ...equipmentData.map(item => ({
       id: item.id,
       title: item.name,
@@ -80,17 +80,18 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
       type: 'task' as const,
       url: `/maintenance?taskId=${item.id}`
     }))
-  ];
+  ], [equipmentData, urgentInterventions, stockAlerts, upcomingTasks]);
 
-  const handleViewIntervention = (id: number) => {
+  // Optimisation des gestionnaires d'événements avec useCallback
+  const handleViewIntervention = useCallback((id: number) => {
     navigate(`/interventions?id=${id}`);
-  };
+  }, [navigate]);
 
-  const handleViewParts = () => {
+  const handleViewParts = useCallback(() => {
     navigate('/parts');
-  };
+  }, [navigate]);
 
-  const handleViewCalendarEvent = (id: string | number, type: string) => {
+  const handleViewCalendarEvent = useCallback((id: string | number, type: string) => {
     switch (type) {
       case 'maintenance':
       case 'task':
@@ -102,7 +103,7 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
       default:
         break;
     }
-  };
+  }, [navigate]);
 
   return (
     <div className="space-y-8">
@@ -125,7 +126,12 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
             title="Interventions urgentes" 
             subtitle="Interventions critiques en attente"
             action={
-              <Button variant="outline" size="sm" onClick={() => navigate('/interventions')}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleViewIntervention.bind(null, -1)}
+                aria-label="Voir toutes les interventions"
+              >
                 Toutes les interventions
               </Button>
             }
@@ -157,7 +163,12 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
             title="Stock faible"
             subtitle="Pièces à réapprovisionner"
             action={
-              <Button variant="outline" size="sm" onClick={handleViewParts}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleViewParts}
+                aria-label="Gérer le stock de pièces"
+              >
                 Gérer le stock
               </Button>
             }
@@ -175,4 +186,5 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
   );
 };
 
-export default EnhancedDashboard;
+// Optimiser les re-renders avec React.memo
+export default React.memo(EnhancedDashboard);
