@@ -25,9 +25,9 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
   handleEquipmentClick
 }) => {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto shadow-sm rounded-lg border">
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-muted/40">
           <TableRow>
             <TableHead className="w-[80px]">Image</TableHead>
             <TableHead>Nom</TableHead>
@@ -43,7 +43,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
           {equipment.map((item) => (
             <TableRow 
               key={item.id} 
-              className="cursor-pointer hover:bg-muted/50"
+              className="cursor-pointer hover:bg-muted/50 transition-colors"
               onClick={() => handleEquipmentClick(item)}
             >
               <TableCell>

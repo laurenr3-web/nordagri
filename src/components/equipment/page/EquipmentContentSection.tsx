@@ -101,20 +101,25 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
         <div className="flex justify-center items-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
-      ) : currentView === 'grid' ? (
-        <EquipmentGrid
-          equipment={filteredEquipment}
-          getStatusColor={getStatusColor}
-          getStatusText={getStatusText}
-          handleEquipmentClick={handleEquipmentItemClick}
-        />
       ) : (
-        <EquipmentList 
-          equipment={filteredEquipment}
-          getStatusColor={getStatusColor}
-          getStatusText={getStatusText}
-          handleEquipmentClick={handleEquipmentItemClick}
-        />
+        <>
+          {/* Conditionally render the appropriate view, with list view coming first */}
+          {currentView === 'list' ? (
+            <EquipmentList 
+              equipment={filteredEquipment}
+              getStatusColor={getStatusColor}
+              getStatusText={getStatusText}
+              handleEquipmentClick={handleEquipmentItemClick}
+            />
+          ) : (
+            <EquipmentGrid
+              equipment={filteredEquipment}
+              getStatusColor={getStatusColor}
+              getStatusText={getStatusText}
+              handleEquipmentClick={handleEquipmentItemClick}
+            />
+          )}
+        </>
       )}
       
       {!isLoading && filteredEquipment.length === 0 && (

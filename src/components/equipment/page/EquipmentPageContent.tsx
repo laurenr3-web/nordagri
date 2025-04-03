@@ -15,7 +15,7 @@ const EquipmentPageContent: React.FC<EquipmentPageContentProps> = ({
   isLoading 
 }) => {
   const navigate = useNavigate();
-  const [currentView, setCurrentView] = useState('grid');
+  const [currentView, setCurrentView] = useState('list'); // Changed default from 'grid' to 'list'
   const filterState = useEquipmentFilters(equipment);
   const [error, setError] = useState<string | null>(null);
   
@@ -25,12 +25,15 @@ const EquipmentPageContent: React.FC<EquipmentPageContentProps> = ({
       const savedView = localStorage.getItem('equipmentViewPreference');
       if (savedView && (savedView === 'grid' || savedView === 'list')) {
         setCurrentView(savedView);
+      } else {
+        // Set a default value of 'list' if nothing is saved
+        localStorage.setItem('equipmentViewPreference', 'list');
       }
     } catch (error) {
       console.error('Erreur lors de la récupération des préférences:', error);
       setError('Impossible de charger vos préférences d\'affichage');
-      // Utiliser la vue par défaut en cas d'erreur
-      setCurrentView('grid');
+      // Use list view as default in case of error
+      setCurrentView('list');
     }
   }, []);
   
