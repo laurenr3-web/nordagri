@@ -4,35 +4,27 @@ import { Drawer as DrawerPrimitive } from "vaul"
 
 import { cn } from "@/lib/utils"
 
-interface DrawerProps extends React.ComponentProps<typeof DrawerPrimitive.Root> {
-  direction?: "top" | "bottom" | "left" | "right";
-}
-
-const Drawer = ({
-  shouldScaleBackground = true,
-  direction = "bottom",
-  ...props
-}: DrawerProps) => {
-  // Ajout de la gestion de la direction
-  const slideClass = {
-    bottom: "inset-x-0 bottom-0 mt-24 rounded-t-[10px]",
-    top: "inset-x-0 top-0 mb-24 rounded-b-[10px]",
-    left: "inset-y-0 left-0 ml-24 rounded-r-[10px]",
-    right: "inset-y-0 right-0 mr-24 rounded-l-[10px]"
-  }[direction]
-
+// Define the DrawerProps interface correctly
+const Drawer = React.forwardRef<
+  React.ElementRef<typeof DrawerPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Root> & {
+    direction?: "top" | "bottom" | "left" | "right";
+  }
+>(({ shouldScaleBackground = true, direction = "bottom", ...props }, ref) => {
+  // Handle direction specific logic
   const modalProps = direction === "top" || direction === "bottom"
     ? {}
     : { dismissible: false }
 
   return (
     <DrawerPrimitive.Root
+      ref={ref}
       shouldScaleBackground={shouldScaleBackground}
       {...props}
       {...modalProps}
     />
   )
-}
+})
 Drawer.displayName = "Drawer"
 
 const DrawerTrigger = DrawerPrimitive.Trigger

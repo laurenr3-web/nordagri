@@ -2,7 +2,11 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
-import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
+import { 
+  Drawer, 
+  DrawerContent, 
+  DrawerTrigger 
+} from '@/components/ui/drawer';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { navItems } from './Navbar';
 
@@ -24,7 +28,7 @@ const MobileMenu = () => {
           <Menu className="h-6 w-6" />
         </button>
       </DrawerTrigger>
-      <DrawerContent className="p-0 max-h-[85vh] rounded-b-xl">
+      <DrawerContent direction="top" className="p-0 max-h-[85vh] rounded-b-xl">
         <div className="flex flex-col p-4 space-y-1">
           <div className="flex items-center justify-between mb-4 p-2">
             <div className="text-xl font-bold">Agri ERP Insight</div>
