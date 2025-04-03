@@ -4,7 +4,6 @@ import { Drawer as DrawerPrimitive } from "vaul"
 
 import { cn } from "@/lib/utils"
 
-// Define the correct Drawer component with proper ref forwarding
 const Drawer = ({
   shouldScaleBackground = true,
   direction = "bottom",
@@ -28,10 +27,13 @@ const Drawer = ({
 Drawer.displayName = "Drawer"
 
 const DrawerTrigger = DrawerPrimitive.Trigger
+DrawerTrigger.displayName = DrawerPrimitive.Trigger.displayName
 
 const DrawerPortal = DrawerPrimitive.Portal
+DrawerPortal.displayName = DrawerPrimitive.Portal.displayName
 
 const DrawerClose = DrawerPrimitive.Close
+DrawerClose.displayName = DrawerPrimitive.Close.displayName
 
 const DrawerOverlay = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Overlay>,
