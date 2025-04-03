@@ -23,16 +23,11 @@ export const DeleteTaskAlert: React.FC<DeleteTaskAlertProps> = ({
   onOpenChange, 
   onConfirm 
 }) => {
-  // Simplifier la gestion de suppression en s'assurant que les événements sont bien séparés
+  // Gestion simplifiée de la confirmation
   const handleConfirm = () => {
-    // Fermer d'abord la boîte de dialogue
+    // Fermer la boîte de dialogue et déclencher l'action dans la même méthode
     onOpenChange(false);
-    
-    // Utiliser requestAnimationFrame pour garantir que le DOM est mis à jour 
-    // avant de déclencher l'action de suppression
-    requestAnimationFrame(() => {
-      onConfirm();
-    });
+    onConfirm();
   };
   
   return (

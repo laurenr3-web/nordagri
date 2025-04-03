@@ -82,7 +82,7 @@ const Maintenance = () => {
         </Sidebar>
         
         <div className="flex-1 w-full">
-          <div className="flex justify-between items-center p-4 border-b">
+          <div className="flex justify-between items-center px-4 py-2 border-b">
             <div className="text-sm text-muted-foreground">
               {isAuthenticated ? (
                 <span>Connecté en tant que : <span className="font-medium">{getUserDisplayName()}</span></span>
@@ -93,7 +93,7 @@ const Maintenance = () => {
             <MaintenanceNotificationsPopover />
           </div>
           
-          <div className="pt-6 pb-16 px-4 sm:px-8 md:px-12">
+          <div className="px-4 py-4">
             <div className="max-w-7xl mx-auto">
               <Tabs defaultValue="tasks" value={dashboardView} onValueChange={setDashboardView}>
                 <div className="flex justify-between items-center mb-6">
