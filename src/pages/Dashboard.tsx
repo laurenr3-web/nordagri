@@ -81,18 +81,18 @@ const DashboardPage = () => {
 
   return (
     <MainLayout>
-      <div className="flex-1">
-        <div className="px-4 py-4">
-          <div className="max-w-7xl mx-auto">
+      <div className="flex-1 flex flex-col">
+        <div className="p-4 flex-1">
+          <div className="max-w-full mx-auto h-full">
             <Header 
               currentView={currentView}
               setCurrentView={setCurrentView}
             />
             
-            <Tabs value={currentView} className="space-y-4">
-              <TabsContent value="main">
+            <Tabs value={currentView} className="h-full flex flex-col">
+              <TabsContent value="main" className="flex-1 h-full">
                 {loading ? (
-                  <div className="flex items-center justify-center h-64">
+                  <div className="flex items-center justify-center h-full">
                     <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
                   </div>
                 ) : (
@@ -116,14 +116,14 @@ const DashboardPage = () => {
                 )}
               </TabsContent>
               
-              <TabsContent value="calendar">
+              <TabsContent value="calendar" className="flex-1 h-full">
                 <CalendarView 
                   events={adaptedMaintenanceEvents} 
                   month={currentMonth} 
                 />
               </TabsContent>
               
-              <TabsContent value="alerts">
+              <TabsContent value="alerts" className="flex-1 h-full">
                 <AllAlertsSection alerts={adaptedAlertItems} />
               </TabsContent>
             </Tabs>

@@ -66,9 +66,9 @@ const EquipmentPage = () => {
   
   return (
     <MainLayout>
-      <div className="flex-1">
-        <div className="px-4 py-4">
-          <div className="max-w-7xl mx-auto">
+      <div className="flex-1 flex flex-col">
+        <div className="p-4 flex-1">
+          <div className="max-w-full mx-auto h-full">
             <h1 className="text-2xl font-semibold mb-4">Équipements</h1>
             <EquipmentPageContent 
               equipment={transformedEquipment}
