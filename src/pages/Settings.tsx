@@ -29,13 +29,13 @@ const Settings = () => {
   
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
+      <div className="flex min-h-screen w-full bg-background overflow-hidden">
         <Sidebar className="border-r">
           <Navbar />
         </Sidebar>
         
-        <div className="flex-1 p-6 overflow-auto">
-          <div className="max-w-full mx-auto h-full">
+        <div className="flex-1 overflow-auto">
+          <div className="p-6">
             <h1 className="text-3xl font-bold mb-6">Settings</h1>
             
             <Tabs defaultValue={defaultTab} onValueChange={handleTabChange} className="w-full h-full">
