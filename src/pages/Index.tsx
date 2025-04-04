@@ -15,14 +15,16 @@ const Index = () => {
 
   return (
     <MainLayout>
-      <div className="flex-1">
-        <div className="px-4 py-4">
-          <div className="max-w-7xl mx-auto">
-            <Header 
-              currentView={currentView}
-              setCurrentView={handleViewChange}
-            />
-            
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="p-4">
+          <Header 
+            currentView={currentView}
+            setCurrentView={handleViewChange}
+          />
+        </div>
+        
+        <div className="flex-1 overflow-auto px-4 pb-4">
+          <div className="mx-auto h-full max-w-7xl">
             <ViewManager 
               currentView={currentView} 
               currentMonth={currentMonth} 

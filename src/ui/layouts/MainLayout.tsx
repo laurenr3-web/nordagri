@@ -10,14 +10,14 @@ interface MainLayoutProps {
 export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-bg-light">
+      <div className="flex h-screen w-full overflow-hidden bg-bg-light">
         <Sidebar className="border-r border-sidebar-border bg-agri-dark">
           <SidebarContent>
             <Navbar />
           </SidebarContent>
         </Sidebar>
         
-        <div className="flex-1 w-full p-0">
+        <div className="flex flex-1 flex-col overflow-hidden">
           {children}
         </div>
       </div>

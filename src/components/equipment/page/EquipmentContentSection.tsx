@@ -67,65 +67,71 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
   };
 
   return (
-    <>
+    <div className="flex flex-col h-full">
       <EquipmentHeader openAddDialog={openAddDialog} />
       
-      <SearchToolbar
-        currentView={currentView}
-        setCurrentView={setCurrentView}
-        filters={filters}
-        statusOptions={statusOptions}
-        typeOptions={typeOptions}
-        manufacturerOptions={manufacturerOptions}
-        yearOptions={yearOptions}
-        isFilterActive={isFilterActive}
-        toggleFilter={toggleFilter}
-        clearFilters={clearFilters}
-        getStatusColor={getStatusColor}
-        getStatusText={getStatusText}
-        activeFilterCount={activeFilterCount}
-        sortBy={sortBy}
-        sortOrder={sortOrder}
-        setSortBy={setSortBy}
-        setSortOrder={setSortOrder}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-      />
+      <div className="mb-3">
+        <SearchToolbar
+          currentView={currentView}
+          setCurrentView={setCurrentView}
+          filters={filters}
+          statusOptions={statusOptions}
+          typeOptions={typeOptions}
+          manufacturerOptions={manufacturerOptions}
+          yearOptions={yearOptions}
+          isFilterActive={isFilterActive}
+          toggleFilter={toggleFilter}
+          clearFilters={clearFilters}
+          getStatusColor={getStatusColor}
+          getStatusText={getStatusText}
+          activeFilterCount={activeFilterCount}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          setSortBy={setSortBy}
+          setSortOrder={setSortOrder}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+        />
+      </div>
       
-      <CategoryTabs 
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-      />
+      <div className="mb-3">
+        <CategoryTabs 
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+        />
+      </div>
       
-      {isLoading ? (
-        <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
-      ) : (
-        <>
-          {/* Conditionally render the appropriate view, with list view coming first */}
-          {currentView === 'list' ? (
-            <EquipmentList 
-              equipment={filteredEquipment}
-              getStatusColor={getStatusColor}
-              getStatusText={getStatusText}
-              handleEquipmentClick={handleEquipmentItemClick}
-            />
-          ) : (
-            <EquipmentGrid
-              equipment={filteredEquipment}
-              getStatusColor={getStatusColor}
-              getStatusText={getStatusText}
-              handleEquipmentClick={handleEquipmentItemClick}
-            />
-          )}
-        </>
-      )}
-      
-      {!isLoading && filteredEquipment.length === 0 && (
-        <NoEquipmentFound resetFilters={resetAllFilters} />
-      )}
-    </>
+      <div className="flex-1 min-h-0 overflow-auto">
+        {isLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          <>
+            {/* Conditionally render the appropriate view, with list view coming first */}
+            {currentView === 'list' ? (
+              <EquipmentList 
+                equipment={filteredEquipment}
+                getStatusColor={getStatusColor}
+                getStatusText={getStatusText}
+                handleEquipmentClick={handleEquipmentItemClick}
+              />
+            ) : (
+              <EquipmentGrid
+                equipment={filteredEquipment}
+                getStatusColor={getStatusColor}
+                getStatusText={getStatusText}
+                handleEquipmentClick={handleEquipmentItemClick}
+              />
+            )}
+          </>
+        )}
+        
+        {!isLoading && filteredEquipment.length === 0 && (
+          <NoEquipmentFound resetFilters={resetAllFilters} />
+        )}
+      </div>
+    </div>
   );
 };
 
