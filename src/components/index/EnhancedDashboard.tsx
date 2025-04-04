@@ -106,16 +106,16 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
   }, [navigate]);
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between mb-4">
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold mb-0">Tableau de bord</h1>
         <SearchBar searchItems={searchItems} className="w-[300px]" />
       </div>
 
       <StatsSection stats={statsData} onStatClick={handleStatsCardClick} />
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 overflow-auto">
-        <div className="lg:col-span-2 space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
           <EquipmentSection 
             equipment={equipmentData} 
             onViewAllClick={handleEquipmentViewAllClick}
@@ -153,7 +153,7 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
           </DashboardSection>
         </div>
         
-        <div className="space-y-4 h-full">
+        <div className="space-y-8">
           <AlertsSection 
             alerts={alertItems} 
             onViewAllClick={handleAlertsViewAllClick} 

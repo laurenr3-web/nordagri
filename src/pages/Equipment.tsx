@@ -66,12 +66,10 @@ const EquipmentPage = () => {
   
   return (
     <MainLayout>
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="flex-1 overflow-auto">
-          <div className="h-full">
-            <div className="p-4">
-              <h1 className="text-2xl font-semibold">Équipements</h1>
-            </div>
+      <div className="flex-1">
+        <div className="px-4 py-4">
+          <div className="max-w-7xl mx-auto">
+            <h1 className="text-2xl font-semibold mb-4">Équipements</h1>
             <EquipmentPageContent 
               equipment={transformedEquipment}
               isLoading={isLoading}

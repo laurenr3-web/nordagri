@@ -15,9 +15,9 @@ const Index = () => {
 
   return (
     <MainLayout>
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="flex-1 overflow-auto">
-          <div className="h-full">
+      <div className="flex-1">
+        <div className="px-4 py-4">
+          <div className="max-w-7xl mx-auto">
             <Header 
               currentView={currentView}
               setCurrentView={handleViewChange}

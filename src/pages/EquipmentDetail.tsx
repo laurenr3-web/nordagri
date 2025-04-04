@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import MainLayout from '@/ui/layouts/MainLayout';
 import { useEquipmentDetail } from '@/hooks/equipment/useEquipmentDetail';
@@ -14,13 +14,13 @@ const EquipmentDetail = () => {
   
   return (
     <MainLayout>
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="flex justify-end p-2 border-b">
+      <div className="flex-1">
+        <div className="flex justify-end px-4 py-2 border-b">
           <MaintenanceNotificationsPopover />
         </div>
         
-        <div className="flex-1 overflow-auto">
-          <div className="h-full">
+        <div className="px-4 py-4">
+          <div className="max-w-7xl mx-auto">
             {loading && (
               <EquipmentDetailLoading id={id} />
             )}

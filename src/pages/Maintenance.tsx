@@ -75,8 +75,8 @@ const Maintenance = () => {
 
   return (
     <MainLayout>
-      <div className="flex-1 flex flex-col">
-        <div className="flex justify-between items-center p-2 border-b">
+      <div className="flex-1">
+        <div className="flex justify-between items-center px-4 py-2 border-b">
           <div className="text-sm text-muted-foreground">
             {isAuthenticated ? (
               <span>Connecté en tant que : <span className="font-medium">{getUserDisplayName()}</span></span>
@@ -87,10 +87,10 @@ const Maintenance = () => {
           <MaintenanceNotificationsPopover />
         </div>
         
-        <div className="p-4 flex-1">
-          <div className="max-w-full mx-auto h-full">
-            <Tabs defaultValue="tasks" value={dashboardView} onValueChange={setDashboardView} className="h-full flex flex-col">
-              <div className="flex justify-between items-center mb-4">
+        <div className="px-4 py-4">
+          <div className="max-w-7xl mx-auto">
+            <Tabs defaultValue="tasks" value={dashboardView} onValueChange={setDashboardView}>
+              <div className="flex justify-between items-center mb-6">
                 <TabsList>
                   <TabsTrigger value="tasks">Tâches</TabsTrigger>
                   <TabsTrigger value="dashboard">Tableau de bord</TabsTrigger>
@@ -102,7 +102,7 @@ const Maintenance = () => {
                 />
               </div>
               
-              <TabsContent value="tasks" className="flex-1 h-full">
+              <TabsContent value="tasks">
                 <MaintenanceContent 
                   tasks={tasks}
                   currentView={currentView}
@@ -116,7 +116,7 @@ const Maintenance = () => {
                 />
               </TabsContent>
               
-              <TabsContent value="dashboard" className="flex-1 h-full">
+              <TabsContent value="dashboard">
                 <MaintenanceDashboard 
                   tasks={tasks} 
                   userName={getUserDisplayName()}

@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Navbar from "@/components/layout/Navbar";
 import { SettingsEssentials } from '@/components/settings/SettingsEssentials';
 import { SettingsInterface } from '@/components/settings/SettingsInterface';
 import { SettingsNotifications } from '@/components/settings/SettingsNotifications';
@@ -9,7 +10,6 @@ import { SettingsEquipment } from '@/components/settings/SettingsEquipment';
 import { SettingsSecurity } from '@/components/settings/SettingsSecurity';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import { useLocation, useNavigate } from 'react-router-dom';
-import Navbar from "@/components/layout/Navbar";
 
 const Settings = () => {
   const location = useLocation();
@@ -20,7 +20,7 @@ const Settings = () => {
   const defaultTab = tabParam || 'essentials';
   
   // Update URL when tab changes
-  const handleTabChange = (value: string) => {
+  const handleTabChange = (value) => {
     searchParams.set('tab', value);
     navigate(`${location.pathname}?${searchParams.toString()}`, {
       replace: true
@@ -29,16 +29,16 @@ const Settings = () => {
   
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background overflow-hidden">
+      <div className="flex min-h-screen w-full bg-background">
         <Sidebar className="border-r">
           <Navbar />
         </Sidebar>
         
-        <div className="flex-1 overflow-auto">
-          <div className="p-6">
+        <div className="flex-1 p-8">
+          <div className="max-w-5xl mx-auto">
             <h1 className="text-3xl font-bold mb-6">Settings</h1>
             
-            <Tabs defaultValue={defaultTab} onValueChange={handleTabChange} className="w-full h-full">
+            <Tabs defaultValue={defaultTab} onValueChange={handleTabChange} className="w-full">
               <TabsList className="mb-8 w-full justify-start overflow-x-auto">
                 <TabsTrigger value="essentials">Essential Features</TabsTrigger>
                 <TabsTrigger value="interface">Interface Customization</TabsTrigger>
@@ -48,27 +48,27 @@ const Settings = () => {
                 <TabsTrigger value="security">Security</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="essentials" className="h-full">
+              <TabsContent value="essentials">
                 <SettingsEssentials />
               </TabsContent>
               
-              <TabsContent value="interface" className="h-full">
+              <TabsContent value="interface">
                 <SettingsInterface />
               </TabsContent>
               
-              <TabsContent value="notifications" className="h-full">
+              <TabsContent value="notifications">
                 <SettingsNotifications />
               </TabsContent>
               
-              <TabsContent value="integrations" className="h-full">
+              <TabsContent value="integrations">
                 <SettingsIntegrations />
               </TabsContent>
               
-              <TabsContent value="equipment" className="h-full">
+              <TabsContent value="equipment">
                 <SettingsEquipment />
               </TabsContent>
               
-              <TabsContent value="security" className="h-full">
+              <TabsContent value="security">
                 <SettingsSecurity />
               </TabsContent>
             </Tabs>

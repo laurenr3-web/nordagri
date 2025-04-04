@@ -38,10 +38,10 @@ const Parts = () => {
   
   return (
     <MainLayout>
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="flex-1 overflow-auto">
-          <div className="h-full">
-            <div className="p-4">
+      <div className="flex-1">
+        <div className="px-4 py-4">
+          <div className="max-w-7xl mx-auto">
+            <div className="mb-4">
               <h1 className="text-2xl font-semibold">Gestion des pièces</h1>
               <p className="text-muted-foreground mt-1">
                 Gérez votre inventaire de pièces et commandez de nouvelles pièces
