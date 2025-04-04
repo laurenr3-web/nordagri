@@ -81,53 +81,53 @@ const DashboardPage = () => {
 
   return (
     <MainLayout>
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="px-6 py-4 border-b">
-          <Header 
-            currentView={currentView}
-            setCurrentView={setCurrentView}
-          />
-        </div>
-        
-        <div className="flex-1 overflow-auto">
-          <Tabs value={currentView} className="h-full flex flex-col">
-            <TabsContent value="main" className="flex-1 h-full">
-              {loading ? (
-                <div className="flex items-center justify-center h-full">
-                  <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
-                </div>
-              ) : (
-                <Dashboard 
-                  statsData={adaptedStatsData}
-                  equipmentData={adaptedEquipmentData}
-                  maintenanceEvents={adaptedMaintenanceEvents}
-                  alertItems={adaptedAlertItems}
-                  upcomingTasks={adaptedTasks}
-                  urgentInterventions={urgentInterventions || []}
-                  stockAlerts={stockAlerts || []}
-                  weeklyCalendarEvents={weeklyCalendarEvents || []}
-                  currentMonth={currentMonth}
-                  handleStatsCardClick={handleStatsCardClick}
-                  handleEquipmentViewAllClick={handleEquipmentViewAllClick}
-                  handleMaintenanceCalendarClick={handleMaintenanceCalendarClick}
-                  handleAlertsViewAllClick={handleAlertsViewAllClick}
-                  handleTasksAddClick={handleTasksAddClick}
-                  handleEquipmentClick={handleEquipmentClick}
+      <div className="flex-1 flex flex-col">
+        <div className="p-4 flex-1">
+          <div className="max-w-full mx-auto h-full">
+            <Header 
+              currentView={currentView}
+              setCurrentView={setCurrentView}
+            />
+            
+            <Tabs value={currentView} className="h-full flex flex-col">
+              <TabsContent value="main" className="flex-1 h-full">
+                {loading ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
+                  </div>
+                ) : (
+                  <Dashboard 
+                    statsData={adaptedStatsData}
+                    equipmentData={adaptedEquipmentData}
+                    maintenanceEvents={adaptedMaintenanceEvents}
+                    alertItems={adaptedAlertItems}
+                    upcomingTasks={adaptedTasks}
+                    urgentInterventions={urgentInterventions || []}
+                    stockAlerts={stockAlerts || []}
+                    weeklyCalendarEvents={weeklyCalendarEvents || []}
+                    currentMonth={currentMonth}
+                    handleStatsCardClick={handleStatsCardClick}
+                    handleEquipmentViewAllClick={handleEquipmentViewAllClick}
+                    handleMaintenanceCalendarClick={handleMaintenanceCalendarClick}
+                    handleAlertsViewAllClick={handleAlertsViewAllClick}
+                    handleTasksAddClick={handleTasksAddClick}
+                    handleEquipmentClick={handleEquipmentClick}
+                  />
+                )}
+              </TabsContent>
+              
+              <TabsContent value="calendar" className="flex-1 h-full">
+                <CalendarView 
+                  events={adaptedMaintenanceEvents} 
+                  month={currentMonth} 
                 />
-              )}
-            </TabsContent>
-            
-            <TabsContent value="calendar" className="flex-1 h-full">
-              <CalendarView 
-                events={adaptedMaintenanceEvents} 
-                month={currentMonth} 
-              />
-            </TabsContent>
-            
-            <TabsContent value="alerts" className="flex-1 h-full">
-              <AllAlertsSection alerts={adaptedAlertItems} />
-            </TabsContent>
-          </Tabs>
+              </TabsContent>
+              
+              <TabsContent value="alerts" className="flex-1 h-full">
+                <AllAlertsSection alerts={adaptedAlertItems} />
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
       </div>
     </MainLayout>

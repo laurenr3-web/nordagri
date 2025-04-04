@@ -8,7 +8,6 @@ import { useEquipmentRealtime } from '@/hooks/equipment/useEquipmentRealtime';
 import { toast } from 'sonner';
 import { Equipment } from '@/services/supabase/equipment/types';
 import { EquipmentItem } from '@/components/equipment/hooks/useEquipmentFilters';
-import EquipmentHeader from '@/components/equipment/display/EquipmentHeader';
 
 const EquipmentPage = () => {
   // Use the equipment data hook to fetch and manage equipment
@@ -65,19 +64,12 @@ const EquipmentPage = () => {
     }));
   }, [equipment]);
   
-  const openAddDialog = () => {
-    window.dispatchEvent(new CustomEvent('open-add-equipment-dialog'));
-  };
-
   return (
     <MainLayout>
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="px-6 py-4 border-b">
-          <EquipmentHeader openAddDialog={openAddDialog} />
-        </div>
-        
-        <div className="flex-1 overflow-auto">
-          <div className="h-full">
+      <div className="flex-1 flex flex-col">
+        <div className="p-4 flex-1">
+          <div className="max-w-full mx-auto h-full">
+            <h1 className="text-2xl font-semibold mb-4">Équipements</h1>
             <EquipmentPageContent 
               equipment={transformedEquipment}
               isLoading={isLoading}
