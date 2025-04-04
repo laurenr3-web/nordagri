@@ -38,21 +38,19 @@ const Parts = () => {
   
   return (
     <MainLayout>
-      <div className="flex-1 flex flex-col">
-        <div className="p-4 flex-1">
-          <div className="max-w-full mx-auto h-full">
-            <div className="mb-4">
-              <h1 className="text-2xl font-semibold">Gestion des pièces</h1>
-              <p className="text-muted-foreground mt-1">
-                Gérez votre inventaire de pièces et commandez de nouvelles pièces
-              </p>
-            </div>
-            
-            <PartsContainer 
-              {...partsHookData}
-              setCurrentView={setCurrentView}
-            />
-          </div>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="px-6 py-4 border-b">
+          <h1 className="text-2xl font-semibold">Gestion des pièces</h1>
+          <p className="text-muted-foreground">
+            Gérez votre inventaire de pièces et commandez de nouvelles pièces
+          </p>
+        </div>
+        
+        <div className="flex-1 overflow-auto">
+          <PartsContainer 
+            {...partsHookData}
+            setCurrentView={setCurrentView}
+          />
         </div>
       </div>
     </MainLayout>
