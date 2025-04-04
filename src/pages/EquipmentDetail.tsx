@@ -14,13 +14,13 @@ const EquipmentDetail = () => {
   
   return (
     <MainLayout>
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <div className="flex justify-end border-b px-4 py-2">
+      <div className="flex-1">
+        <div className="flex justify-end px-4 py-2 border-b">
           <MaintenanceNotificationsPopover />
         </div>
         
-        <div className="flex-1 overflow-auto px-4 py-4">
-          <div className="mx-auto max-w-7xl">
+        <div className="px-4 py-4">
+          <div className="max-w-7xl mx-auto">
             {loading && (
               <EquipmentDetailLoading id={id} />
             )}
