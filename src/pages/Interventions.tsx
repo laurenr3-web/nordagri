@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { SidebarProvider } from '@/components/ui/sidebar';
-import Navbar from '@/components/layout/Navbar';
+import MainLayout from '@/ui/layouts/MainLayout';
 import InterventionsHeader from '@/components/interventions/InterventionsHeader';
 import InterventionsContainer from '@/components/interventions/InterventionsContainer';
 import { useInterventionsState } from '@/hooks/interventions/useInterventionsState';
@@ -42,7 +41,6 @@ const InterventionsPage = () => {
   // Mettre à jour les interventions filtrées quand les interventions changent
   useEffect(() => {
     if (interventions.length > 0) {
-      // Mettre à jour l'état avec les interventions récupérées
       console.log('Interventions récupérées:', interventions);
     }
   }, [interventions]);
@@ -79,14 +77,11 @@ const InterventionsPage = () => {
   // Afficher un loader pendant le chargement
   if (isLoading) {
     return (
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full bg-background">
-          <Navbar />
-          <div className="flex flex-1 flex-col items-center justify-center">
-            <p>Chargement des interventions...</p>
-          </div>
+      <MainLayout>
+        <div className="flex flex-1 flex-col items-center justify-center">
+          <p>Chargement des interventions...</p>
         </div>
-      </SidebarProvider>
+      </MainLayout>
     );
   }
 
@@ -98,52 +93,52 @@ const InterventionsPage = () => {
       : selectedInterventionId;
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
-        <Navbar />
+    <MainLayout>
+      <div className="flex-1">
+        <div className="px-4 py-4">
+          <div className="max-w-7xl mx-auto">
+            <InterventionsHeader 
+              onNewIntervention={handleOpenNewInterventionDialog} 
+              searchQuery={searchQuery}
+              onSearchChange={(query) => handleSearchChange({ target: { value: query } } as React.ChangeEvent<HTMLInputElement>)}
+              selectedPriority={selectedPriority}
+              onPriorityChange={handlePriorityChange}
+              currentView={currentView}
+              setCurrentView={setCurrentView}
+            />
 
-        <div className="flex flex-1 flex-col">
-          <InterventionsHeader 
-            onNewIntervention={handleOpenNewInterventionDialog} 
-            searchQuery={searchQuery}
-            onSearchChange={(query) => handleSearchChange({ target: { value: query } } as React.ChangeEvent<HTMLInputElement>)}
-            selectedPriority={selectedPriority}
-            onPriorityChange={handlePriorityChange}
-            currentView={currentView}
-            setCurrentView={setCurrentView}
-          />
+            <InterventionsContainer
+              filteredInterventions={filteredInterventions.length > 0 ? filteredInterventions : interventions}
+              currentView={currentView}
+              setCurrentView={setCurrentView}
+              onClearSearch={handleClearSearch}
+              onViewDetails={handleViewDetails}
+              onStartWork={(intervention) => {
+                handleStartWork(intervention);
+                toast.success(`Intervention "${intervention.title}" démarrée`);
+              }}
+              searchQuery={searchQuery}
+              selectedPriority={selectedPriority}
+              onSearchChange={handleSearchChange}
+              onPriorityChange={handlePriorityChange}
+            />
 
-          <InterventionsContainer
-            filteredInterventions={filteredInterventions.length > 0 ? filteredInterventions : interventions}
-            currentView={currentView}
-            setCurrentView={setCurrentView}
-            onClearSearch={handleClearSearch}
-            onViewDetails={handleViewDetails}
-            onStartWork={(intervention) => {
-              handleStartWork(intervention);
-              toast.success(`Intervention "${intervention.title}" démarrée`);
-            }}
-            searchQuery={searchQuery}
-            selectedPriority={selectedPriority}
-            onSearchChange={handleSearchChange}
-            onPriorityChange={handlePriorityChange}
-          />
-
-          {/* Dialogs for interventions */}
-          <InterventionsDialogs
-            isNewInterventionDialogOpen={isNewInterventionDialogOpen}
-            onCloseNewInterventionDialog={handleCloseNewInterventionDialog}
-            onCreate={handleAfterCreateIntervention}
-            interventionDetailsOpen={interventionDetailsOpen}
-            selectedInterventionId={numericSelectedInterventionId}
-            onCloseInterventionDetails={handleCloseInterventionDetails}
-            onStartWork={handleStartWork}
-            interventions={interventions}
-            filteredInterventions={filteredInterventions}
-          />
+            {/* Dialogs for interventions */}
+            <InterventionsDialogs
+              isNewInterventionDialogOpen={isNewInterventionDialogOpen}
+              onCloseNewInterventionDialog={handleCloseNewInterventionDialog}
+              onCreate={handleAfterCreateIntervention}
+              interventionDetailsOpen={interventionDetailsOpen}
+              selectedInterventionId={numericSelectedInterventionId}
+              onCloseInterventionDetails={handleCloseInterventionDetails}
+              onStartWork={handleStartWork}
+              interventions={interventions}
+              filteredInterventions={filteredInterventions}
+            />
+          </div>
         </div>
       </div>
-    </SidebarProvider>
+    </MainLayout>
   );
 };
 
