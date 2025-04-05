@@ -21,11 +21,11 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({
   handleEquipmentClick
 }) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 p-1">
       {equipment.map((item) => (
         <Card 
           key={item.id} 
-          className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer h-full"
+          className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer h-full border-gray-200"
           onClick={() => handleEquipmentClick(item)}
         >
           <div className="aspect-video relative overflow-hidden bg-gray-100">
@@ -41,24 +41,24 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({
               loading="lazy" // Chargement lazy pour améliorer les performances
             />
             <Badge 
-              className={`absolute top-2 right-2 ${getStatusColor(item.status)}`}
+              className={`absolute top-1 right-1 ${getStatusColor(item.status)}`}
               variant="secondary"
             >
               {getStatusText(item.status)}
             </Badge>
           </div>
           
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-1 pt-2 px-2">
             <div className="flex justify-between items-start">
-              <h3 className="font-semibold text-lg line-clamp-2">{item.name}</h3>
+              <h3 className="font-semibold text-base line-clamp-1">{item.name}</h3>
               {item.year && (
-                <Badge variant="outline">{item.year}</Badge>
+                <Badge variant="outline" className="text-xs py-0">{item.year}</Badge>
               )}
             </div>
           </CardHeader>
           
-          <CardContent className="pb-2">
-            <div className="text-sm text-muted-foreground">
+          <CardContent className="pb-1 px-2">
+            <div className="text-xs text-muted-foreground">
               {item.manufacturer && item.model ? (
                 <p className="truncate">{item.manufacturer} {item.model}</p>
               ) : (
@@ -70,14 +70,14 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({
             </div>
           </CardContent>
           
-          <CardFooter className="text-xs text-muted-foreground pt-0 mt-auto">
+          <CardFooter className="text-xs text-muted-foreground pt-0 pb-2 px-2 mt-auto">
             {item.serialNumber && <p className="truncate">S/N: {item.serialNumber}</p>}
           </CardFooter>
         </Card>
       ))}
       
       {equipment.length === 0 && (
-        <div className="col-span-full flex justify-center items-center p-8 text-muted-foreground">
+        <div className="col-span-full flex justify-center items-center p-4 text-muted-foreground">
           Aucun équipement ne correspond à vos critères.
         </div>
       )}
