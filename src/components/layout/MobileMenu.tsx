@@ -12,9 +12,6 @@ import { navItems } from './Navbar';
 import { toast } from 'sonner';
 import AppRoutes from '@/core/routes';
 
-/**
- * Menu mobile avec navigation adaptée aux appareils tactiles
- */
 const MobileMenu = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -26,53 +23,35 @@ const MobileMenu = () => {
   // Ne rendre le menu que sur mobile
   if (!isMobile) return null;
   
-  // Gestion de la navigation
+  // Gestion de la navigation avec gestion simplifiée pour éviter les erreurs
   const handleNavigation = (href: string) => {
-    // Si nous sommes déjà sur cette page, simplement fermer le menu
     if (location.pathname === href) {
       setOpen(false);
       return;
     }
     
-    // Marquer l'item comme en chargement
     setLoadingItemId(href);
     setIsNavigating(true);
+    setOpen(false);
     
-    try {
-      // Fermer le menu
-      setOpen(false);
+    // Naviguer après un court délai
+    setTimeout(() => {
+      navigate(href);
       
-      // Attendre un peu pour permettre à l'animation de fermeture de se terminer
-      setTimeout(() => {
-        navigate(href);
-        
-        // Réinitialiser l'état après navigation
-        setTimeout(() => {
-          setIsNavigating(false);
-          setLoadingItemId(null);
-        }, 500);
-      }, 300);
-    } catch (error) {
-      console.error('Erreur de navigation:', error);
-      toast.error('Erreur lors de la navigation');
+      // Réinitialiser les états
       setIsNavigating(false);
       setLoadingItemId(null);
-    }
+    }, 300);
   };
   
-  // Détecter les changements de route et réinitialiser les états en conséquence
+  // Réinitialiser les états lors des changements de route
   useEffect(() => {
     setIsNavigating(false);
     setLoadingItemId(null);
   }, [location.pathname]);
   
-  const getAppVersion = () => {
-    // Idéalement récupéré depuis les variables d'environnement ou un fichier de configuration
-    return import.meta.env.VITE_APP_VERSION || '1.0.0';
-  };
-  
   return (
-    <Drawer open={open} onOpenChange={setOpen} direction="top">
+    <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
         <button
           aria-label="Menu principal"
@@ -86,7 +65,7 @@ const MobileMenu = () => {
           )}
         </button>
       </DrawerTrigger>
-      <DrawerContent direction="top" className="p-0 max-h-[85vh] rounded-b-xl">
+      <DrawerContent className="p-0 max-h-[85vh]">
         <div className="flex flex-col p-4 space-y-1">
           <div className="flex items-center justify-between mb-4 p-2">
             <div className="text-xl font-bold">Agri ERP Insight</div>
@@ -113,7 +92,7 @@ const MobileMenu = () => {
                     isActive 
                       ? 'bg-agri-primary/10 text-agri-primary' 
                       : 'text-gray-800 hover:bg-gray-100'
-                  } ${isNavigating ? 'opacity-70 cursor-default' : 'cursor-pointer'}`}
+                  }`}
                   onClick={() => handleNavigation(item.href)}
                 >
                   {isLoading ? (
@@ -129,9 +108,8 @@ const MobileMenu = () => {
             })}
           </div>
           
-          {/* Version et informations de l'application */}
           <div className="text-xs text-muted-foreground pt-4 text-center border-t mt-4">
-            <p>Version {getAppVersion()} | Agri ERP Insight</p>
+            <p>Agri ERP Insight</p>
           </div>
         </div>
       </DrawerContent>
