@@ -2,7 +2,6 @@
 import React from 'react';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import MainLayout from '@/ui/layouts/MainLayout';
-import MobileNav from '@/components/layout/MobileNav';
 
 interface ProtectedLayoutProps {
   children: React.ReactNode;
@@ -13,7 +12,7 @@ const ProtectedLayout: React.FC<ProtectedLayoutProps> = ({ children }) => {
     <ProtectedRoute>
       <MainLayout>
         {children}
-        <MobileNav />
+        {/* MobileNav est déjà géré par le composant MobileMenu dans App.tsx */}
       </MainLayout>
     </ProtectedRoute>
   );
