@@ -2,12 +2,16 @@
 import React from 'react';
 import { Sidebar, SidebarProvider, SidebarContent } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
+import MobileNav from '@/components/layout/MobileNav';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface MainLayoutProps {
   children: React.ReactNode;
 }
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+  const isMobile = useIsMobile();
+  
   return (
     <SidebarProvider>
       <div className="flex h-screen w-full overflow-hidden bg-bg-light">
@@ -19,6 +23,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         
         <div className="flex flex-1 flex-col overflow-hidden">
           {children}
+          
+          {isMobile && <MobileNav />}
         </div>
       </div>
     </SidebarProvider>

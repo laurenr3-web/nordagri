@@ -7,6 +7,7 @@ import { RealtimeCacheProvider } from '@/providers/RealtimeCacheProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
 import ProtectedLayout from '@/components/layout/ProtectedLayout';
 import MobileMenu from '@/components/layout/MobileMenu';
+import MobileNav from '@/components/layout/MobileNav';
 
 // Pages
 import Index from '@/pages/Index';

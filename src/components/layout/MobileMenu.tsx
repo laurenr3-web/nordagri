@@ -23,7 +23,7 @@ const MobileMenu = () => {
       <DrawerTrigger asChild>
         <button
           aria-label="Menu principal"
-          className="fixed top-4 right-4 z-50 w-10 h-10 rounded-full bg-agri-primary text-white flex items-center justify-center shadow-lg md:hidden"
+          className="fixed top-4 right-4 z-50 w-10 h-10 rounded-full bg-agri-primary text-white flex items-center justify-center shadow-lg"
         >
           <Menu className="h-6 w-6" />
         </button>

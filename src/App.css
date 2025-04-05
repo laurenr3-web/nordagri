@@ -54,6 +54,13 @@ html, body {
   flex: 1;
   overflow: auto;
   min-height: 0;
+  padding-bottom: 4rem; /* Ajout d'un padding en bas pour éviter que le contenu soit caché par la barre mobile */
+}
+
+@media (min-width: 768px) {
+  .content-scrollable {
+    padding-bottom: 1rem; /* Padding standard sur desktop */
+  }
 }
 
 .section-header {
@@ -66,4 +73,16 @@ html, body {
 
 .read-the-docs {
   color: #888;
+}
+
+/* Corrections pour l'affichage mobile */
+@media (max-width: 767px) {
+  .mobile-pb-safe {
+    padding-bottom: 5rem !important; /* Espace pour la barre de navigation mobile */
+  }
+  
+  /* Ajustement pour la page index */
+  #root > div > div > div.flex.flex-1.flex-col.overflow-hidden > div.flex-1.overflow-auto {
+    padding-bottom: 4rem;
+  }
 }
