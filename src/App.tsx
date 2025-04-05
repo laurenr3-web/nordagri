@@ -7,6 +7,7 @@ import { RealtimeCacheProvider } from '@/providers/RealtimeCacheProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
 import ProtectedLayout from '@/components/layout/ProtectedLayout';
 import MobileMenu from '@/components/layout/MobileMenu';
+import AppRoutes from '@/core/routes';
 
 // Pages
 import Index from '@/pages/Index';
@@ -32,46 +33,47 @@ function App() {
           <Router>
             <AuthProvider>
               <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/dashboard" element={
+                <Route path={AppRoutes.HOME} element={<Index />} />
+                <Route path={AppRoutes.AUTH} element={<Auth />} />
+                <Route path={AppRoutes.DASHBOARD} element={
                   <ProtectedLayout>
                     <Dashboard />
                   </ProtectedLayout>
                 } />
-                <Route path="/equipment" element={
+                <Route path={AppRoutes.EQUIPMENT} element={
                   <ProtectedLayout>
                     <Equipment />
                   </ProtectedLayout>
                 } />
-                <Route path="/equipment/:id" element={
+                <Route path={AppRoutes.EQUIPMENT_DETAIL()} element={
                   <ProtectedLayout>
                     <EquipmentDetail />
                   </ProtectedLayout>
                 } />
-                <Route path="/maintenance" element={
+                <Route path={AppRoutes.MAINTENANCE} element={
                   <ProtectedLayout>
                     <Maintenance />
                   </ProtectedLayout>
                 } />
-                <Route path="/parts" element={
+                <Route path={AppRoutes.PARTS} element={
                   <ProtectedLayout>
                     <Parts />
                   </ProtectedLayout>
                 } />
-                <Route path="/interventions" element={
+                <Route path={AppRoutes.INTERVENTIONS} element={
                   <ProtectedLayout>
                     <Interventions />
                   </ProtectedLayout>
                 } />
-                <Route path="/settings" element={
+                <Route path={AppRoutes.SETTINGS} element={
                   <ProtectedLayout>
                     <Settings />
                   </ProtectedLayout>
                 } />
-                {/* Nouvelle route pour le scan de QR code */}
-                <Route path="/scan/:id" element={<ScanRedirect />} />
-                <Route path="*" element={<NotFound />} />
+                {/* Route pour le scan de QR code */}
+                <Route path={AppRoutes.QR_SCAN} element={<ScanRedirect />} />
+                {/* Route pour les pages non trouvées */}
+                <Route path={AppRoutes.NOT_FOUND} element={<NotFound />} />
               </Routes>
               <MobileMenu />
               <Toaster />
