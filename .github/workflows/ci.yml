@@ -20,9 +20,9 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
         
-      # Lint avec flag --max-warnings pour permettre les avertissements
+      # Utilisation du script de lint spécifique pour CI
       - name: Lint
-        run: npm run lint -- --max-warnings=100
+        run: npm run lint:ci
         
       # Build le projet
       - name: Build
