@@ -67,65 +67,69 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
   };
 
   return (
-    <>
-      <EquipmentHeader openAddDialog={openAddDialog} />
+    <div className="w-full px-0">
+      <div className="px-4 lg:px-6">
+        <EquipmentHeader openAddDialog={openAddDialog} />
+        
+        <SearchToolbar
+          currentView={currentView}
+          setCurrentView={setCurrentView}
+          filters={filters}
+          statusOptions={statusOptions}
+          typeOptions={typeOptions}
+          manufacturerOptions={manufacturerOptions}
+          yearOptions={yearOptions}
+          isFilterActive={isFilterActive}
+          toggleFilter={toggleFilter}
+          clearFilters={clearFilters}
+          getStatusColor={getStatusColor}
+          getStatusText={getStatusText}
+          activeFilterCount={activeFilterCount}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          setSortBy={setSortBy}
+          setSortOrder={setSortOrder}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+        />
+        
+        <CategoryTabs 
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+        />
+      </div>
       
-      <SearchToolbar
-        currentView={currentView}
-        setCurrentView={setCurrentView}
-        filters={filters}
-        statusOptions={statusOptions}
-        typeOptions={typeOptions}
-        manufacturerOptions={manufacturerOptions}
-        yearOptions={yearOptions}
-        isFilterActive={isFilterActive}
-        toggleFilter={toggleFilter}
-        clearFilters={clearFilters}
-        getStatusColor={getStatusColor}
-        getStatusText={getStatusText}
-        activeFilterCount={activeFilterCount}
-        sortBy={sortBy}
-        sortOrder={sortOrder}
-        setSortBy={setSortBy}
-        setSortOrder={setSortOrder}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-      />
-      
-      <CategoryTabs 
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-      />
-      
-      {isLoading ? (
-        <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
-      ) : (
-        <>
-          {/* Conditionally render the appropriate view, with list view coming first */}
-          {currentView === 'list' ? (
-            <EquipmentList 
-              equipment={filteredEquipment}
-              getStatusColor={getStatusColor}
-              getStatusText={getStatusText}
-              handleEquipmentClick={handleEquipmentItemClick}
-            />
-          ) : (
-            <EquipmentGrid
-              equipment={filteredEquipment}
-              getStatusColor={getStatusColor}
-              getStatusText={getStatusText}
-              handleEquipmentClick={handleEquipmentItemClick}
-            />
-          )}
-        </>
-      )}
+      <div className="w-full px-1 lg:px-3">
+        {isLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          <>
+            {/* Conditionally render the appropriate view, with list view coming first */}
+            {currentView === 'list' ? (
+              <EquipmentList 
+                equipment={filteredEquipment}
+                getStatusColor={getStatusColor}
+                getStatusText={getStatusText}
+                handleEquipmentClick={handleEquipmentItemClick}
+              />
+            ) : (
+              <EquipmentGrid
+                equipment={filteredEquipment}
+                getStatusColor={getStatusColor}
+                getStatusText={getStatusText}
+                handleEquipmentClick={handleEquipmentItemClick}
+              />
+            )}
+          </>
+        )}
+      </div>
       
       {!isLoading && filteredEquipment.length === 0 && (
         <NoEquipmentFound resetFilters={resetAllFilters} />
       )}
-    </>
+    </div>
   );
 };
 
