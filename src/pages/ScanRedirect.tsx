@@ -7,6 +7,7 @@ import { useQrCodeVerification } from '@/hooks/equipment/useQrCodeVerification';
 import { toast } from 'sonner';
 import QRCodeErrorView from '@/components/qrcode/QRCodeErrorView';
 import { Button } from '@/components/ui/button';
+import AppRoutes, { buildReturnToUrl } from '@/core/routes';
 
 /**
  * Composant pour la redirection après scan d'un QR code
@@ -35,10 +36,10 @@ const ScanRedirect: React.FC = () => {
     // Vérifie si la page précédente existe dans l'historique ou utilise une valeur par défaut
     if (window.history.length > 1) {
       // Utilise sessionStorage pour stocker l'origine de la navigation
-      const referrer = document.referrer || sessionStorage.getItem('lastVisitedPage') || '/dashboard';
+      const referrer = document.referrer || sessionStorage.getItem('lastVisitedPage') || AppRoutes.DASHBOARD;
       setPreviousPage(referrer);
     } else {
-      setPreviousPage('/dashboard');
+      setPreviousPage(AppRoutes.DASHBOARD);
     }
     
     // Sauvegarde la page actuelle pour les navigations futures
@@ -48,8 +49,9 @@ const ScanRedirect: React.FC = () => {
   useEffect(() => {
     // Handle authentication check
     if (!authLoading && !isAuthenticated) {
-      const currentPath = location.pathname;
-      navigate(`/auth?returnTo=${encodeURIComponent(currentPath)}`, { replace: true });
+      // Utilisation de la fonction buildReturnToUrl pour construire l'URL de redirection
+      const authRedirectUrl = buildReturnToUrl(location.pathname);
+      navigate(authRedirectUrl, { replace: true });
       return;
     }
 
@@ -66,7 +68,7 @@ const ScanRedirect: React.FC = () => {
         
         if (isValid && equipmentId) {
           toast.success("Équipement trouvé, redirection...");
-          navigate(`/equipment/${equipmentId}`, { replace: true });
+          navigate(AppRoutes.EQUIPMENT_DETAIL(equipmentId), { replace: true });
         } else {
           setError(qrVerificationError || "QR code invalide");
           toast.error("QR code invalide");
@@ -99,7 +101,7 @@ const ScanRedirect: React.FC = () => {
       window.history.back();
     } else {
       // Sinon on va à la page d'équipements
-      navigate('/equipment');
+      navigate(AppRoutes.EQUIPMENT);
     }
   };
 
@@ -130,7 +132,7 @@ const ScanRedirect: React.FC = () => {
       <QRCodeErrorView 
         error={errorMessage}
         onRetry={handleRetry}
-        redirectPath={previousPage || '/equipment'} 
+        redirectPath={previousPage || AppRoutes.EQUIPMENT} 
         redirectText="Retour"
       />
     );
