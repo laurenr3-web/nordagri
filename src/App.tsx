@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
@@ -33,7 +33,8 @@ function App() {
           <Router>
             <AuthProvider>
               <Routes>
-                <Route path={AppRoutes.HOME} element={<Index />} />
+                {/* Redirection de la page d'accueil vers le dashboard */}
+                <Route path={AppRoutes.HOME} element={<Navigate to={AppRoutes.DASHBOARD} replace />} />
                 <Route path={AppRoutes.AUTH} element={<Auth />} />
                 <Route path={AppRoutes.DASHBOARD} element={
                   <ProtectedLayout>
