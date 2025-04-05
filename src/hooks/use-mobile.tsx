@@ -7,7 +7,7 @@ const MOBILE_BREAKPOINT = 768
  * @returns boolean indiquant si l'appareil est considéré comme mobile
  */
 export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
+  const [isMobile, setIsMobile] = React.useState<boolean>(false)
 
   React.useEffect(() => {
     // S'assurer que window existe (pour éviter les erreurs en SSR)
@@ -20,31 +20,17 @@ export function useIsMobile() {
       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
     }
     
-    // Configurer le media query listener
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
-    
-    // Faire une vérification initiale
+    // Vérification initiale
     checkIsMobile()
     
-    // Configurer le listener pour les changements de taille
-    const onChange = () => checkIsMobile()
+    // Simple approche pour tous les navigateurs
+    const handleResize = () => checkIsMobile()
+    window.addEventListener('resize', handleResize)
     
-    try {
-      // API moderne pour les navigateurs récents
-      mql.addEventListener("change", onChange)
-      
-      // Cleanup function
-      return () => mql.removeEventListener("change", onChange)
-    } catch (e) {
-      // Fallback pour les navigateurs plus anciens
-      // Note: addListener est déprécié mais fonctionne dans les anciens navigateurs
-      mql.addListener(onChange)
-      
-      // Cleanup function
-      return () => mql.removeListener(onChange)
-    }
+    // Cleanup function
+    return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  // Retourner false comme valeur par défaut jusqu'à ce que l'état soit défini
-  return isMobile ?? false
+  // Par défaut, on retourne false jusqu'à ce que le useEffect s'exécute
+  return isMobile
 }
