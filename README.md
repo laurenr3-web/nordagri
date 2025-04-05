@@ -1,69 +1,96 @@
-# Welcome to your Lovable project
+# Agri ERP Insight
 
-## Project info
+## À propos du projet
 
-**URL**: https://lovable.dev/projects/8526d20a-52fe-4fd0-b3dd-b1393ca28af3
+Agri ERP Insight est une application de gestion pour le secteur agricole permettant de suivre les équipements, la maintenance et les interventions.
 
-## How can I edit this code?
+## Mise en route
 
-There are several ways of editing your application.
+### Prérequis
 
-**Use Lovable**
+- Node.js (v18+)
+- npm ou bun
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/8526d20a-52fe-4fd0-b3dd-b1393ca28af3) and start prompting.
+### Installation
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+Clonez le dépôt et installez les dépendances :
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Cloner le dépôt
+git clone https://github.com/laurenr3-web/agri-erp-insight.git
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Naviguer dans le répertoire du projet
+cd agri-erp-insight
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+# Installer les dépendances
+npm install
+# ou
+bun install
 ```
 
-**Edit a file directly in GitHub**
+### Développement
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Pour lancer le serveur de développement :
 
-**Use GitHub Codespaces**
+```sh
+npm run dev
+# ou
+bun dev
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+L'application sera accessible à l'adresse http://localhost:5173.
 
-## What technologies are used for this project?
+### Construction pour la production
 
-This project is built with .
+```sh
+npm run build
+# ou
+bun run build
+```
+
+## Modifications récentes
+
+### 5 avril 2025
+
+- Correction des conflits de dépendances ESLint (passage de v9 à v8)
+- Mise à jour des fichiers de configuration ESLint
+- Correction des problèmes de routage et de navigation
+- Amélioration de la cohérence de l'interface utilisateur mobile
+
+## Fonctionnalités principales
+
+- Tableau de bord avec métriques essentielles
+- Gestion des équipements agricoles
+- Planification de la maintenance
+- Suivi des interventions
+- Gestion des pièces détachées
+- QR Codes pour accès rapide aux informations d'équipement
+
+## Technologies utilisées
+
+Ce projet est construit avec :
 
 - Vite
 - TypeScript
 - React
+- React Router
+- Supabase (Backend)
 - shadcn-ui
 - Tailwind CSS
+- Recharts (visualisations)
+- Sonner (notifications toast)
+- React Query (gestion des requêtes)
 
-## How can I deploy this project?
+## Structure du projet
 
-Simply open [Lovable](https://lovable.dev/projects/8526d20a-52fe-4fd0-b3dd-b1393ca28af3) and click on Share -> Publish.
+- `/src` - Code source de l'application
+  - `/components` - Composants réutilisables
+  - `/pages` - Pages principales de l'application
+  - `/hooks` - Hooks React personnalisés
+  - `/services` - Services pour interagir avec les APIs
+  - `/utils` - Fonctions utilitaires
+  - `/types` - Définitions TypeScript
 
-## I want to use a custom domain - is that possible?
+## Licence
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+Ce projet est sous licence privée.
