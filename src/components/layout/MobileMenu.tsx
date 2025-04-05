@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, Loader2 } from 'lucide-react';
 import { 
   Drawer, 
@@ -70,7 +70,7 @@ const MobileMenu = () => {
           <div className="overflow-y-auto flex-1">
             {navItems.map((item) => {
               const isActive = location.pathname === item.href || 
-                              (item.href !== '/' && location.pathname.startsWith(item.href));
+                              (item.href !== '/dashboard' && location.pathname.startsWith(item.href));
               
               const isLoading = isNavigating && activeLink === item.href;
               
