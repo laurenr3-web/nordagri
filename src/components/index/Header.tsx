@@ -17,8 +17,8 @@ const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) => {
   }, []);
 
   return (
-    <header className="wavy-header mb-8 animate-fade-in">
-      <div className="agri-gradient rounded-xl p-8 shadow-lg text-white">
+    <header className="wavy-header animate-fade-in w-full">
+      <div className="agri-gradient p-4 sm:p-6 shadow-lg text-white">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="chip chip-primary mb-2">Agricultural ERP Dashboard</div>
