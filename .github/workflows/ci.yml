@@ -24,6 +24,19 @@ jobs:
       - name: Lint
         run: npm run lint:ci
         
+      # Exécution des tests unitaires
+      - name: Test
+        run: npm test
+        
       # Build le projet
       - name: Build
         run: npm run build
+        
+      # Si tous les tests passent, on sauvegarde le rapport de couverture de tests
+      - name: Upload test coverage
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
