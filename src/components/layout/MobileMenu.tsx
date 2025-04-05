@@ -10,7 +10,11 @@ import {
 import { useIsMobile } from '@/hooks/use-mobile';
 import { navItems } from './Navbar';
 import { toast } from 'sonner';
+import AppRoutes from '@/core/routes';
 
+/**
+ * Menu mobile avec navigation adaptée aux appareils tactiles
+ */
 const MobileMenu = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -62,6 +66,11 @@ const MobileMenu = () => {
     setLoadingItemId(null);
   }, [location.pathname]);
   
+  const getAppVersion = () => {
+    // Idéalement récupéré depuis les variables d'environnement ou un fichier de configuration
+    return import.meta.env.VITE_APP_VERSION || '1.0.0';
+  };
+  
   return (
     <Drawer open={open} onOpenChange={setOpen} direction="top">
       <DrawerTrigger asChild>
@@ -93,7 +102,7 @@ const MobileMenu = () => {
           <div className="overflow-y-auto flex-1">
             {navItems.map((item) => {
               const isActive = location.pathname === item.href || 
-                (item.href !== '/dashboard' && location.pathname.startsWith(item.href));
+                (item.href !== AppRoutes.DASHBOARD && location.pathname.startsWith(item.href));
               const isLoading = loadingItemId === item.href;
               
               return (
@@ -122,7 +131,7 @@ const MobileMenu = () => {
           
           {/* Version et informations de l'application */}
           <div className="text-xs text-muted-foreground pt-4 text-center border-t mt-4">
-            <p>Version 1.0.0 | Agri ERP Insight</p>
+            <p>Version {getAppVersion()} | Agri ERP Insight</p>
           </div>
         </div>
       </DrawerContent>
