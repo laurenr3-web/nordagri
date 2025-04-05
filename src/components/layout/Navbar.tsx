@@ -2,31 +2,32 @@ import React from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Tractor, Calendar, Box as BoxIcon, ScrollText as ScrollIcon, Settings } from "lucide-react";
 import MaintenanceNotificationsPopover from '../maintenance/notifications/MaintenanceNotificationsPopover';
+import AppRoutes from '@/core/routes';
 
 // Export navItems for use in MobileMenu
 export const navItems = [{
   title: "Tableau de bord",
-  href: "/dashboard",
+  href: AppRoutes.DASHBOARD,
   icon: LayoutDashboard
 }, {
   title: "Équipements",
-  href: "/equipment",
+  href: AppRoutes.EQUIPMENT,
   icon: Tractor
 }, {
   title: "Maintenance",
-  href: "/maintenance",
+  href: AppRoutes.MAINTENANCE,
   icon: Calendar
 }, {
   title: "Pièces",
-  href: "/parts",
+  href: AppRoutes.PARTS,
   icon: BoxIcon
 }, {
   title: "Interventions",
-  href: "/interventions",
+  href: AppRoutes.INTERVENTIONS,
   icon: ScrollIcon
 }, {
   title: "Paramètres",
-  href: "/settings",
+  href: AppRoutes.SETTINGS,
   icon: Settings
 }];
 
@@ -42,7 +43,7 @@ const Navbar = () => {
   return (
     <div className="flex flex-col h-full">
       <div className="flex h-16 items-center px-6 border-b border-sidebar-border">
-        <Link className="flex items-center gap-2" to="/dashboard">
+        <Link className="flex items-center gap-2" to={AppRoutes.DASHBOARD}>
           <img src="/lovable-uploads/ec804880-63d5-4999-8bd9-4b853ec3360d.png" alt="Agri ERP Insight" className="h-8 w-auto" />
           <span className="text-xl font-bold text-white">Agri ERP</span>
         </Link>
@@ -68,13 +69,13 @@ const Navbar = () => {
               key={item.href}
               onClick={() => handleNavigation(item.href)}
               className={`flex items-center gap-3 rounded-lg px-3 py-2.5 my-1 transition-all duration-200 text-left ${
-                currentPath === item.href || (item.href !== "/dashboard" && currentPath.includes(item.href)) 
+                currentPath === item.href || (item.href !== AppRoutes.DASHBOARD && currentPath.includes(item.href)) 
                   ? "bg-sidebar-accent text-white" 
                   : "text-agri-light hover:bg-sidebar-accent/50 hover:text-white"
               }`}
             >
               <item.icon className={`h-5 w-5 ${
-                currentPath === item.href || (item.href !== "/dashboard" && currentPath.includes(item.href)) 
+                currentPath === item.href || (item.href !== AppRoutes.DASHBOARD && currentPath.includes(item.href)) 
                   ? "text-agri-primary" 
                   : "text-current"
               }`} />
