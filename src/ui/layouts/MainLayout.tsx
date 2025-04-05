@@ -2,7 +2,6 @@
 import React from 'react';
 import { Sidebar, SidebarProvider, SidebarContent } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
-import MobileNav from '@/components/layout/MobileNav';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface MainLayoutProps {
@@ -23,8 +22,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         
         <div className="flex flex-1 flex-col overflow-hidden">
           {children}
-          
-          {isMobile && <MobileNav />}
         </div>
       </div>
     </SidebarProvider>
