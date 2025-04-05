@@ -1,145 +1,94 @@
 
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Loader2 } from 'lucide-react';
-import { useAuthContext } from '@/providers/AuthProvider';
-import { useQrCodeVerification } from '@/hooks/equipment/useQrCodeVerification';
-import { toast } from 'sonner';
-import QRCodeErrorView from '@/components/qrcode/QRCodeErrorView';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Loader2, AlertTriangle, QrCode } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { equipmentService } from '@/services/supabase/equipmentService';
+import { qrCodeService } from '@/services/supabase/qrCodeService';
 import { Button } from '@/components/ui/button';
-import AppRoutes, { buildReturnToUrl } from '@/core/routes';
 
-/**
- * Composant pour la redirection après scan d'un QR code
- * - Vérifie l'authentification
- * - Valide le QR code
- * - Redirige vers la page de détail de l'équipement correspondant
- */
 const ScanRedirect: React.FC = () => {
   const { id: qrCodeHash } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const location = useLocation();
-  
-  // Auth state
-  const { isAuthenticated, loading: authLoading } = useAuthContext();
-  
-  // QR code verification
-  const { verifyQrCode, isLoading: qrVerificationLoading, error: qrVerificationError } = useQrCodeVerification();
-  
-  // Component state
+  const [isValidEquipment, setIsValidEquipment] = useState<boolean | null>(null);
+  const [isLoadingEquipment, setIsLoadingEquipment] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [previousPage, setPreviousPage] = useState<string | null>(null);
-
-  // Capture la page précédente lors du chargement initial
-  useEffect(() => {
-    // Vérifie si la page précédente existe dans l'historique ou utilise une valeur par défaut
-    if (window.history.length > 1) {
-      // Utilise sessionStorage pour stocker l'origine de la navigation
-      const referrer = document.referrer || sessionStorage.getItem('lastVisitedPage') || AppRoutes.DASHBOARD;
-      setPreviousPage(referrer);
-    } else {
-      setPreviousPage(AppRoutes.DASHBOARD);
-    }
-    
-    // Sauvegarde la page actuelle pour les navigations futures
-    sessionStorage.setItem('lastVisitedPage', location.pathname);
-  }, [location.pathname]);
+  
+  // Vérifier l'authentification
+  const { user, loading: authLoading } = useAuth(true, `/scan/${qrCodeHash}`);
 
   useEffect(() => {
-    // Handle authentication check
-    if (!authLoading && !isAuthenticated) {
-      // Utilisation de la fonction buildReturnToUrl pour construire l'URL de redirection
-      const authRedirectUrl = buildReturnToUrl(location.pathname);
-      navigate(authRedirectUrl, { replace: true });
-      return;
-    }
-
-    // Process QR code once authenticated
-    const processQrCode = async () => {
-      if (!qrCodeHash || !isAuthenticated) return;
+    const redirectToEquipment = async () => {
+      if (authLoading || !user || !qrCodeHash) return;
       
       try {
-        setIsLoading(true);
-        toast.info("Vérification du QR code...");
+        setIsLoadingEquipment(true);
         
-        // Verify QR code
-        const { isValid, equipmentId } = await verifyQrCode(qrCodeHash);
+        // Vérifier le QR code dans la base de données
+        const equipmentQrCode = await qrCodeService.getEquipmentByQRCodeHash(qrCodeHash);
         
-        if (isValid && equipmentId) {
-          toast.success("Équipement trouvé, redirection...");
-          navigate(AppRoutes.EQUIPMENT_DETAIL(equipmentId), { replace: true });
+        if (!equipmentQrCode) {
+          setIsValidEquipment(false);
+          setError("QR code invalide ou expiré. Veuillez scanner un QR code valide.");
+          return;
+        }
+        
+        // Vérifier si l'équipement existe toujours
+        const equipment = await equipmentService.getEquipmentById(equipmentQrCode.equipment_id);
+        
+        if (equipment) {
+          setIsValidEquipment(true);
+          // Rediriger vers la page détaillée de l'équipement
+          navigate(`/equipment/${equipmentQrCode.equipment_id}`);
         } else {
-          setError(qrVerificationError || "QR code invalide");
-          toast.error("QR code invalide");
+          setIsValidEquipment(false);
+          setError("L'équipement associé à ce QR code n'existe plus.");
         }
       } catch (err: any) {
-        console.error('Erreur de redirection:', err);
-        setError(err.message || "Une erreur s'est produite");
-        toast.error("Erreur de redirection");
+        console.error('Erreur lors de la redirection:', err);
+        setIsValidEquipment(false);
+        setError(err.message || "Une erreur s'est produite lors de la redirection");
       } finally {
-        setIsLoading(false);
+        setIsLoadingEquipment(false);
       }
     };
 
-    if (isAuthenticated && !authLoading) {
-      processQrCode();
-    }
-  }, [qrCodeHash, navigate, isAuthenticated, authLoading, verifyQrCode, qrVerificationError, location.pathname]);
+    redirectToEquipment();
+  }, [qrCodeHash, navigate, user, authLoading]);
 
-  // Handle retry action
-  const handleRetry = () => {
-    setError(null);
-    setIsLoading(true);
-    window.location.reload();
-  };
-  
-  // Handle back action
-  const handleGoBack = () => {
-    // Si l'historique existe, on retourne à la page précédente
-    if (window.history.length > 1) {
-      window.history.back();
-    } else {
-      // Sinon on va à la page d'équipements
-      navigate(AppRoutes.EQUIPMENT);
-    }
-  };
-
-  // Show loading state
-  if (authLoading || isLoading || qrVerificationLoading) {
+  if (authLoading || isLoadingEquipment) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-        <p className="text-lg mb-6">Vérification en cours...</p>
-        
-        <Button 
-          variant="outline" 
-          onClick={handleGoBack}
-          className="flex items-center gap-2"
-        >
-          <ChevronLeft size={16} />
-          Retour
-        </Button>
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="mt-4 text-lg">Vérification en cours...</p>
       </div>
     );
   }
 
-  // Show error state
-  if (error || qrVerificationError) {
-    const errorMessage = error || qrVerificationError || "Une erreur inconnue s'est produite";
-    
+  if (error) {
     return (
-      <QRCodeErrorView 
-        error={errorMessage}
-        onRetry={handleRetry}
-        redirectPath={previousPage || AppRoutes.EQUIPMENT} 
-        redirectText="Retour"
-      />
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <div className="bg-destructive/10 p-6 rounded-lg text-center max-w-md">
+          <div className="flex items-center justify-center mb-4">
+            <QrCode className="h-12 w-12 text-destructive" />
+            <AlertTriangle className="h-12 w-12 text-destructive ml-2" />
+          </div>
+          <h1 className="text-2xl font-bold">QR Code non valide</h1>
+          <p className="mt-2 text-muted-foreground">{error}</p>
+          <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+            <Button onClick={() => navigate('/equipment')}>
+              Voir tous les équipements
+            </Button>
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              Réessayer
+            </Button>
+          </div>
+        </div>
+      </div>
     );
   }
 
-  // Default return (should not be displayed as we navigate away)
-  return null;
+  return null; // Éviter un flash de contenu avant la redirection
 };
 
 export default ScanRedirect;

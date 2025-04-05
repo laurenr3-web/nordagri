@@ -27,12 +27,12 @@ interface PartsGridProps {
 
 const PartsGrid: React.FC<PartsGridProps> = ({ parts, openPartDetails, openOrderDialog }) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {parts.map((part, index) => (
         <BlurContainer 
           key={part.id} 
-          className="overflow-hidden animate-scale-in"
-          style={{ animationDelay: `${index * 0.1}s` } as React.CSSProperties}
+          className="overflow-hidden animate-scale-in flex flex-col h-full"
+          style={{ animationDelay: `${index * 0.05}s` } as React.CSSProperties}
         >
           <div 
             className="aspect-square relative overflow-hidden cursor-pointer"
@@ -58,13 +58,13 @@ const PartsGrid: React.FC<PartsGridProps> = ({ parts, openPartDetails, openOrder
             )}
           </div>
           
-          <div className="p-4">
+          <div className="p-3 flex flex-col flex-1">
             <div className="mb-2">
               <h3 className="font-medium">{part.name}</h3>
               <p className="text-sm text-muted-foreground">{part.partNumber}</p>
             </div>
             
-            <div className="grid grid-cols-2 gap-2 mt-4 text-sm">
+            <div className="grid grid-cols-2 gap-2 mt-2 text-sm flex-1">
               <div>
                 <p className="text-muted-foreground">Manufacturer</p>
                 <p className="font-medium">{part.manufacturer}</p>
@@ -85,39 +85,27 @@ const PartsGrid: React.FC<PartsGridProps> = ({ parts, openPartDetails, openOrder
               </div>
             </div>
             
-            <div className="mt-4">
-              <p className="text-xs text-muted-foreground mb-1">Compatible with:</p>
-              <div className="flex flex-wrap gap-1">
-                {part.compatibility.slice(0, 2).map((equipment, i) => (
-                  <span key={i} className="text-xs bg-secondary py-1 px-2 rounded-md">
-                    {equipment}
-                  </span>
-                ))}
-                {part.compatibility.length > 2 && (
-                  <span className="text-xs bg-secondary py-1 px-2 rounded-md">
-                    +{part.compatibility.length - 2} more
-                  </span>
-                )}
+            <div className="mt-auto pt-3">
+              <div className="flex gap-2 justify-between">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => openPartDetails(part)}
+                  aria-label="Voir les détails de la pièce"
+                >
+                  Details
+                </Button>
+                <Button 
+                  variant="default" 
+                  size="sm"
+                  className="flex-1" 
+                  onClick={() => openOrderDialog(part)}
+                  aria-label="Commander cette pièce"
+                >
+                  Order
+                </Button>
               </div>
-            </div>
-            
-            <div className="mt-4 pt-4 border-t border-border flex justify-between">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => openPartDetails(part)}
-                aria-label="Voir les détails de la pièce"
-              >
-                Details
-              </Button>
-              <Button 
-                variant="default" 
-                size="sm" 
-                onClick={() => openOrderDialog(part)}
-                aria-label="Commander cette pièce"
-              >
-                Order
-              </Button>
             </div>
           </div>
         </BlurContainer>

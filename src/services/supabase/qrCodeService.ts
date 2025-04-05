@@ -17,7 +17,6 @@ export interface EquipmentQRCode {
 export const qrCodeService = {
   /**
    * Génère un hash unique pour un QR code
-   * @returns Un hash unique pour le QR code
    */
   generateUniqueHash(): string {
     // Générer un UUID et le convertir en chaîne courte sans tirets
@@ -26,26 +25,20 @@ export const qrCodeService = {
   
   /**
    * Crée un nouveau QR code pour un équipement
-   * @param equipmentId ID de l'équipement
-   * @returns Le QR code créé ou existant
-   * @throws Erreur si la création échoue
    */
   async createQRCode(equipmentId: number): Promise<EquipmentQRCode> {
     try {
-      if (!equipmentId || isNaN(equipmentId) || equipmentId <= 0) {
-        throw new Error("ID d'équipement invalide");
-      }
-      
       // Vérifier si un QR code actif existe déjà pour cet équipement
       const { data: existingQRCode, error: fetchError } = await supabase
         .from('equipment_qrcodes')
         .select('*')
         .eq('equipment_id', equipmentId)
         .eq('active', true)
-        .maybeSingle();
+        .single();
         
       // Si un QR code actif existe, le retourner
       if (existingQRCode && !fetchError) {
+        console.log('QR code existant trouvé:', existingQRCode);
         return existingQRCode as EquipmentQRCode;
       }
       
@@ -70,10 +63,7 @@ export const qrCodeService = {
         
       if (error) throw error;
       
-      if (!data) {
-        throw new Error("Échec de création du QR code: aucune donnée retournée");
-      }
-      
+      console.log('Nouveau QR code créé:', data);
       return data as EquipmentQRCode;
     } catch (error: any) {
       console.error('Erreur lors de la création du QR code:', error);
@@ -83,28 +73,25 @@ export const qrCodeService = {
   
   /**
    * Récupère le QR code actif pour un équipement
-   * @param equipmentId ID de l'équipement
-   * @returns Le QR code actif ou null si aucun n'existe
-   * @throws Erreur si la récupération échoue
    */
   async getQRCodeForEquipment(equipmentId: number): Promise<EquipmentQRCode | null> {
     try {
-      if (!equipmentId || isNaN(equipmentId) || equipmentId <= 0) {
-        throw new Error("ID d'équipement invalide");
-      }
-      
       const { data, error } = await supabase
         .from('equipment_qrcodes')
         .select('*')
         .eq('equipment_id', equipmentId)
         .eq('active', true)
-        .maybeSingle();
+        .single();
         
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // Aucun QR code trouvé
+          return null;
+        }
         throw error;
       }
       
-      return data as EquipmentQRCode | null;
+      return data as EquipmentQRCode;
     } catch (error: any) {
       console.error('Erreur lors de la récupération du QR code:', error);
       throw error;
@@ -113,36 +100,26 @@ export const qrCodeService = {
   
   /**
    * Récupère un équipement par son hash de QR code
-   * @param hash Hash du QR code
-   * @returns L'ID de l'équipement et l'ID du QR code, ou null si le QR code n'existe pas
-   * @throws Erreur si la récupération échoue
    */
   async getEquipmentByQRCodeHash(hash: string): Promise<{equipment_id: number; id: string} | null> {
     try {
-      if (!hash || typeof hash !== 'string' || hash.length < 8) {
-        throw new Error("Hash de QR code invalide");
-      }
-      
       const { data, error } = await supabase
         .from('equipment_qrcodes')
         .select('id, equipment_id')
         .eq('qr_code_hash', hash)
         .eq('active', true)
-        .maybeSingle();
+        .single();
         
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // QR code non trouvé
+          return null;
+        }
         throw error;
       }
       
-      if (!data) {
-        return null;
-      }
-      
       // Mettre à jour la date du dernier scan
-      await this.updateLastScanned(data.id).catch(err => {
-        // Log l'erreur mais ne l'expose pas à l'appelant car ce n'est pas critique
-        console.warn('Échec de mise à jour de la date de scan:', err);
-      });
+      await this.updateLastScanned(data.id);
       
       return data as {equipment_id: number; id: string};
     } catch (error: any) {
@@ -153,15 +130,9 @@ export const qrCodeService = {
   
   /**
    * Met à jour la date du dernier scan
-   * @param qrCodeId ID du QR code
-   * @throws Erreur si la mise à jour échoue
    */
   async updateLastScanned(qrCodeId: string): Promise<void> {
     try {
-      if (!qrCodeId) {
-        throw new Error("ID de QR code invalide");
-      }
-      
       const { error } = await supabase
         .from('equipment_qrcodes')
         .update({
@@ -178,48 +149,20 @@ export const qrCodeService = {
   
   /**
    * Régénère un QR code pour un équipement (désactive l'ancien et en crée un nouveau)
-   * @param equipmentId ID de l'équipement
-   * @returns Le nouveau QR code
-   * @throws Erreur si la régénération échoue
    */
   async regenerateQRCode(equipmentId: number): Promise<EquipmentQRCode> {
     try {
-      if (!equipmentId || isNaN(equipmentId) || equipmentId <= 0) {
-        throw new Error("ID d'équipement invalide");
-      }
-      
       // Désactiver les QR codes existants
-      const { error } = await supabase
+      await supabase
         .from('equipment_qrcodes')
         .update({ active: false })
         .eq('equipment_id', equipmentId);
-      
-      if (error) throw error;
       
       // Créer un nouveau QR code
       return this.createQRCode(equipmentId);
     } catch (error: any) {
       console.error('Erreur lors de la régénération du QR code:', error);
       throw error;
-    }
-  },
-  
-  /**
-   * Vérifie si un QR code est valide et actif
-   * @param hash Hash du QR code
-   * @returns true si le QR code est valide, false sinon
-   */
-  async isValidQRCode(hash: string): Promise<boolean> {
-    try {
-      if (!hash || typeof hash !== 'string') {
-        return false;
-      }
-      
-      const result = await this.getEquipmentByQRCodeHash(hash);
-      return result !== null;
-    } catch (error) {
-      console.error('Erreur lors de la validation du QR code:', error);
-      return false;
     }
   }
 };

@@ -67,10 +67,10 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
   };
 
   return (
-    <div className="w-full px-0">
-      <div className="px-4 lg:px-6">
-        <EquipmentHeader openAddDialog={openAddDialog} />
-        
+    <div className="flex flex-col h-full">
+      <EquipmentHeader openAddDialog={openAddDialog} />
+      
+      <div className="mb-3">
         <SearchToolbar
           currentView={currentView}
           setCurrentView={setCurrentView}
@@ -92,14 +92,16 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
         />
-        
+      </div>
+      
+      <div className="mb-3">
         <CategoryTabs 
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
         />
       </div>
       
-      <div className="w-full px-1 lg:px-3">
+      <div className="flex-1 min-h-0 overflow-auto">
         {isLoading ? (
           <div className="flex justify-center items-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -124,11 +126,11 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
             )}
           </>
         )}
+        
+        {!isLoading && filteredEquipment.length === 0 && (
+          <NoEquipmentFound resetFilters={resetAllFilters} />
+        )}
       </div>
-      
-      {!isLoading && filteredEquipment.length === 0 && (
-        <NoEquipmentFound resetFilters={resetAllFilters} />
-      )}
     </div>
   );
 };

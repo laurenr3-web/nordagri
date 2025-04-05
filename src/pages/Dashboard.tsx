@@ -81,51 +81,53 @@ const DashboardPage = () => {
 
   return (
     <MainLayout>
-      <div className="flex-1 w-full">
-        <div className="w-full">
-          <Header 
-            currentView={currentView}
-            setCurrentView={setCurrentView}
-          />
-          
-          <Tabs value={currentView} className="space-y-4 px-2">
-            <TabsContent value="main">
-              {loading ? (
-                <div className="flex items-center justify-center h-64">
-                  <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
-                </div>
-              ) : (
-                <Dashboard 
-                  statsData={adaptedStatsData}
-                  equipmentData={adaptedEquipmentData}
-                  maintenanceEvents={adaptedMaintenanceEvents}
-                  alertItems={adaptedAlertItems}
-                  upcomingTasks={adaptedTasks}
-                  urgentInterventions={urgentInterventions || []}
-                  stockAlerts={stockAlerts || []}
-                  weeklyCalendarEvents={weeklyCalendarEvents || []}
-                  currentMonth={currentMonth}
-                  handleStatsCardClick={handleStatsCardClick}
-                  handleEquipmentViewAllClick={handleEquipmentViewAllClick}
-                  handleMaintenanceCalendarClick={handleMaintenanceCalendarClick}
-                  handleAlertsViewAllClick={handleAlertsViewAllClick}
-                  handleTasksAddClick={handleTasksAddClick}
-                  handleEquipmentClick={handleEquipmentClick}
+      <div className="flex-1">
+        <div className="px-4 py-4">
+          <div className="max-w-7xl mx-auto">
+            <Header 
+              currentView={currentView}
+              setCurrentView={setCurrentView}
+            />
+            
+            <Tabs value={currentView} className="space-y-4">
+              <TabsContent value="main">
+                {loading ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
+                  </div>
+                ) : (
+                  <Dashboard 
+                    statsData={adaptedStatsData}
+                    equipmentData={adaptedEquipmentData}
+                    maintenanceEvents={adaptedMaintenanceEvents}
+                    alertItems={adaptedAlertItems}
+                    upcomingTasks={adaptedTasks}
+                    urgentInterventions={urgentInterventions || []}
+                    stockAlerts={stockAlerts || []}
+                    weeklyCalendarEvents={weeklyCalendarEvents || []}
+                    currentMonth={currentMonth}
+                    handleStatsCardClick={handleStatsCardClick}
+                    handleEquipmentViewAllClick={handleEquipmentViewAllClick}
+                    handleMaintenanceCalendarClick={handleMaintenanceCalendarClick}
+                    handleAlertsViewAllClick={handleAlertsViewAllClick}
+                    handleTasksAddClick={handleTasksAddClick}
+                    handleEquipmentClick={handleEquipmentClick}
+                  />
+                )}
+              </TabsContent>
+              
+              <TabsContent value="calendar">
+                <CalendarView 
+                  events={adaptedMaintenanceEvents} 
+                  month={currentMonth} 
                 />
-              )}
-            </TabsContent>
-            
-            <TabsContent value="calendar">
-              <CalendarView 
-                events={adaptedMaintenanceEvents} 
-                month={currentMonth} 
-              />
-            </TabsContent>
-            
-            <TabsContent value="alerts">
-              <AllAlertsSection alerts={adaptedAlertItems} />
-            </TabsContent>
-          </Tabs>
+              </TabsContent>
+              
+              <TabsContent value="alerts">
+                <AllAlertsSection alerts={adaptedAlertItems} />
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
       </div>
     </MainLayout>

@@ -57,7 +57,7 @@ const EquipmentPageContent: React.FC<EquipmentPageContentProps> = ({
   }
   
   return (
-    <div className="flex-1 w-full">
+    <div className="flex flex-col flex-1 h-full">
       <EquipmentContentSection
         equipment={equipment}
         isLoading={isLoading}

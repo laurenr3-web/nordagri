@@ -4,7 +4,6 @@ import SearchInput from './toolbar/SearchInput';
 import FilterDropdownMenu from './toolbar/FilterDropdownMenu';
 import SortDropdownMenu from './toolbar/SortDropdownMenu';
 import ViewToggle from './toolbar/ViewToggle';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SearchToolbarProps {
   searchTerm: string;
@@ -49,69 +48,42 @@ const SearchToolbar: React.FC<SearchToolbarProps> = ({
   setSortBy,
   setSortOrder
 }) => {
-  const isMobile = useIsMobile();
-  
   return (
-    <div className="flex flex-wrap gap-2 mb-6">
-      {/* Conteneur pour les contrôles primaires (pleine largeur sur mobile) */}
-      <div className={`flex ${isMobile ? 'w-full flex-col' : 'flex-row'} gap-2`}>
-        {/* La recherche prend le plus d'espace */}
-        <div className={`${isMobile ? 'w-full' : 'flex-grow'}`}>
-          <SearchInput 
-            searchTerm={searchTerm} 
-            setSearchTerm={setSearchTerm} 
-          />
-        </div>
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
+      {/* Search Input Component */}
+      <SearchInput 
+        searchTerm={searchTerm} 
+        setSearchTerm={setSearchTerm} 
+      />
       
-        {/* Conteneur pour les contrôles secondaires */}
-        <div className={`flex ${isMobile ? 'w-full justify-between' : 'ml-auto'} gap-2`}>
-          {/* Sur mobile: les filtres et le tri sont plus importants que le toggle de vue */}
-          <div className="flex gap-2">
-            <FilterDropdownMenu
-              filters={filters}
-              statusOptions={statusOptions}
-              typeOptions={typeOptions}
-              manufacturerOptions={manufacturerOptions}
-              yearOptions={yearOptions}
-              isFilterActive={isFilterActive}
-              toggleFilter={toggleFilter}
-              clearFilters={clearFilters}
-              getStatusColor={getStatusColor}
-              getStatusText={getStatusText}
-              activeFilterCount={activeFilterCount}
-            />
-            
-            <SortDropdownMenu
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              setSortBy={setSortBy}
-              setSortOrder={setSortOrder}
-            />
-          </div>
-          
-          {/* Le toggle de vue est moins important */}
-          <ViewToggle 
-            currentView={currentView} 
-            setCurrentView={setCurrentView} 
-          />
-        </div>
-      </div>
+      {/* Filter Dropdown Component */}
+      <FilterDropdownMenu
+        filters={filters}
+        statusOptions={statusOptions}
+        typeOptions={typeOptions}
+        manufacturerOptions={manufacturerOptions}
+        yearOptions={yearOptions}
+        isFilterActive={isFilterActive}
+        toggleFilter={toggleFilter}
+        clearFilters={clearFilters}
+        getStatusColor={getStatusColor}
+        getStatusText={getStatusText}
+        activeFilterCount={activeFilterCount}
+      />
       
-      {/* Affichage des filtres actifs */}
-      {activeFilterCount > 0 && (
-        <div className="w-full flex items-center mt-2">
-          <div className="text-sm text-muted-foreground flex items-center">
-            <span className="mr-2">Filtres actifs: {activeFilterCount}</span>
-            <button 
-              onClick={() => clearFilters()} 
-              className="text-primary hover:underline text-xs"
-              aria-label="Effacer tous les filtres"
-            >
-              Effacer tout
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Sort Dropdown Component */}
+      <SortDropdownMenu
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        setSortBy={setSortBy}
+        setSortOrder={setSortOrder}
+      />
+      
+      {/* View Toggle Component */}
+      <ViewToggle 
+        currentView={currentView} 
+        setCurrentView={setCurrentView} 
+      />
     </div>
   );
 };

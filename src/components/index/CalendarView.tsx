@@ -11,12 +11,12 @@ interface CalendarViewProps {
 
 const CalendarView: React.FC<CalendarViewProps> = ({ events, month }) => {
   return (
-    <DashboardSection title="Maintenance Calendar" subtitle="Detailed view of all scheduled maintenance">
-      <div className="p-4">
+    <DashboardSection title="Maintenance Calendar" subtitle="Detailed view of all scheduled maintenance" className="h-full">
+      <div className="p-2 h-[calc(100%-3rem)]">
         <MaintenanceCalendar 
           events={events} 
           month={month} 
-          className="animate-scale-in w-full" 
+          className="animate-scale-in w-full h-full" 
         />
       </div>
     </DashboardSection>

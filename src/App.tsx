@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
@@ -7,7 +7,6 @@ import { RealtimeCacheProvider } from '@/providers/RealtimeCacheProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
 import ProtectedLayout from '@/components/layout/ProtectedLayout';
 import MobileMenu from '@/components/layout/MobileMenu';
-import AppRoutes from '@/core/routes';
 
 // Pages
 import Index from '@/pages/Index';
@@ -33,48 +32,46 @@ function App() {
           <Router>
             <AuthProvider>
               <Routes>
-                {/* Redirection de la page d'accueil vers le dashboard */}
-                <Route path={AppRoutes.HOME} element={<Navigate to={AppRoutes.DASHBOARD} replace />} />
-                <Route path={AppRoutes.AUTH} element={<Auth />} />
-                <Route path={AppRoutes.DASHBOARD} element={
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/dashboard" element={
                   <ProtectedLayout>
                     <Dashboard />
                   </ProtectedLayout>
                 } />
-                <Route path={AppRoutes.EQUIPMENT} element={
+                <Route path="/equipment" element={
                   <ProtectedLayout>
                     <Equipment />
                   </ProtectedLayout>
                 } />
-                <Route path={AppRoutes.EQUIPMENT_DETAIL()} element={
+                <Route path="/equipment/:id" element={
                   <ProtectedLayout>
                     <EquipmentDetail />
                   </ProtectedLayout>
                 } />
-                <Route path={AppRoutes.MAINTENANCE} element={
+                <Route path="/maintenance" element={
                   <ProtectedLayout>
                     <Maintenance />
                   </ProtectedLayout>
                 } />
-                <Route path={AppRoutes.PARTS} element={
+                <Route path="/parts" element={
                   <ProtectedLayout>
                     <Parts />
                   </ProtectedLayout>
                 } />
-                <Route path={AppRoutes.INTERVENTIONS} element={
+                <Route path="/interventions" element={
                   <ProtectedLayout>
                     <Interventions />
                   </ProtectedLayout>
                 } />
-                <Route path={AppRoutes.SETTINGS} element={
+                <Route path="/settings" element={
                   <ProtectedLayout>
                     <Settings />
                   </ProtectedLayout>
                 } />
-                {/* Route pour le scan de QR code */}
-                <Route path={AppRoutes.QR_SCAN} element={<ScanRedirect />} />
-                {/* Route pour les pages non trouvées */}
-                <Route path={AppRoutes.NOT_FOUND} element={<NotFound />} />
+                {/* Nouvelle route pour le scan de QR code */}
+                <Route path="/scan/:id" element={<ScanRedirect />} />
+                <Route path="*" element={<NotFound />} />
               </Routes>
               <MobileMenu />
               <Toaster />
