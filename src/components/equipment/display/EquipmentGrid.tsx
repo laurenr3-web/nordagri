@@ -4,6 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
 
+// Image de placeholder sécurisée et locale
+const PLACEHOLDER_IMAGE = "/placeholder.svg";
+
 interface EquipmentGridProps {
   equipment: EquipmentItem[];
   getStatusColor: (status: string | undefined) => string;
@@ -25,11 +28,15 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({
           className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
           onClick={() => handleEquipmentClick(item)}
         >
-          <div className="aspect-video relative overflow-hidden">
+          <div className="aspect-video relative overflow-hidden bg-muted">
             <img
-              src={item.image || "https://images.unsplash.com/photo-1585911171167-1f66ea3de00c?q=80&w=500&auto=format&fit=crop"}
+              src={item.image || PLACEHOLDER_IMAGE}
               alt={item.name}
               className="object-cover w-full h-full transition-transform hover:scale-105"
+              onError={(e) => {
+                // Fallback en cas d'erreur de chargement d'image
+                (e.target as HTMLImageElement).src = PLACEHOLDER_IMAGE;
+              }}
             />
             <Badge 
               className={`absolute top-2 right-2 ${getStatusColor(item.status)}`}

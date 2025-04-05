@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Loader2, AlertTriangle, QrCode, Info } from 'lucide-react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { Loader2, AlertTriangle, QrCode, Info, ArrowLeft } from 'lucide-react';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { equipmentService } from '@/services/supabase/equipmentService';
 import { qrCodeService } from '@/services/supabase/qrCodeService';
@@ -15,9 +15,37 @@ const ScanRedirect: React.FC = () => {
   const [isLoadingEquipment, setIsLoadingEquipment] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [processingStep, setProcessingStep] = useState<string>('Initialisation du scan...');
+  const [previousPage, setPreviousPage] = useState<string | null>(null);
   
   // Utiliser useAuthContext au lieu de useAuth avec un paramètre de redirection problématique
   const { user, loading: authLoading, isAuthenticated } = useAuthContext();
+
+  // Sauvegarder la page précédente pour permettre un retour facile
+  useEffect(() => {
+    try {
+      // Obtenir la dernière page visitée depuis l'historique ou sessionStorage
+      const referrer = document.referrer;
+      const lastPage = sessionStorage.getItem('lastVisitedPage') || '';
+      
+      // Si on a une référence valide et que ce n'est pas la page de scan actuelle
+      if (referrer && !referrer.includes(`/scan/${qrCodeHash}`)) {
+        setPreviousPage(referrer);
+        sessionStorage.setItem('scanRedirectReturnTo', referrer);
+      } 
+      // Sinon utiliser la dernière page enregistrée
+      else if (lastPage && !lastPage.includes(`/scan/${qrCodeHash}`)) {
+        setPreviousPage(lastPage);
+        sessionStorage.setItem('scanRedirectReturnTo', lastPage);
+      } 
+      // Par défaut, retourner à la liste des équipements
+      else {
+        setPreviousPage('/equipment');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la récupération de la page précédente:', error);
+      setPreviousPage('/equipment');
+    }
+  }, [qrCodeHash]);
 
   // Rediriger vers la page d'authentification si l'utilisateur n'est pas connecté
   useEffect(() => {
@@ -26,6 +54,12 @@ const ScanRedirect: React.FC = () => {
       navigate(`/auth?returnTo=${encodeURIComponent(`/scan/${qrCodeHash}`)}`);
     }
   }, [authLoading, isAuthenticated, qrCodeHash, navigate]);
+
+  // Fonction pour gérer le retour en arrière
+  const handleGoBack = () => {
+    const returnUrl = sessionStorage.getItem('scanRedirectReturnTo') || '/equipment';
+    navigate(returnUrl);
+  };
 
   useEffect(() => {
     const redirectToEquipment = async () => {
@@ -112,6 +146,14 @@ const ScanRedirect: React.FC = () => {
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
         <p className="text-lg font-medium">{processingStep}</p>
         <p className="mt-2 text-sm text-muted-foreground">Veuillez patienter pendant la vérification...</p>
+        <Button 
+          variant="ghost" 
+          className="mt-6 flex items-center" 
+          onClick={handleGoBack}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Retour
+        </Button>
       </div>
     );
   }
@@ -130,8 +172,13 @@ const ScanRedirect: React.FC = () => {
             <Button onClick={() => navigate('/equipment')}>
               Voir tous les équipements
             </Button>
-            <Button variant="outline" onClick={() => window.location.reload()}>
-              Réessayer
+            <Button 
+              variant="outline" 
+              onClick={handleGoBack}
+              className="flex items-center"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Retour
             </Button>
           </div>
         </div>
@@ -145,6 +192,14 @@ const ScanRedirect: React.FC = () => {
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         <Info className="h-12 w-12 text-primary mb-4" />
         <p className="text-lg">Traitement en cours...</p>
+        <Button 
+          variant="ghost" 
+          className="mt-6 flex items-center" 
+          onClick={handleGoBack}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Retour
+        </Button>
       </div>
     );
   }

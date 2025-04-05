@@ -49,41 +49,52 @@ const SearchToolbar: React.FC<SearchToolbarProps> = ({
   setSortOrder
 }) => {
   return (
-    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
-      {/* Search Input Component */}
-      <SearchInput 
-        searchTerm={searchTerm} 
-        setSearchTerm={setSearchTerm} 
-      />
+    <div className="flex flex-col gap-3 mb-6">
+      {/* Priorité à la recherche - toujours pleine largeur */}
+      <div className="w-full">
+        <SearchInput 
+          searchTerm={searchTerm} 
+          setSearchTerm={setSearchTerm} 
+        />
+      </div>
       
-      {/* Filter Dropdown Component */}
-      <FilterDropdownMenu
-        filters={filters}
-        statusOptions={statusOptions}
-        typeOptions={typeOptions}
-        manufacturerOptions={manufacturerOptions}
-        yearOptions={yearOptions}
-        isFilterActive={isFilterActive}
-        toggleFilter={toggleFilter}
-        clearFilters={clearFilters}
-        getStatusColor={getStatusColor}
-        getStatusText={getStatusText}
-        activeFilterCount={activeFilterCount}
-      />
-      
-      {/* Sort Dropdown Component */}
-      <SortDropdownMenu
-        sortBy={sortBy}
-        sortOrder={sortOrder}
-        setSortBy={setSortBy}
-        setSortOrder={setSortOrder}
-      />
-      
-      {/* View Toggle Component */}
-      <ViewToggle 
-        currentView={currentView} 
-        setCurrentView={setCurrentView} 
-      />
+      {/* Conteneur flexible pour les contrôles secondaires */}
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Filtres - important */}
+        <div className="flex-grow sm:flex-grow-0">
+          <FilterDropdownMenu
+            filters={filters}
+            statusOptions={statusOptions}
+            typeOptions={typeOptions}
+            manufacturerOptions={manufacturerOptions}
+            yearOptions={yearOptions}
+            isFilterActive={isFilterActive}
+            toggleFilter={toggleFilter}
+            clearFilters={clearFilters}
+            getStatusColor={getStatusColor}
+            getStatusText={getStatusText}
+            activeFilterCount={activeFilterCount}
+          />
+        </div>
+        
+        {/* Tri - moins important */}
+        <div>
+          <SortDropdownMenu
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            setSortBy={setSortBy}
+            setSortOrder={setSortOrder}
+          />
+        </div>
+        
+        {/* Bascule d'affichage */}
+        <div className="ml-auto">
+          <ViewToggle 
+            currentView={currentView} 
+            setCurrentView={setCurrentView} 
+          />
+        </div>
+      </div>
     </div>
   );
 };
