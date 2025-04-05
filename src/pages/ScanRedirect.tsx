@@ -1,11 +1,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { ChevronLeft, Loader2 } from 'lucide-react';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { useQrCodeVerification } from '@/hooks/equipment/useQrCodeVerification';
 import { toast } from 'sonner';
 import QRCodeErrorView from '@/components/qrcode/QRCodeErrorView';
+import { Button } from '@/components/ui/button';
 
 /**
  * Composant pour la redirection après scan d'un QR code
@@ -27,6 +28,22 @@ const ScanRedirect: React.FC = () => {
   // Component state
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [previousPage, setPreviousPage] = useState<string | null>(null);
+
+  // Capture la page précédente lors du chargement initial
+  useEffect(() => {
+    // Vérifie si la page précédente existe dans l'historique ou utilise une valeur par défaut
+    if (window.history.length > 1) {
+      // Utilise sessionStorage pour stocker l'origine de la navigation
+      const referrer = document.referrer || sessionStorage.getItem('lastVisitedPage') || '/dashboard';
+      setPreviousPage(referrer);
+    } else {
+      setPreviousPage('/dashboard');
+    }
+    
+    // Sauvegarde la page actuelle pour les navigations futures
+    sessionStorage.setItem('lastVisitedPage', location.pathname);
+  }, [location.pathname]);
 
   useEffect(() => {
     // Handle authentication check
@@ -74,13 +91,33 @@ const ScanRedirect: React.FC = () => {
     setIsLoading(true);
     window.location.reload();
   };
+  
+  // Handle back action
+  const handleGoBack = () => {
+    // Si l'historique existe, on retourne à la page précédente
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      // Sinon on va à la page d'équipements
+      navigate('/equipment');
+    }
+  };
 
   // Show loading state
   if (authLoading || isLoading || qrVerificationLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        <p className="mt-4 text-lg">Vérification en cours...</p>
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+        <p className="text-lg mb-6">Vérification en cours...</p>
+        
+        <Button 
+          variant="outline" 
+          onClick={handleGoBack}
+          className="flex items-center gap-2"
+        >
+          <ChevronLeft size={16} />
+          Retour
+        </Button>
       </div>
     );
   }
@@ -93,6 +130,8 @@ const ScanRedirect: React.FC = () => {
       <QRCodeErrorView 
         error={errorMessage}
         onRetry={handleRetry}
+        redirectPath={previousPage || '/equipment'} 
+        redirectText="Retour"
       />
     );
   }
