@@ -1,11 +1,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Loader2, AlertTriangle, QrCode } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useAuthContext } from '@/providers/AuthProvider';
-import { Button } from '@/components/ui/button';
 import { useQrCodeVerification } from '@/hooks/equipment/useQrCodeVerification';
 import { toast } from 'sonner';
+import QRCodeErrorView from '@/components/qrcode/QRCodeErrorView';
 
 /**
  * Composant pour la redirection après scan d'un QR code
@@ -68,6 +68,13 @@ const ScanRedirect: React.FC = () => {
     }
   }, [qrCodeHash, navigate, isAuthenticated, authLoading, verifyQrCode, qrVerificationError, location.pathname]);
 
+  // Handle retry action
+  const handleRetry = () => {
+    setError(null);
+    setIsLoading(true);
+    window.location.reload();
+  };
+
   // Show loading state
   if (authLoading || isLoading || qrVerificationLoading) {
     return (
@@ -80,30 +87,13 @@ const ScanRedirect: React.FC = () => {
 
   // Show error state
   if (error || qrVerificationError) {
-    const errorMessage = error || qrVerificationError;
+    const errorMessage = error || qrVerificationError || "Une erreur inconnue s'est produite";
+    
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <div className="bg-destructive/10 p-6 rounded-lg text-center max-w-md">
-          <div className="flex items-center justify-center mb-4">
-            <QrCode className="h-12 w-12 text-destructive" />
-            <AlertTriangle className="h-12 w-12 text-destructive ml-2" />
-          </div>
-          <h1 className="text-2xl font-bold">QR Code non valide</h1>
-          <p className="mt-2 text-muted-foreground">{errorMessage}</p>
-          <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
-            <Button onClick={() => navigate('/equipment')}>
-              Voir tous les équipements
-            </Button>
-            <Button variant="outline" onClick={() => {
-              setError(null);
-              setIsLoading(true);
-              window.location.reload();
-            }}>
-              Réessayer
-            </Button>
-          </div>
-        </div>
-      </div>
+      <QRCodeErrorView 
+        error={errorMessage}
+        onRetry={handleRetry}
+      />
     );
   }
 
