@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Tractor, Calendar, Box as BoxIcon, ScrollText as ScrollIcon, Settings } from "lucide-react";
 import MaintenanceNotificationsPopover from '../maintenance/notifications/MaintenanceNotificationsPopover';
 
@@ -29,15 +30,17 @@ export const navItems = [{
   href: "/settings",
   icon: Settings
 }];
+
 const Navbar = () => {
   const location = useLocation();
   const currentPath = location.pathname || "";
+  
   return <div className="flex flex-col h-full">
       <div className="flex h-16 items-center px-6 border-b border-sidebar-border">
-        <a className="flex items-center gap-2" href="/">
+        <Link className="flex items-center gap-2" to="/">
           <img src="/lovable-uploads/ec804880-63d5-4999-8bd9-4b853ec3360d.png" alt="Agri ERP Insight" className="h-8 w-auto" />
           <span className="text-xl font-bold text-white">Agri ERP</span>
-        </a>
+        </Link>
         <div className="ml-auto flex items-center gap-2">
           <div className="hidden md:flex">
             <MaintenanceNotificationsPopover />
@@ -52,12 +55,27 @@ const Navbar = () => {
       </div>
       <div className="flex-1 overflow-auto bg-polka mx-0 my-0 py-0 px-0">
         <nav className="grid items-start px-4 text-sm font-medium">
-          {navItems.map(item => <a key={item.href} href={item.href} className={`flex items-center gap-3 rounded-lg px-3 py-2.5 my-1 transition-all duration-200 ${currentPath === item.href || item.href !== "/" && currentPath.includes(item.href) ? "bg-sidebar-accent text-white" : "text-agri-light hover:bg-sidebar-accent/50 hover:text-white"}`}>
-              <item.icon className={`h-5 w-5 ${currentPath === item.href || item.href !== "/" && currentPath.includes(item.href) ? "text-agri-primary" : "text-current"}`} />
+          {navItems.map(item => (
+            <Link 
+              key={item.href} 
+              to={item.href} 
+              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 my-1 transition-all duration-200 ${
+                currentPath === item.href || (item.href !== "/" && currentPath.includes(item.href)) 
+                  ? "bg-sidebar-accent text-white" 
+                  : "text-agri-light hover:bg-sidebar-accent/50 hover:text-white"
+              }`}
+            >
+              <item.icon className={`h-5 w-5 ${
+                currentPath === item.href || (item.href !== "/" && currentPath.includes(item.href)) 
+                  ? "text-agri-primary" 
+                  : "text-current"
+              }`} />
               {item.title}
-            </a>)}
+            </Link>
+          ))}
         </nav>
       </div>
     </div>;
 };
+
 export default Navbar;

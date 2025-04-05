@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { 
   Drawer, 
@@ -11,7 +11,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { navItems } from './Navbar';
 
 const MobileMenu = () => {
-  const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
   const [open, setOpen] = React.useState(false);
@@ -47,23 +46,21 @@ const MobileMenu = () => {
                               (item.href !== '/' && location.pathname.startsWith(item.href));
               
               return (
-                <button
+                <Link
                   key={item.href}
+                  to={item.href}
                   className={`flex items-center w-full p-3 rounded-lg mb-1 transition-colors ${
                     isActive 
                       ? 'bg-agri-primary/10 text-agri-primary' 
                       : 'text-gray-800 hover:bg-gray-100'
                   }`}
-                  onClick={() => {
-                    navigate(item.href);
-                    setOpen(false);
-                  }}
+                  onClick={() => setOpen(false)}
                 >
                   <item.icon className={`mr-3 h-5 w-5 ${
                     isActive ? 'text-agri-primary' : 'text-gray-600'
                   }`} />
                   {item.title}
-                </button>
+                </Link>
               );
             })}
           </div>
