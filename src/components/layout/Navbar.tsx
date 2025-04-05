@@ -7,7 +7,7 @@ import MaintenanceNotificationsPopover from '../maintenance/notifications/Mainte
 // Export navItems for use in MobileMenu
 export const navItems = [{
   title: "Tableau de bord",
-  href: "/dashboard",
+  href: "/",
   icon: LayoutDashboard
 }, {
   title: "Équipements",
@@ -37,7 +37,7 @@ const Navbar = () => {
   
   return <div className="flex flex-col h-full">
       <div className="flex h-16 items-center px-6 border-b border-sidebar-border">
-        <Link className="flex items-center gap-2" to="/dashboard">
+        <Link className="flex items-center gap-2" to="/">
           <img src="/lovable-uploads/ec804880-63d5-4999-8bd9-4b853ec3360d.png" alt="Agri ERP Insight" className="h-8 w-auto" />
           <span className="text-xl font-bold text-white">Agri ERP</span>
         </Link>
@@ -60,13 +60,13 @@ const Navbar = () => {
               key={item.href} 
               to={item.href} 
               className={`flex items-center gap-3 rounded-lg px-3 py-2.5 my-1 transition-all duration-200 ${
-                currentPath === item.href || (item.href !== "/dashboard" && currentPath.includes(item.href)) 
+                currentPath === item.href || (item.href !== "/" && currentPath.includes(item.href)) 
                   ? "bg-sidebar-accent text-white" 
                   : "text-agri-light hover:bg-sidebar-accent/50 hover:text-white"
               }`}
             >
               <item.icon className={`h-5 w-5 ${
-                currentPath === item.href || (item.href !== "/dashboard" && currentPath.includes(item.href)) 
+                currentPath === item.href || (item.href !== "/" && currentPath.includes(item.href)) 
                   ? "text-agri-primary" 
                   : "text-current"
               }`} />

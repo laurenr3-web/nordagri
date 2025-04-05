@@ -6,7 +6,7 @@ import { useAuthContext } from '@/providers/AuthProvider';
 import { equipmentService } from '@/services/supabase/equipmentService';
 import { qrCodeService } from '@/services/supabase/qrCodeService';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner'; // Correction de l'importation pour utiliser sonner directement
+import { toast } from '@/components/ui/use-toast';
 
 const ScanRedirect: React.FC = () => {
   const { id: qrCodeHash } = useParams<{ id: string }>();
@@ -51,7 +51,7 @@ const ScanRedirect: React.FC = () => {
   useEffect(() => {
     if (!authLoading && !isAuthenticated && qrCodeHash) {
       // Stocker la route actuelle pour y revenir après authentification
-      navigate(`/auth?returnTo=${encodeURIComponent(`/scan/${qrCodeHash}`)}`)
+      navigate(`/auth?returnTo=${encodeURIComponent(`/scan/${qrCodeHash}`)}`);
     }
   }, [authLoading, isAuthenticated, qrCodeHash, navigate]);
 
@@ -102,7 +102,8 @@ const ScanRedirect: React.FC = () => {
           setIsValidEquipment(true);
           
           // Afficher une notification de succès
-          toast.success("Équipement trouvé", {
+          toast({
+            title: "Équipement trouvé",
             description: `Redirection vers ${equipment.name || 'l\'équipement'}`
           });
           

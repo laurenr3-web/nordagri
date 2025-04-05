@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
@@ -31,8 +31,7 @@ function App() {
           <Router>
             <AuthProvider>
               <Routes>
-                {/* Redirection de / vers /dashboard pour une meilleure cohérence */}
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/dashboard" element={
                   <ProtectedLayout>
@@ -69,7 +68,7 @@ function App() {
                     <Settings />
                   </ProtectedLayout>
                 } />
-                {/* Route pour le scan de QR code */}
+                {/* Nouvelle route pour le scan de QR code */}
                 <Route path="/scan/:id" element={<ScanRedirect />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

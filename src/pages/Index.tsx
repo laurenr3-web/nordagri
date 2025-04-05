@@ -1,26 +1,40 @@
 
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import MainLayout from '@/ui/layouts/MainLayout';
+import Header from '@/components/index/Header';
+import ViewManager from '@/components/index/ViewManager';
+import { useIsMobile } from '@/hooks/use-mobile';
 
-/**
- * Component d'index qui redirige automatiquement vers le tableau de bord
- */
 const Index = () => {
-  const navigate = useNavigate();
-  
-  useEffect(() => {
-    // Redirection vers le tableau de bord
-    navigate('/dashboard', { replace: true });
-  }, [navigate]);
-  
-  // Rendu d'un conteneur vide pendant la redirection
+  // Current month for calendar
+  const [currentMonth] = useState(new Date());
+  const [currentView, setCurrentView] = useState<'main' | 'calendar' | 'alerts'>('main');
+  const isMobile = useIsMobile();
+
+  const handleViewChange = (view: 'main' | 'calendar' | 'alerts') => {
+    setCurrentView(view);
+  };
+
   return (
-    <div className="flex h-screen w-screen items-center justify-center">
-      <div className="text-center">
-        <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-agri-primary border-t-transparent mx-auto"></div>
-        <p className="text-sm text-gray-500">Redirection en cours...</p>
+    <MainLayout>
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="p-4">
+          <Header 
+            currentView={currentView}
+            setCurrentView={handleViewChange}
+          />
+        </div>
+        
+        <div className={`flex-1 overflow-auto px-4 pb-4 ${isMobile ? 'mobile-pb-safe' : ''}`}>
+          <div className="mx-auto h-full max-w-7xl">
+            <ViewManager 
+              currentView={currentView} 
+              currentMonth={currentMonth} 
+            />
+          </div>
+        </div>
       </div>
-    </div>
+    </MainLayout>
   );
 };
 
