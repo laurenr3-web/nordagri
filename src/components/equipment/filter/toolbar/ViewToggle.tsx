@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { LayoutGrid, List } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface ViewToggleProps {
   currentView: string;
@@ -9,10 +10,15 @@ interface ViewToggleProps {
 }
 
 const ViewToggle: React.FC<ViewToggleProps> = ({ currentView, setCurrentView }) => {
-  // Handle view toggle and save preference
+  // Handle view toggle and save preference with error handling
   const handleViewChange = (view: string) => {
     setCurrentView(view);
-    localStorage.setItem('equipmentViewPreference', view);
+    try {
+      localStorage.setItem('equipmentViewPreference', view);
+    } catch (error) {
+      console.error('Erreur lors de l\'enregistrement de la préférence d\'affichage:', error);
+      toast.error('Impossible de sauvegarder votre préférence d\'affichage');
+    }
   };
 
   return (
@@ -22,6 +28,8 @@ const ViewToggle: React.FC<ViewToggleProps> = ({ currentView, setCurrentView }) 
         size="icon"
         onClick={() => handleViewChange('grid')}
         className="rounded-r-none"
+        aria-label="Vue en grille"
+        title="Vue en grille"
       >
         <LayoutGrid className="h-4 w-4" />
         <span className="sr-only">Vue en grille</span>
@@ -31,6 +39,8 @@ const ViewToggle: React.FC<ViewToggleProps> = ({ currentView, setCurrentView }) 
         size="icon"
         onClick={() => handleViewChange('list')}
         className="rounded-l-none"
+        aria-label="Vue en liste"
+        title="Vue en liste"
       >
         <List className="h-4 w-4" />
         <span className="sr-only">Vue en liste</span>
