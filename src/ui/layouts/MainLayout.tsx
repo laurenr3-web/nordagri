@@ -11,8 +11,12 @@ import Sidebar from '../navigation/Sidebar';
 import MobileNav from '@/components/layout/MobileNav'; 
 import { useLayoutContext } from '@/contexts/LayoutContext';
 import ContextPanel from '../panels/ContextPanel';
+import useFixMobileScrolling from '@/hooks/useFixMobileScrolling';
 
 export function MainLayout() {
+  // Appliquer le correctif de défilement mobile automatiquement
+  useFixMobileScrolling();
+  
   const isDesktop = useMedia('(min-width: 1024px)', true);
   const isMobile = useMedia('(max-width: 767px)', false);
   const { 
