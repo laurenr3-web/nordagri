@@ -83,7 +83,7 @@ html, body {
   flex: 1;
   overflow: auto;
   min-height: 0;
-  padding-bottom: 1rem; /* Padding standard pour toutes les tailles d'écran */
+  padding-bottom: 1rem;
 }
 
 .section-header {
@@ -126,6 +126,35 @@ html, body {
   flex: 0 0 100%;
 }
 
+/* Dialog/Form improvements for mobile scrolling */
+.dialog-scrollable {
+  max-height: 85vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 20px;
+}
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.form-scrollable {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.form-actions {
+  position: sticky;
+  bottom: 0;
+  background: white;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  z-index: 10;
+}
+
 /* Mobile optimizations */
 @media (max-width: 767px) {
   /* Adjust mobile bottom padding for navigation */
@@ -159,6 +188,13 @@ html, body {
   /* Ensure drawer menu doesn't cover content */
   .drawer-pushed-content {
     margin-top: 4rem;
+  }
+
+  /* Improved dialog scrolling for mobile */
+  .dialog-mobile-friendly {
+    max-height: 80vh !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 }
 

@@ -27,7 +27,7 @@ const EditPartDialog: React.FC<EditPartDialogProps> = ({
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px] dialog-mobile-friendly">
         <DialogHeader>
           <DialogTitle>Modifier la pièce</DialogTitle>
           <DialogDescription>
@@ -35,12 +35,14 @@ const EditPartDialog: React.FC<EditPartDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        <EditPartForm 
-          part={part} 
-          onSubmit={onSubmit} 
-          onCancel={() => onOpenChange(false)}
-          onMainDialogClose={onMainDialogClose}
-        />
+        <div className="form-scrollable">
+          <EditPartForm 
+            part={part} 
+            onSubmit={onSubmit} 
+            onCancel={() => onOpenChange(false)}
+            onMainDialogClose={onMainDialogClose}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );

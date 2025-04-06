@@ -28,17 +28,19 @@ const AddPartDialog: React.FC<AddPartDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl dialog-mobile-friendly">
         <DialogHeader>
           <DialogTitle>Add New Part</DialogTitle>
           <DialogDescription>
             Fill out the form below to add a new part to the inventory
           </DialogDescription>
         </DialogHeader>
-        <AddPartForm 
-          onSuccess={handleSuccess}
-          onCancel={() => onOpenChange(false)}
-        />
+        <div className="form-scrollable">
+          <AddPartForm 
+            onSuccess={handleSuccess}
+            onCancel={() => onOpenChange(false)}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );

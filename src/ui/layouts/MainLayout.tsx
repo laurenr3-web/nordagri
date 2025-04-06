@@ -1,124 +1,122 @@
 
-import React, { useState } from 'react';
-import { Sidebar, SidebarProvider, SidebarContent, SidebarTrigger, SidebarToggleButton } from '@/components/ui/sidebar';
-import Navbar from '@/components/layout/Navbar';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { MobileDrawerMenu } from '@/components/layout/MobileDrawerMenu';
-import { MobileNav } from '@/components/layout/MobileNav';
-import { columns3 } from 'lucide-react';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Outlet } from 'react-router-dom';
+import { useMedia } from 'react-use';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { ChevronLeft, ChevronRight, Menu, Columns3 } from 'lucide-react';
+import Sidebar from '../navigation/Sidebar';
+import MobileNav from '@/components/layout/MobileNav'; 
+import { useLayoutContext } from '@/contexts/LayoutContext';
+import ContextPanel from '../panels/ContextPanel';
 
-interface MainLayoutProps {
-  children: React.ReactNode;
-  rightPanel?: React.ReactNode;
-  showBreadcrumbs?: boolean;
-  breadcrumbs?: {label: string, path: string}[];
-}
-
-export const MainLayout: React.FC<MainLayoutProps> = ({ 
-  children, 
-  rightPanel,
-  showBreadcrumbs = true,
-  breadcrumbs,
-}) => {
-  const isMobile = useIsMobile();
-  const location = useLocation();
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
+export function MainLayout() {
+  const isDesktop = useMedia('(min-width: 1024px)', true);
+  const isMobile = useMedia('(max-width: 767px)', false);
+  const { 
+    sidebarCollapsed, 
+    setSidebarCollapsed, 
+    showContextPanel, 
+    setShowContextPanel 
+  } = useLayoutContext();
   
-  // Generate breadcrumbs based on the current path if not provided
-  const generatedBreadcrumbs = breadcrumbs || (() => {
-    const paths = location.pathname.split('/').filter(path => path);
-    let currentPath = '';
-    
-    return [
-      { label: 'Accueil', path: '/' },
-      ...paths.map(path => {
-        currentPath += `/${path}`;
-        return {
-          label: path.charAt(0).toUpperCase() + path.slice(1),
-          path: currentPath
-        };
-      })
-    ];
-  })();
+  // Collapse sidebar by default on smaller screens but not mobile
+  useEffect(() => {
+    if (!isDesktop && !isMobile) {
+      setSidebarCollapsed(true);
+    }
+  }, [isDesktop, isMobile, setSidebarCollapsed]);
 
   return (
-    <SidebarProvider>
-      <div className="flex h-screen w-full overflow-hidden overflow-x-hidden bg-bg-light">
-        {!isMobile ? (
-          <Sidebar className="border-r border-sidebar-border bg-agri-dark">
-            <SidebarContent>
-              <Navbar />
-            </SidebarContent>
-          </Sidebar>
-        ) : (
-          <MobileDrawerMenu />
-        )}
-        
-        <div className="flex flex-1 flex-col overflow-hidden">
-          {/* Top navigation bar for global actions */}
+    <div className="h-screen flex flex-col">
+      {/* Main content area with optional sidebars */}
+      <div className="flex-1 overflow-hidden flex">
+        <ResizablePanelGroup direction="horizontal" className="min-h-screen">
+          {/* Sidebar - hidden on mobile */}
           {!isMobile && (
-            <div className="border-b h-14 flex items-center px-4 bg-background/95 backdrop-blur supports-backdrop-blur:bg-background/60 z-20">
-              <div className="flex-1">
-                {showBreadcrumbs && generatedBreadcrumbs.length > 1 && (
-                  <Breadcrumb>
-                    <BreadcrumbList>
-                      {generatedBreadcrumbs.map((item, index) => (
-                        <React.Fragment key={item.path}>
-                          <BreadcrumbItem>
-                            <BreadcrumbLink href={item.path}>
-                              {item.label}
-                            </BreadcrumbLink>
-                          </BreadcrumbItem>
-                          {index < generatedBreadcrumbs.length - 1 && (
-                            <BreadcrumbSeparator />
-                          )}
-                        </React.Fragment>
-                      ))}
-                    </BreadcrumbList>
-                  </Breadcrumb>
-                )}
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <SidebarTrigger />
-                {rightPanel && (
-                  <button 
-                    onClick={() => setIsRightPanelOpen(!isRightPanelOpen)}
-                    className="p-2 rounded hover:bg-accent"
+            <>
+              <ResizablePanel 
+                defaultSize={18} 
+                minSize={12}
+                maxSize={25}
+                collapsible={true}
+                collapsedSize={4}
+                collapsed={sidebarCollapsed}
+                onCollapse={() => setSidebarCollapsed(true)}
+                onExpand={() => setSidebarCollapsed(false)}
+                className="bg-background border-r relative"
+              >
+                <Sidebar collapsed={sidebarCollapsed} />
+                <div className="absolute top-1/2 -right-3 transform -translate-y-1/2">
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="h-6 w-6 rounded-full shadow-md"
+                    onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
                   >
-                    <columns3 className="h-5 w-5" />
-                  </button>
-                )}
-              </div>
-            </div>
+                    {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </ResizablePanel>
+
+              <ResizableHandle withHandle />
+            </>
           )}
-          
-          <div className="flex flex-1 overflow-hidden">
-            <div className={cn(
-              "flex-1 overflow-auto transition-all duration-300",
-              isMobile ? "pb-16" : ""
-            )}>
-              {children}
-            </div>
-            
-            {rightPanel && !isMobile && (
-              <div className={cn(
-                "border-l bg-muted/10 overflow-auto transition-all duration-300",
-                isRightPanelOpen ? "w-80" : "w-0"
+
+          {/* Main content area */}
+          <ResizablePanel defaultSize={isMobile ? 100 : showContextPanel ? 64 : 82} minSize={40}>
+            <ScrollArea className="h-screen pb-16">
+              <main className={cn(
+                "py-6 px-4 md:px-6 md:py-8 lg:py-10",
+                isMobile && "mobile-pb-safe" // Add bottom padding on mobile for navigation
               )}>
-                {isRightPanelOpen && rightPanel}
-              </div>
-            )}
+                <Outlet />
+              </main>
+            </ScrollArea>
+          </ResizablePanel>
+
+          {/* Right context panel - hidden on mobile and when not needed */}
+          {!isMobile && showContextPanel && (
+            <>
+              <ResizableHandle withHandle />
+              <ResizablePanel defaultSize={18} minSize={15} maxSize={30}>
+                <ContextPanel />
+                <div className="absolute top-4 -left-3">
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="h-6 w-6 rounded-full shadow-md"
+                    onClick={() => setShowContextPanel(false)}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </ResizablePanel>
+            </>
+          )}
+        </ResizablePanelGroup>
+        
+        {/* Floating button to toggle context panel on mobile */}
+        {isMobile && showContextPanel && (
+          <div className="fixed bottom-20 right-4 z-40">
+            <Button
+              variant="secondary"
+              size="icon"
+              className="h-10 w-10 rounded-full shadow-lg"
+              onClick={() => setShowContextPanel(!showContextPanel)}
+            >
+              <Columns3 className="h-5 w-5" />
+            </Button>
           </div>
-          
-          {isMobile && <MobileNav />}
-        </div>
+        )}
       </div>
-    </SidebarProvider>
+
+      {/* Mobile navigation - only visible on mobile */}
+      {isMobile && <MobileNav />}
+    </div>
   );
-};
+}
 
 export default MainLayout;

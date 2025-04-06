@@ -89,7 +89,7 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px] dialog-mobile-friendly">
         <DialogHeader>
           <DialogTitle>Edit Equipment</DialogTitle>
           <DialogDescription>
@@ -97,33 +97,35 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <BasicInfoFields 
-                form={form}
-                customCategories={customCategories}
-                onAddCategoryClick={() => setIsAddCategoryDialogOpen(true)}
-                language="en"
-              />
-              
-              <AdditionalInfoFields 
-                form={form}
-                language="en"
-              />
-            </div>
+        <div className="form-scrollable">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <BasicInfoFields 
+                  form={form}
+                  customCategories={customCategories}
+                  onAddCategoryClick={() => setIsAddCategoryDialogOpen(true)}
+                  language="en"
+                />
+                
+                <AdditionalInfoFields 
+                  form={form}
+                  language="en"
+                />
+              </div>
 
-            <ImageField form={form} />
-            <NotesField form={form} />
+              <ImageField form={form} />
+              <NotesField form={form} />
 
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button type="submit">Update Equipment</Button>
-            </DialogFooter>
-          </form>
-        </Form>
+              <DialogFooter className="form-actions">
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">Update Equipment</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </div>
 
         <AddCategorySection
           isOpen={isAddCategoryDialogOpen}
