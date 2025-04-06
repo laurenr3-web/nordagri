@@ -1,9 +1,12 @@
-import { useQuery, useMutation, useQueryClient, QueryKey, UseQueryOptions } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, QueryKey, UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useState, useCallback } from 'react';
 
 type QueryFn<T> = () => Promise<T>;
 type MutationFn<T, P> = (params: P) => Promise<T>;
+
+// Define PlaceholderDataFunction type to match React Query's expectations
+type PlaceholderDataFunction<T> = () => T;
 
 interface QueryOptions<T> {
   queryKey: QueryKey;
@@ -15,7 +18,7 @@ interface QueryOptions<T> {
   onSuccess?: (data: T) => void;
   onError?: (error: Error) => void;
   suspense?: boolean;
-  placeholderData?: T | (() => T);
+  placeholderData?: T | PlaceholderDataFunction<T>;
 }
 
 interface MutationOptions<T, P> {
@@ -31,7 +34,7 @@ interface MutationOptions<T, P> {
 /**
  * Hook standardisé pour les requêtes de données
  */
-export function useStandardQuery<T>(options: QueryOptions<T>) {
+export function useStandardQuery<T>(options: QueryOptions<T>): UseQueryResult<T, Error> {
   const {
     queryKey,
     queryFn,
@@ -45,7 +48,7 @@ export function useStandardQuery<T>(options: QueryOptions<T>) {
     placeholderData
   } = options;
 
-  // We need to cast the options to the proper type to satisfy TypeScript
+  // We need to create the query options with the proper typings for React Query
   const queryOptions: UseQueryOptions<T, Error, T, QueryKey> = {
     queryKey,
     queryFn,
