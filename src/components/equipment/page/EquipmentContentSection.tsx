@@ -67,10 +67,12 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <EquipmentHeader openAddDialog={openAddDialog} />
-      
+    <div className="flex flex-col h-full w-full px-1 lg:px-2">
       <div className="mb-3">
+        <EquipmentHeader openAddDialog={openAddDialog} />
+      </div>
+      
+      <div className="mb-2">
         <SearchToolbar
           currentView={currentView}
           setCurrentView={setCurrentView}
@@ -94,7 +96,7 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
         />
       </div>
       
-      <div className="mb-3">
+      <div className="mb-2">
         <CategoryTabs 
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
@@ -103,8 +105,8 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
       
       <div className="flex-1 min-h-0 overflow-auto">
         {isLoading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <div className="flex justify-center items-center py-6">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
           </div>
         ) : (
           <>

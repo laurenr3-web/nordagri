@@ -21,7 +21,7 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({
   handleEquipmentClick
 }) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
       {equipment.map((item) => (
         <Card 
           key={item.id} 
@@ -39,37 +39,37 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({
               }}
             />
             <Badge 
-              className={`absolute top-2 right-2 ${getStatusColor(item.status)}`}
+              className={`absolute top-1 right-1 text-xs ${getStatusColor(item.status)}`}
               variant="secondary"
             >
               {getStatusText(item.status)}
             </Badge>
           </div>
           
-          <CardHeader className="pb-2">
+          <CardHeader className="p-2 pb-0">
             <div className="flex justify-between items-start">
-              <h3 className="font-semibold text-lg">{item.name}</h3>
+              <h3 className="font-semibold text-sm">{item.name}</h3>
               {item.year && (
-                <Badge variant="outline">{item.year}</Badge>
+                <Badge variant="outline" className="text-xs">{item.year}</Badge>
               )}
             </div>
           </CardHeader>
           
-          <CardContent className="pb-2">
-            <div className="text-sm text-muted-foreground">
+          <CardContent className="p-2 pb-0">
+            <div className="text-xs text-muted-foreground">
               {item.manufacturer && item.model ? (
                 <p>{item.manufacturer} {item.model}</p>
               ) : (
                 <p>{item.manufacturer || item.model || item.type || 'Équipement'}</p>
               )}
               {item.location && (
-                <p className="mt-1">Emplacement: {item.location}</p>
+                <p className="truncate">{item.location}</p>
               )}
             </div>
           </CardContent>
           
-          <CardFooter className="text-xs text-muted-foreground pt-0">
-            {item.serialNumber && <p>S/N: {item.serialNumber}</p>}
+          <CardFooter className="text-xs text-muted-foreground p-2">
+            {item.serialNumber && <p className="truncate">S/N: {item.serialNumber}</p>}
           </CardFooter>
         </Card>
       ))}

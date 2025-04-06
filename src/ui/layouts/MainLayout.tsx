@@ -13,7 +13,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full overflow-hidden bg-bg-light">
+      <div className="flex h-screen w-full overflow-hidden overflow-x-hidden bg-bg-light">
         <Sidebar className="border-r border-sidebar-border bg-agri-dark">
           <SidebarContent>
             <Navbar />
