@@ -1,5 +1,4 @@
-
-import { useQuery, useMutation, useQueryClient, QueryKey } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useState, useCallback } from 'react';
 
@@ -16,7 +15,7 @@ interface QueryOptions<T> {
   onSuccess?: (data: T) => void;
   onError?: (error: Error) => void;
   suspense?: boolean;
-  placeholderData?: T;
+  placeholderData?: T | (() => T);
 }
 
 interface MutationOptions<T, P> {
@@ -46,7 +45,8 @@ export function useStandardQuery<T>(options: QueryOptions<T>) {
     placeholderData
   } = options;
 
-  const queryResult = useQuery({
+  // We need to cast the options to the proper type to satisfy TypeScript
+  const queryOptions: UseQueryOptions<T, Error, T, QueryKey> = {
     queryKey,
     queryFn,
     staleTime,
@@ -62,9 +62,9 @@ export function useStandardQuery<T>(options: QueryOptions<T>) {
       const errorMessage = error?.message || 'Une erreur est survenue lors de la récupération des données';
       if (onError) onError(error);
     }
-  });
+  };
 
-  return queryResult;
+  return useQuery(queryOptions);
 }
 
 /**
