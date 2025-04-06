@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -5,7 +6,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { RealtimeCacheProvider } from '@/providers/RealtimeCacheProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
 import ProtectedLayout from '@/components/layout/ProtectedLayout';
-import MobileMenu from '@/components/layout/MobileMenu';
+import { MobileDrawerMenu } from '@/components/layout/MobileDrawerMenu';
 
 // Pages
 import Index from '@/pages/Index';
@@ -68,11 +69,16 @@ function App() {
                     <Settings />
                   </ProtectedLayout>
                 } />
+                <Route path="/search" element={
+                  <ProtectedLayout>
+                    <div>Search Page</div>
+                  </ProtectedLayout>
+                } />
                 {/* Nouvelle route pour le scan de QR code */}
                 <Route path="/scan/:id" element={<ScanRedirect />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
-              <MobileMenu />
+              
               <Toaster />
             </AuthProvider>
           </Router>

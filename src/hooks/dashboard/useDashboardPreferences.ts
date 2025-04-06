@@ -8,6 +8,10 @@ export interface DashboardSection {
   visible: boolean;
   order: number;
   size: number; // Taille relative (1-12 en grille)
+  minWidth?: number; // Largeur minimale en pixels pour le desktop
+  minHeight?: number; // Hauteur minimale en pixels
+  collapsible?: boolean; // Si la section peut être minimisée/maximisée
+  collapsed?: boolean; // État de la section (minimisée ou non)
 }
 
 // Interface pour l'état complet des préférences
@@ -15,19 +19,85 @@ export interface DashboardPreferences {
   layout: 'grid' | 'list' | 'compact';
   sections: Record<string, DashboardSection>;
   columnCount: 1 | 2 | 3 | 4;
+  enableResizing?: boolean; // Activer le redimensionnement des sections
+  enableMobileOptimizations?: boolean; // Optimisations spécifiques pour mobile
+  enableDragAndDrop?: boolean; // Activer le déplacement des sections
 }
 
 // Préférences par défaut
 const defaultPreferences: DashboardPreferences = {
   layout: 'grid',
   columnCount: 3,
+  enableResizing: true,
+  enableMobileOptimizations: true,
+  enableDragAndDrop: true,
   sections: {
-    'equipment': { id: 'equipment', title: 'Équipement', visible: true, order: 0, size: 8 },
-    'urgent-interventions': { id: 'urgent-interventions', title: 'Interventions urgentes', visible: true, order: 1, size: 8 },
-    'weekly-calendar': { id: 'weekly-calendar', title: 'Calendrier de la semaine', visible: true, order: 2, size: 8 },
-    'alerts': { id: 'alerts', title: 'Alertes', visible: true, order: 3, size: 4 },
-    'stock': { id: 'stock', title: 'Stock faible', visible: true, order: 4, size: 4 },
-    'tasks': { id: 'tasks', title: 'Tâches', visible: true, order: 5, size: 4 }
+    'equipment': { 
+      id: 'equipment', 
+      title: 'Équipement', 
+      visible: true, 
+      order: 0, 
+      size: 8,
+      minWidth: 300,
+      minHeight: 200,
+      collapsible: true,
+      collapsed: false
+    },
+    'urgent-interventions': { 
+      id: 'urgent-interventions', 
+      title: 'Interventions urgentes', 
+      visible: true, 
+      order: 1, 
+      size: 8,
+      minWidth: 300,
+      minHeight: 250,
+      collapsible: true,
+      collapsed: false
+    },
+    'weekly-calendar': { 
+      id: 'weekly-calendar', 
+      title: 'Calendrier de la semaine', 
+      visible: true, 
+      order: 2, 
+      size: 8,
+      minWidth: 400,
+      minHeight: 300,
+      collapsible: true,
+      collapsed: false
+    },
+    'alerts': { 
+      id: 'alerts', 
+      title: 'Alertes', 
+      visible: true, 
+      order: 3, 
+      size: 4,
+      minWidth: 250,
+      minHeight: 200,
+      collapsible: true,
+      collapsed: false
+    },
+    'stock': { 
+      id: 'stock', 
+      title: 'Stock faible', 
+      visible: true, 
+      order: 4, 
+      size: 4,
+      minWidth: 250,
+      minHeight: 200,
+      collapsible: true,
+      collapsed: false
+    },
+    'tasks': { 
+      id: 'tasks', 
+      title: 'Tâches', 
+      visible: true, 
+      order: 5, 
+      size: 4,
+      minWidth: 250,
+      minHeight: 200,
+      collapsible: true,
+      collapsed: false
+    }
   }
 };
 
@@ -78,6 +148,20 @@ export function useDashboardPreferences() {
       }
     }));
   };
+  
+  // Basculer l'état minimisé/maximisé d'une section
+  const toggleSectionCollapse = (sectionId: string) => {
+    setPreferences(prev => ({
+      ...prev,
+      sections: {
+        ...prev.sections,
+        [sectionId]: {
+          ...prev.sections[sectionId],
+          collapsed: !prev.sections[sectionId].collapsed
+        }
+      }
+    }));
+  };
 
   // Modifier l'ordre d'une section
   const updateSectionOrder = (sections: Record<string, DashboardSection>) => {
@@ -117,6 +201,14 @@ export function useDashboardPreferences() {
     }));
   };
 
+  // Activer/désactiver les fonctionnalités
+  const toggleFeature = (feature: 'enableResizing' | 'enableMobileOptimizations' | 'enableDragAndDrop') => {
+    setPreferences(prev => ({
+      ...prev,
+      [feature]: !prev[feature]
+    }));
+  };
+
   // Réinitialiser les préférences
   const resetPreferences = () => {
     setPreferences(defaultPreferences);
@@ -135,10 +227,12 @@ export function useDashboardPreferences() {
     setIsEditing,
     isLoading,
     toggleSectionVisibility,
+    toggleSectionCollapse,
     updateSectionOrder,
     updateSectionSize,
     updateLayout,
     updateColumnCount,
+    toggleFeature,
     resetPreferences,
     getSortedSections
   };
