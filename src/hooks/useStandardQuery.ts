@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient, QueryKey, UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useState, useCallback } from 'react';
@@ -5,8 +6,8 @@ import { useState, useCallback } from 'react';
 type QueryFn<T> = () => Promise<T>;
 type MutationFn<T, P> = (params: P) => Promise<T>;
 
-// Define PlaceholderDataFunction type to match React Query's expectations
-type PlaceholderDataFunction<T> = () => T;
+// UpdatedPlaceholderDataFunction type definition to match React Query's expectations
+type PlaceholderDataFunction<TData> = (previousData?: TData) => TData;
 
 interface QueryOptions<T> {
   queryKey: QueryKey;
