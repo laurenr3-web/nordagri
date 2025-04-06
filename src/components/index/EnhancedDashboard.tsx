@@ -1,16 +1,24 @@
+
 import React, { useMemo, useCallback } from 'react';
 import StatsSection from './StatsSection';
 import EquipmentSection from './EquipmentSection';
 import MaintenanceSection from './MaintenanceSection';
 import AlertsSection from './AlertsSection';
 import TasksSection from './TasksSection';
-import { DashboardSection } from '@/components/dashboard/DashboardSection';
+import { DraggableDashboardSection } from '@/components/dashboard/DraggableDashboardSection';
 import { UrgentInterventionsTable } from '@/components/dashboard/UrgentInterventionsTable';
 import { StockAlerts } from '@/components/dashboard/StockAlerts';
 import { WeeklyCalendar } from '@/components/dashboard/WeeklyCalendar';
 import { SearchBar } from '@/components/dashboard/SearchBar';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useDashboardPreferences } from '@/hooks/dashboard/useDashboardPreferences';
+import { DashboardCustomizer } from '@/components/dashboard/DashboardCustomizer';
+import { DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import { SortableItem } from '@/components/dashboard/SortableItem';
+import { toast } from 'sonner';
+
 interface EnhancedDashboardProps {
   statsData: any[];
   equipmentData: any[];
@@ -28,6 +36,7 @@ interface EnhancedDashboardProps {
   handleTasksAddClick: () => void;
   handleEquipmentClick: (id: number) => void;
 }
+
 const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
   statsData,
   equipmentData,
@@ -46,6 +55,27 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
   handleEquipmentClick
 }) => {
   const navigate = useNavigate();
+
+  // Utiliser notre hook de préférences
+  const {
+    preferences,
+    isEditing,
+    setIsEditing,
+    toggleSectionVisibility,
+    updateSectionOrder,
+    updateLayout,
+    updateColumnCount,
+    resetPreferences
+  } = useDashboardPreferences();
+
+  // Configuration des capteurs pour le drag-and-drop
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   // Mémoisation des éléments de recherche pour éviter des recalculs inutiles
   const searchItems = useMemo(() => [...equipmentData.map(item => ({
@@ -78,9 +108,11 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
   const handleViewIntervention = useCallback((id: number) => {
     navigate(`/interventions?id=${id}`);
   }, [navigate]);
+  
   const handleViewParts = useCallback(() => {
     navigate('/parts');
   }, [navigate]);
+  
   const handleViewCalendarEvent = useCallback((id: string | number, type: string) => {
     switch (type) {
       case 'maintenance':
@@ -94,42 +126,251 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
         break;
     }
   }, [navigate]);
-  return <div className="space-y-8 my-0 py-0 rounded-lg">
-      <div className="flex items-center justify-between">
+
+  // Gérer la fin du glisser-déposer
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (over && active.id !== over.id) {
+      const oldIndex = Object.values(preferences.sections).findIndex(section => section.id === active.id);
+      const newIndex = Object.values(preferences.sections).findIndex(section => section.id === over.id);
+      
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const sortedSections = Object.values(preferences.sections).sort((a, b) => a.order - b.order);
+        const reorderedSections = arrayMove(sortedSections, oldIndex, newIndex);
+        
+        // Mise à jour des ordres
+        const updatedSections = { ...preferences.sections };
+        reorderedSections.forEach((section, index) => {
+          updatedSections[section.id] = {
+            ...updatedSections[section.id],
+            order: index
+          };
+        });
+        
+        // Mettre à jour l'état
+        updateSectionOrder(updatedSections);
+        toast.success("Disposition mise à jour");
+      }
+    }
+  };
+
+  // Obtenir les sections visibles et triées par ordre
+  const visibleSections = Object.values(preferences.sections)
+    .filter(section => section.visible)
+    .sort((a, b) => a.order - b.order)
+    .map(section => section.id);
+
+  // Calculer le nombre de colonnes en fonction des préférences
+  const gridColsClass = useMemo(() => {
+    switch (preferences.columnCount) {
+      case 1: return "grid-cols-1";
+      case 2: return "grid-cols-1 lg:grid-cols-2";
+      case 3: return "grid-cols-1 md:grid-cols-2 lg:grid-cols-3";
+      case 4: return "grid-cols-1 md:grid-cols-2 lg:grid-cols-4";
+      default: return "grid-cols-1 lg:grid-cols-3";
+    }
+  }, [preferences.columnCount]);
+
+  // Rendre les sections de manière dynamique
+  const renderSection = (sectionId: string) => {
+    switch (sectionId) {
+      case 'equipment':
+        return (
+          <SortableItem id="equipment">
+            <DraggableDashboardSection
+              id="equipment"
+              title="État des équipements"
+              subtitle="Surveillez les performances de votre flotte"
+              action={
+                <Button variant="outline" size="sm" onClick={handleEquipmentViewAllClick}>
+                  Voir tout
+                </Button>
+              }
+              isDraggable={isEditing}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {equipmentData.map((item, index) => (
+                  <div 
+                    key={item.id}
+                    className="cursor-pointer"
+                    onClick={() => handleEquipmentClick(item.id)}
+                  >
+                    {/* Content of equipment item */}
+                    <div className="border rounded-md p-4 hover:border-primary transition-colors">
+                      <h3 className="font-medium">{item.name}</h3>
+                      <p className="text-sm text-muted-foreground">{item.type}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </DraggableDashboardSection>
+          </SortableItem>
+        );
+        
+      case 'urgent-interventions':
+        return (
+          <SortableItem id="urgent-interventions">
+            <DraggableDashboardSection
+              id="urgent-interventions"
+              title="Interventions urgentes"
+              subtitle="Interventions critiques en attente"
+              action={
+                <Button variant="outline" size="sm" onClick={() => handleViewIntervention(-1)}>
+                  Toutes les interventions
+                </Button>
+              }
+              isDraggable={isEditing}
+            >
+              <UrgentInterventionsTable 
+                interventions={urgentInterventions} 
+                onViewDetails={handleViewIntervention} 
+              />
+            </DraggableDashboardSection>
+          </SortableItem>
+        );
+        
+      case 'weekly-calendar':
+        return (
+          <SortableItem id="weekly-calendar">
+            <DraggableDashboardSection
+              id="weekly-calendar"
+              title="Calendrier de la semaine"
+              subtitle="Vos rendez-vous à venir"
+              isDraggable={isEditing}
+            >
+              <WeeklyCalendar
+                events={weeklyCalendarEvents}
+                onViewEvent={handleViewCalendarEvent}
+              />
+            </DraggableDashboardSection>
+          </SortableItem>
+        );
+        
+      case 'alerts':
+        return (
+          <SortableItem id="alerts">
+            <DraggableDashboardSection
+              id="alerts"
+              title="Alertes"
+              subtitle="Notifications importantes"
+              action={
+                <Button variant="outline" size="sm" onClick={handleAlertsViewAllClick}>
+                  Voir tout
+                </Button>
+              }
+              isDraggable={isEditing}
+            >
+              <div className="space-y-4">
+                {alertItems.slice(0, 3).map((alert, index) => (
+                  <div key={alert.id} className="border rounded-md p-3">
+                    <h4 className="font-medium">{alert.title}</h4>
+                    <p className="text-sm text-muted-foreground">{alert.message}</p>
+                  </div>
+                ))}
+              </div>
+            </DraggableDashboardSection>
+          </SortableItem>
+        );
+        
+      case 'stock':
+        return (
+          <SortableItem id="stock">
+            <DraggableDashboardSection
+              id="stock"
+              title="Stock faible"
+              subtitle="Pièces à réapprovisionner"
+              action={
+                <Button variant="outline" size="sm" onClick={handleViewParts}>
+                  Gérer le stock
+                </Button>
+              }
+              isDraggable={isEditing}
+            >
+              <StockAlerts alerts={stockAlerts} onViewParts={handleViewParts} />
+            </DraggableDashboardSection>
+          </SortableItem>
+        );
+        
+      case 'tasks':
+        return (
+          <SortableItem id="tasks">
+            <DraggableDashboardSection
+              id="tasks"
+              title="Tâches à venir"
+              subtitle="Vos prochaines tâches planifiées"
+              action={
+                <Button variant="outline" size="sm" onClick={handleTasksAddClick}>
+                  Ajouter
+                </Button>
+              }
+              isDraggable={isEditing}
+            >
+              <div className="space-y-4">
+                {upcomingTasks.slice(0, 3).map((task) => (
+                  <div key={task.id} className="border rounded-md p-3">
+                    <h4 className="font-medium">{task.title}</h4>
+                    <p className="text-sm text-muted-foreground">{task.description}</p>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {task.dueDate.toLocaleDateString()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </DraggableDashboardSection>
+          </SortableItem>
+        );
+        
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="space-y-8 my-0 py-0 rounded-lg">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-2xl font-semibold mb-0">Tableau de bord</h1>
-        <SearchBar searchItems={searchItems} className="w-[300px]" />
+        <div className="flex items-center gap-2">
+          <DashboardCustomizer
+            preferences={preferences}
+            isEditing={isEditing}
+            setIsEditing={setIsEditing}
+            toggleSectionVisibility={toggleSectionVisibility}
+            updateLayout={updateLayout}
+            updateColumnCount={updateColumnCount}
+            resetPreferences={resetPreferences}
+          />
+          <SearchBar searchItems={searchItems} className="w-[250px] lg:w-[300px]" />
+        </div>
       </div>
 
       <StatsSection stats={statsData} onStatClick={handleStatsCardClick} />
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          <EquipmentSection equipment={equipmentData} onViewAllClick={handleEquipmentViewAllClick} onEquipmentClick={handleEquipmentClick} />
-
-          <DashboardSection title="Interventions urgentes" subtitle="Interventions critiques en attente" action={<Button variant="outline" size="sm" onClick={handleViewIntervention.bind(null, -1)} aria-label="Voir toutes les interventions">
-                Toutes les interventions
-              </Button>}>
-            <UrgentInterventionsTable interventions={urgentInterventions} onViewDetails={handleViewIntervention} />
-          </DashboardSection>
-          
-          <DashboardSection title="Calendrier de la semaine" subtitle="Vos rendez-vous à venir">
-            <WeeklyCalendar events={weeklyCalendarEvents} onViewEvent={handleViewCalendarEvent} />
-          </DashboardSection>
-        </div>
+      <div className={`w-full transition-all duration-300 ${isEditing ? 'bg-muted/30 p-4 border border-dashed rounded-lg' : ''}`}>
+        {isEditing && (
+          <div className="bg-accent/80 p-2 rounded-md mb-4 text-sm text-center">
+            Glissez et déposez les sections pour réorganiser votre tableau de bord
+          </div>
+        )}
         
-        <div className="space-y-8">
-          <AlertsSection alerts={alertItems} onViewAllClick={handleAlertsViewAllClick} />
-
-          <DashboardSection title="Stock faible" subtitle="Pièces à réapprovisionner" action={<Button variant="outline" size="sm" onClick={handleViewParts} aria-label="Gérer le stock de pièces">
-                Gérer le stock
-              </Button>}>
-            <StockAlerts alerts={stockAlerts} onViewParts={handleViewParts} />
-          </DashboardSection>
-          
-          <TasksSection tasks={upcomingTasks} onAddClick={handleTasksAddClick} />
-        </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={visibleSections} strategy={verticalListSortingStrategy}>
+            <div className={`grid ${gridColsClass} gap-6`}>
+              {visibleSections.map((sectionId) => (
+                <React.Fragment key={sectionId}>
+                  {renderSection(sectionId)}
+                </React.Fragment>
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       </div>
-    </div>;
+    </div>
+  );
 };
 
 // Optimiser les re-renders avec React.memo

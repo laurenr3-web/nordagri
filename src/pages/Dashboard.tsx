@@ -15,6 +15,7 @@ import {
   adaptUpcomingTasks 
 } from '@/hooks/dashboard/adapters';
 import { useNavigate } from 'react-router-dom';
+import { SuccessAnimation } from '@/components/ui/success-animation';
 
 const DashboardPage = () => {
   // Récupération des données réelles avec le hook
@@ -29,6 +30,9 @@ const DashboardPage = () => {
     stockAlerts,
     weeklyCalendarEvents
   } = useDashboardData();
+
+  // État pour l'animation de succès lors de la personnalisation
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
 
   // Current month for calendar
   const [currentMonth] = useState(new Date());
@@ -77,6 +81,12 @@ const DashboardPage = () => {
   
   const handleEquipmentClick = (id: number) => {
     navigate(`/equipment/${id}`);
+  };
+
+  // Fonction pour montrer l'animation de succès lors de la personnalisation du dashboard
+  const showDashboardCustomizationSuccess = () => {
+    setShowSuccessAnimation(true);
+    setTimeout(() => setShowSuccessAnimation(false), 2000);
   };
 
   return (
@@ -130,6 +140,12 @@ const DashboardPage = () => {
           </div>
         </div>
       </div>
+      
+      {/* Animation de succès pour la personnalisation du tableau de bord */}
+      <SuccessAnimation 
+        show={showSuccessAnimation} 
+        message="Tableau de bord personnalisé" 
+      />
     </MainLayout>
   );
 };
