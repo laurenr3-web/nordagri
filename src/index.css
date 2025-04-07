@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,6 +9,7 @@
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch !important;
   padding-bottom: 20px !important;
+  overscroll-behavior: touch !important;
 }
 
 .mobile-pb-safe {
@@ -18,5 +20,6 @@
   max-height: 65vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: touch;
   padding-bottom: 10px;
 }

@@ -5,9 +5,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { RealtimeCacheProvider } from '@/providers/RealtimeCacheProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
-import ProtectedLayout from '@/components/layout/ProtectedLayout';
-import { MobileDrawerMenu } from '@/components/layout/MobileDrawerMenu';
-import { LayoutProvider } from '@/ui/layouts/MainLayout';
+import { LayoutProvider } from '@/ui/layouts/MainLayoutContext';
 import { MainLayout } from '@/ui/layouts/MainLayout';
 
 // Pages
@@ -46,7 +44,7 @@ function App() {
                     <Route path="/interventions" element={<Interventions />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/search" element={<div>Search Page</div>} />
-                    {/* Nouvelle route pour le scan de QR code */}
+                    {/* Route for QR code scanning */}
                     <Route path="/scan/:id" element={<ScanRedirect />} />
                     <Route path="*" element={<NotFound />} />
                   </Route>

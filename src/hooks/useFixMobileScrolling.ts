@@ -1,59 +1,61 @@
+
 import { useEffect } from 'react';
 
 /**
- * Hook pour corriger les problèmes de défilement sur mobile dans les dialogues
- * 
- * Ce hook peut être ajouté au layout principal pour appliquer automatiquement
- * la correction à tous les dialogues existants sans avoir à les modifier
+ * Custom hook to fix mobile scrolling issues in form dialogs
+ * by applying proper CSS styles to modal dialogs and forms
  */
-export function useFixMobileScrolling() {
+const useFixMobileScrolling = () => {
   useEffect(() => {
-    // Fonction pour permettre le défilement dans les dialogues/modales sur mobile
-    const fixMobileScrolling = () => {
-      // Sélectionner tous les contenus de dialogue
-      const dialogContents = document.querySelectorAll('[role="dialog"] > div');
+    // Function to apply scrolling fixes to a dialog element
+    const applyScrollFix = (element: HTMLElement) => {
+      if (!element) return;
       
-      dialogContents.forEach(dialog => {
-        if (dialog instanceof HTMLElement) {
-          // Vérifier si le style n'a pas déjà été appliqué
-          if (dialog.style.maxHeight !== '80vh') {
-            console.log('Fixing mobile scrolling for dialog:', dialog);
-            
-            // Appliquer les styles pour permettre le défilement
-            dialog.style.maxHeight = '80vh';
-            dialog.style.overflowY = 'auto';
-            dialog.style.WebkitOverflowScrolling = 'touch';
-            
-            // Ajouter un padding en bas pour éviter que le dernier élément soit caché
-            const currentPadding = window.getComputedStyle(dialog).paddingBottom;
-            const paddingValue = parseInt(currentPadding);
-            if (!isNaN(paddingValue) && paddingValue < 20) {
-              dialog.style.paddingBottom = '20px';
-            }
-          }
-        }
-      });
+      // Apply proper overflow settings for mobile scrolling
+      element.style.maxHeight = '80vh';
+      element.style.overflowY = 'auto';
+      // Use this instead of WebkitOverflowScrolling which is deprecated
+      element.style.overscrollBehavior = 'touch';
+      element.classList.add('dialog-mobile-friendly');
     };
-    
-    // Appliquer le correctif lors du montage du composant
-    fixMobileScrolling();
-    
-    // Observer le DOM pour détecter l'ouverture de nouvelles modales
+
+    // Observer to watch for dialog elements being added to the DOM
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
-        if (mutation.addedNodes.length > 0) {
-          // Appliquer le correctif avec un léger délai pour s'assurer que le DOM est complètement chargé
-          setTimeout(fixMobileScrolling, 100);
+        if (mutation.addedNodes.length) {
+          mutation.addedNodes.forEach((node) => {
+            if (node instanceof HTMLElement) {
+              // Find dialog content within added nodes
+              const dialogElements = node.querySelectorAll('.dialog-content, [role="dialog"], .form-scrollable');
+              dialogElements.forEach((el) => {
+                if (el instanceof HTMLElement) {
+                  applyScrollFix(el);
+                }
+              });
+              
+              // Also check if the node itself is a dialog
+              if (node.classList.contains('dialog-content') || 
+                  node.getAttribute('role') === 'dialog' || 
+                  node.classList.contains('form-scrollable')) {
+                applyScrollFix(node);
+              }
+            }
+          });
         }
       });
     });
-    
-    // Démarrer l'observation du body
-    observer.observe(document.body, { childList: true, subtree: true });
-    
-    // Nettoyer l'observateur lors du démontage du composant
-    return () => observer.disconnect();
+
+    // Start observing the document body
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+
+    // Clean up the observer on component unmount
+    return () => {
+      observer.disconnect();
+    };
   }, []);
-}
+};
 
 export default useFixMobileScrolling;
