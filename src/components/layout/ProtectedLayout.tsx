@@ -1,18 +1,20 @@
 
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { MainLayout } from '@/ui/layouts/MainLayout';
+import MainLayout from '@/ui/layouts/MainLayout';
 import { LayoutProvider } from '@/ui/layouts/MainLayoutContext';
 
 interface ProtectedLayoutProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
-const ProtectedLayout: React.FC<ProtectedLayoutProps> = () => {
+const ProtectedLayout: React.FC<ProtectedLayoutProps> = ({ children }) => {
   return (
     <ProtectedRoute>
       <LayoutProvider>
-        <MainLayout />
+        <MainLayout>
+          {children}
+        </MainLayout>
       </LayoutProvider>
     </ProtectedRoute>
   );

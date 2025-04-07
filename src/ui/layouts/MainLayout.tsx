@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, ReactNode } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useMedia } from 'react-use';
 import { cn } from '@/lib/utils';
@@ -10,6 +10,16 @@ import { ChevronLeft, ChevronRight, Columns3 } from 'lucide-react';
 import MobileNav from '@/components/layout/MobileNav';
 import { Sidebar } from '@/components/ui/sidebar';
 import { useLayoutContext } from './MainLayoutContext';
+
+// Define props interface for MainLayout
+interface MainLayoutProps {
+  children?: ReactNode;
+  rightPanel?: ReactNode;
+  breadcrumbs?: {
+    label: string;
+    path: string;
+  }[];
+}
 
 // Simple context panel component
 const ContextPanel = () => {
@@ -23,7 +33,7 @@ const ContextPanel = () => {
   );
 };
 
-export function MainLayout() {
+export function MainLayout({ children, rightPanel, breadcrumbs }: MainLayoutProps = {}) {
   const isDesktop = useMedia('(min-width: 1024px)', true);
   const isMobile = useMedia('(max-width: 767px)', false);
   
@@ -83,17 +93,17 @@ export function MainLayout() {
                 "py-6 px-4 md:px-6 md:py-8 lg:py-10",
                 isMobile && "mobile-pb-safe" // Add bottom padding on mobile for navigation
               )}>
-                <Outlet />
+                {children || <Outlet />}
               </main>
             </ScrollArea>
           </ResizablePanel>
 
           {/* Right context panel - hidden on mobile and when not needed */}
-          {!isMobile && showContextPanel && (
+          {!isMobile && showContextPanel && rightPanel && (
             <>
               <ResizableHandle withHandle />
               <ResizablePanel defaultSize={18} minSize={15} maxSize={30}>
-                <ContextPanel />
+                {rightPanel || <ContextPanel />}
                 <div className="absolute top-4 -left-3">
                   <Button
                     variant="secondary"

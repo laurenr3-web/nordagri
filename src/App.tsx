@@ -6,7 +6,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { RealtimeCacheProvider } from '@/providers/RealtimeCacheProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { LayoutProvider } from '@/ui/layouts/MainLayoutContext';
-import { MainLayout } from '@/ui/layouts/MainLayout';
+import MainLayout from '@/ui/layouts/MainLayout';
 
 // Pages
 import Index from '@/pages/Index';
@@ -33,8 +33,8 @@ function App() {
             <AuthProvider>
               <LayoutProvider>
                 <Routes>
-                  <Route path="/" element={<MainLayout />}>
-                    <Route index element={<Index />} />
+                  <Route element={<MainLayout />}>
+                    <Route path="/" element={<Index />} />
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/equipment" element={<Equipment />} />

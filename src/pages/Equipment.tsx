@@ -1,6 +1,4 @@
-
 import React from 'react';
-import MainLayout from '@/ui/layouts/MainLayout';
 import EquipmentPageContent from '@/components/equipment/page/EquipmentPageContent';
 import EquipmentDialogs from '@/components/equipment/dialogs/EquipmentDialogs';
 import { useEquipmentData } from '@/hooks/equipment/useEquipmentData';
@@ -65,19 +63,17 @@ const EquipmentPage = () => {
   }, [equipment]);
   
   return (
-    <MainLayout>
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <div className="flex-1 overflow-auto px-1 sm:px-2">
-          <div className="w-full">
-            <EquipmentPageContent 
-              equipment={transformedEquipment}
-              isLoading={isLoading}
-            />
-            <EquipmentDialogs />
-          </div>
+    <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex-1 overflow-auto px-1 sm:px-2">
+        <div className="w-full">
+          <EquipmentPageContent 
+            equipment={transformedEquipment}
+            isLoading={isLoading}
+          />
+          <EquipmentDialogs />
         </div>
       </div>
-    </MainLayout>
+    </div>
   );
 };
 

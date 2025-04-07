@@ -1,6 +1,4 @@
-
 import React, { useState, useEffect } from 'react';
-import MainLayout from '@/ui/layouts/MainLayout';
 import InterventionsHeader from '@/components/interventions/InterventionsHeader';
 import InterventionsContainer from '@/components/interventions/InterventionsContainer';
 import { useInterventionsState } from '@/hooks/interventions/useInterventionsState';
@@ -74,17 +72,6 @@ const InterventionsPage = () => {
     return Promise.resolve();
   };
 
-  // Afficher un loader pendant le chargement
-  if (isLoading) {
-    return (
-      <MainLayout>
-        <div className="flex flex-1 flex-col items-center justify-center">
-          <p>Chargement des interventions...</p>
-        </div>
-      </MainLayout>
-    );
-  }
-
   // Ensure selectedInterventionId is a number or null for the InterventionsDialogs component
   const numericSelectedInterventionId = selectedInterventionId === null 
     ? null 
@@ -92,53 +79,60 @@ const InterventionsPage = () => {
       ? parseInt(selectedInterventionId, 10) 
       : selectedInterventionId;
 
+  // Afficher un loader pendant le chargement
+  if (isLoading) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center">
+        <p>Chargement des interventions...</p>
+      </div>
+    );
+  }
+
   return (
-    <MainLayout>
-      <div className="flex-1">
-        <div className="px-4 py-4">
-          <div className="max-w-7xl mx-auto">
-            <InterventionsHeader 
-              onNewIntervention={handleOpenNewInterventionDialog} 
-              searchQuery={searchQuery}
-              onSearchChange={(query) => handleSearchChange({ target: { value: query } } as React.ChangeEvent<HTMLInputElement>)}
-              selectedPriority={selectedPriority}
-              onPriorityChange={handlePriorityChange}
-              currentView={currentView}
-              setCurrentView={setCurrentView}
-            />
+    <div className="flex-1">
+      <div className="px-4 py-4">
+        <div className="max-w-7xl mx-auto">
+          <InterventionsHeader 
+            onNewIntervention={handleOpenNewInterventionDialog} 
+            searchQuery={searchQuery}
+            onSearchChange={(query) => handleSearchChange({ target: { value: query } } as React.ChangeEvent<HTMLInputElement>)}
+            selectedPriority={selectedPriority}
+            onPriorityChange={handlePriorityChange}
+            currentView={currentView}
+            setCurrentView={setCurrentView}
+          />
 
-            <InterventionsContainer
-              filteredInterventions={filteredInterventions.length > 0 ? filteredInterventions : interventions}
-              currentView={currentView}
-              setCurrentView={setCurrentView}
-              onClearSearch={handleClearSearch}
-              onViewDetails={handleViewDetails}
-              onStartWork={(intervention) => {
-                handleStartWork(intervention);
-                toast.success(`Intervention "${intervention.title}" démarrée`);
-              }}
-              searchQuery={searchQuery}
-              selectedPriority={selectedPriority}
-              onSearchChange={handleSearchChange}
-              onPriorityChange={handlePriorityChange}
-            />
+          <InterventionsContainer
+            filteredInterventions={filteredInterventions.length > 0 ? filteredInterventions : interventions}
+            currentView={currentView}
+            setCurrentView={setCurrentView}
+            onClearSearch={handleClearSearch}
+            onViewDetails={handleViewDetails}
+            onStartWork={(intervention) => {
+              handleStartWork(intervention);
+              toast.success(`Intervention "${intervention.title}" démarrée`);
+            }}
+            searchQuery={searchQuery}
+            selectedPriority={selectedPriority}
+            onSearchChange={handleSearchChange}
+            onPriorityChange={handlePriorityChange}
+          />
 
-            {/* Dialogs for interventions */}
-            <InterventionsDialogs
-              isNewInterventionDialogOpen={isNewInterventionDialogOpen}
-              onCloseNewInterventionDialog={handleCloseNewInterventionDialog}
-              onCreate={handleAfterCreateIntervention}
-              interventionDetailsOpen={interventionDetailsOpen}
-              selectedInterventionId={numericSelectedInterventionId}
-              onCloseInterventionDetails={handleCloseInterventionDetails}
-              onStartWork={handleStartWork}
-              interventions={interventions}
-              filteredInterventions={filteredInterventions}
-            />
-          </div>
+          {/* Dialogs for interventions */}
+          <InterventionsDialogs
+            isNewInterventionDialogOpen={isNewInterventionDialogOpen}
+            onCloseNewInterventionDialog={handleCloseNewInterventionDialog}
+            onCreate={handleAfterCreateIntervention}
+            interventionDetailsOpen={interventionDetailsOpen}
+            selectedInterventionId={numericSelectedInterventionId}
+            onCloseInterventionDetails={handleCloseInterventionDetails}
+            onStartWork={handleStartWork}
+            interventions={interventions}
+            filteredInterventions={filteredInterventions}
+          />
         </div>
       </div>
-    </MainLayout>
+    </div>
   );
 };
 
