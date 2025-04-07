@@ -52,7 +52,7 @@ export function ResizableSortableItem({ id, children, onResizeEnd }: SortableIte
     <SortableItem id={id} onResizeEnd={onResizeEnd}>
       <ResizablePanelGroup 
         direction="vertical"
-        onLayout={handleResizeEnd}
+        onLayout={(sizes) => onResizeEnd?.(sizes[0])}
         className="min-h-[200px]"
       >
         <ResizablePanel defaultSize={100}>

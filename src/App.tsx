@@ -7,6 +7,8 @@ import { RealtimeCacheProvider } from '@/providers/RealtimeCacheProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
 import ProtectedLayout from '@/components/layout/ProtectedLayout';
 import { MobileDrawerMenu } from '@/components/layout/MobileDrawerMenu';
+import { LayoutProvider } from '@/ui/layouts/MainLayout';
+import { MainLayout } from '@/ui/layouts/MainLayout';
 
 // Pages
 import Index from '@/pages/Index';
@@ -31,55 +33,27 @@ function App() {
         <RealtimeCacheProvider>
           <Router>
             <AuthProvider>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/dashboard" element={
-                  <ProtectedLayout>
-                    <Dashboard />
-                  </ProtectedLayout>
-                } />
-                <Route path="/equipment" element={
-                  <ProtectedLayout>
-                    <Equipment />
-                  </ProtectedLayout>
-                } />
-                <Route path="/equipment/:id" element={
-                  <ProtectedLayout>
-                    <EquipmentDetail />
-                  </ProtectedLayout>
-                } />
-                <Route path="/maintenance" element={
-                  <ProtectedLayout>
-                    <Maintenance />
-                  </ProtectedLayout>
-                } />
-                <Route path="/parts" element={
-                  <ProtectedLayout>
-                    <Parts />
-                  </ProtectedLayout>
-                } />
-                <Route path="/interventions" element={
-                  <ProtectedLayout>
-                    <Interventions />
-                  </ProtectedLayout>
-                } />
-                <Route path="/settings" element={
-                  <ProtectedLayout>
-                    <Settings />
-                  </ProtectedLayout>
-                } />
-                <Route path="/search" element={
-                  <ProtectedLayout>
-                    <div>Search Page</div>
-                  </ProtectedLayout>
-                } />
-                {/* Nouvelle route pour le scan de QR code */}
-                <Route path="/scan/:id" element={<ScanRedirect />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              
-              <Toaster />
+              <LayoutProvider>
+                <Routes>
+                  <Route path="/" element={<MainLayout />}>
+                    <Route index element={<Index />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/equipment" element={<Equipment />} />
+                    <Route path="/equipment/:id" element={<EquipmentDetail />} />
+                    <Route path="/maintenance" element={<Maintenance />} />
+                    <Route path="/parts" element={<Parts />} />
+                    <Route path="/interventions" element={<Interventions />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/search" element={<div>Search Page</div>} />
+                    {/* Nouvelle route pour le scan de QR code */}
+                    <Route path="/scan/:id" element={<ScanRedirect />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Route>
+                </Routes>
+                
+                <Toaster />
+              </LayoutProvider>
             </AuthProvider>
           </Router>
         </RealtimeCacheProvider>

@@ -27,7 +27,7 @@ export const DialogWrapper: React.FC<DialogWrapperProps> = ({
 }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`${maxWidth} dialog-mobile-friendly`}>
+      <DialogContent className={`${maxWidth} max-h-[80vh] overflow-y-auto -webkit-overflow-scrolling-touch dialog-mobile-friendly`}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}

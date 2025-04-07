@@ -1,30 +1,84 @@
 
 import React, { useState, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
-import { useMedia } from 'react-use';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChevronLeft, ChevronRight, Menu, Columns3 } from 'lucide-react';
-import Sidebar from '../navigation/Sidebar';
-import MobileNav from '@/components/layout/MobileNav'; 
-import { useLayoutContext } from '@/contexts/LayoutContext';
-import ContextPanel from '../panels/ContextPanel';
+import MobileNav from '@/components/layout/MobileNav';
+import { Sidebar } from '@/components/ui/sidebar';
 import useFixMobileScrolling from '@/hooks/useFixMobileScrolling';
 
+// Create a context for layout management
+import React, { createContext, useContext, useState } from 'react';
+
+// Create the context
+const LayoutContext = createContext({
+  sidebarCollapsed: false,
+  setSidebarCollapsed: (value: boolean) => {},
+  showContextPanel: false,
+  setShowContextPanel: (value: boolean) => {},
+});
+
+// Create a provider component
+export const LayoutProvider = ({ children }) => {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showContextPanel, setShowContextPanel] = useState(false);
+
+  return (
+    <LayoutContext.Provider value={{
+      sidebarCollapsed,
+      setSidebarCollapsed,
+      showContextPanel,
+      setShowContextPanel
+    }}>
+      {children}
+    </LayoutContext.Provider>
+  );
+};
+
+// Create a hook for using the context
+export const useLayoutContext = () => useContext(LayoutContext);
+
+// Simple context panel component
+const ContextPanel = () => {
+  return (
+    <div className="h-full bg-background border-l p-4">
+      <h3 className="text-lg font-medium mb-4">Context Panel</h3>
+      <div className="text-sm text-muted-foreground">
+        <p>This panel shows context-specific information related to the current view.</p>
+      </div>
+    </div>
+  );
+};
+
 export function MainLayout() {
-  // Appliquer le correctif de défilement mobile automatiquement
+  // Apply mobile scrolling fix automatically
   useFixMobileScrolling();
   
-  const isDesktop = useMedia('(min-width: 1024px)', true);
-  const isMobile = useMedia('(max-width: 767px)', false);
-  const { 
-    sidebarCollapsed, 
-    setSidebarCollapsed, 
-    showContextPanel, 
-    setShowContextPanel 
+  // Use media queries for responsive design
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 767);
+  
+  // Get layout context for sidebar and context panel state
+  const {
+    sidebarCollapsed,
+    setSidebarCollapsed,
+    showContextPanel,
+    setShowContextPanel
   } = useLayoutContext();
+  
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+      setIsMobile(window.innerWidth <= 767);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   // Collapse sidebar by default on smaller screens but not mobile
   useEffect(() => {
@@ -45,14 +99,15 @@ export function MainLayout() {
                 defaultSize={18} 
                 minSize={12}
                 maxSize={25}
-                collapsible={true}
+                collapsible
                 collapsedSize={4}
-                collapsed={sidebarCollapsed}
                 onCollapse={() => setSidebarCollapsed(true)}
                 onExpand={() => setSidebarCollapsed(false)}
                 className="bg-background border-r relative"
               >
-                <Sidebar collapsed={sidebarCollapsed} />
+                <Sidebar>
+                  {/* Sidebar content here */}
+                </Sidebar>
                 <div className="absolute top-1/2 -right-3 transform -translate-y-1/2">
                   <Button
                     variant="secondary"

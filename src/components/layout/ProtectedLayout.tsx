@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import MainLayout from '@/ui/layouts/MainLayout';
-import MobileNav from '@/components/layout/MobileNav';
+import { MainLayout } from '@/ui/layouts/MainLayout';
+import { LayoutProvider } from '@/ui/layouts/MainLayout';
 
 interface ProtectedLayoutProps {
   children: React.ReactNode;
@@ -11,10 +11,9 @@ interface ProtectedLayoutProps {
 const ProtectedLayout: React.FC<ProtectedLayoutProps> = ({ children }) => {
   return (
     <ProtectedRoute>
-      <MainLayout>
-        {children}
-        <MobileNav />
-      </MainLayout>
+      <LayoutProvider>
+        <MainLayout />
+      </LayoutProvider>
     </ProtectedRoute>
   );
 };
