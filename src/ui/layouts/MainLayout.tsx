@@ -8,8 +8,9 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/componen
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChevronLeft, ChevronRight, Columns3 } from 'lucide-react';
 import MobileNav from '@/components/layout/MobileNav';
-import { Sidebar } from '@/components/ui/sidebar';
 import { useLayoutContext } from './MainLayoutContext';
+import { Sidebar } from '@/components/ui/sidebar';
+import Navbar from '@/components/layout/Navbar';
 
 // Define props interface for MainLayout
 interface MainLayoutProps {
@@ -69,7 +70,9 @@ export function MainLayout({ children, rightPanel, breadcrumbs }: MainLayoutProp
                 onExpand={() => setSidebarCollapsed(false)}
                 className="bg-background border-r relative"
               >
-                <Sidebar />
+                <Sidebar className="border-r">
+                  <Navbar />
+                </Sidebar>
                 <div className="absolute top-1/2 -right-3 transform -translate-y-1/2">
                   <Button
                     variant="secondary"
