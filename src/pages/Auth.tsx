@@ -1,33 +1,52 @@
 
 import React, { useEffect, useState } from 'react';
 import { AuthForm } from '@/components/ui/auth/AuthForm';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from 'lucide-react';
 import { useAuthContext } from '@/providers/AuthProvider';
+import { toast } from 'sonner';
 
 const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [verifyingEmail, setVerifyingEmail] = useState(false);
   const { isAuthenticated } = useAuthContext();
   
   // Récupérer la destination de redirection depuis les query params
   const getReturnPath = () => {
-    const searchParams = new URLSearchParams(location.search);
-    return searchParams.get('returnTo') || '/';
+    // Priorité au paramètre redirectTo
+    const redirectTo = searchParams.get('redirectTo');
+    if (redirectTo) return redirectTo;
+    
+    // Ensuite vérifier returnTo pour rétrocompatibilité
+    const returnTo = searchParams.get('returnTo');
+    if (returnTo) return returnTo;
+    
+    // Par défaut, rediriger vers l'accueil
+    return '/';
   };
 
   // Check if the user is coming from a verification email
   useEffect(() => {
     const checkEmailVerification = async () => {
+      // Vérifier s'il y a des paramètres de hash dans l'URL
+      if (!location.hash) return;
+      
       const params = new URLSearchParams(location.hash.substring(1));
       const accessToken = params.get('access_token');
       const refreshToken = params.get('refresh_token');
       const type = params.get('type');
       
+      if (!accessToken) return;
+      
       if (accessToken && refreshToken && type === 'recovery') {
+        toast.info('Réinitialisation du mot de passe', {
+          description: 'Veuillez définir votre nouveau mot de passe'
+        });
+        
         // Handle password reset flow
         const { error } = await supabase.auth.setSession({
           access_token: accessToken,
@@ -36,6 +55,10 @@ const Auth = () => {
         
         if (!error) {
           navigate('/settings?tab=security');
+        } else {
+          toast.error('Erreur lors de la réinitialisation', {
+            description: error.message || 'Lien expiré ou invalide'
+          });
         }
       } else if (accessToken && type === 'signup') {
         setVerifyingEmail(true);
@@ -48,11 +71,19 @@ const Auth = () => {
           
           if (!error) {
             // User has verified their email and is now logged in
+            toast.success('Email vérifié avec succès', {
+              description: 'Votre compte est maintenant actif'
+            });
             setVerifyingEmail(false);
             navigate(getReturnPath());
+          } else {
+            throw error;
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('Email verification error:', error);
+          toast.error('Erreur de vérification', {
+            description: error.message || 'Impossible de vérifier votre email'
+          });
           setVerifyingEmail(false);
         }
       }

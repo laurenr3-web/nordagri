@@ -7,6 +7,5 @@ import { useAuth as useAuthHook } from './auth';
  * @param redirectTo Page de redirection après authentification (défaut: page actuelle)
  */
 export function useAuth(requireAuth = true, redirectTo?: string) {
-  // Ensure we use the correct property name (loading) from the auth hook
   return useAuthHook(requireAuth, redirectTo);
 }

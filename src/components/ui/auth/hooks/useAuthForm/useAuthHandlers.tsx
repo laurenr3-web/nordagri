@@ -6,13 +6,26 @@ import { supabase } from "@/integrations/supabase/client";
 export const useAuthHandlers = (onSuccess?: () => void) => {
   const [loading, setLoading] = useState(false);
   const [loginAttempts, setLoginAttempts] = useState(0);
+  const [lockoutUntil, setLockoutUntil] = useState<Date | null>(null);
   const [resetSent, setResetSent] = useState(false);
+  
+  // Vérifier si le compte est verrouillé
+  const isAccountLocked = () => {
+    if (lockoutUntil && new Date() < lockoutUntil) {
+      const minutesRemaining = Math.ceil((lockoutUntil.getTime() - new Date().getTime()) / 60000);
+      toast.error(`Compte temporairement verrouillé`, {
+        description: `Veuillez réessayer dans ${minutesRemaining} minute${minutesRemaining > 1 ? 's' : ''}`
+      });
+      return true;
+    }
+    return false;
+  };
   
   const handlePasswordReset = async (e: React.FormEvent, email: string, emailRegex: RegExp, setFormErrors: (errors: any) => void) => {
     e.preventDefault();
     
     if (!email || !emailRegex.test(email)) {
-      setFormErrors({ email: "Please enter a valid email address" });
+      setFormErrors({ email: "Veuillez entrer une adresse email valide" });
       return;
     }
     
@@ -26,22 +39,42 @@ export const useAuthHandlers = (onSuccess?: () => void) => {
       if (error) throw error;
       
       setResetSent(true);
-      toast.success('Password reset instructions sent to your email');
+      toast.success('Instructions de réinitialisation envoyées à votre email');
     } catch (error: any) {
-      console.error('Password reset error:', error);
-      toast.error(error.message || 'Failed to send reset email');
+      console.error('Erreur de réinitialisation du mot de passe:', error);
+      
+      // Messages d'erreur plus détaillés
+      if (error.message.includes('User not found')) {
+        toast.error('Adresse email non trouvée', {
+          description: 'Aucun compte n\'est associé à cette adresse email'
+        });
+      } else {
+        toast.error('Échec d\'envoi de l\'email de réinitialisation', {
+          description: error.message || 'Veuillez réessayer ultérieurement'
+        });
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const handleLogin = async (email: string, password: string) => {
+    if (isAccountLocked()) return;
+    
     if (loginAttempts >= 5) {
-      toast.error('Too many login attempts. Please try again later.');
+      // Verrouillage temporaire de 15 minutes
+      const lockoutTime = new Date();
+      lockoutTime.setMinutes(lockoutTime.getMinutes() + 15);
+      setLockoutUntil(lockoutTime);
+      
+      toast.error('Trop de tentatives de connexion', {
+        description: 'Compte temporairement verrouillé. Veuillez réessayer dans 15 minutes ou réinitialiser votre mot de passe.'
+      });
       return;
     }
     
     try {
+      setLoading(true);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -49,20 +82,32 @@ export const useAuthHandlers = (onSuccess?: () => void) => {
       
       if (error) {
         setLoginAttempts(prev => prev + 1);
-        throw error;
+        
+        // Messages d'erreur plus détaillés
+        if (error.message.includes('Invalid login')) {
+          throw new Error('Identifiants incorrects. Vérifiez votre email et mot de passe.');
+        } else if (error.message.includes('Email not confirmed')) {
+          throw new Error('Email non confirmé. Veuillez vérifier votre boîte de réception.');
+        } else {
+          throw error;
+        }
       }
       
-      // Log successful login
+      // Journalisation de connexion réussie avec plus d'informations
       const timestamp = new Date().toISOString();
-      const userIp = "client-side"; // In a real app, you'd get this from your server
-      console.log(`Login success: ${timestamp}, IP: ${userIp}`);
+      console.log(`Connexion réussie: ${timestamp}, Email: ${email}, IP: [masqué]`);
       
-      toast.success('Signed in successfully');
+      toast.success('Connexion réussie');
       setLoginAttempts(0);
+      setLockoutUntil(null);
       onSuccess?.();
     } catch (error: any) {
-      console.error('Authentication error:', error);
-      toast.error(error.message || 'Authentication failed');
+      console.error('Erreur d\'authentification:', error);
+      toast.error('Échec de la connexion', {
+        description: error.message || 'Vérifiez vos identifiants et réessayez'
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -73,6 +118,7 @@ export const useAuthHandlers = (onSuccess?: () => void) => {
     lastName: string
   ) => {
     try {
+      setLoading(true);
       // First register the user
       const { error: signUpError } = await supabase.auth.signUp({
         email,
@@ -86,13 +132,24 @@ export const useAuthHandlers = (onSuccess?: () => void) => {
         }
       });
       
-      if (signUpError) throw signUpError;
+      if (signUpError) {
+        // Messages d'erreur plus détaillés
+        if (signUpError.message.includes('User already registered')) {
+          throw new Error('Cette adresse email est déjà utilisée par un compte existant.');
+        } else {
+          throw signUpError;
+        }
+      }
       
-      toast.success('Account created! Please check your email to verify your account.');
+      toast.success('Compte créé ! Veuillez vérifier votre email pour confirmer votre compte.');
       onSuccess?.();
     } catch (error: any) {
-      console.error('Signup error:', error);
-      toast.error(error.message || 'Registration failed');
+      console.error('Erreur d\'inscription:', error);
+      toast.error('Échec de l\'inscription', {
+        description: error.message || 'Une erreur est survenue lors de la création du compte'
+      });
+    } finally {
+      setLoading(false);
     }
   };
   
@@ -100,6 +157,7 @@ export const useAuthHandlers = (onSuccess?: () => void) => {
     loading,
     setLoading,
     loginAttempts,
+    lockoutUntil,
     resetSent,
     handlePasswordReset,
     handleLogin,

@@ -65,7 +65,7 @@ export const checkApiKey = () => {
 export const testPerplexityConnection = async (): Promise<boolean> => {
   if (!checkApiKey()) {
     toast.error('Clé API manquante', {
-      description: 'Configurez votre clé API Perplexity dans .env.development'
+      description: 'Configurez votre clé API Perplexity dans le fichier .env et assurez-vous qu\'elle n\'est pas exposée'
     });
     return false;
   }
