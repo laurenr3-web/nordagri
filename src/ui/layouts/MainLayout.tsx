@@ -68,14 +68,16 @@ export function MainLayout({ children, rightPanel, breadcrumbs }: MainLayoutProp
                 collapsedSize={4}
                 onCollapse={() => setSidebarCollapsed(true)}
                 onExpand={() => setSidebarCollapsed(false)}
-                className="bg-background border-r relative"
+                className="relative"
               >
-                <SidebarProvider>
-                  <Sidebar className="border-r">
-                    <Navbar />
-                  </Sidebar>
-                </SidebarProvider>
-                <div className="absolute top-1/2 -right-3 transform -translate-y-1/2">
+                <div className="absolute inset-0 bg-agri-dark">
+                  <SidebarProvider>
+                    <Sidebar className="border-r h-full" variant="sidebar">
+                      <Navbar />
+                    </Sidebar>
+                  </SidebarProvider>
+                </div>
+                <div className="absolute top-1/2 -right-3 transform -translate-y-1/2 z-10">
                   <Button
                     variant="secondary"
                     size="icon"
@@ -93,7 +95,7 @@ export function MainLayout({ children, rightPanel, breadcrumbs }: MainLayoutProp
 
           {/* Main content area */}
           <ResizablePanel defaultSize={isMobile ? 100 : showContextPanel ? 64 : 82} minSize={40}>
-            <ScrollArea className="h-screen pb-16">
+            <ScrollArea className="h-screen pb-16 bg-background">
               <main className={cn(
                 "py-6 px-4 md:px-6 md:py-8 lg:py-10",
                 isMobile && "mobile-pb-safe" // Add bottom padding on mobile for navigation

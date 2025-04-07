@@ -35,7 +35,7 @@ const Navbar = () => {
   const location = useLocation();
   const currentPath = location.pathname || "";
   
-  return <div className="flex flex-col h-full">
+  return <div className="flex flex-col h-full bg-agri-dark text-white">
       <div className="flex h-16 items-center px-6 border-b border-sidebar-border">
         <Link className="flex items-center gap-2" to="/">
           <img src="/lovable-uploads/ec804880-63d5-4999-8bd9-4b853ec3360d.png" alt="Agri ERP Insight" className="h-8 w-auto" />

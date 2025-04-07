@@ -6,7 +6,6 @@ import { Toaster } from '@/components/ui/sonner';
 import { RealtimeCacheProvider } from '@/providers/RealtimeCacheProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { LayoutProvider } from '@/ui/layouts/MainLayoutContext';
-import { SidebarProvider } from '@/components/ui/sidebar';
 import MainLayout from '@/ui/layouts/MainLayout';
 
 // Pages
@@ -21,6 +20,7 @@ import Settings from '@/pages/Settings';
 import NotFound from '@/pages/NotFound';
 import Auth from '@/pages/Auth';
 import ScanRedirect from '@/pages/ScanRedirect';
+import './App.css';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -33,27 +33,25 @@ function App() {
           <Router>
             <AuthProvider>
               <LayoutProvider>
-                <SidebarProvider>
-                  <Routes>
-                    <Route element={<MainLayout />}>
-                      <Route path="/" element={<Index />} />
-                      <Route path="/auth" element={<Auth />} />
-                      <Route path="/dashboard" element={<Dashboard />} />
-                      <Route path="/equipment" element={<Equipment />} />
-                      <Route path="/equipment/:id" element={<EquipmentDetail />} />
-                      <Route path="/maintenance" element={<Maintenance />} />
-                      <Route path="/parts" element={<Parts />} />
-                      <Route path="/interventions" element={<Interventions />} />
-                      <Route path="/settings" element={<Settings />} />
-                      <Route path="/search" element={<div>Search Page</div>} />
-                      {/* Route for QR code scanning */}
-                      <Route path="/scan/:id" element={<ScanRedirect />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Route>
-                  </Routes>
-                  
-                  <Toaster />
-                </SidebarProvider>
+                <Routes>
+                  <Route element={<MainLayout />}>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/equipment" element={<Equipment />} />
+                    <Route path="/equipment/:id" element={<EquipmentDetail />} />
+                    <Route path="/maintenance" element={<Maintenance />} />
+                    <Route path="/parts" element={<Parts />} />
+                    <Route path="/interventions" element={<Interventions />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/search" element={<div>Search Page</div>} />
+                    {/* Route for QR code scanning */}
+                    <Route path="/scan/:id" element={<ScanRedirect />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Route>
+                </Routes>
+                
+                <Toaster />
               </LayoutProvider>
             </AuthProvider>
           </Router>

@@ -29,7 +29,7 @@ const Index = () => {
 
   return (
     <>
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden bg-background">
         <div className="flex items-center justify-between p-3 border-b">
           <Header 
             currentView={currentView}
