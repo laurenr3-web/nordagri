@@ -33,15 +33,15 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 142 40% 30%; /* Match primary */
 
-    /* Sidebar colors */
-    --sidebar-background: 160 40% 8%;
+    /* Updated sidebar colors to green */
+    --sidebar-background: 142 40% 30%;
     --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 142 40% 30%;
+    --sidebar-primary: 142 70% 60%;
     --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 160 40% 15%;  
+    --sidebar-accent: 142 40% 25%;  
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 160 40% 12%;
-    --sidebar-ring: 142 40% 30%;
+    --sidebar-border: 142 40% 20%;
+    --sidebar-ring: 142 70% 60%;
   }
 
   .dark {
@@ -73,15 +73,15 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 142 40% 30%;
     
-    /* Sidebar colors - darker version for dark mode */
-    --sidebar-background: 160 40% 8%;
+    /* Updated sidebar colors - darker version for dark mode */
+    --sidebar-background: 142 40% 25%;
     --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 142 40% 30%;
+    --sidebar-primary: 142 70% 50%;
     --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 160 40% 15%;  
+    --sidebar-accent: 142 40% 20%;  
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 160 40% 12%;
-    --sidebar-ring: 142 40% 30%;
+    --sidebar-border: 142 40% 15%;
+    --sidebar-ring: 142 70% 50%;
   }
 }
 
@@ -106,9 +106,9 @@
   padding-bottom: 10px;
 }
 
-/* Style for the sidebar and polka dot background */
+/* Style for the sidebar and polka dot background - updated to green */
 .bg-polka {
-  background-color: #0f3520;
+  background-color: #2d9d64;
   background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
   background-size: 20px 20px;
 }

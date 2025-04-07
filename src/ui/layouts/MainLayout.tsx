@@ -70,9 +70,9 @@ export function MainLayout({ children, rightPanel, breadcrumbs }: MainLayoutProp
                 onExpand={() => setSidebarCollapsed(false)}
                 className="relative"
               >
-                <div className="absolute inset-0 bg-agri-dark">
+                <div className="absolute inset-0 bg-sidebar">
                   <SidebarProvider>
-                    <Sidebar className="border-r h-full" variant="sidebar">
+                    <Sidebar className="h-full" variant="sidebar">
                       <Navbar />
                     </Sidebar>
                   </SidebarProvider>
@@ -93,11 +93,11 @@ export function MainLayout({ children, rightPanel, breadcrumbs }: MainLayoutProp
             </>
           )}
 
-          {/* Main content area */}
+          {/* Main content area - added padding-left */}
           <ResizablePanel defaultSize={isMobile ? 100 : showContextPanel ? 64 : 82} minSize={40}>
             <ScrollArea className="h-screen pb-16 bg-background">
               <main className={cn(
-                "py-6 px-4 md:px-6 md:py-8 lg:py-10",
+                "py-6 px-6 md:px-8 md:py-8 lg:py-10", // Increased padding
                 isMobile && "mobile-pb-safe" // Add bottom padding on mobile for navigation
               )}>
                 {children || <Outlet />}
