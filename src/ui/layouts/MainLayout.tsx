@@ -9,7 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChevronLeft, ChevronRight, Columns3 } from 'lucide-react';
 import MobileNav from '@/components/layout/MobileNav';
 import { useLayoutContext } from './MainLayoutContext';
-import { Sidebar } from '@/components/ui/sidebar';
+import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
 
 // Define props interface for MainLayout
@@ -70,9 +70,11 @@ export function MainLayout({ children, rightPanel, breadcrumbs }: MainLayoutProp
                 onExpand={() => setSidebarCollapsed(false)}
                 className="bg-background border-r relative"
               >
-                <Sidebar className="border-r">
-                  <Navbar />
-                </Sidebar>
+                <SidebarProvider>
+                  <Sidebar className="border-r">
+                    <Navbar />
+                  </Sidebar>
+                </SidebarProvider>
                 <div className="absolute top-1/2 -right-3 transform -translate-y-1/2">
                   <Button
                     variant="secondary"
