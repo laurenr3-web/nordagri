@@ -1,26 +1,28 @@
 
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
+import { toast } from 'sonner';
 
-// Utiliser uniquement les variables d'environnement sans les valeurs par défaut exposées
+// Récupération des variables d'environnement
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+// Vérification de la présence des variables d'environnement
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.error('Supabase environment variables are not set');
+  throw new Error('Variables d\'environnement Supabase manquantes. Veuillez configurer VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY dans votre fichier .env');
 }
 
 // Instancier le client Supabase
-export const supabase = createClient<Database>(
-  SUPABASE_URL as string, 
-  SUPABASE_ANON_KEY as string
-);
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Vérifier que la connexion à Supabase fonctionne
 supabase.auth.getSession().then(({ data, error }) => {
   if (error) {
-    console.error('Error connecting to Supabase:', error.message);
+    console.error('Erreur de connexion à Supabase:', error.message);
+    toast.error('Erreur de connexion à la base de données', {
+      description: 'Vérifiez votre configuration et votre connexion internet'
+    });
   } else {
-    console.log('✅ Successfully connected to Supabase');
+    console.log('✅ Connexion à Supabase établie avec succès');
   }
 });
