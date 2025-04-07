@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Tractor, Calendar, Box as BoxIcon, ScrollText as ScrollIcon, Settings } from "lucide-react";
@@ -30,11 +29,9 @@ export const navItems = [{
   href: "/settings",
   icon: Settings
 }];
-
 const Navbar = () => {
   const location = useLocation();
   const currentPath = location.pathname || "";
-  
   return <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground">
       <div className="flex h-16 items-center px-6 border-b border-sidebar-border">
         <Link className="flex items-center gap-2" to="/">
@@ -53,29 +50,14 @@ const Navbar = () => {
           </div>
         </div>
       </div>
-      <div className="flex-1 overflow-auto bg-polka mx-0 my-0 py-0 px-0">
+      <div className="flex-1 overflow-auto bg-polka mx-0 my-0 py-0 px-0 bg-[#044404]">
         <nav className="grid items-start px-4 text-sm font-medium">
-          {navItems.map(item => (
-            <Link 
-              key={item.href} 
-              to={item.href} 
-              className={`flex items-center gap-3 rounded-lg px-4 py-3 my-1 transition-all duration-200 ${
-                currentPath === item.href || (item.href !== "/" && currentPath.includes(item.href)) 
-                  ? "bg-sidebar-accent text-white" 
-                  : "text-white hover:bg-sidebar-accent/50 hover:text-white"
-              }`}
-            >
-              <item.icon className={`h-5 w-5 flex-shrink-0 ${
-                currentPath === item.href || (item.href !== "/" && currentPath.includes(item.href)) 
-                  ? "text-sidebar-primary" 
-                  : "text-current"
-              }`} />
+          {navItems.map(item => <Link key={item.href} to={item.href} className={`flex items-center gap-3 rounded-lg px-4 py-3 my-1 transition-all duration-200 ${currentPath === item.href || item.href !== "/" && currentPath.includes(item.href) ? "bg-sidebar-accent text-white" : "text-white hover:bg-sidebar-accent/50 hover:text-white"}`}>
+              <item.icon className={`h-5 w-5 flex-shrink-0 ${currentPath === item.href || item.href !== "/" && currentPath.includes(item.href) ? "text-sidebar-primary" : "text-current"}`} />
               <span className="truncate">{item.title}</span>
-            </Link>
-          ))}
+            </Link>)}
         </nav>
       </div>
     </div>;
 };
-
 export default Navbar;
