@@ -8,6 +8,7 @@ interface BlurContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
   delay?: number;
   blurStrength?: 'none' | 'light' | 'medium' | 'strong';
+  raised?: boolean;
 }
 
 export function BlurContainer({
@@ -15,6 +16,7 @@ export function BlurContainer({
   className,
   delay = 0,
   blurStrength = 'light',
+  raised = false,
   ...props
 }: BlurContainerProps) {
   const blurClass = React.useMemo(() => {
@@ -39,6 +41,7 @@ export function BlurContainer({
         blurClass,
         transitions.default,
         animations.fadeIn,
+        raised && "shadow-md hover:shadow-lg",
         className
       )}
       style={delay ? { animationDelay: `${delay * 0.1}s` } as React.CSSProperties : undefined}

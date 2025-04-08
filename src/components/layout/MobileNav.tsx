@@ -87,6 +87,15 @@ const MobileNav = () => {
                     const isActive = location.pathname === item.href || 
                       (item.href !== '/' && location.pathname.startsWith(item.href));
                     
+                    // Utiliser les mêmes libellés en français que dans la barre latérale
+                    let label = item.title;
+                    if (item.title === "Home" || item.title === "Dashboard") label = "Tableau de bord";
+                    else if (item.title === "Equipment") label = "Équipements";
+                    else if (item.title === "Maintenance") label = "Maintenance";
+                    else if (item.title === "Interventions") label = "Interventions";
+                    else if (item.title === "Parts") label = "Pièces";
+                    else if (item.title === "Settings") label = "Paramètres";
+                    
                     return (
                       <Button
                         key={item.href}
@@ -101,7 +110,7 @@ const MobileNav = () => {
                         }}
                       >
                         <item.icon className="mr-2 h-5 w-5" />
-                        {item.title}
+                        {label}
                       </Button>
                     );
                   })}
@@ -129,6 +138,7 @@ const MobileNav = () => {
         size="icon" 
         className="fixed bottom-6 right-6 z-40 rounded-full shadow-lg"
         onClick={() => navigate('/search')}
+        aria-label="Recherche"
       >
         <Search className="h-5 w-5" />
       </Button>
