@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Tractor, Calendar, Box as BoxIcon, ScrollText as ScrollIcon, Settings } from "lucide-react";
@@ -44,16 +45,16 @@ const Navbar = () => {
           </div>
           <div className="ml-2">
             {/* Placeholder for UserMenu */}
-            <button className="w-8 h-8 rounded-full bg-sidebar-accent flex items-center justify-center">
+            <button className="w-8 h-8 rounded-full bg-agri-primary flex items-center justify-center">
               <span className="text-xs font-medium text-white">U</span>
             </button>
           </div>
         </div>
       </div>
-      <div className="flex-1 overflow-auto bg-polka mx-0 my-0 py-0 px-0 bg-[#044404]">
+      <div className="flex-1 overflow-auto bg-polka mx-0 my-0 py-0 px-0">
         <nav className="grid items-start px-4 text-sm font-medium">
           {navItems.map(item => <Link key={item.href} to={item.href} className={`flex items-center gap-3 rounded-lg px-4 py-3 my-1 transition-all duration-200 ${currentPath === item.href || item.href !== "/" && currentPath.includes(item.href) ? "bg-sidebar-accent text-white" : "text-white hover:bg-sidebar-accent/50 hover:text-white"}`}>
-              <item.icon className={`h-5 w-5 flex-shrink-0 ${currentPath === item.href || item.href !== "/" && currentPath.includes(item.href) ? "text-sidebar-primary" : "text-current"}`} />
+              <item.icon className={`h-5 w-5 flex-shrink-0 ${currentPath === item.href || item.href !== "/" && currentPath.includes(item.href) ? "text-agri-primary" : "text-current"}`} />
               <span className="truncate">{item.title}</span>
             </Link>)}
         </nav>
