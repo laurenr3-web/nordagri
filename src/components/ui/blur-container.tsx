@@ -1,56 +1,61 @@
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
+import * as React from 'react';
+import { cn } from '@/lib/utils';
+import { transitions, animations } from '@/lib/design-system';
 
 interface BlurContainerProps extends React.HTMLAttributes<HTMLDivElement> {
-  intensity?: "light" | "medium" | "heavy";
-  glassFill?: boolean;
-  neoMorphic?: boolean;
-  raised?: boolean;
+  children: React.ReactNode;
+  className?: string;
+  delay?: number;
+  blurStrength?: 'none' | 'light' | 'medium' | 'strong';
 }
 
 export function BlurContainer({
   children,
   className,
-  intensity = "medium",
-  glassFill = true,
-  neoMorphic = false,
-  raised = false,
+  delay = 0,
+  blurStrength = 'light',
   ...props
 }: BlurContainerProps) {
-  // Calculate blur intensity
-  const blurValue = {
-    light: "backdrop-blur-sm",
-    medium: "backdrop-blur-md",
-    heavy: "backdrop-blur-lg",
-  }[intensity];
+  const blurClass = React.useMemo(() => {
+    switch (blurStrength) {
+      case 'none':
+        return '';
+      case 'light':
+        return 'backdrop-blur-sm';
+      case 'medium':
+        return 'backdrop-blur-md';
+      case 'strong':
+        return 'backdrop-blur-lg';
+      default:
+        return 'backdrop-blur-sm';
+    }
+  }, [blurStrength]);
   
-  // Calculate background opacity based on intensity
-  const bgOpacity = {
-    light: "bg-white/30 dark:bg-black/20",
-    medium: "bg-white/50 dark:bg-black/30",
-    heavy: "bg-white/70 dark:bg-black/40",
-  }[intensity];
-  
-  const glassStyles = cn(
-    "relative rounded-xl border",
-    bgOpacity,
-    blurValue,
-    glassFill ? "border-white/20 dark:border-white/10" : "border-transparent",
-    raised ? "shadow-elevated" : "shadow-glass"
-  );
-  
-  const neoStyles = "neo";
-
   return (
     <div
       className={cn(
-        neoMorphic ? neoStyles : glassStyles,
+        "rounded-lg border bg-white/80",
+        blurClass,
+        transitions.default,
+        animations.fadeIn,
         className
       )}
+      style={delay ? { animationDelay: `${delay * 0.1}s` } as React.CSSProperties : undefined}
       {...props}
     >
       {children}
     </div>
   );
+}
+
+interface StaticBlurContainerProps extends BlurContainerProps {
+  animate?: boolean;
+}
+
+export function StaticBlurContainer({
+  animate = false,
+  ...props
+}: StaticBlurContainerProps) {
+  return <BlurContainer {...props} className={cn(props.className, !animate && "!animate-none")} />;
 }
