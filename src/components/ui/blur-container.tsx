@@ -9,6 +9,8 @@ interface BlurContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   delay?: number;
   blurStrength?: 'none' | 'light' | 'medium' | 'strong';
   raised?: boolean;
+  interactive?: boolean;
+  gradient?: boolean;
 }
 
 export function BlurContainer({
@@ -17,6 +19,8 @@ export function BlurContainer({
   delay = 0,
   blurStrength = 'light',
   raised = false,
+  interactive = false,
+  gradient = false,
   ...props
 }: BlurContainerProps) {
   const blurClass = React.useMemo(() => {
@@ -42,6 +46,8 @@ export function BlurContainer({
         transitions.default,
         animations.fadeIn,
         raised && "shadow-md hover:shadow-lg",
+        interactive && "transition-all duration-300 hover:-translate-y-1 hover:shadow-md",
+        gradient && "bg-gradient-to-br from-white/90 to-white/70",
         className
       )}
       style={delay ? { animationDelay: `${delay * 0.1}s` } as React.CSSProperties : undefined}

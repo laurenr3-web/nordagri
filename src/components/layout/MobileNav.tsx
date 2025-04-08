@@ -16,6 +16,7 @@ import { navGroups } from './Navbar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import MaintenanceNotificationsPopover from '../maintenance/notifications/MaintenanceNotificationsPopover';
+import { BlurContainer } from '@/components/ui/blur-container';
 
 const MobileNav = () => {
   const location = useLocation();
@@ -87,14 +88,18 @@ const MobileNav = () => {
                     const isActive = location.pathname === item.href || 
                       (item.href !== '/' && location.pathname.startsWith(item.href));
                     
-                    // Utiliser les mêmes libellés en français que dans la barre latérale
-                    let label = item.title;
-                    if (item.title === "Home" || item.title === "Dashboard") label = "Tableau de bord";
-                    else if (item.title === "Equipment") label = "Équipements";
-                    else if (item.title === "Maintenance") label = "Maintenance";
-                    else if (item.title === "Interventions") label = "Interventions";
-                    else if (item.title === "Parts") label = "Pièces";
-                    else if (item.title === "Settings") label = "Paramètres";
+                    // Utiliser des libellés cohérents en français
+                    const frenchLabels = {
+                      "Home": "Tableau de bord",
+                      "Dashboard": "Tableau de bord",
+                      "Equipment": "Équipements",
+                      "Maintenance": "Maintenance",
+                      "Interventions": "Interventions",
+                      "Parts": "Pièces",
+                      "Settings": "Paramètres"
+                    };
+                    
+                    const label = frenchLabels[item.title] || item.title;
                     
                     return (
                       <Button
@@ -133,15 +138,21 @@ const MobileNav = () => {
       </Sheet>
       
       {/* Bouton de recherche flottant en bas à droite */}
-      <Button 
-        variant="secondary" 
-        size="icon" 
-        className="fixed bottom-6 right-6 z-40 rounded-full shadow-lg"
-        onClick={() => navigate('/search')}
-        aria-label="Recherche"
+      <BlurContainer
+        className="fixed bottom-6 right-6 z-40 p-0 shadow-lg hover:shadow-xl transition-all"
+        raised={true}
+        interactive={true}
       >
-        <Search className="h-5 w-5" />
-      </Button>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="rounded-full h-12 w-12"
+          onClick={() => navigate('/search')}
+          aria-label="Recherche"
+        >
+          <Search className="h-5 w-5" />
+        </Button>
+      </BlurContainer>
     </>
   );
 };
