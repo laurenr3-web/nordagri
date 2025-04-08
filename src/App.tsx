@@ -20,6 +20,8 @@ import Settings from '@/pages/Settings';
 import NotFound from '@/pages/NotFound';
 import Auth from '@/pages/Auth';
 import ScanRedirect from '@/pages/ScanRedirect';
+import Search from '@/pages/Search';
+import Profile from '@/pages/Profile';
 import './App.css';
 
 // Create a client
@@ -44,7 +46,8 @@ function App() {
                     <Route path="/parts" element={<Parts />} />
                     <Route path="/interventions" element={<Interventions />} />
                     <Route path="/settings" element={<Settings />} />
-                    <Route path="/search" element={<div>Search Page</div>} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/search" element={<Search />} />
                     {/* Route for QR code scanning */}
                     <Route path="/scan/:id" element={<ScanRedirect />} />
                     <Route path="*" element={<NotFound />} />

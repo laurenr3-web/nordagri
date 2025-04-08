@@ -26,9 +26,9 @@ interface MainLayoutProps {
 const ContextPanel = () => {
   return (
     <div className="h-full bg-background border-l p-4">
-      <h3 className="text-lg font-medium mb-4">Context Panel</h3>
+      <h3 className="text-lg font-medium mb-4">Informations contextuelles</h3>
       <div className="text-sm text-muted-foreground">
-        <p>This panel shows context-specific information related to the current view.</p>
+        <p>Ce panneau affiche des informations spécifiques au contexte liées à la vue actuelle.</p>
       </div>
     </div>
   );
@@ -70,7 +70,7 @@ export function MainLayout({ children, rightPanel, breadcrumbs }: MainLayoutProp
                 onExpand={() => setSidebarCollapsed(false)}
                 className="relative"
               >
-                <div className="absolute inset-0 bg-sidebar">
+                <div className="absolute inset-0">
                   <SidebarProvider>
                     <Sidebar className="h-full" variant="sidebar">
                       <Navbar />
@@ -83,6 +83,7 @@ export function MainLayout({ children, rightPanel, breadcrumbs }: MainLayoutProp
                     size="icon"
                     className="h-6 w-6 rounded-full shadow-md"
                     onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                    aria-label={sidebarCollapsed ? "Déplier le menu" : "Replier le menu"}
                   >
                     {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
                   </Button>
@@ -93,7 +94,7 @@ export function MainLayout({ children, rightPanel, breadcrumbs }: MainLayoutProp
             </>
           )}
 
-          {/* Main content area - added padding-left */}
+          {/* Main content area */}
           <ResizablePanel defaultSize={isMobile ? 100 : showContextPanel ? 64 : 82} minSize={40}>
             <ScrollArea className="h-screen pb-16 bg-background">
               <main className={cn(
@@ -106,7 +107,7 @@ export function MainLayout({ children, rightPanel, breadcrumbs }: MainLayoutProp
           </ResizablePanel>
 
           {/* Right context panel - hidden on mobile and when not needed */}
-          {!isMobile && showContextPanel && rightPanel && (
+          {!isMobile && showContextPanel && (
             <>
               <ResizableHandle withHandle />
               <ResizablePanel defaultSize={18} minSize={15} maxSize={30}>
@@ -117,6 +118,7 @@ export function MainLayout({ children, rightPanel, breadcrumbs }: MainLayoutProp
                     size="icon"
                     className="h-6 w-6 rounded-full shadow-md"
                     onClick={() => setShowContextPanel(false)}
+                    aria-label="Fermer le panneau contextuel"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
@@ -126,14 +128,15 @@ export function MainLayout({ children, rightPanel, breadcrumbs }: MainLayoutProp
           )}
         </ResizablePanelGroup>
         
-        {/* Floating button to toggle context panel on mobile */}
-        {isMobile && showContextPanel && (
+        {/* Floating button to toggle context panel */}
+        {showContextPanel && isMobile && (
           <div className="fixed bottom-20 right-4 z-40">
             <Button
               variant="secondary"
               size="icon"
               className="h-10 w-10 rounded-full shadow-lg"
               onClick={() => setShowContextPanel(!showContextPanel)}
+              aria-label="Afficher/masquer le panneau contextuel"
             >
               <Columns3 className="h-5 w-5" />
             </Button>
