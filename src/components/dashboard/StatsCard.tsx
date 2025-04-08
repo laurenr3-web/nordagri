@@ -32,7 +32,7 @@ export function StatsCard({
   details
 }: StatsCardProps) {
   // Détermine si la valeur est un nombre pour l'animation
-  const isNumericValue = typeof value === 'number' || (typeof value === 'string' && !isNaN(Number(value.replace(/[^0-9.-]+/g, '')));
+  const isNumericValue = typeof value === 'number' || (typeof value === 'string' && !isNaN(Number(value.replace(/[^0-9.-]+/g, ''))));
   const numericValue = isNumericValue ? Number(String(value).replace(/[^0-9.-]+/g, '')) : 0;
   const valuePrefix = typeof value === 'string' ? value.match(/^[^0-9]*/)?.[0] || '' : '';
   const valueSuffix = typeof value === 'string' ? value.match(/[^0-9]*$/)?.[0] || '' : '';
@@ -90,7 +90,7 @@ export function StatsCard({
           </div>
           <div className="absolute inset-0 rounded-full" 
                style={{
-                 background: `linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)`,
+                 background: "linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)",
                  opacity: 0.1,
                  zIndex: -1
                }}>

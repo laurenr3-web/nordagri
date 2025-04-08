@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from '@/components/ui/resizable';
@@ -26,12 +26,6 @@ export function SortableItem({ id, children, onResizeEnd }: SortableItemProps) {
     zIndex: isDragging ? 10 : 1,
     width: '100%',
     height: '100%',
-  };
-  
-  const handleResizeEnd = (sizes: number[]) => {
-    if (onResizeEnd && sizes.length > 0) {
-      onResizeEnd(sizes[0]);
-    }
   };
   
   return (

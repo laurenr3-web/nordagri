@@ -17,6 +17,8 @@ import { DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useS
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { SortableItem } from '@/components/dashboard/SortableItem';
 import { toast } from 'sonner';
+import { StatsCard } from '@/components/dashboard/StatsCard';
+import { Reorder } from 'framer-motion';
 
 interface EnhancedDashboardProps {
   statsData: any[];
@@ -207,148 +209,142 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
     switch (sectionId) {
       case 'equipment':
         return (
-          <SortableItem id="equipment">
-            <DraggableDashboardSection
-              id="equipment"
-              title="État des équipements"
-              subtitle="Surveillez les performances de votre flotte"
-              action={
-                <Button variant="outline" size="sm" onClick={handleEquipmentViewAllClick}>
-                  Voir tout
-                </Button>
-              }
-              isDraggable={isEditing}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {equipmentData.map((item, index) => (
-                  <div 
-                    key={item.id}
-                    className="cursor-pointer"
-                    onClick={() => handleEquipmentClick(item.id)}
-                  >
-                    {/* Content of equipment item */}
-                    <div className="border rounded-md p-4 hover:border-primary transition-colors">
-                      <h3 className="font-medium">{item.name}</h3>
-                      <p className="text-sm text-muted-foreground">{item.type}</p>
-                    </div>
+          <DraggableDashboardSection
+            key="equipment"
+            id="equipment"
+            title="État des équipements"
+            subtitle="Surveillez les performances de votre flotte"
+            action={
+              <Button variant="outline" size="sm" onClick={handleEquipmentViewAllClick}>
+                Voir tout
+              </Button>
+            }
+            isDraggable={isEditing}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {equipmentData.map((item, index) => (
+                <div 
+                  key={item.id}
+                  className="cursor-pointer"
+                  onClick={() => handleEquipmentClick(item.id)}
+                >
+                  {/* Content of equipment item */}
+                  <div className="border rounded-md p-4 hover:border-primary transition-colors">
+                    <h3 className="font-medium">{item.name}</h3>
+                    <p className="text-sm text-muted-foreground">{item.type}</p>
                   </div>
-                ))}
-              </div>
-            </DraggableDashboardSection>
-          </SortableItem>
+                </div>
+              ))}
+            </div>
+          </DraggableDashboardSection>
         );
         
       case 'urgent-interventions':
         return (
-          <SortableItem id="urgent-interventions">
-            <DraggableDashboardSection
-              id="urgent-interventions"
-              title="Interventions urgentes"
-              subtitle="Interventions critiques en attente"
-              action={
-                <Button variant="outline" size="sm" onClick={() => handleViewIntervention(-1)}>
-                  Toutes les interventions
-                </Button>
-              }
-              isDraggable={isEditing}
-            >
-              <UrgentInterventionsTable 
-                interventions={urgentInterventions} 
-                onViewDetails={handleViewIntervention} 
-              />
-            </DraggableDashboardSection>
-          </SortableItem>
+          <DraggableDashboardSection
+            key="urgent-interventions"
+            id="urgent-interventions"
+            title="Interventions urgentes"
+            subtitle="Interventions critiques en attente"
+            action={
+              <Button variant="outline" size="sm" onClick={() => handleViewIntervention(-1)}>
+                Toutes les interventions
+              </Button>
+            }
+            isDraggable={isEditing}
+          >
+            <UrgentInterventionsTable 
+              interventions={urgentInterventions} 
+              onViewDetails={handleViewIntervention} 
+            />
+          </DraggableDashboardSection>
         );
         
       case 'weekly-calendar':
         return (
-          <SortableItem id="weekly-calendar">
-            <DraggableDashboardSection
-              id="weekly-calendar"
-              title="Calendrier de la semaine"
-              subtitle="Vos rendez-vous à venir"
-              isDraggable={isEditing}
-            >
-              <WeeklyCalendar
-                events={weeklyCalendarEvents}
-                onViewEvent={handleViewCalendarEvent}
-              />
-            </DraggableDashboardSection>
-          </SortableItem>
+          <DraggableDashboardSection
+            key="weekly-calendar"
+            id="weekly-calendar"
+            title="Calendrier de la semaine"
+            subtitle="Vos rendez-vous à venir"
+            isDraggable={isEditing}
+          >
+            <WeeklyCalendar
+              events={weeklyCalendarEvents}
+              onViewEvent={handleViewCalendarEvent}
+            />
+          </DraggableDashboardSection>
         );
         
       case 'alerts':
         return (
-          <SortableItem id="alerts">
-            <DraggableDashboardSection
-              id="alerts"
-              title="Alertes"
-              subtitle="Notifications importantes"
-              action={
-                <Button variant="outline" size="sm" onClick={handleAlertsViewAllClick}>
-                  Voir tout
-                </Button>
-              }
-              isDraggable={isEditing}
-            >
-              <div className="space-y-4">
-                {alertItems.slice(0, 3).map((alert, index) => (
-                  <div key={alert.id} className="border rounded-md p-3">
-                    <h4 className="font-medium">{alert.title}</h4>
-                    <p className="text-sm text-muted-foreground">{alert.message}</p>
-                  </div>
-                ))}
-              </div>
-            </DraggableDashboardSection>
-          </SortableItem>
+          <DraggableDashboardSection
+            key="alerts"
+            id="alerts"
+            title="Alertes"
+            subtitle="Notifications importantes"
+            action={
+              <Button variant="outline" size="sm" onClick={handleAlertsViewAllClick}>
+                Voir tout
+              </Button>
+            }
+            isDraggable={isEditing}
+          >
+            <div className="space-y-4">
+              {alertItems.slice(0, 3).map((alert, index) => (
+                <div key={alert.id} className="border rounded-md p-3">
+                  <h4 className="font-medium">{alert.title}</h4>
+                  <p className="text-sm text-muted-foreground">{alert.message}</p>
+                </div>
+              ))}
+            </div>
+          </DraggableDashboardSection>
         );
         
       case 'stock':
         return (
-          <SortableItem id="stock">
-            <DraggableDashboardSection
-              id="stock"
-              title="Stock faible"
-              subtitle="Pièces à réapprovisionner"
-              action={
-                <Button variant="outline" size="sm" onClick={handleViewParts}>
-                  Gérer le stock
-                </Button>
-              }
-              isDraggable={isEditing}
-            >
-              <StockAlerts alerts={stockAlerts} onViewParts={handleViewParts} />
-            </DraggableDashboardSection>
-          </SortableItem>
+          <DraggableDashboardSection
+            key="stock"
+            id="stock"
+            title="Stock faible"
+            subtitle="Pièces à réapprovisionner"
+            action={
+              <Button variant="outline" size="sm" onClick={handleViewParts}>
+                Gérer le stock
+              </Button>
+            }
+            isDraggable={isEditing}
+          >
+            <StockAlerts alerts={stockAlerts} onViewParts={handleViewParts} />
+          </DraggableDashboardSection>
         );
         
       case 'tasks':
         return (
-          <SortableItem id="tasks">
-            <DraggableDashboardSection
-              id="tasks"
-              title="Tâches à venir"
-              subtitle="Vos prochaines tâches planifiées"
-              action={
-                <Button variant="outline" size="sm" onClick={handleTasksAddClick}>
-                  Ajouter
-                </Button>
-              }
-              isDraggable={isEditing}
-            >
-              <div className="space-y-4">
-                {upcomingTasks.slice(0, 3).map((task) => (
-                  <div key={task.id} className="border rounded-md p-3">
-                    <h4 className="font-medium">{task.title}</h4>
-                    <p className="text-sm text-muted-foreground">{task.description}</p>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {task.dueDate.toLocaleDateString()}
-                    </div>
+          <DraggableDashboardSection
+            key="tasks"
+            id="tasks"
+            title="Tâches à venir"
+            subtitle="Vos prochaines tâches planifiées"
+            action={
+              <Button variant="outline" size="sm" onClick={handleTasksAddClick}>
+                Ajouter
+              </Button>
+            }
+            isDraggable={isEditing}
+          >
+            <div className="space-y-4">
+              {upcomingTasks.slice(0, 3).map((task) => (
+                <div key={task.id} className="border rounded-md p-3">
+                  <h4 className="font-medium">{task.title}</h4>
+                  <p className="text-sm text-muted-foreground">{task.description}</p>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {task.dueDate.toLocaleDateString()}
                   </div>
-                ))}
-              </div>
-            </DraggableDashboardSection>
-          </SortableItem>
+                </div>
+              ))}
+            </div>
+          </DraggableDashboardSection>
         );
         
       default:
@@ -411,10 +407,10 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
         >
           <SortableContext items={visibleSections} strategy={verticalListSortingStrategy}>
             <div className={`grid ${gridColsClass} gap-6`}>
-              {visibleSections.map((sectionId, index) => (
-                <React.Fragment key={sectionId}>
+              {visibleSections.map((sectionId) => (
+                <SortableItem key={sectionId} id={sectionId}>
                   {renderSection(sectionId)}
-                </React.Fragment>
+                </SortableItem>
               ))}
             </div>
           </SortableContext>

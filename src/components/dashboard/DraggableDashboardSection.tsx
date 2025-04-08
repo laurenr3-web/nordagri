@@ -27,20 +27,13 @@ export function DraggableDashboardSection({
   const y = useMotionValue(0);
   const dragControls = useDragControls();
   
-  return (
-    <Reorder.Item
-      value={id}
-      id={id}
-      style={{ y }}
-      dragListener={false}
-      dragControls={dragControls}
-      className={cn(
-        widgetStyles.container,
-        transitions.default,
-        "hover:shadow-lg",
-        className
-      )}
-    >
+  const content = (
+    <div className={cn(
+      widgetStyles.container,
+      transitions.default,
+      "hover:shadow-lg",
+      className
+    )}>
       <div className="p-4 border-b flex items-center justify-between">
         <div className="flex items-center gap-2">
           {isDraggable && (
@@ -63,6 +56,25 @@ export function DraggableDashboardSection({
       <div className={cn("p-4", isDraggable && backgrounds.subtle)}>
         {children}
       </div>
-    </Reorder.Item>
+    </div>
   );
+  
+  // Only use Reorder.Item when it's a child of Reorder.Group
+  // This is determined by if the component is draggable
+  if (isDraggable) {
+    return (
+      <Reorder.Item
+        value={id}
+        id={id}
+        style={{ y }}
+        dragListener={false}
+        dragControls={dragControls}
+      >
+        {content}
+      </Reorder.Item>
+    );
+  }
+  
+  // Return simple div if not draggable
+  return content;
 }
