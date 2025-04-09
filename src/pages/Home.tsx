@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { 
   Settings, 
   Tractor, 
-  Tool, 
+  Wrench, // Changed from Tool to Wrench
   Calendar, 
   ClipboardList,
   LogIn,
@@ -30,7 +30,7 @@ const Home = () => {
     {
       title: 'Pièces',
       description: 'Gérer l\'inventaire des pièces',
-      icon: <Tool className="h-8 w-8 text-primary" />,
+      icon: <Wrench className="h-8 w-8 text-primary" />, // Changed from Tool to Wrench
       path: '/parts',
       requireAuth: true
     },
