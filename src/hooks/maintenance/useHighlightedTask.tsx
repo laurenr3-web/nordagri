@@ -30,15 +30,12 @@ export function useHighlightedTask(
           setCurrentView('upcoming');
         }
         
-        // Notify the user with a simple toast since we can't use JSX in sonner's toast.info first parameter
-        toast.info(
-          {
-            title: "Tâche sélectionnée",
-            description: `${task.title} - Pour l'équipement : ${task.equipment}`,
-            duration: 4000,
-            icon: <Clock className="h-4 w-4 text-blue-600" />
-          }
-        );
+        // Notify the user with a toast using the sonner API format
+        toast.info("Tâche sélectionnée", {
+          description: `${task.title} - Pour l'équipement : ${task.equipment}`,
+          duration: 4000,
+          icon: <Clock className="h-4 w-4 text-blue-600" />
+        });
         
         // Scroll to highlighted element with smooth animation after a brief delay
         setTimeout(() => {
