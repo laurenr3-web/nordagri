@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchUserProfile } from './useProfileData';
 import { toast } from 'sonner';
+import { checkAuthStatus } from '@/utils/authUtils';
 
 /**
  * Hook pour vérification de session d'authentification et redirections
@@ -23,6 +24,7 @@ export function useSessionCheck(
     // Fonction pour vérifier l'état de la session
     const checkSession = async () => {
       setLoading(true);
+      console.log("Checking session...");
       
       try {
         // Récupérer la session actuelle
@@ -32,21 +34,32 @@ export function useSessionCheck(
           throw error;
         }
         
+        // Logger l'état de la session pour le débogage
+        console.log("Session check result:", currentSession ? "Authenticated" : "Not authenticated");
+        
+        // Vérifier explicitement l'état d'authentification
+        await checkAuthStatus();
+        
         // Mettre à jour l'état
         setSession(currentSession);
         setUser(currentSession?.user || null);
         
         // Si l'utilisateur est connecté, récupérer ses données de profil
         if (currentSession?.user) {
+          console.log("User is authenticated, fetching profile data");
           // Utilisez setTimeout pour éviter les blocages potentiels
           setTimeout(() => {
             fetchUserProfile(currentSession.user.id).then(data => {
+              console.log("Profile data fetched:", data);
               setProfileData(data);
+            }).catch(err => {
+              console.error("Error fetching profile data:", err);
             });
           }, 0);
 
           // Configurer un rafraîchissement automatique du token
           const refreshToken = () => {
+            console.log("Refreshing auth token");
             supabase.auth.refreshSession().catch(refreshError => {
               console.error("Erreur lors du rafraîchissement du token:", refreshError);
             });
@@ -59,6 +72,7 @@ export function useSessionCheck(
         
         // Gérer les redirections
         if (requireAuth && !currentSession) {
+          console.log("Route requires auth but user is not authenticated, redirecting to auth page");
           // Stocker l'URL actuelle pour rediriger l'utilisateur après connexion
           // Nettoyer et encoder correctement l'URL de retour pour éviter les caractères spéciaux
           const currentPath = location.pathname;
@@ -71,6 +85,7 @@ export function useSessionCheck(
           navigate(`/auth${returnTo ? `?returnTo=${returnTo}` : ''}`, { replace: true });
         } else if (currentSession && location.pathname === '/auth' && redirectTo) {
           // Rediriger depuis la page d'auth vers la destination spécifiée
+          console.log("User is authenticated on auth page, redirecting to:", redirectTo);
           navigate(redirectTo, { replace: true });
         }
       } catch (error) {

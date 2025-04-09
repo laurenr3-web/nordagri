@@ -1,80 +1,131 @@
-import React from 'react';
-import EquipmentPageContent from '@/components/equipment/page/EquipmentPageContent';
-import EquipmentDialogs from '@/components/equipment/dialogs/EquipmentDialogs';
-import { useEquipmentData } from '@/hooks/equipment/useEquipmentData';
-import { useEquipmentRealtime } from '@/hooks/equipment/useEquipmentRealtime';
-import { toast } from 'sonner';
-import { Equipment } from '@/services/supabase/equipment/types';
-import { EquipmentItem } from '@/components/equipment/hooks/useEquipmentFilters';
 
-const EquipmentPage = () => {
-  // Use the equipment data hook to fetch and manage equipment
+import React, { useEffect, useState } from 'react';
+import { useEquipmentTable } from '@/hooks/equipment/useEquipmentTable';
+import EquipmentTable from '@/components/equipment/table/EquipmentTable';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import EquipmentFormDialog from '@/components/equipment/dialogs/EquipmentFormDialog';
+import ImportEquipmentDialog from '@/components/equipment/dialogs/ImportEquipmentDialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import EquipmentGrid from '@/components/equipment/grid/EquipmentGrid';
+import AuthDebugger from '@/components/auth/AuthDebugger';
+import { checkAuthStatus } from '@/utils/authUtils';
+
+const Equipment = () => {
   const {
-    equipment,
+    equipments,
     isLoading,
-    error
-  } = useEquipmentData();
-  
-  // Set up realtime updates
-  const { isSubscribed } = useEquipmentRealtime();
-  
-  // Afficher une erreur si le chargement des données échoue
-  React.useEffect(() => {
-    if (error) {
-      console.error('Error loading equipment data:', error);
-      toast.error('Erreur de chargement des données', {
-        description: error.message || 'Impossible de charger les équipements'
-      });
-    }
-  }, [error]);
+    pageCount,
+    pageIndex,
+    pageSize,
+    setPageIndex,
+    setPageSize,
+    setSorting,
+    sorting,
+    fetchEquipments,
+    createEquipment,
+    updateEquipment,
+    deleteEquipment,
+    importEquipments
+  } = useEquipmentTable();
 
-  // Afficher un message de succès lors de la connexion aux mises à jour en temps réel
-  React.useEffect(() => {
-    if (isSubscribed) {
-      console.log('Successfully subscribed to equipment updates');
-    }
-  }, [isSubscribed]);
-  
-  // Transformer les équipements en EquipmentItem
-  const transformedEquipment: EquipmentItem[] = React.useMemo(() => {
-    if (!equipment) return [];
-    
-    return equipment.map((item: Equipment) => ({
-      id: item.id,
-      name: item.name,
-      type: item.type || 'Unknown',
-      category: item.category || 'Uncategorized',
-      manufacturer: item.manufacturer || '',
-      model: item.model || '',
-      year: item.year || 0,
-      status: item.status || 'unknown',
-      location: item.location || '',
-      lastMaintenance: 'N/A',
-      image: item.image || '',
-      serialNumber: item.serialNumber || '',
-      purchaseDate: item.purchaseDate 
-        ? (typeof item.purchaseDate === 'object' 
-           ? item.purchaseDate.toISOString() 
-           : String(item.purchaseDate))
-        : '',
-      usage: { hours: 0, target: 500 },
-      nextService: { type: 'Regular maintenance', due: 'In 30 days' }
-    }));
-  }, [equipment]);
-  
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [currentView, setCurrentView] = useState<'table' | 'grid'>('table');
+  const [showDebugger, setShowDebugger] = useState(false);
+
+  // Vérifier l'état d'authentification au chargement
+  useEffect(() => {
+    const verifyAuth = async () => {
+      await checkAuthStatus();
+    };
+    verifyAuth();
+  }, []);
+
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="flex-1 overflow-auto px-1 sm:px-2">
-        <div className="w-full">
-          <EquipmentPageContent 
-            equipment={transformedEquipment}
-            isLoading={isLoading}
-          />
-          <EquipmentDialogs />
+      <div className="p-4">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h1 className="text-2xl font-semibold">Équipements</h1>
+            <p className="text-muted-foreground mt-1">
+              Gérez votre parc d'équipements et leurs informations
+            </p>
+          </div>
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowDebugger(!showDebugger)}
+              size="sm"
+            >
+              {showDebugger ? 'Masquer débogueur' : 'Débogage Auth'}
+            </Button>
+            <Button onClick={() => setIsImportDialogOpen(true)} variant="outline">
+              Importer
+            </Button>
+            <Button onClick={() => setIsAddDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" /> Ajouter
+            </Button>
+          </div>
         </div>
+
+        {showDebugger && <AuthDebugger />}
+
+        <Tabs 
+          defaultValue={currentView} 
+          value={currentView} 
+          onValueChange={(value) => setCurrentView(value as 'table' | 'grid')}
+        >
+          <div className="flex justify-between items-center">
+            <TabsList>
+              <TabsTrigger value="table">Liste</TabsTrigger>
+              <TabsTrigger value="grid">Vignettes</TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="table" className="mt-0">
+            <EquipmentTable
+              data={equipments || []}
+              isLoading={isLoading}
+              pageCount={pageCount}
+              pageIndex={pageIndex}
+              pageSize={pageSize}
+              setPageIndex={setPageIndex}
+              setPageSize={setPageSize}
+              setSorting={setSorting}
+              sorting={sorting}
+              onDelete={deleteEquipment}
+              onUpdate={updateEquipment}
+            />
+          </TabsContent>
+
+          <TabsContent value="grid" className="mt-4">
+            <EquipmentGrid
+              equipment={equipments || []}
+              isLoading={isLoading}
+              onDelete={deleteEquipment}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
+
+      <EquipmentFormDialog 
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        onSubmit={createEquipment}
+        title="Ajouter un équipement"
+      />
+
+      <ImportEquipmentDialog
+        open={isImportDialogOpen}
+        onOpenChange={setIsImportDialogOpen}
+        onImportComplete={(importedData) => {
+          importEquipments(importedData);
+          setIsImportDialogOpen(false);
+        }}
+      />
     </div>
   );
 };
 
-export default EquipmentPage;
+export default Equipment;

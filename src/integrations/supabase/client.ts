@@ -12,8 +12,15 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   throw new Error('Variables d\'environnement Supabase manquantes. Veuillez configurer VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY dans votre fichier .env');
 }
 
-// Instancier le client Supabase
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Instancier le client Supabase avec des options explicites pour l'authentification
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storage: localStorage
+  }
+});
 
 // Vérifier que la connexion à Supabase fonctionne
 supabase.auth.getSession().then(({ data, error }) => {
@@ -24,5 +31,15 @@ supabase.auth.getSession().then(({ data, error }) => {
     });
   } else {
     console.log('✅ Connexion à Supabase établie avec succès');
+    if (data.session) {
+      console.log('✅ Utilisateur connecté:', data.session.user.id);
+    } else {
+      console.log('⚠️ Aucun utilisateur connecté');
+    }
   }
 });
+
+// Exposer la fonction pour les tests via la console
+if (typeof window !== 'undefined') {
+  (window as any).supabase = supabase;
+}
