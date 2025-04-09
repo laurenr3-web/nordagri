@@ -30,20 +30,13 @@ export function useHighlightedTask(
           setCurrentView('upcoming');
         }
         
-        // Notify the user that the task has been found with a more visually appealing toast
+        // Notify the user with a simple toast since we can't use JSX in .ts files
         toast.info(
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-full bg-blue-100">
-              <Clock className="h-4 w-4 text-blue-600" />
-            </div>
-            <div>
-              <div className="font-medium">Tâche sélectionnée</div>
-              <div className="text-sm text-muted-foreground">{task.title}</div>
-            </div>
-          </div>,
           {
-            description: `Pour l'équipement : ${task.equipment}`,
+            title: "Tâche sélectionnée",
+            description: `${task.title} - Pour l'équipement : ${task.equipment}`,
             duration: 4000,
+            icon: <Clock className="h-4 w-4 text-blue-600" />
           }
         );
         
