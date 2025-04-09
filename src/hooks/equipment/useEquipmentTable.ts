@@ -1,6 +1,5 @@
 
 import { useState } from 'react';
-import { SortingState } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 // Define the base equipment type
@@ -18,6 +17,12 @@ export interface Equipment {
   notes?: string;
   image?: string;
 }
+
+// Define our own SortingState type since it's not exported from react-query v5
+type SortingState = {
+  id: string;
+  desc: boolean;
+}[];
 
 export function useEquipmentTable() {
   // Pagination state
