@@ -315,8 +315,9 @@ const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
           )}
         </div>
 
-        {/* Style pour l'effet de surbrillance des tâches */}
-        <style jsx global>{`
+        {/* Style for the highlight pulse effect */}
+        <style>
+          {`
           .highlight-pulse {
             animation: highlight-pulse 3s ease-in-out;
           }
@@ -335,7 +336,8 @@ const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
               background-color: rgba(59, 130, 246, 0.1);
             }
           }
-        `}</style>
+          `}
+        </style>
       </motion.div>
     </AnimatePresence>
   );
