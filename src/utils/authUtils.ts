@@ -19,6 +19,9 @@ export const checkAuthStatus = async () => {
       console.log("Authentication: AUTHENTICATED");
       console.log("User ID:", data.session.user.id);
       console.log("Email:", data.session.user.email);
+      
+      // Ne pas faire d'appels récursifs aux tables avec des politiques RLS problématiques
+      // Vérifier simplement si la session existe
     } else {
       console.log("Authentication: NOT AUTHENTICATED");
     }

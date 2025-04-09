@@ -837,6 +837,10 @@ export type Database = {
           average_days_between_maintenance: number
         }[]
       }
+      get_user_role: {
+        Args: { user_id: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

@@ -31,15 +31,17 @@ export function useAuthListener(
       
       // Si l'utilisateur vient de se connecter, récupérer ses données de profil
       if (session?.user && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
-        // Utilisez setTimeout pour éviter les blocages potentiels
+        // Utiliser setTimeout pour éviter les blocages potentiels
         setTimeout(() => {
-          fetchUserProfile(session.user.id).then(data => {
-            console.log("Fetched profile data:", data);
-            setProfileData(data);
-          }).catch(error => {
-            console.error("Error fetching profile:", error);
-            toast.error("Impossible de récupérer les données du profil");
-          });
+          if (session && session.user) {  // Vérification supplémentaire
+            fetchUserProfile(session.user.id).then(data => {
+              console.log("Fetched profile data:", data);
+              setProfileData(data);
+            }).catch(error => {
+              console.error("Error fetching profile:", error);
+              // Ne pas bloquer l'authentification si le profil n'est pas récupérable
+            });
+          }
         }, 0);
         
         if (redirectTo && location.pathname === '/auth') {

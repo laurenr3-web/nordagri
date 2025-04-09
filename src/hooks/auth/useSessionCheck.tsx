@@ -27,18 +27,22 @@ export function useSessionCheck(
       console.log("Checking session...");
       
       try {
-        // Récupérer la session actuelle
-        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        // Récupérer la session actuelle avec une méthode plus robuste
+        const { data, error } = await supabase.auth.getSession();
         
         if (error) {
+          console.error('Session check error:', error);
           throw error;
         }
+        
+        const currentSession = data?.session;
         
         // Logger l'état de la session pour le débogage
         console.log("Session check result:", currentSession ? "Authenticated" : "Not authenticated");
         
         // Vérifier explicitement l'état d'authentification
-        await checkAuthStatus();
+        const authStatus = await checkAuthStatus();
+        console.log("Auth status check complete:", authStatus);
         
         // Mettre à jour l'état
         setSession(currentSession);
@@ -47,34 +51,22 @@ export function useSessionCheck(
         // Si l'utilisateur est connecté, récupérer ses données de profil
         if (currentSession?.user) {
           console.log("User is authenticated, fetching profile data");
-          // Utilisez setTimeout pour éviter les blocages potentiels
+          
+          // Ne pas bloquer le processus d'authentification si la récupération du profil échoue
           setTimeout(() => {
             fetchUserProfile(currentSession.user.id).then(data => {
               console.log("Profile data fetched:", data);
               setProfileData(data);
             }).catch(err => {
               console.error("Error fetching profile data:", err);
+              // Continuer même si le profil ne peut pas être récupéré
             });
           }, 0);
-
-          // Configurer un rafraîchissement automatique du token
-          const refreshToken = () => {
-            console.log("Refreshing auth token");
-            supabase.auth.refreshSession().catch(refreshError => {
-              console.error("Erreur lors du rafraîchissement du token:", refreshError);
-            });
-          };
-
-          // Rafraîchir le token périodiquement (par exemple, toutes les 55 minutes pour un token d'1 heure)
-          const refreshInterval = setInterval(refreshToken, 55 * 60 * 1000);
-          return () => clearInterval(refreshInterval);
         }
         
         // Gérer les redirections
         if (requireAuth && !currentSession) {
           console.log("Route requires auth but user is not authenticated, redirecting to auth page");
-          // Stocker l'URL actuelle pour rediriger l'utilisateur après connexion
-          // Nettoyer et encoder correctement l'URL de retour pour éviter les caractères spéciaux
           const currentPath = location.pathname;
           const sanitizedPath = encodeURIComponent(currentPath);
           

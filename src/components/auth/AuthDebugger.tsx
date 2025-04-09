@@ -24,18 +24,8 @@ export const AuthDebugger: React.FC = () => {
       // Vérifier explicitement l'état de l'authentification
       const authStatus = await checkAuthStatus();
       
-      // Récupérer des informations sur les politiques RLS pour le débogage
-      const { data: rlsData, error: rlsError } = await supabase
-        .from('maintenance_tasks')
-        .select('id, title')
-        .limit(1);
-      
-      // Récupérer une intervention pour le débogage
-      const { data: interventionData, error: interventionError } = await supabase
-        .from('interventions')
-        .select('id, title')
-        .limit(1);
-      
+      // Ne pas faire d'appels aux tables avec des politiques RLS problématiques
+      // Juste vérifier la session
       setDebugInfo({
         session: data.session,
         authStatus,
@@ -43,14 +33,6 @@ export const AuthDebugger: React.FC = () => {
           id: user?.id || 'Non connecté',
           email: user?.email || 'Non connecté',
           lastSignIn: user?.last_sign_in_at || 'N/A'
-        },
-        maintenanceTasksAccess: {
-          data: rlsData,
-          error: rlsError ? rlsError.message : null
-        },
-        interventionsAccess: {
-          data: interventionData,
-          error: interventionError ? interventionError.message : null
         }
       });
     } catch (err: any) {
