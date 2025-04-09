@@ -30,7 +30,7 @@ export function useHighlightedTask(
           setCurrentView('upcoming');
         }
         
-        // Notify the user with a simple toast since we can't use JSX in .ts files
+        // Notify the user with a simple toast since we can't use JSX in sonner's toast.info first parameter
         toast.info(
           {
             title: "Tâche sélectionnée",
