@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { format, isToday, isPast, isFuture } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -316,8 +315,7 @@ const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
         </div>
 
         {/* Style for the highlight pulse effect */}
-        <style>
-          {`
+        <style dangerouslySetInnerHTML={{ __html: `
           .highlight-pulse {
             animation: highlight-pulse 3s ease-in-out;
           }
@@ -336,8 +334,7 @@ const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
               background-color: rgba(59, 130, 246, 0.1);
             }
           }
-          `}
-        </style>
+        `}} />
       </motion.div>
     </AnimatePresence>
   );
