@@ -19,6 +19,7 @@ import Dashboard from '@/pages/Dashboard';
 import Settings from '@/pages/Settings';
 import NotFound from '@/pages/NotFound';
 import Auth from '@/pages/Auth';
+import Home from '@/pages/Home';
 import ScanRedirect from '@/pages/ScanRedirect';
 import Search from '@/pages/Search';
 import Profile from '@/pages/Profile';
@@ -36,8 +37,9 @@ function App() {
             <AuthProvider>
               <LayoutProvider>
                 <Routes>
+                  <Route path="/" element={<Home />} />
                   <Route element={<MainLayout />}>
-                    <Route path="/" element={<Index />} />
+                    <Route path="/index" element={<Index />} />
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/equipment" element={<Equipment />} />

@@ -1,13 +1,13 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
   Settings, 
   Tractor, 
-  Wrench, // Changed from Tool to Wrench
+  Wrench,
   Calendar, 
   ClipboardList,
   LogIn,
@@ -17,7 +17,8 @@ import {
 import AuthDebugger from '@/components/auth/AuthDebugger';
 
 const Home = () => {
-  const { isAuthenticated, signOut, loading } = useAuthContext();
+  const { isAuthenticated, signOut, loading, user } = useAuthContext();
+  const navigate = useNavigate();
 
   const menuItems = [
     {
@@ -68,6 +69,10 @@ const Home = () => {
     );
   }
 
+  const handleLogin = () => {
+    navigate('/auth');
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <header className="mb-8 text-center">
@@ -76,6 +81,16 @@ const Home = () => {
           Plateforme de gestion des équipements, pièces et maintenance agricole
         </p>
       </header>
+
+      {/* Bouton de connexion principal */}
+      {!isAuthenticated && (
+        <div className="flex justify-center mb-10">
+          <Button onClick={handleLogin} size="lg" className="px-8 py-6 text-lg">
+            <LogIn className="mr-2 h-6 w-6" />
+            Se connecter / S'inscrire
+          </Button>
+        </div>
+      )}
 
       {!isAuthenticated && (
         <div className="mb-8">
@@ -89,11 +104,9 @@ const Home = () => {
                     L'accès à certaines fonctionnalités requiert une authentification
                   </p>
                 </div>
-                <Button asChild className="ml-auto">
-                  <Link to="/auth">
-                    <LogIn className="mr-2 h-4 w-4" />
-                    Se connecter
-                  </Link>
+                <Button onClick={handleLogin} className="ml-auto">
+                  <LogIn className="mr-2 h-4 w-4" />
+                  Se connecter
                 </Button>
               </div>
             </CardContent>
@@ -102,7 +115,11 @@ const Home = () => {
       )}
 
       {isAuthenticated && (
-        <div className="mb-8 flex justify-end">
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h2 className="text-xl font-semibold">Bonjour {user?.email}</h2>
+            <p className="text-muted-foreground">Bienvenue dans votre espace OptiTractor</p>
+          </div>
           <Button variant="outline" onClick={signOut}>
             <LogOut className="mr-2 h-4 w-4" />
             Déconnexion
@@ -126,16 +143,21 @@ const Home = () => {
               <CardDescription>{item.description}</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button 
-                asChild 
-                variant={item.requireAuth && !isAuthenticated ? "outline" : "default"}
-                className="w-full"
-                disabled={item.requireAuth && !isAuthenticated}
-              >
-                <Link to={item.path}>
-                  Accéder
-                </Link>
-              </Button>
+              {item.requireAuth && !isAuthenticated ? (
+                <Button 
+                  onClick={handleLogin}
+                  className="w-full"
+                >
+                  <LogIn className="mr-2 h-4 w-4" />
+                  Se connecter pour accéder
+                </Button>
+              ) : (
+                <Button asChild className="w-full">
+                  <Link to={item.path}>
+                    Accéder
+                  </Link>
+                </Button>
+              )}
             </CardContent>
           </Card>
         ))}
