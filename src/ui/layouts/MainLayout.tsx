@@ -5,7 +5,7 @@ import { ResizablePanelGroup, ResizablePanel } from '@/components/ui/resizable';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Navbar from '@/components/layout/Navbar';
 import { useLayoutContext } from '@/ui/layouts/MainLayoutContext';
-import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
+import { Sidebar, SidebarProvider, SidebarContent } from '@/components/ui/sidebar';
 import MobileNav from '@/components/layout/MobileNav';
 import { UserMenu } from '@/components/layout/UserMenu';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -27,13 +27,15 @@ const MainLayout: React.FC = () => {
       <div className="flex h-screen w-full overflow-hidden bg-background">
         {/* Desktop Sidebar */}
         {!isMobile && (
-          <div
-            className={`hidden md:block transition-all duration-300 ease-in-out ${
-              sidebarCollapsed ? 'w-16' : 'w-64'
-            }`}
-          >
-            <Sidebar className="h-full" />
-          </div>
+          <Sidebar className="h-full border-r border-border">
+            <SidebarContent>
+              {/* Sidebar content will go here */}
+              <div className="p-4">
+                <h3 className="text-lg font-medium">Navigation</h3>
+                <p className="text-sm text-muted-foreground">Sidebar content goes here</p>
+              </div>
+            </SidebarContent>
+          </Sidebar>
         )}
 
         {/* Main Content Area */}
@@ -46,7 +48,7 @@ const MainLayout: React.FC = () => {
             {/* Main Content Panel */}
             <ResizablePanel defaultSize={80} minSize={50}>
               <ScrollArea className="h-full">
-                <main className="flex-1">
+                <main className="flex-1 p-4">
                   <Outlet />
                 </main>
               </ScrollArea>
