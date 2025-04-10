@@ -13,6 +13,7 @@ import {
   adaptAlertItems, 
   adaptUpcomingTasks 
 } from '@/hooks/dashboard/adapters';
+import { useAuthContext } from '@/providers/AuthProvider';
 
 interface ViewManagerProps {
   currentView: 'main' | 'calendar' | 'alerts';
@@ -21,6 +22,9 @@ interface ViewManagerProps {
 
 const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) => {
   const navigate = useNavigate();
+  // Ensure we're within an AuthProvider
+  const auth = useAuthContext();
+  
   const { 
     loading, 
     statsData, 

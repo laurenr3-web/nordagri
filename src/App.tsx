@@ -33,30 +33,44 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <RealtimeCacheProvider>
           <Router>
-            <AuthProvider requireAuth={true} redirectTo="/">
-              <LayoutProvider>
-                <Routes>
-                  <Route path="/auth" element={<Auth />} />
-                  <Route element={<MainLayout />}>
-                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/equipment" element={<Equipment />} />
-                    <Route path="/equipment/:id" element={<EquipmentDetail />} />
-                    <Route path="/maintenance" element={<Maintenance />} />
-                    <Route path="/parts" element={<Parts />} />
-                    <Route path="/interventions" element={<Interventions />} />
-                    <Route path="/settings" element={<Settings />} />
-                    <Route path="/profile" element={<Profile />} />
-                    <Route path="/search" element={<Search />} />
-                    {/* Route for QR code scanning */}
-                    <Route path="/scan/:id" element={<ScanRedirect />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Route>
-                </Routes>
-                
-                <Toaster />
-              </LayoutProvider>
-            </AuthProvider>
+            <Routes>
+              {/* Auth route outside MainLayout - doesn't require authentication */}
+              <Route 
+                path="/auth" 
+                element={
+                  <AuthProvider requireAuth={false} redirectTo="/dashboard">
+                    <Auth />
+                  </AuthProvider>
+                } 
+              />
+
+              {/* All other routes are wrapped with AuthProvider + MainLayout */}
+              <Route 
+                element={
+                  <AuthProvider requireAuth={true} redirectTo="/dashboard">
+                    <LayoutProvider>
+                      <MainLayout />
+                    </LayoutProvider>
+                  </AuthProvider>
+                }
+              >
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/equipment" element={<Equipment />} />
+                <Route path="/equipment/:id" element={<EquipmentDetail />} />
+                <Route path="/maintenance" element={<Maintenance />} />
+                <Route path="/parts" element={<Parts />} />
+                <Route path="/interventions" element={<Interventions />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/search" element={<Search />} />
+                {/* Route for QR code scanning */}
+                <Route path="/scan/:id" element={<ScanRedirect />} />
+                <Route path="*" element={<NotFound />} />
+              </Route>
+            </Routes>
+            
+            <Toaster />
           </Router>
         </RealtimeCacheProvider>
       </QueryClientProvider>

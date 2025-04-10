@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuthContext } from '@/providers/AuthProvider';
-import { toast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 
 // Import specialized hooks
 import { useStatsData } from './useStatsData';
@@ -21,7 +21,27 @@ export * from './types/dashboardTypes';
 
 export const useDashboardData = () => {
   const [loading, setLoading] = useState(true);
-  const { user } = useAuthContext();
+  
+  // Safely access auth context - this component should always be wrapped in AuthProvider
+  let user;
+  try {
+    const authContext = useAuthContext();
+    user = authContext?.user;
+  } catch (error) {
+    console.error("Auth context not available:", error);
+    // Return empty data if auth context is not available
+    return {
+      loading: false,
+      statsData: [],
+      equipmentData: [],
+      maintenanceEvents: [],
+      alertItems: [],
+      upcomingTasks: [],
+      urgentInterventions: [],
+      stockAlerts: [],
+      weeklyCalendarEvents: []
+    };
+  }
 
   // Use specialized hooks
   const { statsData } = useStatsData(user);
