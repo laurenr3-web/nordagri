@@ -18,8 +18,13 @@ const MainLayout: React.FC = () => {
   const isMobile = useIsMobile();
 
   return (
-    <SidebarProvider defaultOpen={!sidebarCollapsed} open={!sidebarCollapsed} onOpenChange={(open) => setSidebarCollapsed(!open)}>
-      <div className="flex h-screen overflow-hidden bg-background">
+    <SidebarProvider 
+      defaultOpen={!sidebarCollapsed} 
+      open={!sidebarCollapsed} 
+      onOpenChange={(open) => setSidebarCollapsed(!open)}
+      className="w-full"
+    >
+      <div className="flex h-screen w-full overflow-hidden bg-background">
         {/* Desktop Sidebar */}
         {!isMobile && (
           <div
