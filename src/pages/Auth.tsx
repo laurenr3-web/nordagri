@@ -1,123 +1,57 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { AuthForm } from '@/components/ui/auth/AuthForm';
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { toast } from 'sonner';
 
 const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchParams] = useSearchParams();
-  const [loading, setLoading] = useState(true);
-  const [verifyingEmail, setVerifyingEmail] = useState(false);
-  const { isAuthenticated } = useAuthContext();
+  const { isAuthenticated, loading } = useAuthContext();
   
-  // Récupérer la destination de redirection depuis les query params
-  const getReturnPath = () => {
-    // Priorité au paramètre redirectTo
-    const redirectTo = searchParams.get('redirectTo');
-    if (redirectTo) return redirectTo;
-    
-    // Ensuite vérifier returnTo pour rétrocompatibilité
-    const returnTo = searchParams.get('returnTo');
-    if (returnTo) return returnTo;
-    
-    // Par défaut, rediriger vers l'accueil
-    return '/';
-  };
-
-  // Check if the user is coming from a verification email
+  // Extract returnTo parameter from URL if present
+  const params = new URLSearchParams(location.search);
+  const returnTo = params.get('returnTo') || '/dashboard';
+  
   useEffect(() => {
-    const checkEmailVerification = async () => {
-      // Vérifier s'il y a des paramètres de hash dans l'URL
-      if (!location.hash) return;
-      
-      const params = new URLSearchParams(location.hash.substring(1));
-      const accessToken = params.get('access_token');
-      const refreshToken = params.get('refresh_token');
-      const type = params.get('type');
-      
-      if (!accessToken) return;
-      
-      if (accessToken && refreshToken && type === 'recovery') {
-        toast.info('Réinitialisation du mot de passe', {
-          description: 'Veuillez définir votre nouveau mot de passe'
-        });
-        
-        // Handle password reset flow
-        const { error } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-        
-        if (!error) {
-          navigate('/settings?tab=security');
-        } else {
-          toast.error('Erreur lors de la réinitialisation', {
-            description: error.message || 'Lien expiré ou invalide'
-          });
-        }
-      } else if (accessToken && type === 'signup') {
-        setVerifyingEmail(true);
-        // Handle email verification for signup
-        try {
-          const { error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken || '',
-          });
-          
-          if (!error) {
-            // User has verified their email and is now logged in
-            toast.success('Email vérifié avec succès', {
-              description: 'Votre compte est maintenant actif'
-            });
-            setVerifyingEmail(false);
-            navigate(getReturnPath());
-          } else {
-            throw error;
-          }
-        } catch (error: any) {
-          console.error('Email verification error:', error);
-          toast.error('Erreur de vérification', {
-            description: error.message || 'Impossible de vérifier votre email'
-          });
-          setVerifyingEmail(false);
-        }
-      }
-    };
-    
-    checkEmailVerification();
-  }, [location, navigate]);
-
-  useEffect(() => {
-    // Si l'utilisateur est déjà authentifié, rediriger vers la page de retour
-    if (isAuthenticated) {
-      navigate(getReturnPath());
+    // If already authenticated, redirect to dashboard or returnTo path
+    if (isAuthenticated && !loading) {
+      toast.success('Vous êtes déjà connecté');
+      navigate(returnTo, { replace: true });
     }
-    setLoading(false);
-  }, [isAuthenticated, navigate]);
-
-  if (loading || verifyingEmail) {
+  }, [isAuthenticated, loading, navigate, returnTo]);
+  
+  const handleAuthSuccess = () => {
+    navigate(returnTo, { replace: true });
+  };
+  
+  if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen flex-col gap-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-lg">
-          {verifyingEmail ? 'Vérification de votre email...' : 'Chargement...'}
-        </p>
+      <div className="flex items-center justify-center min-h-screen bg-muted/30">
+        <div className="w-full max-w-md text-center p-6">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-lg">Vérification de l'authentification...</p>
+        </div>
       </div>
     );
   }
-
+  
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold mb-2">OptiTractor</h1>
-        <p className="text-muted-foreground">Système de gestion d'équipement agricole</p>
+    <div className="flex items-center justify-center min-h-screen bg-muted/30">
+      <div className="w-full max-w-md p-6">
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold">OptiTractor</h1>
+          <p className="text-muted-foreground mt-2">Plateforme de gestion des équipements agricoles</p>
+        </div>
+        
+        <Card className="border-t-4 border-t-primary">
+          <CardContent className="pt-6">
+            <AuthForm onSuccess={handleAuthSuccess} />
+          </CardContent>
+        </Card>
       </div>
-      <AuthForm onSuccess={() => navigate(getReturnPath())} />
     </div>
   );
 };

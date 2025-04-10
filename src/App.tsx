@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
@@ -33,12 +33,12 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <RealtimeCacheProvider>
           <Router>
-            <AuthProvider>
+            <AuthProvider requireAuth={true} redirectTo="/">
               <LayoutProvider>
                 <Routes>
+                  <Route path="/auth" element={<Auth />} />
                   <Route element={<MainLayout />}>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/equipment" element={<Equipment />} />
                     <Route path="/equipment/:id" element={<EquipmentDetail />} />

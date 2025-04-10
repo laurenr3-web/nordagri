@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { checkAuthStatus } from '@/utils/authUtils';
 
 /**
- * Hook pour vérification de session d'authentification et redirections
+ * Hook to check authentication session and handle redirects
  */
 export function useSessionCheck(
   setUser,
@@ -21,13 +21,13 @@ export function useSessionCheck(
   const location = useLocation();
 
   useEffect(() => {
-    // Fonction pour vérifier l'état de la session
+    // Function to check session state
     const checkSession = async () => {
       setLoading(true);
       console.log("Checking session...");
       
       try {
-        // Récupérer la session actuelle avec une méthode plus robuste
+        // Get current session using a more robust method
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -37,58 +37,55 @@ export function useSessionCheck(
         
         const currentSession = data?.session;
         
-        // Logger l'état de la session pour le débogage
+        // Log session state for debugging
         console.log("Session check result:", currentSession ? "Authenticated" : "Not authenticated");
         
-        // Vérifier explicitement l'état d'authentification
-        const authStatus = await checkAuthStatus();
-        console.log("Auth status check complete:", authStatus);
-        
-        // Mettre à jour l'état
+        // Update state
         setSession(currentSession);
         setUser(currentSession?.user || null);
         
-        // Si l'utilisateur est connecté, récupérer ses données de profil
+        // If user is authenticated, get their profile data
         if (currentSession?.user) {
           console.log("User is authenticated, fetching profile data");
           
-          // Ne pas bloquer le processus d'authentification si la récupération du profil échoue
-          setTimeout(() => {
-            fetchUserProfile(currentSession.user.id).then(data => {
-              console.log("Profile data fetched:", data);
-              setProfileData(data);
-            }).catch(err => {
-              console.error("Error fetching profile data:", err);
-              // Continuer même si le profil ne peut pas être récupéré
-            });
-          }, 0);
+          try {
+            const profileData = await fetchUserProfile(currentSession.user.id);
+            console.log("Profile data fetched:", profileData);
+            setProfileData(profileData);
+          } catch (profileError) {
+            console.error("Error fetching profile data:", profileError);
+            // Continue even if profile cannot be fetched
+          }
         }
         
-        // Gérer les redirections
+        // Handle redirections
         if (requireAuth && !currentSession) {
           console.log("Route requires auth but user is not authenticated, redirecting to auth page");
           const currentPath = location.pathname;
           const sanitizedPath = encodeURIComponent(currentPath);
           
-          // Éviter les redirections vers des pages d'erreur ou non valides
+          // Avoid redirections to error or invalid pages
           const validPath = sanitizedPath.length > 0 && !sanitizedPath.includes('error');
           const returnTo = validPath ? sanitizedPath : '';
           
-          navigate(`/auth${returnTo ? `?returnTo=${returnTo}` : ''}`, { replace: true });
+          // Don't redirect if already on auth page
+          if (location.pathname !== '/auth') {
+            navigate(`/auth${returnTo ? `?returnTo=${returnTo}` : ''}`, { replace: true });
+          }
         } else if (currentSession && location.pathname === '/auth' && redirectTo) {
-          // Rediriger depuis la page d'auth vers la destination spécifiée
+          // Redirect from auth page to specified destination
           console.log("User is authenticated on auth page, redirecting to:", redirectTo);
           navigate(redirectTo, { replace: true });
         }
       } catch (error) {
-        console.error('Erreur lors de la vérification de la session:', error);
+        console.error('Error checking session:', error);
         toast.error("Problème de connexion. Veuillez réessayer.");
       } finally {
         setLoading(false);
       }
     };
     
-    // Vérifier la session immédiatement
+    // Check session immediately
     checkSession();
     
   }, [navigate, location, requireAuth, redirectTo, setUser, setSession, setProfileData, setLoading]);
