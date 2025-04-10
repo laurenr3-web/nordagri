@@ -7,7 +7,7 @@ import Navbar from '@/components/layout/Navbar';
 import { useLayoutContext } from '@/ui/layouts/MainLayoutContext';
 import { Sidebar } from '@/components/ui/sidebar';
 import MobileNav from '@/components/layout/MobileNav';
-import UserMenu from '@/components/layout/UserMenu';
+import { UserMenu } from '@/components/layout/UserMenu';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 /**
@@ -26,7 +26,12 @@ const MainLayout: React.FC = () => {
             sidebarCollapsed ? 'w-16' : 'w-64'
           }`}
         >
-          <Sidebar collapsed={sidebarCollapsed} onCollapsedChange={setSidebarCollapsed} />
+          <Sidebar 
+            className="h-full" 
+            navItems={[]} 
+            collapsed={sidebarCollapsed} 
+            onCollapsedChange={setSidebarCollapsed} 
+          />
         </div>
       )}
 
@@ -74,3 +79,4 @@ const MainLayout: React.FC = () => {
 };
 
 export default MainLayout;
+
