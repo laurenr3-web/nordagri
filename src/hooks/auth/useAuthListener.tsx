@@ -33,7 +33,7 @@ export function useAuthListener(
       if (session?.user && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
         // Utiliser setTimeout pour éviter les blocages potentiels
         setTimeout(() => {
-          if (session && session.user) {
+          if (session && session.user) {  // Vérification supplémentaire
             fetchUserProfile(session.user.id).then(data => {
               console.log("Fetched profile data:", data);
               setProfileData(data);
@@ -44,21 +44,9 @@ export function useAuthListener(
           }
         }, 0);
         
-        // Rediriger après la connexion si nécessaire
-        if (location.pathname === '/auth') {
-          // Vérifier s'il y a un paramètre returnTo dans l'URL
-          const params = new URLSearchParams(location.search);
-          const returnTo = params.get('returnTo');
-          
-          if (returnTo) {
-            navigate(decodeURIComponent(returnTo), { replace: true });
-          } else if (redirectTo) {
-            navigate(redirectTo, { replace: true });
-          } else {
-            // Rediriger vers l'accueil par défaut
-            navigate('/', { replace: true });
-          }
-        }
+        if (redirectTo && location.pathname === '/auth') {
+          navigate(redirectTo, { replace: true });
+        } 
       } else if (requireAuth && !session && event === 'SIGNED_OUT') {
         // L'utilisateur s'est déconnecté et cette route nécessite une authentification
         console.log("User signed out and route requires auth, redirecting to auth page");
