@@ -6,7 +6,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { ConnectionStatus } from '@/components/ui/connection-status';
 import { SkeletonLoader } from '@/components/ui/skeleton-loader';
 import { useRealtimeCache } from '@/providers/RealtimeCacheProvider';
-import { useAuthContext } from '@/providers/AuthProvider';
+import { useDashboardData } from '@/hooks/dashboard/useDashboardData';
 
 const Index = () => {
   // Current state
@@ -14,9 +14,6 @@ const Index = () => {
   const [currentView, setCurrentView] = useState<'main' | 'calendar' | 'alerts'>('main');
   const isMobile = useIsMobile();
   const { isOfflineMode, prefetchCriticalData } = useRealtimeCache();
-  
-  // Ensure the component is wrapped in an AuthProvider by accessing the auth context
-  const auth = useAuthContext();
   
   // Preload dashboard data for offline mode
   useEffect(() => {

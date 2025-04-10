@@ -21,25 +21,25 @@ export function useAuthListener(
   useEffect(() => {
     console.log("Setting up auth listener");
     
-    // Subscribe to authentication state changes
+    // Configurer l'abonnement aux changements d'état d'authentification
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       console.log(`Auth state changed: ${event}`, session?.user?.id || 'No user');
       
-      // Synchronous state update
+      // Mise à jour synchrone de l'état
       setSession(session);
       setUser(session?.user ?? null);
       
-      // If user just logged in, get their profile data
+      // Si l'utilisateur vient de se connecter, récupérer ses données de profil
       if (session?.user && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
-        // Use setTimeout to avoid potential blocking
+        // Utiliser setTimeout pour éviter les blocages potentiels
         setTimeout(() => {
-          if (session && session.user) {  // Additional check
+          if (session && session.user) {  // Vérification supplémentaire
             fetchUserProfile(session.user.id).then(data => {
               console.log("Fetched profile data:", data);
               setProfileData(data);
             }).catch(error => {
               console.error("Error fetching profile:", error);
-              // Don't block authentication if profile cannot be retrieved
+              // Ne pas bloquer l'authentification si le profil n'est pas récupérable
             });
           }
         }, 0);
@@ -47,19 +47,15 @@ export function useAuthListener(
         if (redirectTo && location.pathname === '/auth') {
           navigate(redirectTo, { replace: true });
         } 
-      } else if (event === 'SIGNED_OUT') {
-        // Clear profile data on sign out
-        setProfileData(null);
-        
-        if (requireAuth) {
-          // User signed out and route requires authentication
-          console.log("User signed out and route requires auth, redirecting to auth page");
-          navigate(`/auth`, { replace: true });
-        }
+      } else if (requireAuth && !session && event === 'SIGNED_OUT') {
+        // L'utilisateur s'est déconnecté et cette route nécessite une authentification
+        console.log("User signed out and route requires auth, redirecting to auth page");
+        const returnPath = location.pathname + location.search;
+        navigate(`/auth?returnTo=${encodeURIComponent(returnPath)}`, { replace: true });
       }
     });
     
-    // Clean up subscription when component unmounts
+    // Nettoyer l'abonnement lorsque le composant est démonté
     return () => {
       console.log("Cleaning up auth listener");
       authListener.subscription.unsubscribe();

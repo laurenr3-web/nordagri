@@ -3,7 +3,7 @@ import React, { createContext, useContext, ReactNode } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { User, Session } from '@supabase/supabase-js';
 
-// Define the type for authentication context
+// Définir le type pour le contexte d'authentification
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -13,10 +13,10 @@ interface AuthContextType {
   signOut: () => Promise<void>;
 }
 
-// Create context with an empty default value
+// Créer le contexte avec une valeur par défaut vide
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Props for the authentication provider
+// Props pour le fournisseur d'authentification
 interface AuthProviderProps {
   children: ReactNode;
   requireAuth?: boolean;
@@ -24,12 +24,12 @@ interface AuthProviderProps {
 }
 
 /**
- * Authentication provider that makes authentication state available in the application
+ * Fournisseur d'authentification qui rend l'état d'authentification disponible dans l'application
  */
 export function AuthProvider({ 
   children, 
-  requireAuth = true, // Changed default to true to require authentication by default
-  redirectTo = '/' 
+  requireAuth = false,
+  redirectTo 
 }: AuthProviderProps) {
   const auth = useAuth(requireAuth, redirectTo);
   
@@ -41,13 +41,13 @@ export function AuthProvider({
 }
 
 /**
- * Hook to use authentication context in components
+ * Hook pour utiliser le contexte d'authentification dans les composants
  */
 export function useAuthContext() {
   const context = useContext(AuthContext);
   
   if (context === undefined) {
-    throw new Error("useAuthContext must be used inside an AuthProvider");
+    throw new Error("useAuthContext doit être utilisé à l'intérieur d'un AuthProvider");
   }
   
   return context;

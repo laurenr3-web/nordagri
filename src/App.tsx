@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
@@ -33,44 +33,30 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <RealtimeCacheProvider>
           <Router>
-            <Routes>
-              {/* Auth route outside MainLayout - doesn't require authentication */}
-              <Route 
-                path="/auth" 
-                element={
-                  <AuthProvider requireAuth={false} redirectTo="/dashboard">
-                    <Auth />
-                  </AuthProvider>
-                } 
-              />
-
-              {/* All other routes are wrapped with AuthProvider + MainLayout */}
-              <Route 
-                element={
-                  <AuthProvider requireAuth={true} redirectTo="/dashboard">
-                    <LayoutProvider>
-                      <MainLayout />
-                    </LayoutProvider>
-                  </AuthProvider>
-                }
-              >
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/equipment" element={<Equipment />} />
-                <Route path="/equipment/:id" element={<EquipmentDetail />} />
-                <Route path="/maintenance" element={<Maintenance />} />
-                <Route path="/parts" element={<Parts />} />
-                <Route path="/interventions" element={<Interventions />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/search" element={<Search />} />
-                {/* Route for QR code scanning */}
-                <Route path="/scan/:id" element={<ScanRedirect />} />
-                <Route path="*" element={<NotFound />} />
-              </Route>
-            </Routes>
-            
-            <Toaster />
+            <AuthProvider>
+              <LayoutProvider>
+                <Routes>
+                  <Route element={<MainLayout />}>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/equipment" element={<Equipment />} />
+                    <Route path="/equipment/:id" element={<EquipmentDetail />} />
+                    <Route path="/maintenance" element={<Maintenance />} />
+                    <Route path="/parts" element={<Parts />} />
+                    <Route path="/interventions" element={<Interventions />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/search" element={<Search />} />
+                    {/* Route for QR code scanning */}
+                    <Route path="/scan/:id" element={<ScanRedirect />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Route>
+                </Routes>
+                
+                <Toaster />
+              </LayoutProvider>
+            </AuthProvider>
           </Router>
         </RealtimeCacheProvider>
       </QueryClientProvider>

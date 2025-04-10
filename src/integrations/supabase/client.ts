@@ -3,45 +3,43 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 import { toast } from 'sonner';
 
-// Get environment variables
+// Récupération des variables d'environnement
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Check for environment variables
+// Vérification de la présence des variables d'environnement
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  throw new Error('Missing Supabase environment variables. Please configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file');
+  throw new Error('Variables d\'environnement Supabase manquantes. Veuillez configurer VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY dans votre fichier .env');
 }
 
-// Instantiate Supabase client with explicit authentication options
+// Instancier le client Supabase avec des options explicites pour l'authentification
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
-    storage: localStorage,
-    storageKey: 'optitractor-auth-token',
-    flowType: 'pkce'
+    storage: localStorage
   }
 });
 
-// Check Supabase connection works
+// Vérifier que la connexion à Supabase fonctionne
 supabase.auth.getSession().then(({ data, error }) => {
   if (error) {
-    console.error('Supabase connection error:', error.message);
+    console.error('Erreur de connexion à Supabase:', error.message);
     toast.error('Erreur de connexion à la base de données', {
       description: 'Vérifiez votre configuration et votre connexion internet'
     });
   } else {
-    console.log('✅ Supabase connection established successfully');
+    console.log('✅ Connexion à Supabase établie avec succès');
     if (data.session) {
-      console.log('✅ User logged in:', data.session.user.id);
+      console.log('✅ Utilisateur connecté:', data.session.user.id);
     } else {
-      console.log('⚠️ No user logged in');
+      console.log('⚠️ Aucun utilisateur connecté');
     }
   }
 });
 
-// Expose the function for testing via console
+// Exposer la fonction pour les tests via la console
 if (typeof window !== 'undefined') {
   (window as any).supabase = supabase;
 }

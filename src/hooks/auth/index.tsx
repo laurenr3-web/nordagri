@@ -3,8 +3,6 @@ import { useAuthState, AuthStateReturn } from './useAuthState';
 import { useAuthHandlers } from './useAuthHandlers';
 import { useSessionCheck } from './useSessionCheck';
 import { useAuthListener } from './useAuthListener';
-import { useToast } from '@/hooks/use-toast';
-import { toast } from 'sonner';
 
 /**
  * Interface for the auth hook return value
@@ -19,9 +17,9 @@ export interface AuthReturn {
 }
 
 /**
- * Authentication hook to manage user state and redirections
- * @param requireAuth If true, redirect to authentication page if user is not logged in
- * @param redirectTo Redirection page after authentication (default: current page)
+ * Hook d'authentification pour gérer l'état de l'utilisateur et les redirections
+ * @param requireAuth Si true, redirige vers la page d'authentification si l'utilisateur n'est pas connecté
+ * @param redirectTo Page de redirection après authentification (défaut: page actuelle)
  */
 export function useAuth(requireAuth = true, redirectTo?: string): AuthReturn {
   // Manage authentication state

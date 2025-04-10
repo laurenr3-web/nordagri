@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/index/Header';
 import Dashboard from '@/components/index/Dashboard';
@@ -19,11 +18,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useDashboardPreferences } from '@/hooks/dashboard/useDashboardPreferences';
-import { useAuthContext } from '@/providers/AuthProvider';
 
 const DashboardPage = () => {
-  const auth = useAuthContext();
-  
   // Récupération des données réelles avec le hook
   const { 
     loading,
