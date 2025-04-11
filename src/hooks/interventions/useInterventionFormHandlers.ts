@@ -11,15 +11,21 @@ interface UseInterventionFormHandlersProps {
 
 /**
  * Hook personnalisé pour gérer les actions des formulaires d'intervention
+ * - Séparation des préoccupations
+ * - Réutilisation facile
+ * - Gestion d'état optimisée
  */
 export function useInterventionFormHandlers({ onClose }: UseInterventionFormHandlersProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { createIntervention, updateInterventionStatus, submitInterventionReport } = useInterventionsData();
   const queryClient = useQueryClient();
   
-  // Créer une nouvelle intervention
+  /**
+   * Créer une nouvelle intervention
+   */
   const handleCreateIntervention = useCallback(async (values: InterventionFormValues) => {
     setIsSubmitting(true);
+    
     try {
       console.log('Creating new intervention with data:', values);
       await createIntervention(values);
@@ -36,9 +42,12 @@ export function useInterventionFormHandlers({ onClose }: UseInterventionFormHand
     }
   }, [createIntervention, queryClient, onClose]);
   
-  // Démarrer une intervention
+  /**
+   * Démarrer une intervention
+   */
   const handleStartIntervention = useCallback((intervention: Intervention) => {
     setIsSubmitting(true);
+    
     try {
       updateInterventionStatus(intervention.id, 'in-progress');
       toast.success(`Intervention "${intervention.title}" démarrée`);
@@ -49,13 +58,19 @@ export function useInterventionFormHandlers({ onClose }: UseInterventionFormHand
     }
   }, [updateInterventionStatus]);
   
-  // Soumettre un rapport d'intervention
-  const handleSubmitReport = useCallback((intervention: Intervention, reportData: {
-    duration: number;
-    notes: string;
-    partsUsed: Array<{ id: number; name: string; quantity: number; }>;
-  }) => {
+  /**
+   * Soumettre un rapport d'intervention
+   */
+  const handleSubmitReport = useCallback((
+    intervention: Intervention, 
+    reportData: {
+      duration: number;
+      notes: string;
+      partsUsed: Array<{ id: number; name: string; quantity: number; }>;
+    }
+  ) => {
     setIsSubmitting(true);
+    
     try {
       submitInterventionReport(intervention, reportData);
       toast.success(`Rapport d'intervention soumis avec succès`);

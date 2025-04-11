@@ -3,12 +3,16 @@ import { useQuery, useMutation, useQueryClient, QueryKey, UseQueryOptions, UseQu
 import { toast } from 'sonner';
 import { useState, useCallback } from 'react';
 
+// Types génériques pour les fonctions de requête et de mutation
 type QueryFn<T> = () => Promise<T>;
 type MutationFn<T, P> = (params: P) => Promise<T>;
 
-// Define a correct type for PlaceholderData that works with TanStack Query v5
+// Type pour PlaceholderData compatible avec TanStack Query v5
 type PlaceholderDataFunction<TData> = (previousData?: TData) => TData;
 
+/**
+ * Options pour useStandardQuery
+ */
 interface QueryOptions<T> {
   queryKey: QueryKey;
   queryFn: QueryFn<T>;
@@ -22,6 +26,9 @@ interface QueryOptions<T> {
   placeholderData?: T | PlaceholderDataFunction<T>;
 }
 
+/**
+ * Options pour useStandardMutation
+ */
 interface MutationOptions<T, P> {
   mutationFn: MutationFn<T, P>;
   onSuccess?: (data: T, variables: P) => void;
@@ -34,6 +41,9 @@ interface MutationOptions<T, P> {
 
 /**
  * Hook standardisé pour les requêtes de données
+ * - Configuration cohérente
+ * - Gestion intégrée des erreurs et succès
+ * - Paramètres par défaut optimisés
  */
 export function useStandardQuery<T>(options: QueryOptions<T>): UseQueryResult<T, Error> {
   const {
@@ -49,8 +59,7 @@ export function useStandardQuery<T>(options: QueryOptions<T>): UseQueryResult<T,
     placeholderData
   } = options;
 
-  // Cast placeholderData to any to bypass the TypeScript error
-  // This is safe because the React Query library will handle the type correctly at runtime
+  // Configuration de la requête avec TanStack Query v5
   const queryOptions = {
     queryKey,
     queryFn,
@@ -74,6 +83,9 @@ export function useStandardQuery<T>(options: QueryOptions<T>): UseQueryResult<T,
 
 /**
  * Hook standardisé pour les mutations de données
+ * - Gestion cohérente des états (chargement, erreur, succès)
+ * - Messages toast intégrés
+ * - Invalidation automatique des requêtes associées
  */
 export function useStandardMutation<T, P = any>(options: MutationOptions<T, P>) {
   const {

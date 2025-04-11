@@ -1,31 +1,35 @@
 
-import React, { useState, Suspense, useEffect, useCallback } from 'react';
+import React, { Suspense, useCallback } from 'react';
 import Header from '@/components/index/Header';
 import ViewManager from '@/components/index/ViewManager';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ConnectionStatus } from '@/components/ui/connection-status';
-import { SkeletonLoader } from '@/components/ui/skeleton-loader';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useRealtimeCache } from '@/providers/RealtimeCacheProvider';
 import { useDashboardData } from '@/hooks/dashboard/useDashboardData';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
-const Index = () => {
-  // Current state
-  const [currentMonth] = useState(new Date());
-  const [currentView, setCurrentView] = useState<'main' | 'calendar' | 'alerts'>('main');
+/**
+ * Page d'index principale de l'application
+ * - Optimisée avec React.memo pour les rendus
+ * - Chargement asynchrone des composants
+ * - Gestion appropriée des états de chargement
+ */
+const Index = React.memo(() => {
+  // États et hooks
+  const [currentView, setCurrentView] = React.useState<'main' | 'calendar' | 'alerts'>('main');
+  const currentMonth = React.useMemo(() => new Date(), []);
   const isMobile = useIsMobile();
   const { isOfflineMode, prefetchCriticalData } = useRealtimeCache();
   const { loading: isDashboardDataLoading } = useDashboardData();
   
-  // Handle view changes
+  // Gestionnaire de changement de vue optimisé
   const handleViewChange = useCallback((view: 'main' | 'calendar' | 'alerts') => {
     setCurrentView(view);
   }, []);
 
-  // Preload dashboard data for offline mode
-  useEffect(() => {
+  // Précharger les données en mode hors ligne
+  React.useEffect(() => {
     if (isOfflineMode) {
-      // We're in offline mode, check if data is available
       prefetchCriticalData();
     }
   }, [isOfflineMode, prefetchCriticalData]);
@@ -43,7 +47,13 @@ const Index = () => {
         
         <div className={`flex-1 overflow-auto px-2 pb-2 ${isMobile ? 'mobile-pb-safe' : ''}`}>
           <div className="mx-auto h-full max-w-7xl">
-            <Suspense fallback={<LoadingSpinner message="Chargement du tableau de bord..." size="lg" centered />}>
+            <Suspense fallback={
+              <LoadingSpinner 
+                message="Chargement du tableau de bord..." 
+                size="lg" 
+                centered 
+              />
+            }>
               <ViewManager 
                 currentView={currentView} 
                 currentMonth={currentMonth} 
@@ -54,6 +64,8 @@ const Index = () => {
       </div>
     </>
   );
-};
+});
+
+Index.displayName = 'Index';
 
 export default Index;
