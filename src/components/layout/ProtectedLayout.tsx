@@ -1,5 +1,5 @@
 
-import React, { ReactNode, Suspense } from 'react';
+import React, { ReactNode, memo, useMemo } from 'react';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import MainLayout from '@/ui/layouts/MainLayout';
 import { LayoutProvider } from '@/ui/layouts/MainLayoutContext';
@@ -10,21 +10,28 @@ interface ProtectedLayoutProps {
   children: ReactNode;
 }
 
-const ProtectedLayout: React.FC<ProtectedLayoutProps> = ({ children }) => {
-  // Utiliser le hook de préchargement pour optimiser les navigations futures
+// Utilisation de React.memo pour optimiser les rendus
+const ProtectedLayout: React.FC<ProtectedLayoutProps> = memo(({ children }) => {
+  // Préchargement optimisé des routes
   useRoutePreloading();
   
-  return (
+  // Mémoriser le contenu suspendu pour éviter des rendus inutiles
+  const suspendedContent = useMemo(() => (
     <ProtectedRoute>
       <LayoutProvider>
         <MainLayout>
-          <Suspense fallback={<LoadingSpinner message="Chargement du contenu sécurisé..." />}>
+          <React.Suspense fallback={<LoadingSpinner message="Chargement du contenu sécurisé..." />}>
             {children}
-          </Suspense>
+          </React.Suspense>
         </MainLayout>
       </LayoutProvider>
     </ProtectedRoute>
-  );
-};
+  ), [children]);
+  
+  return suspendedContent;
+});
+
+// Ajouter un displayName pour améliorer le débogage
+ProtectedLayout.displayName = 'ProtectedLayout';
 
 export default ProtectedLayout;
