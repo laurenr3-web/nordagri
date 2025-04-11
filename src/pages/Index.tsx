@@ -14,8 +14,8 @@ const Index = () => {
   const [currentMonth] = useState(new Date());
   const [currentView, setCurrentView] = useState<'main' | 'calendar' | 'alerts'>('main');
   const isMobile = useIsMobile();
-  const { isOfflineMode, prefetchCriticalData, connectionStatus } = useRealtimeCache();
-  const { isLoading: isDashboardDataLoading } = useDashboardData();
+  const { isOfflineMode, prefetchCriticalData } = useRealtimeCache();
+  const { loading: isDashboardDataLoading } = useDashboardData();
   
   // Handle view changes
   const handleViewChange = useCallback((view: 'main' | 'calendar' | 'alerts') => {
