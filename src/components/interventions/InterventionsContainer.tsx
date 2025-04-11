@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useMemo, useCallback } from 'react';
 import InterventionsList from '@/components/interventions/InterventionsList';
 import { Intervention, InterventionFormValues } from '@/types/Intervention';
 import { useInterventionsData } from '@/hooks/interventions/useInterventionsData';
@@ -7,6 +8,8 @@ import NewInterventionDialog from './NewInterventionDialog';
 import InterventionReportDialog from './dialogs/InterventionReportDialog';
 import CalendarView from './views/CalendarView';
 import FieldTrackingView from './views/FieldTrackingView';
+import { useInterventionFormHandlers } from '@/hooks/interventions/useInterventionFormHandlers';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface InterventionsContainerProps {
   filteredInterventions: Intervention[];
@@ -48,20 +51,36 @@ const InterventionsContainer: React.FC<InterventionsContainerProps> = ({
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [selectedIntervention, setSelectedIntervention] = useState<Intervention | null>(null);
   
+  // Utiliser notre nouveau hook pour gérer les formulaires
+  const { 
+    isSubmitting, 
+    handleCreateIntervention 
+  } = useInterventionFormHandlers({
+    onClose: useCallback(() => setIsNewInterventionOpen(false), [])
+  });
+  
   // Gérer la sélection d'une intervention pour le rapport
-  const handleCompleteIntervention = (intervention: Intervention) => {
+  const handleCompleteIntervention = useCallback((intervention: Intervention) => {
     setSelectedIntervention(intervention);
     setIsReportDialogOpen(true);
-  };
+  }, []);
   
   // Lorsqu'on ouvre le formulaire de création depuis le calendrier
-  const handleCreateFromCalendar = (date?: Date) => {
+  const handleCreateFromCalendar = useCallback((date?: Date) => {
     // TODO: Pré-remplir le formulaire avec la date sélectionnée
     setIsNewInterventionOpen(true);
-  };
+  }, []);
+  
+  // Mémoriser les pièces disponibles pour éviter des recalculs inutiles
+  const availableParts = useMemo(() => [
+    { id: 1, name: 'Filtre à huile', quantity: 10 },
+    { id: 2, name: 'Courroie', quantity: 5 },
+    { id: 3, name: 'Filtre à air', quantity: 8 },
+    { id: 4, name: 'Bougie d\'allumage', quantity: 12 }
+  ], []);
   
   // Contenu à afficher selon la vue actuelle
-  const renderContent = () => {
+  const renderContent = useCallback(() => {
     switch (currentView) {
       case 'calendar':
         return (
@@ -92,7 +111,17 @@ const InterventionsContainer: React.FC<InterventionsContainerProps> = ({
           />
         );
     }
-  };
+  }, [
+    currentView, 
+    filteredInterventions, 
+    onViewDetails, 
+    handleCreateFromCalendar, 
+    updateInterventionStatus, 
+    assignTechnician, 
+    setCurrentView, 
+    onClearSearch, 
+    onStartWork
+  ]);
 
   return (
     <div className="container mx-auto py-6">
@@ -102,12 +131,7 @@ const InterventionsContainer: React.FC<InterventionsContainerProps> = ({
       <NewInterventionDialog
         open={isNewInterventionOpen}
         onOpenChange={setIsNewInterventionOpen}
-        onCreate={async (values) => {
-          console.log('Creating intervention:', values);
-          setIsNewInterventionOpen(false);
-          // Return a resolved promise to satisfy the type
-          return Promise.resolve();
-        }}
+        onCreate={handleCreateIntervention}
         equipments={realEquipments}
         isLoadingEquipment={isLoadingEquipments}
       />
@@ -118,15 +142,10 @@ const InterventionsContainer: React.FC<InterventionsContainerProps> = ({
         onOpenChange={setIsReportDialogOpen}
         intervention={selectedIntervention}
         onSubmit={submitInterventionReport}
-        availableParts={[
-          { id: 1, name: 'Filtre à huile', quantity: 10 },
-          { id: 2, name: 'Courroie', quantity: 5 },
-          { id: 3, name: 'Filtre à air', quantity: 8 },
-          { id: 4, name: 'Bougie d\'allumage', quantity: 12 }
-        ]}
+        availableParts={availableParts}
       />
     </div>
   );
 };
 
-export default InterventionsContainer;
+export default React.memo(InterventionsContainer);

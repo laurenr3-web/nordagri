@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo, useCallback } from 'react';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -15,13 +15,13 @@ interface InterventionCardProps {
   onStartWork: (intervention: Intervention) => void;
 }
 
-const InterventionCard: React.FC<InterventionCardProps> = ({ 
+const InterventionCard = memo(({ 
   intervention, 
   onViewDetails, 
   onStartWork 
-}) => {
+}: InterventionCardProps) => {
   // Déterminer la couleur de fond basée sur la priorité
-  const getPriorityClass = () => {
+  const getPriorityClass = useCallback(() => {
     switch(intervention.priority) {
       case 'high':
         return 'border-l-4 border-l-red-500';
@@ -30,7 +30,15 @@ const InterventionCard: React.FC<InterventionCardProps> = ({
       default:
         return 'border-l-4 border-l-agri-500';
     }
-  };
+  }, [intervention.priority]);
+
+  const handleViewDetails = useCallback(() => {
+    onViewDetails(intervention);
+  }, [onViewDetails, intervention]);
+
+  const handleStartWork = useCallback(() => {
+    onStartWork(intervention);
+  }, [onStartWork, intervention]);
 
   return (
     <Card className={`overflow-hidden transition-all hover:shadow-md animate-fade-in ${getPriorityClass()}`}>
@@ -93,7 +101,7 @@ const InterventionCard: React.FC<InterventionCardProps> = ({
             variant="outline" 
             size="sm"
             className="gap-1"
-            onClick={() => onStartWork(intervention)}
+            onClick={handleStartWork}
           >
             <Wrench size={16} />
             <span>Démarrer</span>
@@ -101,13 +109,15 @@ const InterventionCard: React.FC<InterventionCardProps> = ({
         )}
         <Button 
           size="sm"
-          onClick={() => onViewDetails(intervention)}
+          onClick={handleViewDetails}
         >
           Détails
         </Button>
       </CardFooter>
     </Card>
   );
-};
+});
+
+InterventionCard.displayName = 'InterventionCard';
 
 export default InterventionCard;

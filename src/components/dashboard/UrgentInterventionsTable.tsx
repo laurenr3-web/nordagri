@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
@@ -22,7 +22,10 @@ interface UrgentInterventionsTableProps {
   onViewDetails?: (id: number) => void;
 }
 
-export function UrgentInterventionsTable({ interventions, onViewDetails }: UrgentInterventionsTableProps) {
+export const UrgentInterventionsTable = memo(function UrgentInterventionsTable({ 
+  interventions, 
+  onViewDetails 
+}: UrgentInterventionsTableProps) {
   if (!interventions || interventions.length === 0) {
     return (
       <div className="text-center py-8 bg-bg-light rounded-lg flex flex-col items-center justify-center">
@@ -92,4 +95,6 @@ export function UrgentInterventionsTable({ interventions, onViewDetails }: Urgen
       </TableBody>
     </Table>
   );
-}
+});
+
+UrgentInterventionsTable.displayName = 'UrgentInterventionsTable';

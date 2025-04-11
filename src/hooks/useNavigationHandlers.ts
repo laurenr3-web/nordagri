@@ -64,6 +64,13 @@ export const useNavigationHandlers = () => {
         break;
     }
   }, [navigate]);
+  
+  /**
+   * Gestionnaire pour afficher les détails d'une intervention urgente
+   */
+  const handleUrgentInterventionClick = useCallback((id: number) => {
+    navigate(`/interventions?id=${id}&urgent=true`);
+  }, [navigate]);
 
   return {
     handleStatsCardClick,
@@ -73,6 +80,7 @@ export const useNavigationHandlers = () => {
     handleEquipmentClick,
     handleInterventionClick,
     handlePartsViewAll,
-    handleViewCalendarEvent
+    handleViewCalendarEvent,
+    handleUrgentInterventionClick
   };
 };
