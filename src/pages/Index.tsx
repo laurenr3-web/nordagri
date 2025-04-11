@@ -1,5 +1,5 @@
 
-import React, { useState, Suspense, useEffect } from 'react';
+import React, { useState, Suspense, useEffect, useCallback } from 'react';
 import Header from '@/components/index/Header';
 import ViewManager from '@/components/index/ViewManager';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -7,14 +7,21 @@ import { ConnectionStatus } from '@/components/ui/connection-status';
 import { SkeletonLoader } from '@/components/ui/skeleton-loader';
 import { useRealtimeCache } from '@/providers/RealtimeCacheProvider';
 import { useDashboardData } from '@/hooks/dashboard/useDashboardData';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const Index = () => {
   // Current state
   const [currentMonth] = useState(new Date());
   const [currentView, setCurrentView] = useState<'main' | 'calendar' | 'alerts'>('main');
   const isMobile = useIsMobile();
-  const { isOfflineMode, prefetchCriticalData } = useRealtimeCache();
+  const { isOfflineMode, prefetchCriticalData, connectionStatus } = useRealtimeCache();
+  const { isLoading: isDashboardDataLoading } = useDashboardData();
   
+  // Handle view changes
+  const handleViewChange = useCallback((view: 'main' | 'calendar' | 'alerts') => {
+    setCurrentView(view);
+  }, []);
+
   // Preload dashboard data for offline mode
   useEffect(() => {
     if (isOfflineMode) {
@@ -22,10 +29,6 @@ const Index = () => {
       prefetchCriticalData();
     }
   }, [isOfflineMode, prefetchCriticalData]);
-
-  const handleViewChange = (view: 'main' | 'calendar' | 'alerts') => {
-    setCurrentView(view);
-  };
 
   return (
     <>
@@ -40,7 +43,7 @@ const Index = () => {
         
         <div className={`flex-1 overflow-auto px-2 pb-2 ${isMobile ? 'mobile-pb-safe' : ''}`}>
           <div className="mx-auto h-full max-w-7xl">
-            <Suspense fallback={<SkeletonLoader variant="grid" count={8} />}>
+            <Suspense fallback={<LoadingSpinner message="Chargement du tableau de bord..." size="lg" centered />}>
               <ViewManager 
                 currentView={currentView} 
                 currentMonth={currentMonth} 
