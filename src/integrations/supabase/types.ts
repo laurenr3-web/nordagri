@@ -13,6 +13,7 @@ export type Database = {
         Row: {
           category: string | null
           created_at: string | null
+          farm_id: string | null
           id: number
           image: string | null
           location: string | null
@@ -31,6 +32,7 @@ export type Database = {
         Insert: {
           category?: string | null
           created_at?: string | null
+          farm_id?: string | null
           id?: number
           image?: string | null
           location?: string | null
@@ -49,6 +51,7 @@ export type Database = {
         Update: {
           category?: string | null
           created_at?: string | null
+          farm_id?: string | null
           id?: number
           image?: string | null
           location?: string | null
@@ -64,7 +67,15 @@ export type Database = {
           updated_at?: string | null
           year?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "equipment_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       equipment_categories: {
         Row: {
@@ -221,6 +232,7 @@ export type Database = {
           acquisition_date: string | null
           created_at: string | null
           current_hours: number | null
+          farm_id: string | null
           id: string
           metadata: Json | null
           name: string
@@ -234,6 +246,7 @@ export type Database = {
           acquisition_date?: string | null
           created_at?: string | null
           current_hours?: number | null
+          farm_id?: string | null
           id?: string
           metadata?: Json | null
           name: string
@@ -247,6 +260,7 @@ export type Database = {
           acquisition_date?: string | null
           created_at?: string | null
           current_hours?: number | null
+          farm_id?: string | null
           id?: string
           metadata?: Json | null
           name?: string
@@ -256,7 +270,15 @@ export type Database = {
           type?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "equipments_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       farms: {
         Row: {
@@ -711,6 +733,7 @@ export type Database = {
           phone: string | null
           role: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -721,6 +744,7 @@ export type Database = {
           phone?: string | null
           role: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -731,6 +755,7 @@ export type Database = {
           phone?: string | null
           role?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
