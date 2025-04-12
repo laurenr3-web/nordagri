@@ -1,8 +1,14 @@
 
 import React, { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
-import { Equipment, EquipmentFilter } from '@/types/Equipment';
+import { Equipment, EquipmentFilter, EquipmentStatus } from '@/types/Equipment';
 import { useStandardQuery, useStandardMutation } from '@/hooks/useStandardQuery';
 import { equipmentService } from '@/services/api/equipmentService';
+
+// Type adapter to convert between service and domain Equipment types
+const adaptEquipment = (serviceEquipment: any): Equipment => ({
+  ...serviceEquipment,
+  status: serviceEquipment.status as EquipmentStatus
+});
 
 // Interface pour le contexte d'équipement
 interface EquipmentContextType {
@@ -48,7 +54,7 @@ export const EquipmentProvider: React.FC<EquipmentProviderProps> = ({
   
   // Requête pour charger les équipements
   const { 
-    data: equipment = [], 
+    data: serviceEquipment = [], 
     isLoading, 
     isError,
     refetch 
@@ -56,6 +62,12 @@ export const EquipmentProvider: React.FC<EquipmentProviderProps> = ({
     queryKey: ['equipment', filters],
     queryFn: () => equipmentService.getEquipment(filters),
   });
+
+  // Adapt equipment data to match the required types
+  const equipment: Equipment[] = useMemo(() => 
+    serviceEquipment.map(adaptEquipment), 
+    [serviceEquipment]
+  );
   
   // Mutation pour ajouter un équipement
   const addMutation = useStandardMutation({
@@ -102,11 +114,13 @@ export const EquipmentProvider: React.FC<EquipmentProviderProps> = ({
   
   // Méthodes d'API enveloppées
   const addEquipment = useCallback(async (data: Omit<Equipment, 'id'>) => {
-    return addMutation.mutateAsync(data);
+    const result = await addMutation.mutateAsync(data as any);
+    return adaptEquipment(result);
   }, [addMutation]);
   
   const updateEquipment = useCallback(async (data: Equipment) => {
-    return updateMutation.mutateAsync(data);
+    const result = await updateMutation.mutateAsync(data);
+    return adaptEquipment(result);
   }, [updateMutation]);
   
   const deleteEquipment = useCallback(async (id: number) => {
