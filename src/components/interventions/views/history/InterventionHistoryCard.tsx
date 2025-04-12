@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Intervention } from '@/types/Intervention';
+import { Intervention, InterventionStatus } from '@/types/Intervention';
 import { formatDate } from '../../utils/interventionUtils';
 import PriorityBadge from '../../PriorityBadge';
 import StatusBadge from '../../StatusBadge';

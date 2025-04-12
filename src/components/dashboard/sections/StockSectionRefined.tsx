@@ -8,6 +8,8 @@ interface StockAlert {
   name: string;
   currentStock: number;
   reorderPoint: number;
+  percentRemaining: number;
+  category: string;
 }
 
 interface StockSectionRefinedProps {

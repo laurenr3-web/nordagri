@@ -4,7 +4,7 @@ import { BlurContainer } from '@/components/ui/blur-container';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { MapPin, User, Wrench, Clock, CalendarCheck } from 'lucide-react';
-import { Intervention } from '@/types/Intervention';
+import { Intervention, InterventionStatus } from '@/types/Intervention';
 import StatusBadge from './StatusBadge';
 import PriorityBadge from './PriorityBadge';
 import { formatDate } from './utils/interventionUtils';

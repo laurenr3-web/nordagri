@@ -1,194 +1,149 @@
 
+// Make sure to fix the issue with the missing name field when creating equipment
 import { supabase } from '@/integrations/supabase/client';
-import { Equipment, EquipmentFilter } from '@/types/Equipment';
 
-/**
- * Service centralisé pour la gestion des API d'équipements
- */
+export interface Equipment {
+  id: number;
+  name: string;
+  type?: string;
+  category?: string;
+  model?: string;
+  manufacturer?: string;
+  serial_number?: string;
+  location?: string;
+  purchase_date?: string;
+  status?: string;
+  notes?: string;
+  image?: string;
+  year?: number;
+}
+
 export const equipmentService = {
-  /**
-   * Récupérer tous les équipements
-   */
-  async getAllEquipment(filters?: EquipmentFilter): Promise<Equipment[]> {
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const userId = sessionData.session?.user.id;
-
-      if (!userId) {
-        console.warn('User not authenticated, returning empty equipment array');
-        return [];
-      }
-
-      let query = supabase
-        .from('equipment')
-        .select('*')
-        .eq('owner_id', userId);
-
-      // Appliquer les filtres si présents
-      if (filters?.search) {
-        query = query.or(`name.ilike.%${filters.search}%,model.ilike.%${filters.search}%,serial_number.ilike.%${filters.search}%`);
-      }
-
-      if (filters?.status && filters.status.length > 0) {
-        query = query.in('status', filters.status);
-      }
-
-      if (filters?.category && filters.category.length > 0) {
-        query = query.in('category', filters.category);
-      }
-
-      if (filters?.type && filters.type.length > 0) {
-        query = query.in('type', filters.type);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        throw error;
-      }
-
-      return data.map(mapDbEquipmentToModel);
-    } catch (error) {
-      console.error('Error fetching equipment:', error);
+  async getEquipment(): Promise<Equipment[]> {
+    const { data, error } = await supabase
+      .from('equipment')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching equipment data:', error);
       throw error;
     }
+    
+    return data || [];
   },
-
-  /**
-   * Récupérer un équipement par son ID
-   */
-  async getEquipmentById(id: number): Promise<Equipment | null> {
-    try {
-      const { data, error } = await supabase
-        .from('equipment')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error) {
-        if (error.code === 'PGRST116') {
-          return null; // Not found
-        }
-        throw error;
-      }
-
-      return mapDbEquipmentToModel(data);
-    } catch (error) {
-      console.error(`Error fetching equipment with ID ${id}:`, error);
+  
+  async getEquipmentById(id: number): Promise<Equipment> {
+    const { data, error } = await supabase
+      .from('equipment')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) {
+      console.error(`Error fetching equipment with id ${id}:`, error);
       throw error;
     }
+    
+    return data;
   },
-
-  /**
-   * Ajouter un nouvel équipement
-   */
-  async addEquipment(equipment: Omit<Equipment, 'id'>): Promise<Equipment> {
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      
-      const equipmentData = {
-        ...mapModelEquipmentToDb(equipment),
-        owner_id: sessionData.session?.user.id,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      
-      const { data, error } = await supabase
-        .from('equipment')
-        .insert(equipmentData)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      
-      return mapDbEquipmentToModel(data);
-    } catch (error) {
-      console.error('Error adding equipment:', error);
+  
+  async createEquipment(equipmentData: Omit<Equipment, 'id'>): Promise<Equipment> {
+    const { data, error } = await supabase
+      .from('equipment')
+      .insert(equipmentData)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error creating equipment:', error);
       throw error;
     }
+    
+    return data;
   },
-
-  /**
-   * Mettre à jour un équipement existant
-   */
-  async updateEquipment(equipment: Equipment): Promise<Equipment> {
-    try {
-      const equipmentData = {
-        ...mapModelEquipmentToDb(equipment),
-        updated_at: new Date().toISOString()
-      };
-      
-      const { data, error } = await supabase
-        .from('equipment')
-        .update(equipmentData)
-        .eq('id', equipment.id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      
-      return mapDbEquipmentToModel(data);
-    } catch (error) {
-      console.error('Error updating equipment:', error);
+  
+  async updateEquipment(id: number, equipmentData: Partial<Equipment>): Promise<Equipment> {
+    const { data, error } = await supabase
+      .from('equipment')
+      .update(equipmentData)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error(`Error updating equipment with id ${id}:`, error);
       throw error;
     }
+    
+    return data;
   },
-
-  /**
-   * Supprimer un équipement
-   */
+  
   async deleteEquipment(id: number): Promise<void> {
-    try {
-      const { error } = await supabase
-        .from('equipment')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
-    } catch (error) {
-      console.error(`Error deleting equipment with ID ${id}:`, error);
+    const { error } = await supabase
+      .from('equipment')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error(`Error deleting equipment with id ${id}:`, error);
       throw error;
     }
+  },
+  
+  async getEquipmentCategories(): Promise<string[]> {
+    const { data, error } = await supabase
+      .from('equipment')
+      .select('category')
+      .not('category', 'is', null);
+    
+    if (error) {
+      console.error('Error fetching equipment categories:', error);
+      throw error;
+    }
+    
+    const categories = data
+      .map(item => item.category)
+      .filter((value, index, self) => value && self.indexOf(value) === index);
+    
+    return categories;
+  },
+  
+  async getEquipmentByCategory(category: string): Promise<Equipment[]> {
+    const { data, error } = await supabase
+      .from('equipment')
+      .select('*')
+      .eq('category', category);
+    
+    if (error) {
+      console.error(`Error fetching equipment with category ${category}:`, error);
+      throw error;
+    }
+    
+    return data || [];
+  },
+  
+  async createEquipmentWithMetadata(equipment: Omit<Equipment, 'id'>, userId: string): Promise<Equipment> {
+    const now = new Date().toISOString();
+    
+    const metadataObject = {
+      name: equipment.name, // Add the required name field
+      owner_id: userId,
+      created_at: now,
+      updated_at: now,
+    };
+    
+    const { data, error } = await supabase
+      .from('equipment')
+      .insert({ ...equipment, ...metadataObject })
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error creating equipment with metadata:', error);
+      throw error;
+    }
+    
+    return data;
   }
 };
-
-/**
- * Mapper un équipement depuis le format de la base de données vers le modèle
- */
-function mapDbEquipmentToModel(dbEquipment: any): Equipment {
-  return {
-    id: dbEquipment.id,
-    name: dbEquipment.name,
-    model: dbEquipment.model || '',
-    manufacturer: dbEquipment.manufacturer || '',
-    serialNumber: dbEquipment.serial_number || '',
-    year: dbEquipment.year || null,
-    purchaseDate: dbEquipment.purchase_date ? new Date(dbEquipment.purchase_date) : undefined,
-    location: dbEquipment.location || '',
-    status: dbEquipment.status || 'operational',
-    type: dbEquipment.type || '',
-    category: dbEquipment.category || '',
-    image: dbEquipment.image || '',
-    notes: dbEquipment.notes || ''
-  };
-}
-
-/**
- * Mapper un équipement depuis le modèle vers le format de la base de données
- */
-function mapModelEquipmentToDb(equipment: Partial<Equipment>): Record<string, any> {
-  return {
-    name: equipment.name,
-    model: equipment.model,
-    manufacturer: equipment.manufacturer,
-    serial_number: equipment.serialNumber,
-    year: equipment.year,
-    purchase_date: equipment.purchaseDate ? new Date(equipment.purchaseDate).toISOString() : null,
-    location: equipment.location,
-    status: equipment.status,
-    type: equipment.type,
-    category: equipment.category,
-    image: equipment.image,
-    notes: equipment.notes
-  };
-}

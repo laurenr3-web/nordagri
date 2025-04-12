@@ -118,7 +118,7 @@ export const interventionService = {
       technician: intervention.technician,
       description: intervention.description,
       notes: intervention.notes,
-      parts_used: [],
+      parts_used: [], // Ensure this is a JSON compatible array
       owner_id: sessionData.session?.user.id
     };
     
@@ -171,6 +171,10 @@ export const interventionService = {
       { latitude: intervention.coordinates.latitude, longitude: intervention.coordinates.longitude } : 
       undefined;
 
+    // Ensure parts_used is in JSON compatible format
+    const parts_used = intervention.partsUsed ? 
+      JSON.parse(JSON.stringify(intervention.partsUsed)) : [];
+
     const updates = {
       title: intervention.title,
       equipment: intervention.equipment,
@@ -184,12 +188,11 @@ export const interventionService = {
       scheduled_duration: intervention.scheduledDuration,
       technician: intervention.technician,
       description: intervention.description,
-      parts_used: intervention.partsUsed,
+      parts_used: parts_used, // Using JSON compatible format
       notes: intervention.notes,
       updated_at: new Date().toISOString()
     };
     
-    // Convert partsUsed to JSON before insert if needed
     const { data, error } = await supabase
       .from('interventions')
       .update(updates)

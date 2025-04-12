@@ -9,7 +9,7 @@ export type InterventionStatus =
   | 'scheduled' 
   | 'in-progress' 
   | 'completed' 
-  | 'cancelled';
+  | 'canceled';
 
 // Niveaux de priorité pour une intervention
 export type InterventionPriority = 'low' | 'medium' | 'high';
@@ -97,7 +97,7 @@ export const interventionValidators = {
   isValidTitle: (title: string): boolean => title.trim().length >= 2,
   isValidPriority: (priority: string): boolean => ['low', 'medium', 'high'].includes(priority),
   isValidStatus: (status: string): boolean => 
-    ['pending', 'scheduled', 'in-progress', 'completed', 'cancelled'].includes(status),
+    ['pending', 'scheduled', 'in-progress', 'completed', 'canceled'].includes(status),
   isValidDate: (date: Date): boolean => !isNaN(date.getTime()),
   isValidDuration: (duration: number): boolean => duration > 0
 };

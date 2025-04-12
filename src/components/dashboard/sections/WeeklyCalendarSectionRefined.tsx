@@ -9,6 +9,8 @@ interface CalendarEvent {
   start: Date;
   end: Date;
   type: string;
+  priority: string;
+  status: string;
 }
 
 interface WeeklyCalendarSectionRefinedProps {

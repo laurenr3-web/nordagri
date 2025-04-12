@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Clock, CheckCircle2, X, MapPin, User, CalendarCheck, Wrench } from 'lucide-react';
-import { Intervention } from '@/types/Intervention';
+import { Intervention, InterventionStatus } from '@/types/Intervention';
 import { useInterventionDetail } from '@/hooks/interventions/useInterventionDetail';
 
 interface InterventionDetailsDialogProps {
@@ -142,7 +142,7 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
     }
   };
 
-  const handleStatusChange = (status: 'scheduled' | 'in-progress' | 'completed' | 'canceled') => {
+  const handleStatusChange = (status: InterventionStatus) => {
     if (intervention) {
       const updatedIntervention = {
         ...intervention,

@@ -49,8 +49,8 @@ export const interventionsData: Intervention[] = [
     equipmentId: 1,
     location: 'North Field',
     coordinates: {
-      lat: 34.052235,
-      lng: -118.243683
+      latitude: 34.052235,
+      longitude: -118.243683
     },
     status: 'completed',
     priority: 'high',
@@ -71,8 +71,8 @@ export const interventionsData: Intervention[] = [
     equipmentId: 2,
     location: 'East Field',
     coordinates: {
-      lat: 34.056235,
-      lng: -118.253683
+      latitude: 34.056235,
+      longitude: -118.253683
     },
     status: 'in-progress',
     priority: 'medium',
@@ -90,8 +90,8 @@ export const interventionsData: Intervention[] = [
     equipmentId: 3,
     location: 'Workshop',
     coordinates: {
-      lat: 34.050235,
-      lng: -118.233683
+      latitude: 34.050235,
+      longitude: -118.233683
     },
     status: 'scheduled',
     priority: 'medium',
@@ -109,8 +109,8 @@ export const interventionsData: Intervention[] = [
     equipmentId: 1,
     location: 'South Field',
     coordinates: {
-      lat: 34.048235,
-      lng: -118.263683
+      latitude: 34.048235,
+      longitude: -118.263683
     },
     status: 'scheduled',
     priority: 'low',
@@ -128,8 +128,8 @@ export const interventionsData: Intervention[] = [
     equipmentId: 5,
     location: 'West Field',
     coordinates: {
-      lat: 34.062235,
-      lng: -118.273683
+      latitude: 34.062235,
+      longitude: -118.273683
     },
     status: 'completed',
     priority: 'low',
@@ -147,8 +147,8 @@ export const interventionsData: Intervention[] = [
     equipmentId: 6,
     location: 'Central Field',
     coordinates: {
-      lat: 34.049235,
-      lng: -118.253683
+      latitude: 34.049235,
+      longitude: -118.253683
     },
     status: 'canceled',
     priority: 'high',
@@ -166,8 +166,8 @@ export const interventionsData: Intervention[] = [
     equipmentId: 4,
     location: 'East Field',
     coordinates: {
-      lat: 34.058235,
-      lng: -118.243683
+      latitude: 34.058235,
+      longitude: -118.243683
     },
     status: 'completed',
     priority: 'medium',
@@ -188,8 +188,8 @@ export const interventionsData: Intervention[] = [
     equipmentId: 1,
     location: 'Workshop',
     coordinates: {
-      lat: 34.052235,
-      lng: -118.243683
+      latitude: 34.052235,
+      longitude: -118.243683
     },
     status: 'scheduled',
     priority: 'medium',
