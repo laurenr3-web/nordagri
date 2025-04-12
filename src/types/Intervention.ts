@@ -101,3 +101,21 @@ export const interventionValidators = {
   isValidDate: (date: Date): boolean => !isNaN(date.getTime()),
   isValidDuration: (duration: number): boolean => duration > 0
 };
+
+// Fonction utilitaire pour mapper entre lat/lng et latitude/longitude
+export const convertCoordinates = {
+  toLatLng: (coords?: {latitude: number; longitude: number}) => {
+    if (!coords) return undefined;
+    return {
+      lat: coords.latitude,
+      lng: coords.longitude
+    };
+  },
+  toLatitudeLongitude: (coords?: {lat: number; lng: number}) => {
+    if (!coords) return undefined;
+    return {
+      latitude: coords.lat,
+      longitude: coords.lng
+    };
+  }
+};

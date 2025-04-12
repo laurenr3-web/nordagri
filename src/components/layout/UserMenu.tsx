@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Settings, LogOut, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useAuthContext } from "@/providers/AuthProvider";
+import { useAuthContext } from "@/core/auth";
 import { memo, useMemo } from "react";
 
 export const UserMenu = memo(() => {
@@ -45,10 +45,7 @@ export const UserMenu = memo(() => {
   const handleLogout = async () => {
     try {
       console.log(`Logout attempt: ${new Date().toISOString()}`);
-      
       await signOut();
-      
-      toast.success('Déconnexion réussie');
       navigate('/auth');
     } catch (error: any) {
       console.error('Logout error:', error);

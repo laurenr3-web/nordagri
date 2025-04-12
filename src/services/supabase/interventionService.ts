@@ -1,5 +1,6 @@
+
 import { supabase } from '@/integrations/supabase/client';
-import { Intervention, InterventionFormValues } from '@/types/Intervention';
+import { Intervention, InterventionFormValues, convertCoordinates } from '@/types/Intervention';
 
 export const interventionService = {
   // Récupérer toutes les interventions
@@ -22,14 +23,14 @@ export const interventionService = {
       location: item.location,
       coordinates: item.coordinates ? 
         (typeof item.coordinates === 'object' && item.coordinates !== null ? 
-          { 
+          convertCoordinates.toLatitudeLongitude({
             lat: typeof item.coordinates === 'object' && 'lat' in item.coordinates ? 
               Number(item.coordinates.lat) || 0 : 0, 
             lng: typeof item.coordinates === 'object' && 'lng' in item.coordinates ? 
               Number(item.coordinates.lng) || 0 : 0 
-          } : 
-          { lat: 0, lng: 0 }
-        ) : { lat: 0, lng: 0 },
+          }) : 
+          { latitude: 0, longitude: 0 }
+        ) : undefined,
       status: (item.status as Intervention['status']) || 'scheduled',
       priority: (item.priority as Intervention['priority']) || 'medium',
       date: new Date(item.date),
@@ -71,13 +72,13 @@ export const interventionService = {
       equipmentId: data.equipment_id,
       location: data.location,
       coordinates: data.coordinates && typeof data.coordinates === 'object' ? 
-        { 
+        convertCoordinates.toLatitudeLongitude({
           lat: typeof data.coordinates === 'object' && 'lat' in data.coordinates ? 
             Number(data.coordinates.lat) || 0 : 0, 
           lng: typeof data.coordinates === 'object' && 'lng' in data.coordinates ? 
             Number(data.coordinates.lng) || 0 : 0 
-        } : 
-        { lat: 0, lng: 0 },
+        }) : 
+        undefined,
       status: (data.status as Intervention['status']) || 'scheduled',
       priority: (data.priority as Intervention['priority']) || 'medium',
       date: new Date(data.date),
@@ -109,7 +110,7 @@ export const interventionService = {
       equipment: intervention.equipment,
       equipment_id: intervention.equipmentId,
       location: intervention.location,
-      coordinates: { lat: 34.052235, lng: -118.243683 }, // Default coordinates
+      coordinates: { latitude: 34.052235, longitude: -118.243683 }, // Default coordinates
       status: 'scheduled',
       priority: intervention.priority,
       date: intervention.date.toISOString(),
@@ -139,13 +140,13 @@ export const interventionService = {
       equipmentId: data.equipment_id,
       location: data.location,
       coordinates: data.coordinates && typeof data.coordinates === 'object' ? 
-        { 
+        convertCoordinates.toLatitudeLongitude({
           lat: typeof data.coordinates === 'object' && 'lat' in data.coordinates ? 
             Number(data.coordinates.lat) || 0 : 0, 
           lng: typeof data.coordinates === 'object' && 'lng' in data.coordinates ? 
             Number(data.coordinates.lng) || 0 : 0 
-        } : 
-        { lat: 0, lng: 0 },
+        }) : 
+        undefined,
       status: (data.status as Intervention['status']) || 'scheduled',
       priority: (data.priority as Intervention['priority']) || 'medium',
       date: new Date(data.date),
@@ -165,12 +166,17 @@ export const interventionService = {
   
   // Mettre à jour une intervention
   async updateIntervention(intervention: Intervention): Promise<Intervention> {
+    // Convert coordinates to database format
+    const coordinates = intervention.coordinates ? 
+      { latitude: intervention.coordinates.latitude, longitude: intervention.coordinates.longitude } : 
+      undefined;
+
     const updates = {
       title: intervention.title,
       equipment: intervention.equipment,
       equipment_id: intervention.equipmentId,
       location: intervention.location,
-      coordinates: intervention.coordinates,
+      coordinates: coordinates,
       status: intervention.status,
       priority: intervention.priority,
       date: intervention.date.toISOString(),
@@ -183,6 +189,7 @@ export const interventionService = {
       updated_at: new Date().toISOString()
     };
     
+    // Convert partsUsed to JSON before insert if needed
     const { data, error } = await supabase
       .from('interventions')
       .update(updates)
@@ -202,13 +209,13 @@ export const interventionService = {
       equipmentId: data.equipment_id,
       location: data.location,
       coordinates: data.coordinates && typeof data.coordinates === 'object' ? 
-        { 
+        convertCoordinates.toLatitudeLongitude({
           lat: typeof data.coordinates === 'object' && 'lat' in data.coordinates ? 
             Number(data.coordinates.lat) || 0 : 0, 
           lng: typeof data.coordinates === 'object' && 'lng' in data.coordinates ? 
             Number(data.coordinates.lng) || 0 : 0 
-        } : 
-        { lat: 0, lng: 0 },
+        }) : 
+        undefined,
       status: (data.status as Intervention['status']) || 'scheduled',
       priority: (data.priority as Intervention['priority']) || 'medium',
       date: new Date(data.date),

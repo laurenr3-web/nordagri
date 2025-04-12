@@ -1,5 +1,5 @@
 
-import { useAuth as useAuthHook } from './auth';
+import { useAuth as useAuthCore } from '@/core/auth';
 
 /**
  * Hook d'authentification pour gérer l'état de l'utilisateur et les redirections
@@ -7,5 +7,5 @@ import { useAuth as useAuthHook } from './auth';
  * @param redirectTo Page de redirection après authentification (défaut: page actuelle)
  */
 export function useAuth(requireAuth = true, redirectTo?: string) {
-  return useAuthHook(requireAuth, redirectTo);
+  return useAuthCore(requireAuth, redirectTo);
 }

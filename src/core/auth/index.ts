@@ -1,4 +1,5 @@
 
-// Re-export auth functionality
-export * from '@/hooks/auth';
-export * from '@/providers/AuthProvider';
+// Export auth functionality
+export * from './AuthContext';
+export * from './useAuth';
+export * from './types';
