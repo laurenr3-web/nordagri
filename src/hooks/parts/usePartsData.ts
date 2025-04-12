@@ -8,6 +8,7 @@ export function usePartsData() {
     queryKey: ['parts'],
     queryFn: async () => {
       try {
+        console.log('Fetching parts from Supabase...');
         const { data: sessionData } = await supabase.auth.getSession();
         const userId = sessionData.session?.user.id;
 
@@ -22,9 +23,12 @@ export function usePartsData() {
           .eq('owner_id', userId);
 
         if (error) {
+          console.error('Error fetching parts data:', error);
           throw error;
         }
 
+        console.log(`Found ${data.length} parts in the database`, data);
+        
         return data.map(part => ({
           id: part.id,
           name: part.name,
@@ -40,9 +44,10 @@ export function usePartsData() {
         })) as Part[];
       } catch (error) {
         console.error('Error fetching parts data:', error);
-        // Return fallback empty array instead of using a global window property
         return [];
       }
-    }
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: 1
   });
 }

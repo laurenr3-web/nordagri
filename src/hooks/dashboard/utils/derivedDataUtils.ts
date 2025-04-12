@@ -1,127 +1,135 @@
 
-import { normalizePriority } from './calendarUtils';
-import { MaintenanceEvent, UrgentIntervention, StockAlert, CalendarEvent } from '../types/dashboardTypes';
+import { Part } from '@/types/Part';
+import { StockAlert, UrgentIntervention, CalendarEvent } from '../types/dashboardTypes';
 
 /**
- * Derive urgent interventions from interventions data
+ * Dérive les interventions urgentes à partir des données d'interventions
  */
 export const deriveUrgentInterventions = (interventions: any[]): UrgentIntervention[] => {
-  if (!interventions || interventions.length === 0) {
-    console.log('No interventions data provided to deriveUrgentInterventions');
-    return [];
-  }
-
-  console.log(`Processing ${interventions.length} interventions for urgent display`);
+  if (!interventions || !Array.isArray(interventions)) return [];
   
+  // Filtrer les interventions pour ne garder que celles avec une priorité haute ou critique
+  // et un statut qui n'est pas "completed" ou "cancelled"
   return interventions
-    .filter(item => item.priority === 'high' || item.status === 'in-progress')
-    .slice(0, 5)
-    .map(item => ({
-      id: typeof item.id === 'string' ? parseInt(item.id) : item.id,
-      title: item.title,
-      equipment: item.equipment,
-      priority: item.priority,
-      date: new Date(item.date),
-      status: item.status,
-      technician: item.technician || 'Non assigné',
-      location: item.location || 'Inconnu'
-    }));
+    .filter(intervention => 
+      (intervention.priority === 'high' || intervention.priority === 'critical') &&
+      intervention.status !== 'completed' &&
+      intervention.status !== 'canceled'
+    )
+    .map(intervention => ({
+      id: intervention.id,
+      title: intervention.title,
+      equipment: intervention.equipment,
+      status: intervention.status,
+      priority: intervention.priority,
+      date: intervention.date instanceof Date ? intervention.date : new Date(intervention.date),
+      location: intervention.location,
+      assignedTo: intervention.technician || 'Non assigné'
+    }))
+    .sort((a, b) => {
+      // Trier d'abord par priorité (critique avant haute)
+      if (a.priority === 'critical' && b.priority !== 'critical') return -1;
+      if (a.priority !== 'critical' && b.priority === 'critical') return 1;
+      
+      // Ensuite par date (plus récent d'abord)
+      return a.date.getTime() - b.date.getTime();
+    })
+    .slice(0, 5); // Limiter à 5 interventions urgentes
 };
 
 /**
- * Derive stock alerts from parts data
+ * Dérive les alertes de stock à partir des données de pièces
  */
-export const deriveStockAlerts = (parts: any[]): StockAlert[] => {
-  console.log("Deriving stock alerts from parts data:", parts);
+export const deriveStockAlerts = (parts: Part[]): StockAlert[] => {
+  if (!parts || !Array.isArray(parts)) return [];
+
+  console.log('Deriving stock alerts from parts:', parts.length);
   
-  // Filter parts with low stock
-  const lowStockParts = parts.filter(item => {
-    // Ensure we're working with numbers for comparison
-    const stock = typeof item.quantity === 'number' ? item.quantity : 
-                (typeof item.stock === 'number' ? item.stock : 0);
-                
-    const reorderPoint = typeof item.reorder_threshold === 'number' ? item.reorder_threshold : 
-                       (typeof item.reorderPoint === 'number' ? item.reorderPoint : 5);
-                       
-    console.log(`Part ${item.id} - ${item.name}: stock=${stock}, reorderPoint=${reorderPoint}, isLow=${stock <= reorderPoint}`);
-    return stock <= reorderPoint;
-  });
-  
-  console.log(`Found ${lowStockParts.length} parts with low stock`);
-  
-  // Map to StockAlert objects
-  return lowStockParts.map(item => {
-    const stock = typeof item.quantity === 'number' ? item.quantity : 
-                (typeof item.stock === 'number' ? item.stock : 0);
-                
-    const reorderPoint = typeof item.reorder_threshold === 'number' ? item.reorder_threshold : 
-                       (typeof item.reorderPoint === 'number' ? item.reorderPoint : 5);
-                       
-    // Calculate percent remaining (capped at 100%)
-    const percentRemaining = reorderPoint > 0 
-                           ? Math.min(Math.round((stock / reorderPoint) * 100), 100) 
-                           : 0;
-    
-    return {
-      id: typeof item.id === 'string' ? parseInt(item.id) : item.id,
-      name: item.name,
-      currentStock: stock,
-      reorderPoint: reorderPoint,
-      percentRemaining: percentRemaining,
-      category: item.category || 'Non catégorisé'
-    };
-  });
+  // Filtrer les pièces pour ne garder que celles avec un stock bas
+  return parts
+    .filter(part => {
+      const inStock = part.stock !== undefined ? part.stock : part.quantity || 0;
+      const reorderPoint = part.reorderPoint !== undefined ? part.reorderPoint : part.minimumStock || 10;
+      return inStock <= reorderPoint;
+    })
+    .map(part => {
+      const currentStock = part.stock !== undefined ? part.stock : part.quantity || 0;
+      const reorderPoint = part.reorderPoint !== undefined ? part.reorderPoint : part.minimumStock || 10;
+      const percentRemaining = reorderPoint > 0 ? Math.round((currentStock / reorderPoint) * 100) : 0;
+      
+      return {
+        id: part.id as number,
+        name: part.name,
+        currentStock,
+        reorderPoint,
+        percentRemaining,
+        category: part.category || 'Pièce'
+      };
+    })
+    .sort((a, b) => a.percentRemaining - b.percentRemaining);
 };
 
 /**
- * Create calendar events combining maintenance, interventions, and tasks
+ * Crée des événements de calendrier à partir de différentes sources
  */
 export const createCalendarEvents = (
-  maintenanceEvents: MaintenanceEvent[], 
-  interventions: any[], 
-  upcomingTasks: any[]
+  maintenanceEvents: any[],
+  interventions: any[],
+  tasks: any[]
 ): CalendarEvent[] => {
-  console.log("Creating calendar events from:", { 
-    maintenanceEvents, 
-    interventionsCount: interventions.length, 
-    tasksCount: upcomingTasks.length 
-  });
+  const events: CalendarEvent[] = [];
   
-  // Ensure all inputs are arrays to avoid errors
-  const safeMaintenanceEvents = Array.isArray(maintenanceEvents) ? maintenanceEvents : [];
-  const safeInterventions = Array.isArray(interventions) ? interventions : [];
-  const safeUpcomingTasks = Array.isArray(upcomingTasks) ? upcomingTasks : [];
+  // Ajouter les événements de maintenance
+  if (maintenanceEvents && Array.isArray(maintenanceEvents)) {
+    maintenanceEvents.forEach(event => {
+      if (event.date instanceof Date || typeof event.date === 'string') {
+        events.push({
+          id: event.id,
+          title: event.title,
+          date: event.date instanceof Date ? event.date : new Date(event.date),
+          type: 'maintenance' as 'maintenance' | 'intervention' | 'task',
+          equipment: event.equipment,
+          status: event.status || 'scheduled',
+          priority: event.priority || 'medium'
+        });
+      }
+    });
+  }
   
-  return [
-    ...safeMaintenanceEvents.map(event => ({
-      id: event.id,
-      title: event.title,
-      start: event.date,
-      end: new Date(event.date.getTime() + (event.duration * 60 * 60 * 1000)),
-      type: 'maintenance' as const,
-      priority: event.priority,
-      status: event.status,
-      assignedTo: event.assignedTo
-    })),
-    ...safeInterventions.map(item => ({
-      id: item.id,
-      title: item.title,
-      start: new Date(item.date),
-      end: new Date(new Date(item.date).getTime() + ((item.duration || 1) * 60 * 60 * 1000)),
-      type: 'intervention' as const,
-      priority: normalizePriority(item.priority),
-      status: item.status,
-      assignedTo: item.technician || 'Non assigné'
-    })),
-    ...safeUpcomingTasks.map(task => ({
-      id: task.id,
-      title: task.title,
-      start: task.dueDate,
-      end: new Date(task.dueDate.getTime() + (3 * 60 * 60 * 1000)), // Assuming 3 hours for tasks
-      type: 'task' as const,
-      priority: normalizePriority(task.priority),
-      status: task.status,
-      assignedTo: task.assignedTo || 'Non assigné'
-    }))
-  ];
+  // Ajouter les interventions
+  if (interventions && Array.isArray(interventions)) {
+    interventions.forEach(intervention => {
+      if (intervention.date instanceof Date || typeof intervention.date === 'string') {
+        events.push({
+          id: intervention.id,
+          title: intervention.title,
+          date: intervention.date instanceof Date ? intervention.date : new Date(intervention.date),
+          type: 'intervention' as 'maintenance' | 'intervention' | 'task',
+          equipment: intervention.equipment,
+          status: intervention.status || 'scheduled',
+          priority: intervention.priority || 'medium'
+        });
+      }
+    });
+  }
+  
+  // Ajouter les tâches
+  if (tasks && Array.isArray(tasks)) {
+    tasks.forEach(task => {
+      if (task.dueDate instanceof Date || typeof task.dueDate === 'string') {
+        events.push({
+          id: task.id,
+          title: task.title,
+          date: task.dueDate instanceof Date ? task.dueDate : new Date(task.dueDate),
+          type: 'task' as 'maintenance' | 'intervention' | 'task',
+          equipment: task.equipment || '',
+          status: task.status || 'scheduled',
+          priority: task.priority || 'medium'
+        });
+      }
+    });
+  }
+  
+  // Trier les événements par date
+  return events.sort((a, b) => a.date.getTime() - b.date.getTime());
 };

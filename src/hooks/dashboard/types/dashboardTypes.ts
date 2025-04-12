@@ -1,35 +1,26 @@
 
-import React from 'react';
-
 export interface StatsCardData {
   title: string;
-  value: string | number;
-  change?: number;
-  status?: 'increase' | 'decrease' | 'neutral';
-  icon?: React.ReactNode;
-  iconBg?: string;
-  iconColor?: string;
+  value: number | string;
+  icon: any;
+  change: number;
+  description?: string;
 }
 
 export interface EquipmentItem {
   id: number;
   name: string;
   type: string;
-  status: 'operational' | 'maintenance' | 'repair' | 'inactive';
+  status: string;
   image?: string;
-  usage?: {
-    hours: number;
-    target: number;
-  };
-  nextService?: {
-    type: string;
-    due: string;
-  };
-  nextMaintenance?: string | null;
+  usageHours?: number;
+  usageTarget?: number;
+  nextMaintenance?: string;
+  maintenanceType?: string;
 }
 
 export interface MaintenanceEvent {
-  id: string | number;
+  id: number | string;
   title: string;
   date: Date;
   equipment: string;
@@ -40,32 +31,39 @@ export interface MaintenanceEvent {
 }
 
 export interface AlertItem {
-  id: number;
+  id: number | string;
   title: string;
-  message: string;
-  severity: 'high' | 'medium' | 'low';
-  date: Date;
-  equipmentId: number;
-  equipmentName: string;
-  status: 'new' | 'acknowledged' | 'resolved';
-  type: string;
-  time: string;
+  description: string;
+  type: 'equipment' | 'maintenance' | 'inventory' | 'system';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  timestamp: Date;
+  isRead: boolean;
+}
+
+export interface UpcomingTask {
+  id: number | string;
+  title: string;
+  description: string;
   equipment: string;
+  dueDate: Date;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  assignedTo: string;
+  status: string;
 }
 
 export interface UrgentIntervention {
-  id: number;
+  id: number | string;
   title: string;
   equipment: string;
-  priority: 'high' | 'medium' | 'low';
-  date: Date;
   status: string;
-  technician: string;
+  priority: string;
+  date: Date;
   location: string;
+  assignedTo: string;
 }
 
 export interface StockAlert {
-  id: number;
+  id: number | string;
   name: string;
   currentStock: number;
   reorderPoint: number;
@@ -73,34 +71,12 @@ export interface StockAlert {
   category: string;
 }
 
-export interface UpcomingTask {
-  id: string | number;
+export interface CalendarEvent {
+  id: number | string;
   title: string;
-  description: string;
-  dueDate: Date;
+  date: Date;
+  type: 'maintenance' | 'intervention' | 'task';
+  equipment: string;
   status: string;
   priority: string;
-  assignedTo: string;
-}
-
-export interface CalendarEvent {
-  id: string | number;
-  title: string;
-  start: Date;
-  end: Date;
-  type: 'maintenance' | 'intervention' | 'task';
-  priority: 'high' | 'medium' | 'low';
-  status: string;
-}
-
-export interface DashboardData {
-  loading: boolean;
-  statsData: StatsCardData[];
-  equipmentData: EquipmentItem[];
-  maintenanceEvents: MaintenanceEvent[];
-  alertItems: AlertItem[];
-  upcomingTasks: UpcomingTask[];
-  urgentInterventions: UrgentIntervention[];
-  stockAlerts: StockAlert[];
-  weeklyCalendarEvents: CalendarEvent[];
 }
