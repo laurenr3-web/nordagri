@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { addDays, addWeeks, addMonths, format, isAfter } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -203,6 +202,7 @@ export const useMaintenancePlanner = () => {
         equipmentId: plan.equipmentId,
         // Use type casting to ensure the type is compatible with maintenanceSlice.ts MaintenanceType
         type: (plan.type === 'predictive' ? 'condition-based' : plan.type) as TaskMaintenanceType,
+        status: 'scheduled' as MaintenanceStatus, // Remettre l'attribut status qui était manquant
         priority: plan.priority as MaintenancePriority,
         dueDate: currentDate,
         engineHours: plan.engineHours,
