@@ -90,6 +90,7 @@ export default function MaintenancePlanForm({
       priority: values.priority as MaintenancePriority,
       engineHours: values.engineHours,
       nextDueDate: values.nextDueDate,
+      lastPerformedDate: null, // Add the missing property with a default value
       assignedTo: values.assignedTo || null
     };
     

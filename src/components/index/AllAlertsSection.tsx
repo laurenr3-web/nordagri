@@ -4,14 +4,7 @@ import { Button } from '@/components/ui/button';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { DashboardSection } from '@/components/dashboard/DashboardSection';
 import { cn } from '@/lib/utils';
-
-interface AlertItem {
-  id: number; // Updated to number to match our interface
-  severity: 'high' | 'medium' | 'low';
-  message: string;
-  time: string;
-  equipment: string;
-}
+import { AlertItem } from '@/hooks/dashboard/types/dashboardTypes';
 
 interface AllAlertsSectionProps {
   alerts: AlertItem[];
@@ -35,16 +28,17 @@ const AllAlertsSection: React.FC<AllAlertsSectionProps> = ({ alerts }) => {
               <div 
                 className={cn(
                   "mt-0.5 h-3 w-3 rounded-full flex-shrink-0", 
+                  alert.severity === 'critical' ? "bg-red-500" :
                   alert.severity === 'high' ? "bg-destructive" : 
                   alert.severity === 'medium' ? "bg-harvest-500" : "bg-agri-500"
                 )} 
               />
               <div className="flex-1">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium">{alert.message}</p>
-                  <span className="text-xs text-muted-foreground">{alert.time}</span>
+                  <p className="text-sm font-medium">{alert.message || alert.description}</p>
+                  <span className="text-xs text-muted-foreground">{alert.time || alert.timestamp?.toLocaleTimeString()}</span>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">{alert.equipment}</p>
+                <p className="text-xs text-muted-foreground mt-1">{alert.equipment || alert.equipmentName || 'System'}</p>
               </div>
             </div>
           </div>

@@ -198,9 +198,9 @@ export const useMaintenancePlanner = () => {
         title: plan.title,
         equipment: plan.equipmentName,
         equipmentId: plan.equipmentId,
-        type: plan.type as TaskPriority, // Use TaskPriority from maintenanceSlice
+        type: plan.type as MaintenanceType, // Cast to the correct type
         status: 'scheduled' as MaintenanceStatus,
-        priority: plan.priority as TaskPriority, // Use TaskPriority from maintenanceSlice
+        priority: plan.priority as MaintenancePriority, // Keep this as MaintenancePriority
         dueDate: currentDate,
         engineHours: plan.engineHours,
         notes: plan.description,

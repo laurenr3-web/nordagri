@@ -31,7 +31,7 @@ export interface MaintenanceEvent {
 }
 
 export interface AlertItem {
-  id: number; // Changed from number | string to just number
+  id: number; 
   title: string;
   description: string;
   type: 'equipment' | 'maintenance' | 'inventory' | 'system';
