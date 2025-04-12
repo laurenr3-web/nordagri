@@ -1,10 +1,9 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { addDays, addWeeks, addMonths, format, isAfter } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { maintenanceService } from '@/services/supabase/maintenanceService';
-import { MaintenanceFormValues, MaintenanceStatus, MaintenancePriority as TaskPriority } from './maintenanceSlice';
+import { MaintenanceFormValues, MaintenanceStatus, MaintenanceType as TaskMaintenanceType } from './maintenanceSlice';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -13,7 +12,9 @@ export type MaintenancePriority = 'low' | 'medium' | 'high' | 'critical';
 
 export type MaintenanceFrequency = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'biannual' | 'yearly';
 export type MaintenanceUnit = 'days' | 'weeks' | 'months' | 'hours';
-export type MaintenanceType = 'preventive' | 'corrective' | 'predictive' | 'condition-based';
+
+// Match this to the type in maintenanceSlice.ts, but preserve the export
+export type MaintenanceType = 'preventive' | 'corrective' | 'condition-based' | 'predictive';
 
 export interface MaintenancePlan {
   id: number;
@@ -194,13 +195,15 @@ export const useMaintenancePlanner = () => {
     let currentDate = plan.nextDueDate;
 
     while (isAfter(endDate, currentDate)) {
+      // When creating a task, ensure we map between the types properly
       const task: MaintenanceFormValues = {
         title: plan.title,
         equipment: plan.equipmentName,
         equipmentId: plan.equipmentId,
-        type: plan.type as MaintenanceType, // Cast to the correct type
+        // Use type casting to ensure the type is compatible with maintenanceSlice.ts MaintenanceType
+        type: (plan.type === 'predictive' ? 'condition-based' : plan.type) as TaskMaintenanceType,
         status: 'scheduled' as MaintenanceStatus,
-        priority: plan.priority as MaintenancePriority, // Keep this as MaintenancePriority
+        priority: plan.priority as MaintenancePriority,
         dueDate: currentDate,
         engineHours: plan.engineHours,
         notes: plan.description,
