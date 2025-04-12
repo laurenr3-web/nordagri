@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { MaintenancePlan, MaintenanceFrequency, MaintenanceUnit } from '@/hooks/maintenance/useMaintenancePlanner';
+import { MaintenancePlan, MaintenanceFrequency, MaintenanceUnit, MaintenanceType, MaintenancePriority } from '@/hooks/maintenance/useMaintenancePlanner';
 import { MaintenanceStatus } from '@/hooks/maintenance/maintenanceSlice';
 
 export const maintenanceService = {
@@ -40,15 +40,15 @@ export const maintenanceService = {
         description: plan.description || '',
         equipmentId: plan.equipment_id,
         equipmentName: plan.equipment_name || '',
-        frequency: plan.frequency as MaintenanceFrequency || 'monthly',
+        frequency: plan.frequency as MaintenanceFrequency,
         interval: plan.interval || 30,
-        unit: plan.unit as MaintenanceUnit || 'days',
+        unit: plan.unit as MaintenanceUnit,
         nextDueDate: new Date(plan.next_due_date),
         lastPerformedDate: plan.last_performed_date ? new Date(plan.last_performed_date) : null,
-        type: plan.type || 'preventive',
+        type: plan.type as MaintenanceType,
         engineHours: plan.engine_hours || 0,
         active: plan.active !== false,
-        priority: plan.priority || 'medium',
+        priority: plan.priority as MaintenancePriority,
         assignedTo: plan.assigned_to || null,
       }));
     } catch (error) {
@@ -90,15 +90,15 @@ export const maintenanceService = {
         description: plan.description || '',
         equipmentId: plan.equipment_id,
         equipmentName: plan.equipment_name || '',
-        frequency: plan.frequency as MaintenanceFrequency || 'monthly',
+        frequency: plan.frequency as MaintenanceFrequency,
         interval: plan.interval || 30,
-        unit: plan.unit as MaintenanceUnit || 'days',
+        unit: plan.unit as MaintenanceUnit,
         nextDueDate: new Date(plan.next_due_date),
         lastPerformedDate: plan.last_performed_date ? new Date(plan.last_performed_date) : null,
-        type: plan.type || 'preventive',
+        type: plan.type as MaintenanceType,
         engineHours: plan.engine_hours || 0,
         active: plan.active !== false,
-        priority: plan.priority || 'medium',
+        priority: plan.priority as MaintenancePriority,
         assignedTo: plan.assigned_to || null,
       }));
     } catch (error) {
@@ -200,7 +200,7 @@ export const maintenanceService = {
         type: taskData.type,
         status: taskData.status,
         priority: taskData.priority,
-        due_date: taskData.dueDate,
+        due_date: taskData.dueDate instanceof Date ? taskData.dueDate.toISOString() : taskData.dueDate,
         engine_hours: taskData.engineHours || 0,
         notes: taskData.notes || '',
         assigned_to: taskData.assignedTo || '',
@@ -238,8 +238,8 @@ export const maintenanceService = {
         .from('maintenance_tasks')
         .update({ 
           status, 
-          updated_at: new Date(),
-          completed_date: status === 'completed' ? new Date() : null 
+          updated_at: new Date().toISOString(),
+          completed_date: status === 'completed' ? new Date().toISOString() : null 
         })
         .eq('id', taskId)
         .select();
@@ -301,8 +301,8 @@ export const maintenanceService = {
         frequency: plan.frequency,
         interval: plan.interval,
         unit: plan.unit,
-        next_due_date: plan.nextDueDate,
-        last_performed_date: plan.lastPerformedDate || null,
+        next_due_date: plan.nextDueDate instanceof Date ? plan.nextDueDate.toISOString() : plan.nextDueDate,
+        last_performed_date: plan.lastPerformedDate instanceof Date ? plan.lastPerformedDate.toISOString() : null,
         type: plan.type,
         engine_hours: plan.engineHours || 0,
         active: plan.active,
@@ -338,10 +338,10 @@ export const maintenanceService = {
         unit: data[0].unit as MaintenanceUnit,
         nextDueDate: new Date(data[0].next_due_date),
         lastPerformedDate: data[0].last_performed_date ? new Date(data[0].last_performed_date) : null,
-        type: data[0].type,
+        type: data[0].type as MaintenanceType,
         engineHours: data[0].engine_hours || 0,
         active: data[0].active,
-        priority: data[0].priority,
+        priority: data[0].priority as MaintenancePriority,
         assignedTo: data[0].assigned_to || null
       };
     } catch (error) {
@@ -365,15 +365,15 @@ export const maintenanceService = {
       if (updates.frequency) dbUpdates.frequency = updates.frequency;
       if (updates.interval) dbUpdates.interval = updates.interval;
       if (updates.unit) dbUpdates.unit = updates.unit;
-      if (updates.nextDueDate) dbUpdates.next_due_date = updates.nextDueDate;
-      if (updates.lastPerformedDate) dbUpdates.last_performed_date = updates.lastPerformedDate;
+      if (updates.nextDueDate) dbUpdates.next_due_date = updates.nextDueDate instanceof Date ? updates.nextDueDate.toISOString() : updates.nextDueDate;
+      if (updates.lastPerformedDate) dbUpdates.last_performed_date = updates.lastPerformedDate instanceof Date ? updates.lastPerformedDate.toISOString() : updates.lastPerformedDate;
       if (updates.type) dbUpdates.type = updates.type;
       if (updates.engineHours !== undefined) dbUpdates.engine_hours = updates.engineHours;
       if (updates.active !== undefined) dbUpdates.active = updates.active;
       if (updates.priority) dbUpdates.priority = updates.priority;
       if (updates.assignedTo !== undefined) dbUpdates.assigned_to = updates.assignedTo;
       
-      dbUpdates.updated_at = new Date();
+      dbUpdates.updated_at = new Date().toISOString();
       
       // Mettre à jour le plan dans la base de données
       const { data, error } = await supabase
@@ -403,10 +403,10 @@ export const maintenanceService = {
         unit: data[0].unit as MaintenanceUnit,
         nextDueDate: new Date(data[0].next_due_date),
         lastPerformedDate: data[0].last_performed_date ? new Date(data[0].last_performed_date) : null,
-        type: data[0].type,
+        type: data[0].type as MaintenanceType,
         engineHours: data[0].engine_hours || 0,
         active: data[0].active,
-        priority: data[0].priority,
+        priority: data[0].priority as MaintenancePriority,
         assignedTo: data[0].assigned_to || null
       };
     } catch (error) {
@@ -425,10 +425,10 @@ export const maintenanceService = {
       // Préparer les données de mise à jour
       const updateData = {
         status: 'completed' as MaintenanceStatus,
-        completed_date: completionData.completedDate || new Date(),
+        completed_date: completionData.completedDate instanceof Date ? completionData.completedDate.toISOString() : completionData.completedDate || new Date().toISOString(),
         actual_duration: completionData.actualDuration,
         notes: completionData.notes ? `${completionData.notes}\n\nCompleted by: ${completionData.technician || 'Unknown'}` : `Completed by: ${completionData.technician || 'Unknown'}`,
-        updated_at: new Date()
+        updated_at: new Date().toISOString()
       };
       
       // Mettre à jour la tâche dans la base de données

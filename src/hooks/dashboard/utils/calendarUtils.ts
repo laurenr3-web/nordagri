@@ -41,7 +41,7 @@ export const filterWeeklyCalendarEvents = (calendarEvents: CalendarEvent[]): Cal
   
   return calendarEvents
     .filter(event => {
-      // Use date property instead of start
+      // Use date property
       const eventDate = event.date;
       return eventDate >= startOfWeek && eventDate <= endOfWeek;
     })

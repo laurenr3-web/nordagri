@@ -13,6 +13,7 @@ import {
   adaptUpcomingTasks 
 } from '@/hooks/dashboard/adapters';
 import { useNavigationHandlers } from '@/hooks/useNavigationHandlers';
+import { AlertItem } from '@/hooks/dashboard/types/dashboardTypes';
 
 interface ViewManagerProps {
   currentView: 'main' | 'calendar' | 'alerts';
@@ -40,7 +41,7 @@ const ViewManager: React.FC<ViewManagerProps> = memo(({ currentView, currentMont
   const adaptedStatsData = adaptStatsData(statsData);
   const adaptedEquipmentData = adaptEquipmentData(equipmentData);
   const adaptedMaintenanceEvents = adaptMaintenanceEvents(maintenanceEvents);
-  const adaptedAlertItems = adaptAlertItems(alertItems);
+  const adaptedAlertItems = adaptAlertItems(alertItems) as AlertItem[];
   const adaptedUpcomingTasks = adaptUpcomingTasks(upcomingTasks);
 
   if (loading) {

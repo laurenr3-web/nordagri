@@ -83,7 +83,7 @@ export interface CalendarEvent {
   id: number | string;
   title: string;
   date: Date;
-  start: Date; // Adding this property
+  start: Date; // Ajout de cette propriété manquante
   type: 'maintenance' | 'intervention' | 'task';
   equipment: string;
   status: string;

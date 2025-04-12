@@ -41,7 +41,7 @@ export const adaptMaintenanceEvents = (data: any[]): MaintenanceEvent[] => {
 
 export const adaptAlertItems = (data: any[]): AlertItem[] => {
   return data.map((alert: any) => ({
-    id: Number(alert.id) || Math.floor(Math.random() * 1000),
+    id: alert.id || Math.floor(Math.random() * 1000),
     title: alert.title || 'Alerte',
     description: alert.message || alert.description || 'Description de l\'alerte',
     severity: alert.severity || 'medium',
