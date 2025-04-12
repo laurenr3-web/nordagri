@@ -26,6 +26,7 @@ export interface MaintenanceFormValues {
   equipmentId: number;
   type: MaintenanceType;
   priority: MaintenancePriority;
+  status: MaintenanceStatus;  // Added this line to include status in the form values
   dueDate: Date;
   engineHours: number;
   assignedTo: string;
