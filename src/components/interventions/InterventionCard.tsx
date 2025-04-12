@@ -46,7 +46,7 @@ const InterventionCard = memo(({
         <div className="flex items-start justify-between mb-4">
           <h3 className="font-semibold text-lg leading-tight truncate">{intervention.title}</h3>
           <div className="flex flex-shrink-0 gap-2 ml-2">
-            <StatusBadge status={intervention.status} />
+            <StatusBadge status={intervention.status as "scheduled" | "in-progress" | "completed" | "canceled"} />
             <PriorityBadge priority={intervention.priority} />
           </div>
         </div>

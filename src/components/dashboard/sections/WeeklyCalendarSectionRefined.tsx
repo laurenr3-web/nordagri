@@ -2,16 +2,7 @@
 import React from 'react';
 import { DashboardSection } from './DashboardSection';
 import { WeeklyCalendar } from '@/components/dashboard/WeeklyCalendar';
-
-interface CalendarEvent {
-  id: string | number;
-  title: string;
-  start: Date;
-  end: Date;
-  type: string;
-  priority: string;
-  status: string;
-}
+import { CalendarEvent } from '@/hooks/dashboard/types/dashboardTypes';
 
 interface WeeklyCalendarSectionRefinedProps {
   events: CalendarEvent[];

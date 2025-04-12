@@ -2,15 +2,7 @@
 import React from 'react';
 import { DashboardSection } from './DashboardSection';
 import { StockAlerts } from '@/components/dashboard/StockAlerts';
-
-interface StockAlert {
-  id: number;
-  name: string;
-  currentStock: number;
-  reorderPoint: number;
-  percentRemaining: number;
-  category: string;
-}
+import { StockAlert } from '@/hooks/dashboard/types/dashboardTypes';
 
 interface StockSectionRefinedProps {
   alerts: StockAlert[];

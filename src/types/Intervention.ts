@@ -5,7 +5,6 @@
 
 // Statuts possibles pour une intervention
 export type InterventionStatus = 
-  | 'pending' 
   | 'scheduled' 
   | 'in-progress' 
   | 'completed' 
@@ -85,7 +84,7 @@ export const createDefaultIntervention = (): Intervention => ({
   title: '',
   equipment: '',
   equipmentId: 0,
-  status: 'pending',
+  status: 'scheduled',
   priority: 'medium',
   date: new Date(),
   technician: '',
@@ -97,7 +96,7 @@ export const interventionValidators = {
   isValidTitle: (title: string): boolean => title.trim().length >= 2,
   isValidPriority: (priority: string): boolean => ['low', 'medium', 'high'].includes(priority),
   isValidStatus: (status: string): boolean => 
-    ['pending', 'scheduled', 'in-progress', 'completed', 'canceled'].includes(status),
+    ['scheduled', 'in-progress', 'completed', 'canceled'].includes(status),
   isValidDate: (date: Date): boolean => !isNaN(date.getTime()),
   isValidDuration: (duration: number): boolean => duration > 0
 };

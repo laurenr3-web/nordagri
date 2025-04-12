@@ -54,12 +54,12 @@ export const EquipmentProvider: React.FC<EquipmentProviderProps> = ({
     refetch 
   } = useStandardQuery({
     queryKey: ['equipment', filters],
-    queryFn: () => equipmentService.getAllEquipment(filters),
+    queryFn: () => equipmentService.getEquipment(filters),
   });
   
   // Mutation pour ajouter un équipement
   const addMutation = useStandardMutation({
-    mutationFn: equipmentService.addEquipment,
+    mutationFn: equipmentService.createEquipment,
     invalidateQueries: [['equipment']],
     successMessage: 'Équipement ajouté avec succès',
     errorMessage: 'Erreur lors de l\'ajout de l\'équipement'
@@ -67,7 +67,7 @@ export const EquipmentProvider: React.FC<EquipmentProviderProps> = ({
   
   // Mutation pour mettre à jour un équipement
   const updateMutation = useStandardMutation({
-    mutationFn: equipmentService.updateEquipment,
+    mutationFn: (data: Equipment) => equipmentService.updateEquipment(data.id, data),
     invalidateQueries: [['equipment']],
     successMessage: 'Équipement mis à jour avec succès',
     errorMessage: 'Erreur lors de la mise à jour de l\'équipement'
@@ -117,7 +117,7 @@ export const EquipmentProvider: React.FC<EquipmentProviderProps> = ({
   }, [deleteMutation, selectedId, clearSelection]);
   
   // Valeur du contexte
-  const contextValue = useMemo(() => ({
+  const contextValue = useMemo<EquipmentContextType>(() => ({
     equipment,
     selectedEquipment,
     isLoading,

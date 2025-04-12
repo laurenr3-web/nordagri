@@ -1,6 +1,7 @@
 
 // Make sure to fix the issue with the missing name field when creating equipment
 import { supabase } from '@/integrations/supabase/client';
+import { EquipmentFilter } from '@/types/Equipment';
 
 export interface Equipment {
   id: number;
@@ -19,7 +20,7 @@ export interface Equipment {
 }
 
 export const equipmentService = {
-  async getEquipment(): Promise<Equipment[]> {
+  async getEquipment(filters?: EquipmentFilter): Promise<Equipment[]> {
     const { data, error } = await supabase
       .from('equipment')
       .select('*')
@@ -126,8 +127,8 @@ export const equipmentService = {
   async createEquipmentWithMetadata(equipment: Omit<Equipment, 'id'>, userId: string): Promise<Equipment> {
     const now = new Date().toISOString();
     
-    const metadataObject = {
-      name: equipment.name, // Add the required name field
+    const equipmentWithMetadata = {
+      ...equipment,
       owner_id: userId,
       created_at: now,
       updated_at: now,
@@ -135,7 +136,7 @@ export const equipmentService = {
     
     const { data, error } = await supabase
       .from('equipment')
-      .insert({ ...equipment, ...metadataObject })
+      .insert(equipmentWithMetadata)
       .select()
       .single();
     
