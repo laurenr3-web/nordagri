@@ -1,13 +1,17 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { addDays, addWeeks, addMonths, format, isAfter } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { maintenanceService } from '@/services/supabase/maintenanceService';
-import { MaintenanceFormValues, MaintenanceStatus, MaintenancePriority } from './maintenanceSlice';
+import { MaintenanceFormValues, MaintenanceStatus, MaintenancePriority as TaskPriority } from './maintenanceSlice';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-export type MaintenanceFrequency = 'onetime' | 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'biannual' | 'yearly';
+// Export MaintenancePriority to avoid import issues
+export type MaintenancePriority = 'low' | 'medium' | 'high' | 'critical';
+
+export type MaintenanceFrequency = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'biannual' | 'yearly';
 export type MaintenanceUnit = 'days' | 'weeks' | 'months' | 'hours';
 export type MaintenanceType = 'preventive' | 'corrective' | 'predictive' | 'condition-based';
 
@@ -30,7 +34,7 @@ export interface MaintenancePlan {
 }
 
 const isMaintenanceFrequency = (value: string): value is MaintenanceFrequency => {
-  return ['onetime', 'daily', 'weekly', 'monthly', 'quarterly', 'biannual', 'yearly'].includes(value);
+  return ['daily', 'weekly', 'monthly', 'quarterly', 'biannual', 'yearly'].includes(value);
 };
 
 const isMaintenanceUnit = (value: string): value is MaintenanceUnit => {
@@ -72,6 +76,11 @@ export const useMaintenancePlanner = () => {
   useEffect(() => {
     fetchMaintenancePlans();
   }, [fetchMaintenancePlans]);
+
+  // Alias for createMaintenancePlan to match the method name used in the dialog
+  const createMaintenancePlan = async (plan: Omit<MaintenancePlan, 'id'>): Promise<MaintenancePlan | null> => {
+    return addMaintenancePlan(plan);
+  };
 
   const addMaintenancePlan = async (plan: Omit<MaintenancePlan, 'id'>): Promise<MaintenancePlan | null> => {
     try {
@@ -152,8 +161,6 @@ export const useMaintenancePlanner = () => {
     let nextDueDate: Date;
 
     switch (frequency) {
-      case 'onetime':
-        return startDate;
       case 'daily':
         nextDueDate = addDays(startDate, interval);
         break;
@@ -191,9 +198,9 @@ export const useMaintenancePlanner = () => {
         title: plan.title,
         equipment: plan.equipmentName,
         equipmentId: plan.equipmentId,
-        type: plan.type,
+        type: plan.type as TaskPriority, // Use TaskPriority from maintenanceSlice
         status: 'scheduled' as MaintenanceStatus,
-        priority: plan.priority,
+        priority: plan.priority as TaskPriority, // Use TaskPriority from maintenanceSlice
         dueDate: currentDate,
         engineHours: plan.engineHours,
         notes: plan.description,
@@ -227,6 +234,7 @@ export const useMaintenancePlanner = () => {
     error,
     fetchMaintenancePlans,
     addMaintenancePlan,
+    createMaintenancePlan, // Added this alias
     updateMaintenancePlan,
     calculateNextDueDate,
     generateSchedule,

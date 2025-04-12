@@ -1,6 +1,12 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { MaintenancePlan, MaintenanceFrequency, MaintenanceUnit, MaintenanceType, MaintenancePriority } from '@/hooks/maintenance/useMaintenancePlanner';
+import { 
+  MaintenancePlan, 
+  MaintenanceFrequency, 
+  MaintenanceUnit, 
+  MaintenanceType,
+  MaintenancePriority 
+} from '@/hooks/maintenance/useMaintenancePlanner';
 import { MaintenanceStatus } from '@/hooks/maintenance/maintenanceSlice';
 
 export const maintenanceService = {

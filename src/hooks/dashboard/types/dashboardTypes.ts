@@ -31,7 +31,7 @@ export interface MaintenanceEvent {
 }
 
 export interface AlertItem {
-  id: number | string;
+  id: number; // Changed from number | string to just number
   title: string;
   description: string;
   type: 'equipment' | 'maintenance' | 'inventory' | 'system';
@@ -83,7 +83,7 @@ export interface CalendarEvent {
   id: number | string;
   title: string;
   date: Date;
-  start: Date; // Ajout de cette propriété manquante
+  start: Date; // Already added this property
   type: 'maintenance' | 'intervention' | 'task';
   equipment: string;
   status: string;

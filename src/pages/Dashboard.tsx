@@ -19,7 +19,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useDashboardPreferences } from '@/hooks/dashboard/useDashboardPreferences';
-import { AlertItem } from '@/hooks/dashboard/types/dashboardTypes';
 
 const DashboardPage = () => {
   // Récupération des données réelles avec le hook
@@ -49,7 +48,7 @@ const DashboardPage = () => {
   const adaptedStatsData = loading ? [] : adaptStatsData(statsData);
   const adaptedEquipmentData = loading ? [] : adaptEquipmentData(equipmentData);
   const adaptedMaintenanceEvents = loading ? [] : adaptMaintenanceEvents(maintenanceEvents);
-  const adaptedAlertItems = loading ? [] : adaptAlertItems(alertItems) as AlertItem[];
+  const adaptedAlertItems = loading ? [] : adaptAlertItems(alertItems);
   const adaptedTasks = loading ? [] : adaptUpcomingTasks(upcomingTasks);
 
   const handleStatsCardClick = (type: string) => {

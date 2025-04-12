@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -13,8 +14,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { MaintenanceFrequency, MaintenancePlan, MaintenanceUnit } from '@/hooks/maintenance/useMaintenancePlanner';
-import { MaintenancePriority, MaintenanceType } from '@/hooks/maintenance/maintenanceSlice';
+import { 
+  MaintenanceFrequency, 
+  MaintenancePlan, 
+  MaintenanceUnit,
+  MaintenanceType,
+  MaintenancePriority 
+} from '@/hooks/maintenance/useMaintenancePlanner';
 
 // Schema de validation pour le formulaire de plan de maintenance
 const maintenancePlanSchema = z.object({
@@ -22,10 +28,10 @@ const maintenancePlanSchema = z.object({
   description: z.string().optional(),
   equipmentId: z.number().min(1, "Équipement requis"),
   equipmentName: z.string().min(1, "Nom de l'équipement requis"),
-  frequency: z.enum(['daily', 'weekly', 'monthly', 'quarterly', 'biannual', 'annual', 'custom']),
+  frequency: z.enum(['daily', 'weekly', 'monthly', 'quarterly', 'biannual', 'yearly']),
   interval: z.number().min(1, "L'intervalle doit être d'au moins 1"),
-  unit: z.enum(['days', 'weeks', 'months', 'years', 'hours']),
-  type: z.enum(['preventive', 'corrective', 'condition-based']),
+  unit: z.enum(['days', 'weeks', 'months', 'hours']),
+  type: z.enum(['preventive', 'corrective', 'predictive', 'condition-based']),
   priority: z.enum(['low', 'medium', 'high', 'critical']),
   engineHours: z.number().min(0, "Les heures moteur doivent être positives"),
   nextDueDate: z.date(),
@@ -77,48 +83,47 @@ export default function MaintenancePlanForm({
       description: values.description || '',
       equipmentId: values.equipmentId,
       equipmentName: values.equipmentName,
-      frequency: values.frequency,
+      frequency: values.frequency as MaintenanceFrequency,
       interval: values.interval,
-      unit: values.unit,
-      type: values.type,
-      priority: values.priority,
+      unit: values.unit as MaintenanceUnit,
+      type: values.type as MaintenanceType,
+      priority: values.priority as MaintenancePriority,
       engineHours: values.engineHours,
       nextDueDate: values.nextDueDate,
-      assignedTo: values.assignedTo
+      assignedTo: values.assignedTo || null
     };
     
     onSubmit(maintenancePlan);
   };
 
   // Options pour les fréquences de maintenance
-  const frequencyOptions: { value: MaintenanceFrequency; label: string }[] = [
+  const frequencyOptions: { value: string; label: string }[] = [
     { value: 'daily', label: 'Quotidienne' },
     { value: 'weekly', label: 'Hebdomadaire' },
     { value: 'monthly', label: 'Mensuelle' },
     { value: 'quarterly', label: 'Trimestrielle' },
     { value: 'biannual', label: 'Semestrielle' },
-    { value: 'annual', label: 'Annuelle' },
-    { value: 'custom', label: 'Personnalisée' },
+    { value: 'yearly', label: 'Annuelle' },
   ];
 
   // Options pour les unités de temps
-  const unitOptions: { value: MaintenanceUnit; label: string }[] = [
+  const unitOptions: { value: string; label: string }[] = [
     { value: 'days', label: 'Jours' },
     { value: 'weeks', label: 'Semaines' },
     { value: 'months', label: 'Mois' },
-    { value: 'years', label: 'Années' },
     { value: 'hours', label: 'Heures de fonctionnement' },
   ];
 
   // Options pour les types de maintenance
-  const typeOptions: { value: MaintenanceType; label: string }[] = [
+  const typeOptions: { value: string; label: string }[] = [
     { value: 'preventive', label: 'Préventive' },
     { value: 'corrective', label: 'Corrective' },
+    { value: 'predictive', label: 'Prédictive' },
     { value: 'condition-based', label: 'Basée sur condition' },
   ];
 
   // Options pour les priorités
-  const priorityOptions: { value: MaintenancePriority; label: string }[] = [
+  const priorityOptions: { value: string; label: string }[] = [
     { value: 'low', label: 'Basse' },
     { value: 'medium', label: 'Moyenne' },
     { value: 'high', label: 'Haute' },
@@ -127,7 +132,6 @@ export default function MaintenancePlanForm({
 
   // Obtenir la valeur actuelle de la fréquence
   const currentFrequency = form.watch('frequency');
-  const isCustomFrequency = currentFrequency === 'custom';
 
   return (
     <Form {...form}>
@@ -239,38 +243,6 @@ export default function MaintenancePlanForm({
               </FormItem>
             )}
           />
-
-          {/* Unité (visible uniquement si fréquence = custom) */}
-          {isCustomFrequency && (
-            <FormField
-              control={form.control}
-              name="unit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Unité</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    disabled={isSubmitting}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner une unité" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {unitOptions.map(option => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
 
           {/* Type de maintenance */}
           <FormField

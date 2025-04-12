@@ -219,6 +219,11 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
         isOpen={isCompletionDialogOpen}
         onClose={() => setIsCompletionDialogOpen(false)}
         task={selectedMaintenanceTask}
+        onCompleted={() => {
+          setIsCompletionDialogOpen(false);
+          // Refresh the task list
+          setTimeout(() => window.location.reload(), 1000);
+        }}
       />
 
       {/* Dialog pour créer un plan de maintenance */}

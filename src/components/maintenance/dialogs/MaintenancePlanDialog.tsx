@@ -23,7 +23,7 @@ export default function MaintenancePlanDialog({
   equipment 
 }: MaintenancePlanDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { createMaintenancePlan } = useMaintenancePlanner();
+  const { addMaintenancePlan } = useMaintenancePlanner();
 
   const handleSubmit = async (formData: Omit<MaintenancePlan, 'id' | 'active'>) => {
     try {
@@ -36,7 +36,10 @@ export default function MaintenancePlanDialog({
       }
       
       // Créer le plan de maintenance
-      await createMaintenancePlan(formData);
+      await addMaintenancePlan({
+        ...formData,
+        active: true
+      });
       
       // Fermer la boîte de dialogue
       onClose();
