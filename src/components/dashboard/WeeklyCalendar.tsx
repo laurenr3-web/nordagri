@@ -29,7 +29,7 @@ export function WeeklyCalendar({ events, onViewEvent, className }: WeeklyCalenda
 
   // Filter events for the current week
   const weekEvents = events.filter(event => {
-    return weekDays.some(day => isSameDay(day, event.start));
+    return weekDays.some(day => isSameDay(day, event.date));
   });
 
   return (
@@ -69,7 +69,7 @@ export function WeeklyCalendar({ events, onViewEvent, className }: WeeklyCalenda
       <div className="space-y-2.5">
         {weekEvents.length > 0 ? (
           weekEvents.map((event) => {
-            const eventDay = weekDays.findIndex(day => isSameDay(day, event.start));
+            const eventDay = weekDays.findIndex(day => isSameDay(day, event.date));
             if (eventDay === -1) return null;
 
             return (
@@ -107,7 +107,7 @@ export function WeeklyCalendar({ events, onViewEvent, className }: WeeklyCalenda
                              event.type === 'intervention' ? 'Intervention' : 'Tâche'}
                           </Badge>
                           <span className="text-xs text-muted-foreground">
-                            {format(event.start, 'HH:mm')}
+                            {format(event.date, 'HH:mm')}
                           </span>
                         </div>
                         <div className="font-medium truncate" title={event.title}>

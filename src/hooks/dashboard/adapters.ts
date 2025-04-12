@@ -43,13 +43,17 @@ export const adaptAlertItems = (data: any[]): AlertItem[] => {
   return data.map((alert: any) => ({
     id: Number(alert.id) || Math.floor(Math.random() * 1000),
     title: alert.title || 'Alerte',
-    message: alert.message || 'Description de l\'alerte',
+    description: alert.message || alert.description || 'Description de l\'alerte',
     severity: alert.severity || 'medium',
+    timestamp: alert.date ? new Date(alert.date) : new Date(),
+    isRead: alert.status === 'read' || false,
+    type: alert.type || 'maintenance',
+    // Additional fields for compatibility
+    message: alert.message || 'Description de l\'alerte',
     date: alert.date ? new Date(alert.date) : new Date(),
     equipmentId: alert.equipmentId || 0,
     equipmentName: alert.equipmentName || 'Équipement non spécifié',
     status: alert.status || 'new',
-    type: alert.type || 'maintenance',
     time: alert.time || '12:00',
     equipment: alert.equipment || 'N/A'
   }));
@@ -63,6 +67,7 @@ export const adaptUpcomingTasks = (data: any[]): UpcomingTask[] => {
     dueDate: task.dueDate ? new Date(task.dueDate) : new Date(),
     status: task.status || 'pending',
     priority: task.priority || 'medium',
-    assignedTo: task.assignedTo || 'Non assigné'
+    assignedTo: task.assignedTo || 'Non assigné',
+    equipment: task.equipment || 'Équipement non spécifié'
   }));
 };

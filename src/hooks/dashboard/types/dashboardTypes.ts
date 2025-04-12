@@ -38,6 +38,14 @@ export interface AlertItem {
   severity: 'low' | 'medium' | 'high' | 'critical';
   timestamp: Date;
   isRead: boolean;
+  // Additional fields needed by some components
+  message?: string;
+  time?: string;
+  equipment?: string;
+  date?: Date;
+  equipmentId?: number;
+  equipmentName?: string;
+  status?: string;
 }
 
 export interface UpcomingTask {
@@ -75,6 +83,7 @@ export interface CalendarEvent {
   id: number | string;
   title: string;
   date: Date;
+  start: Date; // Adding this property
   type: 'maintenance' | 'intervention' | 'task';
   equipment: string;
   status: string;

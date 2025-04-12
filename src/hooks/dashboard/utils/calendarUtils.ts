@@ -1,5 +1,5 @@
 
-import { CalendarEvent } from '../useDashboardData';
+import { CalendarEvent } from '../types/dashboardTypes';
 
 /**
  * Normalize priority to one of the allowed values
@@ -40,6 +40,10 @@ export const filterWeeklyCalendarEvents = (calendarEvents: CalendarEvent[]): Cal
   const { startOfWeek, endOfWeek } = getWeekDateRange();
   
   return calendarEvents
-    .filter(event => event.start >= startOfWeek && event.start <= endOfWeek)
-    .sort((a, b) => a.start.getTime() - b.start.getTime());
+    .filter(event => {
+      // Use date property instead of start
+      const eventDate = event.date;
+      return eventDate >= startOfWeek && eventDate <= endOfWeek;
+    })
+    .sort((a, b) => a.date.getTime() - b.date.getTime());
 };
