@@ -1,6 +1,6 @@
 
 // Re-export intervention types from the centralized models
-export {
+export type {
   InterventionStatus,
   InterventionPriority,
   PartUsed,
@@ -57,4 +57,18 @@ export const convertCoordinates = {
       longitude: coords.lng
     };
   }
+};
+
+/**
+ * UrgentIntervention type needed for dashboard components
+ */
+export type UrgentIntervention = {
+  id: number;
+  title: string;
+  equipment: string;
+  priority: 'high' | 'medium' | 'low';
+  date: Date;
+  status: string;
+  technician: string;
+  location: string;
 };
