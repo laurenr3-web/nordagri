@@ -15,13 +15,21 @@ export const useInterventionFormHandlers = ({ onClose }: UseInterventionFormHand
   const { 
     createIntervention, 
     updateInterventionStatus, 
-    submitInterventionReport 
+    submitInterventionReport,
+    refetch
   } = useInterventionsData();
   
   const handleCreateIntervention = useCallback(async (formData: InterventionFormValues) => {
     setIsSubmitting(true);
     try {
-      await createIntervention(formData);
+      // Convert form data to match the API expectations
+      const apiFormData = {
+        ...formData,
+        equipment_id: formData.equipmentId,
+        scheduled_duration: formData.scheduledDuration
+      };
+      
+      await createIntervention(apiFormData);
       toast.success('Intervention créée avec succès');
       if (onClose) onClose();
       return Promise.resolve();

@@ -1,7 +1,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 // Define Equipment type for use throughout the application
 export interface Equipment {
@@ -13,7 +13,7 @@ export interface Equipment {
   manufacturer?: string;
   serial_number?: string;
   location?: string;
-  purchase_date?: string | Date;
+  purchase_date?: string;
   status?: string;
   notes?: string;
   image?: string;
@@ -55,7 +55,7 @@ export const createMaintenancePlan = async (equipmentId: string | number, plan: 
 };
 
 // Main hook for equipment table functionality
-export const useEquipmentTable = () => {
+export function useEquipmentTable() {
   const [equipments, setEquipments] = useState<Equipment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [pageCount, setPageCount] = useState(0);
@@ -103,7 +103,13 @@ export const useEquipmentTable = () => {
   // Create equipment
   const createEquipment = async (data: Omit<Equipment, 'id'>) => {
     try {
-      const { error } = await supabase.from('equipment').insert([data]);
+      // Convert Date objects to strings for Supabase
+      const preparedData = {
+        ...data,
+        purchase_date: data.purchase_date instanceof Date ? data.purchase_date.toISOString() : data.purchase_date
+      };
+
+      const { error } = await supabase.from('equipment').insert([preparedData]);
       if (error) throw error;
       toast.success("Équipement ajouté avec succès");
       fetchEquipments();
@@ -118,7 +124,13 @@ export const useEquipmentTable = () => {
   // Update equipment
   const updateEquipment = async (id: number, data: Partial<Equipment>) => {
     try {
-      const { error } = await supabase.from('equipment').update(data).eq('id', id);
+      // Convert Date objects to strings for Supabase
+      const preparedData = {
+        ...data,
+        purchase_date: data.purchase_date instanceof Date ? data.purchase_date.toISOString() : data.purchase_date
+      };
+
+      const { error } = await supabase.from('equipment').update(preparedData).eq('id', id);
       if (error) throw error;
       toast.success("Équipement mis à jour avec succès");
       fetchEquipments();
@@ -131,9 +143,16 @@ export const useEquipmentTable = () => {
   };
 
   // Import multiple equipment
-  const importEquipments = async (equipments: Omit<Equipment, 'id'>[]) => {
+  const importEquipments = async (equipments: Array<Omit<Equipment, 'id'>>) => {
     try {
-      const { error } = await supabase.from('equipment').insert(equipments);
+      // Ensure each equipment item has required fields and convert Date objects
+      const validEquipments = equipments.map(item => ({
+        ...item,
+        name: item.name || 'Unnamed Equipment', // Ensure name is not empty
+        purchase_date: item.purchase_date instanceof Date ? item.purchase_date.toISOString() : item.purchase_date
+      }));
+
+      const { error } = await supabase.from('equipment').insert(validEquipments);
       if (error) throw error;
       toast.success(`${equipments.length} équipements importés avec succès`);
       fetchEquipments();
@@ -167,4 +186,6 @@ export const useEquipmentTable = () => {
     deleteEquipment,
     importEquipments
   };
-};
+}
+
+export default useEquipmentTable;

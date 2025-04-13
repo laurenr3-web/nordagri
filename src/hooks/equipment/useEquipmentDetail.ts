@@ -9,8 +9,8 @@ import { useMaintenanceUtils } from './detail/useMaintenanceUtils';
 export function useEquipmentDetail(id: string | undefined) {
   const navigate = useNavigate();
   const { equipment, setEquipment, loading, error } = useEquipmentData(id);
-  const { maintenanceTasks } = useMaintenanceTasks(id, equipment);
-  const { maintenancePlans } = useMaintenancePlans(id, equipment);
+  const { tasks: maintenanceTasks } = useMaintenanceTasks(id);
+  const { plans: maintenancePlans } = useMaintenancePlans(id);
   const { handleEquipmentUpdate, loading: updateLoading } = useEquipmentUpdate(id, setEquipment);
   const { getLastMaintenanceDate, getNextServiceInfo } = useMaintenanceUtils();
   

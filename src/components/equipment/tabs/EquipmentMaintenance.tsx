@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useEquipmentDetail } from '@/hooks/equipment/useEquipmentDetail';
 import { useParams } from 'react-router-dom';
-import { MaintenanceStatus, MaintenanceType, MaintenancePriority } from '@/hooks/maintenance/maintenanceSlice';
 import { maintenanceService } from '@/services/supabase/maintenanceService';
 import NewMaintenanceDialog from './maintenance/NewMaintenanceDialog';
 import MaintenanceSummaryCards from './maintenance/MaintenanceSummaryCards';
@@ -63,15 +62,14 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
       const maintenanceTask = {
         title: maintenance.title,
         equipment: equipment.name,
-        equipmentId: equipment.id,
-        type: maintenance.type as MaintenanceType,
-        status: 'scheduled' as MaintenanceStatus,
-        priority: maintenance.priority as MaintenancePriority,
-        dueDate: maintenance.dueDate,
-        engineHours: maintenance.engineHours,
-        assignedTo: maintenance.assignedTo || '',
-        notes: maintenance.notes || '',
-        partId: maintenance.partId || null
+        equipment_id: equipment.id,
+        type: maintenance.type,
+        status: 'scheduled',
+        priority: maintenance.priority,
+        due_date: maintenance.dueDate.toISOString(),
+        estimated_duration: maintenance.engineHours,
+        assigned_to: maintenance.assignedTo || '',
+        notes: maintenance.notes || ''
       };
       
       // Ajouter la tâche via le service
@@ -127,7 +125,7 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
   const handleChangeStatus = async (taskId: number, newStatus: string) => {
     try {
       setLoading(true);
-      await maintenanceService.updateTaskStatus(taskId, newStatus as MaintenanceStatus);
+      await maintenanceService.updateTaskStatus(taskId, newStatus);
       toast.success(`Statut mis à jour: ${newStatus}`);
       
       // Rafraîchir la page pour voir les changements
@@ -215,16 +213,18 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
       />
 
       {/* Dialog pour compléter une tâche de maintenance */}
-      <MaintenanceCompletionDialog
-        isOpen={isCompletionDialogOpen}
-        onClose={() => setIsCompletionDialogOpen(false)}
-        task={selectedMaintenanceTask}
-        onCompleted={() => {
-          setIsCompletionDialogOpen(false);
-          // Refresh the task list
-          setTimeout(() => window.location.reload(), 1000);
-        }}
-      />
+      {isCompletionDialogOpen && selectedMaintenanceTask && (
+        <MaintenanceCompletionDialog
+          isOpen={isCompletionDialogOpen}
+          onClose={() => setIsCompletionDialogOpen(false)}
+          task={selectedMaintenanceTask}
+          onCompleted={() => {
+            setIsCompletionDialogOpen(false);
+            // Refresh the task list
+            setTimeout(() => window.location.reload(), 1000);
+          }}
+        />
+      )}
 
       {/* Dialog pour créer un plan de maintenance */}
       <MaintenancePlanDialog

@@ -7,10 +7,10 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import MaintenancePlanForm from '../forms/MaintenancePlanForm';
 import { toast } from 'sonner';
-import { useMaintenancePlanner, MaintenancePlan } from '@/hooks/maintenance/useMaintenancePlanner';
+import { useMaintenancePlanner } from '@/hooks/maintenance/useMaintenancePlanner';
 import { maintenanceService } from '@/services/supabase/maintenanceService';
+import MaintenancePlanForm from '../forms/MaintenancePlanForm';
 
 interface MaintenancePlanDialogProps {
   isOpen: boolean;
@@ -26,7 +26,7 @@ export default function MaintenancePlanDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { createMaintenancePlan } = useMaintenancePlanner();
 
-  const handleSubmit = async (formData: Omit<MaintenancePlan, 'id' | 'active'>) => {
+  const handleSubmit = async (formData: any) => {
     try {
       setIsSubmitting(true);
       
@@ -37,10 +37,7 @@ export default function MaintenancePlanDialog({
       }
       
       // Créer le plan de maintenance
-      await createMaintenancePlan({
-        ...formData,
-        active: true
-      });
+      await createMaintenancePlan(formData);
       
       // Fermer la boîte de dialogue
       onClose();

@@ -1,11 +1,12 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { MaintenanceTask, MaintenancePriority, MaintenanceStatus, MaintenanceType } from './maintenanceSlice';
-import { maintenanceService } from '@/services/supabase/maintenanceService';
+import { MaintenanceTask as ModelMaintenanceTask } from './maintenanceSlice';
+import { maintenanceService, MaintenanceTask as ServiceMaintenanceTask } from '@/services/supabase/maintenanceService';
+import { adaptServiceTaskToModelTask } from './adapters/maintenanceTypeAdapters';
 
-export function useTasksManager(initialTasks?: MaintenanceTask[]) {
-  const [tasks, setTasks] = useState<MaintenanceTask[]>(initialTasks || []);
+export function useTasksManager(initialTasks?: ModelMaintenanceTask[]) {
+  const [tasks, setTasks] = useState<ModelMaintenanceTask[]>(initialTasks || []);
   const [isLoading, setIsLoading] = useState(initialTasks ? false : true);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,7 +26,9 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
         const fetchedTasks = await maintenanceService.getTasks();
         
         console.log(`Found ${fetchedTasks.length} maintenance tasks:`, fetchedTasks);
-        setTasks(fetchedTasks);
+        // Convert service tasks to model tasks
+        const modelTasks = fetchedTasks.map(adaptServiceTaskToModelTask);
+        setTasks(modelTasks);
       } catch (error: any) {
         console.error('Error fetching maintenance tasks:', error);
         setError(error.message || "Une erreur est survenue lors de la récupération des tâches");
@@ -38,15 +41,32 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
     fetchTasks();
   }, [initialTasks]);
 
-  const addTask = async (task: Omit<MaintenanceTask, 'id'>) => {
+  const addTask = async (task: Omit<ModelMaintenanceTask, 'id'>) => {
     try {
-      // Envoyer la tâche à Supabase
-      const newTask = await maintenanceService.addTask(task);
+      // Convert model task to service format
+      const serviceTask = {
+        title: task.title,
+        equipment: task.equipment,
+        equipment_id: task.equipmentId,
+        due_date: task.dueDate.toISOString(),
+        status: task.status,
+        priority: task.priority,
+        type: task.type,
+        estimated_duration: task.engineHours,
+        assigned_to: task.assignedTo,
+        notes: task.notes
+      };
       
-      // Mettre à jour l'état local
-      setTasks(prevTasks => [...prevTasks, newTask]);
+      // Send task to Supabase
+      const newServiceTask = await maintenanceService.addTask(serviceTask);
       
-      return newTask;
+      // Convert back to model format
+      const newModelTask = adaptServiceTaskToModelTask(newServiceTask);
+      
+      // Update local state
+      setTasks(prevTasks => [...prevTasks, newModelTask]);
+      
+      return newModelTask;
     } catch (error) {
       console.error('Error adding task:', error);
       toast.error("Erreur lors de l'ajout de la tâche");
@@ -54,18 +74,18 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
     }
   };
 
-  const updateTaskStatus = async (taskId: number, newStatus: MaintenanceStatus) => {
+  const updateTaskStatus = async (taskId: number, newStatus: string) => {
     try {
-      // Mettre à jour dans Supabase
+      // Update in Supabase
       await maintenanceService.updateTaskStatus(taskId, newStatus);
       
-      // Mettre à jour l'état local
+      // Update local state
       setTasks(prevTasks => 
         prevTasks.map(task => 
           task.id === taskId 
             ? { 
                 ...task, 
-                status: newStatus,
+                status: newStatus as any,
                 completedDate: newStatus === 'completed' ? new Date() : task.completedDate
               } 
             : task
@@ -77,16 +97,16 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
     }
   };
 
-  const updateTaskPriority = async (taskId: number, newPriority: MaintenancePriority) => {
+  const updateTaskPriority = async (taskId: number, newPriority: string) => {
     try {
-      // Mettre à jour dans Supabase
+      // Update in Supabase
       await maintenanceService.updateTaskPriority(taskId, newPriority);
       
-      // Mettre à jour l'état local
+      // Update local state
       setTasks(prevTasks => 
         prevTasks.map(task => 
           task.id === taskId 
-            ? { ...task, priority: newPriority } 
+            ? { ...task, priority: newPriority as any } 
             : task
         )
       );
@@ -98,12 +118,10 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
 
   const deleteTask = async (taskId: number) => {
     try {
-      // Mettre d'abord à jour l'état local pour une réponse immédiate de l'UI
-      setTasks(prevTasks => {
-        return prevTasks.filter(task => task.id !== taskId);
-      });
+      // Update local state first for responsive UI
+      setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
       
-      // Ensuite, persister la suppression dans la base de données
+      // Then, persist deletion in database
       await maintenanceService.deleteTask(taskId);
       
       toast.success('Tâche supprimée avec succès');
@@ -112,9 +130,14 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
       console.error('Error deleting task:', error);
       toast.error('Erreur lors de la suppression de la tâche');
       
-      // Recharger les tâches en cas d'erreur pour rétablir l'état correct
-      const fetchedTasks = await maintenanceService.getTasks();
-      setTasks(fetchedTasks);
+      // Reload tasks in case of error to restore correct state
+      try {
+        const fetchedTasks = await maintenanceService.getTasks();
+        const modelTasks = fetchedTasks.map(adaptServiceTaskToModelTask);
+        setTasks(modelTasks);
+      } catch (reloadError) {
+        console.error("Error reloading tasks after deletion failure:", reloadError);
+      }
       
       throw error;
     }
@@ -124,7 +147,8 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
     setIsLoading(true);
     try {
       const fetchedTasks = await maintenanceService.getTasks();
-      setTasks(fetchedTasks);
+      const modelTasks = fetchedTasks.map(adaptServiceTaskToModelTask);
+      setTasks(modelTasks);
       setError(null);
     } catch (error: any) {
       console.error('Error refreshing tasks:', error);

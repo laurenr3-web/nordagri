@@ -1,453 +1,299 @@
 
 import React, { useState } from 'react';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Loader2 } from 'lucide-react';
+import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
-
-import { MaintenanceFrequency, MaintenanceType, MaintenancePriority, MaintenanceUnit } from '@/hooks/maintenance/types/maintenancePlanTypes';
-import EquipmentField from '@/components/maintenance/fields/EquipmentField';
-import FormFieldGroup from '@/components/maintenance/fields/FormFieldGroup';
-
-const formSchema = z.object({
-  title: z.string().min(2, "Titre requis"),
-  description: z.string().optional(),
-  equipment: z.string().min(1, "Équipement requis"),
-  frequency: z.enum([
-    'daily', 'weekly', 'monthly', 'quarterly', 'biannual', 'yearly', 'custom'
-  ] as const),
-  interval: z.coerce.number().min(1),
-  unit: z.enum([
-    'days', 'weeks', 'months', 'years', 'hours'
-  ] as const),
-  nextDueDate: z.date(),
-  type: z.enum([
-    'preventive', 'predictive', 'corrective', 'inspection', 'lubrication', 
-    'electrical', 'mechanical', 'hydraulic', 'other'
-  ] as const),
-  priority: z.enum(['low', 'medium', 'high', 'critical'] as const),
-  engineHours: z.coerce.number().optional(),
-  assignedTo: z.string().optional(),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { MaintenanceFrequency, MaintenanceType, MaintenanceUnit, MaintenancePriority } from '@/hooks/maintenance/types/maintenancePlanTypes';
 
 interface MaintenancePlanFormProps {
-  onSubmit: (data: FormValues) => void;
-  onCancel: () => void;
-  isSubmitting?: boolean;
-  equipmentOptions: Array<{ id: number; name: string }>;
-  isLoadingEquipment?: boolean;
-  defaultValues?: Partial<FormValues>;
-  staffMembers?: Array<{ id: string; name: string }>;
+  onSubmit: (formData: any) => Promise<void>;
+  isSubmitting: boolean;
+  equipment?: { id: number; name: string } | null;
 }
 
 const MaintenancePlanForm: React.FC<MaintenancePlanFormProps> = ({
   onSubmit,
-  onCancel,
-  isSubmitting = false,
-  equipmentOptions,
-  isLoadingEquipment = false,
-  defaultValues,
-  staffMembers = []
+  isSubmitting,
+  equipment
 }) => {
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: defaultValues?.title || '',
-      description: defaultValues?.description || '',
-      equipment: defaultValues?.equipment || '',
-      frequency: defaultValues?.frequency || 'monthly',
-      interval: defaultValues?.interval || 1,
-      unit: defaultValues?.unit || 'months',
-      nextDueDate: defaultValues?.nextDueDate || new Date(),
-      type: defaultValues?.type || 'preventive',
-      priority: defaultValues?.priority || 'medium',
-      engineHours: defaultValues?.engineHours,
-      assignedTo: defaultValues?.assignedTo || '',
-    },
-  });
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [frequency, setFrequency] = useState<MaintenanceFrequency>('monthly');
+  const [interval, setInterval] = useState(1);
+  const [unit, setUnit] = useState<MaintenanceUnit>('months');
+  const [nextDueDate, setNextDueDate] = useState<Date>(new Date());
+  const [type, setType] = useState<MaintenanceType>('preventive');
+  const [priority, setPriority] = useState<MaintenancePriority>('medium');
+  const [engineHours, setEngineHours] = useState('');
+  const [assignedTo, setAssignedTo] = useState('');
+  const [customInterval, setCustomInterval] = useState(false);
 
-  const frequencyOptions: { value: MaintenanceFrequency; label: string }[] = [
-    { value: 'daily', label: 'Quotidien' },
-    { value: 'weekly', label: 'Hebdomadaire' },
-    { value: 'monthly', label: 'Mensuel' },
-    { value: 'quarterly', label: 'Trimestriel' },
-    { value: 'biannual', label: 'Semestriel' },
-    { value: 'yearly', label: 'Annuel' },
-    { value: 'custom', label: 'Personnalisé' },
-  ];
+  const handleFrequencyChange = (value: string) => {
+    setFrequency(value as MaintenanceFrequency);
+    setCustomInterval(value === 'custom');
 
-  const unitOptions: { value: MaintenanceUnit; label: string }[] = [
-    { value: 'days', label: 'Jours' },
-    { value: 'weeks', label: 'Semaines' },
-    { value: 'months', label: 'Mois' },
-    { value: 'years', label: 'Années' },
-    { value: 'hours', label: 'Heures' },
-  ];
+    // Set default interval based on frequency
+    switch (value) {
+      case 'daily':
+        setInterval(1);
+        setUnit('days');
+        break;
+      case 'weekly':
+        setInterval(1);
+        setUnit('weeks');
+        break;
+      case 'monthly':
+        setInterval(1);
+        setUnit('months');
+        break;
+      case 'quarterly':
+        setInterval(3);
+        setUnit('months');
+        break;
+      case 'biannual':
+        setInterval(6);
+        setUnit('months');
+        break;
+      case 'yearly':
+        setInterval(1);
+        setUnit('years');
+        break;
+    }
+  };
 
-  const typeOptions: { value: MaintenanceType; label: string }[] = [
-    { value: 'preventive', label: 'Préventive' },
-    { value: 'predictive', label: 'Prédictive' },
-    { value: 'corrective', label: 'Corrective' },
-    { value: 'inspection', label: 'Inspection' },
-    { value: 'lubrication', label: 'Lubrification' },
-    { value: 'electrical', label: 'Électrique' },
-    { value: 'mechanical', label: 'Mécanique' },
-    { value: 'hydraulic', label: 'Hydraulique' },
-    { value: 'other', label: 'Autre' },
-  ];
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!equipment) return;
 
-  const priorityOptions: { value: MaintenancePriority; label: string }[] = [
-    { value: 'low', label: 'Basse' },
-    { value: 'medium', label: 'Moyenne' },
-    { value: 'high', label: 'Haute' },
-    { value: 'critical', label: 'Critique' },
-  ];
+    try {
+      const formData = {
+        title,
+        description,
+        frequency,
+        interval,
+        unit,
+        nextDueDate,
+        lastPerformedDate: null,
+        type,
+        priority,
+        engineHours: engineHours ? parseFloat(engineHours) : undefined,
+        assignedTo,
+        equipmentId: equipment.id,
+        equipmentName: equipment.name,
+        active: true
+      };
 
-  // Watch the frequency value to conditionally show fields
-  const frequencyValue = form.watch('frequency');
-  const showCustomInterval = frequencyValue === 'custom';
-  
-  const onFormSubmit = (data: FormValues) => {
-    onSubmit(data);
+      await onSubmit(formData);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    }
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-4">
-        {/* Title */}
-        <FormFieldGroup>
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Titre</FormLabel>
-                <FormControl>
-                  <Input placeholder="Titre du plan de maintenance" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Basic Information */}
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="title">Titre du plan</Label>
+          <Input
+            id="title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Ex: Vidange d'huile périodique"
+            required
           />
-        </FormFieldGroup>
-
-        {/* Equipment */}
-        <EquipmentField
-          equipment={form.watch('equipment')}
-          handleEquipmentChange={(value) => form.setValue('equipment', value)}
-          equipmentOptions={equipmentOptions}
-          isLoading={isLoadingEquipment}
-        />
-
-        {/* Type */}
-        <FormFieldGroup>
-          <FormField
-            control={form.control}
-            name="type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Type</FormLabel>
-                <Select 
-                  value={field.value} 
-                  onValueChange={field.onChange}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner un type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {typeOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </FormFieldGroup>
-
-        {/* Frequency */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormFieldGroup>
-            <FormField
-              control={form.control}
-              name="frequency"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Fréquence</FormLabel>
-                  <Select 
-                    value={field.value} 
-                    onValueChange={field.onChange}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner une fréquence" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {frequencyOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </FormFieldGroup>
-          
-          {/* Next due date */}
-          <FormFieldGroup>
-            <FormField
-              control={form.control}
-              name="nextDueDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Prochaine date</FormLabel>
-                  <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP", { locale: fr })
-                          ) : (
-                            <span>Choisir une date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={(date) => {
-                          field.onChange(date);
-                          setIsCalendarOpen(false);
-                        }}
-                        disabled={(date) => date < new Date("1900-01-01")}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </FormFieldGroup>
         </div>
 
-        {/* Custom interval and unit */}
-        {showCustomInterval && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormFieldGroup>
-              <FormField
-                control={form.control}
-                name="interval"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Intervalle</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        min="1" 
-                        placeholder="Intervalle" 
-                        {...field} 
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+        <div>
+          <Label htmlFor="description">Description (optionnelle)</Label>
+          <Textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Détails supplémentaires sur la maintenance..."
+            rows={3}
+          />
+        </div>
+      </div>
+
+      {/* Schedule Configuration */}
+      <div>
+        <h3 className="text-lg font-medium mb-4">Calendrier de maintenance</h3>
+        
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div>
+            <Label htmlFor="frequency">Fréquence</Label>
+            <Select value={frequency} onValueChange={handleFrequencyChange} required>
+              <SelectTrigger id="frequency">
+                <SelectValue placeholder="Sélectionner une fréquence" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="daily">Quotidienne</SelectItem>
+                <SelectItem value="weekly">Hebdomadaire</SelectItem>
+                <SelectItem value="monthly">Mensuelle</SelectItem>
+                <SelectItem value="quarterly">Trimestrielle</SelectItem>
+                <SelectItem value="biannual">Semestrielle</SelectItem>
+                <SelectItem value="yearly">Annuelle</SelectItem>
+                <SelectItem value="custom">Personnalisée</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="nextDueDate">Première échéance</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className="w-full justify-start text-left font-normal"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {nextDueDate ? (
+                    format(nextDueDate, "d MMMM yyyy", { locale: fr })
+                  ) : (
+                    <span>Sélectionner une date</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={nextDueDate}
+                  onSelect={(date) => date && setNextDueDate(date)}
+                  initialFocus
+                  locale={fr}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+
+        {customInterval && (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mt-4">
+            <div>
+              <Label htmlFor="interval">Intervalle</Label>
+              <Input
+                id="interval"
+                type="number"
+                min="1"
+                value={interval}
+                onChange={(e) => setInterval(parseInt(e.target.value) || 1)}
+                required={customInterval}
               />
-            </FormFieldGroup>
-            
-            <FormFieldGroup>
-              <FormField
-                control={form.control}
-                name="unit"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Unité</FormLabel>
-                    <Select 
-                      value={field.value} 
-                      onValueChange={field.onChange}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner une unité" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {unitOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </FormFieldGroup>
+            </div>
+
+            <div>
+              <Label htmlFor="unit">Unité</Label>
+              <Select value={unit} onValueChange={(value) => setUnit(value as MaintenanceUnit)} required>
+                <SelectTrigger id="unit">
+                  <SelectValue placeholder="Sélectionner une unité" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="days">Jours</SelectItem>
+                  <SelectItem value="weeks">Semaines</SelectItem>
+                  <SelectItem value="months">Mois</SelectItem>
+                  <SelectItem value="years">Années</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         )}
+      </div>
 
-        {/* Priority and Engine Hours */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormFieldGroup>
-            <FormField
-              control={form.control}
-              name="priority"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Priorité</FormLabel>
-                  <Select 
-                    value={field.value} 
-                    onValueChange={field.onChange}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner une priorité" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {priorityOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </FormFieldGroup>
-          
-          <FormFieldGroup>
-            <FormField
-              control={form.control}
-              name="engineHours"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Heures moteur (optionnel)</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="number" 
-                      placeholder="Heures moteur" 
-                      {...field} 
-                      value={field.value || ""}
-                      onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </FormFieldGroup>
+      {/* Maintenance Details */}
+      <div>
+        <h3 className="text-lg font-medium mb-4">Détails de maintenance</h3>
+        
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div>
+            <Label htmlFor="type">Type de maintenance</Label>
+            <Select value={type} onValueChange={(value) => setType(value as MaintenanceType)} required>
+              <SelectTrigger id="type">
+                <SelectValue placeholder="Sélectionner un type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="preventive">Préventive</SelectItem>
+                <SelectItem value="predictive">Prédictive</SelectItem>
+                <SelectItem value="corrective">Corrective</SelectItem>
+                <SelectItem value="inspection">Inspection</SelectItem>
+                <SelectItem value="lubrication">Lubrification</SelectItem>
+                <SelectItem value="electrical">Électrique</SelectItem>
+                <SelectItem value="mechanical">Mécanique</SelectItem>
+                <SelectItem value="hydraulic">Hydraulique</SelectItem>
+                <SelectItem value="other">Autre</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="priority">Priorité</Label>
+            <Select value={priority} onValueChange={(value) => setPriority(value as MaintenancePriority)} required>
+              <SelectTrigger id="priority">
+                <SelectValue placeholder="Sélectionner une priorité" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">Basse</SelectItem>
+                <SelectItem value="medium">Moyenne</SelectItem>
+                <SelectItem value="high">Haute</SelectItem>
+                <SelectItem value="critical">Critique</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
-        {/* Assigned To */}
-        {staffMembers.length > 0 && (
-          <FormFieldGroup>
-            <FormField
-              control={form.control}
-              name="assignedTo"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Assigné à</FormLabel>
-                  <Select 
-                    value={field.value || ""} 
-                    onValueChange={field.onChange}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner un technicien" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="">Non assigné</SelectItem>
-                      {staffMembers.map((staff) => (
-                        <SelectItem key={staff.id} value={staff.name}>
-                          {staff.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mt-4">
+          <div>
+            <Label htmlFor="engineHours">Durée estimée (heures)</Label>
+            <Input
+              id="engineHours"
+              type="number"
+              step="0.5"
+              min="0"
+              value={engineHours}
+              onChange={(e) => setEngineHours(e.target.value)}
+              placeholder="Ex: 2.5"
             />
-          </FormFieldGroup>
-        )}
+          </div>
 
-        {/* Description */}
-        <FormFieldGroup>
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Description</FormLabel>
-                <FormControl>
-                  <Textarea 
-                    placeholder="Description de la tâche de maintenance" 
-                    className="min-h-[100px]" 
-                    {...field} 
-                    value={field.value || ""}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </FormFieldGroup>
-
-        <div className="flex justify-end gap-2 pt-2">
-          <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
-            Annuler
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Enregistrement...
-              </>
-            ) : (
-              'Enregistrer'
-            )}
-          </Button>
+          <div>
+            <Label htmlFor="assignedTo">Assigné à (optionnel)</Label>
+            <Input
+              id="assignedTo"
+              value={assignedTo}
+              onChange={(e) => setAssignedTo(e.target.value)}
+              placeholder="Nom du technicien"
+            />
+          </div>
         </div>
-      </form>
-    </Form>
+      </div>
+
+      {/* Submit Button */}
+      <div className="flex justify-end space-x-2 pt-4">
+        <Button type="button" variant="outline" disabled={isSubmitting}>
+          Annuler
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Création...' : 'Créer le plan'}
+        </Button>
+      </div>
+    </form>
   );
 };
 

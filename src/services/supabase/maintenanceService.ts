@@ -14,8 +14,8 @@ export type MaintenanceTask = {
   due_date: string;
   completed_date?: string;
   status: 'pending' | 'in-progress' | 'completed' | 'overdue';
-  priority: MaintenancePriority;
-  type: MaintenanceType;
+  priority: string;
+  type: string;
   estimated_duration?: number;
   actual_duration?: number;
   assigned_to?: string;
@@ -28,9 +28,10 @@ export type MaintenanceFormValues = {
   notes?: string;
   equipment: string;
   equipment_id: number;
-  due_date: Date;
-  type: MaintenanceType;
-  priority: MaintenancePriority;
+  due_date: string;
+  type: string;
+  priority: string;
+  status?: string;
   estimated_duration?: number;
   assigned_to?: string;
 };
@@ -78,8 +79,8 @@ export async function addTask(task: MaintenanceFormValues): Promise<MaintenanceT
         notes: task.notes,
         equipment: task.equipment,
         equipment_id: task.equipment_id,
-        due_date: task.due_date.toISOString(),
-        status: 'pending',
+        due_date: task.due_date,
+        status: task.status || 'pending',
         priority: task.priority,
         type: task.type,
         estimated_duration: task.estimated_duration,
@@ -110,6 +111,42 @@ export async function updateTask(id: number, updates: Partial<MaintenanceTask>):
     return data;
   } catch (error) {
     console.error(`Error updating maintenance task ${id}:`, error);
+    throw error;
+  }
+}
+
+// Update task status
+export async function updateTaskStatus(id: number, status: string): Promise<MaintenanceTask> {
+  try {
+    const { data, error } = await supabase
+      .from('maintenance_tasks')
+      .update({ status })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error(`Error updating status for task ${id}:`, error);
+    throw error;
+  }
+}
+
+// Update task priority
+export async function updateTaskPriority(id: number, priority: string): Promise<MaintenanceTask> {
+  try {
+    const { data, error } = await supabase
+      .from('maintenance_tasks')
+      .update({ priority })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error(`Error updating priority for task ${id}:`, error);
     throw error;
   }
 }
@@ -451,6 +488,8 @@ export const maintenanceService = {
   getTasksForEquipment,
   addTask,
   updateTask,
+  updateTaskStatus,
+  updateTaskPriority,
   completeTask,
   deleteTask,
   getMaintenancePlans,

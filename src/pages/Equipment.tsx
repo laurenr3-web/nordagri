@@ -42,6 +42,17 @@ const Equipment = () => {
     verifyAuth();
   }, []);
 
+  const handleImportComplete = (importedData: any[]) => {
+    // Make sure importedData meets the requirements by adding missing required fields
+    const validData = importedData.map(item => ({
+      ...item,
+      name: item.name || 'Unnamed Equipment', // Ensure name exists
+    }));
+    
+    importEquipments(validData);
+    setIsImportDialogOpen(false);
+  };
+
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="p-4">
@@ -119,10 +130,7 @@ const Equipment = () => {
       <ImportEquipmentDialog
         open={isImportDialogOpen}
         onOpenChange={setIsImportDialogOpen}
-        onImportComplete={(importedData) => {
-          importEquipments(importedData);
-          setIsImportDialogOpen(false);
-        }}
+        onImportComplete={handleImportComplete}
       />
     </div>
   );
