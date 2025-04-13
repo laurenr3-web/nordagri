@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { adaptServiceTaskToModelTask } from '@/hooks/maintenance/adapters/maintenanceTypeAdapters';
 import { MaintenanceTaskDB } from '@/types/models/maintenance';
@@ -169,7 +170,7 @@ export const maintenanceService = {
   /**
    * Complete a maintenance task with additional details
    */
-  completeTask: async (taskId: number, completionData: any): Promise<void> => {
+  completeTask: async (taskId: number, completionData: any): Promise<MaintenanceTaskDB> => {
     try {
       const { actualDuration, notes, partsUsed } = completionData;
       
