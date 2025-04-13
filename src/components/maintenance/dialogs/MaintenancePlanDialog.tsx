@@ -9,7 +9,6 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { useMaintenancePlanner } from '@/hooks/maintenance/useMaintenancePlanner';
-import { maintenanceService } from '@/services/supabase/maintenanceService';
 import MaintenancePlanForm from '@/hooks/maintenance/forms/MaintenancePlanForm';
 
 interface MaintenancePlanDialogProps {
@@ -30,7 +29,7 @@ export default function MaintenancePlanDialog({
     try {
       setIsSubmitting(true);
       
-      // Vérifier que nous avons un équipement valide
+      // Verify that we have a valid equipment
       if (!equipment) {
         toast.error("Aucun équipement sélectionné");
         return;
@@ -38,18 +37,29 @@ export default function MaintenancePlanDialog({
 
       // Add the equipment ID and active status
       const planData = {
-        ...formData,
-        equipment_id: equipment.id,
-        active: true
+        title: formData.title,
+        description: formData.description,
+        equipmentId: equipment.id,
+        equipmentName: equipment.name,
+        frequency: formData.frequency,
+        interval: formData.interval,
+        unit: formData.unit,
+        nextDueDate: formData.nextDueDate,
+        lastPerformedDate: null,
+        type: formData.type,
+        engineHours: formData.engineHours ? parseFloat(formData.engineHours) : undefined,
+        priority: formData.priority,
+        active: true,
+        assignedTo: formData.assignedTo
       };
       
-      // Créer le plan de maintenance
+      // Create the maintenance plan
       await createMaintenancePlan(planData);
       
-      // Fermer la boîte de dialogue
+      // Close the dialog
       onClose();
       
-      // Notification de succès
+      // Success notification
       toast.success("Plan de maintenance créé avec succès");
       
     } catch (error) {
@@ -73,6 +83,14 @@ export default function MaintenancePlanDialog({
         <MaintenancePlanForm
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
+          onCancel={onClose}
+          equipmentOptions={equipment ? [{ id: equipment.id, name: equipment.name }] : []}
+          isLoadingEquipment={false}
+          defaultValues={
+            equipment 
+              ? { equipment: equipment.name } 
+              : undefined
+          }
         />
       </DialogContent>
     </Dialog>

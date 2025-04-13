@@ -8,27 +8,30 @@ import { useMaintenanceUtils } from './detail/useMaintenanceUtils';
 
 export function useEquipmentDetail(id: string | undefined) {
   const navigate = useNavigate();
-  const { equipment, setEquipment, loading, error } = useEquipmentData(id);
-  const { tasks } = useMaintenanceTasks(id);
-  const { plans } = useMaintenancePlans(id);
+  const { equipment, setEquipment, loading: equipmentLoading, error: equipmentError } = useEquipmentData(id);
+  const { tasks: maintenanceTasks, loading: tasksLoading, error: tasksError } = useMaintenanceTasks(id);
+  const { plans: maintenancePlans, loading: plansLoading, error: plansError } = useMaintenancePlans(id);
   const { handleEquipmentUpdate, loading: updateLoading } = useEquipmentUpdate(id, setEquipment);
   const { getLastMaintenanceDate, getNextServiceInfo } = useMaintenanceUtils();
   
-  // Enrichir les données d'équipement avec des informations de maintenance
-  if (equipment && tasks) {
-    equipment.lastMaintenance = getLastMaintenanceDate(tasks);
+  // Enrich equipment data with maintenance information
+  if (equipment && maintenanceTasks) {
+    equipment.lastMaintenance = getLastMaintenanceDate(maintenanceTasks);
     equipment.usage = {
       hours: equipment.current_hours || 0,
       target: equipment.usage_target || 500
     };
-    equipment.nextService = getNextServiceInfo(tasks);
+    equipment.nextService = getNextServiceInfo(maintenanceTasks);
   }
+  
+  const loading = equipmentLoading || tasksLoading || plansLoading || updateLoading;
+  const error = equipmentError || tasksError || plansError;
   
   return { 
     equipment, 
-    maintenanceTasks: tasks,
-    maintenancePlans: plans,
-    loading: loading || updateLoading, 
+    maintenanceTasks,
+    maintenancePlans,
+    loading, 
     error, 
     handleEquipmentUpdate 
   };

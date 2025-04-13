@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { equipmentFormSchema, EquipmentFormValues } from '../form/equipmentFormTypes';
-import { Equipment } from '@/hooks/equipment/useEquipmentTable';
+import { Equipment } from '@/services/supabase/equipment/types';
 import { Form } from '@/components/ui/form';
 
 // Import refactored components for the equipment form
@@ -100,7 +100,11 @@ const EquipmentFormDialog = ({
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Basic Information */}
-              <BasicInfoFields form={form} />
+              <BasicInfoFields 
+                form={form} 
+                customCategories={[]} 
+                onAddCategoryClick={() => {}} 
+              />
 
               {/* Additional Information */}
               <AdditionalInfoFields form={form} />

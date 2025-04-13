@@ -1,191 +1,212 @@
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from "sonner";
+import { Equipment, EquipmentFilter } from '@/services/supabase/equipment/types';
 
-// Define Equipment type for use throughout the application
-export interface Equipment {
-  id: number;
-  name: string;
-  type?: string;
-  category?: string;
-  model?: string;
-  manufacturer?: string;
-  serial_number?: string;
-  location?: string;
-  purchase_date?: string;
-  status?: string;
-  notes?: string;
-  image?: string;
-  year?: number;
-  serialNumber?: string;
+export interface EquipmentTableData {
+  equipment: Equipment[];
+  loading: boolean;
+  error: Error | null;
+  filter: EquipmentFilter;
+  totalCount: number;
+  setFilter: (filter: EquipmentFilter) => void;
+  refreshEquipment: () => Promise<void>;
+  addEquipment: (equipment: Omit<Equipment, 'id'>) => Promise<boolean>;
+  updateEquipment: (id: number, updates: Partial<Equipment>) => Promise<boolean>;
+  deleteEquipment: (id: number) => Promise<boolean>;
+  bulkAddEquipment: (equipmentArray: Omit<Equipment, 'id'>[]) => Promise<boolean>;
 }
 
-// CRUD operation for equipment
-export const deleteEquipment = async (id: string | number): Promise<void> => {
-  try {
-    // Convert id to number if it's a string
-    const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
-    await supabase.from('equipment').delete().eq('id', numericId);
-    toast.success("Équipement supprimé avec succès");
-  } catch (error: any) {
-    console.error('Error deleting equipment:', error);
-    toast.error("Erreur lors de la suppression de l'équipement");
-    throw error;
-  }
-};
-
-export const createMaintenancePlan = async (equipmentId: string | number, plan: any): Promise<void> => {
-  try {
-    // Convert equipmentId to number if it's a string
-    const numericId = typeof equipmentId === 'string' ? parseInt(equipmentId, 10) : equipmentId;
-    
-    const planData = {
-      ...plan,
-      equipment_id: numericId
-    };
-    
-    await supabase.from('maintenance_plans').insert(planData);
-    toast.success("Plan de maintenance créé avec succès");
-  } catch (error: any) {
-    console.error('Error creating maintenance plan:', error);
-    toast.error("Erreur lors de la création du plan de maintenance");
-    throw error;
-  }
-};
-
-// Main hook for equipment table functionality
-export function useEquipmentTable() {
-  const [equipments, setEquipments] = useState<Equipment[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [pageCount, setPageCount] = useState(0);
-  const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
-  const [sorting, setSorting] = useState<any>([]);
-  const [total, setTotal] = useState(0);
-
-  // Fetch equipments from Supabase
-  const fetchEquipments = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      let query = supabase.from('equipment').select('*', { count: 'exact' });
-
-      // Apply sorting if exists
-      if (sorting && sorting.length > 0) {
-        const { id, desc } = sorting[0];
-        query = query.order(id, { ascending: !desc });
-      } else {
-        query = query.order('created_at', { ascending: false });
-      }
-
-      // Apply pagination
-      const from = pageIndex * pageSize;
-      const to = from + pageSize - 1;
-      query = query.range(from, to);
-
-      const { data, error, count } = await query;
-
-      if (error) throw error;
-
-      setEquipments(data || []);
-      if (count) {
-        setTotal(count);
-        setPageCount(Math.ceil(count / pageSize));
-      }
-    } catch (error) {
-      console.error('Error fetching equipment data:', error);
-      toast.error("Erreur lors du chargement des équipements");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [pageIndex, pageSize, sorting]);
-
-  // Create equipment
-  const createEquipment = async (data: Omit<Equipment, 'id'>) => {
-    try {
-      // Convert Date objects to strings for Supabase
-      const preparedData = {
-        ...data,
-        purchase_date: data.purchase_date instanceof Date ? data.purchase_date.toISOString() : data.purchase_date
-      };
-
-      const { error } = await supabase.from('equipment').insert([preparedData]);
-      if (error) throw error;
-      toast.success("Équipement ajouté avec succès");
-      fetchEquipments();
-      return true;
-    } catch (error) {
-      console.error('Error creating equipment:', error);
-      toast.error("Erreur lors de l'ajout de l'équipement");
-      return false;
-    }
-  };
-
-  // Update equipment
-  const updateEquipment = async (id: number, data: Partial<Equipment>) => {
-    try {
-      // Convert Date objects to strings for Supabase
-      const preparedData = {
-        ...data,
-        purchase_date: data.purchase_date instanceof Date ? data.purchase_date.toISOString() : data.purchase_date
-      };
-
-      const { error } = await supabase.from('equipment').update(preparedData).eq('id', id);
-      if (error) throw error;
-      toast.success("Équipement mis à jour avec succès");
-      fetchEquipments();
-      return true;
-    } catch (error) {
-      console.error('Error updating equipment:', error);
-      toast.error("Erreur lors de la mise à jour de l'équipement");
-      return false;
-    }
-  };
-
-  // Import multiple equipment
-  const importEquipments = async (equipments: Array<Omit<Equipment, 'id'>>) => {
-    try {
-      // Ensure each equipment item has required fields and convert Date objects
-      const validEquipments = equipments.map(item => ({
-        ...item,
-        name: item.name || 'Unnamed Equipment', // Ensure name is not empty
-        purchase_date: item.purchase_date instanceof Date ? item.purchase_date.toISOString() : item.purchase_date
-      }));
-
-      const { error } = await supabase.from('equipment').insert(validEquipments);
-      if (error) throw error;
-      toast.success(`${equipments.length} équipements importés avec succès`);
-      fetchEquipments();
-      return true;
-    } catch (error) {
-      console.error('Error importing equipment:', error);
-      toast.error("Erreur lors de l'importation des équipements");
-      return false;
-    }
-  };
-
-  // Load equipments on initial render and when dependencies change
+export function useEquipmentTable(initialFilter: EquipmentFilter = {}): EquipmentTableData {
+  const [equipment, setEquipment] = useState<Equipment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [filter, setFilter] = useState<EquipmentFilter>(initialFilter);
+  const [totalCount, setTotalCount] = useState(0);
+  
+  // Fetch equipment data
   useEffect(() => {
-    fetchEquipments();
-  }, [fetchEquipments]);
+    fetchEquipment();
+  }, [filter]);
 
+  const fetchEquipment = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Build the query based on filters
+      let query = supabase.from('equipment').select('*', { count: 'exact' });
+      
+      // Apply filters if provided
+      if (filter.search) {
+        query = query.or(`name.ilike.%${filter.search}%,model.ilike.%${filter.search}%,type.ilike.%${filter.search}%`);
+      }
+      
+      if (filter.status && filter.status.length > 0) {
+        query = query.in('status', filter.status);
+      }
+      
+      if (filter.type && filter.type.length > 0) {
+        query = query.in('type', filter.type);
+      }
+      
+      const { data, error, count } = await query.order('name');
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      setEquipment(data || []);
+      setTotalCount(count || 0);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err);
+        toast.error(`Erreur lors de la récupération des équipements: ${err.message}`);
+      } else {
+        setError(new Error('Une erreur inconnue est survenue'));
+        toast.error('Erreur lors de la récupération des équipements');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const addEquipment = async (equipmentData: Omit<Equipment, 'id'>): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+        .from('equipment')
+        .insert(equipmentData)
+        .select()
+        .single();
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Update local state
+      setEquipment(prev => [...prev, data]);
+      toast.success('Équipement ajouté avec succès');
+      return true;
+    } catch (err) {
+      if (err instanceof Error) {
+        toast.error(`Erreur lors de l'ajout de l'équipement: ${err.message}`);
+      } else {
+        toast.error('Erreur lors de l\'ajout de l\'équipement');
+      }
+      return false;
+    }
+  };
+  
+  const updateEquipment = async (id: number, updates: Partial<Equipment>): Promise<boolean> => {
+    try {
+      // Make sure dates are properly formatted for Supabase
+      const formattedUpdates = { ...updates };
+      if (updates.purchase_date && updates.purchase_date instanceof Date) {
+        formattedUpdates.purchase_date = updates.purchase_date.toISOString();
+      }
+      
+      const { data, error } = await supabase
+        .from('equipment')
+        .update(formattedUpdates)
+        .eq('id', id)
+        .select()
+        .single();
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Update local state
+      setEquipment(prev => prev.map(item => item.id === id ? data : item));
+      toast.success('Équipement mis à jour avec succès');
+      return true;
+    } catch (err) {
+      if (err instanceof Error) {
+        toast.error(`Erreur lors de la mise à jour de l'équipement: ${err.message}`);
+      } else {
+        toast.error('Erreur lors de la mise à jour de l\'équipement');
+      }
+      return false;
+    }
+  };
+  
+  const deleteEquipment = async (id: number): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('equipment')
+        .delete()
+        .eq('id', id);
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Update local state
+      setEquipment(prev => prev.filter(item => item.id !== id));
+      toast.success('Équipement supprimé avec succès');
+      return true;
+    } catch (err) {
+      if (err instanceof Error) {
+        toast.error(`Erreur lors de la suppression de l'équipement: ${err.message}`);
+      } else {
+        toast.error('Erreur lors de la suppression de l\'équipement');
+      }
+      return false;
+    }
+  };
+  
+  const bulkAddEquipment = async (equipmentArray: Omit<Equipment, 'id'>[]): Promise<boolean> => {
+    try {
+      // Format dates for each equipment item
+      const formattedData = equipmentArray.map(item => {
+        const formattedItem = { ...item };
+        if (item.purchase_date && item.purchase_date instanceof Date) {
+          formattedItem.purchase_date = item.purchase_date.toISOString();
+        }
+        return formattedItem;
+      });
+      
+      const { data, error } = await supabase
+        .from('equipment')
+        .insert(formattedData)
+        .select();
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Update local state
+      setEquipment(prev => [...prev, ...data]);
+      toast.success(`${data.length} équipements ajoutés avec succès`);
+      return true;
+    } catch (err) {
+      if (err instanceof Error) {
+        toast.error(`Erreur lors de l'ajout des équipements: ${err.message}`);
+      } else {
+        toast.error('Erreur lors de l\'ajout des équipements');
+      }
+      return false;
+    }
+  };
+  
+  const refreshEquipment = async () => {
+    await fetchEquipment();
+  };
+  
   return {
-    equipments,
-    isLoading,
-    pageCount,
-    pageIndex,
-    pageSize,
-    total,
-    setPageIndex,
-    setPageSize,
-    setSorting,
-    sorting,
-    fetchEquipments,
-    createEquipment,
+    equipment,
+    loading,
+    error,
+    filter,
+    totalCount,
+    setFilter,
+    refreshEquipment,
+    addEquipment,
     updateEquipment,
     deleteEquipment,
-    importEquipments
+    bulkAddEquipment
   };
 }
 
-export default useEquipmentTable;
+export type { Equipment } from '@/services/supabase/equipment/types';

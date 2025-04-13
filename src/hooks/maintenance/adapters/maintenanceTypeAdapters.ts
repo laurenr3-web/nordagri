@@ -1,68 +1,68 @@
 
-import { MaintenancePriority, MaintenanceFrequency, MaintenanceType, MaintenanceUnit } from '../types/maintenancePlanTypes';
 import { MaintenanceTask as ServiceMaintenanceTask } from '@/services/supabase/maintenanceService';
-import { MaintenanceTask as ModelMaintenanceTask } from '../maintenanceSlice';
+import { MaintenanceTask as ModelMaintenanceTask } from '@/hooks/maintenance/maintenanceSlice';
+import { 
+  MaintenanceType, 
+  MaintenanceStatus, 
+  MaintenancePriority,
+  MaintenancePlan,
+  MaintenancePlanViewModel,
+  dbToViewModel,
+  viewModelToDB
+} from '../types/maintenancePlanTypes';
 
-// Export types for reuse
-export type { MaintenancePriority, MaintenanceFrequency, MaintenanceType, MaintenanceUnit };
+// Re-export the conversion functions for maintenance plans
+export { dbToViewModel, viewModelToDB };
 
 /**
- * Adapts a maintenance task from the service format to the application model format
+ * Adapts a service task (from Supabase) to the UI model task
  */
 export function adaptServiceTaskToModelTask(task: ServiceMaintenanceTask): ModelMaintenanceTask {
   return {
     id: task.id,
     title: task.title,
-    equipmentId: task.equipment_id,
     equipment: task.equipment,
+    equipmentId: task.equipment_id,
+    type: task.type as MaintenanceType,
+    status: mapStatus(task.status),
+    priority: task.priority as MaintenancePriority,
     dueDate: new Date(task.due_date),
-    status: task.status as any, // Cast to match the enum values
-    priority: task.priority as any, // Cast to match the enum values
-    type: task.type as any, // Cast to match the enum values
+    completedDate: task.completed_date ? new Date(task.completed_date) : undefined,
     engineHours: task.estimated_duration || 0,
     actualDuration: task.actual_duration,
     assignedTo: task.assigned_to || '',
-    notes: task.notes || '',
-    completedDate: task.completed_date ? new Date(task.completed_date) : undefined
+    notes: task.notes || ''
   };
 }
 
 /**
- * Adapts a maintenance task from the application model to the service format
+ * Adapts a model task to service task format for Supabase
  */
-export function adaptModelTaskToServiceTask(task: ModelMaintenanceTask): Omit<ServiceMaintenanceTask, 'id' | 'created_at' | 'updated_at'> {
+export function adaptModelTaskToServiceTask(task: ModelMaintenanceTask): Partial<ServiceMaintenanceTask> {
   return {
+    id: task.id,
     title: task.title,
     equipment: task.equipment,
     equipment_id: task.equipmentId,
-    due_date: task.dueDate.toISOString(),
-    status: task.status,
-    priority: task.priority,
     type: task.type,
+    status: task.status === 'scheduled' ? 'pending' : task.status,
+    priority: task.priority,
+    due_date: task.dueDate.toISOString(),
+    completed_date: task.completedDate ? task.completedDate.toISOString() : undefined,
     estimated_duration: task.engineHours,
     actual_duration: task.actualDuration,
     assigned_to: task.assignedTo,
-    notes: task.notes,
-    completed_date: task.completedDate ? task.completedDate.toISOString() : undefined
+    notes: task.notes
   };
 }
 
 /**
- * Adapts a form values object to a service task format
+ * Maps status strings to ensure compatibility
  */
-export function adaptFormValuesToServiceTask(formValues: any): Omit<ServiceMaintenanceTask, 'id' | 'created_at' | 'updated_at'> {
-  return {
-    title: formValues.title,
-    equipment: formValues.equipment,
-    equipment_id: formValues.equipmentId || formValues.equipment_id,
-    due_date: formValues.dueDate ? formValues.dueDate.toISOString() : formValues.due_date,
-    status: formValues.status,
-    priority: formValues.priority,
-    type: formValues.type,
-    estimated_duration: formValues.engineHours,
-    actual_duration: formValues.actualDuration,
-    assigned_to: formValues.assignedTo,
-    notes: formValues.notes,
-    completed_date: formValues.completedDate ? formValues.completedDate.toISOString() : undefined
-  };
+function mapStatus(status: string): MaintenanceStatus {
+  if (status === 'scheduled') return 'pending';
+  if (status === 'in progress' || status === 'in_progress') return 'in-progress';
+  if (status === 'completed') return 'completed';
+  if (status === 'overdue') return 'overdue';
+  return 'pending'; // Default fallback
 }

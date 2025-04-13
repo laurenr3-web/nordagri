@@ -16,15 +16,15 @@ import { Plus } from 'lucide-react';
 
 interface BasicInfoFieldsProps {
   form: UseFormReturn<EquipmentFormValues>;
-  customCategories: string[];
-  onAddCategoryClick: () => void;
+  customCategories?: string[];
+  onAddCategoryClick?: () => void;
   language?: string;
 }
 
 const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
   form,
-  customCategories,
-  onAddCategoryClick,
+  customCategories = [],
+  onAddCategoryClick = () => {},
   language = 'fr'
 }) => {
   const labels = {
