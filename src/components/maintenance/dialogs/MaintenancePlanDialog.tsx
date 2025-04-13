@@ -10,7 +10,7 @@ import {
 import { toast } from 'sonner';
 import { useMaintenancePlanner } from '@/hooks/maintenance/useMaintenancePlanner';
 import { maintenanceService } from '@/services/supabase/maintenanceService';
-import MaintenancePlanForm from '../forms/MaintenancePlanForm';
+import MaintenancePlanForm from '@/hooks/maintenance/forms/MaintenancePlanForm';
 
 interface MaintenancePlanDialogProps {
   isOpen: boolean;
@@ -35,9 +35,16 @@ export default function MaintenancePlanDialog({
         toast.error("Aucun équipement sélectionné");
         return;
       }
+
+      // Add the equipment ID and active status
+      const planData = {
+        ...formData,
+        equipment_id: equipment.id,
+        active: true
+      };
       
       // Créer le plan de maintenance
-      await createMaintenancePlan(formData);
+      await createMaintenancePlan(planData);
       
       // Fermer la boîte de dialogue
       onClose();
@@ -65,7 +72,6 @@ export default function MaintenancePlanDialog({
         
         <MaintenancePlanForm
           onSubmit={handleSubmit}
-          equipment={equipment}
           isSubmitting={isSubmitting}
         />
       </DialogContent>

@@ -1,154 +1,81 @@
 
-import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
+import { useState, useCallback } from 'react';
 import { maintenanceService } from '@/services/supabase/maintenanceService';
-import { MaintenancePlan, MaintenanceFrequency, MaintenanceType, MaintenanceUnit, MaintenancePriority } from './types/maintenancePlanTypes';
-import { addDays, addWeeks, addMonths, addYears } from 'date-fns';
+import { toast } from 'sonner';
+import { adaptServiceTaskToModelTask } from './adapters/maintenanceTypeAdapters';
 
-export { MaintenanceFrequency, MaintenanceType, MaintenanceUnit, MaintenancePriority, MaintenancePlan };
+export type { MaintenanceFrequency, MaintenanceUnit, MaintenanceType, MaintenancePriority, MaintenanceStatus } from './types/maintenancePlanTypes';
+export type { MaintenancePlan } from './types/maintenancePlanTypes';
 
 export const useMaintenancePlanner = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [maintenancePlans, setMaintenancePlans] = useState<MaintenancePlan[]>([]);
 
-  // Load maintenance plans from the database
-  const loadMaintenancePlans = async () => {
+  // Load maintenance plans
+  const loadMaintenancePlans = useCallback(async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       const plans = await maintenanceService.getMaintenancePlans();
       setMaintenancePlans(plans);
-      return plans;
     } catch (error) {
       console.error('Error loading maintenance plans:', error);
-      toast.error('Erreur lors du chargement des plans de maintenance');
-      throw error;
+      toast.error('Error loading maintenance plans');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Load plans on component mount
-  useEffect(() => {
-    loadMaintenancePlans();
   }, []);
 
-  // Create a new maintenance plan
-  const createMaintenancePlan = async (plan: Omit<MaintenancePlan, "id">) => {
+  // Create a maintenance plan
+  const createMaintenancePlan = useCallback(async (plan: Omit<MaintenancePlan, "id">) => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       const newPlan = await maintenanceService.addMaintenancePlan(plan);
-      
-      // Update local state
       setMaintenancePlans(prev => [...prev, newPlan]);
-      
+      toast.success('Maintenance plan created successfully');
       return newPlan;
     } catch (error) {
       console.error('Error creating maintenance plan:', error);
-      toast.error('Erreur lors de la création du plan de maintenance');
+      toast.error('Error creating maintenance plan');
       throw error;
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  // Update an existing plan
-  const updatePlan = async (planId: number, updates: MaintenancePlan) => {
+  // Update a maintenance plan
+  const updatePlan = useCallback(async (planId: number, updates: MaintenancePlan) => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      const updatedPlan = await maintenanceService.updateMaintenancePlan(planId, updates);
-      
-      // Update local state
-      if (updatedPlan) {
-        setMaintenancePlans(prev => 
-          prev.map(p => p.id === planId ? updatedPlan : p)
-        );
-      }
-      
-      return updatedPlan;
+      const updated = await maintenanceService.updateMaintenancePlan(planId, updates);
+      setMaintenancePlans(prev => 
+        prev.map(plan => plan.id === planId ? updated : plan)
+      );
+      toast.success('Maintenance plan updated successfully');
+      return updated;
     } catch (error) {
-      console.error(`Error updating plan ${planId}:`, error);
-      toast.error('Erreur lors de la mise à jour du plan');
+      console.error('Error updating maintenance plan:', error);
+      toast.error('Error updating maintenance plan');
       throw error;
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  // Create a maintenance schedule up to a specific end date based on a plan
-  const createScheduleFromPlan = async (plan: MaintenancePlan, endDate: Date) => {
+  // Create a schedule from a maintenance plan
+  const createScheduleFromPlan = useCallback(async (plan: MaintenancePlan, endDate: Date) => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      
-      const tasks = [];
-      let currentDate = new Date(plan.nextDueDate);
-      
-      while (currentDate <= endDate) {
-        // Create a task for this date
-        const task = {
-          title: plan.title,
-          equipment: plan.equipmentName,
-          equipment_id: plan.equipmentId,
-          due_date: currentDate.toISOString(),
-          status: 'pending',
-          priority: plan.priority,
-          type: plan.type,
-          estimated_duration: plan.engineHours,
-          assigned_to: plan.assignedTo,
-          notes: plan.description
-        };
-        
-        // Add the task to our array
-        tasks.push(task);
-        
-        // Calculate next date based on frequency
-        if (plan.frequency === 'daily') {
-          currentDate = addDays(currentDate, 1);
-        } else if (plan.frequency === 'weekly') {
-          currentDate = addWeeks(currentDate, 1);
-        } else if (plan.frequency === 'monthly') {
-          currentDate = addMonths(currentDate, 1);
-        } else if (plan.frequency === 'quarterly') {
-          currentDate = addMonths(currentDate, 3);
-        } else if (plan.frequency === 'biannual') {
-          currentDate = addMonths(currentDate, 6);
-        } else if (plan.frequency === 'yearly') {
-          currentDate = addYears(currentDate, 1);
-        } else if (plan.frequency === 'custom') {
-          // Use the custom interval and unit
-          switch (plan.unit) {
-            case 'days':
-              currentDate = addDays(currentDate, plan.interval);
-              break;
-            case 'weeks':
-              currentDate = addWeeks(currentDate, plan.interval);
-              break;
-            case 'months':
-              currentDate = addMonths(currentDate, plan.interval);
-              break;
-            case 'years':
-              currentDate = addYears(currentDate, plan.interval);
-              break;
-            default:
-              // Default to days if unit is not recognized
-              currentDate = addDays(currentDate, plan.interval);
-          }
-        }
-      }
-      
-      // Create all tasks in the database
-      for (const task of tasks) {
-        await maintenanceService.addTask(task);
-      }
-      
-      toast.success(`${tasks.length} tâches de maintenance créées jusqu'au ${endDate.toLocaleDateString()}`);
-      
+      const tasks = await maintenanceService.generateTasksFromPlan(plan.id, endDate);
+      toast.success(`${tasks.length} maintenance tasks scheduled`);
+      return tasks;
     } catch (error) {
-      console.error('Error creating maintenance schedule:', error);
-      toast.error('Erreur lors de la création du calendrier de maintenance');
+      console.error('Error creating schedule from plan:', error);
+      toast.error('Error creating maintenance schedule');
+      throw error;
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   return {
     isLoading,

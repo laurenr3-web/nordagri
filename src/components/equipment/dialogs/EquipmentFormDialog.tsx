@@ -5,8 +5,14 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { equipmentFormSchema, EquipmentFormValues } from '../form/equipmentFormTypes';
-import EquipmentForm from '../form/EquipmentForm';
 import { Equipment } from '@/hooks/equipment/useEquipmentTable';
+import { Form } from '@/components/ui/form';
+
+// Import refactored components for the equipment form
+import BasicInfoFields from '../form/BasicInfoFields';
+import AdditionalInfoFields from '../form/AdditionalInfoFields';
+import ImageField from '../form/ImageField';
+import NotesField from '../form/NotesField';
 
 interface EquipmentFormDialogProps {
   open: boolean;
@@ -90,23 +96,37 @@ const EquipmentFormDialog = ({
           </DialogDescription>
         </DialogHeader>
         
-        <EquipmentForm form={form} onSubmit={handleSubmit}>
-          <div className="flex justify-end space-x-2 mt-4">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => {
-                form.reset();
-                onOpenChange(false);
-              }}
-            >
-              Annuler
-            </Button>
-            <Button type="submit">
-              {equipment ? 'Enregistrer' : 'Ajouter'}
-            </Button>
-          </div>
-        </EquipmentForm>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Basic Information */}
+              <BasicInfoFields form={form} />
+
+              {/* Additional Information */}
+              <AdditionalInfoFields form={form} />
+            </div>
+
+            <ImageField form={form} />
+            
+            <NotesField form={form} />
+
+            <div className="flex justify-end space-x-2 mt-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => {
+                  form.reset();
+                  onOpenChange(false);
+                }}
+              >
+                Annuler
+              </Button>
+              <Button type="submit">
+                {equipment ? 'Enregistrer' : 'Ajouter'}
+              </Button>
+            </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

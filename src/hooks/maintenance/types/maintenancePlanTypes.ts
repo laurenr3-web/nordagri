@@ -1,28 +1,39 @@
 
-// Types for maintenance planning module
-export type MaintenanceFrequency = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'biannual' | 'yearly' | 'custom';
-
-export type MaintenanceUnit = 'days' | 'weeks' | 'months' | 'years' | 'hours';
-
-export type MaintenanceType = 'preventive' | 'predictive' | 'corrective' | 'inspection' | 'lubrication' | 'electrical' | 'mechanical' | 'hydraulic' | 'other';
-
+// src/hooks/maintenance/types/maintenancePlanTypes.ts
+export type MaintenanceFrequency = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'semi-annual' | 'annual' | 'other';
+export type MaintenanceUnit = 'hours' | 'days' | 'months' | 'years' | 'other';
+export type MaintenanceType = 'preventive' | 'predictive' | 'corrective' | 'inspection' | 'other';
 export type MaintenancePriority = 'low' | 'medium' | 'high' | 'critical';
+export type MaintenanceStatus = 'pending' | 'in-progress' | 'completed' | 'overdue' | 'scheduled';
 
-// Interface for a scheduled maintenance plan
 export interface MaintenancePlan {
   id: number;
   title: string;
   description?: string;
-  equipmentId: number;
-  equipmentName: string;
+  equipment_id: number;
+  equipment?: string;
   frequency: MaintenanceFrequency;
   interval: number;
   unit: MaintenanceUnit;
-  nextDueDate: Date;
-  lastPerformedDate: Date | null;
   type: MaintenanceType;
-  engineHours?: number;
-  active: boolean;
   priority: MaintenancePriority;
+  next_date?: string;
+  last_date?: string;
+  active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface MaintenanceFormValues {
+  title: string;
+  equipment_id: number;
+  equipment?: string;
+  type: MaintenanceType;
+  status: MaintenanceStatus;
+  priority: MaintenancePriority; 
+  due_date: Date | null;
+  engineHours?: number;
   assignedTo?: string;
+  notes?: string;
+  partId?: number;
 }
