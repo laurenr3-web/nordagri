@@ -2,81 +2,113 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Equipment, EquipmentFilter } from '@/services/supabase/equipment/types';
+import { Equipment, EquipmentStatus, EquipmentDB, mapEquipmentFromDB, mapEquipmentToDB } from '@/types/Equipment';
+import { safeStatus } from '@/utils/typeAdapters';
 
-export interface EquipmentTableData {
+export interface EquipmentTableState {
   equipment: Equipment[];
   loading: boolean;
   error: Error | null;
   filter: EquipmentFilter;
   totalCount: number;
-  setFilter: (filter: EquipmentFilter) => void;
-  refreshEquipment: () => Promise<void>;
-  addEquipment: (equipment: Omit<Equipment, 'id'>) => Promise<boolean>;
-  updateEquipment: (id: number, updates: Partial<Equipment>) => Promise<boolean>;
-  deleteEquipment: (id: number) => Promise<boolean>;
-  bulkAddEquipment: (equipmentArray: Omit<Equipment, 'id'>[]) => Promise<boolean>;
+  pageIndex: number;
+  pageSize: number;
+  pageCount: number;
+  sorting: any;
 }
 
-export function useEquipmentTable(initialFilter: EquipmentFilter = {}): EquipmentTableData {
-  const [equipment, setEquipment] = useState<Equipment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [filter, setFilter] = useState<EquipmentFilter>(initialFilter);
-  const [totalCount, setTotalCount] = useState(0);
+export interface EquipmentFilter {
+  search?: string;
+  status?: EquipmentStatus[];
+  type?: string[];
+  category?: string[];
+}
+
+export function useEquipmentTable(initialFilter: EquipmentFilter = {}) {
+  const [state, setState] = useState<EquipmentTableState>({
+    equipment: [],
+    loading: true,
+    error: null,
+    filter: initialFilter,
+    totalCount: 0,
+    pageIndex: 0,
+    pageSize: 10,
+    pageCount: 0,
+    sorting: []
+  });
   
   // Fetch equipment data
   useEffect(() => {
     fetchEquipment();
-  }, [filter]);
+  }, [state.filter, state.pageIndex, state.pageSize, state.sorting]);
 
   const fetchEquipment = async () => {
     try {
-      setLoading(true);
-      setError(null);
+      setState(prev => ({ ...prev, loading: true, error: null }));
       
       // Build the query based on filters
       let query = supabase.from('equipment').select('*', { count: 'exact' });
       
       // Apply filters if provided
-      if (filter.search) {
-        query = query.or(`name.ilike.%${filter.search}%,model.ilike.%${filter.search}%,type.ilike.%${filter.search}%`);
+      if (state.filter.search) {
+        query = query.or(`name.ilike.%${state.filter.search}%,model.ilike.%${state.filter.search}%,type.ilike.%${state.filter.search}%`);
       }
       
-      if (filter.status && filter.status.length > 0) {
-        query = query.in('status', filter.status);
+      if (state.filter.status && state.filter.status.length > 0) {
+        query = query.in('status', state.filter.status);
       }
       
-      if (filter.type && filter.type.length > 0) {
-        query = query.in('type', filter.type);
+      if (state.filter.type && state.filter.type.length > 0) {
+        query = query.in('type', state.filter.type);
       }
       
-      const { data, error, count } = await query.order('name');
+      // Add pagination
+      const from = state.pageIndex * state.pageSize;
+      const to = from + state.pageSize - 1;
+      query = query.range(from, to);
+      
+      // Add sorting
+      if (state.sorting && state.sorting.length > 0) {
+        state.sorting.forEach((sort: any) => {
+          query = query.order(sort.id, { ascending: sort.desc ? false : true });
+        });
+      } else {
+        query = query.order('name');
+      }
+      
+      const { data, error, count } = await query;
       
       if (error) {
         throw new Error(error.message);
       }
       
-      setEquipment(data || []);
-      setTotalCount(count || 0);
+      // Map database equipment to frontend equipment
+      const equipmentData: Equipment[] = (data || []).map((item: EquipmentDB) => 
+        mapEquipmentFromDB(item)
+      );
+      
+      setState(prev => ({
+        ...prev,
+        equipment: equipmentData,
+        totalCount: count || 0,
+        pageCount: Math.ceil((count || 0) / state.pageSize),
+        loading: false
+      }));
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err);
-        toast.error(`Erreur lors de la récupération des équipements: ${err.message}`);
-      } else {
-        setError(new Error('Une erreur inconnue est survenue'));
-        toast.error('Erreur lors de la récupération des équipements');
-      }
-    } finally {
-      setLoading(false);
+      const errorMsg = err instanceof Error ? err.message : 'An unknown error occurred';
+      setState(prev => ({ ...prev, error: new Error(errorMsg), loading: false }));
+      toast.error(`Error fetching equipment: ${errorMsg}`);
     }
   };
   
   const addEquipment = async (equipmentData: Omit<Equipment, 'id'>): Promise<boolean> => {
     try {
+      // Convert to database format
+      const dbEquipment = mapEquipmentToDB(equipmentData);
+      
       const { data, error } = await supabase
         .from('equipment')
-        .insert(equipmentData)
+        .insert(dbEquipment)
         .select()
         .single();
         
@@ -84,31 +116,34 @@ export function useEquipmentTable(initialFilter: EquipmentFilter = {}): Equipmen
         throw error;
       }
       
+      // Map the returned data back to Equipment type
+      const newEquipment = mapEquipmentFromDB(data);
+      
       // Update local state
-      setEquipment(prev => [...prev, data]);
-      toast.success('Équipement ajouté avec succès');
+      setState(prev => ({
+        ...prev,
+        equipment: [...prev.equipment, newEquipment],
+        totalCount: prev.totalCount + 1,
+        pageCount: Math.ceil((prev.totalCount + 1) / state.pageSize)
+      }));
+      
+      toast.success('Equipment added successfully');
       return true;
     } catch (err) {
-      if (err instanceof Error) {
-        toast.error(`Erreur lors de l'ajout de l'équipement: ${err.message}`);
-      } else {
-        toast.error('Erreur lors de l\'ajout de l\'équipement');
-      }
+      const errorMsg = err instanceof Error ? err.message : 'An unknown error occurred';
+      toast.error(`Error adding equipment: ${errorMsg}`);
       return false;
     }
   };
   
   const updateEquipment = async (id: number, updates: Partial<Equipment>): Promise<boolean> => {
     try {
-      // Make sure dates are properly formatted for Supabase
-      const formattedUpdates = { ...updates };
-      if (updates.purchase_date && updates.purchase_date instanceof Date) {
-        formattedUpdates.purchase_date = updates.purchase_date.toISOString();
-      }
+      // Convert to database format
+      const dbUpdates = mapEquipmentToDB(updates);
       
       const { data, error } = await supabase
         .from('equipment')
-        .update(formattedUpdates)
+        .update(dbUpdates)
         .eq('id', id)
         .select()
         .single();
@@ -117,16 +152,20 @@ export function useEquipmentTable(initialFilter: EquipmentFilter = {}): Equipmen
         throw error;
       }
       
+      // Map the returned data back to Equipment type
+      const updatedEquipment = mapEquipmentFromDB(data);
+      
       // Update local state
-      setEquipment(prev => prev.map(item => item.id === id ? data : item));
-      toast.success('Équipement mis à jour avec succès');
+      setState(prev => ({
+        ...prev,
+        equipment: prev.equipment.map(item => item.id === id ? updatedEquipment : item)
+      }));
+      
+      toast.success('Equipment updated successfully');
       return true;
     } catch (err) {
-      if (err instanceof Error) {
-        toast.error(`Erreur lors de la mise à jour de l'équipement: ${err.message}`);
-      } else {
-        toast.error('Erreur lors de la mise à jour de l\'équipement');
-      }
+      const errorMsg = err instanceof Error ? err.message : 'An unknown error occurred';
+      toast.error(`Error updating equipment: ${errorMsg}`);
       return false;
     }
   };
@@ -143,70 +182,93 @@ export function useEquipmentTable(initialFilter: EquipmentFilter = {}): Equipmen
       }
       
       // Update local state
-      setEquipment(prev => prev.filter(item => item.id !== id));
-      toast.success('Équipement supprimé avec succès');
+      setState(prev => ({
+        ...prev,
+        equipment: prev.equipment.filter(item => item.id !== id),
+        totalCount: prev.totalCount - 1,
+        pageCount: Math.ceil((prev.totalCount - 1) / state.pageSize)
+      }));
+      
+      toast.success('Equipment deleted successfully');
       return true;
     } catch (err) {
-      if (err instanceof Error) {
-        toast.error(`Erreur lors de la suppression de l'équipement: ${err.message}`);
-      } else {
-        toast.error('Erreur lors de la suppression de l\'équipement');
-      }
+      const errorMsg = err instanceof Error ? err.message : 'An unknown error occurred';
+      toast.error(`Error deleting equipment: ${errorMsg}`);
       return false;
     }
   };
   
   const bulkAddEquipment = async (equipmentArray: Omit<Equipment, 'id'>[]): Promise<boolean> => {
     try {
-      // Format dates for each equipment item
-      const formattedData = equipmentArray.map(item => {
-        const formattedItem = { ...item };
-        if (item.purchase_date && item.purchase_date instanceof Date) {
-          formattedItem.purchase_date = item.purchase_date.toISOString();
-        }
-        return formattedItem;
-      });
+      // Convert to database format
+      const dbEquipmentArray = equipmentArray.map(eq => mapEquipmentToDB(eq));
       
       const { data, error } = await supabase
         .from('equipment')
-        .insert(formattedData)
+        .insert(dbEquipmentArray)
         .select();
         
       if (error) {
         throw error;
       }
       
+      // Map the returned data back to Equipment type
+      const newEquipments = data.map((item: EquipmentDB) => mapEquipmentFromDB(item));
+      
       // Update local state
-      setEquipment(prev => [...prev, ...data]);
-      toast.success(`${data.length} équipements ajoutés avec succès`);
+      setState(prev => ({
+        ...prev,
+        equipment: [...prev.equipment, ...newEquipments],
+        totalCount: prev.totalCount + newEquipments.length,
+        pageCount: Math.ceil((prev.totalCount + newEquipments.length) / state.pageSize)
+      }));
+      
+      toast.success(`${newEquipments.length} equipment added successfully`);
       return true;
     } catch (err) {
-      if (err instanceof Error) {
-        toast.error(`Erreur lors de l'ajout des équipements: ${err.message}`);
-      } else {
-        toast.error('Erreur lors de l\'ajout des équipements');
-      }
+      const errorMsg = err instanceof Error ? err.message : 'An unknown error occurred';
+      toast.error(`Error bulk adding equipment: ${errorMsg}`);
       return false;
     }
   };
   
-  const refreshEquipment = async () => {
-    await fetchEquipment();
+  const setPageIndex = (pageIndex: number) => {
+    setState(prev => ({ ...prev, pageIndex }));
+  };
+  
+  const setPageSize = (pageSize: number) => {
+    setState(prev => ({ ...prev, pageSize, pageIndex: 0 }));
+  };
+  
+  const setSorting = (sorting: any) => {
+    setState(prev => ({ ...prev, sorting }));
+  };
+  
+  const setFilter = (filter: EquipmentFilter) => {
+    setState(prev => ({ ...prev, filter, pageIndex: 0 }));
   };
   
   return {
-    equipment,
-    loading,
-    error,
-    filter,
-    totalCount,
+    // Return the state
+    equipments: state.equipment,
+    isLoading: state.loading,
+    error: state.error,
+    filter: state.filter,
+    totalCount: state.totalCount,
+    pageCount: state.pageCount,
+    pageIndex: state.pageIndex,
+    pageSize: state.pageSize,
+    sorting: state.sorting,
+    
+    // Return the actions
     setFilter,
-    refreshEquipment,
-    addEquipment,
+    setPageIndex,
+    setPageSize,
+    setSorting,
+    fetchEquipments: fetchEquipment,
+    createEquipment: addEquipment,
     updateEquipment,
     deleteEquipment,
-    bulkAddEquipment
+    importEquipments: bulkAddEquipment
   };
 }
-
-export type { Equipment } from '@/services/supabase/equipment/types';

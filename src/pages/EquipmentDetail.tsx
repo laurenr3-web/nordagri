@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useEquipmentDetail } from '@/hooks/equipment/useEquipmentDetail';
 import EquipmentDetailLoading from '@/components/equipment/detail/EquipmentDetailLoading';
@@ -24,7 +24,7 @@ const EquipmentDetail = () => {
           )}
           
           {!loading && error && (
-            <EquipmentDetailError id={id} error={error} />
+            <EquipmentDetailError id={id} error={error instanceof Error ? error.message : String(error)} />
           )}
           
           {!loading && !error && equipment && (

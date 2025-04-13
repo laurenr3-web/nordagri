@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useTasksManager } from '@/hooks/maintenance/useTasksManager';
 import { MaintenanceTask, MaintenanceStatus, MaintenancePriority, MaintenanceFormValues } from '@/hooks/maintenance/maintenanceSlice';
@@ -132,7 +133,7 @@ const Maintenance = () => {
       />
       
       <MaintenanceCompletionDialog
-        isOpen={isCompletionDialogOpen}
+        open={isCompletionDialogOpen}
         onClose={() => setIsCompletionDialogOpen(false)}
         task={selectedTask}
         onCompleted={() => {

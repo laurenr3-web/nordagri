@@ -1,90 +1,92 @@
 
-import React from 'react';
-import { DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import MaintenancePlanForm from '../forms/MaintenancePlanForm';
-import { useMaintenancePlanner } from '../useMaintenancePlanner';
-import { useEquipmentOptions } from '../useEquipmentOptions';
-import { MaintenancePlan } from '../types/maintenancePlanTypes';
+import React, { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { toast } from 'sonner';
+import { useMaintenancePlanner } from '@/hooks/maintenance/useMaintenancePlanner';
+import MaintenancePlanForm from '@/components/maintenance/forms/MaintenancePlanForm';
+import type { MaintenancePlanViewModel } from '@/hooks/maintenance/types/maintenancePlanTypes';
 
 interface MaintenancePlanDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  equipmentId?: number;
-  equipmentName?: string;
+  equipment: { id: number; name: string } | null;
 }
 
-const MaintenancePlanDialog: React.FC<MaintenancePlanDialogProps> = ({
-  isOpen,
-  onClose,
-  equipmentId,
-  equipmentName
-}) => {
+export default function MaintenancePlanDialog({ 
+  isOpen, 
+  onClose, 
+  equipment 
+}: MaintenancePlanDialogProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { createMaintenancePlan } = useMaintenancePlanner();
-  const { data: equipments = [], isLoading: isLoadingEquipment } = useEquipmentOptions();
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (formData: any) => {
     try {
-      // Find the equipment id if only the name was provided
-      let selectedEquipmentId = equipmentId;
-      let selectedEquipmentName = equipmentName || data.equipment;
+      setIsSubmitting(true);
       
-      if (!selectedEquipmentId) {
-        const selectedEquipment = equipments.find(eq => eq.name === data.equipment);
-        if (selectedEquipment) {
-          selectedEquipmentId = selectedEquipment.id;
-        }
+      // Verify that we have a valid equipment
+      if (!equipment) {
+        toast.error("Aucun équipement sélectionné");
+        return;
       }
-      
-      if (!selectedEquipmentName) {
-        const selectedEquipment = equipments.find(eq => eq.id === selectedEquipmentId);
-        if (selectedEquipment) {
-          selectedEquipmentName = selectedEquipment.name;
-        }
-      }
-      
-      const plan: Omit<MaintenancePlan, 'id'> = {
-        title: data.title,
-        description: data.description,
-        equipmentId: selectedEquipmentId!,
-        equipmentName: selectedEquipmentName,
-        frequency: data.frequency,
-        interval: data.interval,
-        unit: data.unit,
-        nextDueDate: data.nextDueDate,
+
+      // Add the equipment ID and active status
+      const planData: Omit<MaintenancePlanViewModel, "id"> = {
+        title: formData.title,
+        description: formData.description,
+        equipmentId: equipment.id,
+        equipmentName: equipment.name,
+        frequency: formData.frequency,
+        interval: formData.interval,
+        unit: formData.unit,
+        nextDueDate: formData.nextDueDate,
         lastPerformedDate: null,
-        type: data.type,
-        engineHours: data.engineHours,
-        priority: data.priority,
+        type: formData.type,
+        engineHours: formData.engineHours ? parseFloat(formData.engineHours) : undefined,
+        priority: formData.priority,
         active: true,
-        assignedTo: data.assignedTo
+        assignedTo: formData.assignedTo
       };
       
-      await createMaintenancePlan(plan);
+      // Create the maintenance plan
+      await createMaintenancePlan(planData);
+      
+      // Close the dialog
       onClose();
+      
+      // Success notification
+      toast.success("Plan de maintenance créé avec succès");
+      
     } catch (error) {
-      console.error('Error creating maintenance plan:', error);
+      console.error("Erreur lors de la création du plan de maintenance:", error);
+      toast.error("Impossible de créer le plan de maintenance");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-      <DialogHeader>
-        <DialogTitle>Create Maintenance Plan</DialogTitle>
-      </DialogHeader>
-      
-      <MaintenancePlanForm
-        onSubmit={handleSubmit}
-        onCancel={onClose}
-        equipmentOptions={equipments}
-        isLoadingEquipment={isLoadingEquipment}
-        defaultValues={
-          equipmentId && equipmentName 
-            ? { equipment: equipmentName } 
-            : undefined
-        }
-      />
-    </DialogContent>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Créer un plan de maintenance périodique</DialogTitle>
+          <DialogDescription>
+            Configurez un plan de maintenance récurrent pour {equipment?.name || "cet équipement"}
+          </DialogDescription>
+        </DialogHeader>
+        
+        <MaintenancePlanForm
+          onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+          equipment={equipment}
+        />
+      </DialogContent>
+    </Dialog>
   );
-};
-
-export default MaintenancePlanDialog;
+}

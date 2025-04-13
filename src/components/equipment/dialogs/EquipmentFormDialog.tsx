@@ -5,10 +5,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { equipmentFormSchema, EquipmentFormValues } from '../form/equipmentFormTypes';
-import { Equipment } from '@/services/supabase/equipment/types';
+import { Equipment, mapEquipmentToDB } from '@/types/Equipment';
 import { Form } from '@/components/ui/form';
-
-// Import refactored components for the equipment form
 import BasicInfoFields from '../form/BasicInfoFields';
 import AdditionalInfoFields from '../form/AdditionalInfoFields';
 import ImageField from '../form/ImageField';
@@ -37,10 +35,10 @@ const EquipmentFormDialog = ({
       manufacturer: equipment.manufacturer || '',
       model: equipment.model || '',
       year: equipment.year ? equipment.year.toString() : '',
-      serialNumber: equipment.serial_number || '',
+      serialNumber: equipment.serialNumber || '',
       status: (equipment.status as any) || 'operational',
       location: equipment.location || '',
-      purchaseDate: equipment.purchase_date ? new Date(equipment.purchase_date) : undefined,
+      purchaseDate: equipment.purchaseDate ? new Date(equipment.purchaseDate) : undefined,
       notes: equipment.notes || '',
       image: equipment.image || ''
     } : {
@@ -66,10 +64,10 @@ const EquipmentFormDialog = ({
         manufacturer: formData.manufacturer,
         model: formData.model,
         year: formData.year ? parseInt(formData.year) : undefined,
-        serial_number: formData.serialNumber,
+        serialNumber: formData.serialNumber,
         status: formData.status,
         location: formData.location,
-        purchase_date: formData.purchaseDate ? formData.purchaseDate.toISOString() : undefined,
+        purchaseDate: formData.purchaseDate ? formData.purchaseDate.toISOString() : undefined,
         notes: formData.notes,
         image: formData.image
       };
