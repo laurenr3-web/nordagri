@@ -1,4 +1,5 @@
 
+// Fixing the assignTechnician parameter type
 import React, { useState, useMemo, useCallback } from 'react';
 import InterventionsList from '@/components/interventions/InterventionsList';
 import { Intervention, InterventionFormValues } from '@/types/Intervention';
@@ -96,7 +97,8 @@ const InterventionsContainer: React.FC<InterventionsContainerProps> = ({
             interventions={filteredInterventions}
             onViewDetails={onViewDetails}
             onUpdateStatus={updateInterventionStatus}
-            onAssignTechnician={assignTechnician}
+            // Fix: The type mismatch by using the intervention's id
+            onAssignTechnician={(intervention, tech) => assignTechnician(intervention.id, tech)}
           />
         );
       default:

@@ -1,261 +1,169 @@
 
-import React from 'react';
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
+import React, { useState } from 'react';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { CalendarIcon, Clock } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { 
-  MaintenanceFrequency, 
-  MaintenancePlan, 
-  MaintenanceUnit,
-  MaintenanceType,
-  MaintenancePriority 
-} from '@/hooks/maintenance/useMaintenancePlanner';
+import { MaintenanceFrequency, MaintenanceType, MaintenancePriority, MaintenanceUnit } from '@/hooks/maintenance/types/maintenancePlanTypes';
+import EquipmentField from '@/components/maintenance/fields/EquipmentField';
+import FormFieldGroup from '@/components/maintenance/fields/FormFieldGroup';
 
-// Schema de validation pour le formulaire de plan de maintenance
-const maintenancePlanSchema = z.object({
-  title: z.string().min(3, "Le titre doit comporter au moins 3 caractères."),
+const formSchema = z.object({
+  title: z.string().min(2, "Titre requis"),
   description: z.string().optional(),
-  equipmentId: z.number().min(1, "Équipement requis"),
-  equipmentName: z.string().min(1, "Nom de l'équipement requis"),
-  frequency: z.enum(['daily', 'weekly', 'monthly', 'quarterly', 'biannual', 'yearly']),
-  interval: z.number().min(1, "L'intervalle doit être d'au moins 1"),
-  unit: z.enum(['days', 'weeks', 'months', 'hours']),
-  type: z.enum(['preventive', 'corrective', 'predictive', 'condition-based']),
-  priority: z.enum(['low', 'medium', 'high', 'critical']),
-  engineHours: z.number().min(0, "Les heures moteur doivent être positives"),
+  equipment: z.string().min(1, "Équipement requis"),
+  frequency: z.enum([
+    'daily', 'weekly', 'monthly', 'quarterly', 'biannual', 'yearly', 'custom'
+  ] as const),
+  interval: z.coerce.number().min(1),
+  unit: z.enum([
+    'days', 'weeks', 'months', 'years', 'hours'
+  ] as const),
   nextDueDate: z.date(),
+  type: z.enum([
+    'preventive', 'predictive', 'corrective', 'inspection', 'lubrication', 
+    'electrical', 'mechanical', 'hydraulic', 'other'
+  ] as const),
+  priority: z.enum(['low', 'medium', 'high', 'critical'] as const),
+  engineHours: z.coerce.number().optional(),
   assignedTo: z.string().optional(),
 });
 
-type MaintenancePlanFormValues = z.infer<typeof maintenancePlanSchema>;
+type FormValues = z.infer<typeof formSchema>;
 
 interface MaintenancePlanFormProps {
-  onSubmit: (data: Omit<MaintenancePlan, 'id' | 'active'>) => void;
-  equipment: { id: number; name: string } | null;
-  initialData?: Partial<MaintenancePlan>;
+  onSubmit: (data: FormValues) => void;
+  onCancel: () => void;
   isSubmitting?: boolean;
+  equipmentOptions: Array<{ id: number; name: string }>;
+  isLoadingEquipment?: boolean;
+  defaultValues?: Partial<FormValues>;
+  staffMembers?: Array<{ id: string; name: string }>;
 }
 
-export default function MaintenancePlanForm({ 
-  onSubmit, 
-  equipment, 
-  initialData, 
-  isSubmitting = false 
-}: MaintenancePlanFormProps) {
-  // Définir les valeurs par défaut
-  const defaultValues: Partial<MaintenancePlanFormValues> = {
-    title: initialData?.title || '',
-    description: initialData?.description || '',
-    equipmentId: equipment?.id || initialData?.equipmentId || 0,
-    equipmentName: equipment?.name || initialData?.equipmentName || '',
-    frequency: initialData?.frequency || 'monthly',
-    interval: initialData?.interval || 1,
-    unit: initialData?.unit || 'months',
-    type: initialData?.type || 'preventive',
-    priority: initialData?.priority || 'medium',
-    engineHours: initialData?.engineHours || 1,
-    nextDueDate: initialData?.nextDueDate || new Date(),
-    assignedTo: initialData?.assignedTo || '',
-  };
-
-  // Initialiser le formulaire avec les valeurs par défaut et le schéma de validation
-  const form = useForm<MaintenancePlanFormValues>({
-    resolver: zodResolver(maintenancePlanSchema),
-    defaultValues,
+const MaintenancePlanForm: React.FC<MaintenancePlanFormProps> = ({
+  onSubmit,
+  onCancel,
+  isSubmitting = false,
+  equipmentOptions,
+  isLoadingEquipment = false,
+  defaultValues,
+  staffMembers = []
+}) => {
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: defaultValues?.title || '',
+      description: defaultValues?.description || '',
+      equipment: defaultValues?.equipment || '',
+      frequency: defaultValues?.frequency || 'monthly',
+      interval: defaultValues?.interval || 1,
+      unit: defaultValues?.unit || 'months',
+      nextDueDate: defaultValues?.nextDueDate || new Date(),
+      type: defaultValues?.type || 'preventive',
+      priority: defaultValues?.priority || 'medium',
+      engineHours: defaultValues?.engineHours,
+      assignedTo: defaultValues?.assignedTo || '',
+    },
   });
 
-  // Gestionnaire de soumission du formulaire
-  const handleSubmit = (values: MaintenancePlanFormValues) => {
-    // Ensure all required fields are present with proper types
-    const maintenancePlan: Omit<MaintenancePlan, 'id' | 'active'> = {
-      title: values.title,
-      description: values.description || '',
-      equipmentId: values.equipmentId,
-      equipmentName: values.equipmentName,
-      frequency: values.frequency as MaintenanceFrequency,
-      interval: values.interval,
-      unit: values.unit as MaintenanceUnit,
-      type: values.type as MaintenanceType,
-      priority: values.priority as MaintenancePriority,
-      engineHours: values.engineHours,
-      nextDueDate: values.nextDueDate,
-      lastPerformedDate: null, // Add the missing property with a default value
-      assignedTo: values.assignedTo || null
-    };
-    
-    onSubmit(maintenancePlan);
-  };
-
-  // Options pour les fréquences de maintenance
-  const frequencyOptions: { value: string; label: string }[] = [
-    { value: 'daily', label: 'Quotidienne' },
+  const frequencyOptions: { value: MaintenanceFrequency; label: string }[] = [
+    { value: 'daily', label: 'Quotidien' },
     { value: 'weekly', label: 'Hebdomadaire' },
-    { value: 'monthly', label: 'Mensuelle' },
-    { value: 'quarterly', label: 'Trimestrielle' },
-    { value: 'biannual', label: 'Semestrielle' },
-    { value: 'yearly', label: 'Annuelle' },
+    { value: 'monthly', label: 'Mensuel' },
+    { value: 'quarterly', label: 'Trimestriel' },
+    { value: 'biannual', label: 'Semestriel' },
+    { value: 'yearly', label: 'Annuel' },
+    { value: 'custom', label: 'Personnalisé' },
   ];
 
-  // Options pour les unités de temps
-  const unitOptions: { value: string; label: string }[] = [
+  const unitOptions: { value: MaintenanceUnit; label: string }[] = [
     { value: 'days', label: 'Jours' },
     { value: 'weeks', label: 'Semaines' },
     { value: 'months', label: 'Mois' },
-    { value: 'hours', label: 'Heures de fonctionnement' },
+    { value: 'years', label: 'Années' },
+    { value: 'hours', label: 'Heures' },
   ];
 
-  // Options pour les types de maintenance
-  const typeOptions: { value: string; label: string }[] = [
+  const typeOptions: { value: MaintenanceType; label: string }[] = [
     { value: 'preventive', label: 'Préventive' },
-    { value: 'corrective', label: 'Corrective' },
     { value: 'predictive', label: 'Prédictive' },
-    { value: 'condition-based', label: 'Basée sur condition' },
+    { value: 'corrective', label: 'Corrective' },
+    { value: 'inspection', label: 'Inspection' },
+    { value: 'lubrication', label: 'Lubrification' },
+    { value: 'electrical', label: 'Électrique' },
+    { value: 'mechanical', label: 'Mécanique' },
+    { value: 'hydraulic', label: 'Hydraulique' },
+    { value: 'other', label: 'Autre' },
   ];
 
-  // Options pour les priorités
-  const priorityOptions: { value: string; label: string }[] = [
+  const priorityOptions: { value: MaintenancePriority; label: string }[] = [
     { value: 'low', label: 'Basse' },
     { value: 'medium', label: 'Moyenne' },
     { value: 'high', label: 'Haute' },
     { value: 'critical', label: 'Critique' },
   ];
 
-  // Obtenir la valeur actuelle de la fréquence
-  const currentFrequency = form.watch('frequency');
+  // Watch the frequency value to conditionally show fields
+  const frequencyValue = form.watch('frequency');
+  const showCustomInterval = frequencyValue === 'custom';
+  
+  const onFormSubmit = (data: FormValues) => {
+    onSubmit(data);
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {/* Titre */}
+      <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-4">
+        {/* Title */}
+        <FormFieldGroup>
           <FormField
             control={form.control}
             name="title"
             render={({ field }) => (
-              <FormItem className="md:col-span-2">
-                <FormLabel>Titre du plan de maintenance</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ex: Vidange moteur périodique" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Description */}
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem className="md:col-span-2">
-                <FormLabel>Description (optionnelle)</FormLabel>
-                <FormControl>
-                  <Textarea 
-                    placeholder="Décrivez les tâches à effectuer pour cette maintenance..."
-                    className="min-h-[80px]"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Équipement */}
-          <div className="md:col-span-2">
-            <div className="bg-secondary/30 p-4 rounded-md mb-4">
-              <h3 className="text-sm font-medium mb-2">Équipement concerné</h3>
-              <p className="text-base font-semibold">{equipment?.name || initialData?.equipmentName || "Aucun équipement sélectionné"}</p>
-              
-              {/* Champs cachés pour stocker les valeurs de l'équipement */}
-              <input 
-                type="hidden"
-                {...form.register("equipmentId", { valueAsNumber: true })}
-                value={equipment?.id || initialData?.equipmentId || 0}
-              />
-              <input 
-                type="hidden"
-                {...form.register("equipmentName")}
-                value={equipment?.name || initialData?.equipmentName || ""}
-              />
-            </div>
-          </div>
-
-          {/* Fréquence */}
-          <FormField
-            control={form.control}
-            name="frequency"
-            render={({ field }) => (
               <FormItem>
-                <FormLabel>Fréquence</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  disabled={isSubmitting}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner une fréquence" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {frequencyOptions.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Intervalle */}
-          <FormField
-            control={form.control}
-            name="interval"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Intervalle</FormLabel>
+                <FormLabel>Titre</FormLabel>
                 <FormControl>
-                  <Input 
-                    type="number" 
-                    min="1" 
-                    {...field} 
-                    onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                  />
+                  <Input placeholder="Titre du plan de maintenance" {...field} />
                 </FormControl>
-                <FormDescription>
-                  Nombre de périodes entre chaque maintenance
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
+        </FormFieldGroup>
 
-          {/* Type de maintenance */}
+        {/* Equipment */}
+        <EquipmentField
+          equipment={form.watch('equipment')}
+          handleEquipmentChange={(value) => form.setValue('equipment', value)}
+          equipmentOptions={equipmentOptions}
+          isLoading={isLoadingEquipment}
+        />
+
+        {/* Type */}
+        <FormFieldGroup>
           <FormField
             control={form.control}
             name="type"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Type de maintenance</FormLabel>
-                <Select
+                <FormLabel>Type</FormLabel>
+                <Select 
+                  value={field.value} 
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  disabled={isSubmitting}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -263,7 +171,7 @@ export default function MaintenancePlanForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {typeOptions.map(option => (
+                    {typeOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
                       </SelectItem>
@@ -274,126 +182,273 @@ export default function MaintenancePlanForm({
               </FormItem>
             )}
           />
+        </FormFieldGroup>
 
-          {/* Priorité */}
-          <FormField
-            control={form.control}
-            name="priority"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Priorité</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  disabled={isSubmitting}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner une priorité" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {priorityOptions.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Heures moteur estimées */}
-          <FormField
-            control={form.control}
-            name="engineHours"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Heures moteur estimées</FormLabel>
-                <FormControl>
-                  <div className="flex items-center">
-                    <Input 
-                      type="number" 
-                      min="0" 
-                      step="0.5"
-                      {...field} 
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                    />
-                    <Clock className="w-4 h-4 text-muted-foreground ml-2" />
-                  </div>
-                </FormControl>
-                <FormDescription>
-                  Durée estimée de l'intervention
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Date de prochaine maintenance */}
-          <FormField
-            control={form.control}
-            name="nextDueDate"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Date de prochaine maintenance</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
+        {/* Frequency */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormFieldGroup>
+            <FormField
+              control={form.control}
+              name="frequency"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Fréquence</FormLabel>
+                  <Select 
+                    value={field.value} 
+                    onValueChange={field.onChange}
+                  >
                     <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={`w-full pl-3 text-left font-normal flex justify-between items-center ${!field.value ? "text-muted-foreground" : ""}`}
-                      >
-                        {field.value ? (
-                          format(field.value, "d MMMM yyyy", { locale: fr })
-                        ) : (
-                          <span>Choisir une date</span>
-                        )}
-                        <CalendarIcon className="h-4 w-4 ml-2" />
-                      </Button>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner une fréquence" />
+                      </SelectTrigger>
                     </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      initialFocus
-                      locale={fr}
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Assigné à */}
-          <FormField
-            control={form.control}
-            name="assignedTo"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Assigné à (optionnel)</FormLabel>
-                <FormControl>
-                  <Input placeholder="Nom du technicien ou de l'équipe" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
+                    <SelectContent>
+                      {frequencyOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </FormFieldGroup>
+          
+          {/* Next due date */}
+          <FormFieldGroup>
+            <FormField
+              control={form.control}
+              name="nextDueDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Prochaine date</FormLabel>
+                  <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP", { locale: fr })
+                          ) : (
+                            <span>Choisir une date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={(date) => {
+                          field.onChange(date);
+                          setIsCalendarOpen(false);
+                        }}
+                        disabled={(date) => date < new Date("1900-01-01")}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </FormFieldGroup>
         </div>
 
-        {/* Boutons d'action */}
-        <div className="flex justify-end space-x-2">
+        {/* Custom interval and unit */}
+        {showCustomInterval && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormFieldGroup>
+              <FormField
+                control={form.control}
+                name="interval"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Intervalle</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        min="1" 
+                        placeholder="Intervalle" 
+                        {...field} 
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </FormFieldGroup>
+            
+            <FormFieldGroup>
+              <FormField
+                control={form.control}
+                name="unit"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Unité</FormLabel>
+                    <Select 
+                      value={field.value} 
+                      onValueChange={field.onChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner une unité" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {unitOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </FormFieldGroup>
+          </div>
+        )}
+
+        {/* Priority and Engine Hours */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormFieldGroup>
+            <FormField
+              control={form.control}
+              name="priority"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Priorité</FormLabel>
+                  <Select 
+                    value={field.value} 
+                    onValueChange={field.onChange}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner une priorité" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {priorityOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </FormFieldGroup>
+          
+          <FormFieldGroup>
+            <FormField
+              control={form.control}
+              name="engineHours"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Heures moteur (optionnel)</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      placeholder="Heures moteur" 
+                      {...field} 
+                      value={field.value || ""}
+                      onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </FormFieldGroup>
+        </div>
+
+        {/* Assigned To */}
+        {staffMembers.length > 0 && (
+          <FormFieldGroup>
+            <FormField
+              control={form.control}
+              name="assignedTo"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assigné à</FormLabel>
+                  <Select 
+                    value={field.value || ""} 
+                    onValueChange={field.onChange}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un technicien" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="">Non assigné</SelectItem>
+                      {staffMembers.map((staff) => (
+                        <SelectItem key={staff.id} value={staff.name}>
+                          {staff.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </FormFieldGroup>
+        )}
+
+        {/* Description */}
+        <FormFieldGroup>
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Description de la tâche de maintenance" 
+                    className="min-h-[100px]" 
+                    {...field} 
+                    value={field.value || ""}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </FormFieldGroup>
+
+        <div className="flex justify-end gap-2 pt-2">
+          <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
+            Annuler
+          </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Enregistrement..." : "Créer le plan de maintenance"}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Enregistrement...
+              </>
+            ) : (
+              'Enregistrer'
+            )}
           </Button>
         </div>
       </form>
     </Form>
   );
-}
+};
+
+export default MaintenancePlanForm;

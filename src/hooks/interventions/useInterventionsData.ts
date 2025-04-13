@@ -1,107 +1,113 @@
 
+import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { interventionService } from '@/services/supabase/interventionService';
-import { Intervention, InterventionFormValues, InterventionReportData } from '@/types/Intervention';
-import { useToast } from '@/hooks/use-toast';
-import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { Intervention, InterventionFormValues, InterventionStatus } from '@/types/Intervention';
 
 export const useInterventionsData = () => {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Fetch all interventions
+  const fetchInterventions = useCallback(async (): Promise<Intervention[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('interventions')
+        .select('*')
+        .order('date', { ascending: false });
+
+      if (error) throw error;
+
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching interventions:', error);
+      throw error;
+    }
+  }, []);
+
+  // Use React Query to manage interventions data
   const { data: interventions = [], isLoading, error, refetch } = useQuery({
     queryKey: ['interventions'],
-    queryFn: async (): Promise<Intervention[]> => {
-      try {
-        return await interventionService.getInterventions();
-      } catch (error: any) {
-        console.error('Error fetching interventions:', error);
-        toast({
-          title: "Erreur de chargement",
-          description: "Impossible de récupérer les interventions",
-          variant: "destructive",
-        });
-        throw error;
-      }
-    },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    retry: 1
+    queryFn: fetchInterventions,
   });
 
-  // CRUD operations for interventions
+  // Create a new intervention
   const createIntervention = async (intervention: InterventionFormValues): Promise<Intervention> => {
+    setIsSubmitting(true);
     try {
-      const newIntervention = await interventionService.addIntervention(intervention);
-      queryClient.invalidateQueries({ queryKey: ['interventions'] });
-      return newIntervention;
-    } catch (error: any) {
-      toast({
-        title: "Erreur de création",
-        description: "Impossible de créer l'intervention",
-        variant: "destructive",
-      });
+      const { data, error } = await supabase
+        .from('interventions')
+        .insert([intervention])
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      toast.success("Intervention créée avec succès");
+      refetch();
+      return data;
+    } catch (error) {
+      console.error('Error creating intervention:', error);
+      toast.error("Erreur lors de la création de l'intervention");
+      throw error;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Update intervention status
+  const updateInterventionStatus = async (id: number, status: InterventionStatus): Promise<void> => {
+    try {
+      const { error } = await supabase
+        .from('interventions')
+        .update({ status })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast.success(`Statut de l'intervention mis à jour : ${status}`);
+      refetch();
+    } catch (error) {
+      console.error('Error updating intervention status:', error);
+      toast.error("Erreur lors de la mise à jour du statut");
       throw error;
     }
   };
 
-  const updateInterventionStatus = async (id: number, status: string): Promise<void> => {
-    try {
-      await interventionService.updateInterventionStatus(id, status);
-      queryClient.invalidateQueries({ queryKey: ['interventions'] });
-    } catch (error: any) {
-      toast({
-        title: "Erreur de mise à jour",
-        description: "Impossible de mettre à jour le statut de l'intervention",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
-
+  // Assign technician to intervention
   const assignTechnician = async (id: number, technician: string): Promise<void> => {
     try {
-      // Get the current intervention
-      const intervention = interventions.find(i => i.id === id);
-      if (!intervention) throw new Error("Intervention not found");
+      const { error } = await supabase
+        .from('interventions')
+        .update({ technician })
+        .eq('id', id);
 
-      // Update the intervention with the new technician
-      await interventionService.updateIntervention({
-        ...intervention,
-        technician
-      });
-      queryClient.invalidateQueries({ queryKey: ['interventions'] });
-    } catch (error: any) {
-      toast({
-        title: "Erreur d'assignation",
-        description: "Impossible d'assigner le technicien",
-        variant: "destructive",
-      });
+      if (error) throw error;
+
+      toast.success(`Technicien assigné : ${technician}`);
+      refetch();
+    } catch (error) {
+      console.error('Error assigning technician:', error);
+      toast.error("Erreur lors de l'assignation du technicien");
       throw error;
     }
   };
 
-  const submitInterventionReport = async (
-    intervention: Intervention,
-    reportData: InterventionReportData
-  ): Promise<void> => {
+  // Submit intervention report
+  const submitInterventionReport = async (intervention: Partial<Intervention>): Promise<void> => {
     try {
-      // Update the intervention with report data
-      const updatedIntervention = {
-        ...intervention,
-        status: 'completed',
-        duration: reportData.duration,
-        notes: reportData.notes,
-        partsUsed: reportData.partsUsed
-      };
+      const { error } = await supabase
+        .from('interventions')
+        .update(intervention)
+        .eq('id', intervention.id);
+
+      if (error) throw error;
       
-      await interventionService.updateIntervention(updatedIntervention);
-      queryClient.invalidateQueries({ queryKey: ['interventions'] });
-    } catch (error: any) {
-      toast({
-        title: "Erreur de soumission",
-        description: "Impossible de soumettre le rapport d'intervention",
-        variant: "destructive",
-      });
+      toast.success("Rapport d'intervention soumis avec succès");
+      refetch();
+    } catch (error) {
+      console.error('Error submitting intervention report:', error);
+      toast.error("Erreur lors de la soumission du rapport");
       throw error;
     }
   };
@@ -117,5 +123,3 @@ export const useInterventionsData = () => {
     submitInterventionReport
   };
 };
-
-export default useInterventionsData;

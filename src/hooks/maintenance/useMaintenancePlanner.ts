@@ -1,99 +1,149 @@
 
-import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { useMaintenancePlansService } from './services/maintenancePlansService';
-import { generateSchedule } from './utils/maintenanceScheduler';
-import { MaintenanceFormValues } from './maintenanceSlice';
+import { useState, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { addDays, addWeeks, addMonths, addYears, format } from 'date-fns';
+import { toast } from 'sonner';
+import { maintenanceService } from '@/services/supabase/maintenanceService';
 import { MaintenancePlan } from './types/maintenancePlanTypes';
-
-// Fix re-exports using 'export type'
-export type { MaintenancePlan } from './types/maintenancePlanTypes';
-export type { MaintenanceFrequency } from './types/maintenancePlanTypes';
-export type { MaintenanceUnit } from './types/maintenancePlanTypes';
-export type { MaintenanceType } from './types/maintenancePlanTypes';
-export type { MaintenancePriority } from './types/maintenancePlanTypes';
 
 export const useMaintenancePlanner = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [maintenancePlans, setMaintenancePlans] = useState<MaintenancePlan[]>([]);
-  const { toast } = useToast();
+  const queryClient = useQueryClient();
   
-  // Use the extracted service for API calls
-  const { fetchMaintenancePlans, addMaintenancePlan, updateMaintenancePlan } = useMaintenancePlansService();
-
-  /**
-   * Load maintenance plans from the database
-   */
-  const loadMaintenancePlans = async () => {
+  // Fetch all maintenance plans
+  const { data: maintenancePlans = [], refetch } = useQuery({
+    queryKey: ['maintenancePlans'],
+    queryFn: maintenanceService.getMaintenancePlans,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+  
+  // Load maintenance plans
+  const loadMaintenancePlans = useCallback(async () => {
     setIsLoading(true);
     try {
-      const plans = await fetchMaintenancePlans();
-      setMaintenancePlans(plans);
-    } catch (error: any) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger les plans de maintenance",
-        variant: "destructive",
-      });
+      await refetch();
+    } catch (error) {
+      console.error('Error loading maintenance plans:', error);
+      toast.error("Erreur lors du chargement des plans de maintenance");
     } finally {
       setIsLoading(false);
     }
-  };
-
-  /**
-   * Create a new maintenance plan
-   */
-  const createMaintenancePlan = async (plan: Omit<MaintenancePlan, 'id'>) => {
+  }, [refetch]);
+  
+  // Create a new maintenance plan
+  const createMaintenancePlan = useCallback(async (plan: Omit<MaintenancePlan, 'id'>) => {
+    setIsLoading(true);
     try {
-      const newPlan = await addMaintenancePlan(plan);
-      if (newPlan) {
-        setMaintenancePlans(prev => [...prev, newPlan]);
-      }
+      const newPlan = await maintenanceService.addMaintenancePlan(plan);
+      queryClient.invalidateQueries({ queryKey: ['maintenancePlans'] });
+      toast.success("Plan de maintenance créé avec succès");
       return newPlan;
-    } catch (error: any) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de créer le plan de maintenance",
-        variant: "destructive",
-      });
-      return null;
+    } catch (error) {
+      console.error('Error creating maintenance plan:', error);
+      toast.error("Erreur lors de la création du plan de maintenance");
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
-  };
-
-  /**
-   * Update an existing maintenance plan
-   */
-  const updatePlan = async (planId: number, updates: Partial<MaintenancePlan>) => {
+  }, [queryClient]);
+  
+  // Update maintenance plan
+  const updatePlan = useCallback(async (planId: number, updates: MaintenancePlan) => {
+    setIsLoading(true);
     try {
-      const updatedPlan = await updateMaintenancePlan(planId, updates);
-      if (updatedPlan) {
-        setMaintenancePlans(prev => 
-          prev.map(plan => plan.id === planId ? { ...plan, ...updates } : plan)
-        );
-      }
+      const updatedPlan = await maintenanceService.updateMaintenancePlan(planId, updates);
+      queryClient.invalidateQueries({ queryKey: ['maintenancePlans'] });
+      toast.success("Plan de maintenance mis à jour avec succès");
       return updatedPlan;
-    } catch (error: any) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de mettre à jour le plan de maintenance",
-        variant: "destructive",
-      });
-      return null;
+    } catch (error) {
+      console.error(`Error updating maintenance plan ${planId}:`, error);
+      toast.error("Erreur lors de la mise à jour du plan de maintenance");
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
-  };
-
-  /**
-   * Create a maintenance schedule from a plan
-   */
-  const createScheduleFromPlan = (plan: MaintenancePlan, endDate: Date) => {
-    const tasks: MaintenanceFormValues[] = [];
-    
-    generateSchedule(plan, endDate, (task: MaintenanceFormValues) => {
-      tasks.push(task);
-    });
-    
-    return tasks;
-  };
+  }, [queryClient]);
+  
+  // Create schedule from a plan for the given time period
+  const createScheduleFromPlan = useCallback(async (plan: MaintenancePlan, endDate: Date) => {
+    setIsLoading(true);
+    try {
+      let currentDate = new Date(plan.nextDueDate);
+      const tasks = [];
+      
+      while (currentDate <= endDate) {
+        // Create a task for this date
+        const task = {
+          title: plan.title,
+          notes: plan.description,
+          equipment: plan.equipmentName,
+          equipment_id: plan.equipmentId,
+          due_date: currentDate,
+          type: plan.type,
+          priority: plan.priority,
+          assigned_to: plan.assignedTo
+        };
+        
+        tasks.push(task);
+        
+        // Calculate next date based on frequency
+        switch (plan.frequency) {
+          case 'daily':
+            currentDate = addDays(currentDate, 1);
+            break;
+          case 'weekly':
+            currentDate = addWeeks(currentDate, 1);
+            break;
+          case 'monthly':
+            currentDate = addMonths(currentDate, 1);
+            break;
+          case 'quarterly':
+            currentDate = addMonths(currentDate, 3);
+            break;
+          case 'biannual':
+            currentDate = addMonths(currentDate, 6);
+            break;
+          case 'yearly':
+            currentDate = addYears(currentDate, 1);
+            break;
+          case 'custom':
+            switch (plan.unit) {
+              case 'days':
+                currentDate = addDays(currentDate, plan.interval);
+                break;
+              case 'weeks':
+                currentDate = addWeeks(currentDate, plan.interval);
+                break;
+              case 'months':
+                currentDate = addMonths(currentDate, plan.interval);
+                break;
+              case 'years':
+                currentDate = addYears(currentDate, plan.interval);
+                break;
+              default:
+                currentDate = addDays(currentDate, plan.interval);
+            }
+            break;
+          default:
+            currentDate = addMonths(currentDate, 1); // Default to monthly
+        }
+      }
+      
+      // Create tasks in bulk
+      for (const task of tasks) {
+        await maintenanceService.addTask(task);
+      }
+      
+      queryClient.invalidateQueries({ queryKey: ['maintenanceTasks'] });
+      toast.success(`${tasks.length} tâches de maintenance créées jusqu'à ${format(endDate, 'dd/MM/yyyy')}`);
+    } catch (error) {
+      console.error('Error creating schedule from plan:', error);
+      toast.error("Erreur lors de la création du planning de maintenance");
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [queryClient]);
 
   return {
     isLoading,
@@ -101,6 +151,6 @@ export const useMaintenancePlanner = () => {
     loadMaintenancePlans,
     createMaintenancePlan,
     updatePlan,
-    createScheduleFromPlan,
+    createScheduleFromPlan
   };
 };

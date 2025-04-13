@@ -1,96 +1,41 @@
 
 import { useState, useCallback } from 'react';
-import { toast } from 'sonner';
-import { Intervention, InterventionFormValues } from '@/types/Intervention';
 import { useInterventionsData } from './useInterventionsData';
-import { useQueryClient } from '@tanstack/react-query';
+import { InterventionFormValues } from '@/types/Intervention';
+import { toast } from 'sonner';
 
 interface UseInterventionFormHandlersProps {
-  onClose: () => void;
+  onClose?: () => void;
 }
 
-/**
- * Hook personnalisé pour gérer les actions des formulaires d'intervention
- * - Séparation des préoccupations
- * - Réutilisation facile
- * - Gestion d'état optimisée
- */
-export function useInterventionFormHandlers({ onClose }: UseInterventionFormHandlersProps) {
+export const useInterventionFormHandlers = ({ onClose }: UseInterventionFormHandlersProps = {}) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Get the intervention data methods
   const { 
     createIntervention, 
     updateInterventionStatus, 
     submitInterventionReport 
   } = useInterventionsData();
-  const queryClient = useQueryClient();
   
-  /**
-   * Créer une nouvelle intervention
-   */
-  const handleCreateIntervention = useCallback(async (values: InterventionFormValues) => {
+  const handleCreateIntervention = useCallback(async (formData: InterventionFormValues) => {
     setIsSubmitting(true);
-    
     try {
-      console.log('Creating new intervention with data:', values);
-      await createIntervention(values);
+      await createIntervention(formData);
       toast.success('Intervention créée avec succès');
-      queryClient.invalidateQueries({ queryKey: ['interventions'] });
-      onClose();
+      if (onClose) onClose();
       return Promise.resolve();
-    } catch (error: any) {
-      toast.error(`Erreur lors de la création: ${error.message}`);
-      console.error('Intervention creation error:', error);
+    } catch (error) {
+      console.error('Error creating intervention:', error);
+      toast.error("Erreur lors de la création de l'intervention");
       return Promise.reject(error);
     } finally {
       setIsSubmitting(false);
     }
-  }, [createIntervention, queryClient, onClose]);
-  
-  /**
-   * Démarrer une intervention
-   */
-  const handleStartIntervention = useCallback((intervention: Intervention) => {
-    setIsSubmitting(true);
-    
-    try {
-      updateInterventionStatus(intervention.id, 'in-progress');
-      toast.success(`Intervention "${intervention.title}" démarrée`);
-    } catch (error: any) {
-      toast.error(`Erreur lors du démarrage: ${error.message}`);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [updateInterventionStatus]);
-  
-  /**
-   * Soumettre un rapport d'intervention
-   */
-  const handleSubmitReport = useCallback((
-    intervention: Intervention, 
-    reportData: {
-      duration: number;
-      notes: string;
-      partsUsed: Array<{ id: number; name: string; quantity: number; }>;
-    }
-  ) => {
-    setIsSubmitting(true);
-    
-    try {
-      submitInterventionReport(intervention, reportData);
-      toast.success(`Rapport d'intervention soumis avec succès`);
-      queryClient.invalidateQueries({ queryKey: ['interventions'] });
-      onClose();
-    } catch (error: any) {
-      toast.error(`Erreur lors de la soumission du rapport: ${error.message}`);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [submitInterventionReport, queryClient, onClose]);
+  }, [createIntervention, onClose]);
   
   return {
     isSubmitting,
-    handleCreateIntervention,
-    handleStartIntervention,
-    handleSubmitReport
+    handleCreateIntervention
   };
-}
+};

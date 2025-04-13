@@ -1,53 +1,40 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { maintenanceService } from '@/services/supabase/maintenanceService';
-import { MaintenancePlan } from '@/hooks/maintenance/useMaintenancePlanner';
-import { useQueryClient } from '@tanstack/react-query';
+import { MaintenancePlan } from '@/hooks/maintenance/types/maintenancePlanTypes';
+import { toast } from 'sonner';
 
-export function useMaintenancePlans(id: string | undefined, equipment: any | null) {
-  const [maintenancePlans, setMaintenancePlans] = useState<MaintenancePlan[]>([]);
+export const useMaintenancePlans = (equipmentId: string | undefined) => {
+  const [plans, setPlans] = useState<MaintenancePlan[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const queryClient = useQueryClient();
-  
-  const fetchMaintenancePlans = useCallback(async () => {
-    if (!id || !equipment) {
-      console.log('No ID or equipment provided for maintenance plans');
-      setLoading(false);
-      return;
-    }
-    
-    try {
-      console.log(`Fetching maintenance plans for equipment ID ${id} (${equipment.name})`);
-      setLoading(true);
-      setError(null);
-      
-      // Récupérer les plans de maintenance pour cet équipement
-      const plans = await maintenanceService.getMaintenancePlansForEquipment(Number(id));
-      
-      console.log('Maintenance plans for this equipment:', plans);
-      setMaintenancePlans(plans);
-    } catch (err: any) {
-      console.error('Error fetching maintenance plans:', err);
-      setError(err.message || "Erreur lors de la récupération des plans de maintenance");
-      // Ne pas bloquer le chargement de l'équipement si les plans ne sont pas disponibles
-      setMaintenancePlans([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [id, equipment]);
+  const [error, setError] = useState<Error | null>(null);
   
   useEffect(() => {
-    fetchMaintenancePlans();
-  }, [fetchMaintenancePlans]);
-
-  const refresh = useCallback(() => {
-    console.log('Refreshing maintenance plans...');
-    setLoading(true);
-    // Invalider le cache pour forcer un rechargement des données
-    queryClient.invalidateQueries({ queryKey: ['maintenancePlans'] });
-    fetchMaintenancePlans();
-  }, [fetchMaintenancePlans, queryClient]);
-
-  return { maintenancePlans, loading, error, refresh };
-}
+    const fetchPlans = async () => {
+      if (!equipmentId) return;
+      
+      try {
+        setLoading(true);
+        const numericId = parseInt(equipmentId, 10);
+        
+        // Call the service to get maintenance plans for this equipment
+        const equipmentPlans = await maintenanceService.getMaintenancePlansForEquipment(numericId);
+        setPlans(equipmentPlans);
+      } catch (err: any) {
+        console.error('Error fetching maintenance plans:', err);
+        setError(err instanceof Error ? err : new Error(err.message));
+        toast.error('Erreur lors du chargement des plans de maintenance');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchPlans();
+  }, [equipmentId]);
+  
+  return {
+    plans,
+    loading,
+    error
+  };
+};
