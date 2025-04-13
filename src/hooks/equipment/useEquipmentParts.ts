@@ -17,6 +17,7 @@ export function useEquipmentParts(equipment: Equipment) {
   const [selectedPart, setSelectedPart] = useState<Part | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddPartDialogOpen, setIsAddPartDialogOpen] = useState(false);
+  const [isUsingDemoData, setIsUsingDemoData] = useState(false);
   const { toast: uiToast } = useToast();
   const queryClient = useQueryClient();
   
@@ -28,16 +29,23 @@ export function useEquipmentParts(equipment: Equipment) {
       try {
         setLoading(true);
         setError(null);
+        setIsUsingDemoData(false);
         
         console.log('Fetching parts for equipment ID:', equipment.id);
         // Charger les pièces associées à cet équipement
         const equipmentParts = await getPartsForEquipment(equipment.id);
         console.log('Fetched parts:', equipmentParts);
         
+        // Vérifier si nous utilisons des données de démo
+        if (equipmentParts.length > 0 && equipmentParts[0] === partsData[0]) {
+          setIsUsingDemoData(true);
+        }
+        
         setParts(equipmentParts);
       } catch (err: any) {
         console.error('Error fetching parts:', err);
         setError(err.message || 'Impossible de charger les pièces');
+        setIsUsingDemoData(true);
         sonnerToast.error("Erreur de chargement", {
           description: "Utilisation des données de démonstration"
         });
@@ -131,6 +139,19 @@ export function useEquipmentParts(equipment: Equipment) {
   const handleAddPart = () => {
     setIsAddPartDialogOpen(true);
   };
+  
+  const debugPartData = () => {
+    console.log('==== DEBUG: PARTS DATA ====');
+    console.log('Equipment ID:', equipment.id);
+    console.log('Parts count:', parts.length);
+    console.log('Using demo data:', isUsingDemoData);
+    console.log('Parts array:', parts);
+    console.log('========================');
+    
+    sonnerToast.info("Débogage", {
+      description: `${parts.length} pièces dans la console`
+    });
+  };
 
   return {
     parts: filteredParts,
@@ -147,6 +168,8 @@ export function useEquipmentParts(equipment: Equipment) {
     handlePartUpdated,
     handleDeletePart,
     handleAddPart,
-    isUpdating: updatePartMutation.isPending
+    isUpdating: updatePartMutation.isPending,
+    isUsingDemoData,
+    debugPartData
   };
 }

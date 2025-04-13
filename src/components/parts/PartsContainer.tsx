@@ -10,6 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import FilterSortDialogs from './dialogs/FilterSortDialogs';
 import PartDetailsDialog from './dialogs/PartDetailsDialog';
 import { Button } from '@/components/ui/button';
+import { InfoCircledIcon } from '@radix-ui/react-icons';
 
 interface PartsContainerProps {
   parts: Part[];
@@ -66,6 +67,9 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
   setIsAddPartDialogOpen,
   refetch
 }) => {
+  // Vérifier si nous utilisons des données de démo
+  const isUsingDemoData = parts.length > 0 && parts[0].id === 'demo-1';
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] bg-background/80">
@@ -100,6 +104,16 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
   return (
     <div className="space-y-4">
       <Card className="p-6">
+        {isUsingDemoData && (
+          <Alert variant="warning" className="mb-4">
+            <InfoCircledIcon className="h-4 w-4" />
+            <AlertTitle>Données de démonstration</AlertTitle>
+            <AlertDescription>
+              Vous visualisez actuellement des données de démonstration, pas des données réelles de la base de données.
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <PartsHeader
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}

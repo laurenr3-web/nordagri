@@ -12,6 +12,10 @@ import EquipmentPartsTable from './parts/EquipmentPartsTable';
 import EquipmentPartsLowStockWarning from './parts/EquipmentPartsLowStockWarning';
 import EquipmentPartsAssociation from './parts/EquipmentPartsAssociation';
 import AddPartDialog from '@/components/parts/dialogs/AddPartDialog';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { InfoCircledIcon } from '@radix-ui/react-icons';
+import { Button } from '@/components/ui/button';
+import { Bug } from 'lucide-react';
 
 interface EquipmentPartsProps {
   equipment: Equipment;
@@ -33,7 +37,9 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = ({ equipment }) => {
     handlePartUpdated,
     handleAddPart,
     handleDeletePart,
-    isUpdating
+    isUpdating,
+    isUsingDemoData,
+    debugPartData
   } = useEquipmentParts(equipment);
 
   if (loading) {
@@ -46,14 +52,37 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = ({ equipment }) => {
 
   return (
     <Card>
-      <CardHeader>
-        <EquipmentPartsHeader 
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          onAddPart={handleAddPart}
-        />
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div className="flex-1">
+          <EquipmentPartsHeader 
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            onAddPart={handleAddPart}
+          />
+        </div>
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={debugPartData}
+          className="ml-2"
+        >
+          <Bug className="h-4 w-4 mr-1" />
+          Déboguer
+        </Button>
       </CardHeader>
       <CardContent>
+        {/* Indicateur de données de démonstration */}
+        {isUsingDemoData && (
+          <Alert variant="warning" className="mb-4">
+            <InfoCircledIcon className="h-4 w-4" />
+            <AlertTitle>Données de démonstration</AlertTitle>
+            <AlertDescription>
+              Vous visualisez actuellement des données de démonstration, pas des données réelles de la base de données.
+            </AlertDescription>
+          </Alert>
+        )}
+        
         {/* Section d'association */}
         <EquipmentPartsAssociation 
           equipment={equipment}
