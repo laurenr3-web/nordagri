@@ -4,7 +4,47 @@ import { fr } from 'date-fns/locale';
 import { maintenanceService } from '@/services/supabase/maintenanceService';
 import { MaintenanceTask } from '@/hooks/maintenance/maintenanceSlice';
 import { MaintenancePlan } from '@/hooks/maintenance/types/maintenancePlanTypes';
-import { mapMaintenancePlanToViewModel } from '../adapters/maintenanceTypeAdapters';
+
+// Utility function to convert from snake_case to camelCase for view models
+const toCamelCase = (obj: any) => {
+  if (obj === null || typeof obj !== 'object') return obj;
+  
+  // Handle array
+  if (Array.isArray(obj)) return obj.map(toCamelCase);
+  
+  const result: any = {};
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+      result[camelKey] = toCamelCase(obj[key]);
+    }
+  }
+  return result;
+};
+
+// Function to map a maintenance plan to its view model format
+const mapMaintenancePlanToViewModel = (plan: any) => {
+  // Handle both snake_case and camelCase properties
+  return {
+    id: plan.id,
+    title: plan.title,
+    description: plan.description,
+    equipmentId: plan.equipmentId || plan.equipment_id,
+    equipmentName: plan.equipmentName || plan.equipment_name,
+    frequency: plan.frequency,
+    interval: plan.interval,
+    unit: plan.unit,
+    nextDueDate: plan.nextDueDate instanceof Date ? plan.nextDueDate : 
+                new Date(plan.nextDueDate || plan.next_due_date),
+    lastPerformedDate: plan.lastPerformedDate || plan.last_performed_date ? 
+                       new Date(plan.lastPerformedDate || plan.last_performed_date) : null,
+    type: plan.type,
+    engineHours: plan.engineHours || plan.engine_hours,
+    active: plan.active,
+    priority: plan.priority,
+    assignedTo: plan.assignedTo || plan.assigned_to
+  };
+};
 
 /**
  * Create scheduled tasks from a maintenance plan up to a certain end date
@@ -30,7 +70,7 @@ export const createTasksFromPlan = async (
         priority: viewModel.priority,
         status: 'scheduled' as const,
         due_date: currentDate.toISOString(),
-        engine_hours: viewModel.engineHours,
+        estimated_duration: viewModel.engineHours,
         assigned_to: viewModel.assignedTo || '',
       };
       
@@ -46,7 +86,7 @@ export const createTasksFromPlan = async (
           status: newTask.status as any,
           priority: newTask.priority as any,
           dueDate: new Date(newTask.due_date),
-          engineHours: newTask.engine_hours || newTask.estimated_duration || 0,
+          engineHours: newTask.estimated_duration || 0,
           assignedTo: newTask.assigned_to || '',
           notes: newTask.notes || ''
         });

@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react';
 import { useInterventionsData } from './useInterventionsData';
 import { InterventionFormValues } from '@/types/models/intervention';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface UseInterventionFormHandlersProps {
   onClose?: () => void;
@@ -10,13 +11,13 @@ interface UseInterventionFormHandlersProps {
 
 export const useInterventionFormHandlers = ({ onClose }: UseInterventionFormHandlersProps = {}) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
   
   // Get the intervention data methods
   const { 
     createIntervention, 
     updateInterventionStatus, 
-    submitInterventionReport,
-    refetch
+    submitInterventionReport
   } = useInterventionsData();
   
   const handleCreateIntervention = useCallback(async (formData: InterventionFormValues) => {
@@ -33,6 +34,8 @@ export const useInterventionFormHandlers = ({ onClose }: UseInterventionFormHand
       
       await createIntervention(apiFormData);
       toast.success('Intervention créée avec succès');
+      // Refresh data after creation
+      queryClient.invalidateQueries({ queryKey: ['interventions'] });
       if (onClose) onClose();
       return Promise.resolve();
     } catch (error) {
@@ -42,7 +45,7 @@ export const useInterventionFormHandlers = ({ onClose }: UseInterventionFormHand
     } finally {
       setIsSubmitting(false);
     }
-  }, [createIntervention, onClose]);
+  }, [createIntervention, onClose, queryClient]);
   
   return {
     isSubmitting,

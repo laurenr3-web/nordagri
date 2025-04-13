@@ -20,6 +20,8 @@ export const loadingIntervention = {
 export const useInterventionsData = () => {
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [interventions, setInterventions] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   const createIntervention = async (formData: InterventionFormValues & { equipment_id?: number }) => {
     setIsSubmitting(true);
@@ -32,7 +34,7 @@ export const useInterventionsData = () => {
         equipment_id: formData.equipment_id || formData.equipmentId,
         status: formData.status || 'scheduled',
         priority: formData.priority || 'medium',
-        date: formData.date instanceof Date ? formData.date.toISOString() : formData.date.toString(),
+        date: formData.date instanceof Date ? formData.date.toISOString() : String(formData.date),
         location: formData.location,
         technician: formData.technician || '',
         description: formData.description,
@@ -40,10 +42,15 @@ export const useInterventionsData = () => {
         scheduled_duration: formData.scheduledDuration
       };
       
+      // Ensure date is not undefined for the database insertion
+      if (!interventionData.date) {
+        interventionData.date = new Date().toISOString();
+      }
+      
       // Insert the intervention into the database
       const { data, error } = await supabase
         .from('interventions')
-        .insert(interventionData)
+        .insert(interventionData as any)
         .select('*')
         .single();
         
@@ -126,11 +133,33 @@ export const useInterventionsData = () => {
     }
   };
 
+  const fetchInterventions = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('interventions')
+        .select('*');
+        
+      if (error) throw error;
+      setInterventions(data || []);
+      return data;
+    } catch (error) {
+      console.error('Error fetching interventions:', error);
+      toast.error('Erreur lors du chargement des interventions');
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     isSubmitting,
     createIntervention,
     updateInterventionStatus,
     assignTechnician,
-    submitInterventionReport
+    submitInterventionReport,
+    interventions,
+    isLoading,
+    fetchInterventions
   };
 };

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Dialog, 
@@ -54,12 +53,11 @@ Durée: ${actualDuration} heures
 ${userName ? `Technicien: ${userName}` : ''}
 Notes de complétion: ${completionNotes}`;
       
-      // Call service to complete the task
-      await maintenanceService.completeTask(
-        task.id, 
-        parseFloat(actualDuration),
+      // Call service to complete the task - Fix by passing only the expected arguments
+      await maintenanceService.completeTask(task.id, {
+        actualDuration: parseFloat(actualDuration),
         notes
-      );
+      });
       
       toast.success("Tâche de maintenance marquée comme terminée");
       onCompleted();

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { toast } from "@/hooks/use-toast";
+import { useQuery } from '@tanstack/react-query';
 
 // Import specialized hooks
 import { useStatsData } from './useStatsData';
@@ -9,7 +10,7 @@ import { useEquipmentData } from './useEquipmentData';
 import { useMaintenanceData } from './useMaintenanceData';
 import { useAlertsData } from './useAlertsData';
 import { useTasksData } from './useTasksData';
-import { useInterventionsData } from '@/hooks/interventions/useInterventionsData';
+import { interventionService } from '@/services/supabase/interventionService';
 import { usePartsData } from '@/hooks/parts/usePartsData';
 
 // Import utility functions
@@ -30,12 +31,16 @@ export const useDashboardData = () => {
   const { alertItems } = useAlertsData(user);
   const { upcomingTasks } = useTasksData(user);
   
-  // New data fetching for additional dashboard features
-  const interventionsResult = useInterventionsData();
+  // Use React Query to fetch interventions
+  const { data: interventions = [], isLoading: isLoadingInterventions } = useQuery({
+    queryKey: ['interventions'],
+    queryFn: () => interventionService.getInterventions(),
+    enabled: !!user
+  });
+  
   const partsResult = usePartsData();
   
-  // Get the actual data from the query results
-  const interventions = interventionsResult.interventions || [];
+  // Get the actual parts data
   const parts = partsResult.data || [];
 
   // Derive urgent interventions from interventions data
@@ -56,18 +61,19 @@ export const useDashboardData = () => {
 
   useEffect(() => {
     const isAllDataLoaded = 
-      statsData.length > 0 || 
+      !isLoadingInterventions &&
+      (statsData.length > 0 || 
       equipmentData.length > 0 || 
       maintenanceEvents.length > 0 || 
       alertItems.length > 0 || 
       upcomingTasks.length > 0 ||
       interventions.length > 0 ||
-      parts.length > 0;
+      parts.length > 0);
 
     if (isAllDataLoaded) {
       setLoading(false);
     }
-  }, [statsData, equipmentData, maintenanceEvents, alertItems, upcomingTasks, interventions, parts]);
+  }, [statsData, equipmentData, maintenanceEvents, alertItems, upcomingTasks, interventions, parts, isLoadingInterventions]);
 
   useEffect(() => {
     if (!user && !loading) {

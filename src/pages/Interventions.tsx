@@ -4,18 +4,22 @@ import InterventionsHeader from '@/components/interventions/InterventionsHeader'
 import InterventionsContainer from '@/components/interventions/InterventionsContainer';
 import { useInterventionsState } from '@/hooks/interventions/useInterventionsState';
 import { useInterventionsHandlers } from '@/hooks/interventions/useInterventionsHandlers';
-import { useInterventionsData } from '@/hooks/interventions/useInterventionsData';
 import InterventionDetailsDialog from '@/components/interventions/InterventionDetailsDialog';
 import { toast } from 'sonner';
 import InterventionsDialogs from '@/components/interventions/InterventionsDialogs';
 import { useQueryClient } from '@tanstack/react-query';
 import { InterventionFormValues } from '@/types/models/intervention';
+import { useQuery } from '@tanstack/react-query';
+import { interventionService } from '@/services/supabase/interventionService';
 
 const InterventionsPage = () => {
   const queryClient = useQueryClient();
   
-  // Utiliser le hook pour récupérer les données des interventions depuis Supabase
-  const { interventions, isLoading } = useInterventionsData();
+  // Use React Query to fetch interventions
+  const { data: interventions = [], isLoading } = useQuery({
+    queryKey: ['interventions'],
+    queryFn: () => interventionService.getInterventions()
+  });
   
   // État pour le dialogue de nouvelle intervention
   const [isNewInterventionDialogOpen, setIsNewInterventionDialogOpen] = useState(false);
