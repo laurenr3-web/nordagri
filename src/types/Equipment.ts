@@ -1,4 +1,5 @@
 
+// Export Equipment interface explicitly
 export type EquipmentStatus = 'operational' | 'maintenance' | 'repair' | 'inactive';
 
 export interface Equipment {

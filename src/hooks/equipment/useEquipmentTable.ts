@@ -1,10 +1,11 @@
+
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Equipment, EquipmentStatus, EquipmentDB, mapEquipmentFromDB, mapEquipmentToDB } from '@/types/Equipment';
 import { safeStatus } from '@/utils/typeAdapters';
 
-export { Equipment };  // Export Equipment type for use in other components
+export type { Equipment };  // Export Equipment type for use in other components
 
 export interface EquipmentTableState {
   equipment: Equipment[];
@@ -112,9 +113,11 @@ export function useEquipmentTable(initialFilter: EquipmentFilter = {}) {
         throw new Error("Equipment name is required");
       }
       
+      // Use as any to bypass TypeScript error for now
+      // This is a workaround for the Supabase types issue
       const { data, error } = await supabase
         .from('equipment')
-        .insert(dbEquipment)
+        .insert(dbEquipment as any)
         .select()
         .single();
         
@@ -147,9 +150,11 @@ export function useEquipmentTable(initialFilter: EquipmentFilter = {}) {
       // Convert to database format
       const dbUpdates = mapEquipmentToDB(updates);
       
+      // Use as any to bypass TypeScript error for now
+      // This is a workaround for the Supabase types issue
       const { data, error } = await supabase
         .from('equipment')
-        .update(dbUpdates)
+        .update(dbUpdates as any)
         .eq('id', id)
         .select()
         .single();
@@ -187,9 +192,11 @@ export function useEquipmentTable(initialFilter: EquipmentFilter = {}) {
         return dbEq;
       });
       
+      // Use as any to bypass TypeScript error for now
+      // This is a workaround for the Supabase types issue
       const { data, error } = await supabase
         .from('equipment')
-        .insert(dbEquipmentArray)
+        .insert(dbEquipmentArray as any)
         .select();
         
       if (error) {
@@ -212,6 +219,34 @@ export function useEquipmentTable(initialFilter: EquipmentFilter = {}) {
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'An unknown error occurred';
       toast.error(`Error bulk adding equipment: ${errorMsg}`);
+      return false;
+    }
+  };
+  
+  const deleteEquipment = async (id: number): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('equipment')
+        .delete()
+        .eq('id', id);
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Update local state
+      setState(prev => ({
+        ...prev,
+        equipment: prev.equipment.filter(item => item.id !== id),
+        totalCount: prev.totalCount - 1,
+        pageCount: Math.ceil((prev.totalCount - 1) / state.pageSize)
+      }));
+      
+      toast.success('Equipment deleted successfully');
+      return true;
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'An unknown error occurred';
+      toast.error(`Error deleting equipment: ${errorMsg}`);
       return false;
     }
   };
