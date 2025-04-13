@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Equipment } from '@/services/supabase/equipmentService';
 import { Part } from '@/types/Part';
@@ -6,6 +5,7 @@ import { getPartsForEquipment } from '@/services/supabase/parts/getPartsForEquip
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUpdatePart, useDeletePart } from '@/hooks/parts';
+import { partsData } from '@/data/partsData';
 
 export function useEquipmentParts(equipment: Equipment) {
   const [parts, setParts] = useState<Part[]>([]);
@@ -38,9 +38,12 @@ export function useEquipmentParts(equipment: Equipment) {
         setError(err.message || 'Impossible de charger les pièces');
         toast({
           title: "Erreur de chargement",
-          description: err.message || 'Impossible de charger les pièces compatibles',
+          description: "Utilisation des données de démonstration",
           variant: "destructive",
         });
+        // Utiliser des données de démonstration en cas d'erreur
+        const filteredMockData = partsData.filter((part, index) => index % 2 === 0);
+        setParts(filteredMockData);
       } finally {
         setLoading(false);
       }
