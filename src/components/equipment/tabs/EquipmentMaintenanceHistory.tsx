@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
@@ -10,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { maintenanceService } from '@/services/supabase/maintenanceService';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { Separator } from '@/components/ui/separator';
-import { MaintenanceTask } from '@/services/supabase/maintenanceService';
 import { Button } from '@/components/ui/button';
 
 interface EquipmentMaintenanceHistoryProps {
@@ -20,7 +18,7 @@ interface EquipmentMaintenanceHistoryProps {
 const EquipmentMaintenanceHistory: React.FC<EquipmentMaintenanceHistoryProps> = ({ equipment }) => {
   const { id } = useParams<{ id: string }>();
   const [loading, setLoading] = useState(true);
-  const [completedTasks, setCompletedTasks] = useState<MaintenanceTask[]>([]);
+  const [completedTasks, setCompletedTasks] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('all');
 
   useEffect(() => {

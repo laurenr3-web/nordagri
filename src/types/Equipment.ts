@@ -1,6 +1,6 @@
 
 // Re-export from the new centralized models
-export { 
+export type { 
   EquipmentStatus,
   Equipment,
   EquipmentFilter,

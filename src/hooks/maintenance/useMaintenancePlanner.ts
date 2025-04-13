@@ -3,6 +3,12 @@ import { useState, useCallback } from 'react';
 import { maintenanceService } from '@/services/supabase/maintenanceService';
 import { toast } from 'sonner';
 import { 
+  MaintenancePlan as TypesMaintenancePlan,
+  MaintenanceStatus,
+  MaintenancePriority,
+  MaintenanceType
+} from '@/types/models/maintenance';
+import { 
   MaintenancePlan, 
   MaintenancePlanViewModel,
   dbToViewModel,
@@ -29,7 +35,8 @@ export const useMaintenancePlanner = () => {
     setIsLoading(true);
     try {
       const plans = await maintenanceService.getMaintenancePlans();
-      const viewModels = plans.map(dbToViewModel);
+      // Type cast the DB plans to the format expected by dbToViewModel
+      const viewModels = plans.map((plan: any) => dbToViewModel(plan as MaintenancePlan));
       setMaintenancePlans(viewModels);
     } catch (error) {
       console.error('Error loading maintenance plans:', error);
@@ -44,7 +51,7 @@ export const useMaintenancePlanner = () => {
     setIsLoading(true);
     try {
       // Convert from ViewModel to DB model
-      const dbPlan: Omit<MaintenancePlan, "id"> = {
+      const dbPlan: any = {
         title: plan.title,
         description: plan.description,
         equipment_id: plan.equipmentId,
@@ -62,7 +69,8 @@ export const useMaintenancePlanner = () => {
       };
       
       const newPlan = await maintenanceService.addMaintenancePlan(dbPlan);
-      const newViewModel = dbToViewModel(newPlan);
+      // Type cast the DB response to the format expected by dbToViewModel
+      const newViewModel = dbToViewModel(newPlan as MaintenancePlan);
       setMaintenancePlans(prev => [...prev, newViewModel]);
       toast.success('Maintenance plan created successfully');
       return newViewModel;
@@ -79,8 +87,8 @@ export const useMaintenancePlanner = () => {
   const updatePlan = useCallback(async (planId: number, updates: Partial<MaintenancePlanViewModel>) => {
     setIsLoading(true);
     try {
-      // Convert updates from ViewModel to DB model format
-      const dbUpdates: Partial<MaintenancePlan> = {};
+      // Convert updates from ViewModel to DB model format 
+      const dbUpdates: any = {};
       
       if (updates.title !== undefined) dbUpdates.title = updates.title;
       if (updates.description !== undefined) dbUpdates.description = updates.description;
@@ -103,13 +111,14 @@ export const useMaintenancePlanner = () => {
       const updated = await maintenanceService.updateMaintenancePlan(planId, dbUpdates);
       
       if (updated) {
-        const updatedViewModel = dbToViewModel(updated);
+        // Type cast the DB response to the format expected by dbToViewModel
+        const updatedViewModel = dbToViewModel(updated as MaintenancePlan);
         setMaintenancePlans(prev => 
           prev.map(plan => plan.id === planId ? updatedViewModel : plan)
         );
       }
       toast.success('Maintenance plan updated successfully');
-      return updated ? dbToViewModel(updated) : null;
+      return updated ? dbToViewModel(updated as MaintenancePlan) : null;
     } catch (error) {
       console.error('Error updating maintenance plan:', error);
       toast.error('Error updating maintenance plan');
@@ -132,9 +141,9 @@ export const useMaintenancePlanner = () => {
         equipment: plan.equipmentName,
         equipment_id: plan.equipmentId,
         due_date: plan.nextDueDate.toISOString(),
-        status: 'pending',
+        status: 'pending' as MaintenanceStatus,
         priority: plan.priority,
-        type: plan.type,
+        type: plan.type as MaintenanceType,
         assigned_to: plan.assignedTo
       };
       

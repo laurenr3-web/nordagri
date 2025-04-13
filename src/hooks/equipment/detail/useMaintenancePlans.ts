@@ -1,11 +1,10 @@
 
 import { useState, useEffect } from 'react';
 import { maintenanceService } from '@/services/supabase/maintenanceService';
-import { MaintenancePlan } from '@/hooks/maintenance/types/maintenancePlanTypes';
 import { toast } from 'sonner';
 
 export const useMaintenancePlans = (equipmentId: string | undefined) => {
-  const [plans, setPlans] = useState<MaintenancePlan[]>([]);
+  const [plans, setPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   

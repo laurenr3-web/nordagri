@@ -52,6 +52,7 @@ export interface InterventionFormValues {
   title: string;
   equipment: string;
   equipmentId: number;
+  equipment_id?: number; // For compatibility with API
   location: string;
   priority: InterventionPriority;
   date: Date;

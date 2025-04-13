@@ -16,7 +16,7 @@ import { formatDate, getStatusBadge, getPriorityColor } from './maintenance/main
 import MaintenanceQuoteDialog from './maintenance/MaintenanceQuoteDialog';
 import MaintenanceCompletionDialog from '@/components/maintenance/dialogs/MaintenanceCompletionDialog';
 import MaintenancePlanDialog from '@/components/maintenance/dialogs/MaintenancePlanDialog';
-import { MaintenanceFormValues } from '@/hooks/maintenance/types/maintenancePlanTypes';
+import { MaintenanceStatus } from '@/types/models/maintenance';
 
 interface EquipmentMaintenanceProps {
   equipment: any;
@@ -64,14 +64,14 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
       setLoading(true);
       
       // Prepare the data for the API
-      const maintenanceTask: MaintenanceFormValues = {
+      const maintenanceTask = {
         title: maintenance.title,
         equipment_id: equipment.id,
         equipment: equipment.name,
         type: maintenance.type,
-        status: 'scheduled',
+        status: 'scheduled' as MaintenanceStatus,
         priority: maintenance.priority,
-        due_date: maintenance.dueDate,
+        due_date: maintenance.dueDate instanceof Date ? maintenance.dueDate.toISOString() : maintenance.dueDate,
         estimated_duration: maintenance.engineHours,
         assigned_to: maintenance.assignedTo || '',
         notes: maintenance.notes || ''

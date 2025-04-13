@@ -2,7 +2,7 @@
 import React from 'react';
 import NewInterventionDialog from './NewInterventionDialog';
 import InterventionDetailsDialog from './InterventionDetailsDialog';
-import { Intervention, InterventionFormValues } from '@/types/Intervention';
+import { Intervention, InterventionFormValues } from '@/types/models/intervention';
 import { useInterventionsData } from '@/hooks/interventions/useInterventionsData';
 import { useEquipmentOptions } from '@/hooks/equipment/useEquipmentOptions';
 import { toast } from 'sonner';
@@ -47,7 +47,13 @@ const InterventionsDialogs: React.FC<InterventionsDialogsProps> = ({
   // Wrapper pour la création d'intervention qui utilise notre service
   const handleCreateIntervention = async (values: InterventionFormValues) => {
     try {
-      await createIntervention(values);
+      // Make sure we have the equipment_id property
+      const apiValues = {
+        ...values,
+        equipment_id: values.equipmentId
+      };
+      
+      await createIntervention(apiValues as any);
       toast.success("Intervention créée avec succès");
       // Appeler le onCreate du parent pour mettre à jour l'UI
       await onCreate(values);

@@ -14,7 +14,7 @@ export type MaintenancePriority = 'low' | 'medium' | 'high' | 'critical';
 /**
  * Maintenance type
  */
-export type MaintenanceType = 'preventive' | 'corrective' | 'condition-based';
+export type MaintenanceType = 'preventive' | 'corrective' | 'condition-based' | 'predictive' | 'inspection' | 'other';
 
 /**
  * Maintenance frequency type
@@ -75,11 +75,16 @@ export interface MaintenanceFormValues {
   title: string;
   equipment: string;
   equipmentId: number;
+  equipment_id?: number; // For compatibility with API
   type: MaintenanceType;
   priority: MaintenancePriority;
   dueDate: Date;
+  due_date?: string; // For compatibility with API
   engineHours: number;
+  engine_hours?: number; // For compatibility with API
+  estimated_duration?: number; // For compatibility with API
   assignedTo?: string;
+  assigned_to?: string; // For compatibility with API
   notes?: string;
   status?: MaintenanceStatus;
 }
@@ -92,17 +97,23 @@ export interface MaintenancePlan extends BaseEntity {
   title: string;
   description?: string;
   equipmentId: number;
+  equipment_id?: number; // For compatibility with API
   equipmentName: string;
+  equipment_name?: string; // For compatibility with API
   frequency: MaintenanceFrequency;
   interval: number;
   unit: MaintenanceUnit;
   nextDueDate: Date;
+  next_due_date?: string; // For compatibility with API
   lastPerformedDate?: Date | null;
+  last_performed_date?: string; // For compatibility with API
   type: MaintenanceType;
   engineHours?: number;
+  engine_hours?: number; // For compatibility with API
   active: boolean;
   priority: MaintenancePriority;
   assignedTo?: string;
+  assigned_to?: string; // For compatibility with API
 }
 
 /**

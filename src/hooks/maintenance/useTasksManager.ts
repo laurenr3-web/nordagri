@@ -1,9 +1,9 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { MaintenanceTask as ModelMaintenanceTask } from './maintenanceSlice';
-import { maintenanceService, MaintenanceTask as ServiceMaintenanceTask } from '@/services/supabase/maintenanceService';
-import { adaptServiceTaskToModelTask } from './adapters/maintenanceTypeAdapters';
+import { MaintenanceStatus, MaintenancePriority, MaintenanceTask as ModelMaintenanceTask } from '@/hooks/maintenance/maintenanceSlice';
+import { maintenanceService } from '@/services/supabase/maintenanceService';
+import { adaptServiceTaskToModelTask, adaptModelTaskToServiceTask } from './adapters/maintenanceTypeAdapters';
 
 export function useTasksManager(initialTasks?: ModelMaintenanceTask[]) {
   const [tasks, setTasks] = useState<ModelMaintenanceTask[]>(initialTasks || []);
@@ -27,7 +27,7 @@ export function useTasksManager(initialTasks?: ModelMaintenanceTask[]) {
         
         console.log(`Found ${fetchedTasks.length} maintenance tasks:`, fetchedTasks);
         // Convert service tasks to model tasks
-        const modelTasks = fetchedTasks.map(adaptServiceTaskToModelTask);
+        const modelTasks = fetchedTasks.map((task) => adaptServiceTaskToModelTask(task));
         setTasks(modelTasks);
       } catch (error: any) {
         console.error('Error fetching maintenance tasks:', error);
@@ -85,7 +85,7 @@ export function useTasksManager(initialTasks?: ModelMaintenanceTask[]) {
           task.id === taskId 
             ? { 
                 ...task, 
-                status: newStatus as any,
+                status: newStatus as MaintenanceStatus,
                 completedDate: newStatus === 'completed' ? new Date() : task.completedDate
               } 
             : task
@@ -106,7 +106,7 @@ export function useTasksManager(initialTasks?: ModelMaintenanceTask[]) {
       setTasks(prevTasks => 
         prevTasks.map(task => 
           task.id === taskId 
-            ? { ...task, priority: newPriority as any } 
+            ? { ...task, priority: newPriority as MaintenancePriority } 
             : task
         )
       );
@@ -133,7 +133,7 @@ export function useTasksManager(initialTasks?: ModelMaintenanceTask[]) {
       // Reload tasks in case of error to restore correct state
       try {
         const fetchedTasks = await maintenanceService.getTasks();
-        const modelTasks = fetchedTasks.map(adaptServiceTaskToModelTask);
+        const modelTasks = fetchedTasks.map((task) => adaptServiceTaskToModelTask(task));
         setTasks(modelTasks);
       } catch (reloadError) {
         console.error("Error reloading tasks after deletion failure:", reloadError);
@@ -147,7 +147,7 @@ export function useTasksManager(initialTasks?: ModelMaintenanceTask[]) {
     setIsLoading(true);
     try {
       const fetchedTasks = await maintenanceService.getTasks();
-      const modelTasks = fetchedTasks.map(adaptServiceTaskToModelTask);
+      const modelTasks = fetchedTasks.map((task) => adaptServiceTaskToModelTask(task));
       setTasks(modelTasks);
       setError(null);
     } catch (error: any) {
