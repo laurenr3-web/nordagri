@@ -1,6 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
-import { getPartsForEquipment } from '@/services/supabase/parts';
+import { getPartsByEquipmentId } from '@/services/supabase/parts';
 import { Part } from '@/types/Part';
 
 export function useEquipmentParts(equipmentId: string | number | undefined) {
@@ -8,7 +8,7 @@ export function useEquipmentParts(equipmentId: string | number | undefined) {
     queryKey: ['equipment-parts', equipmentId],
     queryFn: async () => {
       if (!equipmentId) return [];
-      return getPartsForEquipment(equipmentId);
+      return getPartsByEquipmentId(equipmentId);
     },
     enabled: !!equipmentId,
     staleTime: 1000 * 60 * 5, // 5 minutes
