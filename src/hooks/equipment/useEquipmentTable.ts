@@ -1,9 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Equipment, EquipmentStatus, EquipmentDB, mapEquipmentFromDB, mapEquipmentToDB } from '@/types/Equipment';
 import { safeStatus } from '@/utils/typeAdapters';
+
+export { Equipment };  // Export Equipment type for use in other components
 
 export interface EquipmentTableState {
   equipment: Equipment[];
@@ -106,6 +107,11 @@ export function useEquipmentTable(initialFilter: EquipmentFilter = {}) {
       // Convert to database format
       const dbEquipment = mapEquipmentToDB(equipmentData);
       
+      // Ensure name is always provided for the database insert
+      if (!dbEquipment.name) {
+        throw new Error("Equipment name is required");
+      }
+      
       const { data, error } = await supabase
         .from('equipment')
         .insert(dbEquipment)
@@ -170,38 +176,16 @@ export function useEquipmentTable(initialFilter: EquipmentFilter = {}) {
     }
   };
   
-  const deleteEquipment = async (id: number): Promise<boolean> => {
-    try {
-      const { error } = await supabase
-        .from('equipment')
-        .delete()
-        .eq('id', id);
-        
-      if (error) {
-        throw error;
-      }
-      
-      // Update local state
-      setState(prev => ({
-        ...prev,
-        equipment: prev.equipment.filter(item => item.id !== id),
-        totalCount: prev.totalCount - 1,
-        pageCount: Math.ceil((prev.totalCount - 1) / state.pageSize)
-      }));
-      
-      toast.success('Equipment deleted successfully');
-      return true;
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'An unknown error occurred';
-      toast.error(`Error deleting equipment: ${errorMsg}`);
-      return false;
-    }
-  };
-  
   const bulkAddEquipment = async (equipmentArray: Omit<Equipment, 'id'>[]): Promise<boolean> => {
     try {
-      // Convert to database format
-      const dbEquipmentArray = equipmentArray.map(eq => mapEquipmentToDB(eq));
+      // Convert to database format and ensure each item has a name
+      const dbEquipmentArray = equipmentArray.map(eq => {
+        const dbEq = mapEquipmentToDB(eq);
+        if (!dbEq.name) {
+          dbEq.name = 'Unnamed Equipment';
+        }
+        return dbEq;
+      });
       
       const { data, error } = await supabase
         .from('equipment')

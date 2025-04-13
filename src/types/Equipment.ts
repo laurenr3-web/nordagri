@@ -20,6 +20,7 @@ export interface Equipment {
   maintenancesCompleted?: number;
   maintenancesPending?: number;
   ownerId?: string;
+  year?: number; // Added year property
 }
 
 export interface EquipmentFilter {
@@ -66,7 +67,8 @@ export function mapEquipmentFromDB(dbEquipment: EquipmentDB): Equipment {
     serialNumber: dbEquipment.serial_number,
     image: dbEquipment.image,
     notes: dbEquipment.notes,
-    ownerId: dbEquipment.owner_id
+    ownerId: dbEquipment.owner_id,
+    year: dbEquipment.year // Added year mapping
   };
 }
 
@@ -87,6 +89,7 @@ export function mapEquipmentToDB(equipment: Partial<Equipment>): Partial<Equipme
     serial_number: equipment.serialNumber,
     image: equipment.image,
     notes: equipment.notes,
-    owner_id: equipment.ownerId
+    owner_id: equipment.ownerId,
+    year: equipment.year // Added year mapping
   };
 }

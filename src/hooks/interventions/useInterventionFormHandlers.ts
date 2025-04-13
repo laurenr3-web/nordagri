@@ -26,7 +26,8 @@ export const useInterventionFormHandlers = ({ onClose }: UseInterventionFormHand
       const apiFormData = {
         ...formData,
         equipment_id: formData.equipmentId,
-        scheduled_duration: formData.scheduledDuration
+        scheduled_duration: formData.scheduledDuration,
+        status: formData.status || 'scheduled' // Ensure status is provided
       };
       
       await createIntervention(apiFormData);

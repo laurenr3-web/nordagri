@@ -25,8 +25,8 @@ export const generateSchedule = (
       status: 'scheduled' as MaintenanceStatus,
       priority: viewModel.priority,
       dueDate: currentDate,
-      engineHours: viewModel.engineHours,
-      notes: viewModel.description,
+      engineHours: viewModel.engineHours || 0,
+      notes: viewModel.description || '',
       assignedTo: viewModel.assignedTo || '',
     };
 

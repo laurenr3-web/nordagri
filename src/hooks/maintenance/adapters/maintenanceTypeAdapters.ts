@@ -11,7 +11,8 @@ import {
   MaintenanceStatus, 
   MaintenanceType,
   MaintenanceFormValues,
-  MaintenanceTask
+  MaintenanceTask,
+  MaintenancePriority
 } from '../maintenanceSlice';
 
 // Service task type from the maintenanceService
@@ -144,8 +145,7 @@ export function convertPlanFormToTaskForm(planForm: PlanFormValues): Maintenance
 }
 
 /**
- * This is the missing function that was causing the error.
- * It transforms a service task into the model format used in components
+ * This is the function that transforms a service task into the model format used in components
  */
 export function adaptServiceTaskToModelTask(serviceTask: ServiceMaintenanceTask): MaintenanceTask {
   return {
@@ -159,7 +159,8 @@ export function adaptServiceTaskToModelTask(serviceTask: ServiceMaintenanceTask)
     type: safeMaintenanceType(serviceTask.type),
     // Map status to a valid status
     status: safeMaintenanceStatus(serviceTask.status),
-    priority: serviceTask.priority as MaintenanceStatus,
+    // Cast to MaintenancePriority to ensure compatibility
+    priority: serviceTask.priority as MaintenancePriority,
     // Format completed date if available
     completedDate: serviceTask.completed_date ? new Date(serviceTask.completed_date) : undefined,
     // Map engine hours and duration

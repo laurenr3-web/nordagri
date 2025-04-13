@@ -1,6 +1,6 @@
 
 // Types for maintenance tasks
-export type MaintenanceStatus = 'scheduled' | 'in-progress' | 'completed' | 'cancelled' | 'pending-parts';
+export type MaintenanceStatus = 'scheduled' | 'in-progress' | 'completed' | 'overdue' | 'cancelled' | 'pending-parts';
 export type MaintenancePriority = 'low' | 'medium' | 'high' | 'critical';
 export type MaintenanceType = 'preventive' | 'corrective' | 'condition-based';
 
@@ -26,7 +26,7 @@ export interface MaintenanceFormValues {
   equipmentId: number;
   type: MaintenanceType;
   priority: MaintenancePriority;
-  status: MaintenanceStatus;  // Added this line to include status in the form values
+  status: MaintenanceStatus;
   dueDate: Date;
   engineHours: number;
   assignedTo: string;
