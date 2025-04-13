@@ -1,7 +1,10 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { MaintenanceTask, MaintenanceFormValues, MaintenanceStatus, MaintenanceType, MaintenancePriority } from '@/hooks/maintenance/maintenanceSlice';
-import { MaintenancePlan } from '@/hooks/maintenance/types/maintenancePlanTypes';
+import { 
+  MaintenancePlan, 
+  MaintenanceFrequency, 
+  MaintenanceUnit 
+} from '@/hooks/maintenance/types/maintenancePlanTypes';
 
 export const maintenanceService = {
   /**
@@ -36,13 +39,57 @@ export const maintenanceService = {
         priority: task.priority as MaintenancePriority,
         dueDate: new Date(task.due_date),
         completedDate: task.completed_date ? new Date(task.completed_date) : undefined,
-        engineHours: task.engine_hours || 0,
+        engineHours: task.estimated_duration || 0, // Using estimated_duration as engineHours
         actualDuration: task.actual_duration,
         assignedTo: task.assigned_to || '',
         notes: task.notes || ''
       }));
     } catch (error) {
       console.error('Error fetching maintenance tasks:', error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Récupérer les tâches de maintenance pour un équipement spécifique
+   */
+  async getTasksForEquipment(equipmentId: number): Promise<MaintenanceTask[]> {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData.session?.user.id;
+      
+      if (!userId) {
+        console.warn('User not authenticated, returning empty tasks array');
+        return [];
+      }
+      
+      const { data, error } = await supabase
+        .from('maintenance_tasks')
+        .select('*')
+        .eq('owner_id', userId)
+        .eq('equipment_id', equipmentId)
+        .order('due_date', { ascending: true });
+      
+      if (error) throw error;
+      
+      // Convertir les données de la base en objets MaintenanceTask
+      return data.map((task: any) => ({
+        id: task.id,
+        title: task.title,
+        equipment: task.equipment,
+        equipmentId: task.equipment_id,
+        type: task.type as MaintenanceType,
+        status: task.status as MaintenanceStatus,
+        priority: task.priority as MaintenancePriority,
+        dueDate: new Date(task.due_date),
+        completedDate: task.completed_date ? new Date(task.completed_date) : undefined,
+        engineHours: task.estimated_duration || 0, // Using estimated_duration as engineHours
+        actualDuration: task.actual_duration,
+        assignedTo: task.assigned_to || '',
+        notes: task.notes || ''
+      }));
+    } catch (error) {
+      console.error('Error fetching maintenance tasks for equipment:', error);
       throw error;
     }
   },
@@ -128,6 +175,37 @@ export const maintenanceService = {
       throw error;
     }
   },
+
+  /**
+   * Marquer une tâche comme complétée
+   */
+  async completeTask(taskId: number, completionData: {
+    completedDate: Date;
+    actualDuration: number;
+    notes: string;
+    technician: string;
+  }): Promise<void> {
+    try {
+      const updates = {
+        status: 'completed' as MaintenanceStatus,
+        completed_date: completionData.completedDate.toISOString(),
+        actual_duration: completionData.actualDuration,
+        notes: completionData.notes,
+        assigned_to: completionData.technician,
+        updated_at: new Date().toISOString()
+      };
+      
+      const { error } = await supabase
+        .from('maintenance_tasks')
+        .update(updates)
+        .eq('id', taskId);
+      
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error completing task:', error);
+      throw error;
+    }
+  },
   
   /**
    * Mettre à jour la priorité d'une tâche
@@ -194,19 +272,65 @@ export const maintenanceService = {
         description: plan.description || '',
         equipmentId: plan.equipment_id,
         equipmentName: plan.equipment_name,
-        frequency: plan.frequency,
+        frequency: plan.frequency as MaintenanceFrequency,
         interval: plan.interval,
-        unit: plan.unit,
+        unit: plan.unit as MaintenanceUnit,
         nextDueDate: new Date(plan.next_due_date),
         lastPerformedDate: plan.last_performed_date ? new Date(plan.last_performed_date) : null,
-        type: plan.type,
+        type: plan.type as MaintenanceType,
         engineHours: plan.engine_hours || 0,
         active: plan.active,
-        priority: plan.priority,
+        priority: plan.priority as MaintenancePriority,
         assignedTo: plan.assigned_to
       }));
     } catch (error) {
       console.error('Error fetching maintenance plans:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Récupérer les plans de maintenance pour un équipement spécifique
+   */
+  async getMaintenancePlansForEquipment(equipmentId: number): Promise<MaintenancePlan[]> {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData.session?.user.id;
+      
+      if (!userId) {
+        console.warn('User not authenticated, returning empty plans array');
+        return [];
+      }
+      
+      const { data, error } = await supabase
+        .from('maintenance_plans')
+        .select('*')
+        .eq('created_by', userId)
+        .eq('equipment_id', equipmentId)
+        .eq('active', true)
+        .order('next_due_date', { ascending: true });
+      
+      if (error) throw error;
+      
+      return data.map((plan: any) => ({
+        id: plan.id,
+        title: plan.title,
+        description: plan.description || '',
+        equipmentId: plan.equipment_id,
+        equipmentName: plan.equipment_name,
+        frequency: plan.frequency as MaintenanceFrequency,
+        interval: plan.interval,
+        unit: plan.unit as MaintenanceUnit,
+        nextDueDate: new Date(plan.next_due_date),
+        lastPerformedDate: plan.last_performed_date ? new Date(plan.last_performed_date) : null,
+        type: plan.type as MaintenanceType,
+        engineHours: plan.engine_hours || 0,
+        active: plan.active,
+        priority: plan.priority as MaintenancePriority,
+        assignedTo: plan.assigned_to
+      }));
+    } catch (error) {
+      console.error('Error fetching maintenance plans for equipment:', error);
       throw error;
     }
   },

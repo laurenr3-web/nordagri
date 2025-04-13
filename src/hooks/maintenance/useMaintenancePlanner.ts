@@ -4,12 +4,14 @@ import { useToast } from '@/hooks/use-toast';
 import { useMaintenancePlansService } from './services/maintenancePlansService';
 import { generateSchedule } from './utils/maintenanceScheduler';
 import { MaintenanceFormValues } from './maintenanceSlice';
+import { MaintenancePlan } from './types/maintenancePlanTypes';
 
 // Fix re-exports using 'export type'
 export type { MaintenancePlan } from './types/maintenancePlanTypes';
 export type { MaintenanceFrequency } from './types/maintenancePlanTypes';
 export type { MaintenanceUnit } from './types/maintenancePlanTypes';
 export type { MaintenanceType } from './types/maintenancePlanTypes';
+export type { MaintenancePriority } from './types/maintenancePlanTypes';
 
 export const useMaintenancePlanner = () => {
   const [isLoading, setIsLoading] = useState(false);

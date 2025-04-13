@@ -1,16 +1,18 @@
 
-import { MaintenancePriority, MaintenanceStatus, MaintenanceType as TaskMaintenanceType } from '../maintenanceSlice';
+// Types for maintenance planning module
+export type MaintenanceFrequency = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'biannual' | 'yearly' | 'custom';
 
-export type MaintenanceFrequency = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'biannual' | 'yearly';
-export type MaintenanceUnit = 'days' | 'weeks' | 'months' | 'hours';
+export type MaintenanceUnit = 'days' | 'weeks' | 'months' | 'years' | 'hours';
 
-// Match this to the type in maintenanceSlice.ts, but preserve the export
-export type MaintenanceType = 'preventive' | 'corrective' | 'condition-based' | 'predictive';
+export type MaintenanceType = 'preventive' | 'predictive' | 'corrective' | 'inspection' | 'lubrication' | 'electrical' | 'mechanical' | 'hydraulic' | 'other';
 
+export type MaintenancePriority = 'low' | 'medium' | 'high' | 'critical';
+
+// Interface for a scheduled maintenance plan
 export interface MaintenancePlan {
   id: number;
   title: string;
-  description: string;
+  description?: string;
   equipmentId: number;
   equipmentName: string;
   frequency: MaintenanceFrequency;
@@ -19,20 +21,8 @@ export interface MaintenancePlan {
   nextDueDate: Date;
   lastPerformedDate: Date | null;
   type: MaintenanceType;
-  engineHours: number;
+  engineHours?: number;
   active: boolean;
   priority: MaintenancePriority;
-  assignedTo: string | null;
+  assignedTo?: string;
 }
-
-export const isMaintenanceFrequency = (value: string): value is MaintenanceFrequency => {
-  return ['daily', 'weekly', 'monthly', 'quarterly', 'biannual', 'yearly'].includes(value);
-};
-
-export const isMaintenanceUnit = (value: string): value is MaintenanceUnit => {
-  return ['days', 'weeks', 'months', 'hours'].includes(value);
-};
-
-export const isMaintenanceType = (value: string): value is MaintenanceType => {
-  return ['preventive', 'corrective', 'predictive', 'condition-based'].includes(value);
-};

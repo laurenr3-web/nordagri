@@ -17,7 +17,11 @@ interface UseInterventionFormHandlersProps {
  */
 export function useInterventionFormHandlers({ onClose }: UseInterventionFormHandlersProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { createIntervention, updateInterventionStatus, submitInterventionReport } = useInterventionsData();
+  const { 
+    createIntervention, 
+    updateInterventionStatus, 
+    submitInterventionReport 
+  } = useInterventionsData();
   const queryClient = useQueryClient();
   
   /**
