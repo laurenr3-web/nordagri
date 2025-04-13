@@ -44,7 +44,7 @@ export function usePartsData() {
         })) as Part[];
       } catch (error) {
         console.error('Error fetching parts data:', error);
-        return [];
+        throw error;
       }
     },
     staleTime: 1000 * 60 * 5, // 5 minutes

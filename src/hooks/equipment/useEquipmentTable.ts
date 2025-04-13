@@ -1,6 +1,8 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuthContext } from '@/providers/AuthProvider';
 
 // Define the base equipment type
 export interface Equipment {
@@ -35,84 +37,140 @@ export function useEquipmentTable() {
   // Data loading state
   const [isLoading, setIsLoading] = useState(false);
   
-  // Mock equipment data
-  const [equipments, setEquipments] = useState<Equipment[]>([
-    {
-      id: 1,
-      name: 'Tracteur John Deere',
-      type: 'Tractor',
-      manufacturer: 'John Deere',
-      model: '8R 410',
-      year: '2022',
-      serialNumber: 'JD8R410-2022-001',
-      status: 'operational',
-      location: 'Hangar principal',
-      image: 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=500&auto=format&fit=crop'
-    },
-    {
-      id: 2,
-      name: 'Moissonneuse Case IH',
-      type: 'harvester',
-      manufacturer: 'Case IH',
-      model: 'Axial-Flow 9250',
-      year: '2021',
-      serialNumber: 'CASE9250-2021-002',
-      status: 'maintenance',
-      location: 'Atelier mécanique',
-      image: 'https://images.unsplash.com/photo-1599033329459-cc8c31c7eb6c?q=80&w=500&auto=format&fit=crop'
-    },
-    {
-      id: 3,
-      name: 'Tracteur Kubota',
-      type: 'Tractor',
-      manufacturer: 'Kubota',
-      model: 'M7-172',
-      year: '2020',
-      serialNumber: 'KUB-M7172-2020-003',
-      status: 'repair',
-      location: 'Ferme Est',
-      image: 'https://images.unsplash.com/photo-1585911171167-1f66ea3de00c?q=80&w=500&auto=format&fit=crop'
-    }
-  ]);
+  // Equipment data from Supabase
+  const [equipments, setEquipments] = useState<Equipment[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+
+  // Auth context for user info
+  const { user } = useAuthContext();
   
   // Calculate page count based on total items
-  const pageCount = Math.ceil(equipments.length / pageSize);
+  const pageCount = Math.ceil(totalCount / pageSize);
 
-  // Mock fetch function
+  // Effect to load data on mount or when dependencies change
+  useEffect(() => {
+    if (user) {
+      fetchEquipments();
+    }
+  }, [user, pageIndex, pageSize, sorting]);
+
+  // Real fetch function that calls Supabase
   const fetchEquipments = async () => {
     setIsLoading(true);
     try {
-      // In a real app, this would be an API call
       console.log('Fetching equipments with pagination:', { pageIndex, pageSize });
       console.log('And sorting:', sorting);
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Build the initial query
+      let query = supabase
+        .from('equipment')
+        .select('*', { count: 'exact' });
       
-      // Data is already set in state for this mock
+      // Apply sorting if present
+      if (sorting.length > 0) {
+        const { id, desc } = sorting[0];
+        // Convert camelCase or PascalCase field names to snake_case for database
+        const column = id
+          .replace(/([a-z])([A-Z])/g, '$1_$2')
+          .toLowerCase();
+        
+        query = query.order(column, { ascending: !desc });
+      } else {
+        // Default sorting by created_at
+        query = query.order('created_at', { ascending: false });
+      }
+      
+      // Apply pagination
+      query = query
+        .range(pageIndex * pageSize, (pageIndex + 1) * pageSize - 1);
+      
+      // Execute the query
+      const { data, error, count } = await query;
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Map database columns to our Equipment interface
+      const mappedData: Equipment[] = data.map(item => ({
+        id: item.id,
+        name: item.name || 'Unnamed Equipment',
+        type: item.type,
+        manufacturer: item.manufacturer,
+        model: item.model,
+        year: item.year,
+        serialNumber: item.serial_number,
+        status: item.status,
+        location: item.location,
+        purchaseDate: item.purchase_date,
+        notes: item.notes,
+        image: item.image || 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=500&auto=format&fit=crop'
+      }));
+      
+      setEquipments(mappedData);
+      setTotalCount(count || 0);
       setIsLoading(false);
     } catch (error) {
       console.error('Error fetching equipments:', error);
       toast.error('Erreur lors du chargement des équipements');
       setIsLoading(false);
+      setEquipments([]);
     }
   };
 
-  // Mock CRUD operations
-  const createEquipment = async (data: Partial<Equipment>) => {
+  // Real create function that calls Supabase
+  const createEquipment = async (data: Partial<Equipment>): Promise<Equipment> => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const newEquipment: Equipment = {
-        id: Date.now(),
-        name: data.name || 'New Equipment',
-        ...data
+      // Prepare data for database format
+      const dbData = {
+        name: data.name,
+        type: data.type,
+        manufacturer: data.manufacturer,
+        model: data.model,
+        year: data.year ? Number(data.year) : null,
+        serial_number: data.serialNumber,
+        status: data.status,
+        location: data.location,
+        purchase_date: data.purchaseDate,
+        notes: data.notes,
+        image: data.image,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        owner_id: user?.id
       };
       
-      setEquipments(prev => [...prev, newEquipment]);
+      const { data: newEquipment, error } = await supabase
+        .from('equipment')
+        .insert(dbData)
+        .select()
+        .single();
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Map returned data to Equipment interface
+      const mappedEquipment: Equipment = {
+        id: newEquipment.id,
+        name: newEquipment.name || 'New Equipment',
+        type: newEquipment.type,
+        manufacturer: newEquipment.manufacturer,
+        model: newEquipment.model,
+        year: newEquipment.year,
+        serialNumber: newEquipment.serial_number,
+        status: newEquipment.status,
+        location: newEquipment.location,
+        purchaseDate: newEquipment.purchase_date,
+        notes: newEquipment.notes,
+        image: newEquipment.image
+      };
+      
+      // Update local state (optional, can just refetch)
+      setEquipments(prev => [...prev, mappedEquipment]);
+      setTotalCount(prev => prev + 1);
+      
       toast.success('Équipement ajouté avec succès');
-      return newEquipment;
+      return mappedEquipment;
     } catch (error) {
       console.error('Error creating equipment:', error);
       toast.error('Erreur lors de la création de l\'équipement');
@@ -120,11 +178,35 @@ export function useEquipmentTable() {
     }
   };
 
-  const updateEquipment = async (id: string | number, data: Partial<Equipment>) => {
+  // Real update function that calls Supabase
+  const updateEquipment = async (id: string | number, data: Partial<Equipment>): Promise<void> => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Prepare data for database format
+      const dbData = {
+        name: data.name,
+        type: data.type,
+        manufacturer: data.manufacturer,
+        model: data.model,
+        year: data.year ? Number(data.year) : null,
+        serial_number: data.serialNumber,
+        status: data.status,
+        location: data.location,
+        purchase_date: data.purchaseDate,
+        notes: data.notes,
+        image: data.image,
+        updated_at: new Date().toISOString()
+      };
       
+      const { error } = await supabase
+        .from('equipment')
+        .update(dbData)
+        .eq('id', id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Update local state
       setEquipments(prev => 
         prev.map(equip => 
           equip.id === id ? { ...equip, ...data } : equip
@@ -139,12 +221,22 @@ export function useEquipmentTable() {
     }
   };
 
-  const deleteEquipment = async (id: string | number) => {
+  // Real delete function that calls Supabase
+  const deleteEquipment = async (id: string | number): Promise<void> => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const { error } = await supabase
+        .from('equipment')
+        .delete()
+        .eq('id', id);
       
+      if (error) {
+        throw error;
+      }
+      
+      // Update local state
       setEquipments(prev => prev.filter(equip => equip.id !== id));
+      setTotalCount(prev => prev - 1);
+      
       toast.success('Équipement supprimé avec succès');
     } catch (error) {
       console.error('Error deleting equipment:', error);
@@ -153,19 +245,39 @@ export function useEquipmentTable() {
     }
   };
 
-  const importEquipments = async (data: Partial<Equipment>[]) => {
+  // Import function to import multiple equipment at once
+  const importEquipments = async (data: Partial<Equipment>[]): Promise<void> => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const newEquipments = data.map(item => ({
-        id: Date.now() + Math.random(),
+      // Prepare data for database format
+      const dbData = data.map(item => ({
         name: item.name || 'Imported Equipment',
-        ...item
+        type: item.type,
+        manufacturer: item.manufacturer,
+        model: item.model,
+        year: item.year ? Number(item.year) : null,
+        serial_number: item.serialNumber,
+        status: item.status,
+        location: item.location,
+        purchase_date: item.purchaseDate,
+        notes: item.notes,
+        image: item.image,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        owner_id: user?.id
       }));
       
-      setEquipments(prev => [...prev, ...newEquipments]);
-      toast.success(`${newEquipments.length} équipements importés avec succès`);
+      const { error } = await supabase
+        .from('equipment')
+        .insert(dbData);
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Refetch the equipment list to include the new imports
+      fetchEquipments();
+      
+      toast.success(`${data.length} équipements importés avec succès`);
     } catch (error) {
       console.error('Error importing equipments:', error);
       toast.error('Erreur lors de l\'import des équipements');
