@@ -191,7 +191,14 @@ export const maintenanceService = {
         throw new Error('Failed to complete task');
       }
 
-      return data;
+      // The data object returned from Supabase might be missing engine_hours
+      // We need to ensure our return object conforms to MaintenanceTaskDB type
+      const taskWithEngineHours = {
+        ...data,
+        engine_hours: data.estimated_duration || 0 // Use estimated_duration as fallback or default to 0
+      } as MaintenanceTaskDB;
+
+      return taskWithEngineHours;
     } catch (error) {
       console.error('Error in completeTask:', error);
       throw error;
