@@ -10,8 +10,12 @@ import {
 import { 
   MaintenanceStatus, 
   MaintenanceType,
-  MaintenanceFormValues
+  MaintenanceFormValues,
+  MaintenanceTask
 } from '../maintenanceSlice';
+
+// Service task type from the maintenanceService
+import type { MaintenanceTask as ServiceMaintenanceTask } from '@/services/supabase/maintenanceService';
 
 /**
  * Map a database maintenance plan to the frontend view model
@@ -67,9 +71,9 @@ export function mapMaintenanceTypeToTaskType(type: PlanMaintenanceType): Mainten
     case 'preventive': return 'preventive';
     case 'predictive': return 'condition-based';
     case 'corrective': return 'corrective';
-    case 'inspection': return 'inspection';
-    // Handle extra types in plan type that don't exist in task type
-    case 'other': 
+    // Handle extra types that don't exist in task type
+    case 'inspection': 
+    case 'other':
     default:
       return 'preventive';
   }
@@ -95,7 +99,7 @@ export function mapPlanStatusToTaskStatus(status: PlanMaintenanceStatus): Mainte
  * Map a task status string to a valid MaintenanceStatus enum value
  */
 export function safeMaintenanceStatus(status: string): MaintenanceStatus {
-  const validStatuses: MaintenanceStatus[] = ['scheduled', 'in-progress', 'completed', 'overdue'];
+  const validStatuses: MaintenanceStatus[] = ['scheduled', 'in-progress', 'completed', 'overdue', 'cancelled', 'pending-parts'];
   return validStatuses.includes(status as MaintenanceStatus) 
     ? status as MaintenanceStatus 
     : 'scheduled';
@@ -105,7 +109,7 @@ export function safeMaintenanceStatus(status: string): MaintenanceStatus {
  * Map a maintenance type string to a valid MaintenanceType enum value
  */
 export function safeMaintenanceType(type: string): MaintenanceType {
-  const validTypes: MaintenanceType[] = ['preventive', 'corrective', 'condition-based', 'inspection'];
+  const validTypes: MaintenanceType[] = ['preventive', 'corrective', 'condition-based'];
   return validTypes.includes(type as MaintenanceType)
     ? type as MaintenanceType
     : 'preventive';
@@ -136,5 +140,33 @@ export function convertPlanFormToTaskForm(planForm: PlanFormValues): Maintenance
     engineHours: planForm.estimated_duration,
     assignedTo: planForm.assigned_to || '',
     notes: planForm.notes
+  };
+}
+
+/**
+ * This is the missing function that was causing the error.
+ * It transforms a service task into the model format used in components
+ */
+export function adaptServiceTaskToModelTask(serviceTask: ServiceMaintenanceTask): MaintenanceTask {
+  return {
+    id: serviceTask.id,
+    title: serviceTask.title,
+    equipment: serviceTask.equipment,
+    equipmentId: serviceTask.equipment_id,
+    // Convert string date to Date object
+    dueDate: new Date(serviceTask.due_date),
+    // Ensure proper type is assigned
+    type: safeMaintenanceType(serviceTask.type),
+    // Map status to a valid status
+    status: safeMaintenanceStatus(serviceTask.status),
+    priority: serviceTask.priority as MaintenanceStatus,
+    // Format completed date if available
+    completedDate: serviceTask.completed_date ? new Date(serviceTask.completed_date) : undefined,
+    // Map engine hours and duration
+    engineHours: serviceTask.estimated_duration || 0,
+    actualDuration: serviceTask.actual_duration,
+    // Assignee and notes
+    assignedTo: serviceTask.assigned_to || '',
+    notes: serviceTask.notes || '',
   };
 }

@@ -134,11 +134,11 @@ const Maintenance = () => {
       
       <MaintenanceCompletionDialog
         open={isCompletionDialogOpen}
-        onClose={() => setIsCompletionDialogOpen(false)}
+        onOpenChange={setIsCompletionDialogOpen}
         task={selectedTask}
         onCompleted={() => {
           setIsCompletionDialogOpen(false);
-          // Rafraîchir la liste des tâches
+          // Refresh task list
         }}
         userName={getUserDisplayName()}
       />

@@ -24,7 +24,10 @@ const EquipmentDetail = () => {
           )}
           
           {!loading && error && (
-            <EquipmentDetailError id={id} error={error instanceof Error ? error.message : String(error)} />
+            <EquipmentDetailError 
+              id={id} 
+              error={typeof error === 'string' ? error : error instanceof Error ? error.message : String(error)} 
+            />
           )}
           
           {!loading && !error && equipment && (
