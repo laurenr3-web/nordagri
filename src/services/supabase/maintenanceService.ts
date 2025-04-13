@@ -1,40 +1,20 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { MaintenanceFrequency, MaintenanceType, MaintenanceUnit, MaintenancePriority, MaintenancePlan } from '@/hooks/maintenance/types/maintenancePlanTypes';
+import { 
+  MaintenancePlan, 
+  MaintenancePlanDB,
+  MaintenanceTask, 
+  MaintenanceTaskDB,
+  MaintenanceFrequency, 
+  MaintenanceType, 
+  MaintenanceUnit, 
+  MaintenancePriority, 
+  MaintenanceStatus,
+  MaintenanceFormValues 
+} from '@/types/models/maintenance';
 import { addDays, addWeeks, addMonths, addYears } from 'date-fns';
 import { toast } from 'sonner';
-
-// Define types for the maintenance tasks and form data
-export type MaintenanceTask = {
-  id: number;
-  title: string;
-  notes?: string;
-  equipment: string;
-  equipment_id: number;
-  due_date: string;
-  completed_date?: string;
-  status: 'pending' | 'in-progress' | 'completed' | 'overdue';
-  priority: string;
-  type: string;
-  estimated_duration?: number;
-  actual_duration?: number;
-  assigned_to?: string;
-  created_at: string;
-  updated_at: string;
-};
-
-export type MaintenanceFormValues = {
-  title: string;
-  notes?: string;
-  equipment: string;
-  equipment_id: number;
-  due_date: string;
-  type: string;
-  priority: string;
-  status?: string;
-  estimated_duration?: number;
-  assigned_to?: string;
-};
+import { convertFromApi, convertToApi, safeEnumValue, safeDate } from '@/utils/typeTransformers';
 
 // Get all maintenance tasks
 export async function getTasks(): Promise<MaintenanceTask[]> {
@@ -45,7 +25,34 @@ export async function getTasks(): Promise<MaintenanceTask[]> {
       .order('due_date', { ascending: true });
 
     if (error) throw error;
-    return data || [];
+    
+    // Convert database tasks to application model tasks
+    return (data || []).map((task: MaintenanceTaskDB) => {
+      return {
+        id: task.id,
+        title: task.title,
+        equipment: task.equipment,
+        equipmentId: task.equipment_id,
+        type: safeEnumValue(task.type, ['preventive', 'corrective', 'condition-based'] as const, 'preventive'),
+        status: safeEnumValue(
+          task.status, 
+          ['scheduled', 'in-progress', 'completed', 'overdue', 'cancelled', 'pending-parts'] as const, 
+          'scheduled'
+        ),
+        priority: safeEnumValue(
+          task.priority,
+          ['low', 'medium', 'high', 'critical'] as const,
+          'medium'
+        ),
+        dueDate: safeDate(task.due_date) || new Date(),
+        completedDate: safeDate(task.completed_date),
+        engineHours: task.engine_hours || 0,
+        actualDuration: task.actual_duration,
+        assignedTo: task.assigned_to || '',
+        notes: task.notes || '',
+        ownerId: task.owner_id
+      };
+    });
   } catch (error) {
     console.error('Error fetching maintenance tasks:', error);
     throw error;
@@ -62,7 +69,34 @@ export async function getTasksForEquipment(equipmentId: number): Promise<Mainten
       .order('due_date', { ascending: true });
 
     if (error) throw error;
-    return data || [];
+    
+    // Convert database tasks to application model tasks
+    return (data || []).map((task: MaintenanceTaskDB) => {
+      return {
+        id: task.id,
+        title: task.title,
+        equipment: task.equipment,
+        equipmentId: task.equipment_id,
+        type: safeEnumValue(task.type, ['preventive', 'corrective', 'condition-based'] as const, 'preventive'),
+        status: safeEnumValue(
+          task.status, 
+          ['scheduled', 'in-progress', 'completed', 'overdue', 'cancelled', 'pending-parts'] as const, 
+          'scheduled'
+        ),
+        priority: safeEnumValue(
+          task.priority,
+          ['low', 'medium', 'high', 'critical'] as const,
+          'medium'
+        ),
+        dueDate: safeDate(task.due_date) || new Date(),
+        completedDate: safeDate(task.completed_date),
+        engineHours: task.engine_hours || 0,
+        actualDuration: task.actual_duration,
+        assignedTo: task.assigned_to || '',
+        notes: task.notes || '',
+        ownerId: task.owner_id
+      };
+    });
   } catch (error) {
     console.error(`Error fetching maintenance tasks for equipment ${equipmentId}:`, error);
     throw error;
@@ -72,25 +106,53 @@ export async function getTasksForEquipment(equipmentId: number): Promise<Mainten
 // Add a new maintenance task
 export async function addTask(task: MaintenanceFormValues): Promise<MaintenanceTask> {
   try {
+    // Convert form values to database format
+    const taskData = convertToApi<MaintenanceTaskDB>({
+      title: task.title,
+      notes: task.notes,
+      equipment: task.equipment,
+      equipment_id: task.equipmentId,
+      due_date: task.dueDate instanceof Date ? task.dueDate.toISOString() : task.dueDate,
+      status: task.status || 'pending',
+      priority: task.priority,
+      type: task.type,
+      estimated_duration: task.engineHours,
+      assigned_to: task.assignedTo || ''
+    });
+
     const { data, error } = await supabase
       .from('maintenance_tasks')
-      .insert({
-        title: task.title,
-        notes: task.notes,
-        equipment: task.equipment,
-        equipment_id: task.equipment_id,
-        due_date: task.due_date,
-        status: task.status || 'pending',
-        priority: task.priority,
-        type: task.type,
-        estimated_duration: task.estimated_duration,
-        assigned_to: task.assigned_to
-      })
+      .insert(taskData)
       .select()
       .single();
 
     if (error) throw error;
-    return data;
+    
+    // Convert to application model format
+    return {
+      id: data.id,
+      title: data.title,
+      equipment: data.equipment,
+      equipmentId: data.equipment_id,
+      type: safeEnumValue(data.type, ['preventive', 'corrective', 'condition-based'] as const, 'preventive'),
+      status: safeEnumValue(
+        data.status, 
+        ['scheduled', 'in-progress', 'completed', 'overdue', 'cancelled', 'pending-parts'] as const, 
+        'scheduled'
+      ),
+      priority: safeEnumValue(
+        data.priority,
+        ['low', 'medium', 'high', 'critical'] as const,
+        'medium'
+      ),
+      dueDate: safeDate(data.due_date) || new Date(),
+      completedDate: safeDate(data.completed_date),
+      engineHours: data.engine_hours || 0,
+      actualDuration: data.actual_duration,
+      assignedTo: data.assigned_to || '',
+      notes: data.notes || '',
+      ownerId: data.owner_id
+    };
   } catch (error) {
     console.error('Error adding maintenance task:', error);
     throw error;
@@ -100,15 +162,43 @@ export async function addTask(task: MaintenanceFormValues): Promise<MaintenanceT
 // Update a maintenance task
 export async function updateTask(id: number, updates: Partial<MaintenanceTask>): Promise<MaintenanceTask> {
   try {
+    // Convert to database format
+    const dbUpdates = convertToApi(updates);
+    
     const { data, error } = await supabase
       .from('maintenance_tasks')
-      .update(updates)
+      .update(dbUpdates)
       .eq('id', id)
       .select()
       .single();
 
     if (error) throw error;
-    return data;
+    
+    // Convert to application model format
+    return {
+      id: data.id,
+      title: data.title,
+      equipment: data.equipment,
+      equipmentId: data.equipment_id,
+      type: safeEnumValue(data.type, ['preventive', 'corrective', 'condition-based'] as const, 'preventive'),
+      status: safeEnumValue(
+        data.status, 
+        ['scheduled', 'in-progress', 'completed', 'overdue', 'cancelled', 'pending-parts'] as const, 
+        'scheduled'
+      ),
+      priority: safeEnumValue(
+        data.priority,
+        ['low', 'medium', 'high', 'critical'] as const,
+        'medium'
+      ),
+      dueDate: safeDate(data.due_date) || new Date(),
+      completedDate: safeDate(data.completed_date),
+      engineHours: data.engine_hours || 0,
+      actualDuration: data.actual_duration,
+      assignedTo: data.assigned_to || '',
+      notes: data.notes || '',
+      ownerId: data.owner_id
+    };
   } catch (error) {
     console.error(`Error updating maintenance task ${id}:`, error);
     throw error;
@@ -116,7 +206,7 @@ export async function updateTask(id: number, updates: Partial<MaintenanceTask>):
 }
 
 // Update task status
-export async function updateTaskStatus(id: number, status: string): Promise<MaintenanceTask> {
+export async function updateTaskStatus(id: number, status: MaintenanceStatus): Promise<MaintenanceTask> {
   try {
     const { data, error } = await supabase
       .from('maintenance_tasks')
@@ -126,7 +216,32 @@ export async function updateTaskStatus(id: number, status: string): Promise<Main
       .single();
 
     if (error) throw error;
-    return data;
+    
+    // Convert to application model format
+    return {
+      id: data.id,
+      title: data.title,
+      equipment: data.equipment,
+      equipmentId: data.equipment_id,
+      type: safeEnumValue(data.type, ['preventive', 'corrective', 'condition-based'] as const, 'preventive'),
+      status: safeEnumValue(
+        data.status, 
+        ['scheduled', 'in-progress', 'completed', 'overdue', 'cancelled', 'pending-parts'] as const, 
+        'scheduled'
+      ),
+      priority: safeEnumValue(
+        data.priority,
+        ['low', 'medium', 'high', 'critical'] as const,
+        'medium'
+      ),
+      dueDate: safeDate(data.due_date) || new Date(),
+      completedDate: safeDate(data.completed_date),
+      engineHours: data.engine_hours || 0,
+      actualDuration: data.actual_duration,
+      assignedTo: data.assigned_to || '',
+      notes: data.notes || '',
+      ownerId: data.owner_id
+    };
   } catch (error) {
     console.error(`Error updating status for task ${id}:`, error);
     throw error;
@@ -134,7 +249,7 @@ export async function updateTaskStatus(id: number, status: string): Promise<Main
 }
 
 // Update task priority
-export async function updateTaskPriority(id: number, priority: string): Promise<MaintenanceTask> {
+export async function updateTaskPriority(id: number, priority: MaintenancePriority): Promise<MaintenanceTask> {
   try {
     const { data, error } = await supabase
       .from('maintenance_tasks')
@@ -144,7 +259,32 @@ export async function updateTaskPriority(id: number, priority: string): Promise<
       .single();
 
     if (error) throw error;
-    return data;
+    
+    // Convert to application model format
+    return {
+      id: data.id,
+      title: data.title,
+      equipment: data.equipment,
+      equipmentId: data.equipment_id,
+      type: safeEnumValue(data.type, ['preventive', 'corrective', 'condition-based'] as const, 'preventive'),
+      status: safeEnumValue(
+        data.status, 
+        ['scheduled', 'in-progress', 'completed', 'overdue', 'cancelled', 'pending-parts'] as const, 
+        'scheduled'
+      ),
+      priority: safeEnumValue(
+        data.priority,
+        ['low', 'medium', 'high', 'critical'] as const,
+        'medium'
+      ),
+      dueDate: safeDate(data.due_date) || new Date(),
+      completedDate: safeDate(data.completed_date),
+      engineHours: data.engine_hours || 0,
+      actualDuration: data.actual_duration,
+      assignedTo: data.assigned_to || '',
+      notes: data.notes || '',
+      ownerId: data.owner_id
+    };
   } catch (error) {
     console.error(`Error updating priority for task ${id}:`, error);
     throw error;
@@ -175,15 +315,40 @@ export async function completeTask(
 
     if (error) throw error;
     
+    // Convert to application model format
+    const task = {
+      id: data.id,
+      title: data.title,
+      equipment: data.equipment,
+      equipmentId: data.equipment_id,
+      type: safeEnumValue(data.type, ['preventive', 'corrective', 'condition-based'] as const, 'preventive'),
+      status: safeEnumValue(
+        data.status, 
+        ['scheduled', 'in-progress', 'completed', 'overdue', 'cancelled', 'pending-parts'] as const, 
+        'scheduled'
+      ),
+      priority: safeEnumValue(
+        data.priority,
+        ['low', 'medium', 'high', 'critical'] as const,
+        'medium'
+      ),
+      dueDate: safeDate(data.due_date) || new Date(),
+      completedDate: safeDate(data.completed_date),
+      engineHours: data.engine_hours || 0,
+      actualDuration: data.actual_duration,
+      assignedTo: data.assigned_to || '',
+      notes: data.notes || '',
+      ownerId: data.owner_id
+    };
+    
     // Find associated maintenance plan if exists and update next due date
-    const task = data;
     if (task) {
       try {
         // Check if this task is part of a maintenance plan
         const { data: planData } = await supabase
           .from('maintenance_plans')
           .select('*')
-          .eq('equipment_id', task.equipment_id)
+          .eq('equipment_id', task.equipmentId)
           .eq('title', task.title);
           
         if (planData && planData.length > 0) {
@@ -239,7 +404,7 @@ export async function completeTask(
               title: plan.title,
               notes: plan.description,
               equipment: task.equipment,
-              equipment_id: task.equipment_id,
+              equipment_id: task.equipmentId,
               due_date: nextDueDate.toISOString(),
               status: 'pending',
               priority: plan.priority,
@@ -254,7 +419,7 @@ export async function completeTask(
       }
     }
     
-    return data;
+    return task;
   } catch (error) {
     console.error(`Error completing maintenance task ${id}:`, error);
     throw error;
@@ -287,25 +452,41 @@ export async function getMaintenancePlans(): Promise<MaintenancePlan[]> {
 
     // Map database results to our MaintenancePlan type
     if (data) {
-      const plans: MaintenancePlan[] = data.map(item => ({
-        id: item.id,
-        title: item.title,
-        description: item.description,
-        equipmentId: item.equipment_id,
-        equipmentName: item.equipment_name,
-        frequency: item.frequency as MaintenanceFrequency,
-        interval: item.interval,
-        unit: item.unit as MaintenanceUnit,
-        nextDueDate: new Date(item.next_due_date),
-        lastPerformedDate: item.last_performed_date ? new Date(item.last_performed_date) : null,
-        type: item.type as MaintenanceType,
-        engineHours: item.engine_hours,
-        active: item.active,
-        priority: item.priority as MaintenancePriority,
-        assignedTo: item.assigned_to
-      }));
-      
-      return plans;
+      return data.map((item: MaintenancePlanDB) => {
+        return {
+          id: item.id,
+          title: item.title,
+          description: item.description,
+          equipmentId: item.equipment_id,
+          equipmentName: item.equipment_name,
+          frequency: safeEnumValue(
+            item.frequency, 
+            ['daily', 'weekly', 'monthly', 'quarterly', 'semi-annual', 'annual', 'biannual', 'yearly', 'custom', 'other'] as const,
+            'monthly'
+          ),
+          interval: item.interval,
+          unit: safeEnumValue(
+            item.unit, 
+            ['hours', 'days', 'weeks', 'months', 'years', 'other'] as const,
+            'days'
+          ),
+          nextDueDate: safeDate(item.next_due_date) || new Date(),
+          lastPerformedDate: item.last_performed_date ? safeDate(item.last_performed_date) : null,
+          type: safeEnumValue(
+            item.type, 
+            ['preventive', 'corrective', 'condition-based'] as const,
+            'preventive'
+          ),
+          engineHours: item.engine_hours,
+          active: item.active,
+          priority: safeEnumValue(
+            item.priority, 
+            ['low', 'medium', 'high', 'critical'] as const,
+            'medium'
+          ),
+          assignedTo: item.assigned_to
+        };
+      });
     }
     return [];
   } catch (error) {
@@ -326,25 +507,41 @@ export async function getMaintenancePlansForEquipment(equipmentId: number): Prom
 
     // Map database results to our MaintenancePlan type
     if (data) {
-      const plans: MaintenancePlan[] = data.map(item => ({
-        id: item.id,
-        title: item.title,
-        description: item.description,
-        equipmentId: item.equipment_id,
-        equipmentName: item.equipment_name,
-        frequency: item.frequency as MaintenanceFrequency,
-        interval: item.interval,
-        unit: item.unit as MaintenanceUnit,
-        nextDueDate: new Date(item.next_due_date),
-        lastPerformedDate: item.last_performed_date ? new Date(item.last_performed_date) : null,
-        type: item.type as MaintenanceType,
-        engineHours: item.engine_hours,
-        active: item.active,
-        priority: item.priority as MaintenancePriority,
-        assignedTo: item.assigned_to
-      }));
-      
-      return plans;
+      return data.map((item: MaintenancePlanDB) => {
+        return {
+          id: item.id,
+          title: item.title,
+          description: item.description,
+          equipmentId: item.equipment_id,
+          equipmentName: item.equipment_name,
+          frequency: safeEnumValue(
+            item.frequency, 
+            ['daily', 'weekly', 'monthly', 'quarterly', 'semi-annual', 'annual', 'biannual', 'yearly', 'custom', 'other'] as const,
+            'monthly'
+          ),
+          interval: item.interval,
+          unit: safeEnumValue(
+            item.unit, 
+            ['hours', 'days', 'weeks', 'months', 'years', 'other'] as const,
+            'days'
+          ),
+          nextDueDate: safeDate(item.next_due_date) || new Date(),
+          lastPerformedDate: item.last_performed_date ? safeDate(item.last_performed_date) : null,
+          type: safeEnumValue(
+            item.type, 
+            ['preventive', 'corrective', 'condition-based'] as const,
+            'preventive'
+          ),
+          engineHours: item.engine_hours,
+          active: item.active,
+          priority: safeEnumValue(
+            item.priority, 
+            ['low', 'medium', 'high', 'critical'] as const,
+            'medium'
+          ),
+          assignedTo: item.assigned_to
+        };
+      });
     }
     return [];
   } catch (error) {
@@ -356,25 +553,28 @@ export async function getMaintenancePlansForEquipment(equipmentId: number): Prom
 // Add a new maintenance plan and first task
 export async function addMaintenancePlan(plan: Omit<MaintenancePlan, 'id'>): Promise<MaintenancePlan> {
   try {
+    // Convert to database format
+    const planDbData = {
+      title: plan.title,
+      description: plan.description,
+      equipment_id: plan.equipmentId,
+      equipment_name: plan.equipmentName,
+      frequency: plan.frequency,
+      interval: plan.interval,
+      unit: plan.unit,
+      next_due_date: plan.nextDueDate.toISOString(),
+      last_performed_date: plan.lastPerformedDate ? plan.lastPerformedDate.toISOString() : null,
+      type: plan.type,
+      engine_hours: plan.engineHours,
+      active: plan.active,
+      priority: plan.priority,
+      assigned_to: plan.assignedTo
+    };
+
     // First, insert the plan into maintenance_plans table
     const { data: planData, error: planError } = await supabase
       .from('maintenance_plans')
-      .insert({
-        title: plan.title,
-        description: plan.description,
-        equipment_id: plan.equipmentId,
-        equipment_name: plan.equipmentName,
-        frequency: plan.frequency,
-        interval: plan.interval,
-        unit: plan.unit,
-        next_due_date: plan.nextDueDate.toISOString(),
-        last_performed_date: plan.lastPerformedDate ? plan.lastPerformedDate.toISOString() : null,
-        type: plan.type,
-        engine_hours: plan.engineHours,
-        active: plan.active,
-        priority: plan.priority,
-        assigned_to: plan.assignedTo
-      })
+      .insert(planDbData)
       .select()
       .single();
 
@@ -416,33 +616,43 @@ export async function addMaintenancePlan(plan: Omit<MaintenancePlan, 'id'>): Pro
 export async function updateMaintenancePlan(planId: number, updates: Partial<MaintenancePlan>): Promise<MaintenancePlan | null> {
   try {
     // Convert any date objects to ISO strings for database storage
-    const dbUpdates: any = { ...updates };
-    if (updates.nextDueDate) {
+    const dbUpdates: any = { };
+    
+    if (updates.title !== undefined) dbUpdates.title = updates.title;
+    if (updates.description !== undefined) dbUpdates.description = updates.description;
+    
+    if (updates.nextDueDate !== undefined) {
       dbUpdates.next_due_date = updates.nextDueDate.toISOString();
-      delete dbUpdates.nextDueDate;
     }
-    if (updates.lastPerformedDate) {
-      dbUpdates.last_performed_date = updates.lastPerformedDate.toISOString();
-      delete dbUpdates.lastPerformedDate;
+    
+    if (updates.lastPerformedDate !== undefined) {
+      dbUpdates.last_performed_date = updates.lastPerformedDate instanceof Date 
+        ? updates.lastPerformedDate.toISOString() 
+        : null;
     }
-
-    // Map our properties to database column names
+    
     if (updates.equipmentId !== undefined) {
       dbUpdates.equipment_id = updates.equipmentId;
-      delete dbUpdates.equipmentId;
     }
+    
     if (updates.equipmentName !== undefined) {
       dbUpdates.equipment_name = updates.equipmentName;
-      delete dbUpdates.equipmentName;
     }
+    
     if (updates.engineHours !== undefined) {
       dbUpdates.engine_hours = updates.engineHours;
-      delete dbUpdates.engineHours;
     }
+    
     if (updates.assignedTo !== undefined) {
       dbUpdates.assigned_to = updates.assignedTo;
-      delete dbUpdates.assignedTo;
     }
+    
+    if (updates.frequency !== undefined) dbUpdates.frequency = updates.frequency;
+    if (updates.interval !== undefined) dbUpdates.interval = updates.interval;
+    if (updates.unit !== undefined) dbUpdates.unit = updates.unit;
+    if (updates.type !== undefined) dbUpdates.type = updates.type;
+    if (updates.active !== undefined) dbUpdates.active = updates.active;
+    if (updates.priority !== undefined) dbUpdates.priority = updates.priority;
 
     const { data, error } = await supabase
       .from('maintenance_plans')
@@ -455,24 +665,39 @@ export async function updateMaintenancePlan(planId: number, updates: Partial<Mai
 
     if (data) {
       // Map the response back to our MaintenancePlan type
-      const updatedPlan: MaintenancePlan = {
+      return {
         id: data.id,
         title: data.title,
         description: data.description,
         equipmentId: data.equipment_id,
         equipmentName: data.equipment_name,
-        frequency: data.frequency as MaintenanceFrequency,
+        frequency: safeEnumValue(
+          data.frequency, 
+          ['daily', 'weekly', 'monthly', 'quarterly', 'semi-annual', 'annual', 'biannual', 'yearly', 'custom', 'other'] as const,
+          'monthly'
+        ),
         interval: data.interval,
-        unit: data.unit as MaintenanceUnit,
-        nextDueDate: new Date(data.next_due_date),
-        lastPerformedDate: data.last_performed_date ? new Date(data.last_performed_date) : null,
-        type: data.type as MaintenanceType,
+        unit: safeEnumValue(
+          data.unit, 
+          ['hours', 'days', 'weeks', 'months', 'years', 'other'] as const,
+          'days'
+        ),
+        nextDueDate: safeDate(data.next_due_date) || new Date(),
+        lastPerformedDate: data.last_performed_date ? safeDate(data.last_performed_date) : null,
+        type: safeEnumValue(
+          data.type, 
+          ['preventive', 'corrective', 'condition-based'] as const,
+          'preventive'
+        ),
         engineHours: data.engine_hours,
         active: data.active,
-        priority: data.priority as MaintenancePriority,
+        priority: safeEnumValue(
+          data.priority, 
+          ['low', 'medium', 'high', 'critical'] as const,
+          'medium'
+        ),
         assignedTo: data.assigned_to
       };
-      return updatedPlan;
     }
     return null;
   } catch (error) {

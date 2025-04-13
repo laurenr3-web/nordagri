@@ -1,58 +1,19 @@
 
-// Export Equipment interface explicitly
-export type EquipmentStatus = 'operational' | 'maintenance' | 'repair' | 'inactive';
+// Re-export from the new centralized models
+export { 
+  EquipmentStatus,
+  Equipment,
+  EquipmentFilter,
+  EquipmentDB,
+  EquipmentFormValues
+} from './models/equipment';
 
-export interface Equipment {
-  id: number;
-  name: string;
-  type: string;
-  model?: string;
-  manufacturer?: string;
-  category?: string;
-  status: EquipmentStatus;
-  location?: string;
-  purchaseDate?: string | null;
-  serialNumber?: string | null;
-  image?: string | null;
-  usageHours?: number;
-  notes?: string;
-  lastMaintenanceDate?: string | null;
-  nextMaintenanceDate?: string | null;
-  maintenancesCompleted?: number;
-  maintenancesPending?: number;
-  ownerId?: string;
-  year?: number; // Added year property
-}
-
-export interface EquipmentFilter {
-  category?: string;
-  manufacturer?: string;
-  status?: EquipmentStatus;
-  searchTerm?: string;
-}
-
-export type EquipmentDB = {
-  id: number;
-  name: string;
-  type?: string;
-  model?: string;
-  manufacturer?: string;
-  category?: string;
-  status?: string;
-  location?: string;
-  purchase_date?: string;
-  serial_number?: string;
-  image?: string;
-  notes?: string;
-  owner_id?: string;
-  created_at?: string;
-  updated_at?: string;
-  year?: number;
-  farm_id?: string;
-}
+import { Equipment, EquipmentDB } from './models/equipment';
+import { convertToApi, convertFromApi, safeEnumValue } from '@/utils/typeTransformers';
 
 /**
  * Convert equipment from database format to application format
+ * @deprecated Use convertFromApi from typeTransformers.ts instead
  */
 export function mapEquipmentFromDB(dbEquipment: EquipmentDB): Equipment {
   return {
@@ -62,19 +23,24 @@ export function mapEquipmentFromDB(dbEquipment: EquipmentDB): Equipment {
     model: dbEquipment.model,
     manufacturer: dbEquipment.manufacturer,
     category: dbEquipment.category,
-    status: (dbEquipment.status as EquipmentStatus) || 'operational',
+    status: safeEnumValue(
+      dbEquipment.status, 
+      ['operational', 'maintenance', 'repair', 'inactive'] as const,
+      'operational'
+    ),
     location: dbEquipment.location,
     purchaseDate: dbEquipment.purchase_date,
     serialNumber: dbEquipment.serial_number,
     image: dbEquipment.image,
     notes: dbEquipment.notes,
     ownerId: dbEquipment.owner_id,
-    year: dbEquipment.year // Added year mapping
+    year: dbEquipment.year
   };
 }
 
 /**
  * Convert equipment from application format to database format
+ * @deprecated Use convertToApi from typeTransformers.ts instead
  */
 export function mapEquipmentToDB(equipment: Partial<Equipment>): Partial<EquipmentDB> {
   return {
@@ -91,6 +57,6 @@ export function mapEquipmentToDB(equipment: Partial<Equipment>): Partial<Equipme
     image: equipment.image,
     notes: equipment.notes,
     owner_id: equipment.ownerId,
-    year: equipment.year // Added year mapping
+    year: equipment.year
   };
 }

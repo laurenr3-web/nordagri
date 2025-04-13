@@ -3,44 +3,20 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client'; 
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
+import { 
+  Intervention, 
+  InterventionDB, 
+  InterventionFormValues as BaseInterventionFormValues 
+} from '@/types/models/intervention';
+import { convertFromApi, convertToApi, safeDate } from '@/utils/typeTransformers';
 
-// Define the Intervention type to match both database and application structures
-export interface Intervention {
-  id: number;
-  title: string;
-  description?: string;
-  equipment: string;
-  equipmentId: number;
-  location: string;
-  date: Date;
-  status: string;
-  priority: string;
-  technician: string;
-  duration?: number;
-  scheduledDuration?: number;
-  notes?: string;
-  partsUsed?: any[];
-  coordinates?: any;
-  createdAt: string;
-  updatedAt: string;
-  ownerId?: string;
-}
-
-export interface InterventionFormValues {
-  title: string;
-  description?: string;
-  equipment: string;
+// Extending the form values for API compatibility
+export interface InterventionFormValues extends BaseInterventionFormValues {
   equipment_id: number;
-  location: string;
-  date: Date;
-  status: string;
-  priority: string;
-  technician: string;
-  duration?: number;
-  scheduledDuration?: number;
-  notes?: string;
-  partsUsed?: any[];
+  technician: string;  // Required for API
 }
+
+export type { Intervention };  // Re-export for convenience
 
 export const useInterventionsData = () => {
   // Use react-query to fetch interventions with caching and refetching
@@ -55,29 +31,21 @@ export const useInterventionsData = () => {
       throw new Error('Failed to fetch interventions data');
     }
     
-    // Map database response to our Intervention type
-    const interventions: Intervention[] = data.map(item => ({
-      id: item.id,
-      title: item.title,
-      description: item.description,
-      equipment: item.equipment,
-      equipmentId: item.equipment_id,
-      location: item.location,
-      date: new Date(item.date),
-      status: item.status,
-      priority: item.priority,
-      technician: item.technician,
-      duration: item.duration,
-      scheduledDuration: item.scheduled_duration,
-      notes: item.notes,
-      partsUsed: item.parts_used,
-      coordinates: item.coordinates,
-      createdAt: item.created_at,
-      updatedAt: item.updated_at,
-      ownerId: item.owner_id
-    }));
-    
-    return interventions;
+    // Map database response to our Intervention type with JSON parsing for parts_used
+    return data.map((item: InterventionDB) => {
+      // Basic property conversion
+      const intervention = convertFromApi<Intervention>(item);
+      
+      // Special handling for dates and complex objects
+      return {
+        ...intervention,
+        date: safeDate(item.date) || new Date(),
+        partsUsed: Array.isArray(item.parts_used) ? item.parts_used : 
+                  (typeof item.parts_used === 'string' ? 
+                    JSON.parse(item.parts_used) : 
+                    [])
+      };
+    });
   };
 
   const {
@@ -94,21 +62,10 @@ export const useInterventionsData = () => {
   const createIntervention = async (formData: InterventionFormValues): Promise<Intervention> => {
     try {
       // Convert form data to database format
-      const interventionData = {
-        title: formData.title,
-        description: formData.description,
-        equipment: formData.equipment,
-        equipment_id: formData.equipment_id,
-        location: formData.location,
-        date: formData.date.toISOString(),
-        status: formData.status,
-        priority: formData.priority,
-        technician: formData.technician,
-        duration: formData.duration,
-        scheduled_duration: formData.scheduledDuration,
-        notes: formData.notes,
-        parts_used: formData.partsUsed || []
-      };
+      const interventionData = convertToApi<InterventionDB>({
+        ...formData,
+        date: formData.date instanceof Date ? formData.date.toISOString() : formData.date
+      });
 
       const { data, error } = await supabase
         .from('interventions')
@@ -122,26 +79,8 @@ export const useInterventionsData = () => {
       refetch();
       
       // Convert database response back to our Intervention type
-      const newIntervention: Intervention = {
-        id: data.id,
-        title: data.title,
-        description: data.description,
-        equipment: data.equipment,
-        equipmentId: data.equipment_id,
-        location: data.location,
-        date: new Date(data.date),
-        status: data.status,
-        priority: data.priority,
-        technician: data.technician,
-        duration: data.duration,
-        scheduledDuration: data.scheduled_duration,
-        notes: data.notes,
-        partsUsed: data.parts_used,
-        coordinates: data.coordinates,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
-        ownerId: data.owner_id
-      };
+      const newIntervention = convertFromApi<Intervention>(data);
+      newIntervention.date = safeDate(data.date) || new Date();
       
       return newIntervention;
     } catch (error) {
@@ -190,22 +129,22 @@ export const useInterventionsData = () => {
   const submitInterventionReport = async (intervention: Partial<Intervention>): Promise<void> => {
     try {
       // Prepare the data for update, converting Date objects to ISO strings
-      const updateData = {
-        ...intervention,
-        date: intervention.date instanceof Date ? intervention.date.toISOString() : intervention.date,
+      const updateData: any = {
+        ...convertToApi(intervention),
         status: 'completed'
       };
       
-      // Remove readonly properties that shouldn't be sent in the update
+      // Remove the id from the update object - use it in the where clause instead
+      const interventionId = updateData.id;
       delete updateData.id;
-      delete updateData.createdAt;
-      delete updateData.updatedAt;
-      delete updateData.ownerId;
+      delete updateData.created_at;
+      delete updateData.updated_at;
+      delete updateData.owner_id;
       
       const { error } = await supabase
         .from('interventions')
         .update(updateData)
-        .eq('id', intervention.id);
+        .eq('id', interventionId);
 
       if (error) throw error;
       

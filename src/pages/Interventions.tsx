@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import InterventionsHeader from '@/components/interventions/InterventionsHeader';
 import InterventionsContainer from '@/components/interventions/InterventionsContainer';
@@ -8,7 +9,7 @@ import InterventionDetailsDialog from '@/components/interventions/InterventionDe
 import { toast } from 'sonner';
 import InterventionsDialogs from '@/components/interventions/InterventionsDialogs';
 import { useQueryClient } from '@tanstack/react-query';
-import { InterventionFormValues } from '@/types/Intervention';
+import { InterventionFormValues } from '@/types/models/intervention';
 
 const InterventionsPage = () => {
   const queryClient = useQueryClient();
@@ -66,9 +67,17 @@ const InterventionsPage = () => {
 
   // Gestionnaire pour après la création d'une intervention
   const handleAfterCreateIntervention = async (intervention: InterventionFormValues): Promise<void> => {
+    // Add required fields for API compatibility
+    const apiFormValues = {
+      ...intervention,
+      equipment_id: intervention.equipmentId,
+      status: 'scheduled' as const,
+      technician: intervention.technician || ''
+    };
+    
     // Rafraîchir les données après création
     queryClient.invalidateQueries({ queryKey: ['interventions'] });
-    handleCreateIntervention(intervention);
+    handleCreateIntervention(apiFormValues);
     return Promise.resolve();
   };
 

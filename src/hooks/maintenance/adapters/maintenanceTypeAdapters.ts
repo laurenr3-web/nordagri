@@ -1,173 +1,133 @@
+/**
+ * Adapters for maintenance types to convert between different formats
+ */
 
-import { 
-  MaintenancePlan, 
-  MaintenancePlanViewModel, 
-  MaintenanceFormValues as PlanFormValues,
-  MaintenanceStatus as PlanMaintenanceStatus,
-  MaintenanceType as PlanMaintenanceType,
-} from '../types/maintenancePlanTypes';
-
-import { 
-  MaintenanceStatus, 
-  MaintenanceType,
-  MaintenanceFormValues,
-  MaintenanceTask,
-  MaintenancePriority
-} from '../maintenanceSlice';
-
-// Service task type from the maintenanceService
-import type { MaintenanceTask as ServiceMaintenanceTask } from '@/services/supabase/maintenanceService';
+import { MaintenanceTask, MaintenanceTaskDB, MaintenanceStatus, MaintenancePriority } from '@/types/models/maintenance';
+import { safeDate, safeEnumValue } from '@/utils/typeTransformers';
 
 /**
- * Map a database maintenance plan to the frontend view model
+ * Convert a task from the service format to the model format
  */
-export function mapMaintenancePlanToViewModel(plan: MaintenancePlan): MaintenancePlanViewModel {
-  return {
-    id: plan.id,
-    title: plan.title,
-    description: plan.description,
-    equipmentId: plan.equipment_id,
-    equipmentName: plan.equipment_name || plan.equipment || '',
-    frequency: plan.frequency,
-    interval: plan.interval,
-    unit: plan.unit,
-    nextDueDate: plan.next_due_date ? new Date(plan.next_due_date) : new Date(),
-    lastPerformedDate: plan.last_performed_date ? new Date(plan.last_performed_date) : null,
-    type: mapMaintenanceTypeToPlanType(plan.type),
-    engineHours: plan.engine_hours,
-    active: plan.active,
-    priority: plan.priority,
-    assignedTo: plan.assigned_to
-  };
-}
-
-/**
- * Map a frontend view model to the database plan format
- */
-export function mapViewModelToMaintenancePlan(viewModel: MaintenancePlanViewModel): MaintenancePlan {
-  return {
-    id: viewModel.id,
-    title: viewModel.title,
-    description: viewModel.description,
-    equipment_id: viewModel.equipmentId,
-    equipment_name: viewModel.equipmentName,
-    frequency: viewModel.frequency,
-    interval: viewModel.interval,
-    unit: viewModel.unit,
-    next_due_date: viewModel.nextDueDate.toISOString(),
-    last_performed_date: viewModel.lastPerformedDate ? viewModel.lastPerformedDate.toISOString() : undefined,
-    type: viewModel.type,
-    engine_hours: viewModel.engineHours,
-    active: viewModel.active,
-    priority: viewModel.priority,
-    assigned_to: viewModel.assignedTo
-  };
-}
-
-/**
- * Map maintenance plan type to task type (ensuring compatibility)
- */
-export function mapMaintenanceTypeToTaskType(type: PlanMaintenanceType): MaintenanceType {
-  switch (type) {
-    case 'preventive': return 'preventive';
-    case 'predictive': return 'condition-based';
-    case 'corrective': return 'corrective';
-    // Handle extra types that don't exist in task type
-    case 'inspection': 
-    case 'other':
-    default:
-      return 'preventive';
+export function adaptServiceTaskToModelTask(serviceTask: MaintenanceTaskDB): MaintenanceTask {
+  // Handle the status conversion with validation
+  let status: MaintenanceStatus = safeEnumValue(
+    serviceTask.status,
+    ['scheduled', 'in-progress', 'completed', 'overdue', 'cancelled', 'pending-parts'] as const,
+    'scheduled'
+  );
+  
+  // Handle overdue status special case
+  if (serviceTask.due_date) {
+    const dueDate = new Date(serviceTask.due_date);
+    const now = new Date();
+    if (dueDate < now && status === 'scheduled') {
+      status = 'overdue';
+    }
   }
-}
 
-/**
- * Map maintenance status between different formats
- */
-export function mapPlanStatusToTaskStatus(status: PlanMaintenanceStatus): MaintenanceStatus {
-  switch (status) {
-    case 'pending': return 'scheduled';
-    case 'in-progress': return 'in-progress';
-    case 'completed': return 'completed';
-    case 'overdue': return 'overdue';
-    // Special case mappings
-    case 'scheduled': return 'scheduled';
-    default:
-      return 'scheduled';
-  }
-}
-
-/**
- * Map a task status string to a valid MaintenanceStatus enum value
- */
-export function safeMaintenanceStatus(status: string): MaintenanceStatus {
-  const validStatuses: MaintenanceStatus[] = ['scheduled', 'in-progress', 'completed', 'overdue', 'cancelled', 'pending-parts'];
-  return validStatuses.includes(status as MaintenanceStatus) 
-    ? status as MaintenanceStatus 
-    : 'scheduled';
-}
-
-/**
- * Map a maintenance type string to a valid MaintenanceType enum value
- */
-export function safeMaintenanceType(type: string): MaintenanceType {
-  const validTypes: MaintenanceType[] = ['preventive', 'corrective', 'condition-based'];
-  return validTypes.includes(type as MaintenanceType)
-    ? type as MaintenanceType
-    : 'preventive';
-}
-
-/**
- * Map maintenance plan type to frontend type
- */
-export function mapMaintenanceTypeToPlanType(type: string): PlanMaintenanceType {
-  const validTypes: PlanMaintenanceType[] = ['preventive', 'predictive', 'corrective', 'inspection', 'other'];
-  return validTypes.includes(type as PlanMaintenanceType)
-    ? type as PlanMaintenanceType
-    : 'preventive';
-}
-
-/**
- * Convert plan form values to task form values
- */
-export function convertPlanFormToTaskForm(planForm: PlanFormValues): MaintenanceFormValues {
-  return {
-    title: planForm.title,
-    equipment: planForm.equipment || '',
-    equipmentId: planForm.equipment_id,
-    type: mapMaintenanceTypeToTaskType(planForm.type),
-    status: 'scheduled',
-    priority: planForm.priority,
-    dueDate: new Date(planForm.due_date),
-    engineHours: planForm.estimated_duration,
-    assignedTo: planForm.assigned_to || '',
-    notes: planForm.notes
-  };
-}
-
-/**
- * This is the function that transforms a service task into the model format used in components
- */
-export function adaptServiceTaskToModelTask(serviceTask: ServiceMaintenanceTask): MaintenanceTask {
+  // Convert task to model format
   return {
     id: serviceTask.id,
     title: serviceTask.title,
     equipment: serviceTask.equipment,
     equipmentId: serviceTask.equipment_id,
-    // Convert string date to Date object
-    dueDate: new Date(serviceTask.due_date),
-    // Ensure proper type is assigned
-    type: safeMaintenanceType(serviceTask.type),
-    // Map status to a valid status
-    status: safeMaintenanceStatus(serviceTask.status),
-    // Cast to MaintenancePriority to ensure compatibility
-    priority: serviceTask.priority as MaintenancePriority,
-    // Format completed date if available
-    completedDate: serviceTask.completed_date ? new Date(serviceTask.completed_date) : undefined,
-    // Map engine hours and duration
-    engineHours: serviceTask.estimated_duration || 0,
+    type: safeEnumValue(
+      serviceTask.type,
+      ['preventive', 'corrective', 'condition-based'] as const,
+      'preventive'
+    ),
+    status,
+    priority: safeEnumValue(
+      serviceTask.priority,
+      ['low', 'medium', 'high', 'critical'] as const, 
+      'medium'
+    ),
+    dueDate: safeDate(serviceTask.due_date) || new Date(),
+    completedDate: serviceTask.completed_date ? safeDate(serviceTask.completed_date) : undefined,
+    engineHours: serviceTask.engine_hours,
     actualDuration: serviceTask.actual_duration,
-    // Assignee and notes
     assignedTo: serviceTask.assigned_to || '',
     notes: serviceTask.notes || '',
+    ownerId: serviceTask.owner_id
   };
+}
+
+/**
+ * Convert a task from the model format to the service format
+ */
+export function adaptModelTaskToServiceTask(modelTask: Partial<MaintenanceTask>): Partial<MaintenanceTaskDB> {
+  const result: Partial<MaintenanceTaskDB> = {};
+  
+  // Map fields that need conversion
+  if (modelTask.id !== undefined) result.id = modelTask.id;
+  if (modelTask.title !== undefined) result.title = modelTask.title;
+  if (modelTask.equipment !== undefined) result.equipment = modelTask.equipment;
+  if (modelTask.equipmentId !== undefined) result.equipment_id = modelTask.equipmentId;
+  if (modelTask.type !== undefined) result.type = modelTask.type;
+  if (modelTask.status !== undefined) result.status = modelTask.status;
+  if (modelTask.priority !== undefined) result.priority = modelTask.priority;
+  
+  // Handle date conversions
+  if (modelTask.dueDate !== undefined) {
+    result.due_date = modelTask.dueDate instanceof Date 
+      ? modelTask.dueDate.toISOString()
+      : modelTask.dueDate;
+  }
+  
+  if (modelTask.completedDate !== undefined) {
+    result.completed_date = modelTask.completedDate instanceof Date 
+      ? modelTask.completedDate.toISOString()
+      : modelTask.completedDate;
+  }
+  
+  // Map other fields
+  if (modelTask.engineHours !== undefined) result.engine_hours = modelTask.engineHours;
+  if (modelTask.actualDuration !== undefined) result.actual_duration = modelTask.actualDuration;
+  if (modelTask.assignedTo !== undefined) result.assigned_to = modelTask.assignedTo;
+  if (modelTask.notes !== undefined) result.notes = modelTask.notes;
+  if (modelTask.ownerId !== undefined) result.owner_id = modelTask.ownerId;
+  
+  return result;
+}
+
+/**
+ * Determine the status of a task based on its due date
+ */
+export function determineTaskStatus(
+  task: Pick<MaintenanceTask, 'status' | 'dueDate'>,
+  currentDate: Date = new Date()
+): MaintenanceStatus {
+  // If task is already completed or in other terminal states, keep the status
+  if (
+    task.status === 'completed' || 
+    task.status === 'cancelled' ||
+    task.status === 'in-progress'
+  ) {
+    return task.status;
+  }
+  
+  // Check if task is overdue
+  if (task.dueDate < currentDate && task.status === 'scheduled') {
+    return 'overdue';
+  }
+  
+  return task.status;
+}
+
+/**
+ * Convert a numeric priority to a typed priority
+ */
+export function getPriorityFromValue(value: number): MaintenancePriority {
+  switch (value) {
+    case 0:
+      return 'low';
+    case 1:
+      return 'medium';
+    case 2:
+      return 'high';
+    case 3:
+      return 'critical';
+    default:
+      return 'medium';
+  }
 }

@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { useInterventionsData } from './useInterventionsData';
-import { InterventionFormValues } from '@/types/Intervention';
+import { InterventionFormValues } from '@/types/models/intervention';
 import { toast } from 'sonner';
 
 interface UseInterventionFormHandlersProps {
@@ -27,7 +27,8 @@ export const useInterventionFormHandlers = ({ onClose }: UseInterventionFormHand
         ...formData,
         equipment_id: formData.equipmentId,
         scheduled_duration: formData.scheduledDuration,
-        status: formData.status || 'scheduled' // Ensure status is provided
+        status: formData.status || 'scheduled', // Ensure status is provided
+        technician: formData.technician || '' // Ensure technician is provided (required in the API)
       };
       
       await createIntervention(apiFormData);

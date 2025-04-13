@@ -1,84 +1,19 @@
 
+// Re-export intervention types from the centralized models
+export {
+  InterventionStatus,
+  InterventionPriority,
+  PartUsed,
+  Intervention,
+  InterventionFormValues,
+  InterventionReportData
+} from './models/intervention';
+
+import { Intervention } from './models/intervention';
+
 /**
- * Types pour les interventions
+ * Create a default intervention object
  */
-
-// Statuts possibles pour une intervention
-export type InterventionStatus = 
-  | 'scheduled' 
-  | 'in-progress' 
-  | 'completed' 
-  | 'canceled';
-
-// Niveaux de priorité pour une intervention
-export type InterventionPriority = 'low' | 'medium' | 'high';
-
-// Interface de base pour une pièce utilisée dans une intervention
-export interface PartUsed {
-  id: number;
-  name: string;
-  quantity: number;
-}
-
-// Interface pour les interventions urgentes affichées dans le tableau de bord
-export interface UrgentIntervention {
-  id: number;
-  title: string;
-  equipment: string;
-  priority: InterventionPriority;
-  date: Date;
-  status: InterventionStatus;
-  technician: string;
-  location: string;
-}
-
-// Interface complète pour une intervention
-export interface Intervention {
-  id: number;
-  title: string;
-  equipment: string;
-  equipmentId: number;
-  description?: string;
-  status: InterventionStatus;
-  priority: InterventionPriority;
-  date: Date;
-  scheduledDuration?: number;
-  duration?: number;
-  technician: string;
-  location: string;
-  notes?: string;
-  partsUsed?: PartUsed[];
-  coordinates?: {
-    latitude: number;
-    longitude: number;
-  };
-  createdAt?: Date;
-  updatedAt?: Date;
-  ownerId?: string;
-}
-
-// Interface pour les valeurs de formulaire d'intervention
-export interface InterventionFormValues {
-  title: string;
-  equipment: string;
-  equipmentId: number;
-  location: string;
-  priority: InterventionPriority;
-  date: Date;
-  scheduledDuration?: number;
-  technician?: string;
-  description?: string;
-  notes?: string;
-}
-
-// Interface pour les données de rapport d'intervention
-export interface InterventionReportData {
-  duration: number;
-  notes: string;
-  partsUsed: PartUsed[];
-}
-
-// Fonction utilitaire pour créer une intervention par défaut
 export const createDefaultIntervention = (): Intervention => ({
   id: 0,
   title: '',
@@ -89,9 +24,12 @@ export const createDefaultIntervention = (): Intervention => ({
   date: new Date(),
   technician: '',
   location: '',
+  notes: ''
 });
 
-// Fonctions de validation pour les données d'intervention
+/**
+ * Utilities for validating intervention data
+ */
 export const interventionValidators = {
   isValidTitle: (title: string): boolean => title.trim().length >= 2,
   isValidPriority: (priority: string): boolean => ['low', 'medium', 'high'].includes(priority),
@@ -101,7 +39,9 @@ export const interventionValidators = {
   isValidDuration: (duration: number): boolean => duration > 0
 };
 
-// Fonction utilitaire pour mapper entre lat/lng et latitude/longitude
+/**
+ * Utility for coordinate format conversion
+ */
 export const convertCoordinates = {
   toLatLng: (coords?: {latitude: number; longitude: number}) => {
     if (!coords) return undefined;
