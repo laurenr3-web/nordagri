@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUpdatePart, useDeletePart } from '@/hooks/parts';
 import { partsData } from '@/data/partsData';
+import { toast } from 'sonner';
 
 export function useEquipmentParts(equipment: Equipment) {
   const [parts, setParts] = useState<Part[]>([]);
@@ -15,7 +16,7 @@ export function useEquipmentParts(equipment: Equipment) {
   const [selectedPart, setSelectedPart] = useState<Part | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddPartDialogOpen, setIsAddPartDialogOpen] = useState(false);
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
   const queryClient = useQueryClient();
   
   const updatePartMutation = useUpdatePart();
@@ -36,10 +37,8 @@ export function useEquipmentParts(equipment: Equipment) {
       } catch (err: any) {
         console.error('Error fetching parts:', err);
         setError(err.message || 'Impossible de charger les pièces');
-        toast({
-          title: "Erreur de chargement",
-          description: "Utilisation des données de démonstration",
-          variant: "destructive",
+        toast.error("Erreur de chargement", {
+          description: "Utilisation des données de démonstration"
         });
         // Utiliser des données de démonstration en cas d'erreur
         const filteredMockData = partsData.filter((part, index) => index % 2 === 0);
@@ -52,7 +51,7 @@ export function useEquipmentParts(equipment: Equipment) {
     if (equipment && equipment.id) {
       fetchParts();
     }
-  }, [equipment.id, toast]);
+  }, [equipment.id]);
 
   // Filtrer les pièces en fonction du terme de recherche
   const filteredParts = parts.filter(part => 

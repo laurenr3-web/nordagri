@@ -8,7 +8,13 @@ export async function getPartsForEquipment(equipmentId: number | string): Promis
   
   try {
     // Get the current user ID from the session
-    const { data: sessionData } = await supabase.auth.getSession();
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError) {
+      console.error('Error getting session:', sessionError);
+      return partsData.filter((part, index) => index % 2 === 0);
+    }
+    
     const userId = sessionData.session?.user.id;
     
     // If user is not authenticated, return mock data
