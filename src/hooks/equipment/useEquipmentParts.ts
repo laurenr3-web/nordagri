@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Equipment } from '@/services/supabase/equipmentService';
 import { Part } from '@/types/Part';
@@ -6,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUpdatePart, useDeletePart } from '@/hooks/parts';
 import { partsData } from '@/data/partsData';
-import { toast } from 'sonner';
+import { toast as sonnerToast } from 'sonner';
 
 export function useEquipmentParts(equipment: Equipment) {
   const [parts, setParts] = useState<Part[]>([]);
@@ -37,7 +38,7 @@ export function useEquipmentParts(equipment: Equipment) {
       } catch (err: any) {
         console.error('Error fetching parts:', err);
         setError(err.message || 'Impossible de charger les pièces');
-        toast.error("Erreur de chargement", {
+        sonnerToast.error("Erreur de chargement", {
           description: "Utilisation des données de démonstration"
         });
         // Utiliser des données de démonstration en cas d'erreur
@@ -83,26 +84,21 @@ export function useEquipmentParts(equipment: Equipment) {
           // Invalider les requêtes pour rafraîchir les données
           queryClient.invalidateQueries({ queryKey: ['parts'] });
           
-          toast({
-            title: "Succès",
-            description: `La pièce ${result.name} a été mise à jour avec succès`,
+          sonnerToast.success("Succès", {
+            description: `La pièce ${result.name} a été mise à jour avec succès`
           });
         },
         onError: (error: any) => {
           console.error('Erreur lors de la mise à jour de la pièce:', error);
-          toast({
-            title: "Erreur",
-            description: error.message || "Erreur lors de la mise à jour de la pièce",
-            variant: "destructive",
+          sonnerToast.error("Erreur", {
+            description: error.message || "Erreur lors de la mise à jour de la pièce"
           });
         }
       });
     } catch (err: any) {
       console.error('Erreur inattendue lors de la mise à jour:', err);
-      toast({
-        title: "Erreur",
-        description: err.message || "Une erreur est survenue lors de la mise à jour",
-        variant: "destructive",
+      sonnerToast.error("Erreur", {
+        description: err.message || "Une erreur est survenue lors de la mise à jour"
       });
     }
   };
@@ -121,16 +117,13 @@ export function useEquipmentParts(equipment: Equipment) {
       // Invalider les requêtes pour rafraîchir les données
       queryClient.invalidateQueries({ queryKey: ['parts'] });
       
-      toast({
-        title: "Succès",
-        description: "La pièce a été supprimée avec succès",
+      sonnerToast.success("Succès", {
+        description: "La pièce a été supprimée avec succès"
       });
     } catch (err: any) {
       console.error('Erreur lors de la suppression:', err);
-      toast({
-        title: "Erreur",
-        description: err.message || "Erreur lors de la suppression de la pièce",
-        variant: "destructive",
+      sonnerToast.error("Erreur", {
+        description: err.message || "Erreur lors de la suppression de la pièce"
       });
     }
   };
