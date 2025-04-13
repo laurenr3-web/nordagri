@@ -9,7 +9,8 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { useMaintenancePlanner } from '@/hooks/maintenance/useMaintenancePlanner';
-import MaintenancePlanForm from '@/hooks/maintenance/forms/MaintenancePlanForm';
+import MaintenancePlanForm from '@/components/maintenance/forms/MaintenancePlanForm';
+import type { MaintenancePlanViewModel } from '@/hooks/maintenance/types/maintenancePlanTypes';
 
 interface MaintenancePlanDialogProps {
   isOpen: boolean;
@@ -36,7 +37,7 @@ export default function MaintenancePlanDialog({
       }
 
       // Add the equipment ID and active status
-      const planData = {
+      const planData: Omit<MaintenancePlanViewModel, "id"> = {
         title: formData.title,
         description: formData.description,
         equipmentId: equipment.id,
@@ -83,14 +84,7 @@ export default function MaintenancePlanDialog({
         <MaintenancePlanForm
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
-          onCancel={onClose}
-          equipmentOptions={equipment ? [{ id: equipment.id, name: equipment.name }] : []}
-          isLoadingEquipment={false}
-          defaultValues={
-            equipment 
-              ? { equipment: equipment.name } 
-              : undefined
-          }
+          equipment={equipment}
         />
       </DialogContent>
     </Dialog>

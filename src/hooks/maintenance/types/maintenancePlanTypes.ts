@@ -33,10 +33,10 @@ export interface MaintenancePlan {
 // Interface for frontend form values
 export interface MaintenanceFormValues {
   title: string;
-  equipment_id: number;
   equipment?: string;
+  equipment_id: number;
   type: MaintenanceType;
-  status: MaintenanceStatus;
+  status?: MaintenanceStatus;
   priority: MaintenancePriority;
   due_date: Date | string; // Allow both Date object and string
   estimated_duration?: number;

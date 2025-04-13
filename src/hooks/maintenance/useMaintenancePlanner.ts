@@ -5,24 +5,20 @@ import { toast } from 'sonner';
 import { 
   MaintenancePlan, 
   MaintenancePlanViewModel,
-  MaintenanceFrequency, 
-  MaintenanceUnit, 
-  MaintenanceType, 
-  MaintenancePriority, 
-  MaintenanceStatus,
   dbToViewModel,
   viewModelToDB
 } from './types/maintenancePlanTypes';
 
-export { 
+// Re-export types
+export type { 
   MaintenanceFrequency, 
   MaintenanceUnit, 
   MaintenanceType, 
   MaintenancePriority, 
   MaintenanceStatus,
-  type MaintenancePlan,
-  type MaintenancePlanViewModel 
-};
+  MaintenancePlan,
+  MaintenancePlanViewModel 
+} from './types/maintenancePlanTypes';
 
 export const useMaintenancePlanner = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -123,12 +119,11 @@ export const useMaintenancePlanner = () => {
     }
   }, []);
 
-  // Create a schedule from a maintenance plan - this function doesn't exist yet in the service,
-  // so we'll handle this gracefully
+  // Create a schedule from a maintenance plan
   const createScheduleFromPlan = useCallback(async (plan: MaintenancePlanViewModel, endDate: Date) => {
     setIsLoading(true);
     try {
-      // Since generateTasksFromPlan doesn't exist, we'll create a task directly
+      // Create a task directly from plan
       const dbPlan = viewModelToDB(plan);
       
       const task = {

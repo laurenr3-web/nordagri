@@ -1,11 +1,11 @@
 
-import { MaintenancePlan } from '../types/maintenancePlanTypes';
+import { MaintenancePlan, MaintenancePlanViewModel } from '../types/maintenancePlanTypes';
 import { MaintenanceFormValues, MaintenanceStatus, MaintenanceType as TaskMaintenanceType } from '../maintenanceSlice';
 import { calculateNextDueDate } from './maintenanceDateUtils';
 import { isAfter } from 'date-fns';
 
 export const generateSchedule = (
-  plan: MaintenancePlan,
+  plan: MaintenancePlanViewModel,
   endDate: Date,
   onTaskCreated: (task: MaintenanceFormValues) => void
 ): void => {
@@ -16,15 +16,15 @@ export const generateSchedule = (
     const task: MaintenanceFormValues = {
       title: plan.title,
       equipment: plan.equipmentName,
-      equipmentId: plan.equipmentId,
+      equipment_id: plan.equipmentId,
       // Use type casting to ensure the type is compatible with maintenanceSlice.ts MaintenanceType
       type: (plan.type === 'predictive' ? 'condition-based' : plan.type) as TaskMaintenanceType,
       status: 'scheduled' as MaintenanceStatus,
       priority: plan.priority,
-      dueDate: currentDate,
-      engineHours: plan.engineHours,
+      due_date: currentDate,
+      estimated_duration: plan.engineHours,
       notes: plan.description,
-      assignedTo: plan.assignedTo || '',
+      assigned_to: plan.assignedTo || '',
     };
 
     onTaskCreated(task);

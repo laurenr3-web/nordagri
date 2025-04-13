@@ -28,9 +28,11 @@ export const calculateNextDueDate = (
       nextDueDate = addMonths(startDate, interval * 3);
       break;
     case 'biannual':
+    case 'semi-annual':
       nextDueDate = addMonths(startDate, interval * 6);
       break;
     case 'yearly':
+    case 'annual':
       nextDueDate = addMonths(startDate, interval * 12);
       break;
     default:
