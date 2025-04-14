@@ -28,14 +28,32 @@ export function useTimeTracking() {
       
       const userId = sessionData.session.user.id;
       
-      // Utiliser la fonction de base de données pour récupérer l'entrée active
+      // Utiliser la fonction de base de données pour récupérer l'entrée active en utilisant directement un appel SQL
       const { data, error } = await supabase
-        .rpc('get_active_time_entry', { p_user_id: userId });
+        .from('time_entries')
+        .select('*, equipment(name)')
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .is('end_time', null)
+        .order('start_time', { ascending: false })
+        .limit(1)
+        .maybeSingle();
         
       if (error) throw error;
       
-      if (data && data.length > 0) {
-        setActiveTimeEntry(data[0] as ActiveTimeEntry);
+      if (data) {
+        // Transformer les données de l'API pour qu'elles correspondent à notre interface
+        const activeEntry: ActiveTimeEntry = {
+          id: data.id,
+          user_id: data.user_id,
+          equipment_id: data.equipment_id,
+          intervention_id: data.intervention_id,
+          task_type: data.task_type as TimeEntryTaskType,
+          start_time: data.start_time,
+          status: data.status as TimeEntryStatus,
+          equipment_name: data.equipment?.name
+        };
+        setActiveTimeEntry(activeEntry);
       } else {
         setActiveTimeEntry(null);
       }
@@ -88,19 +106,31 @@ export function useTimeTracking() {
           status: 'active' as TimeEntryStatus,
           start_time: new Date().toISOString()
         })
-        .select('*')
+        .select('*, equipment(name)')
         .single();
       
       if (error) throw error;
       
-      // Récupérer les infos complètes
-      await fetchActiveTimeEntry();
+      // Mise à jour de l'état avec les données complètes
+      if (data) {
+        const newEntry: ActiveTimeEntry = {
+          id: data.id,
+          user_id: data.user_id,
+          equipment_id: data.equipment_id,
+          intervention_id: data.intervention_id,
+          task_type: data.task_type as TimeEntryTaskType,
+          start_time: data.start_time,
+          status: data.status as TimeEntryStatus,
+          equipment_name: data.equipment?.name
+        };
+        setActiveTimeEntry(newEntry);
+      }
       
       toast.success('Suivi de temps démarré', {
         description: 'L\'horloge tourne maintenant.'
       });
       
-      return data as TimeEntry;
+      return data as unknown as TimeEntry;
     } catch (err) {
       console.error("Erreur lors du démarrage du suivi de temps:", err);
       toast.error('Erreur', {
