@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { PlusCircle, Bug } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { InfoCircled } from '@radix-ui/react-icons';
+import { InfoIcon } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface EquipmentPartsProps {
@@ -52,7 +52,7 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = ({ equipment }) => {
       <CardContent>
         {isUsingDemoData && (
           <Alert variant="warning" className="mb-4">
-            <InfoCircled className="h-4 w-4" />
+            <InfoIcon className="h-4 w-4" />
             <AlertTitle>Données de démonstration</AlertTitle>
             <AlertDescription>
               Vous visualisez actuellement des données de démonstration, pas des données réelles de la base de données.

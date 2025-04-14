@@ -26,7 +26,7 @@ const Parts = () => {
           variant: "destructive",
         });
       } else {
-        console.log("Utilisateur authentifié:", status.user?.id);
+        console.log("Utilisateur authentifié:", status.session?.user?.id);
       }
     };
     
