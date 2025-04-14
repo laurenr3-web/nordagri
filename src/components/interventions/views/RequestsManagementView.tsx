@@ -45,7 +45,7 @@ const RequestsManagementView: React.FC<RequestsManagementViewProps> = ({
         notes: values.notes,
       };
       
-      await interventionService.addIntervention(interventionData);
+      await interventionService.createIntervention(interventionData);
       toast.success('Demande d\'intervention créée avec succès');
       setIsRequestDialogOpen(false);
       refetch(); // Refresh the data

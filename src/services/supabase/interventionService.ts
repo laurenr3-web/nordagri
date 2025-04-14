@@ -1,7 +1,8 @@
 
 import { supabase, withRetry } from '@/integrations/supabase/client';
-import { InterventionFormValues } from '@/types/models/intervention';
+import { InterventionDB, InterventionFormValues, Intervention } from '@/types/models/intervention';
 import { toast } from 'sonner';
+import { dbToClientIntervention, clientFormToDbIntervention, clientToDbIntervention } from './interventionAdapter';
 
 /**
  * Service for handling intervention operations
@@ -10,7 +11,7 @@ export const interventionService = {
   /**
    * Get all interventions
    */
-  getInterventions: async () => {
+  getInterventions: async (): Promise<Intervention[]> => {
     try {
       const { data, error } = await supabase
         .from('interventions')
@@ -21,7 +22,8 @@ export const interventionService = {
         throw error;
       }
       
-      return data || [];
+      // Convert database results to client model
+      return data ? data.map(item => dbToClientIntervention(item as InterventionDB)) : [];
     } catch (error: any) {
       console.error('Error fetching interventions:', error);
       toast.error('Erreur lors du chargement des interventions', {
@@ -34,7 +36,7 @@ export const interventionService = {
   /**
    * Get intervention by ID
    */
-  getInterventionById: async (id: number | string) => {
+  getInterventionById: async (id: number | string): Promise<Intervention | null> => {
     try {
       const { data, error } = await supabase
         .from('interventions')
@@ -46,7 +48,7 @@ export const interventionService = {
         throw error;
       }
       
-      return data;
+      return data ? dbToClientIntervention(data as InterventionDB) : null;
     } catch (error: any) {
       console.error(`Error fetching intervention with ID ${id}:`, error);
       toast.error('Erreur lors du chargement de l\'intervention', {
@@ -59,7 +61,7 @@ export const interventionService = {
   /**
    * Create a new intervention
    */
-  createIntervention: async (values: InterventionFormValues) => {
+  createIntervention: async (values: InterventionFormValues): Promise<Intervention | null> => {
     try {
       // Add validation for required fields
       if (!values.title) {
@@ -70,29 +72,13 @@ export const interventionService = {
         throw new Error("L'équipement est obligatoire");
       }
       
-      // Adding coordinates property for geolocation if provided
-      const coordinates = values.location ? {
-        latitude: values.location.latitude || null,
-        longitude: values.location.longitude || null
-      } : null;
-      
       const { data, error } = await withRetry(async () => {
         const toastId = 'create-intervention';
         toast.loading('Création de l\'intervention...', { id: toastId });
         
         try {
-          // Prepare the intervention data with optional coordinates
-          const interventionData = {
-            title: values.title,
-            description: values.description || '',
-            equipment_id: values.equipmentId,
-            priority: values.priority || 'medium',
-            status: values.status || 'scheduled',
-            scheduled_date: values.scheduledDate,
-            technician: values.technician || null,
-            coordinates: coordinates,
-            // Add other fields as needed
-          };
+          // Convert form values to database format
+          const interventionData = clientFormToDbIntervention(values);
           
           const { data, error } = await supabase
             .from('interventions')
@@ -114,7 +100,7 @@ export const interventionService = {
       });
       
       if (error) throw error;
-      return data;
+      return data ? dbToClientIntervention(data as InterventionDB) : null;
     } catch (error: any) {
       console.error('Error creating intervention:', error);
       throw error;
@@ -124,30 +110,15 @@ export const interventionService = {
   /**
    * Update an intervention
    */
-  updateIntervention: async (id: number, values: Partial<InterventionFormValues>) => {
+  updateIntervention: async (id: number, intervention: Partial<Intervention>): Promise<Intervention | null> => {
     try {
-      // Adding coordinates property for geolocation if provided
-      const coordinates = values.location ? {
-        latitude: values.location.latitude || null,
-        longitude: values.location.longitude || null
-      } : undefined;
-      
       const { data, error } = await withRetry(async () => {
         const toastId = 'update-intervention';
         toast.loading('Mise à jour de l\'intervention...', { id: toastId });
         
         try {
-          // Prepare the update data with optional coordinates
-          const updateData: any = {
-            ...values,
-            coordinates: coordinates,
-            // Map any fields that need renaming
-            equipment_id: values.equipmentId,
-          };
-          
-          // Remove specific fields that shouldn't be sent directly
-          delete updateData.equipmentId;
-          delete updateData.location;
+          // Convert client data to database format
+          const updateData = clientToDbIntervention(intervention as Intervention);
           
           const { data, error } = await supabase
             .from('interventions')
@@ -170,11 +141,18 @@ export const interventionService = {
       });
       
       if (error) throw error;
-      return data;
+      return data ? dbToClientIntervention(data as InterventionDB) : null;
     } catch (error: any) {
       console.error(`Error updating intervention with ID ${id}:`, error);
       throw error;
     }
+  },
+
+  /**
+   * Update intervention status
+   */
+  updateInterventionStatus: async (id: number, status: string): Promise<Intervention | null> => {
+    return interventionService.updateIntervention(id, { status: status as any });
   }
 };
 

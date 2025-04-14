@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { interventionService } from '@/services/supabase/interventionService';
 import { Intervention } from '@/types/Intervention';
@@ -22,14 +22,19 @@ export function useInterventionDetail(interventionId: string | number | undefine
   
   // Update intervention mutation
   const updateMutation = useMutation({
-    mutationFn: (updatedIntervention: Intervention) => {
+    mutationFn: (updatedIntervention: Partial<Intervention>) => {
       setIsUpdating(true);
-      return interventionService.updateIntervention(updatedIntervention);
+      if (!intervention || !intervention.id) {
+        throw new Error("Cannot update an intervention without ID");
+      }
+      return interventionService.updateIntervention(intervention.id, updatedIntervention);
     },
     onSuccess: (updatedIntervention) => {
       // Update cache
-      queryClient.setQueryData(['interventions', updatedIntervention.id], updatedIntervention);
-      queryClient.invalidateQueries({ queryKey: ['interventions'] });
+      if (updatedIntervention && interventionId) {
+        queryClient.setQueryData(['interventions', interventionId], updatedIntervention);
+        queryClient.invalidateQueries({ queryKey: ['interventions'] });
+      }
       
       toast.success('Intervention mise à jour avec succès');
       setIsUpdating(false);
@@ -43,7 +48,7 @@ export function useInterventionDetail(interventionId: string | number | undefine
   });
   
   // Handle intervention update
-  const handleInterventionUpdate = (updatedIntervention: Intervention) => {
+  const handleInterventionUpdate = (updatedIntervention: Partial<Intervention>) => {
     updateMutation.mutate(updatedIntervention);
   };
   

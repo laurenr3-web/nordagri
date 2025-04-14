@@ -73,11 +73,15 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
 
   // Helper function to format date
   const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('fr-FR', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric'
-    });
+    try {
+      return new Date(date).toLocaleDateString('fr-FR', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    } catch (error) {
+      return 'Date invalide';
+    }
   };
   
   // Helper function for status badge
@@ -144,7 +148,7 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
 
   const handleStatusChange = (status: InterventionStatus) => {
     if (intervention) {
-      const updatedIntervention = {
+      const updatedIntervention: Partial<Intervention> = {
         ...intervention,
         status
       };
@@ -207,17 +211,19 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
                 <p className="font-medium">
                   {intervention.status === 'completed' && intervention.duration ? 
                     `${intervention.duration} hrs (Réelle)` : 
-                    `${intervention.scheduledDuration} hrs (Planifiée)`
+                    `${intervention.scheduledDuration || 'N/A'} hrs (Planifiée)`
                   }
                 </p>
               </div>
             </div>
           </div>
           
-          <div className="mb-4">
-            <p className="text-sm text-muted-foreground mb-1">Description</p>
-            <p className="bg-secondary/50 p-3 rounded-md">{intervention.description}</p>
-          </div>
+          {intervention.description && (
+            <div className="mb-4">
+              <p className="text-sm text-muted-foreground mb-1">Description</p>
+              <p className="bg-secondary/50 p-3 rounded-md">{intervention.description}</p>
+            </div>
+          )}
           
           {intervention.partsUsed && intervention.partsUsed.length > 0 && (
             <div className="mb-4">

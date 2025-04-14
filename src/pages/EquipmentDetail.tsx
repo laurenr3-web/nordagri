@@ -8,7 +8,7 @@ import EquipmentDetailContent from '@/components/equipment/detail/EquipmentDetai
 import MaintenanceNotificationsPopover from '@/components/maintenance/notifications/MaintenanceNotificationsPopover';
 import { withRetry } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { EquipmentItem } from '@/types/models/equipment';
+import { Equipment } from '@/types/models/equipment';
 
 const EquipmentDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -25,7 +25,7 @@ const EquipmentDetail = () => {
   
   console.log("EquipmentDetail rendering with equipment:", equipment?.id, "loading:", loading);
   
-  const handleEquipmentUpdateWithRetry = async (updatedData: EquipmentItem): Promise<void> => {
+  const handleEquipmentUpdateWithRetry = async (updatedData: Equipment): Promise<void> => {
     try {
       const toastId = 'equipment-update';
       toast.loading('Mise à jour en cours...', { id: toastId });
@@ -73,9 +73,6 @@ const EquipmentDetail = () => {
             <EquipmentDetailContent 
               equipment={equipment}
               onUpdate={handleEquipmentUpdateWithRetry}
-              maintenanceTasks={maintenanceTasks}
-              maintenancePlans={maintenancePlans}
-              parts={equipmentParts}
             />
           )}
         </div>
