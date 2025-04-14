@@ -36,10 +36,11 @@ export function useEquipmentDataFallback(id: string | undefined) {
         // Ensure the data matches the expected format
         const processedData: Equipment = {
           ...data,
-          purchaseDate: data.purchase_date || data.purchaseDate,
-          serialNumber: data.serial_number || data.serialNumber,
-          createdAt: data.created_at || new Date().toISOString(),
-          updatedAt: data.updated_at || new Date().toISOString()
+          purchase_date: data.purchase_date || data.purchaseDate,
+          serial_number: data.serial_number || data.serialNumber,
+          type: data.type || "",  // Ajout de type car c'est requis
+          created_at: data.created_at || new Date().toISOString(),
+          updated_at: data.updated_at || new Date().toISOString()
         };
         
         setEquipment(processedData);

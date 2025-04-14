@@ -45,10 +45,16 @@ export function ThemeProvider({
         : "light"
       
       root.classList.add(systemTheme)
+      
+      // Synchronisation avec notre système de persistence personnalisé
+      localStorage.setItem('darkMode', (systemTheme === "dark").toString())
       return
     }
     
     root.classList.add(theme)
+    
+    // Synchronisation avec notre système de persistence personnalisé
+    localStorage.setItem('darkMode', (theme === "dark").toString())
   }, [theme])
 
   const value = {

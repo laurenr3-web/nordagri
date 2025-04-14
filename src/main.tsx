@@ -5,12 +5,16 @@ import './index.css';
 
 // Initialize theme from localStorage
 const initializeTheme = () => {
-  const darkMode = localStorage.getItem('darkMode') === 'true';
+  const darkMode = localStorage.getItem('darkMode');
   const highContrast = localStorage.getItem('highContrast') === 'true';
   const reduceMotion = localStorage.getItem('animations') === 'false';
   
-  if (darkMode) {
+  // Seulement ajouter la classe dark si darkMode est explicitement "true"
+  if (darkMode === 'true') {
     document.documentElement.classList.add('dark');
+  } else if (darkMode === 'false') {
+    // S'assurer d'enlever la classe si darkMode est explicitement à "false"
+    document.documentElement.classList.remove('dark');
   }
   
   if (highContrast) {
