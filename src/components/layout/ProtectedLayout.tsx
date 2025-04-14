@@ -11,7 +11,7 @@ interface ProtectedLayoutProps {
 }
 
 // Utilisation de React.memo pour optimiser les rendus
-const ProtectedLayout: React.FC<ProtectedLayoutProps> = memo(({ children }) => {
+const ProtectedLayout = memo(({ children }: ProtectedLayoutProps) => {
   // Préchargement optimisé des routes
   useRoutePreloading();
   

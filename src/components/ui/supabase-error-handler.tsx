@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { AuthChangeEvent } from '@supabase/supabase-js';
 
 interface SupabaseErrorHandlerProps {
   children: React.ReactNode;
@@ -50,7 +51,7 @@ export function SupabaseErrorHandler({ children }: SupabaseErrorHandlerProps) {
 
   // Écouter les événements d'authentification
   useEffect(() => {
-    authListener.current = supabase.auth.onAuthStateChange((event, session) => {
+    authListener.current = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session) => {
       console.log('Auth state change:', event);
 
       const isAuthPage = location.pathname.includes('/auth');
@@ -62,8 +63,8 @@ export function SupabaseErrorHandler({ children }: SupabaseErrorHandlerProps) {
         }
       }
 
-      // Gérer la suppression d'un utilisateur
-      if (event === 'USER_DELETED') {
+      // Handle user deletion with proper type checking
+      if (event === 'USER_DELETED' as AuthChangeEvent) {
         toast.error('Votre compte a été supprimé', {
           description: 'Veuillez contacter le support si vous pensez qu\'il s\'agit d\'une erreur.'
         });
