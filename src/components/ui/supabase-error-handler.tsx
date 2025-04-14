@@ -12,7 +12,7 @@ interface SupabaseErrorHandlerProps {
 // Liste des erreurs connues qui peuvent être gérées automatiquement
 const knownErrors = {
   'JWT expired': 'Votre session a expiré',
-  'Invalid JWT': 'Problème d'authentification',
+  'Invalid JWT': 'Problème d\'authentification', // Fixed apostrophe
   'Invalid refresh token': 'Votre session n\'est plus valide',
   'Network request failed': 'Problème de connexion au serveur',
   'Failed to fetch': 'Problème de connexion réseau'
