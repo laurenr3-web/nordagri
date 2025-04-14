@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { toast } from "@/hooks/use-toast";
 import { EquipmentItem } from './types/equipmentTypes';
@@ -103,19 +102,21 @@ export const useEquipmentData = (user: any) => {
           image: item.image || 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=500&auto=format&fit=crop',
           status: validateEquipmentStatus(item.status),
           usage: {
-            hours: item.usage_hours || 342,
-            target: item.target_hours || 500
+            // Use safe default values since these fields don't exist in database
+            hours: 342, // Default value since usage_hours doesn't exist
+            target: 500 // Default value since target_hours doesn't exist
           },
           nextService: {
-            type: item.next_service_type || 'Maintenance',
-            due: item.next_service_due || 'In 2 weeks'
+            // Use safe default values since these fields don't exist in database
+            type: 'Maintenance', // Default value since next_service_type doesn't exist
+            due: 'In 2 weeks' // Default value since next_service_due doesn't exist
           },
-          nextMaintenance: item.next_maintenance || 'In 2 weeks'
+          nextMaintenance: 'In 2 weeks' // Default value since next_maintenance doesn't exist
         }));
         
         setEquipmentData(mappedData);
       } else {
-        // Si pas de données, utiliser les données de démo
+        // If no data, use the demo data
         console.log("No valid equipment data found, using demo data");
         setMockData();
       }
