@@ -2,6 +2,10 @@
 import React from 'react';
 import { TimeTrackingButton } from './TimeTrackingButton';
 
-export function TimeTracker() {
-  return <TimeTrackingButton />;
+interface TimeTrackerProps {
+  className?: string;
+}
+
+export function TimeTracker({ className }: TimeTrackerProps) {
+  return <TimeTrackingButton position="relative" className={className} />;
 }

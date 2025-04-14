@@ -10,7 +10,7 @@ import {
   PieChart,
   Clock 
 } from 'lucide-react';
-import { useMediaQuery } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { TimeTracker } from '@/components/time-tracking/TimeTracker';
 
@@ -39,7 +39,7 @@ const NavLink = ({ path, icon, label, isActive }: {
 
 const Navbar = () => {
   const location = useLocation();
-  const isDesktop = useMediaQuery("(min-width: 1024px)");
+  const isMobile = useIsMobile();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -106,9 +106,9 @@ const Navbar = () => {
       </div>
       
       {/* TimeTracker affiché uniquement sur desktop */}
-      {isDesktop && (
+      {!isMobile && (
         <div className="mt-auto p-4 border-t">
-          <TimeTracker position="relative" className="w-full justify-center rounded-lg p-2" />
+          <TimeTracker className="w-full justify-center rounded-lg p-2" />
         </div>
       )}
     </div>

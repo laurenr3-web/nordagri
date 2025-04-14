@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { TimeEntry, TimeEntryTaskType, TimeEntryStatus, TimeSpentByEquipment } from '@/hooks/time-tracking/types';
+import { convertDatesToISOStrings } from '@/data/adapters/supabase/utils';
 
 /**
  * Service pour la gestion du suivi du temps
@@ -11,9 +12,14 @@ export const timeTrackingService = {
    */
   async getActiveTimeEntry(userId: string): Promise<TimeEntry | null> {
     try {
+      // Nous devons effectuer une requête personnalisée car la table time_entries n'est peut-être pas reconnue par TypeScript
       const { data, error } = await supabase
         .from('time_entries')
-        .select('*, equipment(name), interventions:Interventions(title)')
+        .select(`
+          *,
+          equipment:equipment_id(name),
+          interventions:intervention_id(title)
+        `)
         .eq('user_id', userId)
         .eq('status', 'active')
         .is('end_time', null)
@@ -55,18 +61,20 @@ export const timeTrackingService = {
         locationData = `POINT(${data.location.lng} ${data.location.lat})`;
       }
       
+      const timeEntryData = {
+        user_id: userId,
+        equipment_id: data.equipment_id,
+        intervention_id: data.intervention_id,
+        task_type: data.task_type,
+        notes: data.notes,
+        location: locationData,
+        status: 'active' as TimeEntryStatus,
+        start_time: new Date().toISOString()
+      };
+      
       const { data: result, error } = await supabase
         .from('time_entries')
-        .insert({
-          user_id: userId,
-          equipment_id: data.equipment_id,
-          intervention_id: data.intervention_id,
-          task_type: data.task_type,
-          notes: data.notes,
-          location: locationData,
-          status: 'active' as TimeEntryStatus,
-          start_time: new Date().toISOString()
-        })
+        .insert(convertDatesToISOStrings(timeEntryData))
         .select()
         .single();
       
@@ -149,9 +157,14 @@ export const timeTrackingService = {
     status?: TimeEntryStatus;
   }): Promise<TimeEntry[]> {
     try {
+      // Nous devons effectuer une requête personnalisée car la table time_entries n'est peut-être pas reconnue par TypeScript
       let query = supabase
         .from('time_entries')
-        .select('*, equipment(name), interventions:Interventions(title)')
+        .select(`
+          *,
+          equipment:equipment_id(name),
+          interventions:intervention_id(title)
+        `)
         .eq('user_id', filters.userId);
       
       // Appliquer les filtres optionnels
@@ -249,7 +262,7 @@ export const timeTrackingService = {
     try {
       const { error } = await supabase
         .from('time_entries')
-        .update(data)
+        .update(convertDatesToISOStrings(data as Record<string, any>))
         .eq('id', entryId);
       
       if (error) throw error;

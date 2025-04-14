@@ -85,15 +85,20 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
         
       if (error) throw error;
       
-      // Conversion explicite pour assurer la compatibilité des types
-      const typedInterventions: Intervention[] = data?.map(item => ({
-        id: item.id,
-        title: item.title
-      })) || [];
-      
-      setInterventions(typedInterventions);
+      if (data) {
+        // Conversion explicite pour assurer la compatibilité des types
+        const typedInterventions: Intervention[] = data.map(item => ({
+          id: item.id,
+          title: item.title
+        }));
+        
+        setInterventions(typedInterventions);
+      } else {
+        setInterventions([]);
+      }
     } catch (error) {
       console.error("Erreur lors du chargement des interventions:", error);
+      setInterventions([]);
     }
   };
   

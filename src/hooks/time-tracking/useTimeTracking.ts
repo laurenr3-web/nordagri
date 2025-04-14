@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { TimeEntry, ActiveTimeEntry, TimeEntryTaskType, TimeEntryStatus } from './types';
 import { toast } from 'sonner';
+import { convertDatesToISOStrings } from '@/data/adapters/supabase/utils';
 
 export function useTimeTracking() {
   const [activeTimeEntry, setActiveTimeEntry] = useState<ActiveTimeEntry | null>(null);
@@ -28,10 +29,20 @@ export function useTimeTracking() {
       
       const userId = sessionData.session.user.id;
       
-      // Récupérer l'entrée de temps active directement
+      // Nous devons effectuer une requête personnalisée car la table time_entries n'est peut-être pas reconnue par TypeScript
       const { data, error } = await supabase
         .from('time_entries')
-        .select('*, equipment(name), interventions:Interventions(title)')
+        .select(`
+          id,
+          user_id,
+          equipment_id,
+          intervention_id,
+          task_type,
+          start_time,
+          status,
+          equipment:equipment_id(name),
+          interventions:intervention_id(title)
+        `)
         .eq('user_id', userId)
         .eq('status', 'active')
         .is('end_time', null)
@@ -97,19 +108,22 @@ export function useTimeTracking() {
         locationData = `POINT(${params.location.lng} ${params.location.lat})`;
       }
       
+      // Préparer les données pour l'insertion
+      const timeEntryData = {
+        user_id: userId,
+        equipment_id: params.equipment_id,
+        intervention_id: params.intervention_id,
+        task_type: params.task_type,
+        notes: params.notes,
+        location: locationData,
+        status: 'active' as TimeEntryStatus,
+        start_time: new Date().toISOString()
+      };
+      
       // Insérer l'entrée dans la table time_entries
       const { data, error } = await supabase
         .from('time_entries')
-        .insert({
-          user_id: userId,
-          equipment_id: params.equipment_id,
-          intervention_id: params.intervention_id,
-          task_type: params.task_type,
-          notes: params.notes,
-          location: locationData,
-          status: 'active' as TimeEntryStatus,
-          start_time: new Date().toISOString()
-        })
+        .insert(convertDatesToISOStrings(timeEntryData))
         .select()
         .single();
       
