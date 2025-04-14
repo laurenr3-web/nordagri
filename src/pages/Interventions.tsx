@@ -7,7 +7,7 @@ import { useInterventionsHandlers } from '@/hooks/interventions/useInterventions
 import { toast } from 'sonner';
 import InterventionsDialogs from '@/components/interventions/InterventionsDialogs';
 import { useQueryClient } from '@tanstack/react-query';
-import { InterventionFormValues } from '@/types/models/intervention';
+import { InterventionFormValues } from '@/types/Intervention';
 import { useQuery } from '@tanstack/react-query';
 import { interventionService } from '@/services/supabase/interventionService';
 import { Intervention } from '@/types/Intervention';
@@ -25,7 +25,7 @@ const InterventionsPage = () => {
   });
   
   // Ensure we use the proper type
-  const interventions: Intervention[] = fetchedInterventions;
+  const interventions = fetchedInterventions as Intervention[];
   
   // État pour le dialogue de nouvelle intervention
   const [isNewInterventionDialogOpen, setIsNewInterventionDialogOpen] = useState(false);
@@ -81,7 +81,7 @@ const InterventionsPage = () => {
     const apiFormValues = {
       ...intervention,
       equipment_id: intervention.equipmentId,
-      status: 'scheduled' as const,
+      status: intervention.status || 'scheduled' as const,
       technician: intervention.technician || ''
     };
     
@@ -146,8 +146,8 @@ const InterventionsPage = () => {
             selectedInterventionId={numericSelectedInterventionId}
             onCloseInterventionDetails={handleCloseInterventionDetails}
             onStartWork={handleStartWork}
-            interventions={interventions}
-            filteredInterventions={filteredInterventions}
+            interventions={interventions as any}
+            filteredInterventions={filteredInterventions as any}
           />
         </div>
       </div>

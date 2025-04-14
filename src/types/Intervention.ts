@@ -5,7 +5,7 @@ export interface UrgentIntervention {
   equipment: string;
   priority: 'high' | 'medium' | 'low';
   date?: Date;
-  status: string;
+  status: 'scheduled' | 'in-progress' | 'completed' | 'cancelled'; // Using consistent status values
   technician: string;
   location: string;
 }
@@ -15,9 +15,9 @@ export interface InterventionBase {
   title: string;
   description?: string;
   equipment: string;
-  equipmentId: number; // Changed from optional to required
+  equipmentId: number; // Required to match the model
   priority: 'high' | 'medium' | 'low';
-  status: string;
+  status: 'scheduled' | 'in-progress' | 'completed' | 'cancelled'; // Using consistent status values
   date: Date;
   technician: string;
   location: string;
@@ -46,7 +46,7 @@ export type InterventionStatus = 'scheduled' | 'in-progress' | 'completed' | 'ca
 export interface InterventionFormValues {
   title: string;
   equipment: string;
-  equipmentId: number;
+  equipmentId: number;  // Required to match the model
   location: string;
   priority: 'high' | 'medium' | 'low';
   date: Date;

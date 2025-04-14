@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { interventionService } from '@/services/supabase/interventionService';
-import { Intervention } from '@/types/Intervention';
+import { Intervention, InterventionStatus } from '@/types/Intervention';
 import { toast } from 'sonner';
 
 export function useInterventionDetail(interventionId: string | number | undefined) {
@@ -27,7 +27,14 @@ export function useInterventionDetail(interventionId: string | number | undefine
       if (!intervention || !intervention.id) {
         throw new Error("Cannot update an intervention without ID");
       }
-      return interventionService.updateIntervention(intervention.id, updatedIntervention);
+      
+      // Ensure status is a valid InterventionStatus type
+      const validatedIntervention = {
+        ...updatedIntervention,
+        status: updatedIntervention.status as InterventionStatus
+      };
+      
+      return interventionService.updateIntervention(intervention.id, validatedIntervention);
     },
     onSuccess: (updatedIntervention) => {
       // Update cache

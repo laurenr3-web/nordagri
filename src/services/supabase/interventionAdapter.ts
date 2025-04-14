@@ -56,7 +56,9 @@ export const dbToClientIntervention = (dbIntervention: InterventionDB): Interven
     notes: dbIntervention.notes || '',
     partsUsed: dbIntervention.parts_used as any[] || [],
     coordinates: dbIntervention.coordinates as any,
-    ownerId: dbIntervention.owner_id
+    ownerId: dbIntervention.owner_id,
+    createdAt: dbIntervention.created_at ? new Date(dbIntervention.created_at) : undefined,
+    updatedAt: dbIntervention.updated_at ? new Date(dbIntervention.updated_at) : undefined
   };
 };
 
