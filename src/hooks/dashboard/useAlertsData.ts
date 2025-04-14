@@ -20,6 +20,7 @@ export interface AlertItem {
 export const useAlertsData = (user: any) => {
   const [loading, setLoading] = useState(true);
   const [alertItems, setAlertItems] = useState<AlertItem[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAlertsData();
@@ -27,6 +28,8 @@ export const useAlertsData = (user: any) => {
 
   const fetchAlertsData = async () => {
     setLoading(true);
+    setError(null);
+    
     try {
       console.log("Fetching alerts data...");
       
@@ -138,41 +141,39 @@ export const useAlertsData = (user: any) => {
       setAlertItems(alerts);
     } catch (error) {
       console.error('Error fetching alerts data:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de récupérer les alertes.",
-        variant: "destructive",
-      });
+      setError("Impossible de récupérer les alertes.");
       
-      // Données par défaut en cas d'échec
-      setAlertItems([
-        {
-          id: 1,
-          title: "Niveau d'huile bas",
-          message: "Le tracteur John Deere 8R 410 a un niveau d'huile critique",
-          severity: "high",
-          date: new Date(),
-          equipmentId: 1,
-          equipmentName: "John Deere 8R 410",
-          status: "new",
-          type: "maintenance",
-          time: "09:15",
-          equipment: "John Deere 8R 410"
-        },
-        {
-          id: 2,
-          title: "Maintenance planifiée",
-          message: "Maintenance programmée pour Case IH Axial-Flow demain",
-          severity: "medium",
-          date: new Date(new Date().setDate(new Date().getDate() - 1)),
-          equipmentId: 2,
-          equipmentName: "Case IH Axial-Flow",
-          status: "acknowledged",
-          type: "reminder",
-          time: "14:30",
-          equipment: "Case IH Axial-Flow"
-        }
-      ]);
+      // En mode développement uniquement, utiliser des données par défaut en cas d'échec
+      if (import.meta.env.DEV) {
+        setAlertItems([
+          {
+            id: 1,
+            title: "Niveau d'huile bas",
+            message: "Le tracteur John Deere 8R 410 a un niveau d'huile critique",
+            severity: "high",
+            date: new Date(),
+            equipmentId: 1,
+            equipmentName: "John Deere 8R 410",
+            status: "new",
+            type: "maintenance",
+            time: "09:15",
+            equipment: "John Deere 8R 410"
+          },
+          {
+            id: 2,
+            title: "Maintenance planifiée",
+            message: "Maintenance programmée pour Case IH Axial-Flow demain",
+            severity: "medium",
+            date: new Date(new Date().setDate(new Date().getDate() - 1)),
+            equipmentId: 2,
+            equipmentName: "Case IH Axial-Flow",
+            status: "acknowledged",
+            type: "reminder",
+            time: "14:30",
+            equipment: "Case IH Axial-Flow"
+          }
+        ]);
+      }
     } finally {
       setLoading(false);
     }
@@ -180,7 +181,9 @@ export const useAlertsData = (user: any) => {
 
   return {
     loading,
-    alertItems
+    alertItems,
+    error,
+    refresh: fetchAlertsData
   };
 };
 

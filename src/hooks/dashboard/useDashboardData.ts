@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { toast } from "@/hooks/use-toast";
 import { useQuery } from '@tanstack/react-query';
@@ -20,19 +20,43 @@ import { createCalendarEvents, deriveUrgentInterventions, deriveStockAlerts } fr
 // Export types from the types file
 export * from './types/dashboardTypes';
 
+interface DashboardErrors {
+  stats: string | null;
+  equipment: string | null;
+  maintenance: string | null;
+  alerts: string | null;
+  tasks: string | null;
+  interventions: string | null;
+  parts: string | null;
+}
+
 export const useDashboardData = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuthContext();
+  const [errors, setErrors] = useState<DashboardErrors>({
+    stats: null,
+    equipment: null,
+    maintenance: null,
+    alerts: null,
+    tasks: null,
+    interventions: null,
+    parts: null
+  });
 
   // Use specialized hooks
-  const { statsData } = useStatsData(user);
-  const { equipmentData } = useEquipmentData(user);
-  const { maintenanceEvents } = useMaintenanceData(user);
-  const { alertItems } = useAlertsData(user);
-  const { upcomingTasks } = useTasksData(user);
+  const { statsData, error: statsError, refresh: refreshStats } = useStatsData(user);
+  const { equipmentData, error: equipmentError, refresh: refreshEquipment } = useEquipmentData(user);
+  const { maintenanceEvents, error: maintenanceError, refresh: refreshMaintenance } = useMaintenanceData(user);
+  const { alertItems, error: alertsError, refresh: refreshAlerts } = useAlertsData(user);
+  const { upcomingTasks, error: tasksError, retry: refreshTasks } = useTasksData(user);
   
   // Use React Query to fetch interventions
-  const { data: interventions = [], isLoading: isLoadingInterventions } = useQuery({
+  const { 
+    data: interventions = [], 
+    isLoading: isLoadingInterventions,
+    error: interventionsError,
+    refetch: refreshInterventions
+  } = useQuery({
     queryKey: ['interventions'],
     queryFn: () => interventionService.getInterventions(),
     enabled: !!user
@@ -58,6 +82,48 @@ export const useDashboardData = () => {
 
   // Filter calendar events to show only this week's events
   const weeklyCalendarEvents = filterWeeklyCalendarEvents(calendarEvents);
+
+  // Update errors state when individual hook errors change
+  useEffect(() => {
+    setErrors({
+      stats: statsError,
+      equipment: equipmentError,
+      maintenance: maintenanceError,
+      alerts: alertsError,
+      tasks: tasksError,
+      interventions: interventionsError ? String(interventionsError) : null,
+      parts: partsResult.error ? String(partsResult.error) : null
+    });
+  }, [statsError, equipmentError, maintenanceError, alertsError, tasksError, interventionsError, partsResult.error]);
+
+  // Function to refresh all data
+  const refreshData = useCallback(() => {
+    setLoading(true);
+    
+    // Refresh all data sources
+    if (refreshStats) refreshStats();
+    if (refreshEquipment) refreshEquipment();
+    if (refreshMaintenance) refreshMaintenance();
+    if (refreshAlerts) refreshAlerts();
+    if (refreshTasks) refreshTasks();
+    if (refreshInterventions) refreshInterventions();
+    if (partsResult.refetch) partsResult.refetch();
+    
+    toast.info("Actualisation des données en cours...");
+    
+    // Set loading to false after a short delay to ensure all data has been refreshed
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+  }, [
+    refreshStats, 
+    refreshEquipment, 
+    refreshMaintenance, 
+    refreshAlerts, 
+    refreshTasks, 
+    refreshInterventions, 
+    partsResult.refetch
+  ]);
 
   useEffect(() => {
     const isAllDataLoaded = 
@@ -90,6 +156,10 @@ export const useDashboardData = () => {
     upcomingTasks,
     urgentInterventions,
     stockAlerts,
-    weeklyCalendarEvents
+    weeklyCalendarEvents,
+    errors,
+    refreshData
   };
 };
+
+export default useDashboardData;

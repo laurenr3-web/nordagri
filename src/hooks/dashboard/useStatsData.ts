@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/hooks/use-toast";
@@ -15,12 +16,13 @@ export interface StatsCardData {
 export const useStatsData = (user: any) => {
   const [loading, setLoading] = useState(true);
   const [statsData, setStatsData] = useState<StatsCardData[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchStatsData();
   }, [user]);
 
-  const setMockData = () => {
+  const setDefaultStatsData = () => {
     setStatsData([
       {
         title: 'Active Equipment',
@@ -48,30 +50,50 @@ export const useStatsData = (user: any) => {
         change: 15
       }
     ]);
-    setLoading(false);
   };
 
   const fetchStatsData = async () => {
     setLoading(true);
+    setError(null);
+    
     try {
       console.log("Fetching dashboard stats data...");
       
-      // Get equipment count
+      // Essayer de récupérer les données des équipements
       const { data: equipmentData, error: equipmentError } = await supabase
         .from('equipment')
         .select('id');
+
+      // Si erreur pour les équipements, essayer la table equipments (au pluriel)
+      if (equipmentError) {
+        console.log("Error fetching from 'equipment', trying 'equipments'");
+        const { data: equipmentsData, error: equipmentsError } = await supabase
+          .from('equipments')
+          .select('id');
+        
+        // Si erreur pour les deux tables, lever une exception
+        if (equipmentsError) {
+          throw new Error("Failed to fetch equipment data from both tables");
+        }
+      }
 
       // Get maintenance tasks count
       const { data: tasksData, error: tasksError } = await supabase
         .from('maintenance_tasks')
         .select('id, priority');
 
+      if (tasksError) {
+        console.error("Error fetching maintenance tasks:", tasksError);
+      }
+
       // Get parts inventory count and total sum
       const { data: partsData, error: partsError } = await supabase
         .from('parts_inventory')
         .select('id, quantity, reorder_threshold');
 
-      console.log("Parts data received:", partsData);
+      if (partsError) {
+        console.error("Error fetching parts inventory:", partsError);
+      }
       
       // Get interventions count (for this week)
       const oneWeekAgo = new Date();
@@ -82,81 +104,66 @@ export const useStatsData = (user: any) => {
         .select('id')
         .gte('date', oneWeekAgo.toISOString());
 
-      // Handle errors
-      if (equipmentError || tasksError || partsError || interventionsError) {
-        console.error("Data fetch errors:", { equipmentError, tasksError, partsError, interventionsError });
-        throw new Error("Error fetching dashboard stats");
+      if (interventionsError) {
+        console.error("Error fetching interventions:", interventionsError);
       }
 
-      // Prepare stats data
+      // Préparer les données des statistiques avec des valeurs par défaut si nécessaire
       const equipmentCount = equipmentData?.length || 0;
       const tasksCount = tasksData?.length || 0;
       const highPriorityTasks = tasksData?.filter(task => 
         task.priority === 'high' || task.priority === 'critical'
       ).length || 0;
       
-      // FIX: Correctly calculate total parts quantity
-      // Instead of summing all part quantities, we should count the total number of parts
+      // Calculer le nombre total de types de pièces (sans la quantité)
       const totalPartsCount = partsData?.length || 0;
       
-      // Log individual part quantities for debugging
-      if (partsData && partsData.length > 0) {
-        console.log("Individual part quantities:");
-        partsData.forEach(part => {
-          console.log(`Part ${part.id}: quantity = ${part.quantity}, threshold = ${part.reorder_threshold}`);
-        });
-      }
-      
-      // Calculate low stock items correctly
+      // Calculer les éléments en stock faible
       const lowStockItems = partsData?.filter(part => 
         part.quantity <= (part.reorder_threshold || 5)
       ).length || 0;
-      
-      console.log(`Total parts count: ${totalPartsCount}, Low stock items: ${lowStockItems}`);
       
       const interventionsCount = interventionsData?.length || 0;
 
       const newStatsData: StatsCardData[] = [
         {
           title: 'Active Equipment',
-          value: equipmentCount,
+          value: equipmentCount || 'N/A',
           icon: Tractor,
           change: 0,
           description: ''
         },
         {
           title: 'Maintenance Tasks',
-          value: tasksCount,
+          value: tasksCount || 'N/A',
           icon: Wrench,
           description: highPriorityTasks > 0 ? `${highPriorityTasks} high priority` : '',
           change: 0
         },
         {
           title: 'Parts Inventory',
-          value: totalPartsCount, // FIXED: Now showing count of unique parts instead of sum of quantities
+          value: totalPartsCount || 'N/A',
           icon: Package,
           description: lowStockItems > 0 ? `${lowStockItems} items low stock` : '',
           change: 0
         },
         {
           title: 'Field Interventions',
-          value: interventionsCount,
+          value: interventionsCount || 'N/A',
           icon: MapPin,
           description: 'This week',
           change: 0
         }
       ];
 
-      console.log("New stats data:", newStatsData);
       setStatsData(newStatsData);
     } catch (error) {
       console.error("Error fetching stats data:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch dashboard statistics. Using default values.",
-        variant: "destructive",
-      });
-      setMockData();
+      setError("Failed to fetch dashboard statistics.");
+      
+      if (import.meta.env.DEV) {
+        setDefaultStatsData();
+      }
     } finally {
       setLoading(false);
     }
@@ -164,6 +171,10 @@ export const useStatsData = (user: any) => {
 
   return {
     loading,
-    statsData
+    statsData,
+    error,
+    refresh: fetchStatsData
   };
 };
+
+export default useStatsData;
