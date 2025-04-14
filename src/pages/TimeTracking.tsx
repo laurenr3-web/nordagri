@@ -5,7 +5,7 @@ import Navbar from '@/components/layout/Navbar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TimeEntryCard } from '@/components/time-tracking/TimeEntryCard';
-import { Calendar, ListFilter, Clock, Calendar as CalendarIcon, User } from 'lucide-react';
+import { Calendar, ListFilter, Clock, Calendar as CalendarIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { TimeEntry } from '@/hooks/time-tracking/types';
 import { timeTrackingService } from '@/services/supabase/timeTrackingService';
@@ -13,8 +13,7 @@ import { Button } from '@/components/ui/button';
 import { TimeEntryForm } from '@/components/time-tracking/TimeEntryForm';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
-import { addDays, startOfWeek, endOfWeek, format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { startOfWeek, endOfWeek } from 'date-fns';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -275,14 +274,14 @@ const TimeTrackingPage = () => {
                     Équipement
                   </label>
                   <Select
-                    value={equipmentFilter?.toString() || ''}
+                    value={equipmentFilter?.toString() || undefined}
                     onValueChange={(value) => setEquipmentFilter(value ? parseInt(value) : undefined)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Tous" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Tous</SelectItem>
+                      <SelectItem value="all">Tous</SelectItem>
                       {equipments.map((equipment) => (
                         <SelectItem key={equipment.id} value={equipment.id.toString()}>
                           {equipment.name}
@@ -297,14 +296,14 @@ const TimeTrackingPage = () => {
                     Type de tâche
                   </label>
                   <Select
-                    value={taskTypeFilter || ''}
+                    value={taskTypeFilter || undefined}
                     onValueChange={(value) => setTaskTypeFilter(value || undefined)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Tous" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Tous</SelectItem>
+                      <SelectItem value="all">Tous</SelectItem>
                       <SelectItem value="maintenance">Maintenance</SelectItem>
                       <SelectItem value="repair">Réparation</SelectItem>
                       <SelectItem value="inspection">Inspection</SelectItem>

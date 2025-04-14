@@ -78,7 +78,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
   const fetchInterventions = async (equipmentId: number) => {
     try {
       const { data, error } = await supabase
-        .from('Interventions')
+        .from('interventions')
         .select('id, title')
         .eq('equipment_id', equipmentId)
         .order('date', { ascending: false });
@@ -171,7 +171,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
           <div className="grid gap-2">
             <Label htmlFor="intervention">Intervention (optionnel)</Label>
             <Select
-              value={formData.intervention_id?.toString()}
+              value={formData.intervention_id?.toString() || undefined}
               onValueChange={(value) => handleChange('intervention_id', parseInt(value))}
               disabled={!formData.equipment_id || interventions.length === 0}
             >

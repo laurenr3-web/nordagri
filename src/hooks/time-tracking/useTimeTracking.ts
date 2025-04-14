@@ -29,26 +29,10 @@ export function useTimeTracking() {
       
       const userId = sessionData.session.user.id;
       
-      // Nous devons effectuer une requête personnalisée car la table time_entries n'est peut-être pas reconnue par TypeScript
+      // Utiliser une requête SQL personnalisée
       const { data, error } = await supabase
-        .from('time_entries')
-        .select(`
-          id,
-          user_id,
-          equipment_id,
-          intervention_id,
-          task_type,
-          start_time,
-          status,
-          equipment:equipment_id(name),
-          interventions:intervention_id(title)
-        `)
-        .eq('user_id', userId)
-        .eq('status', 'active')
-        .is('end_time', null)
-        .order('start_time', { ascending: false })
-        .limit(1)
-        .single();
+        .rpc('get_active_time_entry', { p_user_id: userId })
+        .maybeSingle();
       
       if (error && error.code !== 'PGRST116') {
         // PGRST116 est le code pour "No rows returned", ce qui est normal si aucune entrée active
@@ -65,8 +49,8 @@ export function useTimeTracking() {
           task_type: data.task_type as TimeEntryTaskType,
           start_time: data.start_time,
           status: data.status as TimeEntryStatus,
-          equipment_name: data.equipment?.name,
-          intervention_title: data.interventions?.title
+          equipment_name: data.equipment_name,
+          intervention_title: data.intervention_title
         };
         setActiveTimeEntry(activeEntry);
       } else {
@@ -120,47 +104,21 @@ export function useTimeTracking() {
         start_time: new Date().toISOString()
       };
       
-      // Insérer l'entrée dans la table time_entries
+      // Insérer l'entrée dans la table time_entries en utilisant une procédure RPC
       const { data, error } = await supabase
-        .from('time_entries')
-        .insert(convertDatesToISOStrings(timeEntryData))
-        .select()
-        .single();
+        .rpc('create_time_entry', {
+          p_user_id: userId,
+          p_equipment_id: params.equipment_id,
+          p_intervention_id: params.intervention_id,
+          p_task_type: params.task_type,
+          p_notes: params.notes,
+          p_location: locationData,
+        });
       
       if (error) throw error;
       
-      // Récupérer les informations complètes
       if (data) {
-        let equipmentName;
-        let interventionTitle;
-        
-        // Récupérer le nom de l'équipement si fourni
-        if (params.equipment_id) {
-          const { data: equipmentData, error: equipmentError } = await supabase
-            .from('equipment')
-            .select('name')
-            .eq('id', params.equipment_id)
-            .single();
-            
-          if (!equipmentError && equipmentData) {
-            equipmentName = equipmentData.name;
-          }
-        }
-        
-        // Récupérer le titre de l'intervention si fourni
-        if (params.intervention_id) {
-          const { data: interventionData, error: interventionError } = await supabase
-            .from('Interventions')
-            .select('title')
-            .eq('id', params.intervention_id)
-            .single();
-            
-          if (!interventionError && interventionData) {
-            interventionTitle = interventionData.title;
-          }
-        }
-        
-        // Construire l'entrée active complète
+        // Construire l'entrée active complète depuis la réponse
         const newActiveEntry: ActiveTimeEntry = {
           id: data.id,
           user_id: data.user_id,
@@ -169,18 +127,20 @@ export function useTimeTracking() {
           task_type: data.task_type,
           start_time: data.start_time,
           status: data.status,
-          equipment_name: equipmentName,
-          intervention_title: interventionTitle
+          equipment_name: data.equipment_name,
+          intervention_title: data.intervention_title
         };
         
         setActiveTimeEntry(newActiveEntry);
+        
+        toast.success('Suivi de temps démarré', {
+          description: 'L\'horloge tourne maintenant.'
+        });
+        
+        return data as TimeEntry;
+      } else {
+        throw new Error("Échec de la création de l'entrée de temps");
       }
-      
-      toast.success('Suivi de temps démarré', {
-        description: 'L\'horloge tourne maintenant.'
-      });
-      
-      return data as TimeEntry;
     } catch (err) {
       console.error("Erreur lors du démarrage du suivi de temps:", err);
       toast.error('Erreur', {
@@ -200,12 +160,7 @@ export function useTimeTracking() {
       
       // Mettre à jour l'entrée pour la terminer
       const { error } = await supabase
-        .from('time_entries')
-        .update({
-          end_time: new Date().toISOString(),
-          status: 'completed' as TimeEntryStatus
-        })
-        .eq('id', timeEntryId);
+        .rpc('complete_time_entry', { p_entry_id: timeEntryId });
       
       if (error) throw error;
       
@@ -232,11 +187,7 @@ export function useTimeTracking() {
       }
       
       const { error } = await supabase
-        .from('time_entries')
-        .update({
-          status: 'paused' as TimeEntryStatus
-        })
-        .eq('id', timeEntryId);
+        .rpc('pause_time_entry', { p_entry_id: timeEntryId });
       
       if (error) throw error;
       
@@ -263,11 +214,7 @@ export function useTimeTracking() {
       }
       
       const { error } = await supabase
-        .from('time_entries')
-        .update({
-          status: 'active' as TimeEntryStatus
-        })
-        .eq('id', timeEntryId);
+        .rpc('resume_time_entry', { p_entry_id: timeEntryId });
       
       if (error) throw error;
       

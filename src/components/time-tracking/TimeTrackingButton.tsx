@@ -22,8 +22,7 @@ export function TimeTrackingButton({
     startTimeEntry, 
     stopTimeEntry,
     pauseTimeEntry,
-    resumeTimeEntry,
-    refreshActiveTimeEntry
+    resumeTimeEntry
   } = useTimeTracking();
   
   const [duration, setDuration] = useState<string>('00:00:00');

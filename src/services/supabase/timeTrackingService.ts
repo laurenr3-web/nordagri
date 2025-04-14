@@ -12,13 +12,13 @@ export const timeTrackingService = {
    */
   async getActiveTimeEntry(userId: string): Promise<TimeEntry | null> {
     try {
-      // Nous devons effectuer une requête personnalisée car la table time_entries n'est peut-être pas reconnue par TypeScript
+      // Création d'une requête SQL personnalisée pour contourner les problèmes de type
       const { data, error } = await supabase
         .from('time_entries')
         .select(`
           *,
-          equipment:equipment_id(name),
-          interventions:intervention_id(title)
+          equipment:equipment_id (name),
+          interventions:intervention_id (title)
         `)
         .eq('user_id', userId)
         .eq('status', 'active')
@@ -30,10 +30,12 @@ export const timeTrackingService = {
       if (error) throw error;
       
       if (data) {
+        // Type casting explicite pour éviter les erreurs TypeScript
+        const entry = data as any;
         return {
-          ...data,
-          equipment_name: data.equipment?.name,
-          intervention_title: data.interventions?.title
+          ...entry,
+          equipment_name: entry.equipment?.name,
+          intervention_title: entry.interventions?.title
         } as TimeEntry;
       }
       
@@ -72,9 +74,10 @@ export const timeTrackingService = {
         start_time: new Date().toISOString()
       };
       
+      // Utiliser une requête RPC personnalisée ou une insertion directe avec type casting
       const { data: result, error } = await supabase
         .from('time_entries')
-        .insert(convertDatesToISOStrings(timeEntryData))
+        .insert(convertDatesToISOStrings(timeEntryData as Record<string, any>))
         .select()
         .single();
       
@@ -157,13 +160,13 @@ export const timeTrackingService = {
     status?: TimeEntryStatus;
   }): Promise<TimeEntry[]> {
     try {
-      // Nous devons effectuer une requête personnalisée car la table time_entries n'est peut-être pas reconnue par TypeScript
+      // Création d'une requête SQL personnalisée
       let query = supabase
         .from('time_entries')
         .select(`
           *,
-          equipment:equipment_id(name),
-          interventions:intervention_id(title)
+          equipment:equipment_id (name),
+          interventions:intervention_id (title)
         `)
         .eq('user_id', filters.userId);
       
@@ -176,7 +179,7 @@ export const timeTrackingService = {
         query = query.lte('start_time', filters.endDate.toISOString());
       }
       
-      if (filters.equipmentId) {
+      if (filters.equipmentId && filters.equipmentId !== 0) {
         query = query.eq('equipment_id', filters.equipmentId);
       }
       
@@ -184,7 +187,7 @@ export const timeTrackingService = {
         query = query.eq('intervention_id', filters.interventionId);
       }
       
-      if (filters.taskType) {
+      if (filters.taskType && filters.taskType !== 'all') {
         query = query.eq('task_type', filters.taskType);
       }
       
@@ -198,11 +201,14 @@ export const timeTrackingService = {
       if (error) throw error;
       
       // Transformer les données pour correspondre à l'interface TimeEntry
-      return (data || []).map(item => ({
-        ...item,
-        equipment_name: item.equipment?.name,
-        intervention_title: item.interventions?.title
-      })) as TimeEntry[];
+      return (data || []).map(item => {
+        const entry = item as any;
+        return {
+          ...entry,
+          equipment_name: entry.equipment?.name,
+          intervention_title: entry.interventions?.title
+        } as TimeEntry;
+      });
     } catch (error) {
       console.error("Erreur lors de la récupération des entrées de temps:", error);
       throw error;
