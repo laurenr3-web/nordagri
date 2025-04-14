@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Part } from '@/types/Part';
 
 export async function updatePart(part: Part): Promise<Part> {
+  const numericPartId = typeof part.id === 'string' ? parseInt(part.id, 10) : part.id;
+
   // Map our Part interface to the database structure
   const dbPart = {
     name: part.name,
@@ -21,7 +23,7 @@ export async function updatePart(part: Part): Promise<Part> {
   const { data, error } = await supabase
     .from('parts_inventory')
     .update(dbPart)
-    .eq('id', part.id)
+    .eq('id', numericPartId)
     .select()
     .single();
 
