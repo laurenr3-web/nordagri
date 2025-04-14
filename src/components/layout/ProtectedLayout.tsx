@@ -1,7 +1,7 @@
 
 import React, { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuthContext } from '@/core/auth';
+import { useAuthContext } from '@/providers/AuthProvider';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 // Définition explicite du type des props

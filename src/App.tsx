@@ -56,12 +56,8 @@ function App() {
                   <Route index element={<Auth />} />
                 </Route>
                 
-                {/* Protected routes - Utilisation de MainLayout à l'intérieur de ProtectedLayout */}
-                <Route path="/" element={
-                  <ProtectedLayout>
-                    <MainLayout />
-                  </ProtectedLayout>
-                }>
+                {/* Protected routes */}
+                <Route element={<ProtectedLayout><MainLayout /></ProtectedLayout>}>
                   <Route index element={<Dashboard />} />
                   <Route path="equipment" element={<Equipment />} />
                   <Route path="equipment/:id" element={<EquipmentDetail />} />
