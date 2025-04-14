@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/integrations/supabase/client';
-import { TimeEntryTaskType } from '@/hooks/time-tracking/types';
+import { useTimeEntryForm } from '@/hooks/time-tracking/useTimeEntryForm';
 import { EquipmentField } from './form/EquipmentField';
 import { InterventionField } from './form/InterventionField';
 import { TaskTypeField } from './form/TaskTypeField';
@@ -16,18 +16,16 @@ interface TimeEntryFormProps {
 }
 
 export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormProps) {
-  const [formData, setFormData] = useState({
-    equipment_id: undefined as number | undefined,
-    intervention_id: undefined as number | undefined,
-    task_type: 'maintenance' as TimeEntryTaskType,
-    custom_task_type: '',
-    notes: '',
-  });
-  
-  const [equipments, setEquipments] = useState<Array<{ id: number; name: string }>>([]);
-  const [interventions, setInterventions] = useState<Array<{ id: number; title: string }>>([]);
-  const [loading, setLoading] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
+  const {
+    formData,
+    equipments,
+    interventions,
+    loading,
+    formError,
+    handleChange,
+    validateForm,
+    fetchEquipments
+  } = useTimeEntryForm();
   
   useEffect(() => {
     if (isOpen) {
@@ -35,85 +33,10 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
     }
   }, [isOpen]);
   
-  useEffect(() => {
-    if (formData.equipment_id) {
-      fetchInterventions(formData.equipment_id);
-    } else {
-      setInterventions([]);
-    }
-  }, [formData.equipment_id]);
-  
-  const fetchEquipments = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('equipment')
-        .select('id, name')
-        .order('name');
-        
-      if (error) throw error;
-      setEquipments(data || []);
-    } catch (error) {
-      console.error("Error loading equipment:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  const fetchInterventions = async (equipmentId: number) => {
-    try {
-      const { data, error } = await supabase
-        .from('interventions')
-        .select('id, title')
-        .eq('equipment_id', equipmentId)
-        .order('date', { ascending: false });
-        
-      if (error) throw error;
-      
-      if (data) {
-        const typedInterventions: Array<{ id: number; title: string }> = data.map(item => ({
-          id: item.id,
-          title: item.title
-        }));
-        
-        setInterventions(typedInterventions);
-      } else {
-        setInterventions([]);
-      }
-    } catch (error) {
-      console.error("Error loading interventions:", error);
-      setInterventions([]);
-    }
-  };
-  
-  const handleChange = (field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-    
-    if (field === 'task_type' && value !== 'other') {
-      setFormData(prev => ({
-        ...prev,
-        custom_task_type: ''
-      }));
-    }
-    
-    setFormError(null);
-  };
-  
   const handleSubmit = () => {
-    if (!formData.equipment_id) {
-      setFormError("Please select an equipment.");
-      return;
+    if (validateForm()) {
+      onSubmit(formData);
     }
-    
-    if (formData.task_type === 'other' && !formData.custom_task_type.trim()) {
-      setFormError("Please enter a custom task type.");
-      return;
-    }
-    
-    onSubmit(formData);
   };
   
   return (
@@ -174,3 +97,4 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
     </Dialog>
   );
 }
+
