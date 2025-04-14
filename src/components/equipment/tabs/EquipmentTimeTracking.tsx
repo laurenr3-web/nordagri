@@ -22,7 +22,7 @@ const EquipmentTimeTracking: React.FC<EquipmentTimeTrackingProps> = ({ equipment
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [totalHours, setTotalHours] = useState(0);
   
-  // Récupérer l'ID utilisateur au chargement
+  // Get user ID on load
   useEffect(() => {
     const fetchUserId = async () => {
       const { data } = await supabase.auth.getSession();
@@ -34,27 +34,29 @@ const EquipmentTimeTracking: React.FC<EquipmentTimeTrackingProps> = ({ equipment
     fetchUserId();
   }, []);
   
-  // Charger les entrées de temps pour cet équipement
+  // Load time entries for this equipment
   useEffect(() => {
     if (userId && equipment?.id) {
       fetchTimeEntries();
     }
   }, [userId, equipment]);
   
-  // Récupérer les entrées de temps
+  // Fetch time entries
   const fetchTimeEntries = async () => {
     if (!userId || !equipment?.id) return;
     
     setIsLoading(true);
     try {
+      const equipmentId = typeof equipment.id === 'string' ? parseInt(equipment.id, 10) : equipment.id;
+      
       const data = await timeTrackingService.getTimeEntries({
         userId,
-        equipmentId: typeof equipment.id === 'string' ? parseInt(equipment.id, 10) : equipment.id
+        equipmentId
       });
       
       setTimeEntries(data);
       
-      // Calculer le temps total
+      // Calculate total time
       const total = data.reduce((sum, entry) => {
         const start = new Date(entry.start_time);
         const end = entry.end_time ? new Date(entry.end_time) : new Date();
@@ -65,87 +67,87 @@ const EquipmentTimeTracking: React.FC<EquipmentTimeTrackingProps> = ({ equipment
       
       setTotalHours(total);
     } catch (error) {
-      console.error("Erreur lors de la récupération des entrées de temps:", error);
-      toast.error("Impossible de charger les sessions de temps pour cet équipement");
+      console.error("Error fetching time entries:", error);
+      toast.error("Could not load time sessions for this equipment");
     } finally {
       setIsLoading(false);
     }
   };
   
-  // Démarrer une nouvelle session de temps
+  // Start a new time session
   const handleStartTimeEntry = async (data: any) => {
     if (!userId) return;
     
     try {
       const equipmentId = typeof equipment.id === 'string' ? parseInt(equipment.id, 10) : equipment.id;
       
-      // Préremplit l'équipement à partir de la page actuelle
+      // Pre-fill equipment from current page
       await timeTrackingService.startTimeEntry(userId, {
         ...data,
         equipment_id: equipmentId
       });
       
       setIsFormOpen(false);
-      toast.success("Session de temps démarrée");
+      toast.success("Time session started");
       fetchTimeEntries();
     } catch (error) {
-      console.error("Erreur lors du démarrage du suivi de temps:", error);
-      toast.error("Impossible de démarrer la session");
+      console.error("Error starting time tracking:", error);
+      toast.error("Could not start session");
     }
   };
   
-  // Reprendre une session en pause
+  // Resume a paused session
   const handleResumeTimeEntry = async (entryId: string) => {
     try {
       await timeTrackingService.resumeTimeEntry(entryId);
-      toast.success("Session reprise");
+      toast.success("Session resumed");
       fetchTimeEntries();
     } catch (error) {
-      console.error("Erreur lors de la reprise du suivi de temps:", error);
-      toast.error("Impossible de reprendre la session");
+      console.error("Error resuming time tracking:", error);
+      toast.error("Could not resume session");
     }
   };
   
-  // Supprimer une entrée de temps
+  // Delete a time entry
   const handleDeleteTimeEntry = async (entryId: string) => {
     try {
       await timeTrackingService.deleteTimeEntry(entryId);
-      toast.success("Session supprimée");
+      toast.success("Session deleted");
       fetchTimeEntries();
     } catch (error) {
-      console.error("Erreur lors de la suppression de l'entrée de temps:", error);
-      toast.error("Impossible de supprimer la session");
+      console.error("Error deleting time entry:", error);
+      toast.error("Could not delete session");
     }
   };
   
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Suivi du temps</h2>
+        <h2 className="text-2xl font-bold">Time Tracking</h2>
         <Button onClick={() => setIsFormOpen(true)}>
           <Clock className="h-4 w-4 mr-2" />
-          Nouvelle session
+          New Session
         </Button>
       </div>
       
-      {/* Carte de résumé */}
+      {/* Summary card */}
       <Card className="bg-blue-50 border-blue-200">
         <CardHeader className="pb-2">
-          <CardTitle className="text-blue-800">Temps total sur cet équipement</CardTitle>
+          <CardTitle className="text-blue-800">Total time on this equipment</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-3xl font-bold text-blue-700">
-            {isLoading ? <Skeleton className="h-10 w-24" /> : `${totalHours.toFixed(1)} heures`}
+            {isLoading ? <Skeleton className="h-10 w-24" /> : `${totalHours.toFixed(1)} hours`}
           </div>
           <p className="text-blue-600 mt-1">
-            Réparti sur {timeEntries.length} sessions
+            Across {timeEntries.length} sessions
           </p>
         </CardContent>
       </Card>
       
-      {/* Liste des entrées de temps */}
+      {/* List of time entries */}
       <div>
-        <h3 className="text-lg font-semibold mb-4">Historique des sessions</h3>
+        <h3 className="text-lg font-semibold mb-4">Session History</h3>
         
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -180,20 +182,20 @@ const EquipmentTimeTracking: React.FC<EquipmentTimeTrackingProps> = ({ equipment
           ) : (
             <div className="text-center py-12 border rounded-md bg-gray-50">
               <Clock className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-xl font-medium mb-2">Aucune session enregistrée</h3>
+              <h3 className="text-xl font-medium mb-2">No sessions recorded</h3>
               <p className="text-gray-500 mb-4">
-                Vous n'avez pas encore enregistré de temps pour cet équipement.
+                You haven't recorded any time for this equipment yet.
               </p>
               <Button onClick={() => setIsFormOpen(true)}>
                 <Play className="h-4 w-4 mr-2" />
-                Démarrer une session
+                Start a session
               </Button>
             </div>
           )
         )}
       </div>
       
-      {/* Modal pour créer une nouvelle session */}
+      {/* Modal for creating a new session */}
       <TimeEntryForm
         isOpen={isFormOpen}
         onOpenChange={setIsFormOpen}

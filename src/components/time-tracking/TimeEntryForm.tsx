@@ -40,14 +40,14 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   
-  // Charger les équipements au chargement
+  // Load equipments when the modal opens
   useEffect(() => {
     if (isOpen) {
       fetchEquipments();
     }
   }, [isOpen]);
   
-  // Charger les interventions lorsque l'équipement change
+  // Load interventions when equipment changes
   useEffect(() => {
     if (formData.equipment_id) {
       fetchInterventions(formData.equipment_id);
@@ -56,7 +56,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
     }
   }, [formData.equipment_id]);
   
-  // Récupérer la liste des équipements
+  // Fetch equipment list
   const fetchEquipments = async () => {
     setLoading(true);
     try {
@@ -68,13 +68,13 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
       if (error) throw error;
       setEquipments(data || []);
     } catch (error) {
-      console.error("Erreur lors du chargement des équipements:", error);
+      console.error("Error loading equipment:", error);
     } finally {
       setLoading(false);
     }
   };
   
-  // Récupérer les interventions liées à l'équipement sélectionné
+  // Fetch interventions related to selected equipment
   const fetchInterventions = async (equipmentId: number) => {
     try {
       const { data, error } = await supabase
@@ -86,7 +86,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
       if (error) throw error;
       
       if (data) {
-        // Conversion explicite pour assurer la compatibilité des types
+        // Explicit type conversion to ensure type compatibility
         const typedInterventions: Intervention[] = data.map(item => ({
           id: item.id,
           title: item.title
@@ -97,31 +97,31 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
         setInterventions([]);
       }
     } catch (error) {
-      console.error("Erreur lors du chargement des interventions:", error);
+      console.error("Error loading interventions:", error);
       setInterventions([]);
     }
   };
   
-  // Gérer le changement des valeurs du formulaire
+  // Handle form field changes
   const handleChange = (field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
     
-    // Réinitialiser l'erreur lors de la modification des champs
+    // Clear error when fields change
     setFormError(null);
   };
   
-  // Valider et soumettre le formulaire
+  // Validate and submit the form
   const handleSubmit = () => {
-    // Valider que l'équipement est sélectionné
+    // Validate that equipment is selected
     if (!formData.equipment_id) {
-      setFormError("Veuillez sélectionner un équipement.");
+      setFormError("Please select an equipment.");
       return;
     }
     
-    // Soumettre les données
+    // Submit data
     onSubmit(formData);
   };
   
@@ -129,7 +129,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Nouvelle session de suivi du temps</DialogTitle>
+          <DialogTitle>New Time Tracking Session</DialogTitle>
         </DialogHeader>
         
         <div className="grid gap-4 py-4">
@@ -139,22 +139,22 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
             </div>
           )}
           
-          {/* Sélection de l'équipement */}
+          {/* Equipment selection */}
           <div className="grid gap-2">
-            <Label htmlFor="equipment">Équipement *</Label>
+            <Label htmlFor="equipment">Equipment *</Label>
             <Select
               value={formData.equipment_id?.toString()}
               onValueChange={(value) => handleChange('equipment_id', parseInt(value))}
               disabled={loading}
             >
               <SelectTrigger id="equipment" className="w-full">
-                <SelectValue placeholder="Sélectionner un équipement" />
+                <SelectValue placeholder="Select equipment" />
               </SelectTrigger>
               <SelectContent>
                 {loading ? (
                   <div className="flex items-center justify-center p-2">
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Chargement...
+                    Loading...
                   </div>
                 ) : (
                   equipments.map((equipment) => (
@@ -167,16 +167,16 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
             </Select>
           </div>
           
-          {/* Sélection de l'intervention */}
+          {/* Intervention selection */}
           <div className="grid gap-2">
-            <Label htmlFor="intervention">Intervention (optionnel)</Label>
+            <Label htmlFor="intervention">Intervention (optional)</Label>
             <Select
               value={formData.intervention_id?.toString() || undefined}
               onValueChange={(value) => handleChange('intervention_id', parseInt(value))}
               disabled={!formData.equipment_id || interventions.length === 0}
             >
               <SelectTrigger id="intervention" className="w-full">
-                <SelectValue placeholder="Sélectionner une intervention" />
+                <SelectValue placeholder="Select an intervention" />
               </SelectTrigger>
               <SelectContent>
                 {interventions.map((intervention) => (
@@ -186,16 +186,16 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
                 ))}
                 {interventions.length === 0 && (
                   <div className="p-2 text-sm text-gray-500">
-                    Aucune intervention pour cet équipement
+                    No interventions for this equipment
                   </div>
                 )}
               </SelectContent>
             </Select>
           </div>
           
-          {/* Type de tâche */}
+          {/* Task type */}
           <div className="grid gap-2">
-            <Label>Type de tâche *</Label>
+            <Label>Task type *</Label>
             <RadioGroup
               value={formData.task_type}
               onValueChange={(value) => handleChange('task_type', value as TimeEntryTaskType)}
@@ -207,7 +207,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="repair" id="repair" />
-                <Label htmlFor="repair">Réparation</Label>
+                <Label htmlFor="repair">Repair</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="inspection" id="inspection" />
@@ -219,19 +219,19 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="other" id="other" />
-                <Label htmlFor="other">Autre</Label>
+                <Label htmlFor="other">Other</Label>
               </div>
             </RadioGroup>
           </div>
           
           {/* Notes */}
           <div className="grid gap-2">
-            <Label htmlFor="notes">Notes (optionnel)</Label>
+            <Label htmlFor="notes">Notes (optional)</Label>
             <Textarea
               id="notes"
               value={formData.notes}
               onChange={(e) => handleChange('notes', e.target.value)}
-              placeholder="Ajoutez des détails sur la tâche..."
+              placeholder="Add details about the task..."
               rows={3}
             />
           </div>
@@ -239,10 +239,10 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
         
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            Annuler
+            Cancel
           </Button>
           <Button type="submit" onClick={handleSubmit}>
-            Démarrer le suivi
+            Start Tracking
           </Button>
         </DialogFooter>
       </DialogContent>

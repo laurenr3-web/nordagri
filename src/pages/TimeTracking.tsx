@@ -24,7 +24,7 @@ const TimeTrackingPage = () => {
   const [activeTab, setActiveTab] = useState('list');
   const [isFormOpen, setIsFormOpen] = useState(false);
   
-  // Filtres
+  // Filters
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
     from: startOfWeek(new Date(), { weekStartsOn: 1 }),
     to: endOfWeek(new Date(), { weekStartsOn: 1 })
@@ -32,17 +32,17 @@ const TimeTrackingPage = () => {
   const [equipmentFilter, setEquipmentFilter] = useState<number | undefined>(undefined);
   const [taskTypeFilter, setTaskTypeFilter] = useState<string | undefined>(undefined);
   
-  // Statistiques
+  // Statistics
   const [stats, setStats] = useState({
     totalToday: 0,
     totalWeek: 0,
     totalMonth: 0
   });
   
-  // Options pour les filtres
+  // Filter options
   const [equipments, setEquipments] = useState<{ id: number; name: string }[]>([]);
   
-  // Récupérer l'ID utilisateur au chargement
+  // Get user ID on load
   useEffect(() => {
     const fetchUserId = async () => {
       const { data } = await supabase.auth.getSession();
@@ -54,7 +54,7 @@ const TimeTrackingPage = () => {
     fetchUserId();
   }, []);
   
-  // Récupérer les entrées de temps lorsque l'utilisateur ou les filtres changent
+  // Fetch time entries when user or filters change
   useEffect(() => {
     if (userId) {
       fetchTimeEntries();
@@ -63,7 +63,7 @@ const TimeTrackingPage = () => {
     }
   }, [userId, dateRange, equipmentFilter, taskTypeFilter]);
   
-  // Récupérer les entrées de temps
+  // Fetch time entries
   const fetchTimeEntries = async () => {
     if (!userId) return;
     
@@ -79,14 +79,14 @@ const TimeTrackingPage = () => {
       
       setEntries(data);
     } catch (error) {
-      console.error("Erreur lors de la récupération des entrées de temps:", error);
-      toast.error("Impossible de charger les sessions de temps");
+      console.error("Error fetching time entries:", error);
+      toast.error("Could not load time sessions");
     } finally {
       setIsLoading(false);
     }
   };
   
-  // Récupérer la liste des équipements pour le filtre
+  // Fetch equipment list for filtering
   const fetchEquipments = async () => {
     try {
       const { data, error } = await supabase
@@ -97,36 +97,36 @@ const TimeTrackingPage = () => {
       if (error) throw error;
       setEquipments(data || []);
     } catch (error) {
-      console.error("Erreur lors du chargement des équipements:", error);
+      console.error("Error loading equipment:", error);
     }
   };
   
-  // Calculer les statistiques
+  // Calculate statistics
   const calculateStats = async () => {
     if (!userId) return;
     
     try {
-      // Calculer le temps total aujourd'hui
+      // Calculate total time today
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
       
-      // Requête pour aujourd'hui
+      // Query for today
       const todayEntries = await timeTrackingService.getTimeEntries({
         userId,
         startDate: today,
         endDate: tomorrow
       });
       
-      // Calculer le temps total de la semaine (déjà défini dans dateRange)
+      // Calculate total time for the week (already defined in dateRange)
       const weekEntries = await timeTrackingService.getTimeEntries({
         userId,
         startDate: dateRange.from,
         endDate: dateRange.to
       });
       
-      // Calculer le temps total du mois
+      // Calculate total time for the month
       const firstDayOfMonth = new Date();
       firstDayOfMonth.setDate(1);
       firstDayOfMonth.setHours(0, 0, 0, 0);
@@ -140,18 +140,18 @@ const TimeTrackingPage = () => {
         endDate: lastDayOfMonth
       });
       
-      // Calculer les totaux en heures
+      // Calculate totals in hours
       setStats({
         totalToday: calculateTotalHours(todayEntries),
         totalWeek: calculateTotalHours(weekEntries),
         totalMonth: calculateTotalHours(monthEntries)
       });
     } catch (error) {
-      console.error("Erreur lors du calcul des statistiques:", error);
+      console.error("Error calculating statistics:", error);
     }
   };
   
-  // Calculer le total des heures pour un ensemble d'entrées
+  // Calculate total hours for a set of entries
   const calculateTotalHours = (entries: TimeEntry[]): number => {
     return entries.reduce((total, entry) => {
       const start = new Date(entry.start_time);
@@ -162,42 +162,42 @@ const TimeTrackingPage = () => {
     }, 0);
   };
   
-  // Démarrer une nouvelle session de temps
+  // Start a new time session
   const handleStartTimeEntry = async (data: any) => {
     if (!userId) return;
     
     try {
       await timeTrackingService.startTimeEntry(userId, data);
       setIsFormOpen(false);
-      toast.success("Session de temps démarrée");
+      toast.success("Time session started");
       fetchTimeEntries();
     } catch (error) {
-      console.error("Erreur lors du démarrage du suivi de temps:", error);
-      toast.error("Impossible de démarrer la session");
+      console.error("Error starting time tracking:", error);
+      toast.error("Could not start session");
     }
   };
   
-  // Reprendre une session en pause
+  // Resume a paused session
   const handleResumeTimeEntry = async (entryId: string) => {
     try {
       await timeTrackingService.resumeTimeEntry(entryId);
-      toast.success("Session reprise");
+      toast.success("Session resumed");
       fetchTimeEntries();
     } catch (error) {
-      console.error("Erreur lors de la reprise du suivi de temps:", error);
-      toast.error("Impossible de reprendre la session");
+      console.error("Error resuming time tracking:", error);
+      toast.error("Could not resume session");
     }
   };
   
-  // Supprimer une entrée de temps
+  // Delete a time entry
   const handleDeleteTimeEntry = async (entryId: string) => {
     try {
       await timeTrackingService.deleteTimeEntry(entryId);
-      toast.success("Session supprimée");
+      toast.success("Session deleted");
       fetchTimeEntries();
     } catch (error) {
-      console.error("Erreur lors de la suppression de l'entrée de temps:", error);
-      toast.error("Impossible de supprimer la session");
+      console.error("Error deleting time entry:", error);
+      toast.error("Could not delete session");
     }
   };
   
@@ -211,18 +211,18 @@ const TimeTrackingPage = () => {
         <div className="flex-1 overflow-y-auto">
           <div className="container py-6">
             <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-semibold">Suivi du temps</h1>
+              <h1 className="text-2xl font-semibold">Time Tracking</h1>
               <Button onClick={() => setIsFormOpen(true)}>
                 <Clock className="h-4 w-4 mr-2" />
-                Nouvelle session
+                New Session
               </Button>
             </div>
             
-            {/* Résumé des statistiques */}
+            {/* Statistics summary */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Temps aujourd'hui</CardTitle>
+                  <CardTitle className="text-sm font-medium">Time Today</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
@@ -232,7 +232,7 @@ const TimeTrackingPage = () => {
               </Card>
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Temps cette semaine</CardTitle>
+                  <CardTitle className="text-sm font-medium">Time This Week</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
@@ -242,7 +242,7 @@ const TimeTrackingPage = () => {
               </Card>
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Temps ce mois</CardTitle>
+                  <CardTitle className="text-sm font-medium">Time This Month</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
@@ -252,12 +252,12 @@ const TimeTrackingPage = () => {
               </Card>
             </div>
             
-            {/* Filtres */}
+            {/* Filters */}
             <div className="bg-gray-50 p-4 rounded-md mb-6">
               <div className="flex flex-col md:flex-row gap-4 items-end">
                 <div className="flex-1">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Période
+                    Period
                   </label>
                   <DateRangePicker
                     value={dateRange}
@@ -271,17 +271,17 @@ const TimeTrackingPage = () => {
                 
                 <div className="w-full md:w-48">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Équipement
+                    Equipment
                   </label>
                   <Select
-                    value={equipmentFilter?.toString() || undefined}
-                    onValueChange={(value) => setEquipmentFilter(value ? parseInt(value) : undefined)}
+                    value={equipmentFilter?.toString() || ""}
+                    onValueChange={(value) => setEquipmentFilter(value !== "all" ? parseInt(value) : undefined)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Tous" />
+                      <SelectValue placeholder="All" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Tous</SelectItem>
+                      <SelectItem value="all">All</SelectItem>
                       {equipments.map((equipment) => (
                         <SelectItem key={equipment.id} value={equipment.id.toString()}>
                           {equipment.name}
@@ -293,22 +293,22 @@ const TimeTrackingPage = () => {
                 
                 <div className="w-full md:w-48">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Type de tâche
+                    Task Type
                   </label>
                   <Select
-                    value={taskTypeFilter || undefined}
-                    onValueChange={(value) => setTaskTypeFilter(value || undefined)}
+                    value={taskTypeFilter || "all"}
+                    onValueChange={(value) => setTaskTypeFilter(value !== "all" ? value : undefined)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Tous" />
+                      <SelectValue placeholder="All" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Tous</SelectItem>
+                      <SelectItem value="all">All</SelectItem>
                       <SelectItem value="maintenance">Maintenance</SelectItem>
-                      <SelectItem value="repair">Réparation</SelectItem>
+                      <SelectItem value="repair">Repair</SelectItem>
                       <SelectItem value="inspection">Inspection</SelectItem>
                       <SelectItem value="installation">Installation</SelectItem>
-                      <SelectItem value="other">Autre</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -324,21 +324,21 @@ const TimeTrackingPage = () => {
                     setTaskTypeFilter(undefined);
                   }}
                 >
-                  Réinitialiser
+                  Reset
                 </Button>
               </div>
             </div>
             
-            {/* Onglets */}
+            {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="mb-4">
                 <TabsTrigger value="list">
                   <ListFilter className="h-4 w-4 mr-2" />
-                  Liste
+                  List
                 </TabsTrigger>
                 <TabsTrigger value="calendar">
                   <CalendarIcon className="h-4 w-4 mr-2" />
-                  Calendrier
+                  Calendar
                 </TabsTrigger>
               </TabsList>
               
@@ -376,12 +376,12 @@ const TimeTrackingPage = () => {
                   ) : (
                     <div className="text-center py-12 border rounded-md bg-gray-50">
                       <Clock className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                      <h3 className="text-xl font-medium mb-2">Aucune session trouvée</h3>
+                      <h3 className="text-xl font-medium mb-2">No sessions found</h3>
                       <p className="text-gray-500 mb-4">
-                        Aucune session de temps ne correspond à vos critères de recherche.
+                        No time sessions match your search criteria.
                       </p>
                       <Button onClick={() => setIsFormOpen(true)}>
-                        Démarrer une session
+                        Start a session
                       </Button>
                     </div>
                   )
@@ -392,9 +392,9 @@ const TimeTrackingPage = () => {
                 <div className="border rounded-lg p-6">
                   <div className="text-center">
                     <CalendarIcon className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                    <h3 className="text-lg font-medium mb-2">Vue calendrier</h3>
+                    <h3 className="text-lg font-medium mb-2">Calendar View</h3>
                     <p className="text-gray-500 mb-4">
-                      Cette fonctionnalité sera bientôt disponible.
+                      This feature will be available soon.
                     </p>
                   </div>
                 </div>
@@ -404,7 +404,7 @@ const TimeTrackingPage = () => {
         </div>
       </div>
       
-      {/* Modal pour créer une nouvelle session */}
+      {/* Modal for creating a new session */}
       <TimeEntryForm
         isOpen={isFormOpen}
         onOpenChange={setIsFormOpen}

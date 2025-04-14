@@ -28,13 +28,13 @@ export function TimeTrackingButton({
   const [duration, setDuration] = useState<string>('00:00:00');
   const [isFormOpen, setIsFormOpen] = useState(false);
   
-  // Mettre à jour le timer
+  // Update timer
   useEffect(() => {
     let intervalId: NodeJS.Timeout | null = null;
     
-    // Vérifier si une entrée active existe et n'est pas en pause
+    // Check if active entry exists and is not paused
     if (activeTimeEntry && activeTimeEntry.status === 'active') {
-      // Démarrer l'intervalle pour mettre à jour le timer
+      // Start interval to update timer
       intervalId = setInterval(() => {
         const start = new Date(activeTimeEntry.start_time);
         const now = new Date();
@@ -42,20 +42,20 @@ export function TimeTrackingButton({
         setDuration(formatDuration(diffMs));
       }, 1000);
       
-      // Calculer la durée initiale
+      // Calculate initial duration
       const start = new Date(activeTimeEntry.start_time);
       const now = new Date();
       const diffMs = now.getTime() - start.getTime();
       setDuration(formatDuration(diffMs));
     } else if (activeTimeEntry && activeTimeEntry.status === 'paused') {
-      // Pour l'entrée en pause, afficher simplement le temps écoulé sans mise à jour
+      // For paused entry, just show elapsed time without updates
       const start = new Date(activeTimeEntry.start_time);
       const now = new Date();
       const diffMs = now.getTime() - start.getTime();
       setDuration(formatDuration(diffMs));
     }
     
-    // Nettoyer l'intervalle au démontage
+    // Clean up interval on unmount
     return () => {
       if (intervalId) {
         clearInterval(intervalId);
@@ -63,57 +63,57 @@ export function TimeTrackingButton({
     };
   }, [activeTimeEntry]);
   
-  // Gérer le clic sur le bouton principal
+  // Handle main button click
   const handleMainButtonClick = () => {
     if (!activeTimeEntry) {
       setIsFormOpen(true);
     }
   };
   
-  // Gérer le démarrage d'une entrée de temps
+  // Handle starting a time entry
   const handleStartTimeEntry = async (data: any) => {
     try {
       await startTimeEntry(data);
       setIsFormOpen(false);
     } catch (error) {
-      console.error("Erreur lors du démarrage du suivi de temps:", error);
+      console.error("Error starting time tracking:", error);
     }
   };
   
-  // Gérer l'arrêt d'une entrée de temps
+  // Handle stopping a time entry
   const handleStopTimeEntry = async () => {
     if (activeTimeEntry) {
       try {
         await stopTimeEntry(activeTimeEntry.id);
       } catch (error) {
-        console.error("Erreur lors de l'arrêt du suivi de temps:", error);
+        console.error("Error stopping time tracking:", error);
       }
     }
   };
   
-  // Gérer la mise en pause d'une entrée de temps
+  // Handle pausing a time entry
   const handlePauseTimeEntry = async () => {
     if (activeTimeEntry) {
       try {
         await pauseTimeEntry(activeTimeEntry.id);
       } catch (error) {
-        console.error("Erreur lors de la mise en pause du suivi de temps:", error);
+        console.error("Error pausing time tracking:", error);
       }
     }
   };
   
-  // Gérer la reprise d'une entrée de temps
+  // Handle resuming a time entry
   const handleResumeTimeEntry = async () => {
     if (activeTimeEntry) {
       try {
         await resumeTimeEntry(activeTimeEntry.id);
       } catch (error) {
-        console.error("Erreur lors de la reprise du suivi de temps:", error);
+        console.error("Error resuming time tracking:", error);
       }
     }
   };
   
-  // Déterminer la classe de couleur en fonction du statut
+  // Determine color class based on status
   const getColorClass = () => {
     if (!activeTimeEntry) return 'bg-gray-100 text-gray-700 hover:bg-gray-200';
     
@@ -137,7 +137,7 @@ export function TimeTrackingButton({
           className
         )}
       >
-        {/* Bouton principal */}
+        {/* Main button */}
         <Button
           variant="ghost"
           size="icon"
@@ -157,12 +157,12 @@ export function TimeTrackingButton({
           )}
         </Button>
         
-        {/* Afficher le temps écoulé et les actions lorsqu'une entrée est active */}
+        {/* Show elapsed time and actions when an entry is active */}
         {activeTimeEntry && (
           <div className="flex items-center gap-2">
             <span className="font-mono text-sm font-medium">{duration}</span>
             
-            {/* Actions selon l'état */}
+            {/* Actions based on status */}
             {activeTimeEntry.status === 'active' ? (
               <>
                 <Button
@@ -206,7 +206,7 @@ export function TimeTrackingButton({
         )}
       </div>
       
-      {/* Modal pour le formulaire */}
+      {/* Modal for form */}
       <TimeEntryForm 
         isOpen={isFormOpen} 
         onOpenChange={setIsFormOpen} 

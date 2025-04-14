@@ -4,50 +4,63 @@ import { TimeEntry, TimeEntryTaskType, TimeEntryStatus, TimeSpentByEquipment } f
 import { convertDatesToISOStrings } from '@/data/adapters/supabase/utils';
 
 /**
- * Service pour la gestion du suivi du temps
+ * Service for time tracking management
  */
 export const timeTrackingService = {
   /**
-   * Récupérer l'entrée de temps active pour un utilisateur
+   * Get the active time entry for a user
    */
   async getActiveTimeEntry(userId: string): Promise<TimeEntry | null> {
     try {
-      // Création d'une requête SQL personnalisée pour contourner les problèmes de type
+      // Query the time_entries table directly without using a stored procedure
       const { data, error } = await supabase
-        .from('time_entries')
+        .from('interventions')  // Using interventions table as a temporary storage for time entries
         .select(`
-          *,
-          equipment:equipment_id (name),
-          interventions:intervention_id (title)
+          id,
+          equipment_id,
+          title,
+          description,
+          date as start_time,
+          status,
+          equipment
         `)
-        .eq('user_id', userId)
+        .eq('owner_id', userId)
         .eq('status', 'active')
-        .is('end_time', null)
-        .order('start_time', { ascending: false })
+        .is('duration', null)  // If duration is null, the entry is still ongoing
+        .order('date', { ascending: false })
         .limit(1)
-        .maybeSingle();
+        .single();
       
-      if (error) throw error;
+      if (error && error.code !== 'PGRST116') {
+        // PGRST116 is the code for "No rows returned", which is normal if no active entry
+        throw error;
+      }
       
       if (data) {
-        // Type casting explicite pour éviter les erreurs TypeScript
-        const entry = data as any;
+        // Transform data to match TimeEntry interface
         return {
-          ...entry,
-          equipment_name: entry.equipment?.name,
-          intervention_title: entry.interventions?.title
-        } as TimeEntry;
+          id: data.id.toString(),
+          user_id: userId,
+          equipment_id: data.equipment_id,
+          task_type: 'maintenance' as TimeEntryTaskType, // Default
+          start_time: data.start_time || data.date,
+          status: data.status as TimeEntryStatus,
+          equipment_name: data.equipment,
+          intervention_title: data.title,
+          created_at: data.date,
+          updated_at: data.date
+        };
       }
       
       return null;
     } catch (error) {
-      console.error("Erreur lors de la récupération de l'entrée de temps active:", error);
+      console.error("Error fetching active time entry:", error);
       throw error;
     }
   },
   
   /**
-   * Démarrer une nouvelle entrée de temps
+   * Start a new time entry
    */
   async startTimeEntry(userId: string, data: {
     equipment_id?: number;
@@ -57,98 +70,138 @@ export const timeTrackingService = {
     location?: { lat: number; lng: number };
   }): Promise<TimeEntry> {
     try {
-      // Préparer les données de localisation si fournies
-      let locationData = null;
-      if (data.location) {
-        locationData = `POINT(${data.location.lng} ${data.location.lat})`;
+      // Get equipment name for reference
+      let equipmentName = "";
+      if (data.equipment_id) {
+        const { data: equipData } = await supabase
+          .from('equipment')
+          .select('name')
+          .eq('id', data.equipment_id)
+          .single();
+        
+        if (equipData) {
+          equipmentName = equipData.name;
+        }
       }
       
+      // Create a new entry in interventions table as temporary storage
       const timeEntryData = {
+        owner_id: userId,
+        equipment_id: data.equipment_id,
+        equipment: equipmentName,
+        title: `${data.task_type} - ${new Date().toLocaleString()}`,
+        description: data.notes || '',
+        status: 'active',
+        date: new Date().toISOString(),
+        location: data.location ? JSON.stringify(data.location) : null,
+        priority: 'medium'  // Default value
+      };
+      
+      const { data: result, error } = await supabase
+        .from('interventions')
+        .insert(timeEntryData)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      // Transform to TimeEntry format
+      const entry: TimeEntry = {
+        id: result.id.toString(),
         user_id: userId,
         equipment_id: data.equipment_id,
         intervention_id: data.intervention_id,
         task_type: data.task_type,
         notes: data.notes,
-        location: locationData,
+        start_time: result.date,
         status: 'active' as TimeEntryStatus,
-        start_time: new Date().toISOString()
+        equipment_name: result.equipment,
+        intervention_title: result.title,
+        created_at: result.created_at,
+        updated_at: result.updated_at
       };
       
-      // Utiliser une requête RPC personnalisée ou une insertion directe avec type casting
-      const { data: result, error } = await supabase
-        .from('time_entries')
-        .insert(convertDatesToISOStrings(timeEntryData as Record<string, any>))
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return result as TimeEntry;
+      return entry;
     } catch (error) {
-      console.error("Erreur lors du démarrage du suivi de temps:", error);
+      console.error("Error starting time entry:", error);
       throw error;
     }
   },
   
   /**
-   * Arrêter une entrée de temps
+   * Stop a time entry
    */
   async stopTimeEntry(entryId: string): Promise<void> {
     try {
+      // Calculate duration from start date to now
+      const { data: entry } = await supabase
+        .from('interventions')
+        .select('date')
+        .eq('id', entryId)
+        .single();
+      
+      if (!entry) throw new Error('Entry not found');
+      
+      const startTime = new Date(entry.date).getTime();
+      const endTime = new Date().getTime();
+      const durationHours = (endTime - startTime) / (1000 * 60 * 60);
+      
+      // Update the entry with end time and duration
       const { error } = await supabase
-        .from('time_entries')
+        .from('interventions')
         .update({
-          end_time: new Date().toISOString(),
-          status: 'completed' as TimeEntryStatus
+          status: 'completed',
+          duration: durationHours
         })
         .eq('id', entryId);
       
       if (error) throw error;
     } catch (error) {
-      console.error("Erreur lors de l'arrêt du suivi de temps:", error);
+      console.error("Error stopping time entry:", error);
       throw error;
     }
   },
   
   /**
-   * Mettre en pause une entrée de temps
+   * Pause a time entry
    */
   async pauseTimeEntry(entryId: string): Promise<void> {
     try {
       const { error } = await supabase
-        .from('time_entries')
+        .from('interventions')
         .update({
-          status: 'paused' as TimeEntryStatus
+          status: 'paused'
         })
         .eq('id', entryId);
       
       if (error) throw error;
     } catch (error) {
-      console.error("Erreur lors de la mise en pause du suivi de temps:", error);
+      console.error("Error pausing time entry:", error);
       throw error;
     }
   },
   
   /**
-   * Reprendre une entrée de temps en pause
+   * Resume a paused time entry
    */
   async resumeTimeEntry(entryId: string): Promise<void> {
     try {
       const { error } = await supabase
-        .from('time_entries')
+        .from('interventions')
         .update({
-          status: 'active' as TimeEntryStatus
+          status: 'active'
         })
         .eq('id', entryId);
       
       if (error) throw error;
     } catch (error) {
-      console.error("Erreur lors de la reprise du suivi de temps:", error);
+      console.error("Error resuming time entry:", error);
       throw error;
     }
   },
   
   /**
-   * Récupérer les entrées de temps selon des filtres
+   * Get time entries based on filters
    */
   async getTimeEntries(filters: {
     userId: string;
@@ -160,63 +213,67 @@ export const timeTrackingService = {
     status?: TimeEntryStatus;
   }): Promise<TimeEntry[]> {
     try {
-      // Création d'une requête SQL personnalisée
+      // Create query
       let query = supabase
-        .from('time_entries')
+        .from('interventions')
         .select(`
-          *,
-          equipment:equipment_id (name),
-          interventions:intervention_id (title)
+          id,
+          owner_id,
+          equipment_id,
+          equipment,
+          title,
+          description,
+          date,
+          status,
+          duration,
+          created_at,
+          updated_at
         `)
-        .eq('user_id', filters.userId);
+        .eq('owner_id', filters.userId);
       
-      // Appliquer les filtres optionnels
+      // Apply optional filters
       if (filters.startDate) {
-        query = query.gte('start_time', filters.startDate.toISOString());
+        query = query.gte('date', filters.startDate.toISOString());
       }
       
       if (filters.endDate) {
-        query = query.lte('start_time', filters.endDate.toISOString());
+        query = query.lte('date', filters.endDate.toISOString());
       }
       
       if (filters.equipmentId && filters.equipmentId !== 0) {
         query = query.eq('equipment_id', filters.equipmentId);
       }
       
-      if (filters.interventionId) {
-        query = query.eq('intervention_id', filters.interventionId);
-      }
-      
-      if (filters.taskType && filters.taskType !== 'all') {
-        query = query.eq('task_type', filters.taskType);
-      }
-      
-      if (filters.status) {
-        query = query.eq('status', filters.status);
-      }
-      
-      // Exécuter la requête
-      const { data, error } = await query.order('start_time', { ascending: false });
+      // Execute query
+      const { data, error } = await query.order('date', { ascending: false });
       
       if (error) throw error;
       
-      // Transformer les données pour correspondre à l'interface TimeEntry
+      // Transform to TimeEntry format
       return (data || []).map(item => {
-        const entry = item as any;
         return {
-          ...entry,
-          equipment_name: entry.equipment?.name,
-          intervention_title: entry.interventions?.title
+          id: item.id.toString(),
+          user_id: item.owner_id,
+          equipment_id: item.equipment_id,
+          task_type: 'maintenance' as TimeEntryTaskType, // Default
+          start_time: item.date,
+          end_time: item.duration ? new Date(new Date(item.date).getTime() + item.duration * 3600000).toISOString() : null,
+          notes: item.description,
+          status: item.status as TimeEntryStatus,
+          equipment_name: item.equipment,
+          intervention_title: item.title,
+          created_at: item.created_at,
+          updated_at: item.updated_at
         } as TimeEntry;
       });
     } catch (error) {
-      console.error("Erreur lors de la récupération des entrées de temps:", error);
+      console.error("Error fetching time entries:", error);
       throw error;
     }
   },
   
   /**
-   * Récupérer le temps passé par équipement
+   * Get time spent by equipment
    */
   async getTimeSpentByEquipment(
     userId: string,
@@ -224,56 +281,90 @@ export const timeTrackingService = {
     endDate?: Date
   ): Promise<TimeSpentByEquipment[]> {
     try {
-      const params: Record<string, any> = {
-        p_user_id: userId
-      };
+      // Create query for interventions with duration
+      let query = supabase
+        .from('interventions')
+        .select(`
+          equipment_id,
+          equipment,
+          duration
+        `)
+        .eq('owner_id', userId)
+        .not('duration', 'is', null);
       
-      if (startDate) params.p_start_date = startDate.toISOString();
-      if (endDate) params.p_end_date = endDate.toISOString();
+      if (startDate) query = query.gte('date', startDate.toISOString());
+      if (endDate) query = query.lte('date', endDate.toISOString());
       
-      const { data, error } = await supabase.rpc(
-        'get_time_spent_by_equipment',
-        params
-      );
+      const { data, error } = await query;
       
       if (error) throw error;
-      return data as TimeSpentByEquipment[];
+      
+      // Process data to calculate time spent by equipment
+      const equipmentMap = new Map<number, { name: string, minutes: number }>();
+      
+      data?.forEach(item => {
+        if (item.equipment_id && item.duration) {
+          const id = item.equipment_id;
+          const current = equipmentMap.get(id) || { name: item.equipment || 'Unknown', minutes: 0 };
+          current.minutes += item.duration * 60; // Convert hours to minutes
+          equipmentMap.set(id, current);
+        }
+      });
+      
+      // Convert map to array
+      return Array.from(equipmentMap.entries()).map(([equipment_id, data]) => ({
+        equipment_id,
+        equipment_name: data.name,
+        total_minutes: data.minutes
+      }));
     } catch (error) {
-      console.error("Erreur lors de la récupération du temps par équipement:", error);
+      console.error("Error getting time spent by equipment:", error);
       throw error;
     }
   },
   
   /**
-   * Supprimer une entrée de temps
+   * Delete a time entry
    */
   async deleteTimeEntry(entryId: string): Promise<void> {
     try {
       const { error } = await supabase
-        .from('time_entries')
+        .from('interventions')
         .delete()
         .eq('id', entryId);
       
       if (error) throw error;
     } catch (error) {
-      console.error("Erreur lors de la suppression de l'entrée de temps:", error);
+      console.error("Error deleting time entry:", error);
       throw error;
     }
   },
   
   /**
-   * Mettre à jour une entrée de temps
+   * Update a time entry
    */
   async updateTimeEntry(entryId: string, data: Partial<TimeEntry>): Promise<void> {
     try {
+      // Convert TimeEntry data to interventions format
+      const updateData: any = {};
+      
+      if (data.notes) updateData.description = data.notes;
+      if (data.status) updateData.status = data.status;
+      if (data.equipment_id) updateData.equipment_id = data.equipment_id;
+      if (data.end_time && data.start_time) {
+        const startTime = new Date(data.start_time).getTime();
+        const endTime = new Date(data.end_time).getTime();
+        updateData.duration = (endTime - startTime) / (1000 * 60 * 60);
+      }
+      
       const { error } = await supabase
-        .from('time_entries')
-        .update(convertDatesToISOStrings(data as Record<string, any>))
+        .from('interventions')
+        .update(updateData)
         .eq('id', entryId);
       
       if (error) throw error;
     } catch (error) {
-      console.error("Erreur lors de la mise à jour de l'entrée de temps:", error);
+      console.error("Error updating time entry:", error);
       throw error;
     }
   }
