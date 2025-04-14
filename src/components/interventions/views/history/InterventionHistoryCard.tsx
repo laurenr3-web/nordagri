@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Intervention } from '@/types/Intervention';
@@ -28,7 +27,7 @@ const InterventionHistoryCard: React.FC<InterventionHistoryCardProps> = ({
         </div>
         <div className="flex items-center gap-2">
           <PriorityBadge priority={intervention.priority} />
-          <StatusBadge status={intervention.status as "scheduled" | "in-progress" | "completed" | "canceled"} />
+          <StatusBadge status={intervention.status as "scheduled" | "in-progress" | "completed" | "cancelled"} />
         </div>
       </div>
       

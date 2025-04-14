@@ -1,4 +1,3 @@
-
 export interface UrgentIntervention {
   id: number;
   title: string;
