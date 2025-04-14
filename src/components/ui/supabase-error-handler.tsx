@@ -24,7 +24,7 @@ export function SupabaseErrorHandler({ children }: SupabaseErrorHandlerProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const authListener = useRef<any>(null);
+  const authListener = useRef<{ subscription?: { unsubscribe: () => void } }>(null);
 
   // Détecter les problèmes de connexion
   useEffect(() => {
@@ -51,7 +51,7 @@ export function SupabaseErrorHandler({ children }: SupabaseErrorHandlerProps) {
 
   // Écouter les événements d'authentification
   useEffect(() => {
-    authListener.current = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session) => {
+    const { data } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session) => {
       console.log('Auth state change:', event);
 
       const isAuthPage = location.pathname.includes('/auth');
@@ -83,8 +83,12 @@ export function SupabaseErrorHandler({ children }: SupabaseErrorHandlerProps) {
       }
     });
 
+    // Store the subscription reference properly
+    authListener.current = data;
+
     return () => {
-      if (authListener.current) {
+      console.log('Cleaning up auth listener');
+      if (authListener.current && authListener.current.subscription) {
         authListener.current.subscription.unsubscribe();
       }
     };
