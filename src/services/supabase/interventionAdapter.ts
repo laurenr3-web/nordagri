@@ -43,8 +43,8 @@ export const clientFormToDbIntervention = (formData: InterventionFormValues): Pa
     description: formData.description,
     notes: formData.notes,
     coordinates: formData.coordinates ? {
-      latitude: formData.coordinates.latitude,
-      longitude: formData.coordinates.longitude
+      latitude: formData.coordinates?.latitude,
+      longitude: formData.coordinates?.longitude
     } : null
   };
 };

@@ -36,13 +36,14 @@ const RequestsManagementView: React.FC<RequestsManagementViewProps> = ({
         title: values.title,
         equipment: values.equipment,
         equipmentId: values.equipmentId,
-        location: values.location,
+        location: values.location || 'Unknown',
         priority: values.priority,
         date: values.date,
         scheduledDuration: values.scheduledDuration,
         technician: values.technician,
         description: values.description,
         notes: values.notes,
+        status: 'scheduled',
       };
       
       await interventionService.createIntervention(interventionData);

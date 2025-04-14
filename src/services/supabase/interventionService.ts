@@ -1,159 +1,160 @@
 
-import { supabase, withRetry } from '@/integrations/supabase/client';
-import { InterventionDB, InterventionFormValues, Intervention } from '@/types/models/intervention';
-import { toast } from 'sonner';
-import { dbToClientIntervention, clientFormToDbIntervention, clientToDbIntervention } from './interventionAdapter';
+import { supabase } from '@/integrations/supabase/client';
+import { InterventionDB, Intervention, InterventionFormValues } from '@/types/models/intervention';
+import { clientToDbIntervention, dbToClientIntervention, clientFormToDbIntervention } from './interventionAdapter';
 
 /**
- * Service for handling intervention operations
+ * Service to handle intervention data from Supabase
  */
 export const interventionService = {
   /**
    * Get all interventions
    */
-  getInterventions: async (): Promise<Intervention[]> => {
+  async getInterventions(): Promise<Intervention[]> {
     try {
       const { data, error } = await supabase
         .from('interventions')
         .select('*')
-        .order('created_at', { ascending: false });
-        
+        .order('date', { ascending: false });
+
       if (error) {
-        throw error;
+        throw new Error(`Error fetching interventions: ${error.message}`);
       }
-      
-      // Convert database results to client model
-      return data ? data.map(item => dbToClientIntervention(item as InterventionDB)) : [];
+
+      return (data as InterventionDB[]).map(dbToClientIntervention);
     } catch (error: any) {
-      console.error('Error fetching interventions:', error);
-      toast.error('Erreur lors du chargement des interventions', {
-        description: error.message
-      });
-      return [];
+      console.error('Intervention service error:', error);
+      throw new Error(`Failed to load interventions: ${error.message}`);
     }
   },
-  
+
   /**
    * Get intervention by ID
    */
-  getInterventionById: async (id: number | string): Promise<Intervention | null> => {
+  async getInterventionById(id: string | number): Promise<Intervention | null> {
     try {
+      // Convert string id to number if needed
+      const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
+
       const { data, error } = await supabase
         .from('interventions')
         .select('*')
-        .eq('id', id)
+        .eq('id', numericId)
         .single();
-        
+
       if (error) {
-        throw error;
+        throw new Error(`Error fetching intervention: ${error.message}`);
       }
-      
-      return data ? dbToClientIntervention(data as InterventionDB) : null;
+
+      if (!data) return null;
+
+      return dbToClientIntervention(data as InterventionDB);
     } catch (error: any) {
-      console.error(`Error fetching intervention with ID ${id}:`, error);
-      toast.error('Erreur lors du chargement de l\'intervention', {
-        description: error.message
-      });
-      return null;
+      console.error('Intervention service error:', error);
+      throw new Error(`Failed to load intervention: ${error.message}`);
     }
   },
-  
+
   /**
    * Create a new intervention
    */
-  createIntervention: async (values: InterventionFormValues): Promise<Intervention | null> => {
+  async createIntervention(intervention: InterventionFormValues): Promise<Intervention> {
     try {
-      // Add validation for required fields
-      if (!values.title) {
-        throw new Error("Le titre est obligatoire");
+      // Convert client data to DB format
+      const dbIntervention = clientFormToDbIntervention(intervention);
+      
+      // Ensure required fields are present
+      const requiredFields = {
+        date: dbIntervention.date || new Date().toISOString(),
+        equipment: dbIntervention.equipment || 'Unknown',
+        location: dbIntervention.location || 'Unknown'
+      };
+      
+      const { data, error } = await supabase
+        .from('interventions')
+        .insert({ ...dbIntervention, ...requiredFields })
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Error creating intervention: ${error.message}`);
       }
-      
-      if (!values.equipmentId) {
-        throw new Error("L'équipement est obligatoire");
-      }
-      
-      const { data, error } = await withRetry(async () => {
-        const toastId = 'create-intervention';
-        toast.loading('Création de l\'intervention...', { id: toastId });
-        
-        try {
-          // Convert form values to database format
-          const interventionData = clientFormToDbIntervention(values);
-          
-          const { data, error } = await supabase
-            .from('interventions')
-            .insert(interventionData)
-            .select()
-            .single();
-            
-          if (error) throw error;
-          
-          toast.success('Intervention créée avec succès', { id: toastId });
-          return { data, error: null };
-        } catch (error: any) {
-          toast.error('Erreur lors de la création', {
-            id: toastId,
-            description: error.message
-          });
-          throw error;
-        }
-      });
-      
-      if (error) throw error;
-      return data ? dbToClientIntervention(data as InterventionDB) : null;
+
+      return dbToClientIntervention(data as InterventionDB);
     } catch (error: any) {
-      console.error('Error creating intervention:', error);
-      throw error;
+      console.error('Intervention service error:', error);
+      throw new Error(`Failed to create intervention: ${error.message}`);
+    }
+  },
+
+  /**
+   * Update an intervention
+   */
+  async updateIntervention(id: number, intervention: Partial<Intervention>): Promise<Intervention> {
+    try {
+      // Convert client data to DB format
+      const dbIntervention = clientToDbIntervention(intervention as Intervention);
+      
+      // Remove the id from the update payload
+      const { id: _, ...updateData } = dbIntervention;
+      
+      const { data, error } = await supabase
+        .from('interventions')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Error updating intervention: ${error.message}`);
+      }
+
+      return dbToClientIntervention(data as InterventionDB);
+    } catch (error: any) {
+      console.error('Intervention service error:', error);
+      throw new Error(`Failed to update intervention: ${error.message}`);
     }
   },
   
   /**
-   * Update an intervention
+   * Update intervention status
    */
-  updateIntervention: async (id: number, intervention: Partial<Intervention>): Promise<Intervention | null> => {
+  async updateInterventionStatus(id: number, status: string): Promise<Intervention> {
     try {
-      const { data, error } = await withRetry(async () => {
-        const toastId = 'update-intervention';
-        toast.loading('Mise à jour de l\'intervention...', { id: toastId });
-        
-        try {
-          // Convert client data to database format
-          const updateData = clientToDbIntervention(intervention as Intervention);
-          
-          const { data, error } = await supabase
-            .from('interventions')
-            .update(updateData)
-            .eq('id', id)
-            .select()
-            .single();
-            
-          if (error) throw error;
-          
-          toast.success('Intervention mise à jour avec succès', { id: toastId });
-          return { data, error: null };
-        } catch (error: any) {
-          toast.error('Erreur lors de la mise à jour', {
-            id: toastId,
-            description: error.message
-          });
-          throw error;
-        }
-      });
-      
-      if (error) throw error;
-      return data ? dbToClientIntervention(data as InterventionDB) : null;
+      const { data, error } = await supabase
+        .from('interventions')
+        .update({ status })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Error updating intervention status: ${error.message}`);
+      }
+
+      return dbToClientIntervention(data as InterventionDB);
     } catch (error: any) {
-      console.error(`Error updating intervention with ID ${id}:`, error);
-      throw error;
+      console.error('Intervention service error:', error);
+      throw new Error(`Failed to update intervention status: ${error.message}`);
     }
   },
 
   /**
-   * Update intervention status
+   * Delete an intervention
    */
-  updateInterventionStatus: async (id: number, status: string): Promise<Intervention | null> => {
-    return interventionService.updateIntervention(id, { status: status as any });
+  async deleteIntervention(id: number): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('interventions')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        throw new Error(`Error deleting intervention: ${error.message}`);
+      }
+    } catch (error: any) {
+      console.error('Intervention service error:', error);
+      throw new Error(`Failed to delete intervention: ${error.message}`);
+    }
   }
 };
-
-export default interventionService;

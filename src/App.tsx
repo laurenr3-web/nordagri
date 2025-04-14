@@ -43,13 +43,13 @@ function App() {
   }, []);
 
   return (
-    <SupabaseErrorHandler>
-      <BrowserRouter>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <ThemeProvider defaultTheme="system" storageKey="nordagri-theme">
-              <Toaster />
-              <SonnerToaster position="top-right" closeButton richColors />
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <ThemeProvider defaultTheme="system" storageKey="nordagri-theme">
+            <Toaster />
+            <SonnerToaster position="top-right" closeButton richColors />
+            <SupabaseErrorHandler>
               <Routes>
                 {/* Auth routes */}
                 <Route path="/auth" element={<AuthLayout />}>
@@ -75,11 +75,11 @@ function App() {
                 {/* 404 route */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </ThemeProvider>
-          </AuthProvider>
-        </QueryClientProvider>
-      </BrowserRouter>
-    </SupabaseErrorHandler>
+            </SupabaseErrorHandler>
+          </ThemeProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
   );
 }
 
