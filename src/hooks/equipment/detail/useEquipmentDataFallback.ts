@@ -32,13 +32,13 @@ export function useEquipmentDataFallback(id: string | undefined) {
           setUsingDemoData(false);
         }
         
-        // Ensure date fields are properly formatted as strings
+        // Ensure the data matches the expected format
         const processedData = {
           ...data,
-          purchaseDate: data.purchase_date || data.purchaseDate,
-          serialNumber: data.serial_number || data.serialNumber,
-          created_at: data.created_at || new Date().toISOString(),
-          updated_at: data.updated_at || new Date().toISOString()
+          purchase_date: data.purchase_date || data.purchaseDate,
+          serial_number: data.serial_number || data.serialNumber,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         };
         
         setEquipment(processedData);
