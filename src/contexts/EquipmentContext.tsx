@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useCallback, useMemo, React
 import { Equipment, EquipmentFilter, EquipmentStatus } from '@/types/Equipment';
 import { useStandardQuery, useStandardMutation } from '@/hooks/useStandardQuery';
 import { equipmentService } from '@/services/api/equipmentService';
+import { ensureNumberId } from '@/utils/typeGuards';
 
 // Type adapter to convert between service and domain Equipment types
 const adaptEquipment = (serviceEquipment: any): Equipment => ({
@@ -23,11 +24,11 @@ interface EquipmentContextType {
   setFilters: (filters: EquipmentFilter) => void;
   
   // Actions
-  selectEquipment: (id: number) => void;
+  selectEquipment: (id: number | string) => void;
   refreshEquipment: () => void;
   addEquipment: (equipment: Omit<Equipment, 'id'>) => Promise<Equipment>;
   updateEquipment: (equipment: Equipment) => Promise<Equipment>;
-  deleteEquipment: (id: number) => Promise<void>;
+  deleteEquipment: (id: number | string) => Promise<void>;
   clearSelection: () => void;
 }
 
@@ -79,7 +80,7 @@ export const EquipmentProvider: React.FC<EquipmentProviderProps> = ({
   
   // Mutation pour mettre à jour un équipement
   const updateMutation = useStandardMutation({
-    mutationFn: (data: Equipment) => equipmentService.updateEquipment(data.id, data),
+    mutationFn: (data: Equipment) => equipmentService.updateEquipment(ensureNumberId(data.id), data),
     invalidateQueries: [['equipment']],
     successMessage: 'Équipement mis à jour avec succès',
     errorMessage: 'Erreur lors de la mise à jour de l\'équipement'
@@ -87,7 +88,7 @@ export const EquipmentProvider: React.FC<EquipmentProviderProps> = ({
   
   // Mutation pour supprimer un équipement
   const deleteMutation = useStandardMutation({
-    mutationFn: equipmentService.deleteEquipment,
+    mutationFn: (id: number | string) => equipmentService.deleteEquipment(ensureNumberId(id)),
     invalidateQueries: [['equipment']],
     successMessage: 'Équipement supprimé avec succès',
     errorMessage: 'Erreur lors de la suppression de l\'équipement'
@@ -100,8 +101,8 @@ export const EquipmentProvider: React.FC<EquipmentProviderProps> = ({
   );
   
   // Actions
-  const selectEquipment = useCallback((id: number) => {
-    setSelectedId(id);
+  const selectEquipment = useCallback((id: number | string) => {
+    setSelectedId(ensureNumberId(id));
   }, []);
   
   const clearSelection = useCallback(() => {
@@ -123,9 +124,9 @@ export const EquipmentProvider: React.FC<EquipmentProviderProps> = ({
     return adaptEquipment(result);
   }, [updateMutation]);
   
-  const deleteEquipment = useCallback(async (id: number) => {
+  const deleteEquipment = useCallback(async (id: number | string) => {
     await deleteMutation.mutateAsync(id);
-    if (selectedId === id) {
+    if (selectedId === ensureNumberId(id)) {
       clearSelection();
     }
   }, [deleteMutation, selectedId, clearSelection]);

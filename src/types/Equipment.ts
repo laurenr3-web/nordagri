@@ -10,6 +10,7 @@ export type {
 
 import { Equipment, EquipmentDB } from './models/equipment';
 import { convertToApi, convertFromApi, safeEnumValue } from '@/utils/typeTransformers';
+import { ensureNumberId } from '@/utils/typeGuards';
 
 /**
  * Convert equipment from database format to application format
@@ -17,7 +18,7 @@ import { convertToApi, convertFromApi, safeEnumValue } from '@/utils/typeTransfo
  */
 export function mapEquipmentFromDB(dbEquipment: EquipmentDB): Equipment {
   return {
-    id: dbEquipment.id,
+    id: ensureNumberId(dbEquipment.id),
     name: dbEquipment.name,
     type: dbEquipment.type || '',
     model: dbEquipment.model,
@@ -44,7 +45,7 @@ export function mapEquipmentFromDB(dbEquipment: EquipmentDB): Equipment {
  */
 export function mapEquipmentToDB(equipment: Partial<Equipment>): Partial<EquipmentDB> {
   return {
-    id: equipment.id,
+    id: equipment.id ? ensureNumberId(equipment.id) : undefined,
     name: equipment.name,
     type: equipment.type,
     model: equipment.model,

@@ -1,3 +1,4 @@
+
 /**
  * Assure qu'un ID est converti en nombre
  * 
@@ -46,6 +47,9 @@ export function validateEquipmentStatus(status?: string | null): 'operational' |
   
   return status as 'operational' | 'maintenance' | 'repair' | 'inactive';
 }
+
+// Import the Equipment type from the models file
+import { Equipment } from '@/types/models/equipment';
 
 /**
  * Type guard for Equipment interface

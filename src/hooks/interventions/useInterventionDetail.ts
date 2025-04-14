@@ -17,7 +17,7 @@ export function useInterventionDetail(interventionId: string | number | undefine
     error
   } = useQuery({
     queryKey: ['interventions', interventionId],
-    queryFn: () => interventionId ? interventionService.getInterventionById(interventionId) : null,
+    queryFn: () => interventionId ? interventionService.getInterventionById(ensureNumberId(interventionId)) : null,
     enabled: !!interventionId
   });
   

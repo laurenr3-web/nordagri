@@ -38,9 +38,19 @@ export interface Equipment extends BaseEntity, TimestampFields, EquipmentBase {
 /**
  * Equipment form values interface
  */
-export interface EquipmentFormValues extends Omit<EquipmentBase, 'status'> {
+export interface EquipmentFormValues {
+  name: string;
+  type: string;
+  manufacturer?: string;
+  model?: string;
+  year?: string;
+  serialNumber?: string;
   status: EquipmentStatus;
-  purchaseDate?: Date;
+  location?: string;
+  category?: string;
+  purchaseDate?: Date | null;
+  image?: string | null;
+  notes?: string;
 }
 
 /**
