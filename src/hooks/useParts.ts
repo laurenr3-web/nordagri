@@ -7,6 +7,7 @@ import { usePartsDialogs } from './parts/usePartsDialogs';
 import { usePartsCategories } from './parts/usePartsCategories';
 import { usePartsActions } from './parts/usePartsActions';
 import { useCreatePart, useUpdatePart, useDeletePart } from './usePartsMutations';
+import { usePartsRealtime } from './parts/usePartsRealtime';
 
 // Main hook that composes all parts-related functionality
 export const useParts = () => {
@@ -27,6 +28,9 @@ export const useParts = () => {
   const updatePartMutation = useUpdatePart();
   const deletePartMutation = useDeletePart();
   
+  // Setup realtime updates
+  const realtimeStatus = usePartsRealtime();
+  
   // Apply filters to get filtered parts
   const filteredParts = partsFilter.filterParts(data);
   
@@ -42,12 +46,23 @@ export const useParts = () => {
   const handleDeletePart = (partId: number | string) => {
     return deletePartMutation.mutate(partId);
   };
+
+  // Log current state for debugging
+  console.log('useParts hook state:', {
+    partsCount: data.length,
+    filteredPartsCount: filteredParts.length,
+    isLoading: partsQuery.isLoading,
+    isError: partsQuery.isError,
+    error: partsQuery.error
+  });
   
   return {
     // Parts data
     parts: data,
     isLoading: partsQuery.isLoading,
     isError: partsQuery.isError,
+    error: partsQuery.error,
+    refetch: partsQuery.refetch,
     
     // UI state
     currentView: partsFilter.currentView,
@@ -92,6 +107,9 @@ export const useParts = () => {
     handleDeletePart,
     handleOrderSubmit: partsActions.handleOrderSubmit,
     openPartDetails: partsActions.openPartDetails,
-    openOrderDialog: partsActions.openOrderDialog
+    openOrderDialog: partsActions.openOrderDialog,
+    
+    // Realtime status
+    realtimeStatus
   };
 };

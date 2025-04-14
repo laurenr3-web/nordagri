@@ -27,6 +27,7 @@ export async function getParts(): Promise<Part[]> {
   }
   
   console.log(`Found ${data?.length || 0} parts for user ${userId}`);
+  console.log('Raw parts data:', data);
   
   // Map the database fields to our Part interface
   return (data || []).map(part => ({

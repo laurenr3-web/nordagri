@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { useParts } from '@/hooks/useParts';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
@@ -7,23 +7,49 @@ import PartsContainer from '@/components/parts/PartsContainer';
 import { useToast } from '@/hooks/use-toast';
 import { checkAuthStatus } from '@/utils/authUtils';
 import { PartsView } from '@/hooks/parts/usePartsFilter';
+import { supabase } from '@/integrations/supabase/client';
 
 const Parts = () => {
   const { toast } = useToast();
   // Initialize without arguments
   const partsHookData = useParts();
+  const [isLoading, setIsLoading] = useState(true);
   
   // Check authentication status on page load
   useEffect(() => {
     const checkAuth = async () => {
-      const status = await checkAuthStatus();
-      
-      if (!status.isAuthenticated) {
-        toast({
-          title: "Connexion requise",
-          description: "Vous devez être connecté pour gérer vos pièces",
-          variant: "destructive",
-        });
+      try {
+        const status = await checkAuthStatus();
+        
+        if (!status.isAuthenticated) {
+          toast({
+            title: "Connexion requise",
+            description: "Vous devez être connecté pour gérer vos pièces",
+            variant: "destructive",
+          });
+        }
+        
+        // Vérification directe des données dans Supabase
+        const { data: sessionData } = await supabase.auth.getSession();
+        const userId = sessionData.session?.user.id;
+        
+        if (userId) {
+          const { data, error } = await supabase
+            .from('parts_inventory')
+            .select('*')
+            .eq('owner_id', userId);
+            
+          console.log('🔍 Vérification directe des pièces dans Supabase:', {
+            userId,
+            piècesTrouvées: data?.length || 0,
+            données: data,
+            erreur: error
+          });
+        }
+      } catch (err) {
+        console.error('Erreur lors de la vérification de l\'authentification:', err);
+      } finally {
+        setIsLoading(false);
       }
     };
     
@@ -55,6 +81,7 @@ const Parts = () => {
           <PartsContainer 
             {...partsHookData}
             setCurrentView={setCurrentView}
+            refetch={partsHookData.isError ? () => partsHookData.refetch() : undefined}
           />
         </div>
       </div>
