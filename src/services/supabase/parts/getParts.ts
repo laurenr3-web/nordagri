@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Part } from '@/types/Part';
 
 export async function getParts(): Promise<Part[]> {
-  console.log('🔍 Fetching all parts from Supabase...');
+  console.log('🔍 Fetching all parts from Supabase parts_inventory table...');
   
   // Get the current user ID from the session
   const { data: sessionData } = await supabase.auth.getSession();
@@ -15,7 +15,7 @@ export async function getParts(): Promise<Part[]> {
     return [];
   }
   
-  // Query only parts owned by the current user
+  // Query only parts owned by the current user from parts_inventory table
   const { data, error } = await supabase
     .from('parts_inventory')
     .select('*')
@@ -28,7 +28,7 @@ export async function getParts(): Promise<Part[]> {
   
   console.log(`Found ${data?.length || 0} parts for user ${userId}`);
   
-  // Convert database records to Part objects
+  // Map the database fields to our Part interface
   return (data || []).map(part => ({
     id: part.id,
     name: part.name,
