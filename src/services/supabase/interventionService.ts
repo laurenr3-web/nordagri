@@ -66,6 +66,7 @@ export const interventionService = {
       // Ensure required fields are present with default values and remove id if present
       // This fixes the 'id' incompatible with 'never' type error
       const { id, ...insertData } = {
+        title: dbIntervention.title || 'Untitled Intervention', // Ensure title is always set
         date: dbIntervention.date || new Date().toISOString(),
         equipment: dbIntervention.equipment || 'Unknown',
         equipment_id: dbIntervention.equipment_id || 0,
