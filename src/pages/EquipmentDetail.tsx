@@ -9,6 +9,7 @@ import MaintenanceNotificationsPopover from '@/components/maintenance/notificati
 import { withRetry } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Equipment } from '@/types/models/equipment';
+import { EquipmentItem } from '@/components/equipment/hooks/useEquipmentFilters';
 
 const EquipmentDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -25,14 +26,16 @@ const EquipmentDetail = () => {
   
   console.log("EquipmentDetail rendering with equipment:", equipment?.id, "loading:", loading);
   
-  const handleEquipmentUpdateWithRetry = async (updatedData: Equipment): Promise<void> => {
+  // Create a type-compatible wrapper for the equipment update handler
+  const handleEquipmentUpdateWithRetry = async (updatedData: EquipmentItem): Promise<void> => {
     try {
       const toastId = 'equipment-update';
       toast.loading('Mise à jour en cours...', { id: toastId });
       
       await withRetry(async () => {
         try {
-          await handleEquipmentUpdate(updatedData);
+          // Cast to Equipment type as needed by the handler
+          await handleEquipmentUpdate(updatedData as unknown as Equipment);
           toast.success('Équipement mis à jour avec succès', { id: toastId });
         } catch (error: any) {
           toast.error('Erreur lors de la mise à jour', { 

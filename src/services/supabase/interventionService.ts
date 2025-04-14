@@ -63,19 +63,21 @@ export const interventionService = {
       // Convert client data to DB format
       const dbIntervention = clientFormToDbIntervention(intervention);
       
-      // Ensure required fields are present with default values
-      const requiredFields = {
+      // Ensure required fields are present with default values and remove id if present
+      // This fixes the 'id' incompatible with 'never' type error
+      const { id, ...insertData } = {
         date: dbIntervention.date || new Date().toISOString(),
         equipment: dbIntervention.equipment || 'Unknown',
-        equipment_id: dbIntervention.equipment_id || 0, // Ensure equipment_id is always set
+        equipment_id: dbIntervention.equipment_id || 0,
         location: dbIntervention.location || 'Unknown',
         status: dbIntervention.status || 'scheduled',
-        technician: dbIntervention.technician || ''
+        technician: dbIntervention.technician || '',
+        ...dbIntervention
       };
       
       const { data, error } = await supabase
         .from('interventions')
-        .insert({ ...dbIntervention, ...requiredFields })
+        .insert(insertData)
         .select()
         .single();
 
