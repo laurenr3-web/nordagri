@@ -1,3 +1,4 @@
+
 export type TimeEntryTaskType = 'maintenance' | 'repair' | 'inspection' | 'installation' | 'other';
 export type TimeEntryStatus = 'active' | 'completed' | 'paused' | 'disputed';
 

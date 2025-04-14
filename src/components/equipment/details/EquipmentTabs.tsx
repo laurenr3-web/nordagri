@@ -1,16 +1,39 @@
 
+// Utiliser le fichier complet car il est probablement petit et nous avons besoin d'ajouter un onglet
 import React from 'react';
-import { EquipmentItem } from '../hooks/useEquipmentFilters';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import EquipmentOverview from './EquipmentOverview';
+import EquipmentMaintenanceStatus from './EquipmentMaintenanceStatus';
+import EquipmentParts from './EquipmentParts';
+import EquipmentTimeTracking from '@/components/equipment/tabs/EquipmentTimeTracking';
 
 interface EquipmentTabsProps {
-  equipment: EquipmentItem;
+  equipment: any;
 }
 
-// Note: Ce composant est simplifié pour ne montrer que l'aperçu, 
-// sans les onglets d'historique et de performance
 const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment }) => {
-  return <EquipmentOverview equipment={equipment} />;
+  return (
+    <Tabs defaultValue="overview">
+      <TabsList className="grid w-full grid-cols-4">
+        <TabsTrigger value="overview">Aperçu</TabsTrigger>
+        <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
+        <TabsTrigger value="parts">Pièces</TabsTrigger>
+        <TabsTrigger value="timeTracking">Suivi du temps</TabsTrigger>
+      </TabsList>
+      <TabsContent value="overview">
+        <EquipmentOverview equipment={equipment} />
+      </TabsContent>
+      <TabsContent value="maintenance">
+        <EquipmentMaintenanceStatus equipment={equipment} />
+      </TabsContent>
+      <TabsContent value="parts">
+        <EquipmentParts equipmentId={equipment.id} />
+      </TabsContent>
+      <TabsContent value="timeTracking">
+        <EquipmentTimeTracking equipment={equipment} />
+      </TabsContent>
+    </Tabs>
+  );
 };
 
 export default EquipmentTabs;

@@ -28,32 +28,17 @@ export function useTimeTracking() {
       
       const userId = sessionData.session.user.id;
       
-      // Utiliser la fonction de base de données pour récupérer l'entrée active en utilisant directement un appel SQL
-      const { data, error } = await supabase
-        .from('time_entries')
-        .select('*, equipment(name)')
-        .eq('user_id', userId)
-        .eq('status', 'active')
-        .is('end_time', null)
-        .order('start_time', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      // Récupérer l'entrée de temps active avec un join sur l'équipement
+      const { data, error } = await supabase.rpc(
+        'get_active_time_entry',
+        { p_user_id: userId }
+      );
         
       if (error) throw error;
       
-      if (data) {
+      if (data && data.length > 0) {
         // Transformer les données de l'API pour qu'elles correspondent à notre interface
-        const activeEntry: ActiveTimeEntry = {
-          id: data.id,
-          user_id: data.user_id,
-          equipment_id: data.equipment_id,
-          intervention_id: data.intervention_id,
-          task_type: data.task_type as TimeEntryTaskType,
-          start_time: data.start_time,
-          status: data.status as TimeEntryStatus,
-          equipment_name: data.equipment?.name
-        };
-        setActiveTimeEntry(activeEntry);
+        setActiveTimeEntry(data[0] as ActiveTimeEntry);
       } else {
         setActiveTimeEntry(null);
       }
@@ -93,7 +78,7 @@ export function useTimeTracking() {
         locationData = `POINT(${params.location.lng} ${params.location.lat})`;
       }
       
-      // Créer une nouvelle entrée de temps
+      // Insérer l'entrée dans la table time_entries
       const { data, error } = await supabase
         .from('time_entries')
         .insert({
@@ -106,31 +91,54 @@ export function useTimeTracking() {
           status: 'active' as TimeEntryStatus,
           start_time: new Date().toISOString()
         })
-        .select('*, equipment(name)')
+        .select()
         .single();
       
       if (error) throw error;
       
-      // Mise à jour de l'état avec les données complètes
-      if (data) {
-        const newEntry: ActiveTimeEntry = {
+      // Récupérer les informations complètes avec le nom de l'équipement
+      if (data && params.equipment_id) {
+        const { data: equipmentData } = await supabase
+          .from('equipment')
+          .select('name')
+          .eq('id', params.equipment_id)
+          .single();
+          
+        // Récupérer le titre de l'intervention si fourni
+        let interventionTitle = undefined;
+        if (params.intervention_id) {
+          const { data: interventionData } = await supabase
+            .from('Interventions')
+            .select('title')
+            .eq('id', params.intervention_id)
+            .single();
+            
+          if (interventionData) {
+            interventionTitle = interventionData.title;
+          }
+        }
+        
+        // Construire l'entrée active complète
+        const newActiveEntry: ActiveTimeEntry = {
           id: data.id,
           user_id: data.user_id,
           equipment_id: data.equipment_id,
           intervention_id: data.intervention_id,
-          task_type: data.task_type as TimeEntryTaskType,
+          task_type: data.task_type,
           start_time: data.start_time,
-          status: data.status as TimeEntryStatus,
-          equipment_name: data.equipment?.name
+          status: data.status,
+          equipment_name: equipmentData?.name,
+          intervention_title: interventionTitle
         };
-        setActiveTimeEntry(newEntry);
+        
+        setActiveTimeEntry(newActiveEntry);
       }
       
       toast.success('Suivi de temps démarré', {
         description: 'L\'horloge tourne maintenant.'
       });
       
-      return data as unknown as TimeEntry;
+      return data as TimeEntry;
     } catch (err) {
       console.error("Erreur lors du démarrage du suivi de temps:", err);
       toast.error('Erreur', {
