@@ -19,7 +19,7 @@ export const getStatusBadgeClass = (status: string) => {
       return "bg-harvest-100 text-harvest-800 flex items-center gap-1";
     case 'completed':
       return "bg-agri-100 text-agri-800 flex items-center gap-1";
-    case 'canceled':
+    case 'cancelled':
       return "bg-red-100 text-red-800 flex items-center gap-1";
     default:
       return "bg-secondary text-muted-foreground";

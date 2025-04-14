@@ -33,7 +33,7 @@ const InterventionsSidebar: React.FC<InterventionsSidebarProps> = ({
   const stats = {
     total: interventions.length,
     scheduled: interventions.filter(i => i.status === 'scheduled').length,
-    inProgress: interventions.filter(i => i.status === 'in_progress').length,
+    inProgress: interventions.filter(i => i.status === 'in-progress').length,
     completed: interventions.filter(i => i.status === 'completed').length,
     canceled: interventions.filter(i => i.status === 'cancelled').length
   };
