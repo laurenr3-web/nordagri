@@ -11,6 +11,7 @@ import { validateEquipmentStatus } from '@/utils/typeGuards';
 export const useEquipmentData = (user: any) => {
   const [loading, setLoading] = useState(true);
   const [equipmentData, setEquipmentData] = useState<EquipmentItem[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchEquipment();
@@ -78,6 +79,7 @@ export const useEquipmentData = (user: any) => {
    */
   const fetchEquipment = async () => {
     setLoading(true);
+    setError(null);
     try {
       // Fetch equipment data from Supabase
       const { data, error } = await supabase
@@ -112,8 +114,10 @@ export const useEquipmentData = (user: any) => {
       }));
       
       setEquipmentData(mappedData);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching equipment:", error);
+      setError(error.message || "Failed to fetch equipment data");
+      
       toast({
         title: "Error",
         description: "Failed to fetch equipment data. Using sample data for demonstration.",
@@ -128,7 +132,8 @@ export const useEquipmentData = (user: any) => {
   return {
     loading,
     equipmentData,
-    fetchEquipment
+    error,
+    refresh: fetchEquipment
   };
 };
 

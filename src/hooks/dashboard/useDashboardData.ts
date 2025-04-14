@@ -109,7 +109,11 @@ export const useDashboardData = () => {
     if (refreshInterventions) refreshInterventions();
     if (partsResult.refetch) partsResult.refetch();
     
-    toast.info("Actualisation des données en cours...");
+    // Use standard toast without info method
+    toast({
+      title: "Actualisation",
+      description: "Actualisation des données en cours...",
+    });
     
     // Set loading to false after a short delay to ensure all data has been refreshed
     setTimeout(() => {
