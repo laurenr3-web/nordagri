@@ -1,149 +1,84 @@
-
-import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/components/theme-provider';
-import { Toaster } from '@/components/ui/sonner';
-import { RealtimeCacheProvider } from '@/providers/RealtimeCacheProvider';
+import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/providers/AuthProvider';
-import { LayoutProvider } from '@/ui/layouts/MainLayoutContext';
-import MainLayout from '@/ui/layouts/MainLayout';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { Toaster as SonnerToaster } from 'sonner';
+import { SupabaseErrorHandler } from '@/components/ui/supabase-error-handler';
 
-import './App.css';
+// Layouts
+import MainLayout from '@/layouts/MainLayout';
+import AuthLayout from '@/layouts/AuthLayout';
 
-// Créer un client Query
-const queryClient = new QueryClient();
+// Pages
+import Dashboard from '@/pages/Dashboard';
+import Equipment from '@/pages/Equipment';
+import EquipmentDetail from '@/pages/EquipmentDetail';
+import Parts from '@/pages/Parts';
+import Maintenance from '@/pages/Maintenance';
+import Interventions from '@/pages/Interventions';
+import InterventionDetail from '@/pages/InterventionDetail';
+import Settings from '@/pages/Settings';
+import Auth from '@/pages/Auth';
+import NotFound from '@/pages/NotFound';
 
-// Lazy loading des pages
-const Index = lazy(() => import('@/pages/Index'));
-const Equipment = lazy(() => import('@/pages/Equipment'));
-const EquipmentDetail = lazy(() => import('@/pages/EquipmentDetail'));
-const Maintenance = lazy(() => import('@/pages/Maintenance'));
-const Parts = lazy(() => import('@/pages/Parts'));
-const Interventions = lazy(() => import('@/pages/Interventions'));
-const Dashboard = lazy(() => import('@/pages/Dashboard'));
-const Settings = lazy(() => import('@/pages/Settings'));
-const NotFound = lazy(() => import('@/pages/NotFound'));
-const Auth = lazy(() => import('@/pages/Auth'));
-const ScanRedirect = lazy(() => import('@/pages/ScanRedirect'));
-const Search = lazy(() => import('@/pages/Search'));
-const Profile = lazy(() => import('@/pages/Profile'));
-const Home = lazy(() => import('@/pages/Home'));
-
-// Préchargement des pages fréquemment visitées
-const preloadHomePage = () => import('@/pages/Home');
-const preloadEquipmentPage = () => import('@/pages/Equipment');
-const preloadDashboardPage = () => import('@/pages/Dashboard');
-
-// Composant de préchargement pour les liens fréquemment utilisés
-const PreloadLink = ({ children }) => {
-  React.useEffect(() => {
-    // Préchargement après le rendu initial
-    const timer = setTimeout(() => {
-      preloadHomePage();
-      preloadEquipmentPage();
-      preloadDashboardPage();
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  return <>{children}</>;
-};
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
 function App() {
+  // Log app version on startup
+  useEffect(() => {
+    console.log('App version:', import.meta.env.VITE_APP_VERSION || 'development');
+  }, []);
+
   return (
-    <ThemeProvider defaultTheme="light" storageKey="agri-erp-theme">
-      <QueryClientProvider client={queryClient}>
-        <RealtimeCacheProvider>
-          <Router>
-            <AuthProvider>
-              <PreloadLink>
-                <LayoutProvider>
-                  <Routes>
-                    <Route element={<MainLayout />}>
-                      <Route path="/" element={
-                        <Suspense fallback={<LoadingSpinner message="Chargement de la page d'accueil..." />}>
-                          <Index />
-                        </Suspense>
-                      } />
-                      <Route path="/home" element={
-                        <Suspense fallback={<LoadingSpinner message="Chargement de la page d'accueil..." />}>
-                          <Home />
-                        </Suspense>
-                      } />
-                      <Route path="/auth" element={
-                        <Suspense fallback={<LoadingSpinner message="Préparation de l'authentification..." />}>
-                          <Auth />
-                        </Suspense>
-                      } />
-                      <Route path="/dashboard" element={
-                        <Suspense fallback={<LoadingSpinner message="Chargement du tableau de bord..." />}>
-                          <Dashboard />
-                        </Suspense>
-                      } />
-                      <Route path="/equipment" element={
-                        <Suspense fallback={<LoadingSpinner message="Chargement des équipements..." />}>
-                          <Equipment />
-                        </Suspense>
-                      } />
-                      <Route path="/equipment/:id" element={
-                        <Suspense fallback={<LoadingSpinner message="Chargement des détails..." />}>
-                          <EquipmentDetail />
-                        </Suspense>
-                      } />
-                      <Route path="/maintenance" element={
-                        <Suspense fallback={<LoadingSpinner message="Chargement de la maintenance..." />}>
-                          <Maintenance />
-                        </Suspense>
-                      } />
-                      <Route path="/parts" element={
-                        <Suspense fallback={<LoadingSpinner message="Chargement des pièces..." />}>
-                          <Parts />
-                        </Suspense>
-                      } />
-                      <Route path="/interventions" element={
-                        <Suspense fallback={<LoadingSpinner message="Chargement des interventions..." />}>
-                          <Interventions />
-                        </Suspense>
-                      } />
-                      <Route path="/settings" element={
-                        <Suspense fallback={<LoadingSpinner message="Chargement des paramètres..." />}>
-                          <Settings />
-                        </Suspense>
-                      } />
-                      <Route path="/profile" element={
-                        <Suspense fallback={<LoadingSpinner message="Chargement du profil..." />}>
-                          <Profile />
-                        </Suspense>
-                      } />
-                      <Route path="/search" element={
-                        <Suspense fallback={<LoadingSpinner message="Préparation de la recherche..." />}>
-                          <Search />
-                        </Suspense>
-                      } />
-                      {/* Route pour QR code scanning */}
-                      <Route path="/scan/:id" element={
-                        <Suspense fallback={<LoadingSpinner message="Analyse du QR code..." />}>
-                          <ScanRedirect />
-                        </Suspense>
-                      } />
-                      <Route path="*" element={
-                        <Suspense fallback={<LoadingSpinner message="Page non trouvée..." />}>
-                          <NotFound />
-                        </Suspense>
-                      } />
-                    </Route>
-                  </Routes>
-                  
-                  <Toaster />
-                </LayoutProvider>
-              </PreloadLink>
-            </AuthProvider>
-          </Router>
-        </RealtimeCacheProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
+    <SupabaseErrorHandler>
+      <BrowserRouter>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <ThemeProvider defaultTheme="system" storageKey="nordagri-theme">
+              <Toaster />
+              <SonnerToaster position="top-right" closeButton richColors />
+              <Routes>
+                {/* Auth routes */}
+                <Route path="/auth" element={<AuthLayout />}>
+                  <Route index element={<Auth />} />
+                </Route>
+                
+                {/* Protected routes */}
+                <Route path="/" element={
+                  <ProtectedRoute>
+                    <MainLayout />
+                  </ProtectedRoute>
+                }>
+                  <Route index element={<Dashboard />} />
+                  <Route path="equipment" element={<Equipment />} />
+                  <Route path="equipment/:id" element={<EquipmentDetail />} />
+                  <Route path="parts" element={<Parts />} />
+                  <Route path="maintenance" element={<Maintenance />} />
+                  <Route path="interventions" element={<Interventions />} />
+                  <Route path="interventions/:id" element={<InterventionDetail />} />
+                  <Route path="settings" element={<Settings />} />
+                </Route>
+                
+                {/* 404 route */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </ThemeProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </BrowserRouter>
+    </SupabaseErrorHandler>
   );
 }
 

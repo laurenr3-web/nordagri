@@ -6,12 +6,50 @@ import EquipmentDetailLoading from '@/components/equipment/detail/EquipmentDetai
 import EquipmentDetailError from '@/components/equipment/detail/EquipmentDetailError';
 import EquipmentDetailContent from '@/components/equipment/detail/EquipmentDetailContent';
 import MaintenanceNotificationsPopover from '@/components/maintenance/notifications/MaintenanceNotificationsPopover';
+import { withRetry } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const EquipmentDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const { equipment, loading, error, handleEquipmentUpdate } = useEquipmentDetail(id);
+  const { 
+    equipment, 
+    loading, 
+    error, 
+    handleEquipmentUpdate,
+    // Nouvelles propriétés
+    maintenanceTasks,
+    maintenancePlans,
+    equipmentParts
+  } = useEquipmentDetail(id);
   
   console.log("EquipmentDetail rendering with equipment:", equipment?.id, "loading:", loading);
+  
+  const handleEquipmentUpdateWithRetry = async (updatedData: any) => {
+    try {
+      return await withRetry(async () => {
+        const toastId = 'equipment-update';
+        toast.loading('Mise à jour en cours...', { id: toastId });
+        
+        try {
+          const result = await handleEquipmentUpdate(updatedData);
+          toast.success('Équipement mis à jour avec succès', { id: toastId });
+          return result;
+        } catch (error: any) {
+          toast.error('Erreur lors de la mise à jour', { 
+            id: toastId,
+            description: error.message || 'Une erreur est survenue'
+          });
+          throw error;
+        }
+      });
+    } catch (error) {
+      console.error('Failed to update equipment after retries:', error);
+      toast.error('Échec de la mise à jour après plusieurs tentatives', {
+        description: 'Veuillez vérifier votre connexion et réessayer'
+      });
+      throw error;
+    }
+  };
   
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -35,9 +73,10 @@ const EquipmentDetail = () => {
           {!loading && !error && equipment && (
             <EquipmentDetailContent 
               equipment={equipment}
-              onUpdate={async (updatedData) => {
-                await handleEquipmentUpdate(updatedData);
-              }}
+              onUpdate={handleEquipmentUpdateWithRetry}
+              maintenanceTasks={maintenanceTasks}
+              maintenancePlans={maintenancePlans}
+              parts={equipmentParts}
             />
           )}
         </div>

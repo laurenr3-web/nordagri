@@ -17,16 +17,25 @@ const Parts = () => {
   // Check authentication status on page load
   useEffect(() => {
     const checkAuth = async () => {
-      const status = await checkAuthStatus();
-      
-      if (!status.isAuthenticated) {
+      try {
+        const status = await checkAuthStatus();
+        
+        if (!status.isAuthenticated) {
+          uiToast({
+            title: "Connexion requise",
+            description: "Vous devez être connecté pour gérer vos pièces",
+            variant: "destructive",
+          });
+        } else {
+          console.log("Utilisateur authentifié:", status.session?.user?.id);
+        }
+      } catch (error) {
+        console.error("Erreur lors de la vérification de l'authentification:", error);
         uiToast({
-          title: "Connexion requise",
-          description: "Vous devez être connecté pour gérer vos pièces",
+          title: "Erreur d'authentification",
+          description: "Impossible de vérifier votre statut de connexion",
           variant: "destructive",
         });
-      } else {
-        console.log("Utilisateur authentifié:", status.session?.user?.id);
       }
     };
     
