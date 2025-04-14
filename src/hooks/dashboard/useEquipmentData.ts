@@ -1,29 +1,16 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from "@/hooks/use-toast";
-import { Equipment, EquipmentStatus } from '@/types/models/equipment';
+import { EquipmentItem } from './types/equipmentTypes';
 import { supabase } from '@/integrations/supabase/client';
 import { validateEquipmentStatus } from '@/utils/typeGuards';
-
-interface DashboardEquipmentItem extends Equipment {
-  usage: {
-    hours: number;
-    target: number;
-  };
-  nextService: {
-    type: string;
-    due: string;
-  };
-  nextMaintenance: string;
-}
 
 /**
  * Hook for fetching and managing equipment data
  */
 export const useEquipmentData = (user: any) => {
   const [loading, setLoading] = useState(true);
-  const [equipmentData, setEquipmentData] = useState<DashboardEquipmentItem[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [equipmentData, setEquipmentData] = useState<EquipmentItem[]>([]);
 
   useEffect(() => {
     fetchEquipment();
@@ -33,7 +20,7 @@ export const useEquipmentData = (user: any) => {
    * Set mock data for demonstration purposes
    */
   const setMockData = () => {
-    const mockData: DashboardEquipmentItem[] = [
+    setEquipmentData([
       {
         id: 1,
         name: 'John Deere 8R 410',
@@ -82,8 +69,7 @@ export const useEquipmentData = (user: any) => {
         },
         nextMaintenance: 'Overdue'
       }
-    ];
-    setEquipmentData(mockData);
+    ]);
     setLoading(false);
   };
 
@@ -92,7 +78,6 @@ export const useEquipmentData = (user: any) => {
    */
   const fetchEquipment = async () => {
     setLoading(true);
-    setError(null);
     try {
       // Fetch equipment data from Supabase
       const { data, error } = await supabase
@@ -103,38 +88,32 @@ export const useEquipmentData = (user: any) => {
       if (error) throw error;
 
       // Filter out any invalid or deleted equipment entries
-      const validData = data?.filter(item => 
+      // We don't have a deleted_at column, so just filter out items without essential data
+      const validData = data.filter(item => 
         item && item.id && item.name
-      ) || [];
+      );
 
-      if (validData.length > 0) {
-        // Map the data to the expected format
-        const mappedData: DashboardEquipmentItem[] = validData.map(item => ({
-          id: item.id,
-          name: item.name,
-          type: item.type || 'Unknown',
-          image: item.image || 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=500&auto=format&fit=crop',
-          status: validateEquipmentStatus(item.status),
-          usage: {
-            hours: 342,
-            target: 500
-          },
-          nextService: {
-            type: 'Maintenance',
-            due: 'In 2 weeks'
-          },
-          nextMaintenance: 'In 2 weeks'
-        }));
-        
-        setEquipmentData(mappedData);
-      } else {
-        console.log("No valid equipment data found, using demo data");
-        setMockData();
-      }
-    } catch (error: any) {
-      console.error("Error fetching equipment:", error);
-      setError(error.message || "Failed to fetch equipment data");
+      // Map the data to the expected format
+      const mappedData: EquipmentItem[] = validData.map(item => ({
+        id: item.id,
+        name: item.name,
+        type: item.type || 'Unknown',
+        image: item.image || 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=500&auto=format&fit=crop',
+        status: validateEquipmentStatus(item.status),
+        usage: {
+          hours: 342, // Placeholder until we have real usage data
+          target: 500
+        },
+        nextService: {
+          type: 'Maintenance',
+          due: 'In 2 weeks' // Placeholder
+        },
+        nextMaintenance: 'In 2 weeks' // Placeholder
+      }));
       
+      setEquipmentData(mappedData);
+    } catch (error) {
+      console.error("Error fetching equipment:", error);
       toast({
         title: "Error",
         description: "Failed to fetch equipment data. Using sample data for demonstration.",
@@ -149,10 +128,9 @@ export const useEquipmentData = (user: any) => {
   return {
     loading,
     equipmentData,
-    error,
-    refresh: fetchEquipment
+    fetchEquipment
   };
 };
 
 // Re-export types for consumers
-export type { DashboardEquipmentItem };
+export type { EquipmentItem } from './types/equipmentTypes';

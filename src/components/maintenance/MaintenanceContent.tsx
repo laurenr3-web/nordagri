@@ -1,17 +1,16 @@
 
-import React from 'react';
-import { Card } from '@/components/ui/card';
+import React, { useEffect } from 'react';
+import { format, isToday, isPast, isFuture } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MaintenanceTable } from '@/components/maintenance/MaintenanceTable';
 import { MaintenanceTask, MaintenanceStatus, MaintenancePriority } from '@/hooks/maintenance/maintenanceSlice';
 import { MaintenanceFilters } from '@/components/maintenance/MaintenanceFilters';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { useFilter } from '@/hooks/maintenance/useFilter';
 import CalendarView from '@/components/maintenance/CalendarView';
 import { useSearchParams } from 'react-router-dom';
-import { BlurContainer } from '@/components/ui/blur-container';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useFilter } from '@/hooks/maintenance/useFilter';
-import { useHighlightedTask } from '@/hooks/maintenance/useHighlightedTask';
-import MaintenanceViewContent from '@/components/maintenance/MaintenanceViewContent';
-import { categorizeMaintenanceTasks, highlightPulseStyle } from '@/components/maintenance/utils/MaintenanceViewUtils';
+import { toast } from 'sonner';
 
 interface MaintenanceContentProps {
   tasks: MaintenanceTask[];
@@ -38,7 +37,6 @@ const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
 }) => {
   const [searchParams] = useSearchParams();
   const highlightedTaskId = searchParams.get('highlight');
-  const taskId = searchParams.get('taskId');
   
   const { 
     filteredTasks, 
@@ -49,19 +47,49 @@ const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
     filterOptions 
   } = useFilter(tasks);
   
-  // Gérer la tâche mise en évidence depuis les notifications ou un lien direct
-  const { highlightedTaskId: highlightedId } = useHighlightedTask(
-    tasks, 
-    highlightedTaskId, 
-    taskId, 
-    setCurrentView
+  // Handle highlighted task from notifications
+  useEffect(() => {
+    if (highlightedTaskId) {
+      const taskId = parseInt(highlightedTaskId);
+      const task = tasks.find(t => t.id === taskId);
+      
+      if (task) {
+        // Set the appropriate view based on task status and date
+        if (task.status === 'completed') {
+          setCurrentView('completed');
+        } else if (isPast(task.dueDate) && !isToday(task.dueDate)) {
+          setCurrentView('overdue');
+        } else if (isToday(task.dueDate)) {
+          setCurrentView('today');
+        } else if (isFuture(task.dueDate)) {
+          setCurrentView('upcoming');
+        }
+        
+        // Notify the user that the task has been found
+        toast.info(`Tâche sélectionnée : ${task.title}`, {
+          description: `Pour l'équipement : ${task.equipment}`,
+        });
+      }
+    }
+  }, [highlightedTaskId, tasks, setCurrentView]);
+  
+  // Organizing tasks into categories
+  const upcomingTasks = filteredTasks.filter(task => 
+    task.status !== 'completed' && isFuture(task.dueDate)
   );
   
-  // Catégoriser les tâches
-  const { upcomingTasks, todayTasks, overdueTask, completedTasks } = 
-    categorizeMaintenanceTasks(filteredTasks);
+  const todayTasks = filteredTasks.filter(task => 
+    task.status !== 'completed' && isToday(task.dueDate)
+  );
   
-  // Obtenir les tâches actuelles en fonction de la vue
+  const overdueTask = filteredTasks.filter(task => 
+    task.status !== 'completed' && isPast(task.dueDate) && !isToday(task.dueDate)
+  );
+  
+  const completedTasks = filteredTasks.filter(task => 
+    task.status === 'completed'
+  );
+  
   const getCurrentTasks = () => {
     switch (currentView) {
       case 'today':
@@ -78,64 +106,56 @@ const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
     }
   };
   
-  const currentTasks = getCurrentTasks();
-  
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={currentView}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ duration: 0.3 }}
-      >
-        <MaintenanceFilters 
-          currentView={currentView}
-          setCurrentView={setCurrentView}
-          filterValue={filterValue}
-          setFilterValue={setFilterValue}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          filterOptions={filterOptions}
-          userName={userName}
-        />
-        
-        <div className="mt-6">
-          {currentView === 'calendar' ? (
-            <BlurContainer raised gradient className="overflow-hidden">
-              <div className="p-5">
-                <div className="flex items-center mb-4">
-                  <div>
-                    <h2 className="text-xl font-medium">Calendrier de maintenance</h2>
-                    <p className="text-sm text-muted-foreground">Vue mensuelle des tâches planifiées</p>
-                  </div>
-                </div>
-                <CalendarView 
-                  tasks={filteredTasks} 
-                  currentMonth={currentMonth}
-                  setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
-                  userName={userName}
-                />
-              </div>
-            </BlurContainer>
-          ) : (
-            <MaintenanceViewContent 
-              currentView={currentView}
-              tasks={currentTasks}
-              highlightedTaskId={highlightedId}
-              updateTaskStatus={updateTaskStatus}
-              updateTaskPriority={updateTaskPriority}
-              deleteTask={deleteTask}
-              userName={userName}
-              filterValue={filterValue}
-            />
-          )}
-        </div>
-
-        {/* Style pour l'effet de pulsation de surbrillance */}
-        <style dangerouslySetInnerHTML={{ __html: highlightPulseStyle }} />
-      </motion.div>
-    </AnimatePresence>
+    <>
+      <MaintenanceFilters 
+        currentView={currentView}
+        setCurrentView={setCurrentView}
+        filterValue={filterValue}
+        setFilterValue={setFilterValue}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        filterOptions={filterOptions}
+        userName={userName}
+      />
+      
+      <div className="mt-6">
+        {currentView === 'calendar' ? (
+          <CalendarView 
+            tasks={filteredTasks} 
+            currentMonth={currentMonth}
+            setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
+            userName={userName}
+          />
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <CalendarIcon className="mr-2 h-5 w-5" />
+                {currentView === 'today' ? 'Tâches du jour' : 
+                 currentView === 'overdue' ? 'Tâches en retard' :
+                 currentView === 'completed' ? 'Tâches terminées' : 'Tâches à venir'}
+              </CardTitle>
+              <CardDescription>
+                {currentView === 'today' ? `${format(new Date(), 'd MMMM yyyy', { locale: fr })}` :
+                 currentView === 'overdue' ? 'Tâches dont l\'échéance est dépassée' :
+                 currentView === 'completed' ? 'Historique des tâches terminées' : 'Tâches planifiées à venir'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <MaintenanceTable 
+                tasks={getCurrentTasks()}
+                updateTaskStatus={updateTaskStatus}
+                updateTaskPriority={updateTaskPriority}
+                deleteTask={deleteTask}
+                userName={userName}
+                highlightedTaskId={highlightedTaskId ? parseInt(highlightedTaskId) : undefined}
+              />
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </>
   );
 };
 

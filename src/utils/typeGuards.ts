@@ -36,33 +36,19 @@ export function isNumeric(value: unknown): boolean {
 }
 
 /**
- * Validate equipment status and return a proper EquipmentStatus type
+ * Valide le statut d'un équipement et retourne une valeur par défaut si invalide
+ * 
+ * @param status Le statut à valider
+ * @returns Le statut validé ou 'operational' par défaut
  */
-export function validateEquipmentStatus(status?: string | null): 'operational' | 'maintenance' | 'repair' | 'inactive' {
-  const validStatuses = ['operational', 'maintenance', 'repair', 'inactive'];
-  
-  if (!status || !validStatuses.includes(status)) {
+export function validateEquipmentStatus(status?: string): 'operational' | 'maintenance' | 'repair' | 'inactive' {
+  if (!status) {
     return 'operational';
   }
   
-  return status as 'operational' | 'maintenance' | 'repair' | 'inactive';
-}
-
-// Import the Equipment type from the models file
-import { Equipment } from '@/types/models/equipment';
-
-/**
- * Type guard for Equipment interface
- */
-export function isEquipment(value: unknown): value is Equipment {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    'id' in value &&
-    'name' in value &&
-    'type' in value &&
-    'status' in value &&
-    typeof (value as any).name === 'string' &&
-    typeof (value as any).type === 'string'
-  );
+  const validStatuses = ['operational', 'maintenance', 'repair', 'inactive'];
+  
+  return validStatuses.includes(status) 
+    ? status as 'operational' | 'maintenance' | 'repair' | 'inactive' 
+    : 'operational';
 }

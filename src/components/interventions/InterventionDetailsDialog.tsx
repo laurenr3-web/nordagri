@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Clock, CheckCircle2, X, MapPin, User, CalendarCheck, Wrench } from 'lucide-react';
-import { Intervention, InterventionStatus } from '@/types/Intervention';
+import { Intervention } from '@/types/Intervention';
 import { useInterventionDetail } from '@/hooks/interventions/useInterventionDetail';
 
 interface InterventionDetailsDialogProps {
@@ -73,15 +73,11 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
 
   // Helper function to format date
   const formatDate = (date: Date) => {
-    try {
-      return new Date(date).toLocaleDateString('fr-FR', {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric'
-      });
-    } catch (error) {
-      return 'Date invalide';
-    }
+    return new Date(date).toLocaleDateString('fr-FR', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
   };
   
   // Helper function for status badge
@@ -94,7 +90,7 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
             <span>Planifiée</span>
           </Badge>
         );
-      case 'in-progress': // Using hyphen
+      case 'in-progress':
         return (
           <Badge className="bg-harvest-100 text-harvest-800 flex items-center gap-1">
             <Clock size={12} />
@@ -108,7 +104,7 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
             <span>Terminée</span>
           </Badge>
         );
-      case 'cancelled': // Using 'cancelled' not 'canceled'
+      case 'canceled':
         return (
           <Badge variant="outline" className="bg-red-100 text-red-800 flex items-center gap-1">
             <X size={12} />
@@ -146,9 +142,9 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
     }
   };
 
-  const handleStatusChange = (status: InterventionStatus) => {
+  const handleStatusChange = (status: 'scheduled' | 'in-progress' | 'completed' | 'canceled') => {
     if (intervention) {
-      const updatedIntervention: Partial<Intervention> = {
+      const updatedIntervention = {
         ...intervention,
         status
       };
@@ -211,19 +207,17 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
                 <p className="font-medium">
                   {intervention.status === 'completed' && intervention.duration ? 
                     `${intervention.duration} hrs (Réelle)` : 
-                    `${intervention.scheduledDuration || 'N/A'} hrs (Planifiée)`
+                    `${intervention.scheduledDuration} hrs (Planifiée)`
                   }
                 </p>
               </div>
             </div>
           </div>
           
-          {intervention.description && (
-            <div className="mb-4">
-              <p className="text-sm text-muted-foreground mb-1">Description</p>
-              <p className="bg-secondary/50 p-3 rounded-md">{intervention.description}</p>
-            </div>
-          )}
+          <div className="mb-4">
+            <p className="text-sm text-muted-foreground mb-1">Description</p>
+            <p className="bg-secondary/50 p-3 rounded-md">{intervention.description}</p>
+          </div>
           
           {intervention.partsUsed && intervention.partsUsed.length > 0 && (
             <div className="mb-4">
@@ -247,18 +241,18 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
           )}
           
           {/* Status controls */}
-          {intervention.status !== 'completed' && intervention.status !== 'cancelled' && (
+          {intervention.status !== 'completed' && intervention.status !== 'canceled' && (
             <div className="grid grid-cols-1 mt-6">
               <div>
                 <p className="text-sm text-muted-foreground mb-2">Mettre à jour le statut</p>
                 <div className="flex flex-wrap gap-2">
-                  {intervention.status !== 'in-progress' && ( // Using hyphen
+                  {intervention.status !== 'in-progress' && (
                     <Button 
                       variant="outline" 
                       size="sm" 
                       className="gap-1"
                       onClick={() => {
-                        handleStatusChange('in-progress'); // Using hyphen
+                        handleStatusChange('in-progress');
                         if (onStartWork) onStartWork();
                       }}
                     >
@@ -281,7 +275,7 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
                     variant="outline" 
                     size="sm" 
                     className="gap-1"
-                    onClick={() => handleStatusChange('cancelled')} // Using 'cancelled' not 'canceled'
+                    onClick={() => handleStatusChange('canceled')}
                   >
                     <X size={14} />
                     <span>Annuler</span>

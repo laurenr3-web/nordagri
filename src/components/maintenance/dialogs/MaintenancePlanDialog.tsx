@@ -7,10 +7,9 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
+import MaintenancePlanForm from '../forms/MaintenancePlanForm';
 import { toast } from 'sonner';
-import { useMaintenancePlanner } from '@/hooks/maintenance/useMaintenancePlanner';
-import MaintenancePlanForm from '@/components/maintenance/forms/MaintenancePlanForm';
-import type { MaintenancePlanViewModel } from '@/hooks/maintenance/types/maintenancePlanTypes';
+import { useMaintenancePlanner, MaintenancePlan } from '@/hooks/maintenance/useMaintenancePlanner';
 
 interface MaintenancePlanDialogProps {
   isOpen: boolean;
@@ -26,41 +25,23 @@ export default function MaintenancePlanDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { createMaintenancePlan } = useMaintenancePlanner();
 
-  const handleSubmit = async (formData: any) => {
+  const handleSubmit = async (formData: Omit<MaintenancePlan, 'id' | 'active'>) => {
     try {
       setIsSubmitting(true);
       
-      // Verify that we have a valid equipment
+      // Vérifier que nous avons un équipement valide
       if (!equipment) {
         toast.error("Aucun équipement sélectionné");
         return;
       }
-
-      // Add the equipment ID and active status
-      const planData: Omit<MaintenancePlanViewModel, "id"> = {
-        title: formData.title,
-        description: formData.description,
-        equipmentId: equipment.id,
-        equipmentName: equipment.name,
-        frequency: formData.frequency,
-        interval: formData.interval,
-        unit: formData.unit,
-        nextDueDate: formData.nextDueDate,
-        lastPerformedDate: null,
-        type: formData.type,
-        engineHours: formData.engineHours ? parseFloat(formData.engineHours) : undefined,
-        priority: formData.priority,
-        active: true,
-        assignedTo: formData.assignedTo
-      };
       
-      // Create the maintenance plan
-      await createMaintenancePlan(planData);
+      // Créer le plan de maintenance
+      await createMaintenancePlan(formData);
       
-      // Close the dialog
+      // Fermer la boîte de dialogue
       onClose();
       
-      // Success notification
+      // Notification de succès
       toast.success("Plan de maintenance créé avec succès");
       
     } catch (error) {
@@ -83,8 +64,8 @@ export default function MaintenancePlanDialog({
         
         <MaintenancePlanForm
           onSubmit={handleSubmit}
-          isSubmitting={isSubmitting}
           equipment={equipment}
+          isSubmitting={isSubmitting}
         />
       </DialogContent>
     </Dialog>

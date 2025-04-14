@@ -1,101 +1,71 @@
-// Basic types for dashboard data
-export interface StatsData {
-  id: number;
-  title: string;
-  value: string;
-  change: string;
-  type: 'positive' | 'negative' | 'neutral';
-  icon?: any;
-}
 
-export interface EquipmentData {
-  id: number;
-  name: string;
-  type: string;
-  status: string;
-  image?: string;
-  usage_hours?: number;
-  usage_target?: number;
-  model?: string;
-}
+import React from 'react';
 
-export interface MaintenanceEvent {
-  id: number | string;
-  title: string;
-  description?: string;
-  due_date?: string;
-  status?: string;
-  priority?: string;
-  assigned_to?: string; // Standardize on snake_case for this property
-  equipment?: string;
-  equipment_id?: number;
-  notes?: string;
-  date: string | Date; // Make date required but allow both string and Date
-}
-
-export interface AlertItem {
-  id: number; 
-  title: string;
-  message?: string;
-  description?: string;
-  type: string;
-  date?: Date;
-  time?: string;
-  equipment?: string;
-  equipmentId?: number;
-  equipmentName?: string;
-  status?: string;
-  severity?: 'critical' | 'high' | 'medium' | 'low';
-  timestamp?: Date;
-}
-
-export interface Task {
-  id: number | string;
-  title: string;
-  description?: string;
-  notes?: string;
-  due_date?: string;
-  status?: string;
-  priority?: string;
-  assigned_to?: string;
-  equipment?: string;
-  equipment_id?: number;
-}
-
-// Derived types used by components
 export interface StatsCardData {
   title: string;
-  value: number | string;
-  icon: any;
-  change: number;
-  description?: string;
+  value: string | number;
+  change?: number;
+  status?: 'increase' | 'decrease' | 'neutral';
+  icon?: React.ReactNode;
+  iconBg?: string;
+  iconColor?: string;
 }
 
 export interface EquipmentItem {
   id: number;
   name: string;
   type: string;
-  status: string;
+  status: 'operational' | 'maintenance' | 'repair' | 'inactive';
   image?: string;
-  usageHours?: number;
-  usageTarget?: number;
-  nextMaintenance?: string;
-  maintenanceType?: string;
+  usage?: {
+    hours: number;
+    target: number;
+  };
+  nextService?: {
+    type: string;
+    due: string;
+  };
+  nextMaintenance?: string | null;
 }
 
-export interface CalendarEvent {
-  id: number | string;
+export interface MaintenanceEvent {
+  id: string | number;
   title: string;
   date: Date;
-  start: Date;
-  type: 'maintenance' | 'intervention' | 'task';
   equipment: string;
   status: string;
-  priority: string;
+  priority: 'low' | 'medium' | 'high';
+  assignedTo: string;
+  duration: number;
+}
+
+export interface AlertItem {
+  id: number;
+  title: string;
+  message: string;
+  severity: 'high' | 'medium' | 'low';
+  date: Date;
+  equipmentId: number;
+  equipmentName: string;
+  status: 'new' | 'acknowledged' | 'resolved';
+  type: string;
+  time: string;
+  equipment: string;
+}
+
+export interface UrgentIntervention {
+  id: number;
+  title: string;
+  equipment: string;
+  priority: 'high' | 'medium' | 'low';
+  date: Date;
+  status: string;
+  technician: string;
+  location: string;
 }
 
 export interface StockAlert {
-  id: number | string;
+  id: number;
   name: string;
   currentStock: number;
   reorderPoint: number;
@@ -103,24 +73,34 @@ export interface StockAlert {
   category: string;
 }
 
-export interface UrgentIntervention {
-  id: number | string;
-  title: string;
-  equipment: string;
-  priority: 'high' | 'medium' | 'low';
-  date?: Date;
-  status: string;
-  technician: string;
-  location: string;
-}
-
 export interface UpcomingTask {
-  id: number | string;
+  id: string | number;
   title: string;
   description: string;
-  equipment: string;
   dueDate: Date;
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  assignedTo: string;
   status: string;
+  priority: string;
+  assignedTo: string;
+}
+
+export interface CalendarEvent {
+  id: string | number;
+  title: string;
+  start: Date;
+  end: Date;
+  type: 'maintenance' | 'intervention' | 'task';
+  priority: 'high' | 'medium' | 'low';
+  status: string;
+}
+
+export interface DashboardData {
+  loading: boolean;
+  statsData: StatsCardData[];
+  equipmentData: EquipmentItem[];
+  maintenanceEvents: MaintenanceEvent[];
+  alertItems: AlertItem[];
+  upcomingTasks: UpcomingTask[];
+  urgentInterventions: UrgentIntervention[];
+  stockAlerts: StockAlert[];
+  weeklyCalendarEvents: CalendarEvent[];
 }

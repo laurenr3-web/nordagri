@@ -16,7 +16,7 @@ import { Part } from '@/types/Part';
 import BasicInfoFields from '@/components/parts/form/fields/BasicInfoFields';
 import InventoryFields from '@/components/parts/form/fields/InventoryFields';
 import CompatibilityField from '@/components/parts/form/fields/CompatibilityField';
-import FormActions from '@/components/common/form/FormActions';
+import FormActions from '@/components/parts/form/FormActions';
 import ImageField from '@/components/parts/form/fields/ImageField';
 import { partFormSchema } from '@/components/parts/form/partFormTypes';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';

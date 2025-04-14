@@ -4,7 +4,14 @@ import { Button } from '@/components/ui/button';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { DashboardSection } from '@/components/dashboard/DashboardSection';
 import { cn } from '@/lib/utils';
-import { AlertItem } from '@/hooks/dashboard/types/dashboardTypes';
+
+interface AlertItem {
+  id: number; // Ensure this is number to match our interface
+  severity: 'high' | 'medium' | 'low';
+  message: string;
+  time: string;
+  equipment: string;
+}
 
 interface AlertsSectionProps {
   alerts: AlertItem[];
@@ -29,15 +36,14 @@ const AlertsSection: React.FC<AlertsSectionProps> = ({ alerts, onViewAllClick })
               <div 
                 className={cn(
                   "mt-0.5 h-2 w-2 rounded-full flex-shrink-0", 
-                  alert.severity === 'critical' ? "bg-red-500" :
                   alert.severity === 'high' ? "bg-destructive" : 
                   alert.severity === 'medium' ? "bg-harvest-500" : "bg-agri-500"
                 )} 
               />
               <div>
-                <p className="text-sm font-medium">{alert.message || alert.description}</p>
+                <p className="text-sm font-medium">{alert.message}</p>
                 <div className="flex items-center mt-1 text-xs text-muted-foreground">
-                  <span>{alert.equipment || alert.equipmentName || 'System'} • {alert.time || (alert.timestamp && new Date(alert.timestamp).toLocaleTimeString()) || ''}</span>
+                  <span>{alert.equipment} • {alert.time}</span>
                 </div>
               </div>
             </div>

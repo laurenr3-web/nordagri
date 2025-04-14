@@ -1,159 +1,45 @@
 
-import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Search, Bell } from 'lucide-react';
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-  SheetClose
-} from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { navGroups } from './Navbar';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import MaintenanceNotificationsPopover from '../maintenance/notifications/MaintenanceNotificationsPopover';
-import { BlurContainer } from '@/components/ui/blur-container';
+import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Home, Tractor, Calendar, Settings } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+
+// Actions principales pour la barre de navigation inférieure
+const mainActions = [
+  { title: 'Accueil', href: '/', icon: Home },
+  { title: 'Équipements', href: '/equipment', icon: Tractor },
+  { title: 'Maintenance', href: '/maintenance', icon: Calendar },
+  { title: 'Paramètres', href: '/settings', icon: Settings },
+];
 
 const MobileNav = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
+  const location = useLocation();
+  const isMobile = useIsMobile();
+  
+  if (!isMobile) return null;
   
   return (
-    <>
-      {/* Menu dépliant avec bouton en haut à droite */}
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger asChild>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="fixed top-4 right-4 z-50 rounded-full bg-background/80 backdrop-blur-sm border shadow-md"
-            aria-label="Menu principal"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-        </SheetTrigger>
+    <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 flex justify-around items-center h-16">
+      {mainActions.map((action) => {
+        const isActive = location.pathname === action.href || 
+                        (action.href !== '/' && location.pathname.startsWith(action.href));
         
-        <SheetContent side="right" className="w-[85vw] sm:max-w-md p-0">
-          <SheetHeader className="border-b p-4 flex justify-between items-center">
-            <SheetTitle className="flex items-center gap-2">
-              <img 
-                src="/lovable-uploads/ec804880-63d5-4999-8bd9-4b853ec3360d.png" 
-                alt="Agri ERP" 
-                className="h-8 w-auto"
-              />
-              <span>Agri ERP</span>
-            </SheetTitle>
-            <SheetClose asChild>
-              <Button variant="ghost" size="icon">
-                <X className="h-5 w-5" />
-              </Button>
-            </SheetClose>
-          </SheetHeader>
-          
-          <div className="p-4 border-b">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-agri-primary text-white">U</AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="font-medium">Utilisateur</div>
-                  <div className="text-sm text-muted-foreground">utilisateur@exemple.fr</div>
-                </div>
-              </div>
-              <MaintenanceNotificationsPopover />
-            </div>
-          </div>
-          
-          <div className="p-2 overflow-y-auto">
-            <div className="flex items-center gap-2 mx-2 mb-4 mt-2">
-              <Button className="flex-1" onClick={() => navigate('/search')}>
-                <Search className="h-4 w-4 mr-2" />
-                Rechercher...
-              </Button>
-            </div>
-            
-            {navGroups.map((group, index) => (
-              <div key={index} className="mb-6">
-                <div className="px-3 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  {group.label}
-                </div>
-                <div className="space-y-1 mt-1">
-                  {group.items.map((item) => {
-                    const isActive = location.pathname === item.href || 
-                      (item.href !== '/' && location.pathname.startsWith(item.href));
-                    
-                    // Utiliser des libellés cohérents en français
-                    const frenchLabels = {
-                      "Home": "Tableau de bord",
-                      "Dashboard": "Tableau de bord",
-                      "Equipment": "Équipements",
-                      "Maintenance": "Maintenance",
-                      "Interventions": "Interventions",
-                      "Parts": "Pièces",
-                      "Settings": "Paramètres"
-                    };
-                    
-                    const label = frenchLabels[item.title] || item.title;
-                    
-                    return (
-                      <Button
-                        key={item.href}
-                        variant={isActive ? "default" : "ghost"}
-                        className={cn(
-                          "w-full justify-start font-normal",
-                          isActive ? "bg-primary text-primary-foreground" : ""
-                        )}
-                        onClick={() => {
-                          navigate(item.href);
-                          setOpen(false);
-                        }}
-                      >
-                        <item.icon className="mr-2 h-5 w-5" />
-                        {label}
-                      </Button>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-            
-            <div className="border-t mt-6 pt-4">
-              <Button variant="outline" className="w-full justify-start text-destructive" onClick={() => setOpen(false)}>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 mr-2">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                  <polyline points="16 17 21 12 16 7"></polyline>
-                  <line x1="21" y1="12" x2="9" y2="12"></line>
-                </svg>
-                Déconnexion
-              </Button>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
-      
-      {/* Bouton de recherche flottant en bas à droite */}
-      <BlurContainer
-        className="fixed bottom-6 right-6 z-40 p-0 shadow-lg hover:shadow-xl transition-all"
-        raised={true}
-        interactive={true}
-      >
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="rounded-full h-12 w-12"
-          onClick={() => navigate('/search')}
-          aria-label="Recherche"
-        >
-          <Search className="h-5 w-5" />
-        </Button>
-      </BlurContainer>
-    </>
+        return (
+          <button
+            key={action.title}
+            className={`flex flex-col items-center justify-center w-1/4 h-full py-1 ${
+              isActive ? 'text-agri-primary' : 'text-gray-600'
+            }`}
+            onClick={() => navigate(action.href)}
+            aria-label={action.title}
+          >
+            <action.icon className={`h-5 w-5 ${isActive ? 'text-agri-primary' : 'text-gray-600'}`} />
+            <span className="text-xs mt-1">{action.title}</span>
+          </button>
+        );
+      })}
+    </div>
   );
 };
 

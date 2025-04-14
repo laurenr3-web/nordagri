@@ -1,81 +1,84 @@
-
-import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { ThemeProvider } from '@/components/theme-provider';
-import { Toaster } from '@/components/ui/toaster';
+import { Toaster } from '@/components/ui/sonner';
+import { RealtimeCacheProvider } from '@/providers/RealtimeCacheProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
 import ProtectedLayout from '@/components/layout/ProtectedLayout';
-import { Toaster as SonnerToaster } from 'sonner';
-import { SupabaseErrorHandler } from '@/components/ui/supabase-error-handler';
-
-// Layouts
-import MainLayout from '@/ui/layouts/MainLayout';
-import AuthLayout from '@/ui/layouts/AuthLayout';
+import MobileMenu from '@/components/layout/MobileMenu';
 
 // Pages
-import Dashboard from '@/pages/Dashboard';
+import Index from '@/pages/Index';
 import Equipment from '@/pages/Equipment';
 import EquipmentDetail from '@/pages/EquipmentDetail';
-import Parts from '@/pages/Parts';
 import Maintenance from '@/pages/Maintenance';
+import Parts from '@/pages/Parts';
 import Interventions from '@/pages/Interventions';
-import InterventionDetail from '@/pages/InterventionDetail';
+import Dashboard from '@/pages/Dashboard';
 import Settings from '@/pages/Settings';
-import Auth from '@/pages/Auth';
 import NotFound from '@/pages/NotFound';
+import Auth from '@/pages/Auth';
+import ScanRedirect from '@/pages/ScanRedirect';
 
 // Create a client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 function App() {
-  // Log app version on startup
-  useEffect(() => {
-    console.log('App version:', import.meta.env.VITE_APP_VERSION || 'development');
-  }, []);
-
   return (
-    <BrowserRouter>
+    <ThemeProvider defaultTheme="light" storageKey="agri-erp-theme">
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <ThemeProvider defaultTheme="system" storageKey="nordagri-theme">
-            <Toaster />
-            <SonnerToaster position="top-right" closeButton richColors />
-            <SupabaseErrorHandler>
+        <RealtimeCacheProvider>
+          <Router>
+            <AuthProvider>
               <Routes>
-                {/* Auth routes */}
-                <Route path="/auth" element={<AuthLayout />}>
-                  <Route index element={<Auth />} />
-                </Route>
-                
-                {/* Protected routes */}
-                <Route element={<ProtectedLayout><MainLayout /></ProtectedLayout>}>
-                  <Route index element={<Dashboard />} />
-                  <Route path="equipment" element={<Equipment />} />
-                  <Route path="equipment/:id" element={<EquipmentDetail />} />
-                  <Route path="parts" element={<Parts />} />
-                  <Route path="maintenance" element={<Maintenance />} />
-                  <Route path="interventions" element={<Interventions />} />
-                  <Route path="interventions/:id" element={<InterventionDetail />} />
-                  <Route path="settings" element={<Settings />} />
-                </Route>
-                
-                {/* 404 route */}
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/dashboard" element={
+                  <ProtectedLayout>
+                    <Dashboard />
+                  </ProtectedLayout>
+                } />
+                <Route path="/equipment" element={
+                  <ProtectedLayout>
+                    <Equipment />
+                  </ProtectedLayout>
+                } />
+                <Route path="/equipment/:id" element={
+                  <ProtectedLayout>
+                    <EquipmentDetail />
+                  </ProtectedLayout>
+                } />
+                <Route path="/maintenance" element={
+                  <ProtectedLayout>
+                    <Maintenance />
+                  </ProtectedLayout>
+                } />
+                <Route path="/parts" element={
+                  <ProtectedLayout>
+                    <Parts />
+                  </ProtectedLayout>
+                } />
+                <Route path="/interventions" element={
+                  <ProtectedLayout>
+                    <Interventions />
+                  </ProtectedLayout>
+                } />
+                <Route path="/settings" element={
+                  <ProtectedLayout>
+                    <Settings />
+                  </ProtectedLayout>
+                } />
+                {/* Nouvelle route pour le scan de QR code */}
+                <Route path="/scan/:id" element={<ScanRedirect />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </SupabaseErrorHandler>
-          </ThemeProvider>
-        </AuthProvider>
+              <MobileMenu />
+              <Toaster />
+            </AuthProvider>
+          </Router>
+        </RealtimeCacheProvider>
       </QueryClientProvider>
-    </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

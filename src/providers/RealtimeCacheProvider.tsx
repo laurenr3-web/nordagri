@@ -1,15 +1,12 @@
 
-import React, { createContext, useContext, useEffect, ReactNode, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, ReactNode, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSupabaseRealtime } from '@/hooks/useSupabaseRealtime';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'sonner';
 
 interface RealtimeCacheContextType {
   isRealtimeEnabled: boolean;
-  isOfflineMode: boolean;
-  toggleOfflineMode: () => void;
   realtimeStatus: {
     equipment: { isSubscribed: boolean; error: Error | null };
     parts: { isSubscribed: boolean; error: Error | null };
@@ -18,7 +15,6 @@ interface RealtimeCacheContextType {
     allSubscribed: boolean;
     hasError: boolean;
   };
-  prefetchCriticalData: () => Promise<void>;
 }
 
 const RealtimeCacheContext = createContext<RealtimeCacheContextType | undefined>(undefined);
@@ -40,42 +36,6 @@ export function RealtimeCacheProvider({ children }: RealtimeCacheProviderProps) 
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [isInitializing, setIsInitializing] = useState(true);
-  const [isOfflineMode, setIsOfflineMode] = useState(false);
-  
-  // Détecter automatiquement l'état de la connexion
-  useEffect(() => {
-    const handleConnectionChange = () => {
-      const isOffline = !navigator.onLine;
-      if (isOffline !== isOfflineMode) {
-        setIsOfflineMode(isOffline);
-        if (isOffline) {
-          toast({
-            title: 'Mode hors ligne activé',
-            description: 'Vous utilisez maintenant l\'application en mode hors ligne',
-          });
-        } else {
-          toast({
-            title: 'Connexion rétablie',
-            description: 'Synchronisation des données en cours...',
-          });
-          // Invalider les requêtes lorsque la connexion est de retour
-          queryClient.invalidateQueries();
-        }
-      }
-    };
-
-    // Vérifier l'état initial
-    handleConnectionChange();
-    
-    // S'abonner aux événements de connexion
-    window.addEventListener('online', handleConnectionChange);
-    window.addEventListener('offline', handleConnectionChange);
-
-    return () => {
-      window.removeEventListener('online', handleConnectionChange);
-      window.removeEventListener('offline', handleConnectionChange);
-    };
-  }, [isOfflineMode, queryClient, toast]);
 
   // Initialiser l'application et les réglages du cache
   useEffect(() => {
@@ -127,67 +87,9 @@ export function RealtimeCacheProvider({ children }: RealtimeCacheProviderProps) 
     };
   }, [toast, queryClient]);
 
-  // Fonction pour précharger les données critiques
-  const prefetchCriticalData = useCallback(async () => {
-    try {
-      toast({
-        title: 'Préchargement des données',
-        description: 'Chargement des données essentielles...',
-      });
-      
-      // Précharger les données essentielles
-      await Promise.all([
-        queryClient.prefetchQuery({
-          queryKey: ['equipment'],
-          queryFn: async () => {
-            const { getEquipment } = await import('@/services/supabase/equipment/queries');
-            return getEquipment();
-          }
-        }),
-        queryClient.prefetchQuery({
-          queryKey: ['parts'],
-          queryFn: async () => {
-            const { getParts } = await import('@/services/supabase/parts');
-            return getParts();
-          }
-        })
-      ]);
-      
-      toast({
-        title: 'Données prêtes',
-        description: 'Les données essentielles sont disponibles hors ligne',
-      });
-    } catch (error) {
-      console.error('Erreur lors du préchargement des données:', error);
-      toast({
-        title: 'Erreur de préchargement',
-        description: 'Impossible de précharger toutes les données',
-        variant: 'destructive',
-      });
-    }
-  }, [queryClient, toast]);
-
-  // Basculer manuellement entre le mode en ligne et hors ligne
-  const toggleOfflineMode = useCallback(() => {
-    setIsOfflineMode(prev => {
-      const newValue = !prev;
-      if (newValue) {
-        // Entrer en mode hors ligne
-        prefetchCriticalData();
-      } else {
-        // Sortir du mode hors ligne
-        queryClient.invalidateQueries();
-      }
-      return newValue;
-    });
-  }, [prefetchCriticalData, queryClient]);
-
   const value: RealtimeCacheContextType = {
     isRealtimeEnabled: true,
-    isOfflineMode,
-    toggleOfflineMode,
     realtimeStatus,
-    prefetchCriticalData,
   };
 
   // Afficher un écran de chargement pendant l'initialisation

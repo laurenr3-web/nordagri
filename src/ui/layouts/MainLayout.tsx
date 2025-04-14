@@ -1,17 +1,28 @@
 
 import React from 'react';
-import { Outlet } from 'react-router-dom';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import { Sidebar, SidebarProvider, SidebarContent } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
+import { useIsMobile } from '@/hooks/use-mobile';
 
-const MainLayout = () => {
+interface MainLayoutProps {
+  children: React.ReactNode;
+}
+
+export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+  const isMobile = useIsMobile();
+  
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
-        <Navbar />
-        <main className="flex-1 overflow-y-auto p-4">
-          <Outlet />
-        </main>
+      <div className="flex h-screen w-full overflow-hidden bg-bg-light">
+        <Sidebar className="border-r border-sidebar-border bg-agri-dark">
+          <SidebarContent>
+            <Navbar />
+          </SidebarContent>
+        </Sidebar>
+        
+        <div className="flex flex-1 flex-col overflow-hidden">
+          {children}
+        </div>
       </div>
     </SidebarProvider>
   );

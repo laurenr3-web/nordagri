@@ -1,170 +1,234 @@
 
-import { useState, useCallback } from 'react';
-import { maintenanceService } from '@/services/supabase/maintenanceService';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { 
-  MaintenancePlan as TypesMaintenancePlan,
-  MaintenanceStatus,
-  MaintenancePriority,
-  MaintenanceType
-} from '@/types/models/maintenance';
-import { 
-  MaintenancePlan, 
-  MaintenancePlanViewModel,
-  dbToViewModel,
-  viewModelToDB
-} from './types/maintenancePlanTypes';
+import { MaintenanceTask, MaintenanceType, MaintenanceStatus, MaintenancePriority } from './maintenanceSlice';
+import { maintenanceService } from '@/services/supabase/maintenanceService';
+import { useQueryClient } from '@tanstack/react-query';
 
-// Re-export types
-export type { 
-  MaintenanceFrequency, 
-  MaintenanceUnit, 
-  MaintenanceType, 
-  MaintenancePriority, 
-  MaintenanceStatus,
-  MaintenancePlan,
-  MaintenancePlanViewModel 
-} from './types/maintenancePlanTypes';
+// Types pour les plans de maintenance
+export type MaintenanceFrequency = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'biannual' | 'annual' | 'custom';
+export type MaintenanceUnit = 'days' | 'weeks' | 'months' | 'years' | 'hours';
 
-export const useMaintenancePlanner = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [maintenancePlans, setMaintenancePlans] = useState<MaintenancePlanViewModel[]>([]);
+export interface MaintenancePlan {
+  id?: number;
+  title: string;
+  description?: string;
+  equipmentId: number;
+  equipmentName: string;
+  frequency: MaintenanceFrequency;
+  interval: number;
+  unit: MaintenanceUnit;
+  type: MaintenanceType;
+  priority: MaintenancePriority;
+  engineHours: number;
+  nextDueDate: Date;
+  lastPerformedDate?: Date;
+  assignedTo?: string;
+  active: boolean;
+}
 
-  // Load maintenance plans
-  const loadMaintenancePlans = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const plans = await maintenanceService.getMaintenancePlans();
-      // Type cast the DB plans to the format expected by dbToViewModel
-      const viewModels = plans.map((plan: any) => dbToViewModel(plan as MaintenancePlan));
-      setMaintenancePlans(viewModels);
-    } catch (error) {
-      console.error('Error loading maintenance plans:', error);
-      toast.error('Error loading maintenance plans');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+// Hook pour gérer les plans de maintenance périodiques
+export function useMaintenancePlanner() {
+  const [loading, setLoading] = useState(false);
+  const [plans, setPlans] = useState<MaintenancePlan[]>([]);
+  const queryClient = useQueryClient();
 
-  // Create a maintenance plan
-  const createMaintenancePlan = useCallback(async (plan: Omit<MaintenancePlanViewModel, "id">) => {
-    setIsLoading(true);
-    try {
-      // Convert from ViewModel to DB model
-      const dbPlan: any = {
-        title: plan.title,
-        description: plan.description,
-        equipment_id: plan.equipmentId,
-        equipment_name: plan.equipmentName,
-        frequency: plan.frequency,
-        interval: plan.interval,
-        unit: plan.unit,
-        next_due_date: plan.nextDueDate.toISOString(),
-        last_performed_date: plan.lastPerformedDate ? plan.lastPerformedDate.toISOString() : undefined,
-        type: plan.type,
-        engine_hours: plan.engineHours,
-        active: plan.active,
-        priority: plan.priority,
-        assigned_to: plan.assignedTo
-      };
-      
-      const newPlan = await maintenanceService.addMaintenancePlan(dbPlan);
-      // Type cast the DB response to the format expected by dbToViewModel
-      const newViewModel = dbToViewModel(newPlan as MaintenancePlan);
-      setMaintenancePlans(prev => [...prev, newViewModel]);
-      toast.success('Maintenance plan created successfully');
-      return newViewModel;
-    } catch (error) {
-      console.error('Error creating maintenance plan:', error);
-      toast.error('Error creating maintenance plan');
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  // Update a maintenance plan
-  const updatePlan = useCallback(async (planId: number, updates: Partial<MaintenancePlanViewModel>) => {
-    setIsLoading(true);
-    try {
-      // Convert updates from ViewModel to DB model format 
-      const dbUpdates: any = {};
-      
-      if (updates.title !== undefined) dbUpdates.title = updates.title;
-      if (updates.description !== undefined) dbUpdates.description = updates.description;
-      if (updates.equipmentId !== undefined) dbUpdates.equipment_id = updates.equipmentId;
-      if (updates.equipmentName !== undefined) dbUpdates.equipment_name = updates.equipmentName;
-      if (updates.frequency !== undefined) dbUpdates.frequency = updates.frequency;
-      if (updates.interval !== undefined) dbUpdates.interval = updates.interval;
-      if (updates.unit !== undefined) dbUpdates.unit = updates.unit;
-      if (updates.nextDueDate !== undefined) dbUpdates.next_due_date = updates.nextDueDate.toISOString();
-      if (updates.lastPerformedDate !== undefined) {
-        dbUpdates.last_performed_date = updates.lastPerformedDate ? 
-          updates.lastPerformedDate.toISOString() : undefined;
+  // Charger les plans de maintenance au démarrage
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        setLoading(true);
+        const fetchedPlans = await maintenanceService.getMaintenancePlans();
+        setPlans(fetchedPlans);
+      } catch (error: any) {
+        console.error('Erreur lors du chargement des plans de maintenance:', error);
+        toast.error(`Impossible de charger les plans de maintenance: ${error.message}`);
+      } finally {
+        setLoading(false);
       }
-      if (updates.type !== undefined) dbUpdates.type = updates.type;
-      if (updates.engineHours !== undefined) dbUpdates.engine_hours = updates.engineHours;
-      if (updates.active !== undefined) dbUpdates.active = updates.active;
-      if (updates.priority !== undefined) dbUpdates.priority = updates.priority;
-      if (updates.assignedTo !== undefined) dbUpdates.assigned_to = updates.assignedTo;
-      
-      const updated = await maintenanceService.updateMaintenancePlan(planId, dbUpdates);
-      
-      if (updated) {
-        // Type cast the DB response to the format expected by dbToViewModel
-        const updatedViewModel = dbToViewModel(updated as MaintenancePlan);
-        setMaintenancePlans(prev => 
-          prev.map(plan => plan.id === planId ? updatedViewModel : plan)
-        );
-      }
-      toast.success('Maintenance plan updated successfully');
-      return updated ? dbToViewModel(updated as MaintenancePlan) : null;
-    } catch (error) {
-      console.error('Error updating maintenance plan:', error);
-      toast.error('Error updating maintenance plan');
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
+    };
+
+    fetchPlans();
   }, []);
 
-  // Create a schedule from a maintenance plan
-  const createScheduleFromPlan = useCallback(async (plan: MaintenancePlanViewModel, endDate: Date) => {
-    setIsLoading(true);
+  // Créer un plan de maintenance périodique
+  const createMaintenancePlan = async (plan: Omit<MaintenancePlan, 'id' | 'active'>) => {
     try {
-      // Create a task directly from plan
-      const dbPlan = viewModelToDB(plan);
+      setLoading(true);
       
-      const task = {
+      // Créer un nouveau plan dans la base de données
+      const newPlan = await maintenanceService.addMaintenancePlan({
+        ...plan,
+        active: true
+      });
+      
+      // Mettre à jour l'état local
+      setPlans(prevPlans => [...prevPlans, newPlan]);
+      
+      // Créer la première tâche de maintenance basée sur ce plan
+      const task: Omit<MaintenanceTask, 'id'> = {
         title: plan.title,
-        notes: plan.description,
         equipment: plan.equipmentName,
-        equipment_id: plan.equipmentId,
-        due_date: plan.nextDueDate.toISOString(),
-        status: 'pending' as MaintenanceStatus,
+        equipmentId: plan.equipmentId,
+        type: plan.type,
+        status: 'scheduled' as MaintenanceStatus,
         priority: plan.priority,
-        type: plan.type as MaintenanceType,
-        assigned_to: plan.assignedTo
+        dueDate: plan.nextDueDate,
+        engineHours: plan.engineHours,
+        assignedTo: plan.assignedTo || '',
+        notes: `Tâche générée automatiquement à partir du plan de maintenance: ${plan.description || ''}`,
       };
       
-      const newTask = await maintenanceService.addTask(task);
-      toast.success(`New maintenance task scheduled`);
-      return [newTask];
-    } catch (error) {
-      console.error('Error creating schedule from plan:', error);
-      toast.error('Error creating maintenance schedule');
+      await maintenanceService.addTask(task);
+      
+      // Invalider les requêtes pour forcer un rafraîchissement des données
+      queryClient.invalidateQueries({ queryKey: ['maintenanceTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['maintenancePlans'] });
+      
+      toast.success('Plan de maintenance créé avec succès');
+      return newPlan;
+    } catch (error: any) {
+      console.error('Erreur lors de la création du plan de maintenance:', error);
+      toast.error(`Impossible de créer le plan de maintenance: ${error.message}`);
       throw error;
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
-  }, []);
-
-  return {
-    isLoading,
-    maintenancePlans,
-    loadMaintenancePlans,
-    createMaintenancePlan,
-    updatePlan,
-    createScheduleFromPlan
   };
-};
+
+  // Calculer la prochaine date d'échéance
+  const calculateNextDueDate = (
+    frequency: MaintenanceFrequency,
+    interval: number,
+    unit: MaintenanceUnit = 'months',
+    startDate: Date = new Date()
+  ): Date => {
+    const nextDate = new Date(startDate);
+    
+    if (frequency === 'custom') {
+      // Utiliser l'unité et l'intervalle personnalisés
+      switch (unit) {
+        case 'days':
+          nextDate.setDate(nextDate.getDate() + interval);
+          break;
+        case 'weeks':
+          nextDate.setDate(nextDate.getDate() + (interval * 7));
+          break;
+        case 'months':
+          nextDate.setMonth(nextDate.getMonth() + interval);
+          break;
+        case 'years':
+          nextDate.setFullYear(nextDate.getFullYear() + interval);
+          break;
+        case 'hours':
+          // Pour les heures, on ajoute des millisecondes
+          nextDate.setTime(nextDate.getTime() + (interval * 60 * 60 * 1000));
+          break;
+      }
+    } else {
+      // Utiliser la fréquence prédéfinie
+      switch (frequency) {
+        case 'daily':
+          nextDate.setDate(nextDate.getDate() + interval);
+          break;
+        case 'weekly':
+          nextDate.setDate(nextDate.getDate() + (interval * 7));
+          break;
+        case 'monthly':
+          nextDate.setMonth(nextDate.getMonth() + interval);
+          break;
+        case 'quarterly':
+          nextDate.setMonth(nextDate.getMonth() + (interval * 3));
+          break;
+        case 'biannual':
+          nextDate.setMonth(nextDate.getMonth() + (interval * 6));
+          break;
+        case 'annual':
+          nextDate.setFullYear(nextDate.getFullYear() + interval);
+          break;
+      }
+    }
+    
+    return nextDate;
+  };
+  
+  // Générer les prochaines tâches de maintenance basées sur les plans actifs
+  const generateScheduledTasks = async () => {
+    try {
+      setLoading(true);
+      
+      // Récupérer les plans actifs depuis la base de données
+      const activePlans = (await maintenanceService.getMaintenancePlans()).filter(p => p.active);
+      
+      let tasksGenerated = 0;
+      
+      // Pour chaque plan actif, vérifier si une nouvelle tâche doit être créée
+      for (const plan of activePlans) {
+        // Logique pour décider si une nouvelle tâche doit être créée
+        const now = new Date();
+        
+        // Si la date d'échéance est passée, générer une nouvelle tâche
+        if (plan.nextDueDate.getTime() <= now.getTime()) {
+          // Créer une nouvelle tâche
+          const task: Omit<MaintenanceTask, 'id'> = {
+            title: plan.title,
+            equipment: plan.equipmentName,
+            equipmentId: plan.equipmentId,
+            type: plan.type,
+            status: 'scheduled' as MaintenanceStatus,
+            priority: plan.priority,
+            dueDate: plan.nextDueDate,
+            engineHours: plan.engineHours,
+            assignedTo: plan.assignedTo || '',
+            notes: `Tâche générée automatiquement à partir du plan de maintenance: ${plan.description || ''}`,
+          };
+          
+          await maintenanceService.addTask(task);
+          
+          // Calculer la prochaine date d'échéance
+          const nextDueDate = calculateNextDueDate(
+            plan.frequency,
+            plan.interval,
+            plan.unit,
+            plan.nextDueDate // Utiliser la date d'échéance précédente comme point de départ
+          );
+          
+          // Mettre à jour le plan avec la nouvelle date d'échéance
+          await maintenanceService.updateMaintenancePlan(plan.id as number, {
+            nextDueDate,
+            lastPerformedDate: now
+          });
+          
+          tasksGenerated++;
+        }
+      }
+      
+      // Mettre à jour l'état local avec les plans mis à jour
+      const updatedPlans = await maintenanceService.getMaintenancePlans();
+      setPlans(updatedPlans);
+      
+      // Invalider les requêtes pour forcer un rafraîchissement des données
+      queryClient.invalidateQueries({ queryKey: ['maintenanceTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['maintenancePlans'] });
+      
+      if (tasksGenerated > 0) {
+        toast.success(`${tasksGenerated} tâches de maintenance générées avec succès`);
+      } else {
+        toast.info('Aucune nouvelle tâche de maintenance à générer');
+      }
+    } catch (error: any) {
+      console.error('Erreur lors de la génération des tâches de maintenance:', error);
+      toast.error(`Impossible de générer les tâches de maintenance: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  return {
+    loading,
+    plans,
+    createMaintenancePlan,
+    calculateNextDueDate,
+    generateScheduledTasks
+  };
+}

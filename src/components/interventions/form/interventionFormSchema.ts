@@ -1,6 +1,5 @@
 
 import * as z from "zod";
-import { InterventionStatus } from "@/types/models/intervention";
 
 // Schema for intervention form validation
 export const interventionFormSchema = z.object({
@@ -31,11 +30,6 @@ export const interventionFormSchema = z.object({
   technician: z.string().optional(),
   description: z.string().optional(),
   notes: z.string().optional(),
-  status: z.enum(["scheduled", "in-progress", "completed", "cancelled"]).optional(),
-  coordinates: z.object({
-    latitude: z.number(),
-    longitude: z.number()
-  }).optional(),
 });
 
 export type InterventionFormValues = z.infer<typeof interventionFormSchema>;

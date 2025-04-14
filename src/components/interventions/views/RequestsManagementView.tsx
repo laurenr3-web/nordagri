@@ -1,10 +1,9 @@
 
 import React, { useState } from 'react';
-import { Intervention, InterventionStatus } from '@/types/models/intervention';
+import { Intervention } from '@/types/Intervention';
 import { useQuery } from '@tanstack/react-query';
 import { interventionService } from '@/services/supabase/interventionService';
 import { toast } from 'sonner';
-import { ensureNumberId } from '@/utils/typeGuards';
 
 // Import refactored components
 import RequestsHeader from './requests/RequestsHeader';
@@ -37,17 +36,16 @@ const RequestsManagementView: React.FC<RequestsManagementViewProps> = ({
         title: values.title,
         equipment: values.equipment,
         equipmentId: values.equipmentId,
-        location: values.location || 'Unknown',
-        priority: values.priority as "low" | "medium" | "high",
+        location: values.location,
+        priority: values.priority,
         date: values.date,
         scheduledDuration: values.scheduledDuration,
         technician: values.technician,
         description: values.description,
         notes: values.notes,
-        status: 'scheduled' as InterventionStatus,
       };
       
-      await interventionService.createIntervention(interventionData);
+      await interventionService.addIntervention(interventionData);
       toast.success('Demande d\'intervention créée avec succès');
       setIsRequestDialogOpen(false);
       refetch(); // Refresh the data
@@ -72,7 +70,7 @@ const RequestsManagementView: React.FC<RequestsManagementViewProps> = ({
 
   const handleRejectRequest = async (intervention: Intervention) => {
     try {
-      await interventionService.updateInterventionStatus(intervention.id, 'cancelled');
+      await interventionService.updateInterventionStatus(intervention.id, 'canceled');
       toast.success('Demande rejetée');
       refetch(); // Refresh interventions list
     } catch (error) {

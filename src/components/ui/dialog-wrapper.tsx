@@ -14,7 +14,6 @@ interface DialogWrapperProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
-  maxWidth?: string;
 }
 
 export const DialogWrapper: React.FC<DialogWrapperProps> = ({
@@ -23,21 +22,16 @@ export const DialogWrapper: React.FC<DialogWrapperProps> = ({
   open,
   onOpenChange,
   children,
-  maxWidth = "sm:max-w-[600px]"
 }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`${maxWidth} max-h-[80vh] overflow-y-auto dialog-mobile-friendly`}>
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
-        <div className="form-scrollable">
-          {children}
-        </div>
+        {children}
       </DialogContent>
     </Dialog>
   );
 };
-
-export default DialogWrapper;

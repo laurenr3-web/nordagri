@@ -1,25 +1,22 @@
 
-import React, { ReactNode } from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuthContext } from '@/providers/AuthProvider';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import React from 'react';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import MainLayout from '@/ui/layouts/MainLayout';
+import MobileNav from '@/components/layout/MobileNav';
 
-// Définition explicite du type des props
 interface ProtectedLayoutProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
-// Utilisation correcte du type de props
-export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
-  const { isAuthenticated, loading } = useAuthContext();
+const ProtectedLayout: React.FC<ProtectedLayoutProps> = ({ children }) => {
+  return (
+    <ProtectedRoute>
+      <MainLayout>
+        {children}
+        <MobileNav />
+      </MainLayout>
+    </ProtectedRoute>
+  );
+};
 
-  if (loading) {
-    return <LoadingSpinner message="Chargement..." />;
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  return <>{children}</>;
-}
+export default ProtectedLayout;

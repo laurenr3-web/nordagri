@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
@@ -9,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { maintenanceService } from '@/services/supabase/maintenanceService';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { Separator } from '@/components/ui/separator';
+import { MaintenanceTask } from '@/hooks/maintenance/maintenanceSlice';
 import { Button } from '@/components/ui/button';
 
 interface EquipmentMaintenanceHistoryProps {
@@ -18,7 +20,7 @@ interface EquipmentMaintenanceHistoryProps {
 const EquipmentMaintenanceHistory: React.FC<EquipmentMaintenanceHistoryProps> = ({ equipment }) => {
   const { id } = useParams<{ id: string }>();
   const [loading, setLoading] = useState(true);
-  const [completedTasks, setCompletedTasks] = useState<any[]>([]);
+  const [completedTasks, setCompletedTasks] = useState<MaintenanceTask[]>([]);
   const [activeTab, setActiveTab] = useState('all');
 
   useEffect(() => {
@@ -33,13 +35,13 @@ const EquipmentMaintenanceHistory: React.FC<EquipmentMaintenanceHistoryProps> = 
         // Filtrer pour ne garder que les tâches complétées pour cet équipement
         const completed = tasks.filter(task => 
           task.status === 'completed' && 
-          (task.equipment_id === Number(id) || task.equipment === equipment?.name)
+          (task.equipmentId === Number(id) || task.equipment === equipment?.name)
         );
         
         // Trier par date de complétion (la plus récente d'abord)
         completed.sort((a, b) => {
-          const dateA = a.completed_date ? new Date(a.completed_date).getTime() : 0;
-          const dateB = b.completed_date ? new Date(b.completed_date).getTime() : 0;
+          const dateA = a.completedDate ? new Date(a.completedDate).getTime() : 0;
+          const dateB = b.completedDate ? new Date(b.completedDate).getTime() : 0;
           return dateB - dateA;
         });
         
@@ -73,9 +75,9 @@ const EquipmentMaintenanceHistory: React.FC<EquipmentMaintenanceHistoryProps> = 
     completedTasks.forEach((task, index) => {
       reportContent += `\n${index + 1}. ${task.title}\n`;
       reportContent += `   Type: ${task.type}\n`;
-      reportContent += `   Date: ${task.completed_date ? format(new Date(task.completed_date), 'dd/MM/yyyy') : 'N/A'}\n`;
-      reportContent += `   Durée: ${task.actual_duration || task.estimated_duration} heures\n`;
-      reportContent += `   Technicien: ${task.assigned_to || 'Non spécifié'}\n`;
+      reportContent += `   Date: ${task.completedDate ? format(new Date(task.completedDate), 'dd/MM/yyyy') : 'N/A'}\n`;
+      reportContent += `   Durée: ${task.actualDuration || task.engineHours} heures\n`;
+      reportContent += `   Technicien: ${task.assignedTo || 'Non spécifié'}\n`;
       reportContent += `   Notes: ${task.notes || 'Aucune note'}\n`;
     });
     
@@ -150,8 +152,8 @@ const EquipmentMaintenanceHistory: React.FC<EquipmentMaintenanceHistoryProps> = 
                               </Badge>
                             </div>
                             <p className="text-muted-foreground mt-1">
-                              {task.completed_date
-                                ? format(new Date(task.completed_date), 'dd MMMM yyyy', { locale: fr })
+                              {task.completedDate
+                                ? format(new Date(task.completedDate), 'dd MMMM yyyy', { locale: fr })
                                 : 'Date inconnue'}
                             </p>
                           </div>
@@ -172,12 +174,12 @@ const EquipmentMaintenanceHistory: React.FC<EquipmentMaintenanceHistoryProps> = 
                           <div>
                             <p className="text-sm text-muted-foreground mb-1">Durée</p>
                             <p className="font-medium">
-                              {task.actual_duration ? `${task.actual_duration} heures (Réelle)` : `${task.estimated_duration} heures (Estimée)`}
+                              {task.actualDuration ? `${task.actualDuration} heures (Réelle)` : `${task.engineHours} heures (Estimée)`}
                             </p>
                           </div>
                           <div>
                             <p className="text-sm text-muted-foreground mb-1">Réalisée par</p>
-                            <p className="font-medium">{task.assigned_to || 'Non spécifié'}</p>
+                            <p className="font-medium">{task.assignedTo || 'Non spécifié'}</p>
                           </div>
                           <div>
                             <p className="text-sm text-muted-foreground mb-1">Priorité</p>

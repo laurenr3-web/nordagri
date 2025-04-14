@@ -1,5 +1,5 @@
 
-import React, { memo } from 'react';
+import React from 'react';
 import EnhancedDashboard from './EnhancedDashboard';
 import { 
   StatsCardData, 
@@ -30,7 +30,7 @@ interface DashboardProps {
   handleEquipmentClick: (id: number) => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = memo(({
+const Dashboard: React.FC<DashboardProps> = ({
   statsData,
   equipmentData,
   maintenanceEvents,
@@ -47,8 +47,6 @@ const Dashboard: React.FC<DashboardProps> = memo(({
   handleTasksAddClick,
   handleEquipmentClick
 }) => {
-  console.log('Dashboard rendering with', statsData.length, 'stat cards');
-  
   return (
     <EnhancedDashboard 
       statsData={statsData}
@@ -68,8 +66,6 @@ const Dashboard: React.FC<DashboardProps> = memo(({
       handleEquipmentClick={handleEquipmentClick}
     />
   );
-});
-
-Dashboard.displayName = 'Dashboard';
+};
 
 export default Dashboard;

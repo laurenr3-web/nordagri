@@ -35,11 +35,11 @@ const InterventionsSidebar: React.FC<InterventionsSidebarProps> = ({
     scheduled: interventions.filter(i => i.status === 'scheduled').length,
     inProgress: interventions.filter(i => i.status === 'in-progress').length,
     completed: interventions.filter(i => i.status === 'completed').length,
-    canceled: interventions.filter(i => i.status === 'cancelled').length
+    canceled: interventions.filter(i => i.status === 'canceled').length
   };
   
   // Calculate percentages for progress bars
-  const getPercentage = (value: number): number => {
+  const getPercentage = (value: number) => {
     return stats.total > 0 ? Math.round((value / stats.total) * 100) : 0;
   };
 

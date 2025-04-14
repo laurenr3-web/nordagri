@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useEquipmentDetail } from '@/hooks/equipment/useEquipmentDetail';
 import { useParams } from 'react-router-dom';
+import { MaintenanceStatus, MaintenanceType, MaintenancePriority } from '@/hooks/maintenance/maintenanceSlice';
 import { maintenanceService } from '@/services/supabase/maintenanceService';
-import { adaptServiceTaskToModelTask } from '@/hooks/maintenance/adapters/maintenanceTypeAdapters';
 import NewMaintenanceDialog from './maintenance/NewMaintenanceDialog';
 import MaintenanceSummaryCards from './maintenance/MaintenanceSummaryCards';
 import MaintenanceCalendarTable from './maintenance/MaintenanceCalendarTable';
@@ -16,7 +16,6 @@ import { formatDate, getStatusBadge, getPriorityColor } from './maintenance/main
 import MaintenanceQuoteDialog from './maintenance/MaintenanceQuoteDialog';
 import MaintenanceCompletionDialog from '@/components/maintenance/dialogs/MaintenanceCompletionDialog';
 import MaintenancePlanDialog from '@/components/maintenance/dialogs/MaintenancePlanDialog';
-import { MaintenanceStatus } from '@/types/models/maintenance';
 
 interface EquipmentMaintenanceProps {
   equipment: any;
@@ -24,7 +23,7 @@ interface EquipmentMaintenanceProps {
 
 const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }) => {
   const { id } = useParams<{ id: string }>();
-  const { maintenanceTasks: serviceTasks } = useEquipmentDetail(id);
+  const { maintenanceTasks } = useEquipmentDetail(id);
   const [loading, setLoading] = useState(false);
   const [isNewMaintenanceOpen, setIsNewMaintenanceOpen] = useState(false);
   const [isAddPartDialogOpen, setIsAddPartDialogOpen] = useState(false);
@@ -32,9 +31,6 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
   const [isQuoteDialogOpen, setIsQuoteDialogOpen] = useState(false);
   const [isCompletionDialogOpen, setIsCompletionDialogOpen] = useState(false);
   const [isPlanDialogOpen, setIsPlanDialogOpen] = useState(false);
-  
-  // Convert service tasks to model tasks for rendering
-  const maintenanceTasks = serviceTasks ? serviceTasks.map(adaptServiceTaskToModelTask) : [];
 
   const handleAddTask = () => {
     setIsNewMaintenanceOpen(true);
@@ -49,8 +45,8 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
   };
 
   const handleCompleteTask = (taskId: number) => {
-    // Find the task with the matching ID
-    const task = serviceTasks?.find(task => task.id === taskId);
+    // Trouver la tâche avec l'ID correspondant
+    const task = maintenanceTasks?.find(task => task.id === taskId);
     if (task) {
       setSelectedMaintenanceTask(task);
       setIsCompletionDialogOpen(true);
@@ -63,29 +59,30 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
     try {
       setLoading(true);
       
-      // Prepare the data for the API
+      // Préparer les données pour l'API
       const maintenanceTask = {
         title: maintenance.title,
-        equipment_id: equipment.id,
         equipment: equipment.name,
-        type: maintenance.type,
+        equipmentId: equipment.id,
+        type: maintenance.type as MaintenanceType,
         status: 'scheduled' as MaintenanceStatus,
-        priority: maintenance.priority,
-        due_date: maintenance.dueDate instanceof Date ? maintenance.dueDate.toISOString() : maintenance.dueDate,
-        estimated_duration: maintenance.engineHours,
-        assigned_to: maintenance.assignedTo || '',
-        notes: maintenance.notes || ''
+        priority: maintenance.priority as MaintenancePriority,
+        dueDate: maintenance.dueDate,
+        engineHours: maintenance.engineHours,
+        assignedTo: maintenance.assignedTo || '',
+        notes: maintenance.notes || '',
+        partId: maintenance.partId || null
       };
       
-      // Add the task via the service
+      // Ajouter la tâche via le service
       await maintenanceService.addTask(maintenanceTask);
       
-      // Close the dialog
+      // Fermer la boîte de dialogue
       setIsNewMaintenanceOpen(false);
       
       toast.success('Tâche de maintenance créée avec succès!');
       
-      // Refresh the page to see the new task
+      // Rafraîchir la page pour voir la nouvelle tâche
       setTimeout(() => window.location.reload(), 1000);
     } catch (error: any) {
       console.error('Erreur lors de l\'ajout de la tâche:', error);
@@ -97,12 +94,12 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
 
   const handleViewQuote = (taskId: number) => {
     // Find the task with the matching ID
-    const task = serviceTasks?.find(task => task.id === taskId);
+    const task = maintenanceTasks?.find(task => task.id === taskId);
     if (task) {
       setSelectedMaintenanceTask({
         ...task,
         equipment: equipment,
-        estimatedDuration: task.estimated_duration
+        estimatedDuration: task.engineHours
       });
       setIsQuoteDialogOpen(true);
     } else {
@@ -116,7 +113,7 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
       await maintenanceService.deleteTask(taskId);
       toast.success('Tâche supprimée avec succès');
       
-      // Refresh the page to see the changes
+      // Rafraîchir la page pour voir les changements
       setTimeout(() => window.location.reload(), 1000);
     } catch (error: any) {
       console.error('Erreur lors de la suppression de la tâche:', error);
@@ -130,10 +127,10 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
   const handleChangeStatus = async (taskId: number, newStatus: string) => {
     try {
       setLoading(true);
-      await maintenanceService.updateTaskStatus(taskId, newStatus);
+      await maintenanceService.updateTaskStatus(taskId, newStatus as MaintenanceStatus);
       toast.success(`Statut mis à jour: ${newStatus}`);
       
-      // Refresh the page to see the changes
+      // Rafraîchir la page pour voir les changements
       setTimeout(() => window.location.reload(), 1000);
     } catch (error: any) {
       console.error('Erreur lors de la mise à jour du statut:', error);
@@ -169,7 +166,7 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
       </div>
 
       <MaintenanceSummaryCards 
-        maintenanceTasks={maintenanceTasks} 
+        maintenanceTasks={maintenanceTasks || []} 
         formatDate={formatDate} 
       />
 
@@ -179,7 +176,7 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
         </CardHeader>
         <CardContent>
           <MaintenanceCalendarTable 
-            tasks={maintenanceTasks}
+            tasks={maintenanceTasks || []}
             loading={loading}
             formatDate={formatDate}
             getStatusBadge={getStatusBadge}
@@ -192,7 +189,7 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
         </CardContent>
       </Card>
 
-      {/* Dialog for creating new maintenance */}
+      {/* Dialog pour créer une nouvelle maintenance */}
       {isNewMaintenanceOpen && (
         <NewMaintenanceDialog
           equipment={equipment}
@@ -202,14 +199,14 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
         />
       )}
 
-      {/* Dialog for adding a part */}
+      {/* Dialog pour ajouter une pièce */}
       <AddPartDialog
         isOpen={isAddPartDialogOpen}
         onOpenChange={setIsAddPartDialogOpen}
         onSuccess={handlePartAdded}
       />
 
-      {/* Dialog for showing maintenance quote */}
+      {/* Dialog pour afficher le devis de maintenance */}
       <MaintenanceQuoteDialog
         isOpen={isQuoteDialogOpen}
         onClose={() => setIsQuoteDialogOpen(false)}
@@ -217,21 +214,14 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
         onDelete={handleDeleteTask}
       />
 
-      {/* Dialog for completing a maintenance task */}
-      {isCompletionDialogOpen && selectedMaintenanceTask && (
-        <MaintenanceCompletionDialog
-          open={isCompletionDialogOpen}
-          onOpenChange={() => setIsCompletionDialogOpen(false)}
-          task={selectedMaintenanceTask}
-          onCompleted={() => {
-            setIsCompletionDialogOpen(false);
-            // Refresh the task list
-            setTimeout(() => window.location.reload(), 1000);
-          }}
-        />
-      )}
+      {/* Dialog pour compléter une tâche de maintenance */}
+      <MaintenanceCompletionDialog
+        isOpen={isCompletionDialogOpen}
+        onClose={() => setIsCompletionDialogOpen(false)}
+        task={selectedMaintenanceTask}
+      />
 
-      {/* Dialog for creating a maintenance plan */}
+      {/* Dialog pour créer un plan de maintenance */}
       <MaintenancePlanDialog
         isOpen={isPlanDialogOpen}
         onClose={() => setIsPlanDialogOpen(false)}

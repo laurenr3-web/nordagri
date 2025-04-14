@@ -74,17 +74,15 @@ const AddEquipmentDialog: React.FC<AddEquipmentDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl dialog-mobile-friendly">
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Ajouter un équipement</DialogTitle>
         </DialogHeader>
-        <div className="form-scrollable">
-          <EquipmentForm 
-            onSubmit={handleAddEquipment}
-            onCancel={() => onOpenChange(false)}
-            isSubmitting={isPending}
-          />
-        </div>
+        <EquipmentForm 
+          onSubmit={handleAddEquipment}
+          onCancel={() => onOpenChange(false)}
+          isSubmitting={isPending}
+        />
       </DialogContent>
     </Dialog>
   );

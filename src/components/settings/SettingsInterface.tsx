@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { SettingsSection } from './SettingsSection';
 import { Button } from '@/components/ui/button';
@@ -15,15 +16,12 @@ export const SettingsInterface = () => {
   const [highContrast, setHighContrast] = useState(false);
   const [animations, setAnimations] = useState(true);
 
-  // Initialize state based on existing document classes and localStorage
+  // Initialize state based on existing document classes
   useEffect(() => {
-    const isDarkMode = localStorage.getItem('darkMode') === 'true';
-    const isHighContrast = localStorage.getItem('highContrast') === 'true';
-    const enableAnimations = localStorage.getItem('animations') !== 'false';
-    
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    const isHighContrast = document.documentElement.classList.contains('high-contrast');
     setDarkMode(isDarkMode);
     setHighContrast(isHighContrast);
-    setAnimations(enableAnimations);
   }, []);
 
   // Handle dark mode toggle
@@ -34,9 +32,7 @@ export const SettingsInterface = () => {
     } else {
       document.documentElement.classList.remove('dark');
     }
-    // Sauvegarde immédiate dans localStorage
-    localStorage.setItem('darkMode', checked.toString());
-    toast.success(`${checked ? 'Dark' : 'Light'} mode activé`);
+    toast.success(`${checked ? 'Dark' : 'Light'} mode activated`);
   };
 
   // Handle high contrast toggle
@@ -47,9 +43,7 @@ export const SettingsInterface = () => {
     } else {
       document.documentElement.classList.remove('high-contrast');
     }
-    // Sauvegarde immédiate dans localStorage
-    localStorage.setItem('highContrast', checked.toString());
-    toast.success(`Contraste élevé ${checked ? 'activé' : 'désactivé'}`);
+    toast.success(`High contrast ${checked ? 'enabled' : 'disabled'}`);
   };
 
   // Handle animations toggle
@@ -60,17 +54,15 @@ export const SettingsInterface = () => {
     } else {
       document.documentElement.classList.add('reduce-motion');
     }
-    // Sauvegarde immédiate dans localStorage
-    localStorage.setItem('animations', checked.toString());
-    toast.success(`Animations ${checked ? 'activées' : 'désactivées'}`);
+    toast.success(`Animations ${checked ? 'enabled' : 'disabled'}`);
   };
 
-  // Handle save settings - maintenant un backup de toutes les préférences
+  // Handle save settings
   const handleSaveSettings = () => {
     localStorage.setItem('darkMode', darkMode.toString());
     localStorage.setItem('highContrast', highContrast.toString());
     localStorage.setItem('animations', animations.toString());
-    toast.success('Préférences d\'interface sauvegardées avec succès');
+    toast.success('Dashboard settings saved successfully');
   };
 
   return (

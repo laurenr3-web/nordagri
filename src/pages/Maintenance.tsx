@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import MainLayout from '@/ui/layouts/MainLayout';
 import { useTasksManager } from '@/hooks/maintenance/useTasksManager';
 import { MaintenanceTask, MaintenanceStatus, MaintenancePriority, MaintenanceFormValues } from '@/hooks/maintenance/maintenanceSlice';
 import NewTaskDialog from '@/components/maintenance/NewTaskDialog';
@@ -71,56 +72,58 @@ const Maintenance = () => {
     }
     return user?.email || 'Utilisateur';
   };
-  
+
   return (
-    <div className="flex-1">
-      <div className="flex justify-between items-center px-4 py-2 border-b">
-        <div className="text-sm text-muted-foreground">
-          {isAuthenticated ? (
-            <span>Connecté en tant que : <span className="font-medium">{getUserDisplayName()}</span></span>
-          ) : (
-            <span>Non connecté</span>
-          )}
+    <MainLayout>
+      <div className="flex-1">
+        <div className="flex justify-between items-center px-4 py-2 border-b">
+          <div className="text-sm text-muted-foreground">
+            {isAuthenticated ? (
+              <span>Connecté en tant que : <span className="font-medium">{getUserDisplayName()}</span></span>
+            ) : (
+              <span>Non connecté</span>
+            )}
+          </div>
+          <MaintenanceNotificationsPopover />
         </div>
-        <MaintenanceNotificationsPopover />
-      </div>
-      
-      <div className="px-4 py-4">
-        <div className="max-w-7xl mx-auto">
-          <Tabs defaultValue="tasks" value={dashboardView} onValueChange={setDashboardView}>
-            <div className="flex justify-between items-center mb-6">
-              <TabsList>
-                <TabsTrigger value="tasks">Tâches</TabsTrigger>
-                <TabsTrigger value="dashboard">Tableau de bord</TabsTrigger>
-              </TabsList>
+        
+        <div className="px-4 py-4">
+          <div className="max-w-7xl mx-auto">
+            <Tabs defaultValue="tasks" value={dashboardView} onValueChange={setDashboardView}>
+              <div className="flex justify-between items-center mb-6">
+                <TabsList>
+                  <TabsTrigger value="tasks">Tâches</TabsTrigger>
+                  <TabsTrigger value="dashboard">Tableau de bord</TabsTrigger>
+                </TabsList>
+                
+                <MaintenanceHeader 
+                  setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
+                  userName={getUserDisplayName()}
+                />
+              </div>
               
-              <MaintenanceHeader 
-                setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
-                userName={getUserDisplayName()}
-              />
-            </div>
-            
-            <TabsContent value="tasks">
-              <MaintenanceContent 
-                tasks={tasks}
-                currentView={currentView}
-                setCurrentView={setCurrentView}
-                currentMonth={currentMonth}
-                setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
-                updateTaskStatus={(taskId, status: MaintenanceStatus) => updateTaskStatus(taskId, status)}
-                updateTaskPriority={updateTaskPriority}
-                deleteTask={deleteTask}
-                userName={getUserDisplayName()}
-              />
-            </TabsContent>
-            
-            <TabsContent value="dashboard">
-              <MaintenanceDashboard 
-                tasks={tasks} 
-                userName={getUserDisplayName()}
-              />
-            </TabsContent>
-          </Tabs>
+              <TabsContent value="tasks">
+                <MaintenanceContent 
+                  tasks={tasks}
+                  currentView={currentView}
+                  setCurrentView={setCurrentView}
+                  currentMonth={currentMonth}
+                  setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
+                  updateTaskStatus={(taskId, status: MaintenanceStatus) => updateTaskStatus(taskId, status)}
+                  updateTaskPriority={updateTaskPriority}
+                  deleteTask={deleteTask}
+                  userName={getUserDisplayName()}
+                />
+              </TabsContent>
+              
+              <TabsContent value="dashboard">
+                <MaintenanceDashboard 
+                  tasks={tasks} 
+                  userName={getUserDisplayName()}
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
       </div>
       
@@ -133,16 +136,16 @@ const Maintenance = () => {
       />
       
       <MaintenanceCompletionDialog
-        open={isCompletionDialogOpen}
-        onOpenChange={setIsCompletionDialogOpen}
+        isOpen={isCompletionDialogOpen}
+        onClose={() => setIsCompletionDialogOpen(false)}
         task={selectedTask}
         onCompleted={() => {
           setIsCompletionDialogOpen(false);
-          // Refresh task list
+          // Rafraîchir la liste des tâches
         }}
         userName={getUserDisplayName()}
       />
-    </div>
+    </MainLayout>
   );
 };
 

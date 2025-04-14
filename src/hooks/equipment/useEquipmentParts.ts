@@ -6,8 +6,6 @@ import { getPartsForEquipment } from '@/services/supabase/parts/getPartsForEquip
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUpdatePart, useDeletePart } from '@/hooks/parts';
-import { partsData } from '@/data/partsData';
-import { toast as sonnerToast } from 'sonner';
 
 export function useEquipmentParts(equipment: Equipment) {
   const [parts, setParts] = useState<Part[]>([]);
@@ -17,8 +15,7 @@ export function useEquipmentParts(equipment: Equipment) {
   const [selectedPart, setSelectedPart] = useState<Part | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddPartDialogOpen, setIsAddPartDialogOpen] = useState(false);
-  const [isUsingDemoData, setIsUsingDemoData] = useState(false);
-  const { toast: uiToast } = useToast();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   
   const updatePartMutation = useUpdatePart();
@@ -29,29 +26,21 @@ export function useEquipmentParts(equipment: Equipment) {
       try {
         setLoading(true);
         setError(null);
-        setIsUsingDemoData(false);
         
         console.log('Fetching parts for equipment ID:', equipment.id);
         // Charger les pièces associées à cet équipement
         const equipmentParts = await getPartsForEquipment(equipment.id);
         console.log('Fetched parts:', equipmentParts);
         
-        // Vérifier si nous utilisons des données de démo
-        if (equipmentParts.length > 0 && equipmentParts[0] === partsData[0]) {
-          setIsUsingDemoData(true);
-        }
-        
         setParts(equipmentParts);
       } catch (err: any) {
         console.error('Error fetching parts:', err);
         setError(err.message || 'Impossible de charger les pièces');
-        setIsUsingDemoData(true);
-        sonnerToast.error("Erreur de chargement", {
-          description: "Utilisation des données de démonstration"
+        toast({
+          title: "Erreur de chargement",
+          description: err.message || 'Impossible de charger les pièces compatibles',
+          variant: "destructive",
         });
-        // Utiliser des données de démonstration en cas d'erreur
-        const filteredMockData = partsData.filter((part, index) => index % 2 === 0);
-        setParts(filteredMockData);
       } finally {
         setLoading(false);
       }
@@ -60,7 +49,7 @@ export function useEquipmentParts(equipment: Equipment) {
     if (equipment && equipment.id) {
       fetchParts();
     }
-  }, [equipment.id]);
+  }, [equipment.id, toast]);
 
   // Filtrer les pièces en fonction du terme de recherche
   const filteredParts = parts.filter(part => 
@@ -92,21 +81,26 @@ export function useEquipmentParts(equipment: Equipment) {
           // Invalider les requêtes pour rafraîchir les données
           queryClient.invalidateQueries({ queryKey: ['parts'] });
           
-          sonnerToast.success("Succès", {
-            description: `La pièce ${result.name} a été mise à jour avec succès`
+          toast({
+            title: "Succès",
+            description: `La pièce ${result.name} a été mise à jour avec succès`,
           });
         },
         onError: (error: any) => {
           console.error('Erreur lors de la mise à jour de la pièce:', error);
-          sonnerToast.error("Erreur", {
-            description: error.message || "Erreur lors de la mise à jour de la pièce"
+          toast({
+            title: "Erreur",
+            description: error.message || "Erreur lors de la mise à jour de la pièce",
+            variant: "destructive",
           });
         }
       });
     } catch (err: any) {
       console.error('Erreur inattendue lors de la mise à jour:', err);
-      sonnerToast.error("Erreur", {
-        description: err.message || "Une erreur est survenue lors de la mise à jour"
+      toast({
+        title: "Erreur",
+        description: err.message || "Une erreur est survenue lors de la mise à jour",
+        variant: "destructive",
       });
     }
   };
@@ -125,32 +119,22 @@ export function useEquipmentParts(equipment: Equipment) {
       // Invalider les requêtes pour rafraîchir les données
       queryClient.invalidateQueries({ queryKey: ['parts'] });
       
-      sonnerToast.success("Succès", {
-        description: "La pièce a été supprimée avec succès"
+      toast({
+        title: "Succès",
+        description: "La pièce a été supprimée avec succès",
       });
     } catch (err: any) {
       console.error('Erreur lors de la suppression:', err);
-      sonnerToast.error("Erreur", {
-        description: err.message || "Erreur lors de la suppression de la pièce"
+      toast({
+        title: "Erreur",
+        description: err.message || "Erreur lors de la suppression de la pièce",
+        variant: "destructive",
       });
     }
   };
 
   const handleAddPart = () => {
     setIsAddPartDialogOpen(true);
-  };
-  
-  const debugPartData = () => {
-    console.log('==== DEBUG: PARTS DATA ====');
-    console.log('Equipment ID:', equipment.id);
-    console.log('Parts count:', parts.length);
-    console.log('Using demo data:', isUsingDemoData);
-    console.log('Parts array:', parts);
-    console.log('========================');
-    
-    sonnerToast.info("Débogage", {
-      description: `${parts.length} pièces dans la console`
-    });
   };
 
   return {
@@ -168,8 +152,6 @@ export function useEquipmentParts(equipment: Equipment) {
     handlePartUpdated,
     handleDeletePart,
     handleAddPart,
-    isUpdating: updatePartMutation.isPending,
-    isUsingDemoData,
-    debugPartData
+    isUpdating: updatePartMutation.isPending
   };
 }

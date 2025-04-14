@@ -1,7 +1,7 @@
 
-import React, { useState, useCallback, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Loader2 } from 'lucide-react';
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
 import { 
   Drawer, 
   DrawerContent, 
@@ -12,35 +12,8 @@ import { navItems } from './Navbar';
 
 const MobileMenu = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [open, setOpen] = useState(false);
-  const [isNavigating, setIsNavigating] = useState(false);
-  const [activeLink, setActiveLink] = useState<string | null>(null);
-  
-  // Réinitialiser l'état de navigation lorsque l'URL change
-  useEffect(() => {
-    setIsNavigating(false);
-    setActiveLink(null);
-  }, [location.pathname]);
-  
-  const handleNavigation = useCallback((href: string) => {
-    if (location.pathname !== href) {
-      setIsNavigating(true);
-      setActiveLink(href);
-      
-      // Fermer le drawer
-      setOpen(false);
-      
-      // Naviguer après une courte pause pour permettre l'animation de fermeture
-      setTimeout(() => {
-        navigate(href);
-      }, 300);
-    } else {
-      // Si on clique sur le lien actif, juste fermer le menu
-      setOpen(false);
-    }
-  }, [location.pathname, navigate]);
+  const [open, setOpen] = React.useState(false);
   
   if (!isMobile) return null;
   
@@ -72,28 +45,22 @@ const MobileMenu = () => {
               const isActive = location.pathname === item.href || 
                               (item.href !== '/' && location.pathname.startsWith(item.href));
               
-              const isLoading = isNavigating && activeLink === item.href;
-              
               return (
-                <button
+                <Link
                   key={item.href}
+                  to={item.href}
                   className={`flex items-center w-full p-3 rounded-lg mb-1 transition-colors ${
                     isActive 
                       ? 'bg-agri-primary/10 text-agri-primary' 
                       : 'text-gray-800 hover:bg-gray-100'
                   }`}
-                  onClick={() => handleNavigation(item.href)}
-                  disabled={isNavigating}
+                  onClick={() => setOpen(false)}
                 >
-                  {isLoading ? (
-                    <Loader2 className="mr-3 h-5 w-5 animate-spin text-agri-primary" />
-                  ) : (
-                    <item.icon className={`mr-3 h-5 w-5 ${
-                      isActive ? 'text-agri-primary' : 'text-gray-600'
-                    }`} />
-                  )}
+                  <item.icon className={`mr-3 h-5 w-5 ${
+                    isActive ? 'text-agri-primary' : 'text-gray-600'
+                  }`} />
                   {item.title}
-                </button>
+                </Link>
               );
             })}
           </div>

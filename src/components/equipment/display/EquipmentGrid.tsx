@@ -4,9 +4,6 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
 
-// Image de placeholder sécurisée et locale
-const PLACEHOLDER_IMAGE = "/placeholder.svg";
-
 interface EquipmentGridProps {
   equipment: EquipmentItem[];
   getStatusColor: (status: string | undefined) => string;
@@ -21,55 +18,51 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({
   handleEquipmentClick
 }) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {equipment.map((item) => (
         <Card 
           key={item.id} 
           className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
           onClick={() => handleEquipmentClick(item)}
         >
-          <div className="aspect-video relative overflow-hidden bg-muted">
+          <div className="aspect-video relative overflow-hidden">
             <img
-              src={item.image || PLACEHOLDER_IMAGE}
+              src={item.image || "https://images.unsplash.com/photo-1585911171167-1f66ea3de00c?q=80&w=500&auto=format&fit=crop"}
               alt={item.name}
               className="object-cover w-full h-full transition-transform hover:scale-105"
-              onError={(e) => {
-                // Fallback en cas d'erreur de chargement d'image
-                (e.target as HTMLImageElement).src = PLACEHOLDER_IMAGE;
-              }}
             />
             <Badge 
-              className={`absolute top-1 right-1 text-xs ${getStatusColor(item.status)}`}
+              className={`absolute top-2 right-2 ${getStatusColor(item.status)}`}
               variant="secondary"
             >
               {getStatusText(item.status)}
             </Badge>
           </div>
           
-          <CardHeader className="p-2 pb-0">
+          <CardHeader className="pb-2">
             <div className="flex justify-between items-start">
-              <h3 className="font-semibold text-sm">{item.name}</h3>
+              <h3 className="font-semibold text-lg">{item.name}</h3>
               {item.year && (
-                <Badge variant="outline" className="text-xs">{item.year}</Badge>
+                <Badge variant="outline">{item.year}</Badge>
               )}
             </div>
           </CardHeader>
           
-          <CardContent className="p-2 pb-0">
-            <div className="text-xs text-muted-foreground">
+          <CardContent className="pb-2">
+            <div className="text-sm text-muted-foreground">
               {item.manufacturer && item.model ? (
                 <p>{item.manufacturer} {item.model}</p>
               ) : (
                 <p>{item.manufacturer || item.model || item.type || 'Équipement'}</p>
               )}
               {item.location && (
-                <p className="truncate">{item.location}</p>
+                <p className="mt-1">Emplacement: {item.location}</p>
               )}
             </div>
           </CardContent>
           
-          <CardFooter className="text-xs text-muted-foreground p-2">
-            {item.serialNumber && <p className="truncate">S/N: {item.serialNumber}</p>}
+          <CardFooter className="text-xs text-muted-foreground pt-0">
+            {item.serialNumber && <p>S/N: {item.serialNumber}</p>}
           </CardFooter>
         </Card>
       ))}

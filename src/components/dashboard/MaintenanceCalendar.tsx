@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { cn } from '@/lib/utils';
@@ -48,17 +47,11 @@ export function MaintenanceCalendar({
   // Group events by date
   const eventsByDay: Record<number, MaintenanceEvent[]> = {};
   events.forEach(event => {
-    // Convert string dates to Date objects
-    const eventDate = typeof event.date === 'string' ? new Date(event.date) : event.date;
-    
-    // Check if eventDate is valid before accessing getDate()
-    if (eventDate instanceof Date && !isNaN(eventDate.getTime())) {
-      const day = eventDate.getDate();
-      if (!eventsByDay[day]) {
-        eventsByDay[day] = [];
-      }
-      eventsByDay[day].push(event);
+    const day = event.date.getDate();
+    if (!eventsByDay[day]) {
+      eventsByDay[day] = [];
     }
+    eventsByDay[day].push(event);
   });
 
   // Helper to determine cell color based on events

@@ -4,7 +4,7 @@
 import * as React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 
-type Theme = "light" | "dark" | "system"
+type Theme = "dark" | "light" | "system"
 
 type ThemeProviderProps = {
   children: React.ReactNode
@@ -18,7 +18,7 @@ type ThemeProviderState = {
 }
 
 const initialState: ThemeProviderState = {
-  theme: "light", // Default to light theme
+  theme: "system",
   setTheme: () => null,
 }
 
@@ -26,7 +26,7 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
 
 export function ThemeProvider({
   children,
-  defaultTheme = "light", // Default to light
+  defaultTheme = "system",
   storageKey = "vite-ui-theme",
   ...props
 }: ThemeProviderProps) {
@@ -37,34 +37,20 @@ export function ThemeProvider({
   useEffect(() => {
     const root = window.document.documentElement
     
-    root.classList.remove("dark", "light")
+    root.classList.remove("light", "dark")
     
     if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+        .matches
         ? "dark"
         : "light"
       
       root.classList.add(systemTheme)
-      
-      // Synchronize with our custom persistence system
-      localStorage.setItem('darkMode', (systemTheme === "dark").toString())
       return
     }
     
     root.classList.add(theme)
-    
-    // Synchronize with our custom persistence system
-    localStorage.setItem('darkMode', (theme === "dark").toString())
   }, [theme])
-
-  // Fix: Run the theme effect on component mount as well to ensure theme persistence between page reloads
-  useEffect(() => {
-    // This will prevent the flash of incorrect theme on page load
-    const savedTheme = localStorage.getItem(storageKey) as Theme;
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
-  }, [storageKey]); 
 
   const value = {
     theme,

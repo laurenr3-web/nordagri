@@ -1,10 +1,9 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { interventionService } from '@/services/supabase/interventionService';
-import { Intervention, InterventionStatus } from '@/types/Intervention';
+import { Intervention } from '@/types/Intervention';
 import { toast } from 'sonner';
-import { ensureNumberId } from '@/utils/typeGuards';
 
 export function useInterventionDetail(interventionId: string | number | undefined) {
   const queryClient = useQueryClient();
@@ -17,32 +16,20 @@ export function useInterventionDetail(interventionId: string | number | undefine
     error
   } = useQuery({
     queryKey: ['interventions', interventionId],
-    queryFn: () => interventionId ? interventionService.getInterventionById(ensureNumberId(interventionId)) : null,
+    queryFn: () => interventionId ? interventionService.getInterventionById(interventionId) : null,
     enabled: !!interventionId
   });
   
   // Update intervention mutation
   const updateMutation = useMutation({
-    mutationFn: (updatedIntervention: Partial<Intervention>) => {
+    mutationFn: (updatedIntervention: Intervention) => {
       setIsUpdating(true);
-      if (!intervention || !intervention.id) {
-        throw new Error("Cannot update an intervention without ID");
-      }
-      
-      // Ensure status is a valid InterventionStatus type
-      const validatedIntervention = {
-        ...updatedIntervention,
-        status: updatedIntervention.status as InterventionStatus
-      };
-      
-      return interventionService.updateIntervention(intervention.id, validatedIntervention);
+      return interventionService.updateIntervention(updatedIntervention);
     },
     onSuccess: (updatedIntervention) => {
       // Update cache
-      if (updatedIntervention && interventionId) {
-        queryClient.setQueryData(['interventions', interventionId], updatedIntervention);
-        queryClient.invalidateQueries({ queryKey: ['interventions'] });
-      }
+      queryClient.setQueryData(['interventions', updatedIntervention.id], updatedIntervention);
+      queryClient.invalidateQueries({ queryKey: ['interventions'] });
       
       toast.success('Intervention mise à jour avec succès');
       setIsUpdating(false);
@@ -56,7 +43,7 @@ export function useInterventionDetail(interventionId: string | number | undefine
   });
   
   // Handle intervention update
-  const handleInterventionUpdate = (updatedIntervention: Partial<Intervention>) => {
+  const handleInterventionUpdate = (updatedIntervention: Intervention) => {
     updateMutation.mutate(updatedIntervention);
   };
   

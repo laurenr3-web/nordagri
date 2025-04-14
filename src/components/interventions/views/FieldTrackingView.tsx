@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -10,7 +11,6 @@ import { Intervention } from '@/types/Intervention';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Clock, MapPin, User, ChevronRight, CheckCircle, XCircle } from 'lucide-react';
 import AssignTechnicianDialog from '../dialogs/AssignTechnicianDialog';
-import { ensureNumberId } from '@/utils/typeGuards';
 
 interface FieldTrackingViewProps {
   interventions: Intervention[];
@@ -58,13 +58,6 @@ const FieldTrackingView: React.FC<FieldTrackingViewProps> = ({
       onAssignTechnician(selectedIntervention, technician);
       setAssignDialogOpen(false);
       setSelectedIntervention(null);
-    }
-  };
-
-  // Handle update status with numeric ID
-  const handleUpdateStatus = (intervention: Intervention, status: string) => {
-    if (onUpdateStatus) {
-      onUpdateStatus(ensureNumberId(intervention.id), status);
     }
   };
 
@@ -150,7 +143,7 @@ const FieldTrackingView: React.FC<FieldTrackingViewProps> = ({
                           <Button 
                             variant="default" 
                             size="sm"
-                            onClick={() => handleUpdateStatus(intervention, 'in-progress')}
+                            onClick={() => onUpdateStatus(intervention.id, 'in-progress')}
                           >
                             Démarrer
                           </Button>
@@ -230,7 +223,7 @@ const FieldTrackingView: React.FC<FieldTrackingViewProps> = ({
                           <Button 
                             variant="default" 
                             size="sm"
-                            onClick={() => handleUpdateStatus(intervention, 'completed')}
+                            onClick={() => onUpdateStatus(intervention.id, 'completed')}
                           >
                             <CheckCircle className="h-4 w-4 mr-2" />
                             Terminer
@@ -241,7 +234,7 @@ const FieldTrackingView: React.FC<FieldTrackingViewProps> = ({
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => handleUpdateStatus(intervention, 'cancelled')}
+                            onClick={() => onUpdateStatus(intervention.id, 'canceled')}
                           >
                             <XCircle className="h-4 w-4 mr-2" />
                             Annuler

@@ -1,154 +1,71 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Part } from '@/types/Part';
-import { partsData } from '@/data/partsData';
-import { toast } from 'sonner';
+import { ensureNumberId } from '@/utils/typeGuards';
 
+/**
+ * Récupère les pièces compatibles avec un équipement spécifique
+ * 
+ * @param equipmentId L'ID de l'équipement
+ * @returns Une promesse résolvant à un tableau de pièces
+ */
 export async function getPartsForEquipment(equipmentId: number | string): Promise<Part[]> {
-  console.log(`🔍 Fetching parts for equipment ID: ${equipmentId} from parts_inventory`);
+  console.log('🔍 Recherche des pièces pour l\'équipement:', equipmentId);
   
   try {
-    // Get the current user ID from the session
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    // Convert string id to number if needed
+    const numericId = ensureNumberId(equipmentId);
     
-    if (sessionError) {
-      console.error('Error getting session:', sessionError);
-      console.info('Returning demo parts data due to session error');
-      toast.info("Utilisation de données de démonstration pour les pièces");
-      return partsData.filter((part, index) => index % 2 === 0);
+    // Récupérer d'abord les détails de l'équipement pour connaître son type et modèle
+    const { data: equipment, error: equipmentError } = await supabase
+      .from('equipment')
+      .select('type, model, manufacturer')
+      .eq('id', numericId)
+      .single();
+    
+    if (equipmentError) {
+      console.error('Erreur lors de la récupération des détails de l\'équipement:', equipmentError);
+      throw equipmentError;
     }
     
-    const userId = sessionData.session?.user.id;
-    
-    // If user is not authenticated, return mock data
-    if (!userId) {
-      console.warn('User not authenticated, returning filtered sample parts data');
-      toast.info("Utilisateur non authentifié - données de démonstration utilisées");
-      return partsData.filter((part, index) => index % 2 === 0); // Return a subset of parts as an example
-    }
-    
-    console.log(`Looking for parts compatible with equipment ${equipmentId} in parts_inventory table for user ${userId}`);
-    
-    try {
-      // Attempt to get compatible parts (direct approach)
-      const compatibleParts = await fetchCompatibleParts(userId, equipmentId);
-      
-      // If we have compatible parts, return them
-      if (compatibleParts && compatibleParts.length > 0) {
-        console.log(`Found ${compatibleParts.length} compatible parts for equipment ${equipmentId} in parts_inventory`);
-        return compatibleParts;
-      }
-      
-      console.info('No compatible parts found in database, returning demo data');
-      toast.info("Aucune pièce compatible trouvée - données de démonstration utilisées");
-      return partsData.filter((_, index) => index % 3 === 0);
-      
-    } catch (queryError) {
-      console.error('Error executing parts query:', queryError);
-      console.info('Returning demo parts data due to query error');
-      toast.error("Erreur lors de la recherche de pièces - données de démonstration utilisées");
-      return partsData.filter((_, index) => index % 2 === 0);
-    }
-  } catch (error) {
-    console.error('Error in getPartsForEquipment():', error);
-    console.info('Returning demo parts data due to general error');
-    toast.error("Erreur générale - données de démonstration utilisées");
-    return partsData.filter((part) => 
-      part.compatibility && 
-      part.compatibility.some(equip => equip.includes(equipmentId.toString()))
-    );
-  }
-}
-
-// Helper function to fetch compatible parts from parts_inventory table
-async function fetchCompatibleParts(userId: string, equipmentId: number | string): Promise<Part[]> {
-  try {
-    // First attempt - using contains operator for compatibility array in parts_inventory
+    // Récupérer les pièces compatibles avec cet équipement
+    // Cette requête utilise une logique pour trouver des pièces basée sur la compatibilité
     const { data, error } = await supabase
       .from('parts_inventory')
       .select('*')
-      .eq('owner_id', userId)
-      .filter('compatible_with', 'cs', `{${equipmentId}}`);
+      .or(
+        // Vérifie si l'équipement est dans le tableau compatible_with
+        equipment.model ? 
+        `compatible_with.cs.{${equipment.model}},compatible_with.cs.{${equipment.type}}` : 
+        `compatible_with.cs.{${equipment.type}}`
+      );
     
     if (error) {
-      console.error('Error fetching parts for equipment (method 1):', error);
+      console.error('Erreur lors de la récupération des pièces compatibles:', error);
       throw error;
     }
     
-    if (data && data.length > 0) {
-      return data.map(mapPartFromDatabase);
-    }
-    
-    // Second attempt - using text search
-    const { data: altData, error: altError } = await supabase
-      .from('parts_inventory')
-      .select('*')
-      .eq('owner_id', userId)
-      .textSearch('compatible_with', equipmentId.toString());
-    
-    if (altError) {
-      console.error('Error fetching parts for equipment (method 2):', altError);
-      throw altError;
-    }
-    
-    if (altData && altData.length > 0) {
-      return altData.map(mapPartFromDatabase);
-    }
-    
-    // No parts found with either method
-    return [];
-  } catch (error) {
-    console.error('Error in fetchCompatibleParts():', error);
-    throw error;
-  }
-}
-
-// Helper function to map database part from parts_inventory to Part type
-function mapPartFromDatabase(part: any): Part {
-  try {
-    // Handle compatibility array which might be stored as string
-    let compatibility: any[] = part.compatible_with || [];
-    if (typeof compatibility === 'string') {
-      try {
-        compatibility = JSON.parse(compatibility);
-      } catch {
-        compatibility = [compatibility];
-      }
-    }
-    
-    // If compatibility is not an array after conversion, make it an array
-    if (!Array.isArray(compatibility)) {
-      compatibility = [];
-    }
-    
-    return {
+    // Convertir la réponse de la base de données en objets Part
+    return (data || []).map(part => ({
       id: part.id,
-      name: part.name || 'Sans nom',
+      name: part.name,
       partNumber: part.part_number || '',
-      category: part.category || 'Non classé',
+      reference: part.part_number || '',
+      category: part.category || '',
       manufacturer: part.supplier || '',
-      compatibility: compatibility,
-      stock: typeof part.quantity === 'number' ? part.quantity : 0,
-      price: typeof part.unit_price === 'number' ? part.unit_price : 0,
+      compatibility: part.compatible_with || [],
+      compatibleWith: part.compatible_with || [],
+      stock: part.quantity,
+      quantity: part.quantity,
+      price: part.unit_price !== null ? part.unit_price : 0,
       location: part.location || '',
-      reorderPoint: typeof part.reorder_threshold === 'number' ? part.reorder_threshold : 5,
-      image: part.image_url || 'https://placehold.co/400x300/png?text=No+Image'
-    };
+      reorderPoint: part.reorder_threshold || 5,
+      minimumStock: part.reorder_threshold || 5,
+      image: part.image_url || 'https://placehold.co/100x100/png',
+      imageUrl: part.image_url
+    }));
   } catch (err) {
-    console.error('Error mapping part:', err, part);
-    // Return a placeholder part rather than failing
-    return {
-      id: part.id || 'error-mapping',
-      name: part.name || 'Error mapping part',
-      partNumber: '',
-      category: 'Error',
-      manufacturer: '',
-      compatibility: [],
-      stock: 0,
-      price: 0,
-      location: '',
-      reorderPoint: 5,
-      image: 'https://placehold.co/400x300/png?text=Error'
-    };
+    console.error('Erreur inattendue lors de la récupération des pièces:', err);
+    throw err;
   }
 }

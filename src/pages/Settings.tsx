@@ -1,12 +1,14 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Navbar from "@/components/layout/Navbar";
 import { SettingsEssentials } from '@/components/settings/SettingsEssentials';
 import { SettingsInterface } from '@/components/settings/SettingsInterface';
 import { SettingsNotifications } from '@/components/settings/SettingsNotifications';
 import { SettingsIntegrations } from '@/components/settings/SettingsIntegrations';
 import { SettingsEquipment } from '@/components/settings/SettingsEquipment';
 import { SettingsSecurity } from '@/components/settings/SettingsSecurity';
+import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const Settings = () => {
@@ -26,46 +28,54 @@ const Settings = () => {
   };
   
   return (
-    <div className="flex-1 p-2 md:p-8">
-      <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Settings</h1>
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full bg-background">
+        <Sidebar className="border-r">
+          <Navbar />
+        </Sidebar>
         
-        <Tabs defaultValue={defaultTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="mb-8 w-full justify-start overflow-x-auto">
-            <TabsTrigger value="essentials">Essential Features</TabsTrigger>
-            <TabsTrigger value="interface">Interface Customization</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications & Alerts</TabsTrigger>
-            <TabsTrigger value="integrations">Integrations</TabsTrigger>
-            <TabsTrigger value="equipment">Equipment Preferences</TabsTrigger>
-            <TabsTrigger value="security">Security</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="essentials">
-            <SettingsEssentials />
-          </TabsContent>
-          
-          <TabsContent value="interface">
-            <SettingsInterface />
-          </TabsContent>
-          
-          <TabsContent value="notifications">
-            <SettingsNotifications />
-          </TabsContent>
-          
-          <TabsContent value="integrations">
-            <SettingsIntegrations />
-          </TabsContent>
-          
-          <TabsContent value="equipment">
-            <SettingsEquipment />
-          </TabsContent>
-          
-          <TabsContent value="security">
-            <SettingsSecurity />
-          </TabsContent>
-        </Tabs>
+        <div className="flex-1 p-8">
+          <div className="max-w-5xl mx-auto">
+            <h1 className="text-3xl font-bold mb-6">Settings</h1>
+            
+            <Tabs defaultValue={defaultTab} onValueChange={handleTabChange} className="w-full">
+              <TabsList className="mb-8 w-full justify-start overflow-x-auto">
+                <TabsTrigger value="essentials">Essential Features</TabsTrigger>
+                <TabsTrigger value="interface">Interface Customization</TabsTrigger>
+                <TabsTrigger value="notifications">Notifications & Alerts</TabsTrigger>
+                <TabsTrigger value="integrations">Integrations</TabsTrigger>
+                <TabsTrigger value="equipment">Equipment Preferences</TabsTrigger>
+                <TabsTrigger value="security">Security</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="essentials">
+                <SettingsEssentials />
+              </TabsContent>
+              
+              <TabsContent value="interface">
+                <SettingsInterface />
+              </TabsContent>
+              
+              <TabsContent value="notifications">
+                <SettingsNotifications />
+              </TabsContent>
+              
+              <TabsContent value="integrations">
+                <SettingsIntegrations />
+              </TabsContent>
+              
+              <TabsContent value="equipment">
+                <SettingsEquipment />
+              </TabsContent>
+              
+              <TabsContent value="security">
+                <SettingsSecurity />
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 

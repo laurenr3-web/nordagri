@@ -4,7 +4,15 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { AlertTriangle, CheckCircle, PackageOpen } from 'lucide-react';
-import { StockAlert } from '@/hooks/dashboard/types/dashboardTypes';
+
+interface StockAlert {
+  id: number;
+  name: string;
+  currentStock: number;
+  reorderPoint: number;
+  percentRemaining: number;
+  category: string;
+}
 
 interface StockAlertsProps {
   alerts: StockAlert[];

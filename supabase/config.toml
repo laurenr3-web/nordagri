@@ -53,16 +53,6 @@ secret = ""
 redirect_uri = ""
 url = ""
 
-# Ajout de la configuration pour le MFA
-[auth.mfa]
-enabled = true
-remove_after_delete = true
-
-# Paramètres de sécurité pour les mots de passe
-[auth.password]
-min_length = 10
-hibp_enabled = true  # Vérifie si le mot de passe a été compromis (Have I Been Pwned)
-
 [analytics]
 enabled = false
 port = 54327

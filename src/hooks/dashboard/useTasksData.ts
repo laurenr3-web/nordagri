@@ -16,7 +16,6 @@ export interface UpcomingTask {
 export const useTasksData = (user: any) => {
   const [loading, setLoading] = useState(true);
   const [upcomingTasks, setUpcomingTasks] = useState<UpcomingTask[]>([]);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTasksData();
@@ -24,8 +23,6 @@ export const useTasksData = (user: any) => {
 
   const fetchTasksData = async () => {
     setLoading(true);
-    setError(null);
-    
     try {
       // Fetch tasks from Supabase
       const { data, error } = await supabase
@@ -51,40 +48,42 @@ export const useTasksData = (user: any) => {
       }
     } catch (error) {
       console.error('Error fetching tasks data:', error);
-      setError("Impossible de récupérer les tâches à venir");
+      toast({
+        title: "Erreur",
+        description: "Impossible de récupérer les tâches à venir.",
+        variant: "destructive",
+      });
       
-      // Utilisation des données par défaut uniquement en mode développement ou après confirmation
-      if (import.meta.env.DEV) {
-        setUpcomingTasks([
-          {
-            id: 1,
-            title: "Changement filtre à huile",
-            description: "Remplacer le filtre à huile du moteur",
-            dueDate: new Date(new Date().setDate(new Date().getDate() + 2)),
-            status: "pending",
-            priority: "high",
-            assignedTo: "Michael Torres"
-          },
-          {
-            id: 2,
-            title: "Calibration du système GPS",
-            description: "Calibrer le système de navigation GPS",
-            dueDate: new Date(new Date().setDate(new Date().getDate() + 5)),
-            status: "pending",
-            priority: "medium",
-            assignedTo: "David Chen"
-          },
-          {
-            id: 3,
-            title: "Vérification système hydraulique",
-            description: "Inspecter les fuites potentielles",
-            dueDate: new Date(new Date().setDate(new Date().getDate() + 7)),
-            status: "pending",
-            priority: "low",
-            assignedTo: "Sarah Johnson"
-          }
-        ]);
-      }
+      // Données par défaut en cas d'échec
+      setUpcomingTasks([
+        {
+          id: 1,
+          title: "Changement filtre à huile",
+          description: "Remplacer le filtre à huile du moteur",
+          dueDate: new Date(new Date().setDate(new Date().getDate() + 2)),
+          status: "pending",
+          priority: "high",
+          assignedTo: "Michael Torres"
+        },
+        {
+          id: 2,
+          title: "Calibration du système GPS",
+          description: "Calibrer le système de navigation GPS",
+          dueDate: new Date(new Date().setDate(new Date().getDate() + 5)),
+          status: "pending",
+          priority: "medium",
+          assignedTo: "David Chen"
+        },
+        {
+          id: 3,
+          title: "Vérification système hydraulique",
+          description: "Inspecter les fuites potentielles",
+          dueDate: new Date(new Date().setDate(new Date().getDate() + 7)),
+          status: "pending",
+          priority: "low",
+          assignedTo: "Sarah Johnson"
+        }
+      ]);
     } finally {
       setLoading(false);
     }
@@ -92,9 +91,7 @@ export const useTasksData = (user: any) => {
 
   return {
     loading,
-    upcomingTasks,
-    error,
-    retry: fetchTasksData
+    upcomingTasks
   };
 };
 

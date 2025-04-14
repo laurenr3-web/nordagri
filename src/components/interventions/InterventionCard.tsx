@@ -1,9 +1,10 @@
-import React, { memo, useCallback } from 'react';
+
+import React from 'react';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { MapPin, User, Wrench, Clock, CalendarCheck } from 'lucide-react';
-import { Intervention, InterventionStatus } from '@/types/Intervention';
+import { Intervention } from '@/types/Intervention';
 import StatusBadge from './StatusBadge';
 import PriorityBadge from './PriorityBadge';
 import { formatDate } from './utils/interventionUtils';
@@ -14,13 +15,13 @@ interface InterventionCardProps {
   onStartWork: (intervention: Intervention) => void;
 }
 
-const InterventionCard = memo(({ 
+const InterventionCard: React.FC<InterventionCardProps> = ({ 
   intervention, 
   onViewDetails, 
   onStartWork 
-}: InterventionCardProps) => {
+}) => {
   // Déterminer la couleur de fond basée sur la priorité
-  const getPriorityClass = useCallback(() => {
+  const getPriorityClass = () => {
     switch(intervention.priority) {
       case 'high':
         return 'border-l-4 border-l-red-500';
@@ -29,15 +30,7 @@ const InterventionCard = memo(({
       default:
         return 'border-l-4 border-l-agri-500';
     }
-  }, [intervention.priority]);
-
-  const handleViewDetails = useCallback(() => {
-    onViewDetails(intervention);
-  }, [onViewDetails, intervention]);
-
-  const handleStartWork = useCallback(() => {
-    onStartWork(intervention);
-  }, [onStartWork, intervention]);
+  };
 
   return (
     <Card className={`overflow-hidden transition-all hover:shadow-md animate-fade-in ${getPriorityClass()}`}>
@@ -45,7 +38,7 @@ const InterventionCard = memo(({
         <div className="flex items-start justify-between mb-4">
           <h3 className="font-semibold text-lg leading-tight truncate">{intervention.title}</h3>
           <div className="flex flex-shrink-0 gap-2 ml-2">
-            <StatusBadge status={intervention.status as "scheduled" | "in-progress" | "completed" | "cancelled"} />
+            <StatusBadge status={intervention.status} />
             <PriorityBadge priority={intervention.priority} />
           </div>
         </div>
@@ -100,7 +93,7 @@ const InterventionCard = memo(({
             variant="outline" 
             size="sm"
             className="gap-1"
-            onClick={handleStartWork}
+            onClick={() => onStartWork(intervention)}
           >
             <Wrench size={16} />
             <span>Démarrer</span>
@@ -108,15 +101,13 @@ const InterventionCard = memo(({
         )}
         <Button 
           size="sm"
-          onClick={handleViewDetails}
+          onClick={() => onViewDetails(intervention)}
         >
           Détails
         </Button>
       </CardFooter>
     </Card>
   );
-});
-
-InterventionCard.displayName = 'InterventionCard';
+};
 
 export default InterventionCard;

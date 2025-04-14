@@ -1,70 +1,56 @@
 
-import * as React from 'react';
-import { cn } from '@/lib/utils';
-import { transitions, animations } from '@/lib/design-system';
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
 interface BlurContainerProps extends React.HTMLAttributes<HTMLDivElement> {
-  children: React.ReactNode;
-  className?: string;
-  delay?: number;
-  blurStrength?: 'none' | 'light' | 'medium' | 'strong';
+  intensity?: "light" | "medium" | "heavy";
+  glassFill?: boolean;
+  neoMorphic?: boolean;
   raised?: boolean;
-  interactive?: boolean;
-  gradient?: boolean;
 }
 
 export function BlurContainer({
   children,
   className,
-  delay = 0,
-  blurStrength = 'light',
+  intensity = "medium",
+  glassFill = true,
+  neoMorphic = false,
   raised = false,
-  interactive = false,
-  gradient = false,
   ...props
 }: BlurContainerProps) {
-  const blurClass = React.useMemo(() => {
-    switch (blurStrength) {
-      case 'none':
-        return '';
-      case 'light':
-        return 'backdrop-blur-sm';
-      case 'medium':
-        return 'backdrop-blur-md';
-      case 'strong':
-        return 'backdrop-blur-lg';
-      default:
-        return 'backdrop-blur-sm';
-    }
-  }, [blurStrength]);
+  // Calculate blur intensity
+  const blurValue = {
+    light: "backdrop-blur-sm",
+    medium: "backdrop-blur-md",
+    heavy: "backdrop-blur-lg",
+  }[intensity];
   
+  // Calculate background opacity based on intensity
+  const bgOpacity = {
+    light: "bg-white/30 dark:bg-black/20",
+    medium: "bg-white/50 dark:bg-black/30",
+    heavy: "bg-white/70 dark:bg-black/40",
+  }[intensity];
+  
+  const glassStyles = cn(
+    "relative rounded-xl border",
+    bgOpacity,
+    blurValue,
+    glassFill ? "border-white/20 dark:border-white/10" : "border-transparent",
+    raised ? "shadow-elevated" : "shadow-glass"
+  );
+  
+  const neoStyles = "neo";
+
   return (
     <div
       className={cn(
-        "rounded-lg border bg-white/80",
-        blurClass,
-        transitions.default,
-        animations.fadeIn,
-        raised && "shadow-md hover:shadow-lg",
-        interactive && "transition-all duration-300 hover:-translate-y-1 hover:shadow-md",
-        gradient && "bg-gradient-to-br from-white/90 to-white/70",
+        neoMorphic ? neoStyles : glassStyles,
         className
       )}
-      style={delay ? { animationDelay: `${delay * 0.1}s` } as React.CSSProperties : undefined}
       {...props}
     >
       {children}
     </div>
   );
-}
-
-interface StaticBlurContainerProps extends BlurContainerProps {
-  animate?: boolean;
-}
-
-export function StaticBlurContainer({
-  animate = false,
-  ...props
-}: StaticBlurContainerProps) {
-  return <BlurContainer {...props} className={cn(props.className, !animate && "!animate-none")} />;
 }

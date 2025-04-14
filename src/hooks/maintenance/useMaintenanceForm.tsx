@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { MaintenanceFormValues, MaintenanceStatus } from '@/hooks/maintenance/maintenanceSlice';
+import { MaintenanceFormValues } from '@/hooks/maintenance/maintenanceSlice';
 import { useFormFields } from './useFormFields';
 import { useStaffManagement } from './useStaffManagement';
 import { useEquipmentOptions } from './useEquipmentOptions';
@@ -24,7 +24,6 @@ export const useMaintenanceForm = (
       equipmentId: equipmentData.equipmentId,
       type: formFields.type,
       priority: formFields.priority,
-      status: 'scheduled' as MaintenanceStatus, // Add the status property with default value 'scheduled'
       dueDate: formFields.dueDate,
       engineHours: parseFloat(formFields.engineHours),
       assignedTo: staffManagement.assignedTo,

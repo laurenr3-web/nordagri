@@ -5,7 +5,7 @@ import { Clock, CheckCircle2, X, CalendarCheck } from 'lucide-react';
 import { getStatusBadgeClass } from './utils/interventionUtils';
 
 interface StatusBadgeProps {
-  status: 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
+  status: 'scheduled' | 'in-progress' | 'completed' | 'canceled';
 }
 
 const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
@@ -18,7 +18,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
         return <Clock size={12} />;
       case 'completed':
         return <CheckCircle2 size={12} />;
-      case 'cancelled':
+      case 'canceled':
         return <X size={12} />;
       default:
         return null;
@@ -34,8 +34,8 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
         return 'In Progress';
       case 'completed':
         return 'Completed';
-      case 'cancelled':
-        return 'Cancelled';
+      case 'canceled':
+        return 'Canceled';
       default:
         return status;
     }
@@ -43,7 +43,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
   
   return (
     <Badge 
-      variant={status === 'scheduled' || status === 'cancelled' ? 'outline' : 'default'} 
+      variant={status === 'scheduled' || status === 'canceled' ? 'outline' : 'default'} 
       className={getStatusBadgeClass(status)}
     >
       {getIcon()}
