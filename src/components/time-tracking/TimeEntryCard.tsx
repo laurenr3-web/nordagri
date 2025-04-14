@@ -34,14 +34,19 @@ export function TimeEntryCard({ entry, onResume, onDelete }: TimeEntryCardProps)
   const getStatusBadge = () => {
     switch (entry.status) {
       case 'active':
-        return <Badge className="bg-green-500">En cours</Badge>;
+        return <Badge variant="success">En cours</Badge>;
       case 'paused':
-        return <Badge className="bg-yellow-500">En pause</Badge>;
+        return <Badge variant="warning">En pause</Badge>;
       case 'completed':
-        return <Badge className="bg-blue-500">Terminé</Badge>;
+        return <Badge variant="info">Terminé</Badge>;
       default:
         return null;
     }
+  };
+
+  const handleNavigate = () => {
+    console.log("Navigating to time entry details:", entry.id);
+    navigate(`/time-tracking/${entry.id}`);
   };
 
   return (
@@ -87,7 +92,7 @@ export function TimeEntryCard({ entry, onResume, onDelete }: TimeEntryCardProps)
             variant="ghost"
             size="sm"
             className="ml-2"
-            onClick={() => navigate(`/time-tracking/${entry.id}`)}
+            onClick={handleNavigate}
           >
             <ExternalLink className="h-4 w-4 mr-2" />
             Détails

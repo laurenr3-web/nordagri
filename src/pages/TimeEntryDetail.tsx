@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,32 +12,46 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
 const TimeEntryDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [entry, setEntry] = useState<TimeEntry | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchEntry = async () => {
       if (!id) return;
 
       try {
+        setIsLoading(true);
         const { data: sessionData } = await supabase.auth.getSession();
         if (!sessionData.session?.user) {
           toast.error("Vous devez être connecté pour voir les détails");
+          navigate('/auth');
           return;
         }
 
+        // Récupérer toutes les entrées de temps de l'utilisateur
         const data = await timeTrackingService.getTimeEntries({
           userId: sessionData.session.user.id,
         });
 
-        const foundEntry = data.find(e => e.id === id);
+        console.log("Entrées récupérées:", data);
+        console.log("ID recherché:", id);
+
+        // Trouver l'entrée correspondante par ID (assurez-vous que les IDs sont comparés dans le même format)
+        const foundEntry = data.find(e => String(e.id) === String(id));
+        
         if (foundEntry) {
+          console.log("Entrée trouvée:", foundEntry);
           setEntry(foundEntry);
         } else {
+          console.error("Entrée non trouvée avec l'ID:", id);
+          console.error("Entrées disponibles:", data.map(e => e.id));
           toast.error("Session introuvable");
+          navigate('/time-tracking');
         }
       } catch (error) {
         console.error("Error fetching time entry:", error);
@@ -48,14 +62,46 @@ const TimeEntryDetail = () => {
     };
 
     fetchEntry();
-  }, [id]);
+  }, [id, navigate]);
 
   if (isLoading) {
-    return <div>Chargement...</div>;
+    return (
+      <SidebarProvider>
+        <div className="flex min-h-screen w-full bg-background">
+          <Sidebar className="border-r">
+            <Navbar />
+          </Sidebar>
+          <div className="flex-1 p-6 flex items-center justify-center">
+            <div className="text-center">
+              <p className="text-lg">Chargement des détails...</p>
+            </div>
+          </div>
+        </div>
+      </SidebarProvider>
+    );
   }
 
   if (!entry) {
-    return <div>Session introuvable</div>;
+    return (
+      <SidebarProvider>
+        <div className="flex min-h-screen w-full bg-background">
+          <Sidebar className="border-r">
+            <Navbar />
+          </Sidebar>
+          <div className="flex-1 p-6 flex flex-col items-center justify-center">
+            <div className="text-center mb-6">
+              <h1 className="text-4xl font-bold mb-2">Session introuvable</h1>
+              <p className="text-lg text-muted-foreground">
+                Impossible de trouver les détails de cette session de temps
+              </p>
+            </div>
+            <Button onClick={() => navigate('/time-tracking')}>
+              Retour au suivi de temps
+            </Button>
+          </div>
+        </div>
+      </SidebarProvider>
+    );
   }
 
   const formatDate = (date: string | Date) => {
@@ -74,11 +120,11 @@ const TimeEntryDetail = () => {
   const getStatusBadge = () => {
     switch (entry.status) {
       case 'active':
-        return <Badge className="bg-green-500">En cours</Badge>;
+        return <Badge variant="success">En cours</Badge>;
       case 'paused':
-        return <Badge className="bg-yellow-500">En pause</Badge>;
+        return <Badge variant="warning">En pause</Badge>;
       case 'completed':
-        return <Badge className="bg-blue-500">Terminé</Badge>;
+        return <Badge variant="info">Terminé</Badge>;
       default:
         return null;
     }
@@ -92,11 +138,20 @@ const TimeEntryDetail = () => {
         </Sidebar>
         
         <div className="flex-1 p-6">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold">Détails de la session</h1>
-            <p className="text-muted-foreground mt-1">
-              Informations détaillées sur la session de temps
-            </p>
+          <div className="mb-6 flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold">Détails de la session</h1>
+              <p className="text-muted-foreground mt-1">
+                Informations détaillées sur la session de temps
+              </p>
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/time-tracking')}
+              className="flex items-center gap-2"
+            >
+              Retour
+            </Button>
           </div>
 
           <div className="grid gap-6">
