@@ -7,79 +7,76 @@ import { BaseEntity, TimestampFields } from './common';
 export type EquipmentStatus = 'operational' | 'maintenance' | 'repair' | 'inactive';
 
 /**
- * Equipment entity interface
+ * Base equipment properties
  */
-export interface Equipment extends BaseEntity, TimestampFields {
-  id: number;
+export interface EquipmentBase {
   name: string;
   type: string;
-  model?: string;
   manufacturer?: string;
-  category?: string;
+  model?: string;
+  year?: number;
+  serialNumber?: string;
   status: EquipmentStatus;
   location?: string;
+  category?: string;
   purchaseDate?: string | null;
-  serialNumber?: string | null;
   image?: string | null;
-  usageHours?: number;
   notes?: string;
-  lastMaintenanceDate?: string | null;
-  nextMaintenanceDate?: string | null;
-  maintenancesCompleted?: number;
-  maintenancesPending?: number;
+}
+
+/**
+ * Complete equipment entity interface
+ */
+export interface Equipment extends BaseEntity, TimestampFields, EquipmentBase {
+  usageHours?: number;
+  maintenanceCount?: number;
+  nextMaintenanceDate?: string;
+  farmId?: string;
   ownerId?: string;
-  year?: number;
+}
+
+/**
+ * Equipment form values interface
+ */
+export interface EquipmentFormValues extends Omit<EquipmentBase, 'status'> {
+  status: EquipmentStatus;
+  purchaseDate?: Date;
+}
+
+/**
+ * Equipment database model interface aligned with Supabase schema
+ */
+export interface EquipmentDB {
+  id: number;
+  name: string;
+  type: string | null;
+  manufacturer: string | null;
+  model: string | null;
+  year: number | null;
+  serial_number: string | null;
+  status: string | null;
+  location: string | null;
+  category: string | null;
+  purchase_date: string | null;
+  image: string | null;
+  notes: string | null;
+  owner_id: string | null;
+  farm_id: string | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 /**
  * Equipment filter interface
  */
 export interface EquipmentFilter {
-  category?: string;
-  manufacturer?: string;
-  status?: EquipmentStatus;
-  searchTerm?: string;
+  search?: string;
+  status?: EquipmentStatus[];
   type?: string[];
+  category?: string[];
+  manufacturer?: string[];
+  location?: string[];
   yearMin?: number;
   yearMax?: number;
 }
 
-/**
- * Equipment database model interface
- */
-export interface EquipmentDB {
-  id: number;
-  name: string;
-  type?: string;
-  model?: string;
-  manufacturer?: string;
-  category?: string;
-  status?: string;
-  location?: string;
-  purchase_date?: string;
-  serial_number?: string;
-  image?: string;
-  notes?: string;
-  owner_id?: string;
-  created_at?: string;
-  updated_at?: string;
-  year?: number;
-  farm_id?: string;
-}
-
-/**
- * Equipment form values interface
- */
-export interface EquipmentFormValues {
-  name: string;
-  type: string;
-  manufacturer?: string;
-  model?: string;
-  year?: string;
-  serialNumber?: string;
-  status: EquipmentStatus;
-  location?: string;
-  purchaseDate?: Date;
-  notes?: string;
-  image?: string;
-}

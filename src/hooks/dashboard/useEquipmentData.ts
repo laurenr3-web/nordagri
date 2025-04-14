@@ -1,15 +1,28 @@
+
 import { useState, useEffect } from 'react';
 import { toast } from "@/hooks/use-toast";
-import { EquipmentItem } from './types/equipmentTypes';
+import { Equipment, EquipmentStatus } from '@/types/models/equipment';
 import { supabase } from '@/integrations/supabase/client';
 import { validateEquipmentStatus } from '@/utils/typeGuards';
+
+interface DashboardEquipmentItem extends Equipment {
+  usage: {
+    hours: number;
+    target: number;
+  };
+  nextService: {
+    type: string;
+    due: string;
+  };
+  nextMaintenance: string;
+}
 
 /**
  * Hook for fetching and managing equipment data
  */
 export const useEquipmentData = (user: any) => {
   const [loading, setLoading] = useState(true);
-  const [equipmentData, setEquipmentData] = useState<EquipmentItem[]>([]);
+  const [equipmentData, setEquipmentData] = useState<DashboardEquipmentItem[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -20,7 +33,7 @@ export const useEquipmentData = (user: any) => {
    * Set mock data for demonstration purposes
    */
   const setMockData = () => {
-    setEquipmentData([
+    const mockData: DashboardEquipmentItem[] = [
       {
         id: 1,
         name: 'John Deere 8R 410',
@@ -69,7 +82,8 @@ export const useEquipmentData = (user: any) => {
         },
         nextMaintenance: 'Overdue'
       }
-    ]);
+    ];
+    setEquipmentData(mockData);
     setLoading(false);
   };
 
@@ -95,28 +109,25 @@ export const useEquipmentData = (user: any) => {
 
       if (validData.length > 0) {
         // Map the data to the expected format
-        const mappedData: EquipmentItem[] = validData.map(item => ({
+        const mappedData: DashboardEquipmentItem[] = validData.map(item => ({
           id: item.id,
           name: item.name,
           type: item.type || 'Unknown',
           image: item.image || 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=500&auto=format&fit=crop',
           status: validateEquipmentStatus(item.status),
           usage: {
-            // Use safe default values since these fields don't exist in database
-            hours: 342, // Default value since usage_hours doesn't exist
-            target: 500 // Default value since target_hours doesn't exist
+            hours: 342,
+            target: 500
           },
           nextService: {
-            // Use safe default values since these fields don't exist in database
-            type: 'Maintenance', // Default value since next_service_type doesn't exist
-            due: 'In 2 weeks' // Default value since next_service_due doesn't exist
+            type: 'Maintenance',
+            due: 'In 2 weeks'
           },
-          nextMaintenance: 'In 2 weeks' // Default value since next_maintenance doesn't exist
+          nextMaintenance: 'In 2 weeks'
         }));
         
         setEquipmentData(mappedData);
       } else {
-        // If no data, use the demo data
         console.log("No valid equipment data found, using demo data");
         setMockData();
       }
@@ -144,4 +155,4 @@ export const useEquipmentData = (user: any) => {
 };
 
 // Re-export types for consumers
-export type { EquipmentItem } from './types/equipmentTypes';
+export type { DashboardEquipmentItem };

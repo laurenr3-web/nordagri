@@ -1,4 +1,3 @@
-
 /**
  * Assure qu'un ID est converti en nombre
  * 
@@ -36,19 +35,30 @@ export function isNumeric(value: unknown): boolean {
 }
 
 /**
- * Valide le statut d'un équipement et retourne une valeur par défaut si invalide
- * 
- * @param status Le statut à valider
- * @returns Le statut validé ou 'operational' par défaut
+ * Validate equipment status and return a proper EquipmentStatus type
  */
-export function validateEquipmentStatus(status?: string): 'operational' | 'maintenance' | 'repair' | 'inactive' {
-  if (!status) {
+export function validateEquipmentStatus(status?: string | null): 'operational' | 'maintenance' | 'repair' | 'inactive' {
+  const validStatuses = ['operational', 'maintenance', 'repair', 'inactive'];
+  
+  if (!status || !validStatuses.includes(status)) {
     return 'operational';
   }
   
-  const validStatuses = ['operational', 'maintenance', 'repair', 'inactive'];
-  
-  return validStatuses.includes(status) 
-    ? status as 'operational' | 'maintenance' | 'repair' | 'inactive' 
-    : 'operational';
+  return status as 'operational' | 'maintenance' | 'repair' | 'inactive';
+}
+
+/**
+ * Type guard for Equipment interface
+ */
+export function isEquipment(value: unknown): value is Equipment {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'id' in value &&
+    'name' in value &&
+    'type' in value &&
+    'status' in value &&
+    typeof (value as any).name === 'string' &&
+    typeof (value as any).type === 'string'
+  );
 }
