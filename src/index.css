@@ -1,66 +1,38 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 210 33% 98%; /* #F5F7FA */
+    --background: 210 33% 98%; /* Light background */
     --foreground: 222.2 84% 4.9%;
-
-    --card: 0 0% 100%; /* #FFFFFF */
+    --card: 0 0% 100%; /* Pure white */
     --card-foreground: 222.2 84% 4.9%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 144 55% 40%; /* #2d9d64 - emerald green */
+    --primary: 144 55% 40%; /* Emerald green */
     --primary-foreground: 210 40% 98%;
-
-    --secondary: 144 25% 57%; /* #76ae8e - lighter green */
+    --secondary: 144 25% 57%;
     --secondary-foreground: 222.2 47.4% 11.2%;
-
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 144 25% 57%; /* #76ae8e - lighter green */
+    --accent: 144 25% 57%;
     --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 74% 56%; /* #E53935 - alert red */
+    --destructive: 0 74% 56%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 144 55% 40%; /* Match primary - emerald green */
+    --ring: 144 55% 40%;
 
-    /* Updated sidebar colors to dark green */
-    --sidebar-background: 142 58% 13%; /* #0f3520 - dark green */
+    /* Sidebar colors */
+    --sidebar-background: 142 58% 13%; /* Dark green */
     --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 144 55% 40%; /* #2d9d64 - emerald green */
+    --sidebar-primary: 144 55% 40%;
     --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 144 35% 20%; /* Slightly lighter than --sidebar-background */
+    --sidebar-accent: 144 35% 20%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 144 58% 10%; /* Darker than --sidebar-background */
-    --sidebar-ring: 144 55% 40%; /* Match primary - emerald green */
-    
-    /* Card shadow system */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-    --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.04);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.01);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.01);
-    
-    /* Animation timing */
-    --animation-fast: 0.15s;
-    --animation-normal: 0.3s;
-    --animation-slow: 0.5s;
-    
-    /* Border radius */
-    --radius-sm: 0.125rem;
-    --radius: 0.5rem;
-    --radius-md: 0.375rem;
-    --radius-lg: 0.5rem;
-    --radius-xl: 0.75rem;
-    --radius-full: 9999px;
+    --sidebar-border: 144 58% 10%;
+    --sidebar-ring: 144 55% 40%;
   }
 
   .dark {
@@ -107,6 +79,10 @@
     --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.7), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 10px 10px -5px rgba(0, 0, 0, 0.05);
+  }
+
+  body {
+    @apply bg-background text-foreground;
   }
 }
 
