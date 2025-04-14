@@ -34,7 +34,7 @@ export function useEquipmentDataFallback(id: string | number | undefined) {
           throw new Error('ID d\'équipement non valide');
         }
         
-        // Requête directe à Supabase
+        // Requête directe à Supabase sur la table equipment (singulier)
         const { data, error } = await supabase
           .from('equipment')
           .select('*')
@@ -44,7 +44,7 @@ export function useEquipmentDataFallback(id: string | number | undefined) {
         if (error) throw error;
         if (!data) throw new Error('Équipement non trouvé');
         
-        // Convertir les données du format de la base de données au format de l'application
+        // Utiliser le mapper pour convertir correctement les données
         const formattedEquipment = mapEquipmentFromDatabase(data);
         
         setEquipment(formattedEquipment);

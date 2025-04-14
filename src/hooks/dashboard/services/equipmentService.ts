@@ -10,40 +10,22 @@ import { toast } from "@/hooks/use-toast";
  */
 export const fetchEquipmentData = async (userId: string): Promise<EquipmentItem[]> => {
   try {
-    // Try equipments table first
-    const { data: equipmentsData, error: equipmentsError } = await supabase
-      .from('equipments')
+    // Use equipment table (singular) as the correct name
+    const { data: equipmentData, error: equipmentError } = await supabase
+      .from('equipment')
       .select('id, name, type, status, image, usage_hours, usage_target, model')
       .eq('owner_id', userId)
       .limit(6);
 
-    if (equipmentsError) {
-      console.log("Error with 'equipments', trying 'equipment':", equipmentsError);
+    if (equipmentError) {
+      throw new Error(`Error fetching equipment: ${equipmentError.message}`);
+    }
       
-      // If that fails, try equipment table
-      const { data: equipmentData, error: equipmentError } = await supabase
-        .from('equipment')
-        .select('id, name, type, status, image, usage_hours, usage_target, model')
-        .eq('owner_id', userId)
-        .limit(6);
-
-      if (equipmentError) {
-        throw new Error("Unable to access equipments or equipment tables");
-      }
-
-      // Use equipment data if available
-      if (equipmentData && equipmentData.length > 0) {
-        return await processEquipmentWithMaintenance(equipmentData as unknown as RawEquipmentData[]);
-      } else {
-        return [];
-      }
+    // Process the equipment data with maintenance
+    if (equipmentData && equipmentData.length > 0) {
+      return await processEquipmentWithMaintenance(equipmentData as unknown as RawEquipmentData[]);
     } else {
-      // Use equipments data if available
-      if (equipmentsData && equipmentsData.length > 0) {
-        return await processEquipmentWithMaintenance(equipmentsData as unknown as RawEquipmentData[]);
-      } else {
-        return [];
-      }
+      return [];
     }
   } catch (error) {
     console.error("Error fetching equipment:", error);
@@ -58,9 +40,6 @@ const processEquipmentWithMaintenance = async (equipmentItems: RawEquipmentData[
   try {
     // Get equipment IDs as numbers
     const equipmentIds = equipmentItems.map(eq => eq.id);
-    
-    // Convert IDs to strings for the Supabase query
-    const equipmentIdStrings = equipmentIds.map(id => id.toString());
     
     // Get scheduled maintenance tasks for these equipment
     const { data: maintenanceData, error: maintenanceError } = await supabase
