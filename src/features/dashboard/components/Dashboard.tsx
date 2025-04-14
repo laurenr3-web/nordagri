@@ -91,7 +91,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       {/* Section des Statistiques */}
       {dashboardLayout?.stats?.visible && (
         <DashboardStats 
-          stats={statsData}
+          statsData={statsData}
           isEditing={isEditing}
           onStatsCardClick={handleStatsCardClick}
         />
@@ -121,6 +121,7 @@ const Dashboard: React.FC<DashboardProps> = ({
           interventions={urgentInterventions}
           isEditing={isEditing}
           onViewAll={() => console.log('View all interventions')}
+          onViewDetails={(id) => console.log('View intervention details:', id)}
         />
       )}
       

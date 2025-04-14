@@ -15,30 +15,18 @@ import { Part } from '@/types/Part';
  * Transforme les données d'équipement brutes en format exploitable par l'UI
  */
 export function transformEquipmentData(
-  rawData: any[],
-  maintenanceMap?: Map<string, { type: string; due: string }>,
-  dueMap?: Map<string, string>
+  rawData: any[]
 ): EquipmentData[] {
   return rawData.map(item => {
-    // Récupérer les infos de maintenance si disponibles
-    const maintenanceInfo = maintenanceMap?.get(item.id.toString());
-    const dueDate = dueMap?.get(item.id.toString());
-    
     return {
       id: item.id,
       name: item.name || `Equipment #${item.id}`,
       type: item.type || 'Unknown',
       status: validateEquipmentStatus(item.status || 'unknown'),
       image: item.image || 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=500&auto=format&fit=crop',
-      // Ajouter les informations de maintenance si disponibles
-      usage: {
-        hours: item.usage_hours || 0,
-        target: item.usage_target || 500
-      },
-      nextService: {
-        type: maintenanceInfo?.type || 'Regular maintenance',
-        due: maintenanceInfo?.due || dueDate || 'Non planifié'
-      }
+      usage_hours: item.usage_hours || 0,
+      usage_target: item.usage_target || 500,
+      model: item.model || ''
     };
   });
 }
@@ -65,18 +53,22 @@ export function deriveStockAlerts(parts: Part[]): StockAlert[] {
       id: part.id,
       name: part.name,
       currentStock: part.stock || part.quantity || 0,
-      minRequired: part.reorderPoint || 5,
-      partNumber: part.partNumber || part.reference || '',
-      severity: part.stock === 0 ? 'high' : part.stock <= 3 ? 'medium' : 'low'
+      reorderPoint: part.reorderPoint || 5,
+      percentRemaining: calculatePercentRemaining(part.stock || part.quantity || 0, part.reorderPoint || 5),
+      category: part.category || 'Parts'
     }))
     .sort((a, b) => {
-      // Trier par sévérité puis par niveau de stock
-      if (a.severity === 'high' && b.severity !== 'high') return -1;
-      if (a.severity !== 'high' && b.severity === 'high') return 1;
-      if (a.severity === 'medium' && b.severity === 'low') return -1;
-      if (a.severity === 'low' && b.severity === 'medium') return 1;
-      return a.currentStock - b.currentStock;
+      // Trier par pourcentage restant (croissant)
+      return a.percentRemaining - b.percentRemaining;
     });
+}
+
+/**
+ * Calcule le pourcentage restant par rapport au seuil de réapprovisionnement
+ */
+function calculatePercentRemaining(current: number, threshold: number): number {
+  if (threshold <= 0) return 0;
+  return Math.min(100, Math.max(0, (current / threshold) * 100));
 }
 
 /**
@@ -90,9 +82,10 @@ export function deriveUrgentInterventions(interventions: any[]): UrgentIntervent
       id: item.id,
       title: item.title,
       equipment: item.equipment || 'Unknown',
-      scheduledDate: new Date(item.date),
+      date: item.date ? new Date(item.date) : new Date(),
       priority: item.priority || 'medium',
       status: item.status || 'pending',
+      technician: item.technician || 'Non assigné',
       location: item.location || ''
     }));
 }
@@ -110,13 +103,16 @@ export function createCalendarEvents(
   // Ajouter les événements de maintenance
   maintenanceEvents.forEach(item => {
     if (item.due_date) {
+      const eventDate = new Date(item.due_date);
       events.push({
         id: `maintenance-${item.id}`,
         title: item.title || 'Maintenance',
-        date: new Date(item.due_date),
+        date: eventDate,
+        start: eventDate, // Set start equal to date for compatibility
         type: 'maintenance',
-        priority: item.priority || 'medium',
-        status: item.status || 'scheduled'
+        equipment: item.equipment || 'Non spécifié',
+        status: item.status || 'scheduled',
+        priority: item.priority || 'medium'
       });
     }
   });
@@ -124,13 +120,16 @@ export function createCalendarEvents(
   // Ajouter les interventions
   interventions.forEach(item => {
     if (item.date) {
+      const eventDate = new Date(item.date);
       events.push({
         id: `intervention-${item.id}`,
         title: item.title || 'Intervention',
-        date: new Date(item.date),
+        date: eventDate,
+        start: eventDate, // Set start equal to date for compatibility
         type: 'intervention',
-        priority: item.priority || 'medium',
-        status: item.status || 'pending'
+        equipment: item.equipment || 'Non spécifié',
+        status: item.status || 'pending',
+        priority: item.priority || 'medium'
       });
     }
   });
@@ -138,13 +137,16 @@ export function createCalendarEvents(
   // Ajouter les tâches
   tasks.forEach(item => {
     if (item.due_date) {
+      const eventDate = new Date(item.due_date);
       events.push({
         id: `task-${item.id}`,
         title: item.title || 'Task',
-        date: new Date(item.due_date),
+        date: eventDate,
+        start: eventDate, // Set start equal to date for compatibility
         type: 'task',
-        priority: item.priority || 'medium',
-        status: item.status || 'scheduled'
+        equipment: item.equipment || 'N/A',
+        status: item.status || 'scheduled',
+        priority: item.priority || 'medium'
       });
     }
   });

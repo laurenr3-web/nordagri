@@ -1,6 +1,13 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { StatsData, EquipmentData, MaintenanceEvent, AlertItem, Task } from '@/hooks/dashboard/types/dashboardTypes';
+import { 
+  StatsData, 
+  EquipmentData, 
+  MaintenanceEvent, 
+  AlertItem, 
+  Task,
+  UrgentIntervention 
+} from '@/hooks/dashboard/types/dashboardTypes';
 
 /**
  * Service dédié à la récupération des données pour le tableau de bord
@@ -11,19 +18,40 @@ export const dashboardService = {
    */
   async getStats(userId: string): Promise<StatsData[]> {
     try {
-      // Simuler la récupération des statistiques
-      const { data, error } = await supabase
-        .from('dashboard_stats')
-        .select('*')
-        .eq('owner_id', userId);
-      
-      if (error) throw error;
-      
-      // Retourner les données ou un tableau vide
-      return data || [];
+      // Pour l'instant, retournons des statistiques par défaut
+      // car la table dashboard_stats n'existe pas encore
+      return [
+        {
+          id: 1,
+          title: "Équipements actifs",
+          value: "12",
+          change: "+10%",
+          type: "positive"
+        },
+        {
+          id: 2,
+          title: "Tâches de maintenance",
+          value: "8",
+          change: "-5%",
+          type: "neutral"
+        },
+        {
+          id: 3,
+          title: "Inventaire des pièces",
+          value: "143",
+          change: "+2%",
+          type: "positive"
+        },
+        {
+          id: 4,
+          title: "Interventions terrain",
+          value: "3",
+          change: "0%",
+          type: "neutral"
+        }
+      ];
     } catch (error) {
       console.error('Error fetching stats data:', error);
-      // Retourner des données par défaut en cas d'erreur
       return [];
     }
   },
@@ -122,7 +150,7 @@ export const dashboardService = {
   /**
    * Récupère les interventions urgentes
    */
-  async getInterventions(): Promise<any[]> {
+  async getInterventions(): Promise<UrgentIntervention[]> {
     try {
       const { data, error } = await supabase
         .from('interventions')
@@ -131,7 +159,19 @@ export const dashboardService = {
         
       if (error) throw error;
       
-      return data || [];
+      // Transformer les données pour correspondre à UrgentIntervention
+      const transformedData = (data || []).map(item => ({
+        id: item.id,
+        title: item.title || "",
+        equipment: item.equipment || "Inconnu",
+        priority: (item.priority || "medium") as 'high' | 'medium' | 'low',
+        date: item.date ? new Date(item.date) : new Date(),
+        status: item.status || "pending",
+        technician: item.technician || "Non assigné",
+        location: item.location || ""
+      }));
+      
+      return transformedData;
     } catch (error) {
       console.error('Error fetching interventions:', error);
       return [];

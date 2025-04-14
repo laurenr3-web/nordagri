@@ -1,4 +1,66 @@
 
+// Basic types for dashboard data
+export interface StatsData {
+  id: number;
+  title: string;
+  value: string;
+  change: string;
+  type: 'positive' | 'negative' | 'neutral';
+  icon?: any;
+}
+
+export interface EquipmentData {
+  id: number;
+  name: string;
+  type: string;
+  status: string;
+  image?: string;
+  usage_hours?: number;
+  usage_target?: number;
+  model?: string;
+}
+
+export interface MaintenanceEvent {
+  id: number | string;
+  title: string;
+  description?: string;
+  due_date?: string;
+  status?: string;
+  priority?: string;
+  assigned_to?: string;
+  equipment?: string;
+  equipment_id?: number;
+  notes?: string;
+}
+
+export interface AlertItem {
+  id: number; 
+  title: string;
+  message?: string;
+  description?: string;
+  type: string;
+  date?: Date;
+  time?: string;
+  equipment?: string;
+  equipmentId?: number;
+  equipmentName?: string;
+  status?: string;
+}
+
+export interface Task {
+  id: number | string;
+  title: string;
+  description?: string;
+  notes?: string;
+  due_date?: string;
+  status?: string;
+  priority?: string;
+  assigned_to?: string;
+  equipment?: string;
+  equipment_id?: number;
+}
+
+// Derived types used by components
 export interface StatsCardData {
   title: string;
   value: number | string;
@@ -19,55 +81,15 @@ export interface EquipmentItem {
   maintenanceType?: string;
 }
 
-export interface MaintenanceEvent {
+export interface CalendarEvent {
   id: number | string;
   title: string;
   date: Date;
-  equipment: string;
-  status: string;
-  priority: 'low' | 'medium' | 'high';
-  assignedTo: string;
-  duration: number;
-}
-
-export interface AlertItem {
-  id: number; 
-  title: string;
-  description: string;
-  type: 'equipment' | 'maintenance' | 'inventory' | 'system';
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  timestamp: Date;
-  isRead: boolean;
-  // Additional fields needed by some components
-  message?: string;
-  time?: string;
-  equipment?: string;
-  date?: Date;
-  equipmentId?: number;
-  equipmentName?: string;
-  status?: string;
-}
-
-export interface UpcomingTask {
-  id: number | string;
-  title: string;
-  description: string;
-  equipment: string;
-  dueDate: Date;
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  assignedTo: string;
-  status: string;
-}
-
-export interface UrgentIntervention {
-  id: number | string;
-  title: string;
+  start: Date;
+  type: 'maintenance' | 'intervention' | 'task';
   equipment: string;
   status: string;
   priority: string;
-  date: Date;
-  location: string;
-  assignedTo: string;
 }
 
 export interface StockAlert {
@@ -79,13 +101,24 @@ export interface StockAlert {
   category: string;
 }
 
-export interface CalendarEvent {
+export interface UrgentIntervention {
   id: number | string;
   title: string;
-  date: Date;
-  start: Date; // Already added this property
-  type: 'maintenance' | 'intervention' | 'task';
   equipment: string;
+  priority: 'high' | 'medium' | 'low';
+  date: Date;
   status: string;
-  priority: string;
+  technician: string;
+  location: string;
+}
+
+export interface UpcomingTask {
+  id: number | string;
+  title: string;
+  description: string;
+  equipment: string;
+  dueDate: Date;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  assignedTo: string;
+  status: string;
 }

@@ -5,17 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Clock, AlertTriangle, CheckCircle } from 'lucide-react';
-
-interface UrgentIntervention {
-  id: number;
-  title: string;
-  equipment: string;
-  priority: 'high' | 'medium' | 'low';
-  date: Date;
-  status: string;
-  technician: string;
-  location: string;
-}
+import { UrgentIntervention } from '@/hooks/dashboard/types/dashboardTypes';
 
 interface UrgentInterventionsTableProps {
   interventions: UrgentIntervention[];
@@ -77,7 +67,7 @@ export const UrgentInterventionsTable = memo(function UrgentInterventionsTable({
           <TableRow 
             key={intervention.id} 
             className="cursor-pointer hover:bg-muted/30 transition-colors"
-            onClick={() => onViewDetails && onViewDetails(intervention.id)}
+            onClick={() => onViewDetails && onViewDetails(Number(intervention.id))}
           >
             <TableCell className="font-medium">{intervention.title}</TableCell>
             <TableCell>{intervention.equipment}</TableCell>
@@ -85,9 +75,12 @@ export const UrgentInterventionsTable = memo(function UrgentInterventionsTable({
               {getPriorityBadge(intervention.priority)}
             </TableCell>
             <TableCell className={
-              intervention.date.getTime() < Date.now() ? "text-alert-red font-medium" : ""
+              intervention.date && intervention.date.getTime() < Date.now() ? "text-alert-red font-medium" : ""
             }>
-              {formatDistanceToNow(intervention.date, { addSuffix: true, locale: fr })}
+              {intervention.date ? 
+                formatDistanceToNow(new Date(intervention.date), { addSuffix: true, locale: fr }) : 
+                "Date non définie"
+              }
             </TableCell>
             <TableCell>{intervention.technician}</TableCell>
           </TableRow>
