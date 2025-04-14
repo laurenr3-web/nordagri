@@ -25,6 +25,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 // Groupes de navigation pour une meilleure organisation
 export const navGroups = [
@@ -80,7 +82,18 @@ export const navItems = navGroups.flatMap(group => group.items);
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const currentPath = location.pathname || "";
+  
+  // Fonction pour gérer les erreurs de navigation
+  const handleNavigation = (path: string) => {
+    try {
+      navigate(path);
+    } catch (error) {
+      console.error("Erreur de navigation:", error);
+      toast.error("Navigation impossible. Veuillez rafraîchir la page.");
+    }
+  };
   
   const UserMenu = () => (
     <DropdownMenu>
@@ -114,10 +127,13 @@ const Navbar = () => {
   return (
     <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground">
       <SidebarHeader className="h-16 px-6 flex items-center border-b border-sidebar-border">
-        <Link className="flex items-center gap-2" to="/">
+        <button 
+          className="flex items-center gap-2" 
+          onClick={() => handleNavigation("/")}
+        >
           <img src="/lovable-uploads/ec804880-63d5-4999-8bd9-4b853ec3360d.png" alt="Agri ERP Insight" className="h-8 w-auto" />
           <span className="text-xl font-bold text-white">Agri ERP</span>
-        </Link>
+        </button>
         <div className="ml-auto flex items-center gap-2">
           <div className="hidden md:flex">
             <MaintenanceNotificationsPopover />
@@ -141,7 +157,10 @@ const Navbar = () => {
                     isActive={currentPath === item.href || (item.href !== "/" && currentPath.includes(item.href))}
                     asChild
                   >
-                    <Link to={item.href} className="w-full">
+                    <button 
+                      className="w-full flex items-center"
+                      onClick={() => handleNavigation(item.href)}
+                    >
                       <item.icon className="h-5 w-5" />
                       <span>{item.title}</span>
                       <ChevronRight className={cn(
@@ -149,7 +168,7 @@ const Navbar = () => {
                         (currentPath === item.href || (item.href !== "/" && currentPath.includes(item.href))) && 
                         "text-sidebar-accent-foreground transform rotate-90"
                       )} />
-                    </Link>
+                    </button>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

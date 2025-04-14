@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/providers/AuthProvider';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import ProtectedLayout from '@/components/layout/ProtectedLayout';
 import { Toaster as SonnerToaster } from 'sonner';
 import { SupabaseErrorHandler } from '@/components/ui/supabase-error-handler';
 
@@ -56,11 +56,11 @@ function App() {
                   <Route index element={<Auth />} />
                 </Route>
                 
-                {/* Protected routes */}
+                {/* Protected routes - Utilisation de MainLayout à l'intérieur de ProtectedLayout */}
                 <Route path="/" element={
-                  <ProtectedRoute>
+                  <ProtectedLayout>
                     <MainLayout />
-                  </ProtectedRoute>
+                  </ProtectedLayout>
                 }>
                   <Route index element={<Dashboard />} />
                   <Route path="equipment" element={<Equipment />} />
