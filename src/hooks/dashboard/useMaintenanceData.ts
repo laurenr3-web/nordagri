@@ -1,151 +1,114 @@
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from "@/hooks/use-toast";
-import { MaintenanceEvent } from './types/dashboardTypes';
+import { useEffect, useState } from 'react';
+import { MaintenanceEvent } from '../dashboard/types/dashboardTypes';
 
-export const useMaintenanceData = (user: any) => {
-  const [loading, setLoading] = useState(true);
+export function useMaintenanceData() {
   const [maintenanceEvents, setMaintenanceEvents] = useState<MaintenanceEvent[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [weeklyCalendarEvents, setWeeklyCalendarEvents] = useState<MaintenanceEvent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    fetchMaintenanceEvents();
-  }, [user]);
-
-  const fetchMaintenanceEvents = async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      console.log("Fetching maintenance events...");
-      
-      const { data, error } = await supabase
-        .from('maintenance_tasks')
-        .select('*')
-        .order('due_date', { ascending: true });
-
-      if (error) {
-        console.error("Error fetching maintenance tasks:", error);
-        throw error;
-      }
-
-      if (data && data.length > 0) {
-        console.log(`Received ${data.length} maintenance tasks:`, data);
+    // Fake data loading
+    const loadData = async () => {
+      try {
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500));
         
-        const events: MaintenanceEvent[] = data.map(item => {
-          // Convert priority to one of the allowed values
-          let priority: 'low' | 'medium' | 'high' = 'medium';
-          if (item.priority) {
-            const lowerPriority = item.priority.toLowerCase();
-            if (lowerPriority === 'low' || lowerPriority === 'medium' || lowerPriority === 'high') {
-              priority = lowerPriority as 'low' | 'medium' | 'high';
-            }
-          }
-          
-          return {
-            id: item.id,
-            title: item.title,
-            date: new Date(item.due_date),
-            equipment: item.equipment,
-            status: item.status,
-            priority: priority,
-            assignedTo: item.assigned_to || 'Non assigné',
-            duration: item.estimated_duration || 0
-          };
-        });
-        
-        console.log("Transformed maintenance events:", events);
-        setMaintenanceEvents(events);
-      } else {
-        console.log("No maintenance tasks found in the database");
-        
-        // En mode développement uniquement, utiliser des données de test
-        if (import.meta.env.DEV) {
-          setMaintenanceEvents([
-            {
-              id: 1,
-              title: "Vidange moteur",
-              date: new Date(new Date().setDate(new Date().getDate() + 5)),
-              equipment: "John Deere 8R 410",
-              status: "scheduled",
-              priority: "high",
-              assignedTo: "Michael Torres",
-              duration: 2.5
-            },
-            {
-              id: 2,
-              title: "Remplacement filtre à air",
-              date: new Date(new Date().setDate(new Date().getDate() + 10)),
-              equipment: "Massey Ferguson 8S.245",
-              status: "scheduled",
-              priority: "medium",
-              assignedTo: "David Chen",
-              duration: 1
-            },
-            {
-              id: 3,
-              title: "Contrôle système hydraulique",
-              date: new Date(new Date().setDate(new Date().getDate() + 15)),
-              equipment: "Fendt 942 Vario",
-              status: "scheduled",
-              priority: "low",
-              assignedTo: "Sarah Johnson",
-              duration: 3
-            }
-          ]);
-        }
-      }
-    } catch (error: any) {
-      console.error('Error fetching maintenance events:', error);
-      setError(error.message || "Une erreur est survenue lors de la récupération des événements de maintenance");
-      
-      // En mode développement uniquement, utiliser des données de test en cas d'erreur
-      if (import.meta.env.DEV) {
-        setMaintenanceEvents([
+        // Here we'd normally fetch from an API
+        const fakeMaintenanceData: MaintenanceEvent[] = [
           {
             id: 1,
-            title: "Vidange moteur",
-            date: new Date(new Date().setDate(new Date().getDate() + 5)),
-            equipment: "John Deere 8R 410",
+            title: "Remplacement des filtres",
+            description: "Changement des filtres à air et huile",
+            equipment: "Tracteur John Deere",
+            equipment_id: 1,
             status: "scheduled",
             priority: "high",
-            assignedTo: "Michael Torres",
-            duration: 2.5
+            assigned_to: "Jean Dupont",
+            date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
           },
           {
             id: 2,
-            title: "Remplacement filtre à air",
-            date: new Date(new Date().setDate(new Date().getDate() + 10)),
-            equipment: "Massey Ferguson 8S.245",
+            title: "Vidange moteur",
+            description: "Vidange complète et remplacement filtre à huile",
+            equipment: "Moissonneuse CLAAS",
+            equipment_id: 2,
             status: "scheduled",
             priority: "medium",
-            assignedTo: "David Chen",
-            duration: 1
+            assigned_to: "Sophie Martin",
+            date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
           },
           {
             id: 3,
-            title: "Contrôle système hydraulique",
-            date: new Date(new Date().setDate(new Date().getDate() + 15)),
-            equipment: "Fendt 942 Vario",
+            title: "Nettoyage du radiateur",
+            description: "Nettoyage complet du système de refroidissement",
+            equipment: "Tracteur Case IH",
+            equipment_id: 3,
             status: "scheduled",
             priority: "low",
-            assignedTo: "Sarah Johnson",
-            duration: 3
-          }
-        ]);
+            assigned_to: "Thomas Bernard",
+            date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+          },
+          {
+            id: 4,
+            title: "Calibrage du système de direction",
+            description: "Recalibrage du système de guidage GPS",
+            equipment: "Tracteur New Holland",
+            equipment_id: 4,
+            status: "scheduled",
+            priority: "medium",
+            assigned_to: "Marie Dubois",
+            date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+          },
+        ];
+        
+        // Generate more events for the calendar view
+        const calendarEvents: MaintenanceEvent[] = [
+          ...fakeMaintenanceData,
+          {
+            id: 5,
+            title: "Vérification des pneus",
+            equipment: "Tracteur Fendt",
+            equipment_id: 5,
+            status: "scheduled",
+            priority: "low",
+            assigned_to: "Pierre Leroy",
+            date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+          },
+          {
+            id: 6,
+            title: "Remplacement courroie",
+            equipment: "Presse à balles",
+            equipment_id: 6,
+            status: "completed",
+            priority: "high",
+            assigned_to: "Julie Lambert",
+            date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+          },
+          {
+            id: 7,
+            title: "Graissage",
+            equipment: "Épandeur d'engrais",
+            equipment_id: 7,
+            status: "scheduled",
+            priority: "medium",
+            assigned_to: "Marc Fournier",
+            date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
+          },
+        ];
+        
+        setMaintenanceEvents(fakeMaintenanceData);
+        setWeeklyCalendarEvents(calendarEvents);
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('Unknown error'));
+      } finally {
+        setIsLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return {
-    loading,
-    maintenanceEvents,
-    error,
-    refresh: fetchMaintenanceEvents
-  };
-};
-
-export default useMaintenanceData;
+    };
+    
+    loadData();
+  }, []);
+  
+  return { maintenanceEvents, weeklyCalendarEvents, isLoading, error };
+}

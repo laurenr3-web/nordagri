@@ -1,4 +1,3 @@
-
 // Basic types for dashboard data
 export interface StatsData {
   id: number;
@@ -27,11 +26,11 @@ export interface MaintenanceEvent {
   due_date?: string;
   status?: string;
   priority?: string;
-  assigned_to?: string;
+  assigned_to?: string; // Standardize on snake_case for this property
   equipment?: string;
   equipment_id?: number;
   notes?: string;
-  date?: string | Date; // Add date field
+  date: string | Date; // Make date required but allow both string and Date
 }
 
 export interface AlertItem {
@@ -46,8 +45,8 @@ export interface AlertItem {
   equipmentId?: number;
   equipmentName?: string;
   status?: string;
-  severity?: 'critical' | 'high' | 'medium' | 'low'; // Add severity field
-  timestamp?: Date; // Add timestamp field
+  severity?: 'critical' | 'high' | 'medium' | 'low';
+  timestamp?: Date;
 }
 
 export interface Task {

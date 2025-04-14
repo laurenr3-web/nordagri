@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Dialog, 
@@ -94,7 +93,7 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
             <span>Planifiée</span>
           </Badge>
         );
-      case 'in-progress':
+      case 'in_progress':
         return (
           <Badge className="bg-harvest-100 text-harvest-800 flex items-center gap-1">
             <Clock size={12} />
@@ -108,7 +107,7 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
             <span>Terminée</span>
           </Badge>
         );
-      case 'canceled':
+      case 'cancelled':
         return (
           <Badge variant="outline" className="bg-red-100 text-red-800 flex items-center gap-1">
             <X size={12} />
@@ -247,18 +246,18 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
           )}
           
           {/* Status controls */}
-          {intervention.status !== 'completed' && intervention.status !== 'canceled' && (
+          {intervention.status !== 'completed' && intervention.status !== 'cancelled' && (
             <div className="grid grid-cols-1 mt-6">
               <div>
                 <p className="text-sm text-muted-foreground mb-2">Mettre à jour le statut</p>
                 <div className="flex flex-wrap gap-2">
-                  {intervention.status !== 'in-progress' && (
+                  {intervention.status !== 'in_progress' && (
                     <Button 
                       variant="outline" 
                       size="sm" 
                       className="gap-1"
                       onClick={() => {
-                        handleStatusChange('in-progress');
+                        handleStatusChange('in_progress');
                         if (onStartWork) onStartWork();
                       }}
                     >
@@ -281,7 +280,7 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
                     variant="outline" 
                     size="sm" 
                     className="gap-1"
-                    onClick={() => handleStatusChange('canceled')}
+                    onClick={() => handleStatusChange('cancelled')}
                   >
                     <X size={14} />
                     <span>Annuler</span>

@@ -2,7 +2,7 @@
 import React from 'react';
 import { DashboardSection } from '@/components/dashboard/sections/DashboardSection';
 import { UrgentInterventionsTable } from '@/components/dashboard/UrgentInterventionsTable';
-import { UrgentIntervention } from '@/hooks/dashboard/types/dashboardTypes';
+import { UrgentIntervention } from '@/types/Intervention';
 
 interface DashboardUrgentInterventionsProps {
   interventions: UrgentIntervention[];

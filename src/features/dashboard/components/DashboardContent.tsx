@@ -1,4 +1,3 @@
-
 import React, { useCallback } from 'react';
 import { DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -158,7 +157,10 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
         </div>
       </div>
 
-      <DashboardStats statsData={statsData} onStatClick={handleStatsCardClick} />
+      <DashboardStats 
+        statsData={statsData} 
+        onStatsCardClick={handleStatsCardClick} 
+      />
       
       <div className={`w-full transition-all duration-300 ${isEditing ? 'bg-muted/30 p-4 border border-dashed rounded-lg' : ''}`}>
         {isEditing && (
