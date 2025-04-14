@@ -48,8 +48,9 @@ const ViewManager: React.FC<ViewManagerProps> = memo(({ currentView, currentMont
   const adaptedAlertItems = adaptAlertItems(alertItems);
   const adaptedUpcomingTasks = adaptUpcomingTasks(upcomingTasks);
 
-  // Vérifier s'il y a des erreurs
-  const hasErrors = errors && Object.values(errors).some(error => error !== null);
+  // Vérifier s'il y a des erreurs importantes qui empêchent l'affichage du dashboard
+  const hasBlockingErrors = errors && Object.values(errors).every(error => error !== null);
+  const hasPartialErrors = errors && Object.values(errors).some(error => error !== null);
 
   if (loading) {
     return (
@@ -62,8 +63,8 @@ const ViewManager: React.FC<ViewManagerProps> = memo(({ currentView, currentMont
     );
   }
 
-  // Si nous avons des erreurs, afficher un message convivial avec bouton de rafraîchissement
-  if (hasErrors) {
+  // Si nous avons des erreurs bloquantes, afficher un message convivial avec bouton de rafraîchissement
+  if (hasBlockingErrors) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-100px)]">
         <Card className="w-full max-w-md">
@@ -131,9 +132,9 @@ const ViewManager: React.FC<ViewManagerProps> = memo(({ currentView, currentMont
           maintenanceEvents={adaptedMaintenanceEvents}
           alertItems={adaptedAlertItems}
           upcomingTasks={adaptedUpcomingTasks}
-          urgentInterventions={urgentInterventions}
-          stockAlerts={stockAlerts}
-          weeklyCalendarEvents={weeklyCalendarEvents}
+          urgentInterventions={urgentInterventions || []}
+          stockAlerts={stockAlerts || []}
+          weeklyCalendarEvents={weeklyCalendarEvents || []}
           currentMonth={currentMonth}
           handleStatsCardClick={navigationHandlers.handleStatsCardClick}
           handleEquipmentViewAllClick={navigationHandlers.handleEquipmentViewAllClick}
@@ -142,6 +143,19 @@ const ViewManager: React.FC<ViewManagerProps> = memo(({ currentView, currentMont
           handleTasksAddClick={navigationHandlers.handleTasksAddClick}
           handleEquipmentClick={navigationHandlers.handleEquipmentClick}
         />
+        
+        {hasPartialErrors && (
+          <div className="mt-4 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
+            <p className="text-sm text-yellow-800 dark:text-yellow-200 flex items-center">
+              <AlertCircle className="h-4 w-4 mr-2" />
+              Certaines données n'ont pas pu être chargées. Les données affichées peuvent être partielles.
+              <Button variant="link" size="sm" onClick={refreshData} className="ml-2">
+                <RefreshCw className="h-3 w-3 mr-1" />
+                Actualiser
+              </Button>
+            </p>
+          </div>
+        )}
       </TabsContent>
       
       <TabsContent value="calendar">

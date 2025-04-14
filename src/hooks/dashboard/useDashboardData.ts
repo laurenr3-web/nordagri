@@ -109,7 +109,7 @@ export const useDashboardData = () => {
     if (refreshInterventions) refreshInterventions();
     if (partsResult.refetch) partsResult.refetch();
     
-    // Use standard toast without info method
+    // Use standard toast
     toast({
       title: "Actualisation",
       description: "Actualisation des données en cours...",
@@ -130,29 +130,30 @@ export const useDashboardData = () => {
   ]);
 
   useEffect(() => {
-    const isAllDataLoaded = 
-      !isLoadingInterventions &&
-      (statsData.length > 0 || 
+    // Si on a des données dans au moins une des sources, c'est suffisant pour ne plus montrer le loader
+    const isAnyDataLoaded = 
+      statsData.length > 0 || 
       equipmentData.length > 0 || 
       maintenanceEvents.length > 0 || 
       alertItems.length > 0 || 
       upcomingTasks.length > 0 ||
       interventions.length > 0 ||
-      parts.length > 0);
+      parts.length > 0;
 
-    if (isAllDataLoaded) {
+    if (isAnyDataLoaded && !isLoadingInterventions) {
       setLoading(false);
     }
   }, [statsData, equipmentData, maintenanceEvents, alertItems, upcomingTasks, interventions, parts, isLoadingInterventions]);
 
   useEffect(() => {
-    if (!user && !loading) {
+    // Si l'utilisateur n'est pas connecté mais que le chargement est en cours, on arrête le loader
+    if (!user && loading) {
       setLoading(false);
     }
   }, [user, loading]);
 
   return {
-    loading,
+    loading: false, // Force loading to false to ensure the dashboard shows
     statsData,
     equipmentData,
     maintenanceEvents,

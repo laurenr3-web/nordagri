@@ -90,30 +90,35 @@ export const useEquipmentData = (user: any) => {
       if (error) throw error;
 
       // Filter out any invalid or deleted equipment entries
-      // We don't have a deleted_at column, so just filter out items without essential data
-      const validData = data.filter(item => 
+      const validData = data?.filter(item => 
         item && item.id && item.name
-      );
+      ) || [];
 
-      // Map the data to the expected format
-      const mappedData: EquipmentItem[] = validData.map(item => ({
-        id: item.id,
-        name: item.name,
-        type: item.type || 'Unknown',
-        image: item.image || 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=500&auto=format&fit=crop',
-        status: validateEquipmentStatus(item.status),
-        usage: {
-          hours: 342, // Placeholder until we have real usage data
-          target: 500
-        },
-        nextService: {
-          type: 'Maintenance',
-          due: 'In 2 weeks' // Placeholder
-        },
-        nextMaintenance: 'In 2 weeks' // Placeholder
-      }));
-      
-      setEquipmentData(mappedData);
+      if (validData.length > 0) {
+        // Map the data to the expected format
+        const mappedData: EquipmentItem[] = validData.map(item => ({
+          id: item.id,
+          name: item.name,
+          type: item.type || 'Unknown',
+          image: item.image || 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=500&auto=format&fit=crop',
+          status: validateEquipmentStatus(item.status),
+          usage: {
+            hours: item.usage_hours || 342,
+            target: item.target_hours || 500
+          },
+          nextService: {
+            type: item.next_service_type || 'Maintenance',
+            due: item.next_service_due || 'In 2 weeks'
+          },
+          nextMaintenance: item.next_maintenance || 'In 2 weeks'
+        }));
+        
+        setEquipmentData(mappedData);
+      } else {
+        // Si pas de données, utiliser les données de démo
+        console.log("No valid equipment data found, using demo data");
+        setMockData();
+      }
     } catch (error: any) {
       console.error("Error fetching equipment:", error);
       setError(error.message || "Failed to fetch equipment data");
