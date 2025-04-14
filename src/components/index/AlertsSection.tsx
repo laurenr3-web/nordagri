@@ -37,7 +37,7 @@ const AlertsSection: React.FC<AlertsSectionProps> = ({ alerts, onViewAllClick })
               <div>
                 <p className="text-sm font-medium">{alert.message || alert.description}</p>
                 <div className="flex items-center mt-1 text-xs text-muted-foreground">
-                  <span>{alert.equipment || alert.equipmentName || 'System'} • {alert.time || new Date(alert.timestamp).toLocaleTimeString()}</span>
+                  <span>{alert.equipment || alert.equipmentName || 'System'} • {alert.time || (alert.timestamp && new Date(alert.timestamp).toLocaleTimeString()) || ''}</span>
                 </div>
               </div>
             </div>

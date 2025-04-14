@@ -1,111 +1,67 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { cn } from '@/lib/utils';
 
 interface CounterAnimationProps {
   value: number;
-  duration?: number;
-  decimals?: number;
   prefix?: string;
   suffix?: string;
-  className?: string;
+  duration?: number;
+  decimalPlaces?: number;
 }
 
-export function CounterAnimation({ 
-  value, 
-  duration = 1500,
-  decimals = 0,
+export const CounterAnimation: React.FC<CounterAnimationProps> = ({
+  value,
   prefix = '',
   suffix = '',
-  className 
-}: CounterAnimationProps) {
-  const [displayValue, setDisplayValue] = useState(0);
-  const startTime = useRef<number | null>(null);
-  const startValue = useRef<number>(0);
-  const frameId = useRef<number | null>(null);
-  const mountedRef = useRef<boolean>(false);
-  
-  const formatValue = (val: number) => {
-    return Number(val.toFixed(decimals)).toLocaleString();
-  };
-  
+  duration = 1000,
+  decimalPlaces = 0
+}) => {
+  const [count, setCount] = useState(0);
+  const countRef = useRef(0);
+  const startTimeRef = useRef<number | null>(null);
+  const frameRef = useRef<number>(0);
+
   useEffect(() => {
-    // Store the current value as the starting point when the value prop changes
-    startValue.current = mountedRef.current ? displayValue : 0;
-    mountedRef.current = true;
+    // Reset on value change
+    countRef.current = 0;
+    startTimeRef.current = null;
     
+    // Start animation
     const animate = (timestamp: number) => {
-      if (startTime.current === null) {
-        startTime.current = timestamp;
+      if (!startTimeRef.current) {
+        startTimeRef.current = timestamp;
       }
       
-      const elapsedTime = Math.min(timestamp - startTime.current, duration);
-      const progress = elapsedTime / duration;
-      const easedProgress = easeOutCubic(progress);
-      const nextValue = startValue.current + (value - startValue.current) * easedProgress;
+      const progress = timestamp - startTimeRef.current;
+      const progressRatio = Math.min(progress / duration, 1);
+      const easeOutQuart = 1 - Math.pow(1 - progressRatio, 4); // Easing function
       
-      setDisplayValue(nextValue);
+      countRef.current = easeOutQuart * value;
+      setCount(countRef.current);
       
-      if (elapsedTime < duration) {
-        frameId.current = requestAnimationFrame(animate);
+      if (progress < duration) {
+        frameRef.current = requestAnimationFrame(animate);
+      } else {
+        setCount(value);
       }
     };
     
-    // Start the animation
-    frameId.current = requestAnimationFrame(animate);
+    frameRef.current = requestAnimationFrame(animate);
     
-    // Clean up
     return () => {
-      if (frameId.current !== null) {
-        cancelAnimationFrame(frameId.current);
+      if (frameRef.current) {
+        cancelAnimationFrame(frameRef.current);
       }
     };
   }, [value, duration]);
-  
-  // Easing function for smoother animation
-  const easeOutCubic = (x: number): number => {
-    return 1 - Math.pow(1 - x, 3);
-  };
+
+  const formattedCount = count.toFixed(decimalPlaces);
+  // Format with thousands separators
+  const formattedWithCommas = formattedCount.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   
   return (
-    <span className={cn("tabular-nums", className)}>
-      {prefix}{formatValue(displayValue)}{suffix}
+    <span>
+      {prefix}{formattedWithCommas}{suffix}
     </span>
   );
-}
-
-interface CounterPercentageProps {
-  value: number;
-  duration?: number;
-  className?: string;
-}
-
-export function CounterPercentage({ value, duration = 1500, className }: CounterPercentageProps) {
-  return (
-    <CounterAnimation 
-      value={value} 
-      duration={duration} 
-      suffix="%" 
-      className={className} 
-    />
-  );
-}
-
-interface CounterCurrencyProps {
-  value: number;
-  currency?: string;
-  duration?: number;
-  className?: string;
-}
-
-export function CounterCurrency({ value, currency = "€", duration = 1500, className }: CounterCurrencyProps) {
-  return (
-    <CounterAnimation 
-      value={value} 
-      duration={duration} 
-      prefix={`${currency} `} 
-      decimals={2} 
-      className={className} 
-    />
-  );
-}
+};

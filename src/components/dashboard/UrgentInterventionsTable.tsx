@@ -75,7 +75,7 @@ export const UrgentInterventionsTable = memo(function UrgentInterventionsTable({
               {getPriorityBadge(intervention.priority)}
             </TableCell>
             <TableCell className={
-              intervention.date && intervention.date.getTime() < Date.now() ? "text-alert-red font-medium" : ""
+              intervention.date && new Date(intervention.date).getTime() < Date.now() ? "text-alert-red font-medium" : ""
             }>
               {intervention.date ? 
                 formatDistanceToNow(new Date(intervention.date), { addSuffix: true, locale: fr }) : 

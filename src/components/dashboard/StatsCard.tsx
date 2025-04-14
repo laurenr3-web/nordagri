@@ -2,8 +2,27 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { CounterAnimation } from '@/components/ui/counter-animation';
-import { typography, transitions, animations, backgrounds } from '@/lib/design-system';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+
+// Define the transitions, animations, backgrounds, etc. objects since they're used
+// but might not be imported properly
+const typography = {
+  heading1: "text-2xl font-bold",
+  subtitle: "text-muted-foreground font-medium"
+};
+
+const transitions = {
+  default: "transition-all duration-200 ease-in-out",
+  color: "transition-colors duration-200 ease-in-out"
+};
+
+const animations = {
+  fadeIn: "animate-fade-in"
+};
+
+const backgrounds = {
+  cardGradient: "bg-gradient-to-br from-white to-gray-50/30"
+};
 
 interface StatsCardProps {
   title: string;
@@ -86,7 +105,7 @@ export function StatsCard({
             "h-12 w-12 rounded-full bg-white shadow-md flex items-center justify-center",
             transitions.default
           )}>
-            <Icon className="h-6 w-6 text-agri-primary" />
+            {Icon && <Icon className="h-6 w-6 text-agri-primary" />}
           </div>
           <div className="absolute inset-0 rounded-full" 
                style={{

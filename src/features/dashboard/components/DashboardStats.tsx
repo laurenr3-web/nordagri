@@ -15,12 +15,14 @@ interface StatData {
 
 interface DashboardStatsProps {
   statsData: StatData[];
-  onStatClick: (type: string) => void;
+  isEditing?: boolean; // Make isEditing optional
+  onStatsCardClick: (type: string) => void;
 }
 
 export const DashboardStats: React.FC<DashboardStatsProps> = ({ 
   statsData,
-  onStatClick
+  isEditing = false, // Default to false
+  onStatsCardClick
 }) => {
   // Function to provide additional details for the StatsCards
   const getStatCardDetails = (title: string) => {
@@ -71,7 +73,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
             style={{
               animationDelay: `${index * 0.1}s`
             } as React.CSSProperties}
-            onClick={() => onStatClick(stat.title)}
+            onClick={() => onStatsCardClick(stat.title)}
           />
         );
       })}

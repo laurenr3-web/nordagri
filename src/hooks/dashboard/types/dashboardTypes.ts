@@ -31,6 +31,7 @@ export interface MaintenanceEvent {
   equipment?: string;
   equipment_id?: number;
   notes?: string;
+  date?: string | Date; // Add date field
 }
 
 export interface AlertItem {
@@ -45,6 +46,8 @@ export interface AlertItem {
   equipmentId?: number;
   equipmentName?: string;
   status?: string;
+  severity?: 'critical' | 'high' | 'medium' | 'low'; // Add severity field
+  timestamp?: Date; // Add timestamp field
 }
 
 export interface Task {
@@ -106,7 +109,7 @@ export interface UrgentIntervention {
   title: string;
   equipment: string;
   priority: 'high' | 'medium' | 'low';
-  date: Date;
+  date?: Date;
   status: string;
   technician: string;
   location: string;

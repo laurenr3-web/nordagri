@@ -1,74 +1,27 @@
 
-// Re-export intervention types from the centralized models
-export type {
-  InterventionStatus,
-  InterventionPriority,
-  PartUsed,
-  Intervention,
-  InterventionFormValues,
-  InterventionReportData
-} from './models/intervention';
-
-import { Intervention } from './models/intervention';
-
-/**
- * Create a default intervention object
- */
-export const createDefaultIntervention = (): Intervention => ({
-  id: 0,
-  title: '',
-  equipment: '',
-  equipmentId: 0,
-  status: 'scheduled',
-  priority: 'medium',
-  date: new Date(),
-  technician: '',
-  location: '',
-  notes: ''
-});
-
-/**
- * Utilities for validating intervention data
- */
-export const interventionValidators = {
-  isValidTitle: (title: string): boolean => title.trim().length >= 2,
-  isValidPriority: (priority: string): boolean => ['low', 'medium', 'high'].includes(priority),
-  isValidStatus: (status: string): boolean => 
-    ['scheduled', 'in-progress', 'completed', 'canceled'].includes(status),
-  isValidDate: (date: Date): boolean => !isNaN(date.getTime()),
-  isValidDuration: (duration: number): boolean => duration > 0
-};
-
-/**
- * Utility for coordinate format conversion
- */
-export const convertCoordinates = {
-  toLatLng: (coords?: {latitude: number; longitude: number}) => {
-    if (!coords) return undefined;
-    return {
-      lat: coords.latitude,
-      lng: coords.longitude
-    };
-  },
-  toLatitudeLongitude: (coords?: {lat: number; lng: number}) => {
-    if (!coords) return undefined;
-    return {
-      latitude: coords.lat,
-      longitude: coords.lng
-    };
-  }
-};
-
-/**
- * UrgentIntervention type needed for dashboard components
- */
-export type UrgentIntervention = {
+export interface UrgentIntervention {
   id: number;
   title: string;
   equipment: string;
   priority: 'high' | 'medium' | 'low';
-  date: Date;
+  date?: Date;
   status: string;
   technician: string;
   location: string;
-};
+}
+
+export interface InterventionBase {
+  id: number;
+  title: string;
+  description?: string;
+  equipment: string;
+  equipmentId?: number;
+  priority: 'high' | 'medium' | 'low';
+  status: string;
+  date: Date;
+  technician: string;
+  location: string;
+  notes?: string;
+}
+
+export type InterventionStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled';

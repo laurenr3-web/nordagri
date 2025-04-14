@@ -36,7 +36,9 @@ const AllAlertsSection: React.FC<AllAlertsSectionProps> = ({ alerts }) => {
               <div className="flex-1">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium">{alert.message || alert.description}</p>
-                  <span className="text-xs text-muted-foreground">{alert.time || alert.timestamp?.toLocaleTimeString()}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {alert.time || (alert.timestamp && alert.timestamp.toLocaleTimeString())}
+                  </span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">{alert.equipment || alert.equipmentName || 'System'}</p>
               </div>
