@@ -1,33 +1,25 @@
 
-import React, { ReactNode, memo, useMemo } from 'react';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import MainLayout from '@/ui/layouts/MainLayout';
-import { LayoutProvider } from '@/ui/layouts/MainLayoutContext';
+import React, { ReactNode } from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuthContext } from '@/core/auth';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
+// Définition explicite du type des props
 interface ProtectedLayoutProps {
   children: ReactNode;
 }
 
-// Utiliser React.FC avec l'interface ProtectedLayoutProps pour typer correctement le composant
-const ProtectedLayout: React.FC<ProtectedLayoutProps> = memo(({ children }) => {
-  // Mémoriser le contenu suspendu pour éviter des rendus inutiles
-  const suspendedContent = useMemo(() => (
-    <ProtectedRoute>
-      <LayoutProvider>
-        <MainLayout>
-          <React.Suspense fallback={<LoadingSpinner message="Chargement du contenu sécurisé..." />}>
-            {children}
-          </React.Suspense>
-        </MainLayout>
-      </LayoutProvider>
-    </ProtectedRoute>
-  ), [children]);
-  
-  return suspendedContent;
-});
+// Utilisation correcte du type de props
+export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
+  const { isAuthenticated, loading } = useAuthContext();
 
-// Ajouter un displayName pour améliorer le débogage
-ProtectedLayout.displayName = 'ProtectedLayout';
+  if (loading) {
+    return <LoadingSpinner message="Chargement..." />;
+  }
 
-export default ProtectedLayout;
+  if (!isAuthenticated) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  return <>{children}</>;
+}
