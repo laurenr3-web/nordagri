@@ -6,11 +6,11 @@ import { LayoutProvider } from '@/ui/layouts/MainLayoutContext';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface ProtectedLayoutProps {
-  children: ReactNode;  // Changed from Element to ReactNode
+  children: ReactNode;
 }
 
-// Utilisation de React.memo pour optimiser les rendus
-const ProtectedLayout = memo(({ children }: ProtectedLayoutProps) => {
+// Utiliser React.FC avec l'interface ProtectedLayoutProps pour typer correctement le composant
+const ProtectedLayout: React.FC<ProtectedLayoutProps> = memo(({ children }) => {
   // Mémoriser le contenu suspendu pour éviter des rendus inutiles
   const suspendedContent = useMemo(() => (
     <ProtectedRoute>
