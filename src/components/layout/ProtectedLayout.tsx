@@ -11,8 +11,6 @@ interface ProtectedLayoutProps {
 
 // Utilisation de React.memo pour optimiser les rendus
 const ProtectedLayout = memo(({ children }: ProtectedLayoutProps) => {
-  // Préchargement optimisé des routes
-  
   // Mémoriser le contenu suspendu pour éviter des rendus inutiles
   const suspendedContent = useMemo(() => (
     <ProtectedRoute>
