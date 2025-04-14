@@ -1,27 +1,29 @@
 
-import React, { memo, useMemo } from 'react';
-import DashboardContent from './DashboardContent';
-import { 
-  StatsCardData, 
-  EquipmentItem, 
-  MaintenanceEvent, 
-  AlertItem, 
-  UpcomingTask,
-  UrgentIntervention,
-  StockAlert,
-  CalendarEvent
-} from '@/hooks/dashboard/types/dashboardTypes';
-import { SearchItem } from '@/types/search';
+import React from 'react';
+import { DashboardStats } from './DashboardStats';
+import { DashboardCalendar } from './DashboardCalendar';
+import { DashboardAlerts } from './DashboardAlerts';
+import { DashboardStock } from './DashboardStock';
+import { DashboardUrgentInterventions } from './DashboardUrgentInterventions';
+import { useLocalStorage } from 'react-use';
 
-interface DashboardProps {
-  statsData: StatsCardData[];
-  equipmentData: EquipmentItem[];
-  maintenanceEvents: MaintenanceEvent[];
-  alertItems: AlertItem[];
-  upcomingTasks: UpcomingTask[];
-  urgentInterventions: UrgentIntervention[];
-  stockAlerts: StockAlert[];
-  weeklyCalendarEvents: CalendarEvent[];
+// Utilisez cet import pour stocker les préférences de dashboard
+interface DashboardLayout {
+  [key: string]: {
+    visible: boolean;
+    order: number;
+  };
+}
+
+export interface DashboardProps {
+  statsData: any[];
+  equipmentData: any[];
+  maintenanceEvents: any[];
+  alertItems: any[];
+  upcomingTasks: any[];
+  urgentInterventions: any[];
+  stockAlerts: any[];
+  weeklyCalendarEvents: any[];
   currentMonth: Date;
   handleStatsCardClick: (type: string) => void;
   handleEquipmentViewAllClick: () => void;
@@ -31,7 +33,7 @@ interface DashboardProps {
   handleEquipmentClick: (id: number) => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = memo(({
+const Dashboard: React.FC<DashboardProps> = ({
   statsData,
   equipmentData,
   maintenanceEvents,
@@ -48,61 +50,90 @@ const Dashboard: React.FC<DashboardProps> = memo(({
   handleTasksAddClick,
   handleEquipmentClick
 }) => {
-  // Create search items from various data sources
-  const searchItems = useMemo(() => {
-    const items: SearchItem[] = [
-      ...equipmentData.map(item => ({
-        id: item.id,
-        title: item.name,
-        subtitle: item.type,
-        type: 'equipment' as const,
-        url: `/equipment/${item.id}`
-      })),
-      ...urgentInterventions.map(item => ({
-        id: item.id,
-        title: item.title,
-        subtitle: item.equipment,
-        type: 'intervention' as const,
-        url: `/interventions?id=${item.id}`
-      })),
-      ...(stockAlerts?.map(item => ({
-        id: item.id,
-        title: item.name,
-        subtitle: `Stock: ${item.currentStock}/${item.reorderPoint}`,
-        type: 'part' as const,
-        url: `/parts?id=${item.id}`
-      })) || []),
-      ...upcomingTasks.map(item => ({
-        id: item.id,
-        title: item.title,
-        subtitle: item.description,
-        type: 'task' as const,
-        url: `/maintenance?taskId=${item.id}`
-      }))
-    ];
-    return items;
-  }, [equipmentData, urgentInterventions, stockAlerts, upcomingTasks]);
-
+  // État pour gérer le mode d'édition
+  const [isEditing, setIsEditing] = React.useState(false);
+  
+  // Récupérer la disposition du tableau de bord depuis le stockage local
+  const [dashboardLayout, setDashboardLayout] = useLocalStorage<DashboardLayout>('dashboard-layout', {
+    'stats': { visible: true, order: 1 },
+    'equipment': { visible: true, order: 2 },
+    'weekly-calendar': { visible: true, order: 3 },
+    'alerts': { visible: true, order: 4 },
+    'tasks': { visible: true, order: 5 },
+    'urgent-interventions': { visible: true, order: 6 },
+    'stock': { visible: true, order: 7 }
+  });
+  
+  // Fonction pour activer/désactiver le mode d'édition
+  const toggleEditMode = () => {
+    setIsEditing(prev => !prev);
+  };
+  
+  // Fonction pour sauvegarder la disposition
+  const saveLayout = (newLayout: DashboardLayout) => {
+    setDashboardLayout(newLayout);
+    setIsEditing(false);
+  };
+  
   return (
-    <DashboardContent 
-      statsData={statsData}
-      equipmentData={equipmentData}
-      maintenanceEvents={maintenanceEvents}
-      alertItems={alertItems}
-      upcomingTasks={upcomingTasks}
-      urgentInterventions={urgentInterventions}
-      stockAlerts={stockAlerts}
-      weeklyCalendarEvents={weeklyCalendarEvents}
-      handleStatsCardClick={handleStatsCardClick}
-      handleEquipmentViewAllClick={handleEquipmentViewAllClick}
-      handleMaintenanceCalendarClick={handleMaintenanceCalendarClick}
-      handleAlertsViewAllClick={handleAlertsViewAllClick}
-      handleTasksAddClick={handleTasksAddClick}
-      handleEquipmentClick={handleEquipmentClick}
-    />
+    <div className="space-y-6">
+      {/* En-tête du Dashboard avec contrôles */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Tableau de bord</h1>
+        <button 
+          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+          onClick={toggleEditMode}
+        >
+          {isEditing ? "Terminer l'édition" : "Personnaliser"}
+        </button>
+      </div>
+      
+      {/* Section des Statistiques */}
+      {dashboardLayout?.stats?.visible && (
+        <DashboardStats 
+          stats={statsData}
+          isEditing={isEditing}
+          onStatsCardClick={handleStatsCardClick}
+        />
+      )}
+      
+      {/* Section des Alertes */}
+      {dashboardLayout?.alerts?.visible && (
+        <DashboardAlerts 
+          alerts={alertItems}
+          isEditing={isEditing}
+          onViewAll={handleAlertsViewAllClick}
+        />
+      )}
+      
+      {/* Section du Calendrier Hebdomadaire */}
+      {dashboardLayout?.['weekly-calendar']?.visible && (
+        <DashboardCalendar
+          events={weeklyCalendarEvents}
+          isEditing={isEditing}
+          onViewEvent={(id, type) => console.log('View event:', id, type)}
+        />
+      )}
+      
+      {/* Section des Interventions Urgentes */}
+      {dashboardLayout?.['urgent-interventions']?.visible && (
+        <DashboardUrgentInterventions 
+          interventions={urgentInterventions}
+          isEditing={isEditing}
+          onViewAll={() => console.log('View all interventions')}
+        />
+      )}
+      
+      {/* Section des Alertes de Stock */}
+      {dashboardLayout?.stock?.visible && (
+        <DashboardStock 
+          alerts={stockAlerts}
+          isEditing={isEditing}
+          onViewParts={() => console.log('View parts')}
+        />
+      )}
+    </div>
   );
-});
-
-Dashboard.displayName = 'Dashboard';
+};
 
 export default Dashboard;

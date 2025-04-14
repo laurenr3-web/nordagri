@@ -4,20 +4,20 @@ import { useAuthContext } from '@/providers/AuthProvider';
 import { toast } from "@/hooks/use-toast";
 import { useQuery } from '@tanstack/react-query';
 
-// Import specialized hooks
-import { useStatsData } from './useStatsData';
-import { useEquipmentData } from './useEquipmentData';
-import { useMaintenanceData } from './useMaintenanceData';
-import { useAlertsData } from './useAlertsData';
-import { useTasksData } from './useTasksData';
-import { interventionService } from '@/services/supabase/interventionService';
+// Import des services
+import { dashboardService } from '@/services/dashboard/dashboardService';
 import { usePartsData } from '@/hooks/parts/usePartsData';
 
-// Import utility functions
-import { filterWeeklyCalendarEvents } from './utils/calendarUtils';
-import { createCalendarEvents, deriveUrgentInterventions, deriveStockAlerts } from './utils/derivedDataUtils';
+// Import des transformateurs
+import { 
+  deriveStockAlerts, 
+  deriveUrgentInterventions,
+  createCalendarEvents,
+  filterWeeklyCalendarEvents,
+  transformEquipmentData
+} from '@/services/dashboard/transformers/dashboardDataTransformers';
 
-// Export types from the types file
+// Export des types depuis le fichier de types
 export * from './types/dashboardTypes';
 
 interface DashboardErrors {
@@ -43,14 +43,67 @@ export const useDashboardData = () => {
     parts: null
   });
 
-  // Use specialized hooks
-  const { statsData, error: statsError, refresh: refreshStats } = useStatsData(user);
-  const { equipmentData, error: equipmentError, refresh: refreshEquipment } = useEquipmentData(user);
-  const { maintenanceEvents, error: maintenanceError, refresh: refreshMaintenance } = useMaintenanceData(user);
-  const { alertItems, error: alertsError, refresh: refreshAlerts } = useAlertsData(user);
-  const { upcomingTasks, error: tasksError, retry: refreshTasks } = useTasksData(user);
+  // Requête pour les statistiques
+  const { 
+    data: statsData = [], 
+    error: statsError,
+    refetch: refreshStats
+  } = useQuery({
+    queryKey: ['dashboard', 'stats', user?.id],
+    queryFn: () => dashboardService.getStats(user?.id || ''),
+    enabled: !!user,
+    staleTime: 1000 * 60 * 5 // 5 minutes
+  });
+
+  // Requête pour les équipements
+  const { 
+    data: equipmentData = [], 
+    error: equipmentError,
+    refetch: refreshEquipment
+  } = useQuery({
+    queryKey: ['dashboard', 'equipment', user?.id],
+    queryFn: () => dashboardService.getEquipment(user?.id || ''),
+    enabled: !!user,
+    staleTime: 1000 * 60 * 5 // 5 minutes
+  });
+
+  // Requête pour les événements de maintenance
+  const { 
+    data: maintenanceEvents = [], 
+    error: maintenanceError,
+    refetch: refreshMaintenance
+  } = useQuery({
+    queryKey: ['dashboard', 'maintenance', user?.id],
+    queryFn: () => dashboardService.getMaintenanceEvents(user?.id || ''),
+    enabled: !!user,
+    staleTime: 1000 * 60 * 5 // 5 minutes
+  });
+
+  // Requête pour les alertes
+  const { 
+    data: alertItems = [], 
+    error: alertsError,
+    refetch: refreshAlerts
+  } = useQuery({
+    queryKey: ['dashboard', 'alerts', user?.id],
+    queryFn: () => dashboardService.getAlerts(user?.id || ''),
+    enabled: !!user,
+    staleTime: 1000 * 60 * 5 // 5 minutes
+  });
+
+  // Requête pour les tâches
+  const { 
+    data: upcomingTasks = [], 
+    error: tasksError,
+    refetch: refreshTasks
+  } = useQuery({
+    queryKey: ['dashboard', 'tasks', user?.id],
+    queryFn: () => dashboardService.getTasks(user?.id || ''),
+    enabled: !!user,
+    staleTime: 1000 * 60 * 5 // 5 minutes
+  });
   
-  // Use React Query to fetch interventions
+  // Requête pour les interventions
   const { 
     data: interventions = [], 
     isLoading: isLoadingInterventions,
@@ -58,49 +111,50 @@ export const useDashboardData = () => {
     refetch: refreshInterventions
   } = useQuery({
     queryKey: ['interventions'],
-    queryFn: () => interventionService.getInterventions(),
-    enabled: !!user
+    queryFn: () => dashboardService.getInterventions(),
+    enabled: !!user,
+    staleTime: 1000 * 60 * 5 // 5 minutes
   });
   
+  // Utiliser le hook pour les pièces détachées
   const partsResult = usePartsData();
-  
-  // Get the actual parts data
   const parts = partsResult.data || [];
 
-  // Derive urgent interventions from interventions data
-  const urgentInterventions = deriveUrgentInterventions(interventions);
-
-  // Derive stock alerts from parts data
+  // Dériver les données secondaires à partir des données primaires
   const stockAlerts = deriveStockAlerts(parts);
-
-  // Create calendar events combining maintenance, interventions, and tasks
-  const calendarEvents = createCalendarEvents(
-    maintenanceEvents,
-    interventions,
-    upcomingTasks
-  );
-
-  // Filter calendar events to show only this week's events
+  const urgentInterventions = deriveUrgentInterventions(interventions);
+  const calendarEvents = createCalendarEvents(maintenanceEvents, interventions, upcomingTasks);
   const weeklyCalendarEvents = filterWeeklyCalendarEvents(calendarEvents);
 
-  // Update errors state when individual hook errors change
+  // Transformer les données des équipements
+  const transformedEquipmentData = transformEquipmentData(equipmentData);
+
+  // Mettre à jour les erreurs
   useEffect(() => {
     setErrors({
-      stats: statsError,
-      equipment: equipmentError,
-      maintenance: maintenanceError,
-      alerts: alertsError,
-      tasks: tasksError,
+      stats: statsError ? String(statsError) : null,
+      equipment: equipmentError ? String(equipmentError) : null,
+      maintenance: maintenanceError ? String(maintenanceError) : null,
+      alerts: alertsError ? String(alertsError) : null,
+      tasks: tasksError ? String(tasksError) : null,
       interventions: interventionsError ? String(interventionsError) : null,
       parts: partsResult.error ? String(partsResult.error) : null
     });
-  }, [statsError, equipmentError, maintenanceError, alertsError, tasksError, interventionsError, partsResult.error]);
+  }, [
+    statsError, 
+    equipmentError, 
+    maintenanceError, 
+    alertsError, 
+    tasksError, 
+    interventionsError, 
+    partsResult.error
+  ]);
 
-  // Function to refresh all data
+  // Fonction pour actualiser toutes les données
   const refreshData = useCallback(() => {
     setLoading(true);
     
-    // Refresh all data sources
+    // Actualiser toutes les sources de données
     if (refreshStats) refreshStats();
     if (refreshEquipment) refreshEquipment();
     if (refreshMaintenance) refreshMaintenance();
@@ -109,13 +163,13 @@ export const useDashboardData = () => {
     if (refreshInterventions) refreshInterventions();
     if (partsResult.refetch) partsResult.refetch();
     
-    // Use standard toast
+    // Afficher un toast
     toast({
       title: "Actualisation",
       description: "Actualisation des données en cours...",
     });
     
-    // Set loading to false after a short delay to ensure all data has been refreshed
+    // Désactiver le chargement après un court délai
     setTimeout(() => {
       setLoading(false);
     }, 1000);
@@ -126,11 +180,12 @@ export const useDashboardData = () => {
     refreshAlerts, 
     refreshTasks, 
     refreshInterventions, 
-    partsResult.refetch
+    partsResult.refetch,
+    toast
   ]);
 
+  // Déterminer quand arrêter l'état de chargement
   useEffect(() => {
-    // Si on a des données dans au moins une des sources, c'est suffisant pour ne plus montrer le loader
     const isAnyDataLoaded = 
       statsData.length > 0 || 
       equipmentData.length > 0 || 
@@ -143,19 +198,28 @@ export const useDashboardData = () => {
     if (isAnyDataLoaded && !isLoadingInterventions) {
       setLoading(false);
     }
-  }, [statsData, equipmentData, maintenanceEvents, alertItems, upcomingTasks, interventions, parts, isLoadingInterventions]);
+  }, [
+    statsData, 
+    equipmentData, 
+    maintenanceEvents, 
+    alertItems, 
+    upcomingTasks, 
+    interventions, 
+    parts, 
+    isLoadingInterventions
+  ]);
 
+  // Arrêter le chargement si l'utilisateur n'est pas connecté
   useEffect(() => {
-    // Si l'utilisateur n'est pas connecté mais que le chargement est en cours, on arrête le loader
     if (!user && loading) {
       setLoading(false);
     }
   }, [user, loading]);
 
   return {
-    loading: false, // Force loading to false to ensure the dashboard shows
+    loading,
     statsData,
-    equipmentData,
+    equipmentData: transformedEquipmentData,
     maintenanceEvents,
     alertItems,
     upcomingTasks,
