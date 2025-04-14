@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { InterventionDB, Intervention, InterventionFormValues } from '@/types/models/intervention';
 import { clientToDbIntervention, dbToClientIntervention, clientFormToDbIntervention } from './interventionAdapter';
+import { ensureNumberId } from '@/utils/typeGuards';
 
 /**
  * Service to handle intervention data from Supabase
@@ -34,7 +35,7 @@ export const interventionService = {
   async getInterventionById(id: string | number): Promise<Intervention | null> {
     try {
       // Convert string id to number if needed
-      const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
+      const numericId = ensureNumberId(id);
 
       const { data, error } = await supabase
         .from('interventions')
@@ -97,8 +98,11 @@ export const interventionService = {
   /**
    * Update an intervention
    */
-  async updateIntervention(id: number, intervention: Partial<Intervention>): Promise<Intervention> {
+  async updateIntervention(id: number | string, intervention: Partial<Intervention>): Promise<Intervention> {
     try {
+      // Ensure numeric ID
+      const numericId = ensureNumberId(id);
+      
       // Convert client data to DB format
       const dbIntervention = clientToDbIntervention(intervention as Intervention);
       
@@ -108,7 +112,7 @@ export const interventionService = {
       const { data, error } = await supabase
         .from('interventions')
         .update(updateData)
-        .eq('id', id)
+        .eq('id', numericId)
         .select()
         .single();
 
@@ -126,8 +130,11 @@ export const interventionService = {
   /**
    * Update intervention status
    */
-  async updateInterventionStatus(id: number, status: string): Promise<Intervention> {
+  async updateInterventionStatus(id: number | string, status: string): Promise<Intervention> {
     try {
+      // Ensure numeric ID
+      const numericId = ensureNumberId(id);
+      
       // Convert status to DB format
       const dbStatus = status === 'in-progress' ? 'in_progress' : 
                         status === 'cancelled' ? 'canceled' : status;
@@ -135,7 +142,7 @@ export const interventionService = {
       const { data, error } = await supabase
         .from('interventions')
         .update({ status: dbStatus })
-        .eq('id', id)
+        .eq('id', numericId)
         .select()
         .single();
 
@@ -153,12 +160,15 @@ export const interventionService = {
   /**
    * Delete an intervention
    */
-  async deleteIntervention(id: number): Promise<void> {
+  async deleteIntervention(id: number | string): Promise<void> {
     try {
+      // Ensure numeric ID
+      const numericId = ensureNumberId(id);
+      
       const { error } = await supabase
         .from('interventions')
         .delete()
-        .eq('id', id);
+        .eq('id', numericId);
 
       if (error) {
         throw new Error(`Error deleting intervention: ${error.message}`);

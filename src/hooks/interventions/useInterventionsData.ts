@@ -1,8 +1,10 @@
+
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { InterventionDB, InterventionFormValues, InterventionStatus } from '@/types/models/intervention';
 import { useQueryClient } from '@tanstack/react-query';
+import { ensureNumberId } from '@/utils/typeGuards';
 
 // Structure to show when an intervention is loading
 export const loadingIntervention = {
@@ -71,12 +73,15 @@ export const useInterventionsData = () => {
     }
   };
   
-  const updateInterventionStatus = async (interventionId: number, newStatus: string): Promise<void> => {
+  const updateInterventionStatus = async (interventionId: string | number, newStatus: string): Promise<void> => {
     try {
+      // Convert to numeric ID
+      const numericId = ensureNumberId(interventionId);
+      
       const { error } = await supabase
         .from('interventions')
         .update({ status: newStatus })
-        .eq('id', interventionId);
+        .eq('id', numericId);
 
       if (error) throw error;
       
@@ -88,12 +93,15 @@ export const useInterventionsData = () => {
     }
   };
 
-  const assignTechnician = async (interventionId: number, technicianName: string): Promise<void> => {
+  const assignTechnician = async (interventionId: string | number, technicianName: string): Promise<void> => {
     try {
+      // Convert to numeric ID
+      const numericId = ensureNumberId(interventionId);
+      
       const { error } = await supabase
         .from('interventions')
         .update({ technician: technicianName })
-        .eq('id', interventionId);
+        .eq('id', numericId);
 
       if (error) throw error;
       

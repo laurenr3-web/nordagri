@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { interventionService } from '@/services/supabase/interventionService';
 import { Intervention, InterventionStatus } from '@/types/Intervention';
 import { toast } from 'sonner';
+import { ensureNumberId } from '@/utils/typeGuards';
 
 export function useInterventionDetail(interventionId: string | number | undefined) {
   const queryClient = useQueryClient();

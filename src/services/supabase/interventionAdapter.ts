@@ -1,6 +1,7 @@
 
 import { InterventionDB, Intervention, InterventionFormValues, InterventionStatus } from '@/types/models/intervention';
 import { Json } from '@/integrations/supabase/types';
+import { ensureNumberId } from '@/utils/typeGuards';
 
 /**
  * Map database status to client status
@@ -90,7 +91,7 @@ export const clientFormToDbIntervention = (formData: InterventionFormValues): Pa
  */
 export const clientToDbIntervention = (intervention: Intervention): Partial<InterventionDB> => {
   return {
-    id: intervention.id,
+    id: intervention.id, // This will always be a number now
     title: intervention.title,
     equipment: intervention.equipment,
     equipment_id: intervention.equipmentId,

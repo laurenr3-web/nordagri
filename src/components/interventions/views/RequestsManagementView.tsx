@@ -4,6 +4,7 @@ import { Intervention, InterventionStatus } from '@/types/models/intervention';
 import { useQuery } from '@tanstack/react-query';
 import { interventionService } from '@/services/supabase/interventionService';
 import { toast } from 'sonner';
+import { ensureNumberId } from '@/utils/typeGuards';
 
 // Import refactored components
 import RequestsHeader from './requests/RequestsHeader';
@@ -71,7 +72,7 @@ const RequestsManagementView: React.FC<RequestsManagementViewProps> = ({
 
   const handleRejectRequest = async (intervention: Intervention) => {
     try {
-      await interventionService.updateInterventionStatus(intervention.id, 'canceled');
+      await interventionService.updateInterventionStatus(intervention.id, 'cancelled');
       toast.success('Demande rejetée');
       refetch(); // Refresh interventions list
     } catch (error) {

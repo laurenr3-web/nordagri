@@ -38,7 +38,7 @@ export interface UrgentIntervention {
  * Base intervention properties
  */
 export interface InterventionBase {
-  id: number;
+  id: number;  // Changed to number to match BaseEntity
   title: string;
   description?: string;
   equipment: string;
@@ -54,7 +54,7 @@ export interface InterventionBase {
 /**
  * Complete intervention entity interface
  */
-export interface Intervention extends BaseEntity, TimestampFields, InterventionBase {
+export interface Intervention extends Omit<BaseEntity, 'id'>, TimestampFields, InterventionBase {
   scheduledDuration?: number;
   duration?: number;
   partsUsed?: PartUsed[];

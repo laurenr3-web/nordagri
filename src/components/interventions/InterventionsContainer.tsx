@@ -11,6 +11,7 @@ import CalendarView from './views/CalendarView';
 import FieldTrackingView from './views/FieldTrackingView';
 import { useInterventionFormHandlers } from '@/hooks/interventions/useInterventionFormHandlers';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { ensureNumberId } from '@/utils/typeGuards';
 
 interface InterventionsContainerProps {
   filteredInterventions: Intervention[];
@@ -80,6 +81,11 @@ const InterventionsContainer: React.FC<InterventionsContainerProps> = ({
     { id: 4, name: 'Bougie d\'allumage', quantity: 12 }
   ], []);
   
+  // Handle assigning technician with proper ID type
+  const handleAssignTechnician = useCallback((intervention: Intervention, tech: string) => {
+    assignTechnician(ensureNumberId(intervention.id), tech);
+  }, [assignTechnician]);
+  
   // Contenu à afficher selon la vue actuelle
   const renderContent = useCallback(() => {
     switch (currentView) {
@@ -97,8 +103,7 @@ const InterventionsContainer: React.FC<InterventionsContainerProps> = ({
             interventions={filteredInterventions}
             onViewDetails={onViewDetails}
             onUpdateStatus={updateInterventionStatus}
-            // Fix: The type mismatch by using the intervention's id
-            onAssignTechnician={(intervention, tech) => assignTechnician(intervention.id, tech)}
+            onAssignTechnician={handleAssignTechnician}
           />
         );
       default:
@@ -119,7 +124,7 @@ const InterventionsContainer: React.FC<InterventionsContainerProps> = ({
     onViewDetails, 
     handleCreateFromCalendar, 
     updateInterventionStatus, 
-    assignTechnician, 
+    handleAssignTechnician, 
     setCurrentView, 
     onClearSearch, 
     onStartWork
