@@ -8,6 +8,7 @@ import EquipmentDetailContent from '@/components/equipment/detail/EquipmentDetai
 import MaintenanceNotificationsPopover from '@/components/maintenance/notifications/MaintenanceNotificationsPopover';
 import { withRetry } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { EquipmentItem } from '@/types/models/equipment';
 
 const EquipmentDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -24,16 +25,15 @@ const EquipmentDetail = () => {
   
   console.log("EquipmentDetail rendering with equipment:", equipment?.id, "loading:", loading);
   
-  const handleEquipmentUpdateWithRetry = async (updatedData: any) => {
+  const handleEquipmentUpdateWithRetry = async (updatedData: EquipmentItem): Promise<void> => {
     try {
-      return await withRetry(async () => {
-        const toastId = 'equipment-update';
-        toast.loading('Mise à jour en cours...', { id: toastId });
-        
+      const toastId = 'equipment-update';
+      toast.loading('Mise à jour en cours...', { id: toastId });
+      
+      await withRetry(async () => {
         try {
-          const result = await handleEquipmentUpdate(updatedData);
+          await handleEquipmentUpdate(updatedData);
           toast.success('Équipement mis à jour avec succès', { id: toastId });
-          return result;
         } catch (error: any) {
           toast.error('Erreur lors de la mise à jour', { 
             id: toastId,
@@ -47,7 +47,6 @@ const EquipmentDetail = () => {
       toast.error('Échec de la mise à jour après plusieurs tentatives', {
         description: 'Veuillez vérifier votre connexion et réessayer'
       });
-      throw error;
     }
   };
   
