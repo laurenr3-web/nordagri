@@ -5,7 +5,7 @@ import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Calendar, Tool, User, MapPin } from 'lucide-react';
+import { Clock, Calendar, Wrench, User, MapPin } from 'lucide-react';
 import { TimeEntry } from '@/hooks/time-tracking/types';
 import { timeTrackingService } from '@/services/supabase/timeTrackingService';
 import { supabase } from '@/integrations/supabase/client';
@@ -127,7 +127,7 @@ const TimeEntryDetail = () => {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Tool className="h-5 w-5 text-muted-foreground" />
+                    <Wrench className="h-5 w-5 text-muted-foreground" />
                     <div>
                       <p className="text-sm text-muted-foreground">Type</p>
                       <p className="font-medium capitalize">{entry.task_type}</p>
@@ -136,7 +136,7 @@ const TimeEntryDetail = () => {
 
                   {entry.equipment_name && (
                     <div className="flex items-center gap-2">
-                      <Tool className="h-5 w-5 text-muted-foreground" />
+                      <Wrench className="h-5 w-5 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Équipement</p>
                         <p className="font-medium">{entry.equipment_name}</p>
