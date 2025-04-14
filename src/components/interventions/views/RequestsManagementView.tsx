@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Intervention } from '@/types/Intervention';
+import { Intervention, InterventionStatus } from '@/types/models/intervention';
 import { useQuery } from '@tanstack/react-query';
 import { interventionService } from '@/services/supabase/interventionService';
 import { toast } from 'sonner';
@@ -37,13 +37,13 @@ const RequestsManagementView: React.FC<RequestsManagementViewProps> = ({
         equipment: values.equipment,
         equipmentId: values.equipmentId,
         location: values.location || 'Unknown',
-        priority: values.priority,
+        priority: values.priority as "low" | "medium" | "high",
         date: values.date,
         scheduledDuration: values.scheduledDuration,
         technician: values.technician,
         description: values.description,
         notes: values.notes,
-        status: 'scheduled',
+        status: 'scheduled' as InterventionStatus,
       };
       
       await interventionService.createIntervention(interventionData);

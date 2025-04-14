@@ -63,11 +63,14 @@ export const interventionService = {
       // Convert client data to DB format
       const dbIntervention = clientFormToDbIntervention(intervention);
       
-      // Ensure required fields are present
+      // Ensure required fields are present with default values
       const requiredFields = {
         date: dbIntervention.date || new Date().toISOString(),
         equipment: dbIntervention.equipment || 'Unknown',
-        location: dbIntervention.location || 'Unknown'
+        equipment_id: dbIntervention.equipment_id || 0, // Ensure equipment_id is always set
+        location: dbIntervention.location || 'Unknown',
+        status: dbIntervention.status || 'scheduled',
+        technician: dbIntervention.technician || ''
       };
       
       const { data, error } = await supabase

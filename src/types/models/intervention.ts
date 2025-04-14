@@ -61,6 +61,10 @@ export interface InterventionFormValues {
   description?: string;
   notes?: string;
   status?: InterventionStatus;
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 /**

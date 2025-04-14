@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { interventionService } from '@/services/supabase/interventionService';
-import { Intervention } from '@/types/Intervention';
+import { Intervention } from '@/types/models/intervention';
 import { toast } from 'sonner';
 
 export function useInterventionDetail(interventionId: string | number | undefined) {

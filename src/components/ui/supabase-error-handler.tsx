@@ -63,8 +63,7 @@ export function SupabaseErrorHandler({ children }: SupabaseErrorHandlerProps) {
       }
 
       // Gérer la suppression d'un utilisateur
-      // Fixed comparison to use type-safe equality check
-      if (event === 'USER_DELETED' as any) {
+      if (event === 'USER_DELETED') {
         toast.error('Votre compte a été supprimé', {
           description: 'Veuillez contacter le support si vous pensez qu\'il s\'agit d\'une erreur.'
         });
