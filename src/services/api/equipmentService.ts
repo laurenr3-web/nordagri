@@ -2,6 +2,7 @@
 // Make sure to fix the issue with the missing name field when creating equipment
 import { supabase } from '@/integrations/supabase/client';
 import { EquipmentFilter } from '@/types/Equipment';
+import { ensureNumberId } from '@/utils/typeGuards';
 
 export interface Equipment {
   id: number;
@@ -35,10 +36,13 @@ export const equipmentService = {
   },
   
   async getEquipmentById(id: number): Promise<Equipment> {
+    // Ensure id is a number
+    const numericId = ensureNumberId(id);
+    
     const { data, error } = await supabase
       .from('equipment')
       .select('*')
-      .eq('id', id)
+      .eq('id', numericId)
       .single();
     
     if (error) {
@@ -65,10 +69,13 @@ export const equipmentService = {
   },
   
   async updateEquipment(id: number, equipmentData: Partial<Equipment>): Promise<Equipment> {
+    // Ensure id is a number
+    const numericId = ensureNumberId(id);
+    
     const { data, error } = await supabase
       .from('equipment')
       .update(equipmentData)
-      .eq('id', id)
+      .eq('id', numericId)
       .select()
       .single();
     
@@ -81,10 +88,13 @@ export const equipmentService = {
   },
   
   async deleteEquipment(id: number): Promise<void> {
+    // Ensure id is a number
+    const numericId = ensureNumberId(id);
+    
     const { error } = await supabase
       .from('equipment')
       .delete()
-      .eq('id', id);
+      .eq('id', numericId);
     
     if (error) {
       console.error(`Error deleting equipment with id ${id}:`, error);

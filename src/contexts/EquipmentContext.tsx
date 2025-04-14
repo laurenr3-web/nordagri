@@ -80,7 +80,14 @@ export const EquipmentProvider: React.FC<EquipmentProviderProps> = ({
   
   // Mutation pour mettre à jour un équipement
   const updateMutation = useStandardMutation({
-    mutationFn: (data: Equipment) => equipmentService.updateEquipment(ensureNumberId(data.id), data),
+    mutationFn: (data: Equipment) => {
+      // Ensure id is converted to number before sending to the API
+      const updatedData = {
+        ...data,
+        id: ensureNumberId(data.id)
+      };
+      return equipmentService.updateEquipment(updatedData.id, updatedData);
+    },
     invalidateQueries: [['equipment']],
     successMessage: 'Équipement mis à jour avec succès',
     errorMessage: 'Erreur lors de la mise à jour de l\'équipement'
