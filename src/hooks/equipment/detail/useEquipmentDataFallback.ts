@@ -39,8 +39,8 @@ export function useEquipmentDataFallback(id: string | undefined) {
           purchaseDate: data.purchase_date || data.purchaseDate,
           serialNumber: data.serial_number || data.serialNumber,
           type: data.type || "",  // Ajout de type car c'est requis
-          created_at: data.created_at || new Date().toISOString(),
-          updated_at: data.updated_at || new Date().toISOString()
+          createdAt: data.created_at || new Date().toISOString(),
+          updatedAt: data.updated_at || new Date().toISOString()
         };
         
         setEquipment(processedData);

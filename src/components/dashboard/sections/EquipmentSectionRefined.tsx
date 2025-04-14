@@ -34,13 +34,14 @@ export const EquipmentSectionRefined: React.FC<EquipmentSectionRefinedProps> = (
         {equipmentData.map((item) => (
           <div 
             key={item.id}
-            className="cursor-pointer"
-            onClick={() => onEquipmentClick(item.id)}
+            className="cursor-pointer border rounded-md p-4 hover:border-primary transition-colors"
+            onClick={() => {
+              console.log("Equipment item clicked:", item.id);
+              onEquipmentClick(item.id);
+            }}
           >
-            <div className="border rounded-md p-4 hover:border-primary transition-colors">
-              <h3 className="font-medium">{item.name}</h3>
-              <p className="text-sm text-muted-foreground">{item.type}</p>
-            </div>
+            <h3 className="font-medium">{item.name}</h3>
+            <p className="text-sm text-muted-foreground">{item.type}</p>
           </div>
         ))}
       </div>

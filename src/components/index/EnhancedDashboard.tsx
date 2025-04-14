@@ -103,14 +103,17 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
 
   // Optimized event handlers with useCallback
   const handleViewIntervention = useCallback((id: number) => {
+    console.log('View intervention:', id);
     navigate(`/interventions?id=${id}`);
   }, [navigate]);
   
   const handleViewParts = useCallback(() => {
+    console.log('View parts');
     navigate('/parts');
   }, [navigate]);
   
   const handleViewCalendarEvent = useCallback((id: string | number, type: string) => {
+    console.log(`View calendar event: ${id}, type: ${type}`);
     switch (type) {
       case 'maintenance':
       case 'task':

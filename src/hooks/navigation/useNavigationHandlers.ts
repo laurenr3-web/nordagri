@@ -30,6 +30,7 @@ export const useNavigationHandlers = () => {
    * Naviguer vers une section basée sur le type de carte statistique
    */
   const handleStatsCardClick = useCallback((type: string) => {
+    console.log('Stats card clicked:', type);
     switch (type) {
       case 'Active Equipment':
         navigate('/equipment');
@@ -52,6 +53,7 @@ export const useNavigationHandlers = () => {
    * Naviguer vers la liste complète des équipements
    */
   const handleEquipmentViewAllClick = useCallback(() => {
+    console.log('View all equipment clicked');
     navigate('/equipment');
   }, [navigate]);
 
@@ -59,6 +61,7 @@ export const useNavigationHandlers = () => {
    * Naviguer vers le calendrier de maintenance
    */
   const handleMaintenanceCalendarClick = useCallback(() => {
+    console.log('Maintenance calendar clicked');
     navigate('/maintenance');
   }, [navigate]);
 
@@ -66,6 +69,7 @@ export const useNavigationHandlers = () => {
    * Naviguer vers la page d'ajout de tâches de maintenance
    */
   const handleTasksAddClick = useCallback(() => {
+    console.log('Add tasks clicked');
     navigate('/maintenance');
   }, [navigate]);
   
@@ -73,6 +77,7 @@ export const useNavigationHandlers = () => {
    * Naviguer vers la page de détail d'un équipement
    */
   const handleEquipmentClick = useCallback((id: number) => {
+    console.log('Equipment clicked, navigating to:', `/equipment/${id}`);
     navigate(`/equipment/${id}`);
   }, [navigate]);
 
@@ -80,6 +85,7 @@ export const useNavigationHandlers = () => {
    * Naviguer vers la page de détail d'une intervention
    */
   const handleInterventionClick = useCallback((id: number) => {
+    console.log('Intervention clicked, navigating to:', `/interventions?id=${id}`);
     navigate(`/interventions?id=${id}`);
   }, [navigate]);
   
@@ -87,6 +93,7 @@ export const useNavigationHandlers = () => {
    * Naviguer vers la liste complète des pièces
    */
   const handlePartsViewAll = useCallback(() => {
+    console.log('View all parts clicked');
     navigate('/parts');
   }, [navigate]);
 
@@ -94,6 +101,7 @@ export const useNavigationHandlers = () => {
    * Naviguer vers un événement calendrier selon son type
    */
   const handleViewCalendarEvent = useCallback((id: ItemId, type: string) => {
+    console.log(`Calendar event clicked: ${id}, type: ${type}`);
     switch (type) {
       case 'maintenance':
       case 'task':
@@ -111,6 +119,7 @@ export const useNavigationHandlers = () => {
    * Naviguer vers les détails d'une intervention urgente
    */
   const handleUrgentInterventionClick = useCallback((id: number) => {
+    console.log('Urgent intervention clicked, navigating to:', `/interventions?id=${id}&urgent=true`);
     navigate(`/interventions?id=${id}&urgent=true`);
   }, [navigate]);
 

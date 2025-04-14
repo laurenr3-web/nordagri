@@ -135,15 +135,7 @@ export type Database = {
           uploaded_at?: string | null
           uploaded_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "equipment_documents_equipment_id_fkey"
-            columns: ["equipment_id"]
-            isOneToOne: false
-            referencedRelation: "equipments"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       equipment_maintenance_schedule: {
         Row: {
@@ -223,59 +215,6 @@ export type Database = {
             columns: ["equipment_id"]
             isOneToOne: false
             referencedRelation: "equipment"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      equipments: {
-        Row: {
-          acquisition_date: string | null
-          created_at: string | null
-          current_hours: number | null
-          farm_id: string | null
-          id: string
-          metadata: Json | null
-          name: string
-          owner_id: string | null
-          serial_number: string | null
-          status: string | null
-          type: string
-          updated_at: string | null
-        }
-        Insert: {
-          acquisition_date?: string | null
-          created_at?: string | null
-          current_hours?: number | null
-          farm_id?: string | null
-          id?: string
-          metadata?: Json | null
-          name: string
-          owner_id?: string | null
-          serial_number?: string | null
-          status?: string | null
-          type: string
-          updated_at?: string | null
-        }
-        Update: {
-          acquisition_date?: string | null
-          created_at?: string | null
-          current_hours?: number | null
-          farm_id?: string | null
-          id?: string
-          metadata?: Json | null
-          name?: string
-          owner_id?: string | null
-          serial_number?: string | null
-          status?: string | null
-          type?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "equipments_farm_id_fkey"
-            columns: ["farm_id"]
-            isOneToOne: false
-            referencedRelation: "farms"
             referencedColumns: ["id"]
           },
         ]
@@ -503,15 +442,7 @@ export type Database = {
           technician_id?: string | null
           title?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "maintenance_records_title_fkey"
-            columns: ["title"]
-            isOneToOne: false
-            referencedRelation: "equipments"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       maintenance_tasks: {
         Row: {

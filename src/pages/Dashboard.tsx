@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/index/Header';
 import Dashboard from '@/components/index/Dashboard';
@@ -19,6 +18,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useDashboardPreferences } from '@/hooks/dashboard/useDashboardPreferences';
+import { useNavigationHandlers } from '@/hooks/navigation/useNavigationHandlers';
 
 const DashboardPage = () => {
   // Récupération des données réelles avec le hook
@@ -33,6 +33,18 @@ const DashboardPage = () => {
     stockAlerts,
     weeklyCalendarEvents
   } = useDashboardData();
+
+  // Navigation handlers
+  const { 
+    handleStatsCardClick,
+    handleEquipmentViewAllClick, 
+    handleMaintenanceCalendarClick,
+    handleEquipmentClick,
+    handleInterventionClick,
+    handlePartsViewAll,
+    handleViewCalendarEvent,
+    handleUrgentInterventionClick
+  } = useNavigationHandlers();
 
   // État pour l'animation de succès lors de la personnalisation
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
@@ -51,42 +63,15 @@ const DashboardPage = () => {
   const adaptedAlertItems = loading ? [] : adaptAlertItems(alertItems);
   const adaptedTasks = loading ? [] : adaptUpcomingTasks(upcomingTasks);
 
-  const handleStatsCardClick = (type: string) => {
-    switch (type) {
-      case 'Active Equipment':
-        navigate('/equipment');
-        break;
-      case 'Maintenance Tasks':
-        navigate('/maintenance');
-        break;
-      case 'Parts Inventory':
-        navigate('/parts');
-        break;
-      case 'Field Interventions':
-        navigate('/interventions');
-        break;
-    }
-  };
-
-  // Handlers for different actions
-  const handleEquipmentViewAllClick = () => navigate('/equipment');
-  const handleMaintenanceCalendarClick = () => navigate('/maintenance');
-  const handleAlertsViewAllClick = () => setCurrentView('alerts');
-  const handleTasksAddClick = () => navigate('/maintenance');
-  const handleEquipmentClick = (id: number) => {
-    // Show details in the right panel instead of navigating
-    setSelectedDashboardItem({
-      type: 'equipment',
-      id,
-      data: adaptedEquipmentData.find((item) => item.id === id)
-    });
-  };
-
   // Fonction pour montrer l'animation de succès lors de la personnalisation du dashboard
   const showDashboardCustomizationSuccess = () => {
     setShowSuccessAnimation(true);
     setTimeout(() => setShowSuccessAnimation(false), 2000);
   };
+
+  // Handlers for alerts view
+  const handleAlertsViewAllClick = () => setCurrentView('alerts');
+  const handleTasksAddClick = () => navigate('/maintenance');
 
   // Create the right panel content based on the selected item
   const renderRightPanel = () => {
