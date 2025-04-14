@@ -9,8 +9,8 @@ import { Toaster as SonnerToaster } from 'sonner';
 import { SupabaseErrorHandler } from '@/components/ui/supabase-error-handler';
 
 // Layouts
-import MainLayout from '@/layouts/MainLayout';
-import AuthLayout from '@/layouts/AuthLayout';
+import MainLayout from '@/ui/layouts/MainLayout';
+import AuthLayout from '@/ui/layouts/AuthLayout';
 
 // Pages
 import Dashboard from '@/pages/Dashboard';
