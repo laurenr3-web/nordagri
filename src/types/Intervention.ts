@@ -15,7 +15,7 @@ export interface InterventionBase {
   title: string;
   description?: string;
   equipment: string;
-  equipmentId?: number;
+  equipmentId: number; // Changed from optional to required
   priority: 'high' | 'medium' | 'low';
   status: string;
   date: Date;
@@ -40,7 +40,7 @@ export type Intervention = InterventionBase & {
   ownerId?: string;
 };
 
-export type InterventionStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+export type InterventionStatus = 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
 
 // Add InterventionFormValues
 export interface InterventionFormValues {
@@ -54,7 +54,7 @@ export interface InterventionFormValues {
   technician?: string;
   description?: string;
   notes?: string;
-  status?: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+  status?: InterventionStatus;
   coordinates?: {
     latitude: number;
     longitude: number;

@@ -4,7 +4,7 @@ import { BaseEntity, TimestampFields } from './common';
 /**
  * Intervention status type
  */
-export type InterventionStatus = 'scheduled' | 'in-progress' | 'completed' | 'canceled';
+export type InterventionStatus = 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
 
 /**
  * Intervention priority type

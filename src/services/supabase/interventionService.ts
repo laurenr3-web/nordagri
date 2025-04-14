@@ -128,9 +128,13 @@ export const interventionService = {
    */
   async updateInterventionStatus(id: number, status: string): Promise<Intervention> {
     try {
+      // Convert status to DB format
+      const dbStatus = status === 'in-progress' ? 'in_progress' : 
+                        status === 'cancelled' ? 'canceled' : status;
+                        
       const { data, error } = await supabase
         .from('interventions')
-        .update({ status })
+        .update({ status: dbStatus })
         .eq('id', id)
         .select()
         .single();

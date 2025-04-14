@@ -3,6 +3,40 @@ import { InterventionDB, Intervention, InterventionFormValues } from '@/types/mo
 import { Json } from '@/integrations/supabase/types';
 
 /**
+ * Map database status to client status
+ */
+const mapStatusToClient = (status: string): 'scheduled' | 'in-progress' | 'completed' | 'cancelled' => {
+  switch(status) {
+    case 'in_progress':
+      return 'in-progress';
+    case 'canceled':
+      return 'cancelled';
+    case 'scheduled':
+    case 'completed':
+      return status as any;
+    default:
+      return 'scheduled';
+  }
+};
+
+/**
+ * Map client status to database status
+ */
+const mapStatusToDb = (status?: string): string => {
+  switch(status) {
+    case 'in-progress':
+      return 'in_progress';
+    case 'cancelled':
+      return 'canceled';
+    case 'scheduled':
+    case 'completed':
+      return status || 'scheduled';
+    default:
+      return 'scheduled';
+  }
+};
+
+/**
  * Convert database intervention to client intervention
  */
 export const dbToClientIntervention = (dbIntervention: InterventionDB): Intervention => {
@@ -12,7 +46,7 @@ export const dbToClientIntervention = (dbIntervention: InterventionDB): Interven
     equipment: dbIntervention.equipment,
     equipmentId: dbIntervention.equipment_id,
     description: dbIntervention.description || '',
-    status: dbIntervention.status as any,
+    status: mapStatusToClient(dbIntervention.status),
     priority: dbIntervention.priority as any,
     date: new Date(dbIntervention.date),
     scheduledDuration: dbIntervention.scheduled_duration,
@@ -36,7 +70,7 @@ export const clientFormToDbIntervention = (formData: InterventionFormValues): Pa
     equipment_id: formData.equipmentId,
     location: formData.location,
     priority: formData.priority,
-    status: formData.status || 'scheduled',
+    status: mapStatusToDb(formData.status),
     date: formData.date instanceof Date ? formData.date.toISOString() : formData.date as string,
     scheduled_duration: formData.scheduledDuration,
     technician: formData.technician || '',
@@ -59,7 +93,7 @@ export const clientToDbIntervention = (intervention: Intervention): Partial<Inte
     equipment: intervention.equipment,
     equipment_id: intervention.equipmentId,
     description: intervention.description,
-    status: intervention.status,
+    status: mapStatusToDb(intervention.status),
     priority: intervention.priority,
     date: intervention.date instanceof Date ? intervention.date.toISOString() : intervention.date as string,
     scheduled_duration: intervention.scheduledDuration,

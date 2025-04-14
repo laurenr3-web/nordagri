@@ -30,7 +30,7 @@ export const interventionFormSchema = z.object({
   technician: z.string().optional(),
   description: z.string().optional(),
   notes: z.string().optional(),
-  status: z.enum(["scheduled", "in-progress", "completed", "canceled"]).optional(),
+  status: z.enum(["scheduled", "in-progress", "completed", "cancelled"]).optional(),
   coordinates: z.object({
     latitude: z.number(),
     longitude: z.number()
