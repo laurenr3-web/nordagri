@@ -2,25 +2,22 @@
 import React from 'react';
 import { Sidebar, SidebarProvider, SidebarContent } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 interface MainLayoutProps {
   children: React.ReactNode;
 }
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const isMobile = useIsMobile();
-  
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full overflow-hidden bg-bg-light">
+      <div className="flex min-h-screen w-full bg-bg-light">
         <Sidebar className="border-r border-sidebar-border bg-agri-dark">
           <SidebarContent>
             <Navbar />
           </SidebarContent>
         </Sidebar>
         
-        <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="flex-1 w-full">
           {children}
         </div>
       </div>

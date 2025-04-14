@@ -1,10 +1,11 @@
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { RealtimeCacheProvider } from '@/providers/RealtimeCacheProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
-import ProtectedLayout from '@/components/layout/ProtectedLayout';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import MobileMenu from '@/components/layout/MobileMenu';
 
 // Pages
@@ -34,39 +35,39 @@ function App() {
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/dashboard" element={
-                  <ProtectedLayout>
+                  <ProtectedRoute>
                     <Dashboard />
-                  </ProtectedLayout>
+                  </ProtectedRoute>
                 } />
                 <Route path="/equipment" element={
-                  <ProtectedLayout>
+                  <ProtectedRoute>
                     <Equipment />
-                  </ProtectedLayout>
+                  </ProtectedRoute>
                 } />
                 <Route path="/equipment/:id" element={
-                  <ProtectedLayout>
+                  <ProtectedRoute>
                     <EquipmentDetail />
-                  </ProtectedLayout>
+                  </ProtectedRoute>
                 } />
                 <Route path="/maintenance" element={
-                  <ProtectedLayout>
+                  <ProtectedRoute>
                     <Maintenance />
-                  </ProtectedLayout>
+                  </ProtectedRoute>
                 } />
                 <Route path="/parts" element={
-                  <ProtectedLayout>
+                  <ProtectedRoute>
                     <Parts />
-                  </ProtectedLayout>
+                  </ProtectedRoute>
                 } />
                 <Route path="/interventions" element={
-                  <ProtectedLayout>
+                  <ProtectedRoute>
                     <Interventions />
-                  </ProtectedLayout>
+                  </ProtectedRoute>
                 } />
                 <Route path="/settings" element={
-                  <ProtectedLayout>
+                  <ProtectedRoute>
                     <Settings />
-                  </ProtectedLayout>
+                  </ProtectedRoute>
                 } />
                 {/* Nouvelle route pour le scan de QR code */}
                 <Route path="/scan/:id" element={<ScanRedirect />} />

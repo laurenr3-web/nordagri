@@ -23,32 +23,33 @@ export const DeleteTaskAlert: React.FC<DeleteTaskAlertProps> = ({
   onOpenChange, 
   onConfirm 
 }) => {
-  // Gestion simplifiée de la confirmation
   const handleConfirm = () => {
-    // Fermer la boîte de dialogue et déclencher l'action dans la même méthode
+    // Fermer d'abord la boîte de dialogue de confirmation
     onOpenChange(false);
-    onConfirm();
+    // Puis déclencher l'action de confirmation après que le dialogue soit fermé
+    setTimeout(() => {
+      onConfirm();
+    }, 100);
   };
   
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Supprimer la tâche</AlertDialogTitle>
+          <AlertDialogTitle>Delete Task</AlertDialogTitle>
           <AlertDialogDescription>
-            Êtes-vous sûr de vouloir supprimer cette tâche de maintenance?
-            Cette action ne peut pas être annulée.
+            Are you sure you want to delete this maintenance task?
+            This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Annuler</AlertDialogCancel>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction 
             onClick={handleConfirm}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1"
-            aria-label="Supprimer la tâche"
           >
             <Trash2 size={16} />
-            <span>Supprimer</span>
+            <span>Delete</span>
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

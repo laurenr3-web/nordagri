@@ -163,39 +163,20 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
     );
   };
 
-  const deleteTask = async (taskId: number) => {
+  const deleteTask = (taskId: number) => {
     // Supprimer une tâche
     console.info('Deleting task with ID:', taskId);
     
     try {
-      // Mettre d'abord à jour l'état local pour une réponse immédiate de l'UI
-      setTasks(prevTasks => {
-        console.log('Filtering tasks, current count:', prevTasks.length);
-        return prevTasks.filter(task => task.id !== taskId);
-      });
+      // Utiliser un setTimeout pour laisser le temps aux dialogues de se fermer
+      setTimeout(() => {
+        // Mettre à jour l'état local
+        setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+      }, 200);
       
-      // Ensuite, persister la suppression dans la base de données
-      // Sans attendre que cette opération soit terminée pour la mise à jour de l'UI
-      maintenanceService.deleteTask(taskId)
-        .then(() => {
-          console.log(`Task ${taskId} has been deleted from the database`);
-          
-          // Afficher un toast pour confirmer la suppression
-          toast.success('Tâche supprimée avec succès');
-        })
-        .catch(err => {
-          console.error('Error in database deletion:', err);
-          toast.error('Erreur lors de la suppression dans la base de données');
-          
-          // En cas d'erreur, rétablir la tâche dans l'état local
-          // Cette partie est optionnelle et pourrait être implémentée si nécessaire
-        });
-      
-      console.log(`Task ${taskId} has been removed from state`);
       return true;
     } catch (error) {
       console.error('Error deleting task:', error);
-      toast.error('Erreur lors de la suppression de la tâche');
       throw error;
     }
   };
@@ -208,10 +189,6 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
     updateTaskStatus, 
     updateTaskPriority,
     deleteTask,
-    refreshTasks: () => {
-      setIsLoading(true);
-      // Réinitialiser l'état actuel
-      setTasks([]);
-    } // Déclenchera un rechargement des données
+    refreshTasks: () => setIsLoading(true) // Déclenchera un rechargement des données
   };
 }

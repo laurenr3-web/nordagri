@@ -46,8 +46,8 @@ const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
     if (onStatusChange && task) {
       onStatusChange(task.id, value as MaintenanceStatus);
       toast({
-        title: "Statut mis à jour",
-        description: `Statut de la tâche changé à ${value}`,
+        title: "Status updated",
+        description: `Task status updated to ${value}`,
       });
     }
   };
@@ -56,25 +56,26 @@ const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
     if (onPriorityChange && task) {
       onPriorityChange(task.id, value as MaintenancePriority);
       toast({
-        title: "Priorité mise à jour",
-        description: `Priorité de la tâche changée à ${value}`,
+        title: "Priority updated",
+        description: `Task priority updated to ${value}`,
       });
     }
   };
 
   const handleDeleteConfirm = () => {
     if (onDeleteTask && task) {
-      // Fermer d'abord la boîte de dialogue de détails
+      // Fermer d'abord la boîte de dialogue de détails avant de supprimer
       onOpenChange(false);
-      
-      // Exécuter l'action de suppression
-      onDeleteTask(task.id);
-      
-      // Notification de confirmation
-      toast({
-        title: "Tâche supprimée",
-        description: "La tâche de maintenance a été supprimée définitivement",
-      });
+      // Ensuite fermer la boîte de dialogue de confirmation
+      setShowDeleteDialog(false);
+      // Finalement supprimer la tâche
+      setTimeout(() => {
+        onDeleteTask(task.id);
+        toast({
+          title: "Task deleted",
+          description: "The maintenance task has been deleted",
+        });
+      }, 100);
     }
   };
 
@@ -103,7 +104,7 @@ const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
           
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">Fermer</Button>
+              <Button variant="outline">Close</Button>
             </DialogClose>
           </DialogFooter>
         </DialogContent>
