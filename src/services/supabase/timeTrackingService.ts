@@ -11,13 +11,27 @@ export const timeTrackingService = {
    */
   async getActiveTimeEntry(userId: string): Promise<TimeEntry | null> {
     try {
-      const { data, error } = await supabase.rpc(
-        'get_active_time_entry',
-        { p_user_id: userId }
-      );
+      const { data, error } = await supabase
+        .from('time_entries')
+        .select('*, equipment(name), interventions:Interventions(title)')
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .is('end_time', null)
+        .order('start_time', { ascending: false })
+        .limit(1)
+        .maybeSingle();
       
       if (error) throw error;
-      return data && data.length > 0 ? data[0] as TimeEntry : null;
+      
+      if (data) {
+        return {
+          ...data,
+          equipment_name: data.equipment?.name,
+          intervention_title: data.interventions?.title
+        } as TimeEntry;
+      }
+      
+      return null;
     } catch (error) {
       console.error("Erreur lors de la récupération de l'entrée de temps active:", error);
       throw error;
@@ -137,7 +151,7 @@ export const timeTrackingService = {
     try {
       let query = supabase
         .from('time_entries')
-        .select('*, equipment(name), Interventions(title)')
+        .select('*, equipment(name), interventions:Interventions(title)')
         .eq('user_id', filters.userId);
       
       // Appliquer les filtres optionnels
@@ -172,21 +186,10 @@ export const timeTrackingService = {
       
       // Transformer les données pour correspondre à l'interface TimeEntry
       return (data || []).map(item => ({
-        id: item.id,
-        user_id: item.user_id,
-        equipment_id: item.equipment_id,
-        intervention_id: item.intervention_id,
-        task_type: item.task_type,
-        start_time: item.start_time,
-        end_time: item.end_time,
-        notes: item.notes,
-        location: item.location,
-        status: item.status,
-        created_at: item.created_at,
-        updated_at: item.updated_at,
+        ...item,
         equipment_name: item.equipment?.name,
-        intervention_title: item.Interventions?.title
-      }));
+        intervention_title: item.interventions?.title
+      })) as TimeEntry[];
     } catch (error) {
       console.error("Erreur lors de la récupération des entrées de temps:", error);
       throw error;
@@ -202,13 +205,16 @@ export const timeTrackingService = {
     endDate?: Date
   ): Promise<TimeSpentByEquipment[]> {
     try {
+      const params: Record<string, any> = {
+        p_user_id: userId
+      };
+      
+      if (startDate) params.p_start_date = startDate.toISOString();
+      if (endDate) params.p_end_date = endDate.toISOString();
+      
       const { data, error } = await supabase.rpc(
         'get_time_spent_by_equipment',
-        {
-          p_user_id: userId,
-          p_start_date: startDate?.toISOString() || null,
-          p_end_date: endDate?.toISOString() || null
-        }
+        params
       );
       
       if (error) throw error;

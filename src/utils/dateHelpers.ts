@@ -1,4 +1,3 @@
-
 import { format, formatDistance, differenceInDays, addDays, isSameDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -81,4 +80,12 @@ export const formatMinutesToHours = (totalMinutes: number): string => {
   } else {
     return `${hours}h ${minutes}min`;
   }
+};
+
+/**
+ * Convert a date to ISO string format
+ */
+export const toISOString = (date: Date | string): string => {
+  const dateObj = date instanceof Date ? date : new Date(date);
+  return dateObj.toISOString();
 };

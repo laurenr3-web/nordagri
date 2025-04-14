@@ -17,6 +17,16 @@ interface TimeEntryFormProps {
   onSubmit: (data: any) => void;
 }
 
+interface Equipment {
+  id: number;
+  name: string;
+}
+
+interface Intervention {
+  id: number;
+  title: string;
+}
+
 export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormProps) {
   const [formData, setFormData] = useState({
     equipment_id: undefined as number | undefined,
@@ -25,8 +35,8 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
     notes: '',
   });
   
-  const [equipments, setEquipments] = useState<{ id: number; name: string }[]>([]);
-  const [interventions, setInterventions] = useState<{ id: number; title: string }[]>([]);
+  const [equipments, setEquipments] = useState<Equipment[]>([]);
+  const [interventions, setInterventions] = useState<Intervention[]>([]);
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   
@@ -74,7 +84,14 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
         .order('date', { ascending: false });
         
       if (error) throw error;
-      setInterventions(data || []);
+      
+      // Conversion explicite pour assurer la compatibilité des types
+      const typedInterventions: Intervention[] = data?.map(item => ({
+        id: item.id,
+        title: item.title
+      })) || [];
+      
+      setInterventions(typedInterventions);
     } catch (error) {
       console.error("Erreur lors du chargement des interventions:", error);
     }

@@ -28,17 +28,36 @@ export function useTimeTracking() {
       
       const userId = sessionData.session.user.id;
       
-      // Récupérer l'entrée de temps active avec un join sur l'équipement
-      const { data, error } = await supabase.rpc(
-        'get_active_time_entry',
-        { p_user_id: userId }
-      );
-        
-      if (error) throw error;
+      // Récupérer l'entrée de temps active directement
+      const { data, error } = await supabase
+        .from('time_entries')
+        .select('*, equipment(name), interventions:Interventions(title)')
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .is('end_time', null)
+        .order('start_time', { ascending: false })
+        .limit(1)
+        .single();
       
-      if (data && data.length > 0) {
-        // Transformer les données de l'API pour qu'elles correspondent à notre interface
-        setActiveTimeEntry(data[0] as ActiveTimeEntry);
+      if (error && error.code !== 'PGRST116') {
+        // PGRST116 est le code pour "No rows returned", ce qui est normal si aucune entrée active
+        throw error;
+      }
+      
+      if (data) {
+        // Transformer les données pour qu'elles correspondent à notre interface
+        const activeEntry: ActiveTimeEntry = {
+          id: data.id,
+          user_id: data.user_id,
+          equipment_id: data.equipment_id,
+          intervention_id: data.intervention_id,
+          task_type: data.task_type as TimeEntryTaskType,
+          start_time: data.start_time,
+          status: data.status as TimeEntryStatus,
+          equipment_name: data.equipment?.name,
+          intervention_title: data.interventions?.title
+        };
+        setActiveTimeEntry(activeEntry);
       } else {
         setActiveTimeEntry(null);
       }
@@ -96,24 +115,33 @@ export function useTimeTracking() {
       
       if (error) throw error;
       
-      // Récupérer les informations complètes avec le nom de l'équipement
-      if (data && params.equipment_id) {
-        const { data: equipmentData } = await supabase
-          .from('equipment')
-          .select('name')
-          .eq('id', params.equipment_id)
-          .single();
-          
+      // Récupérer les informations complètes
+      if (data) {
+        let equipmentName;
+        let interventionTitle;
+        
+        // Récupérer le nom de l'équipement si fourni
+        if (params.equipment_id) {
+          const { data: equipmentData, error: equipmentError } = await supabase
+            .from('equipment')
+            .select('name')
+            .eq('id', params.equipment_id)
+            .single();
+            
+          if (!equipmentError && equipmentData) {
+            equipmentName = equipmentData.name;
+          }
+        }
+        
         // Récupérer le titre de l'intervention si fourni
-        let interventionTitle = undefined;
         if (params.intervention_id) {
-          const { data: interventionData } = await supabase
+          const { data: interventionData, error: interventionError } = await supabase
             .from('Interventions')
             .select('title')
             .eq('id', params.intervention_id)
             .single();
             
-          if (interventionData) {
+          if (!interventionError && interventionData) {
             interventionTitle = interventionData.title;
           }
         }
@@ -127,7 +155,7 @@ export function useTimeTracking() {
           task_type: data.task_type,
           start_time: data.start_time,
           status: data.status,
-          equipment_name: equipmentData?.name,
+          equipment_name: equipmentName,
           intervention_title: interventionTitle
         };
         

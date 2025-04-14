@@ -1,5 +1,4 @@
 
-// Utiliser le fichier complet car il est probablement petit et nous avons besoin d'ajouter un onglet
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import EquipmentOverview from './EquipmentOverview';
@@ -27,7 +26,7 @@ const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment }) => {
         <EquipmentMaintenanceStatus equipment={equipment} />
       </TabsContent>
       <TabsContent value="parts">
-        <EquipmentParts equipmentId={equipment.id} />
+        <EquipmentParts equipment={equipment} />
       </TabsContent>
       <TabsContent value="timeTracking">
         <EquipmentTimeTracking equipment={equipment} />
