@@ -72,6 +72,7 @@ export const interventionService = {
         location: dbIntervention.location || 'Unknown',
         status: dbIntervention.status || 'scheduled',
         technician: dbIntervention.technician || '',
+        priority: dbIntervention.priority || 'medium', // Ensure priority is always set
         ...dbIntervention
       };
       
