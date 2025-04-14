@@ -6,7 +6,7 @@ import { LayoutProvider } from '@/ui/layouts/MainLayoutContext';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface ProtectedLayoutProps {
-  children: ReactNode;
+  children: ReactNode;  // Changed from Element to ReactNode
 }
 
 // Utilisation de React.memo pour optimiser les rendus
