@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { equipmentService } from '@/services/api/equipmentService';
 import { toast } from 'sonner';
-import { Equipment } from '@/types/models/equipment';
+import { Equipment, EquipmentStatus } from '@/types/models/equipment';
 
 export function useEquipmentDataFallback(id: string | undefined) {
   const [equipment, setEquipment] = useState<Equipment | null>(null);
@@ -33,12 +33,30 @@ export function useEquipmentDataFallback(id: string | undefined) {
           setUsingDemoData(false);
         }
         
+        // Convert status to a valid EquipmentStatus type
+        const validStatus: EquipmentStatus = 
+          data.status === 'operational' || 
+          data.status === 'maintenance' || 
+          data.status === 'repair' || 
+          data.status === 'inactive' 
+            ? data.status 
+            : 'operational'; // Default fallback
+        
         // Ensure the data matches the expected format
         const processedData: Equipment = {
-          ...data,
-          purchaseDate: data.purchase_date || data.purchaseDate,
+          id: data.id,
+          name: data.name,
+          model: data.model,
+          manufacturer: data.manufacturer,
+          year: data.year,
           serialNumber: data.serial_number || data.serialNumber,
-          type: data.type || "",  // Ajout de type car c'est requis
+          purchaseDate: data.purchase_date || data.purchaseDate,
+          location: data.location,
+          status: validStatus,
+          type: data.type || "",
+          category: data.category,
+          image: data.image,
+          notes: data.notes,
           createdAt: data.created_at || new Date().toISOString(),
           updatedAt: data.updated_at || new Date().toISOString()
         };
