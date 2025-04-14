@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -32,6 +31,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
     equipment_id: undefined as number | undefined,
     intervention_id: undefined as number | undefined,
     task_type: 'maintenance' as TimeEntryTaskType,
+    custom_task_type: '', // New field for custom task type
     notes: '',
   });
   
@@ -102,22 +102,34 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
     }
   };
   
-  // Handle form field changes
   const handleChange = (field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
     
+    if (field === 'task_type' && value !== 'other') {
+      // Reset custom task type when switching away from "other"
+      setFormData(prev => ({
+        ...prev,
+        custom_task_type: ''
+      }));
+    }
+    
     // Clear error when fields change
     setFormError(null);
   };
   
-  // Validate and submit the form
   const handleSubmit = () => {
     // Validate that equipment is selected
     if (!formData.equipment_id) {
       setFormError("Please select an equipment.");
+      return;
+    }
+    
+    // Validate custom task type if "other" is selected
+    if (formData.task_type === 'other' && !formData.custom_task_type.trim()) {
+      setFormError("Please enter a custom task type.");
       return;
     }
     
@@ -223,6 +235,19 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
               </div>
             </RadioGroup>
           </div>
+
+          {/* Custom task type input - only shown when "other" is selected */}
+          {formData.task_type === 'other' && (
+            <div className="grid gap-2">
+              <Label htmlFor="custom_task_type">Custom task type *</Label>
+              <Input
+                id="custom_task_type"
+                value={formData.custom_task_type}
+                onChange={(e) => handleChange('custom_task_type', e.target.value)}
+                placeholder="Enter task type..."
+              />
+            </div>
+          )}
           
           {/* Notes */}
           <div className="grid gap-2">
