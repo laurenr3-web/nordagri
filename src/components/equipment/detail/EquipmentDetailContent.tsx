@@ -35,9 +35,9 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
       <Tabs defaultValue="overview">
         <TabsList className="mb-8 flex flex-wrap">
           <TabsTrigger value="overview">Aperçu</TabsTrigger>
+          <TabsTrigger value="parts">Pièces</TabsTrigger>
           <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
           <TabsTrigger value="history">Historique</TabsTrigger>
-          <TabsTrigger value="parts">Pièces</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
           <TabsTrigger value="qrcode">QR Code</TabsTrigger>
         </TabsList>
@@ -46,16 +46,16 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
           <EquipmentOverview equipment={equipment} />
         </TabsContent>
         
+        <TabsContent value="parts">
+          <EquipmentParts equipment={equipment} />
+        </TabsContent>
+        
         <TabsContent value="maintenance">
           <EquipmentMaintenance equipment={equipment} />
         </TabsContent>
         
         <TabsContent value="history">
           <EquipmentMaintenanceHistory equipment={equipment} />
-        </TabsContent>
-        
-        <TabsContent value="parts">
-          <EquipmentParts equipment={equipment} />
         </TabsContent>
         
         <TabsContent value="performance">

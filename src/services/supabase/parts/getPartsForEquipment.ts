@@ -49,7 +49,7 @@ export async function getPartsForEquipment(equipmentId: number | string): Promis
         return data.map(part => {
           try {
             // Handle compatibility array that might be stored as string
-            let compatibility = part.compatible_with || [];
+            let compatibility: any[] = part.compatible_with || [];
             if (typeof compatibility === 'string') {
               try {
                 compatibility = JSON.parse(compatibility);
@@ -115,19 +115,26 @@ export async function getPartsForEquipment(equipmentId: number | string): Promis
       
       if (altData && altData.length > 0) {
         // Convert database records to Part objects
-        return altData.map(part => ({
-          id: part.id,
-          name: part.name || 'Sans nom',
-          partNumber: part.part_number || '',
-          category: part.category || 'Non classé',
-          manufacturer: part.supplier || '',
-          compatibility: Array.isArray(part.compatible_with) ? part.compatible_with : [],
-          stock: typeof part.quantity === 'number' ? part.quantity : 0,
-          price: typeof part.unit_price === 'number' ? part.unit_price : 0,
-          location: part.location || '',
-          reorderPoint: typeof part.reorder_threshold === 'number' ? part.reorder_threshold : 5,
-          image: part.image_url || 'https://placehold.co/400x300/png?text=No+Image'
-        }));
+        return altData.map(part => {
+          let compatibility: any[] = [];
+          if (part.compatible_with) {
+            compatibility = Array.isArray(part.compatible_with) ? part.compatible_with : [part.compatible_with];
+          }
+          
+          return {
+            id: part.id,
+            name: part.name || 'Sans nom',
+            partNumber: part.part_number || '',
+            category: part.category || 'Non classé',
+            manufacturer: part.supplier || '',
+            compatibility: compatibility,
+            stock: typeof part.quantity === 'number' ? part.quantity : 0,
+            price: typeof part.unit_price === 'number' ? part.unit_price : 0,
+            location: part.location || '',
+            reorderPoint: typeof part.reorder_threshold === 'number' ? part.reorder_threshold : 5,
+            image: part.image_url || 'https://placehold.co/400x300/png?text=No+Image'
+          };
+        });
       }
       
       // If still no parts found, return filtered sample data

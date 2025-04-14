@@ -5,6 +5,7 @@ import { useMaintenanceTasks } from './detail/useMaintenanceTasks';
 import { useMaintenancePlans } from './detail/useMaintenancePlans';
 import { useEquipmentUpdate } from './detail/useEquipmentUpdate';
 import { useMaintenanceUtils } from './detail/useMaintenanceUtils';
+import { useEquipmentParts } from '@/hooks/parts/useEquipmentParts';
 
 export function useEquipmentDetail(id: string | undefined) {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ export function useEquipmentDetail(id: string | undefined) {
   const { plans: maintenancePlans, loading: plansLoading, error: plansError } = useMaintenancePlans(id);
   const { handleEquipmentUpdate, loading: updateLoading } = useEquipmentUpdate(id, setEquipment);
   const { getLastMaintenanceDate, getNextServiceInfo } = useMaintenanceUtils();
+  const { parts: equipmentParts, loading: partsLoading, error: partsError } = useEquipmentParts(id);
   
   // Enrich equipment data with maintenance information
   if (equipment && maintenanceTasks) {
@@ -22,15 +24,22 @@ export function useEquipmentDetail(id: string | undefined) {
       target: equipment.usage_target || 500
     };
     equipment.nextService = getNextServiceInfo(maintenanceTasks);
+    
+    // Add parts information to equipment
+    if (equipmentParts) {
+      equipment.parts = equipmentParts;
+      equipment.partsCount = equipmentParts.length;
+    }
   }
   
-  const loading = equipmentLoading || tasksLoading || plansLoading || updateLoading;
-  const error = equipmentError || tasksError || plansError;
+  const loading = equipmentLoading || tasksLoading || plansLoading || updateLoading || partsLoading;
+  const error = equipmentError || tasksError || plansError || partsError;
   
   return { 
     equipment, 
     maintenanceTasks,
     maintenancePlans,
+    equipmentParts,
     loading, 
     error, 
     handleEquipmentUpdate 

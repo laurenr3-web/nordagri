@@ -11,6 +11,8 @@ const EquipmentDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { equipment, loading, error, handleEquipmentUpdate } = useEquipmentDetail(id);
   
+  console.log("EquipmentDetail rendering with equipment:", equipment?.id, "loading:", loading);
+  
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="flex justify-end border-b px-4 py-2">

@@ -52,7 +52,7 @@ export async function getParts(): Promise<Part[]> {
     const mappedParts = data.map(part => {
       try {
         // Handle compatibility array which might be stored as string
-        let compatibility = part.compatible_with || [];
+        let compatibility: any[] = part.compatible_with || [];
         if (typeof compatibility === 'string') {
           try {
             compatibility = JSON.parse(compatibility);

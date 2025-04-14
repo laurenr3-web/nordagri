@@ -5,8 +5,11 @@ import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Bug } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { InfoCircled } from '@radix-ui/react-icons';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface EquipmentPartsProps {
   equipment: EquipmentItem;
@@ -14,42 +17,69 @@ interface EquipmentPartsProps {
 
 const EquipmentParts: React.FC<EquipmentPartsProps> = ({ equipment }) => {
   const navigate = useNavigate();
-  const { data: parts, isLoading, error } = useEquipmentParts(equipment.id);
+  const { 
+    parts, 
+    loading, 
+    error,
+    isUsingDemoData,
+    debugPartData 
+  } = useEquipmentParts(equipment.id);
   
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Pièces détachées</CardTitle>
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => navigate('/parts')}
-          className="flex items-center gap-1"
-        >
-          <PlusCircle className="h-4 w-4" />
-          <span>Gérer</span>
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={debugPartData}
+          >
+            <Bug className="h-4 w-4 mr-1" />
+            <span>Déboguer</span>
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => navigate('/parts')}
+            className="flex items-center gap-1"
+          >
+            <PlusCircle className="h-4 w-4" />
+            <span>Gérer</span>
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
-        {isLoading && (
-          <div className="flex justify-center py-4">
-            <div className="animate-spin h-6 w-6 border-2 border-primary rounded-full border-t-transparent"></div>
-          </div>
+        {isUsingDemoData && (
+          <Alert variant="warning" className="mb-4">
+            <InfoCircled className="h-4 w-4" />
+            <AlertTitle>Données de démonstration</AlertTitle>
+            <AlertDescription>
+              Vous visualisez actuellement des données de démonstration, pas des données réelles de la base de données.
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {loading && (
+          <LoadingSpinner message="Chargement des pièces..." size="md" />
         )}
         
         {error && (
-          <p className="text-destructive">
-            Erreur lors du chargement des pièces
-          </p>
+          <Alert variant="destructive">
+            <AlertTitle>Erreur</AlertTitle>
+            <AlertDescription>
+              {error}
+            </AlertDescription>
+          </Alert>
         )}
         
-        {!isLoading && !error && (!parts || parts.length === 0) && (
+        {!loading && !error && (!parts || parts.length === 0) && (
           <p className="text-muted-foreground">
             Aucune pièce détachée n'est associée à cet équipement pour le moment.
           </p>
         )}
         
-        {!isLoading && !error && parts && parts.length > 0 && (
+        {!loading && !error && parts && parts.length > 0 && (
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Badge variant="outline">
