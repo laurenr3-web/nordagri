@@ -49,16 +49,16 @@ export function useEquipmentDataFallback(id: string | undefined) {
           model: data.model,
           manufacturer: data.manufacturer,
           year: data.year,
-          serialNumber: data.serial_number || data.serialNumber,
-          purchaseDate: data.purchase_date || data.purchaseDate,
+          serial_number: data.serial_number || data.serialNumber,
+          purchase_date: data.purchase_date || data.purchaseDate,
           location: data.location,
           status: validStatus,
           type: data.type || "",
           category: data.category,
           image: data.image,
           notes: data.notes,
-          createdAt: data.created_at || new Date().toISOString(),
-          updatedAt: data.updated_at || new Date().toISOString()
+          created_at: data.created_at || new Date().toISOString(),
+          updated_at: data.updated_at || new Date().toISOString()
         };
         
         setEquipment(processedData);

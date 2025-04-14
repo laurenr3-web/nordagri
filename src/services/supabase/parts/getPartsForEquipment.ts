@@ -5,7 +5,7 @@ import { partsData } from '@/data/partsData';
 import { toast } from 'sonner';
 
 export async function getPartsForEquipment(equipmentId: number | string): Promise<Part[]> {
-  console.log(`🔍 Fetching parts for equipment ID: ${equipmentId}`);
+  console.log(`🔍 Fetching parts for equipment ID: ${equipmentId} from parts_inventory`);
   
   try {
     // Get the current user ID from the session
@@ -27,7 +27,7 @@ export async function getPartsForEquipment(equipmentId: number | string): Promis
       return partsData.filter((part, index) => index % 2 === 0); // Return a subset of parts as an example
     }
     
-    console.log(`Looking for parts compatible with equipment ${equipmentId} for user ${userId}`);
+    console.log(`Looking for parts compatible with equipment ${equipmentId} in parts_inventory table for user ${userId}`);
     
     try {
       // Attempt to get compatible parts (direct approach)
@@ -35,7 +35,7 @@ export async function getPartsForEquipment(equipmentId: number | string): Promis
       
       // If we have compatible parts, return them
       if (compatibleParts && compatibleParts.length > 0) {
-        console.log(`Found ${compatibleParts.length} compatible parts for equipment ${equipmentId}`);
+        console.log(`Found ${compatibleParts.length} compatible parts for equipment ${equipmentId} in parts_inventory`);
         return compatibleParts;
       }
       
@@ -60,10 +60,10 @@ export async function getPartsForEquipment(equipmentId: number | string): Promis
   }
 }
 
-// Helper function to fetch compatible parts
+// Helper function to fetch compatible parts from parts_inventory table
 async function fetchCompatibleParts(userId: string, equipmentId: number | string): Promise<Part[]> {
   try {
-    // First attempt - using contains operator for compatibility array
+    // First attempt - using contains operator for compatibility array in parts_inventory
     const { data, error } = await supabase
       .from('parts_inventory')
       .select('*')
@@ -103,10 +103,10 @@ async function fetchCompatibleParts(userId: string, equipmentId: number | string
   }
 }
 
-// Helper function to map database part to Part type
+// Helper function to map database part from parts_inventory to Part type
 function mapPartFromDatabase(part: any): Part {
   try {
-    // Handle compatibility array that might be stored as string
+    // Handle compatibility array which might be stored as string
     let compatibility: any[] = part.compatible_with || [];
     if (typeof compatibility === 'string') {
       try {

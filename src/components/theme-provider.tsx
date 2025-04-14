@@ -26,7 +26,7 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
 
 export function ThemeProvider({
   children,
-  defaultTheme = "light", // Change default to light
+  defaultTheme = "light", // Default to light
   storageKey = "vite-ui-theme",
   ...props
 }: ThemeProviderProps) {
@@ -46,16 +46,25 @@ export function ThemeProvider({
       
       root.classList.add(systemTheme)
       
-      // Synchronisation avec notre système de persistence personnalisé
+      // Synchronize with our custom persistence system
       localStorage.setItem('darkMode', (systemTheme === "dark").toString())
       return
     }
     
     root.classList.add(theme)
     
-    // Synchronisation avec notre système de persistence personnalisé
+    // Synchronize with our custom persistence system
     localStorage.setItem('darkMode', (theme === "dark").toString())
   }, [theme])
+
+  // Fix: Run the theme effect on component mount as well to ensure theme persistence between page reloads
+  useEffect(() => {
+    // This will prevent the flash of incorrect theme on page load
+    const savedTheme = localStorage.getItem(storageKey) as Theme;
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
+  }, [storageKey]); 
 
   const value = {
     theme,

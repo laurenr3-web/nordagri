@@ -5,7 +5,7 @@ import { partsData } from '@/data/partsData';
 import { convertToCamelCase } from '@/utils/typeTransformers';
 
 export async function getParts(): Promise<Part[]> {
-  console.log('🔍 Fetching all parts from Supabase...');
+  console.log('🔍 Fetching all parts from Supabase parts_inventory table...');
   
   try {
     // Get the current user ID from the session
@@ -24,9 +24,9 @@ export async function getParts(): Promise<Part[]> {
       return partsData;
     }
     
-    console.log(`Authenticated user ID: ${userId}, attempting to fetch parts`);
+    console.log(`Authenticated user ID: ${userId}, attempting to fetch parts from parts_inventory`);
     
-    // Query only parts owned by the current user
+    // Query only parts owned by the current user from parts_inventory table
     const { data, error } = await supabase
       .from('parts_inventory')
       .select('*')
@@ -38,7 +38,7 @@ export async function getParts(): Promise<Part[]> {
       return partsData; // Return sample data as fallback
     }
     
-    console.log(`Found ${data?.length || 0} parts in database for user ${userId}`);
+    console.log(`Found ${data?.length || 0} parts in parts_inventory table for user ${userId}`);
     
     if (!data || data.length === 0) {
       console.info('No parts found, using sample parts data');
@@ -46,7 +46,7 @@ export async function getParts(): Promise<Part[]> {
     }
     
     // Log raw data for debugging
-    console.log('Raw parts data from Supabase:', JSON.stringify(data.slice(0, 2)));
+    console.log('Raw parts data from Supabase parts_inventory:', JSON.stringify(data.slice(0, 2)));
     
     // Convert database records to Part objects with better error handling
     const mappedParts = data.map(part => {
@@ -101,7 +101,7 @@ export async function getParts(): Promise<Part[]> {
       }
     });
     
-    console.log(`Successfully mapped ${mappedParts.length} parts`);
+    console.log(`Successfully mapped ${mappedParts.length} parts from parts_inventory`);
     return mappedParts;
     
   } catch (error) {
