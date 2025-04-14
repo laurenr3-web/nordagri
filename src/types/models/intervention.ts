@@ -21,22 +21,42 @@ export interface PartUsed {
 }
 
 /**
- * Intervention entity interface
+ * Urgent intervention type used on dashboard
  */
-export interface Intervention extends BaseEntity, TimestampFields {
+export interface UrgentIntervention {
   id: number;
   title: string;
   equipment: string;
-  equipmentId: number;
-  description?: string;
-  status: InterventionStatus;
   priority: InterventionPriority;
+  date?: Date;
+  status: InterventionStatus;
+  technician: string;
+  location: string;
+}
+
+/**
+ * Base intervention properties
+ */
+export interface InterventionBase {
+  id: number;
+  title: string;
+  description?: string;
+  equipment: string;
+  equipmentId: number;
+  priority: InterventionPriority;
+  status: InterventionStatus;
   date: Date;
-  scheduledDuration?: number;
-  duration?: number;
   technician: string;
   location: string;
   notes?: string;
+}
+
+/**
+ * Complete intervention entity interface
+ */
+export interface Intervention extends BaseEntity, TimestampFields, InterventionBase {
+  scheduledDuration?: number;
+  duration?: number;
   partsUsed?: PartUsed[];
   coordinates?: {
     latitude: number;

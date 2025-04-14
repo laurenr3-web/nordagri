@@ -1,5 +1,6 @@
 
 import * as z from "zod";
+import { InterventionStatus } from "@/types/models/intervention";
 
 // Schema for intervention form validation
 export const interventionFormSchema = z.object({

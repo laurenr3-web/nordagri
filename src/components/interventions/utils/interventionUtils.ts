@@ -1,5 +1,5 @@
 
-import { Intervention } from "@/types/Intervention";
+import { Intervention, InterventionStatus } from "@/types/models/intervention";
 
 // Helper function to format date
 export const formatDate = (date: Date) => {
@@ -150,14 +150,14 @@ export const interventionsData: Intervention[] = [
       latitude: 34.049235,
       longitude: -118.253683
     },
-    status: 'canceled',
+    status: 'cancelled',
     priority: 'high',
     date: new Date(2023, 5, 7),
     scheduledDuration: 3,
     technician: 'David Chen',
     description: 'Investigate reported transmission slipping issue.',
     partsUsed: [],
-    notes: 'Intervention canceled - equipment needed for urgent field operation. Rescheduled for June 14.'
+    notes: 'Intervention cancelled - equipment needed for urgent field operation. Rescheduled for June 14.'
   },
   {
     id: 7,

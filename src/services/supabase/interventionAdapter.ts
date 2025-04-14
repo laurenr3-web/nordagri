@@ -1,11 +1,11 @@
 
-import { InterventionDB, Intervention, InterventionFormValues } from '@/types/models/intervention';
+import { InterventionDB, Intervention, InterventionFormValues, InterventionStatus } from '@/types/models/intervention';
 import { Json } from '@/integrations/supabase/types';
 
 /**
  * Map database status to client status
  */
-const mapStatusToClient = (status: string): 'scheduled' | 'in-progress' | 'completed' | 'cancelled' => {
+const mapStatusToClient = (status: string): InterventionStatus => {
   switch(status) {
     case 'in_progress':
       return 'in-progress';
@@ -13,7 +13,7 @@ const mapStatusToClient = (status: string): 'scheduled' | 'in-progress' | 'compl
       return 'cancelled';
     case 'scheduled':
     case 'completed':
-      return status as any;
+      return status as InterventionStatus;
     default:
       return 'scheduled';
   }
@@ -22,7 +22,7 @@ const mapStatusToClient = (status: string): 'scheduled' | 'in-progress' | 'compl
 /**
  * Map client status to database status
  */
-const mapStatusToDb = (status?: string): string => {
+const mapStatusToDb = (status?: InterventionStatus): string => {
   switch(status) {
     case 'in-progress':
       return 'in_progress';
