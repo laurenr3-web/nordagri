@@ -12,15 +12,15 @@ export const timeTrackingService = {
    */
   async getActiveTimeEntry(userId: string): Promise<TimeEntry | null> {
     try {
-      // Query the time_entries table directly without using a stored procedure
+      // Query the interventions table directly for active time entries
       const { data, error } = await supabase
-        .from('interventions')  // Using interventions table as a temporary storage for time entries
+        .from('interventions')
         .select(`
           id,
           equipment_id,
           title,
           description,
-          date as start_time,
+          date,
           status,
           equipment
         `)
@@ -43,7 +43,7 @@ export const timeTrackingService = {
           user_id: userId,
           equipment_id: data.equipment_id,
           task_type: 'maintenance' as TimeEntryTaskType, // Default
-          start_time: data.start_time || data.date,
+          start_time: data.date,
           status: data.status as TimeEntryStatus,
           equipment_name: data.equipment,
           intervention_title: data.title,
@@ -87,14 +87,15 @@ export const timeTrackingService = {
       // Create a new entry in interventions table as temporary storage
       const timeEntryData = {
         owner_id: userId,
-        equipment_id: data.equipment_id,
+        equipment_id: data.equipment_id || null,
         equipment: equipmentName,
         title: `${data.task_type} - ${new Date().toLocaleString()}`,
         description: data.notes || '',
         status: 'active',
         date: new Date().toISOString(),
-        location: data.location ? JSON.stringify(data.location) : null,
-        priority: 'medium'  // Default value
+        location: data.location ? JSON.stringify(data.location) : 'Unknown',
+        priority: 'medium',  // Default value
+        technician: 'Self'   // Required field
       };
       
       const { data: result, error } = await supabase
@@ -137,7 +138,7 @@ export const timeTrackingService = {
       const { data: entry } = await supabase
         .from('interventions')
         .select('date')
-        .eq('id', entryId)
+        .eq('id', parseInt(entryId, 10))
         .single();
       
       if (!entry) throw new Error('Entry not found');
@@ -153,7 +154,7 @@ export const timeTrackingService = {
           status: 'completed',
           duration: durationHours
         })
-        .eq('id', entryId);
+        .eq('id', parseInt(entryId, 10));
       
       if (error) throw error;
     } catch (error) {
@@ -172,7 +173,7 @@ export const timeTrackingService = {
         .update({
           status: 'paused'
         })
-        .eq('id', entryId);
+        .eq('id', parseInt(entryId, 10));
       
       if (error) throw error;
     } catch (error) {
@@ -191,7 +192,7 @@ export const timeTrackingService = {
         .update({
           status: 'active'
         })
-        .eq('id', entryId);
+        .eq('id', parseInt(entryId, 10));
       
       if (error) throw error;
     } catch (error) {
@@ -331,7 +332,7 @@ export const timeTrackingService = {
       const { error } = await supabase
         .from('interventions')
         .delete()
-        .eq('id', entryId);
+        .eq('id', parseInt(entryId, 10));
       
       if (error) throw error;
     } catch (error) {
@@ -360,7 +361,7 @@ export const timeTrackingService = {
       const { error } = await supabase
         .from('interventions')
         .update(updateData)
-        .eq('id', entryId);
+        .eq('id', parseInt(entryId, 10));
       
       if (error) throw error;
     } catch (error) {

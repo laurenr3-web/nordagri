@@ -33,7 +33,6 @@ export function useTimeTracking() {
       const activeEntry = await timeTrackingService.getActiveTimeEntry(userId);
       
       if (activeEntry) {
-        // Transform to ActiveTimeEntry
         setActiveTimeEntry({
           id: activeEntry.id,
           user_id: activeEntry.user_id,
