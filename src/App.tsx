@@ -20,6 +20,7 @@ import NotFound from '@/pages/NotFound';
 import Auth from '@/pages/Auth';
 import ScanRedirect from '@/pages/ScanRedirect';
 import TimeTracking from '@/pages/TimeTracking';
+import TimeEntryDetail from '@/pages/TimeEntryDetail';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -75,6 +76,11 @@ function App() {
                 <Route path="/time-tracking" element={
                   <ProtectedRoute>
                     <TimeTracking />
+                  </ProtectedRoute>
+                } />
+                <Route path="/time-tracking/:id" element={
+                  <ProtectedRoute>
+                    <TimeEntryDetail />
                   </ProtectedRoute>
                 } />
                 {/* Route pour le scan de QR code */}
