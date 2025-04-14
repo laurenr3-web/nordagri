@@ -1,7 +1,6 @@
-
 import React, { memo } from 'react';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
-import Dashboard from './Dashboard';
+import Dashboard from '@/features/dashboard/components/Dashboard';
 import CalendarView from './CalendarView';
 import AllAlertsSection from './AllAlertsSection';
 import { useDashboardData } from '@/hooks/dashboard/useDashboardData';
