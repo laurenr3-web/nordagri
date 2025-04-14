@@ -2,9 +2,10 @@
 import { useState, useEffect } from 'react';
 import { equipmentService } from '@/services/api/equipmentService';
 import { toast } from 'sonner';
+import { Equipment } from '@/types/models/equipment';
 
 export function useEquipmentDataFallback(id: string | undefined) {
-  const [equipment, setEquipment] = useState<any | null>(null);
+  const [equipment, setEquipment] = useState<Equipment | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [usingDemoData, setUsingDemoData] = useState(false);
@@ -33,12 +34,12 @@ export function useEquipmentDataFallback(id: string | undefined) {
         }
         
         // Ensure the data matches the expected format
-        const processedData = {
+        const processedData: Equipment = {
           ...data,
-          purchase_date: data.purchase_date || data.purchaseDate,
-          serial_number: data.serial_number || data.serialNumber,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          purchaseDate: data.purchase_date || data.purchaseDate,
+          serialNumber: data.serial_number || data.serialNumber,
+          createdAt: data.created_at || new Date().toISOString(),
+          updatedAt: data.updated_at || new Date().toISOString()
         };
         
         setEquipment(processedData);
