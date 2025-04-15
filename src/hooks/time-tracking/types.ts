@@ -1,4 +1,3 @@
-
 export type TimeEntryTaskType = 'maintenance' | 'repair' | 'inspection' | 'installation' | 'other';
 
 export interface TaskType {
@@ -8,6 +7,20 @@ export interface TaskType {
   created_at: string;
   updated_at: string;
 }
+
+export type TimeEntryFormData = {
+  task_type: TimeEntryTaskType;
+  task_type_id?: string;
+  custom_task_type?: string;
+  equipment_id?: number;
+  intervention_id?: number;
+  title: string;
+  description?: string;
+  notes?: string;
+  location_id?: number;
+  location?: string;
+  priority?: 'low' | 'medium' | 'high';
+};
 
 export interface TimeEntry {
   id: string;

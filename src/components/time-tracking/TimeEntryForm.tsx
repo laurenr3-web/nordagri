@@ -4,10 +4,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { TaskTypeField } from './form/TaskTypeField';
+import { EquipmentField } from './form/EquipmentField';
+import { LocationField } from './form/LocationField';
+import { InterventionField } from './form/InterventionField';
 import { timeTrackingService } from '@/services/supabase/timeTrackingService';
-import { TaskType } from '@/hooks/time-tracking/types';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { TaskType } from '@/hooks/time-tracking/types';
 
 interface TimeEntryFormProps {
   isOpen: boolean;
@@ -17,99 +22,172 @@ interface TimeEntryFormProps {
 
 export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormProps) {
   const [taskTypes, setTaskTypes] = useState<TaskType[]>([]);
-  const [selectedType, setSelectedType] = useState<string>('');
-  const [customType, setCustomType] = useState('');
-  const [notes, setNotes] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Load task types on mount
+  const [equipments, setEquipments] = useState<Array<{ id: number; name: string }>>([]);
+  const [interventions, setInterventions] = useState<Array<{ id: number; title: string }>>([]);
+  const [locations] = useState<Array<{ id: number; name: string }>>([
+    { id: 1, name: "Atelier" },
+    { id: 2, name: "Champ Nord" },
+    { id: 3, name: "Champ Sud" },
+    { id: 4, name: "Hangar" },
+    { id: 5, name: "Serre" }
+  ]);
+  
+  const [formData, setFormData] = useState({
+    task_type: 'maintenance' as const,
+    task_type_id: '',
+    custom_task_type: '',
+    equipment_id: undefined as number | undefined,
+    intervention_id: undefined as number | undefined,
+    title: '',
+    description: '',
+    notes: '',
+    location_id: undefined as number | undefined,
+    priority: 'medium' as const
+  });
+  
+  const [isLoading, setIsLoading] = useState(true);
+  
   useEffect(() => {
-    const loadTaskTypes = async () => {
-      try {
-        const types = await timeTrackingService.getTaskTypes();
-        setTaskTypes(types);
-        if (types.length > 0) {
-          setSelectedType(types[0].name);
-        }
-      } catch (error) {
-        console.error('Error loading task types:', error);
-        toast.error('Could not load task types');
-      }
-    };
-
     if (isOpen) {
       loadTaskTypes();
+      loadEquipments();
     }
   }, [isOpen]);
-
+  
+  useEffect(() => {
+    if (formData.equipment_id) {
+      loadInterventions(formData.equipment_id);
+    } else {
+      setInterventions([]);
+    }
+  }, [formData.equipment_id]);
+  
+  const loadTaskTypes = async () => {
+    try {
+      const types = await timeTrackingService.getTaskTypes();
+      setTaskTypes(types);
+      if (types.length > 0) {
+        handleChange('task_type_id', types[0].id);
+      }
+    } catch (error) {
+      console.error('Error loading task types:', error);
+      toast.error('Could not load task types');
+    }
+  };
+  
+  const loadEquipments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('equipment')
+        .select('id, name')
+        .order('name');
+      
+      if (error) throw error;
+      setEquipments(data || []);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error loading equipment:', error);
+      toast.error('Could not load equipment list');
+      setIsLoading(false);
+    }
+  };
+  
+  const loadInterventions = async (equipmentId: number) => {
+    try {
+      const { data, error } = await supabase
+        .from('interventions')
+        .select('id, title')
+        .eq('equipment_id', equipmentId)
+        .order('date', { ascending: false });
+      
+      if (error) throw error;
+      setInterventions(data || []);
+    } catch (error) {
+      console.error('Error loading interventions:', error);
+      setInterventions([]);
+    }
+  };
+  
+  const handleChange = (field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedType) {
-      toast.error('Please select a task type');
+    
+    if (!formData.equipment_id) {
+      toast.error('Please select equipment');
       return;
     }
-
-    const taskType = selectedType as any;
-    const taskTypeObj = taskTypes.find(t => t.name === taskType);
-
-    onSubmit({
-      task_type: taskType,
-      task_type_id: taskTypeObj?.id,
-      custom_task_type: taskType === 'other' ? customType : undefined,
-      notes
-    });
+    
+    const submitData = {
+      ...formData,
+      priority: formData.priority || 'medium',
+    };
+    
+    onSubmit(submitData);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Start New Time Session</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="task-type">Task Type</Label>
-            <Select
-              value={selectedType}
-              onValueChange={setSelectedType}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select task type" />
-              </SelectTrigger>
-              <SelectContent>
-                {taskTypes.map((type) => (
-                  <SelectItem key={type.id} value={type.name}>
-                    {type.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {selectedType === 'other' && (
-            <div>
-              <Label htmlFor="custom-type">Custom Task Type</Label>
-              <Input
-                id="custom-type"
-                value={customType}
-                onChange={(e) => setCustomType(e.target.value)}
-                placeholder="Enter custom task type"
-                required
-              />
-            </div>
-          )}
-
-          <div>
-            <Label htmlFor="notes">Notes (optional)</Label>
+          <EquipmentField
+            equipment_id={formData.equipment_id}
+            equipments={equipments}
+            loading={isLoading}
+            onChange={handleChange}
+          />
+          
+          <InterventionField
+            intervention_id={formData.intervention_id}
+            interventions={interventions}
+            disabled={!formData.equipment_id}
+            onChange={handleChange}
+          />
+          
+          <TaskTypeField
+            taskType={formData.task_type}
+            customTaskType={formData.custom_task_type}
+            onChange={handleChange}
+          />
+          
+          <LocationField
+            location_id={formData.location_id}
+            locations={locations}
+            disabled={false}
+            onChange={handleChange}
+          />
+          
+          <div className="grid gap-2">
+            <Label htmlFor="title">Title *</Label>
             <Input
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Add notes..."
+              id="title"
+              value={formData.title}
+              onChange={(e) => handleChange('title', e.target.value)}
+              placeholder="Enter a title for this session"
+              required
             />
           </div>
-
+          
+          <div className="grid gap-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => handleChange('description', e.target.value)}
+              placeholder="Enter a description..."
+              className="min-h-[100px]"
+            />
+          </div>
+          
           <div className="flex justify-end gap-2">
             <Button
               type="button"
