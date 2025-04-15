@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
@@ -9,10 +8,10 @@ import { SessionNotes } from '@/components/time-tracking/detail/SessionNotes';
 import { SessionActions } from '@/components/time-tracking/detail/SessionActions';
 import { SessionControls } from '@/components/time-tracking/detail/SessionControls';
 import { CostEstimate } from '@/components/time-tracking/detail/CostEstimate';
-import { SessionClosure } from '@/components/time-tracking/detail/SessionClosure';
 import { useTimeEntryDetail } from '@/hooks/time-tracking/useTimeEntryDetail';
-import { TimeEntryDetailLoading } from '@/components/time-tracking/detail/TimeEntryDetailLoading';
-import { TimeEntryDetailError } from '@/components/time-tracking/detail/TimeEntryDetailError';
+import { TimeEntryDetailLoading } from '@/components/time-tracking/detail/TimeEntryDetailError';
+import { TimeEntryDetailError } from '@/components/time-tracking/detail/TimeEntryDetailLoading';
+import { SessionClosure } from '@/components/time-tracking/detail/closure/SessionClosure';
 
 const TimeEntryDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -96,6 +95,8 @@ const TimeEntryDetail = () => {
           isOpen={showClosureDialog}
           onClose={handleCloseClosureDialog}
           entry={entry}
+          estimatedCost={estimatedCost}
+          onCreateIntervention={handleCreateIntervention}
         />
       )}
     </SidebarProvider>
