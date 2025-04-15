@@ -1,6 +1,6 @@
 
 import { toast } from 'sonner';
-import { timeTrackingService } from '@/services/supabase/timeTrackingService';
+import { timeTrackingService } from '@/services/supabase/timeTracking';
 import { TimeEntryTaskType } from './types';
 import { useTimeEntryState } from './useTimeEntryState';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,6 +21,7 @@ export function useTimeEntryActions() {
     custom_task_type?: string;
     location?: string;
     notes?: string;
+    title?: string;
     coordinates?: { lat: number; lng: number };
   }) => {
     try {

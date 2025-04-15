@@ -1,7 +1,7 @@
 
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { timeTrackingService } from '@/services/supabase/timeTrackingService';
+import { timeTrackingService } from '@/services/supabase/timeTracking';
 import { useTimeEntryState } from './useTimeEntryState';
 
 export function useSessionManagement() {

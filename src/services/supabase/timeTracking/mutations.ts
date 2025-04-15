@@ -8,6 +8,7 @@ export async function startTimeEntry(userId: string, data: {
   task_type: TimeEntryTaskType;
   task_type_id?: string;
   custom_task_type?: string;
+  title?: string;
   location?: string;
   notes?: string;
 }): Promise<TimeEntry> {

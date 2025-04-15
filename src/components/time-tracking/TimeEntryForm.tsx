@@ -37,7 +37,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) {
+    if (!validateForm(formData)) {
       toast.error(formError || "Please fill in all required fields");
       return;
     }
