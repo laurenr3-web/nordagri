@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
@@ -14,13 +13,15 @@ import { SessionActions } from '@/components/time-tracking/detail/SessionActions
 import { SessionControls } from '@/components/time-tracking/detail/SessionControls';
 import { CostEstimate } from '@/components/time-tracking/detail/CostEstimate';
 import { Button } from '@/components/ui/button';
+import { SessionClosure } from '@/components/time-tracking/detail/SessionClosure';
 
 const TimeEntryDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [entry, setEntry] = useState<TimeEntry | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
+  const [navigate] = useNavigate();
   const [estimatedCost, setEstimatedCost] = useState(0);
+  const [showClosureDialog, setShowClosureDialog] = useState(false);
 
   const fetchEntry = async () => {
     if (!id) return;
@@ -87,9 +88,15 @@ const TimeEntryDetail = () => {
 
   const handleStop = async () => {
     if (!entry) return;
+    setShowClosureDialog(true);
+  };
+
+  const handleCloseClosureDialog = async () => {
+    if (!entry) return;
     try {
       await timeTrackingService.stopTimeEntry(entry.id);
       setEntry({ ...entry, status: 'completed' });
+      setShowClosureDialog(false);
       toast.success('Session terminée');
     } catch (error) {
       toast.error('Erreur lors de l\'arrêt de la session');
@@ -227,6 +234,13 @@ const TimeEntryDetail = () => {
           </div>
         </div>
       </div>
+      {entry && showClosureDialog && (
+        <SessionClosure
+          isOpen={showClosureDialog}
+          onClose={handleCloseClosureDialog}
+          entry={entry}
+        />
+      )}
     </SidebarProvider>
   );
 };
