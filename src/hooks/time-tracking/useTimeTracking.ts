@@ -2,6 +2,7 @@
 import { useTimeEntryState } from './useTimeEntryState';
 import { useTimeEntryActions } from './useTimeEntryActions';
 import { useSessionManagement } from './useSessionManagement';
+import { ActiveTimeEntry } from './types';
 
 export function useTimeTracking() {
   const { 
