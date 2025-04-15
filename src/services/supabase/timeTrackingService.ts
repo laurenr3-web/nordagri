@@ -331,14 +331,13 @@ export const timeTrackingService = {
       const endTime = new Date().getTime();
       const durationHours = (endTime - startTime) / (1000 * 60 * 60);
       
-      // Update the entry with end time and duration, but avoid using task_type field
-      // which is causing the error
+      // Update the entry with duration and status, but don't try to set end_time
+      // as that column doesn't exist in the interventions table
       const { error } = await supabase
         .from('interventions')
         .update({
           status: 'completed',
-          duration: durationHours,
-          end_time: new Date().toISOString()
+          duration: durationHours
         })
         .eq('id', parseInt(entryId, 10));
       
@@ -398,10 +397,16 @@ export const timeTrackingService = {
       if (data.notes) updateData.description = data.notes;
       if (data.status) updateData.status = data.status;
       if (data.equipment_id) updateData.equipment_id = data.equipment_id;
-      if (data.end_time && data.start_time) {
+      
+      // Remove the end_time check since that column doesn't exist
+      if (data.start_time) {
         const startTime = new Date(data.start_time).getTime();
-        const endTime = new Date(data.end_time).getTime();
-        updateData.duration = (endTime - startTime) / (1000 * 60 * 60);
+        
+        // If there's an end time, calculate duration
+        if (data.end_time) {
+          const endTime = new Date(data.end_time).getTime();
+          updateData.duration = (endTime - startTime) / (1000 * 60 * 60);
+        }
       }
       
       const { error } = await supabase
