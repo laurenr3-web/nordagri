@@ -19,7 +19,7 @@ const TimeEntryDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [entry, setEntry] = useState<TimeEntry | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [navigate] = useNavigate();
+  const navigate = useNavigate(); // Fix: Don't destructure, just assign
   const [estimatedCost, setEstimatedCost] = useState(0);
   const [showClosureDialog, setShowClosureDialog] = useState(false);
 
@@ -178,7 +178,7 @@ const TimeEntryDetail = () => {
 
   // Convert the TimeEntryStatus to the expected component prop type
   const safeStatus: 'active' | 'paused' | 'completed' = 
-    entry.status === 'disputed' ? 'completed' : entry.status;
+    entry?.status === 'disputed' ? 'completed' : entry?.status || 'completed';
   
   return (
     <SidebarProvider>
