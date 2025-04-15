@@ -24,12 +24,21 @@ export function FormFields({
   loading,
   onChange
 }: FormFieldsProps) {
+  // Create wrapper functions to adapt between different function signatures
+  const handleTaskTypeChange = (value: string) => {
+    onChange('task_type', value);
+  };
+
+  const handleCustomTaskTypeChange = (value: string) => {
+    onChange('custom_task_type', value);
+  };
+
   return (
     <div className="space-y-4">
       <TaskTypeField
         taskType={formData.task_type}
         customTaskType={formData.custom_task_type}
-        onChange={onChange}
+        onChange={(field, value) => onChange(field, value)}
       />
       
       <EquipmentField

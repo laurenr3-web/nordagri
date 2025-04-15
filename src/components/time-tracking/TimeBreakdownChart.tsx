@@ -1,52 +1,53 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Button } from '../ui/button';
-import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { useTimeBreakdown } from '@/hooks/time-tracking/useTimeBreakdown';
+import { Loader2 } from 'lucide-react';
 
 export function TimeBreakdownChart() {
   const { data, isLoading, error } = useTimeBreakdown();
-  
+
   if (isLoading) {
     return (
       <Card className="mt-6">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Time by Task Type</CardTitle>
+        <CardHeader>
+          <CardTitle>Time by Task Type</CardTitle>
         </CardHeader>
-        <CardContent className="h-[200px]">
-          <div className="flex flex-col space-y-2 w-full h-full items-center justify-center">
-            <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-4 w-4/5" />
-            <Skeleton className="h-4 w-2/3" />
+        <CardContent className="h-[300px] flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Time by Task Type</CardTitle>
+        </CardHeader>
+        <CardContent className="h-[300px] flex items-center justify-center">
+          <div className="text-center text-muted-foreground">
+            <p>Unable to load task type breakdown</p>
+            <p className="text-sm">{error}</p>
           </div>
         </CardContent>
       </Card>
     );
   }
-  
-  if (error) {
-    return (
-      <Card className="mt-6">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Time by Task Type</CardTitle>
-        </CardHeader>
-        <CardContent className="h-[200px] flex items-center justify-center">
-          <p className="text-red-500">Error loading data: {error}</p>
-        </CardContent>
-      </Card>
-    );
-  }
 
-  if (!data || data.length === 0) {
+  if (data.length === 0) {
     return (
       <Card className="mt-6">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Time by Task Type</CardTitle>
+        <CardHeader>
+          <CardTitle>Time by Task Type</CardTitle>
         </CardHeader>
-        <CardContent className="h-[200px] flex items-center justify-center">
-          <p className="text-gray-500">No completed sessions available</p>
+        <CardContent className="h-[300px] flex items-center justify-center">
+          <div className="text-center text-muted-foreground">
+            <p>No completed tasks found</p>
+            <p className="text-sm">Complete tasks to see your time breakdown</p>
+          </div>
         </CardContent>
       </Card>
     );
@@ -54,51 +55,33 @@ export function TimeBreakdownChart() {
 
   return (
     <Card className="mt-6">
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-lg">Time by Task Type</CardTitle>
-          <Button variant="link" size="sm">View more</Button>
-        </div>
+      <CardHeader>
+        <CardTitle>Time by Task Type</CardTitle>
       </CardHeader>
-      <CardContent className="h-[200px]">
+      <CardContent className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={data}
-            margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
-          >
-            <XAxis 
-              dataKey="task_type" 
-              tickLine={false}
-              axisLine={false}
-              tick={{ fontSize: 12 }}
-              angle={0}
-              textAnchor="middle"
-              interval={0}
-              height={40}
-            />
-            <YAxis 
-              tickLine={false}
-              axisLine={false}
-              tick={{ fontSize: 12 }}
-              tickFormatter={(value) => `${Math.round(value / 60)} h`}
-            />
-            <Tooltip 
-              formatter={(value) => {
-                const hours = Math.floor(Number(value) / 60);
-                const minutes = Math.round(Number(value) % 60);
-                return [`${hours}h ${minutes}m`, 'Time Spent'];
-              }}
-              labelFormatter={(label) => `Task: ${label}`}
-            />
-            <Bar 
-              dataKey="minutes" 
-              radius={[4, 4, 0, 0]}
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              outerRadius={80}
+              fill="#8884d8"
+              dataKey="minutes"
+              nameKey="task_type"
+              label={({ task_type, minutes }) => `${task_type}: ${Math.round(minutes / 60 * 10) / 10}h`}
             >
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
-            </Bar>
-          </BarChart>
+            </Pie>
+            <Tooltip
+              formatter={(value: number) => `${Math.round(value / 60 * 10) / 10} hours`}
+              labelFormatter={(label) => `Task: ${label}`}
+            />
+            <Legend />
+          </PieChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>

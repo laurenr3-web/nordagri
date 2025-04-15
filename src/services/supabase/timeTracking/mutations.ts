@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { TimeEntry, TimeEntryStatus } from '@/hooks/time-tracking/types';
+import { TimeEntry, TimeEntryStatus, TimeEntryTaskType } from '@/hooks/time-tracking/types';
 
 export async function startTimeEntry(userId: string, data: {
   equipment_id?: number;
@@ -38,7 +38,8 @@ export async function startTimeEntry(userId: string, data: {
       .eq('id', data.task_type_id)
       .single();
       
-    const taskTypeName = taskTypeData?.name || 'Unknown';
+    // Use a type assertion here to match the required TimeEntryTaskType
+    const taskTypeName = (taskTypeData?.name || 'maintenance') as TimeEntryTaskType;
     
     // Create a new entry in interventions table
     const timeEntryData = {

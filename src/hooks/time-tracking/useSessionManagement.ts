@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { timeTrackingService } from '@/services/supabase/timeTracking';
 import { useTimeEntryState } from './useTimeEntryState';
+import { TimeEntryTaskType } from './types';
 
 export function useSessionManagement() {
   const { 
@@ -39,7 +40,8 @@ export function useSessionManagement() {
             .single();
           
           if (data) {
-            activeEntry.task_type = data.name;
+            // Convert the string to TimeEntryTaskType
+            activeEntry.task_type = data.name as TimeEntryTaskType;
           }
         }
         

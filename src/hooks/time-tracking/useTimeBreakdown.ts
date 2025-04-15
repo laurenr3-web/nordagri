@@ -42,7 +42,6 @@ export function useTimeBreakdown() {
           .from('interventions')
           .select(`
             duration,
-            task_type,
             task_type_id,
             task_types:task_types(name)
           `)
@@ -56,13 +55,13 @@ export function useTimeBreakdown() {
         const taskTypeMap = new Map<string, number>();
         
         interventions?.forEach(intervention => {
-          // Get task type name, either from the task_types join or fallback to task_type column
-          const taskType = intervention.task_types?.name || intervention.task_type || 'Other';
+          // Get task type name from the task_types join
+          const taskTypeName = intervention.task_types?.name || 'Other';
           
           // Convert hours to minutes and add to the map
           const minutes = (intervention.duration || 0) * 60;
-          const current = taskTypeMap.get(taskType) || 0;
-          taskTypeMap.set(taskType, current + minutes);
+          const current = taskTypeMap.get(taskTypeName) || 0;
+          taskTypeMap.set(taskTypeName, current + minutes);
         });
         
         // Convert to chart format with colors

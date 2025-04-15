@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -21,7 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from 'sonner';
-import { TimeEntryFormData, TimeEntryTaskType } from '@/hooks/time-tracking/types';
+import { TimeEntryFormData } from '@/hooks/time-tracking/types';
 import { TaskTypeField } from './form/TaskTypeField';
 
 interface TimeEntryFormProps {
@@ -54,19 +55,21 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
     notes: '',
     task_type: 'maintenance',
     custom_task_type: '',
+    task_type_id: '',
   });
 
   useEffect(() => {
     if (!isOpen) {
       resetForm();
     }
-  }, [isOpen, reset]);
+  }, [isOpen]);
 
   const resetForm = () => {
     setFormData({
       notes: '',
       task_type: 'maintenance',
       custom_task_type: '',
+      task_type_id: '',
     });
     reset({
       notes: "",

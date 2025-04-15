@@ -16,7 +16,8 @@ import { TimeEntriesList } from '@/components/time-tracking/TimeEntriesList';
 import { TimeEntryForm } from '@/components/time-tracking/TimeEntryForm';
 import { useTimeEntries } from '@/hooks/time-tracking/useTimeEntries';
 import { startOfWeek, endOfWeek } from 'date-fns';
-import { ActiveTimeEntry } from '@/hooks/time-tracking/types';
+import { ActiveTimeEntry, TimeEntryFormData } from '@/hooks/time-tracking/types';
+import { DateRange } from 'react-day-picker';
 
 export default function TimeTracking() {
   const [userId, setUserId] = useState<string | null>(null);
@@ -79,7 +80,7 @@ export default function TimeTracking() {
     }
   }, [userId]);
 
-  const handleStartTimeEntry = async (data: any) => {
+  const handleStartTimeEntry = async (data: TimeEntryFormData) => {
     if (!userId) return;
     
     try {
@@ -88,6 +89,15 @@ export default function TimeTracking() {
       refreshEntries();
     } catch (error) {
       console.error("Error starting time tracking:", error);
+    }
+  };
+
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    if (range) {
+      setDateRange({
+        from: range.from || startOfWeek(new Date(), { weekStartsOn: 1 }),
+        to: range.to || endOfWeek(new Date(), { weekStartsOn: 1 })
+      });
     }
   };
 
@@ -135,7 +145,7 @@ export default function TimeTracking() {
               equipmentFilter={equipmentFilter}
               taskTypeFilter={taskTypeFilter}
               equipments={equipments}
-              onDateRangeChange={setDateRange}
+              onDateRangeChange={handleDateRangeChange}
               onEquipmentChange={setEquipmentFilter}
               onTaskTypeChange={setTaskTypeFilter}
               onReset={() => {
@@ -148,7 +158,7 @@ export default function TimeTracking() {
               }}
             />
             
-            <TimeBreakdownChart data={[]} />
+            <TimeBreakdownChart />
             
             <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
               <TabsList className="mb-4">

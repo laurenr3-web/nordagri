@@ -1,14 +1,19 @@
 
-import { useTimeEntryState } from './useTimeEntryState';
+import { useState } from 'react';
+import { TimeEntryFormData } from './types';
 import { useTimeEntryValidation } from './useTimeEntryValidation';
 import { useTimeEntryDataFetching } from './useTimeEntryDataFetching';
 
 export function useTimeEntryForm() {
-  const {
-    formData,
-    handleChange,
-    setFormData
-  } = useTimeEntryState();
+  const [formData, setFormData] = useState<TimeEntryFormData>({
+    notes: '',
+    task_type: 'maintenance',
+    custom_task_type: '',
+  });
+
+  const handleChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
   const {
     formError,
@@ -33,6 +38,7 @@ export function useTimeEntryForm() {
     loading,
     formError,
     handleChange,
+    setFormData,
     validateForm,
     fetchEquipments,
     fetchLocations

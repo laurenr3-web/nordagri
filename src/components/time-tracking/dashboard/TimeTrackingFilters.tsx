@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { DateRange } from 'react-day-picker';
 import { CalendarIcon } from 'lucide-react';
@@ -86,12 +87,15 @@ export function TimeTrackingFilters({
       </Popover>
       
       {/* Equipment Filter */}
-      <Select value={equipmentFilter === undefined ? '' : equipmentFilter.toString()} onValueChange={(value) => onEquipmentChange(value === '' ? undefined : parseInt(value))}>
+      <Select 
+        value={equipmentFilter === undefined ? "all" : equipmentFilter.toString()} 
+        onValueChange={(value) => onEquipmentChange(value === "all" ? undefined : parseInt(value))}
+      >
         <SelectTrigger className="w-full">
           <SelectValue placeholder="Equipment" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All Equipments</SelectItem>
+          <SelectItem value="all">All Equipments</SelectItem>
           {equipments.map((equipment) => (
             <SelectItem key={equipment.id} value={equipment.id.toString()}>{equipment.name}</SelectItem>
           ))}
@@ -99,12 +103,12 @@ export function TimeTrackingFilters({
       </Select>
 
       {/* Task Type Filter */}
-      <Select value={taskTypeFilter || ''} onValueChange={onTaskTypeChange}>
+      <Select value={taskTypeFilter || "all"} onValueChange={(value) => onTaskTypeChange(value === "all" ? undefined : value)}>
         <SelectTrigger className="w-full">
           <SelectValue placeholder="Task Type" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All Task Types</SelectItem>
+          <SelectItem value="all">All Task Types</SelectItem>
           {taskTypes.map(type => (
             <SelectItem key={type.id} value={type.name}>{type.name}</SelectItem>
           ))}
