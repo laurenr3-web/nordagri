@@ -1,23 +1,18 @@
 
-import React, { useState, useEffect } from 'react';
-import { DateRange } from 'react-day-picker';
-import { CalendarIcon } from 'lucide-react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { supabase } from '@/integrations/supabase/client';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
+import { startOfWeek, endOfWeek } from 'date-fns';
 
 interface TimeTrackingFiltersProps {
-  dateRange: DateRange | undefined;
-  equipmentFilter: number | undefined;
-  taskTypeFilter: string | undefined;
+  dateRange: { from: Date; to: Date };
+  equipmentFilter?: number;
+  taskTypeFilter?: string;
   equipments: { id: number; name: string }[];
-  onDateRangeChange: (date: DateRange | undefined) => void;
-  onEquipmentChange: (equipmentId: number | undefined) => void;
-  onTaskTypeChange: (taskType: string | undefined) => void;
+  onDateRangeChange: (range: { from: Date; to: Date }) => void;
+  onEquipmentChange: (value: number | undefined) => void;
+  onTaskTypeChange: (value: string | undefined) => void;
   onReset: () => void;
 }
 
@@ -29,96 +24,69 @@ export function TimeTrackingFilters({
   onDateRangeChange,
   onEquipmentChange,
   onTaskTypeChange,
-  onReset
+  onReset,
 }: TimeTrackingFiltersProps) {
-  const [taskTypes, setTaskTypes] = useState<{id: string, name: string}[]>([]);
-
-  useEffect(() => {
-    const fetchTaskTypes = async () => {
-      const { data } = await supabase
-        .from('task_types')
-        .select('id, name')
-        .order('name');
-      
-      if (data) {
-        setTaskTypes(data);
-      }
-    };
-    
-    fetchTaskTypes();
-  }, []);
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-      {/* Date Range Picker */}
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            id="date"
-            variant={'outline'}
-            className={cn(
-              'w-full justify-start text-left font-normal',
-              !dateRange?.from && 'text-muted-foreground'
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {dateRange?.from ? (
-              dateRange.to ? (
-                `${dateRange.from?.toLocaleDateString()} - ${dateRange.to?.toLocaleDateString()}`
-              ) : (
-                dateRange.from?.toLocaleDateString()
-              )
-            ) : (
-              <span>Pick a date range</span>
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="range"
-            defaultMonth={dateRange?.from ? dateRange.from : new Date()}
-            selected={dateRange}
-            onSelect={onDateRangeChange}
-            disabled={{ from: new Date(1900, 1, 1), to: new Date() }}
-            numberOfMonths={2}
-            pagedNavigation
+    <div className="bg-gray-50 p-4 rounded-md mb-6">
+      <div className="flex flex-col md:flex-row gap-4 items-end">
+        <div className="flex-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Period
+          </label>
+          <DateRangePicker
+            value={dateRange}
+            onChange={onDateRangeChange}
           />
-        </PopoverContent>
-      </Popover>
-      
-      {/* Equipment Filter */}
-      <Select 
-        value={equipmentFilter === undefined ? "all" : equipmentFilter.toString()} 
-        onValueChange={(value) => onEquipmentChange(value === "all" ? undefined : parseInt(value))}
-      >
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder="Equipment" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Equipments</SelectItem>
-          {equipments.map((equipment) => (
-            <SelectItem key={equipment.id} value={equipment.id.toString()}>{equipment.name}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      {/* Task Type Filter */}
-      <Select value={taskTypeFilter || "all"} onValueChange={(value) => onTaskTypeChange(value === "all" ? undefined : value)}>
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder="Task Type" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Task Types</SelectItem>
-          {taskTypes.map(type => (
-            <SelectItem key={type.id} value={type.name}>{type.name}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      {/* Reset Button */}
-      <Button variant="secondary" className="w-full" onClick={onReset}>
-        Reset Filters
-      </Button>
+        </div>
+        
+        <div className="w-full md:w-48">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Equipment
+          </label>
+          <Select
+            value={equipmentFilter?.toString() || ""}
+            onValueChange={(value) => onEquipmentChange(value !== "all" ? parseInt(value) : undefined)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="All" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              {equipments.map((equipment) => (
+                <SelectItem key={equipment.id} value={equipment.id.toString()}>
+                  {equipment.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="w-full md:w-48">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Task Type
+          </label>
+          <Select
+            value={taskTypeFilter || "all"}
+            onValueChange={(value) => onTaskTypeChange(value !== "all" ? value : undefined)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="All" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="maintenance">Maintenance</SelectItem>
+              <SelectItem value="repair">Repair</SelectItem>
+              <SelectItem value="inspection">Inspection</SelectItem>
+              <SelectItem value="installation">Installation</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <Button variant="outline" onClick={onReset}>
+          Reset
+        </Button>
+      </div>
     </div>
   );
 }

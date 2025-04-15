@@ -1,12 +1,11 @@
 
-import React, { useState } from 'react';
-import { cn } from '@/lib/utils';
+import React, { useState, useEffect } from 'react';
+import { Clock, Play, Pause, Square, Timer } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useTimeTracking } from '@/hooks/time-tracking/useTimeTracking';
+import { formatDuration } from '@/utils/dateHelpers';
+import { cn } from '@/lib/utils';
 import { TimeEntryForm } from './TimeEntryForm';
-import { MainButton } from './button/MainButton';
-import { SessionControls } from './button/SessionControls';
-import { useTimeTrackingTimer } from '@/hooks/time-tracking/useTimer';
-import { useTimeEntryState } from '@/hooks/time-tracking/useTimeEntryState';
 
 interface TimeTrackingButtonProps {
   className?: string;
@@ -19,17 +18,50 @@ export function TimeTrackingButton({
 }: TimeTrackingButtonProps) {
   const { 
     activeTimeEntry, 
-    isLoading,
-    startTimeEntry,
+    isLoading, 
+    startTimeEntry, 
     stopTimeEntry,
     pauseTimeEntry,
     resumeTimeEntry
   } = useTimeTracking();
   
-  const { userName } = useTimeEntryState();
-  
+  const [duration, setDuration] = useState<string>('00:00:00');
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const duration = useTimeTrackingTimer(activeTimeEntry);
+  
+  // Update timer
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+    
+    // Check if active entry exists and is not paused
+    if (activeTimeEntry && activeTimeEntry.status === 'active') {
+      // Start interval to update timer
+      intervalId = setInterval(() => {
+        const start = new Date(activeTimeEntry.start_time);
+        const now = new Date();
+        const diffMs = now.getTime() - start.getTime();
+        setDuration(formatDuration(diffMs));
+      }, 1000);
+      
+      // Calculate initial duration
+      const start = new Date(activeTimeEntry.start_time);
+      const now = new Date();
+      const diffMs = now.getTime() - start.getTime();
+      setDuration(formatDuration(diffMs));
+    } else if (activeTimeEntry && activeTimeEntry.status === 'paused') {
+      // For paused entry, just show elapsed time without updates
+      const start = new Date(activeTimeEntry.start_time);
+      const now = new Date();
+      const diffMs = now.getTime() - start.getTime();
+      setDuration(formatDuration(diffMs));
+    }
+    
+    // Clean up interval on unmount
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [activeTimeEntry]);
   
   // Handle main button click
   const handleMainButtonClick = () => {
@@ -47,23 +79,37 @@ export function TimeTrackingButton({
       console.error("Error starting time tracking:", error);
     }
   };
-
-  // Handle pause, resume, and stop functions with the timeEntryId
-  const handlePause = () => {
+  
+  // Handle stopping a time entry
+  const handleStopTimeEntry = async () => {
     if (activeTimeEntry) {
-      pauseTimeEntry(activeTimeEntry.id);
+      try {
+        await stopTimeEntry(activeTimeEntry.id);
+      } catch (error) {
+        console.error("Error stopping time tracking:", error);
+      }
     }
   };
-
-  const handleResume = () => {
+  
+  // Handle pausing a time entry
+  const handlePauseTimeEntry = async () => {
     if (activeTimeEntry) {
-      resumeTimeEntry(activeTimeEntry.id);
+      try {
+        await pauseTimeEntry(activeTimeEntry.id);
+      } catch (error) {
+        console.error("Error pausing time tracking:", error);
+      }
     }
   };
-
-  const handleStop = () => {
+  
+  // Handle resuming a time entry
+  const handleResumeTimeEntry = async () => {
     if (activeTimeEntry) {
-      stopTimeEntry(activeTimeEntry.id);
+      try {
+        await resumeTimeEntry(activeTimeEntry.id);
+      } catch (error) {
+        console.error("Error resuming time tracking:", error);
+      }
     }
   };
   
@@ -76,8 +122,6 @@ export function TimeTrackingButton({
         return 'bg-green-100 text-green-700 hover:bg-green-200';
       case 'paused':
         return 'bg-orange-100 text-orange-700 hover:bg-orange-200';
-      case 'disputed':
-        return 'bg-red-100 text-red-700 hover:bg-red-200';
       default:
         return 'bg-gray-100 text-gray-700 hover:bg-gray-200';
     }
@@ -93,28 +137,76 @@ export function TimeTrackingButton({
           className
         )}
       >
-        {userName && (
-          <span className="text-sm font-medium mr-2">{userName}</span>
-        )}
-        
-        <MainButton 
+        {/* Main button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className={cn(
+            'rounded-full p-2 h-10 w-10 flex items-center justify-center',
+            !activeTimeEntry ? 'text-gray-700' : ''
+          )}
           onClick={handleMainButtonClick}
-          isLoading={isLoading}
-        />
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <div className="animate-spin">
+              <Timer className="h-5 w-5" />
+            </div>
+          ) : (
+            <Clock className="h-5 w-5" />
+          )}
+        </Button>
         
+        {/* Show elapsed time and actions when an entry is active */}
         {activeTimeEntry && (
           <div className="flex items-center gap-2">
             <span className="font-mono text-sm font-medium">{duration}</span>
-            <SessionControls
-              status={activeTimeEntry.status}
-              onPause={handlePause}
-              onResume={handleResume}
-              onStop={handleStop}
-            />
+            
+            {/* Actions based on status */}
+            {activeTimeEntry.status === 'active' ? (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full p-2 h-8 w-8"
+                  onClick={handlePauseTimeEntry}
+                >
+                  <Pause className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full p-2 h-8 w-8"
+                  onClick={handleStopTimeEntry}
+                >
+                  <Square className="h-4 w-4" />
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full p-2 h-8 w-8"
+                  onClick={handleResumeTimeEntry}
+                >
+                  <Play className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full p-2 h-8 w-8"
+                  onClick={handleStopTimeEntry}
+                >
+                  <Square className="h-4 w-4" />
+                </Button>
+              </>
+            )}
           </div>
         )}
       </div>
       
+      {/* Modal for form */}
       <TimeEntryForm 
         isOpen={isFormOpen} 
         onOpenChange={setIsFormOpen} 

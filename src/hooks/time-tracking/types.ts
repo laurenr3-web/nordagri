@@ -42,14 +42,3 @@ export interface TimeSpentByEquipment {
   equipment_name: string;
   total_minutes: number;
 }
-
-export interface TimeEntryFormData {
-  equipment_id?: number;
-  intervention_id?: number;
-  task_type: TimeEntryTaskType;
-  task_type_id?: string; // Added this field
-  custom_task_type: string;
-  location_id?: number;
-  location?: string;
-  notes: string;
-}

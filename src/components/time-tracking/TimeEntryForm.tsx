@@ -1,154 +1,128 @@
 
 import React, { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { useForm } from 'react-hook-form';
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { timeTrackingService } from '@/services/supabase/timeTrackingService';
+import { TaskType } from '@/hooks/time-tracking/types';
 import { toast } from 'sonner';
-import { TimeEntryFormData } from '@/hooks/time-tracking/types';
-import { TaskTypeField } from './form/TaskTypeField';
 
 interface TimeEntryFormProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: TimeEntryFormData) => Promise<void>;
+  onSubmit: (data: any) => void;
 }
 
-const formSchema = z.object({
-  notes: z.string().optional(),
-  task_type_id: z.string().min(1, {
-    message: "Please select a task type.",
-  }),
-});
-
 export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [taskTypes, setTaskTypes] = useState<TaskType[]>([]);
+  const [selectedType, setSelectedType] = useState<string>('');
+  const [customType, setCustomType] = useState('');
+  const [notes, setNotes] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      notes: "",
-      task_type_id: ""
-    },
-  });
-
-  const { handleSubmit, reset } = form;
-
-  const [formData, setFormData] = useState<TimeEntryFormData>({
-    notes: '',
-    task_type: 'maintenance',
-    custom_task_type: '',
-    task_type_id: '',
-  });
-
+  // Load task types on mount
   useEffect(() => {
-    if (!isOpen) {
-      resetForm();
+    const loadTaskTypes = async () => {
+      try {
+        const types = await timeTrackingService.getTaskTypes();
+        setTaskTypes(types);
+        if (types.length > 0) {
+          setSelectedType(types[0].name);
+        }
+      } catch (error) {
+        console.error('Error loading task types:', error);
+        toast.error('Could not load task types');
+      }
+    };
+
+    if (isOpen) {
+      loadTaskTypes();
     }
   }, [isOpen]);
 
-  const resetForm = () => {
-    setFormData({
-      notes: '',
-      task_type: 'maintenance',
-      custom_task_type: '',
-      task_type_id: '',
-    });
-    reset({
-      notes: "",
-      task_type_id: ""
-    });
-  };
-
-  const validateForm = () => {
-    if (!formData.task_type_id) {
-      toast.error("Task type is required");
-      return false;
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedType) {
+      toast.error('Please select a task type');
+      return;
     }
-    return true;
-  };
 
-  const submitHandler = async (values: z.infer<typeof formSchema>) => {
-    if (!validateForm()) return;
-    
-    try {
-      setIsSubmitting(true);
-      await onSubmit(formData);
-      resetForm();
-      onOpenChange(false);
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      toast.error("Failed to create time session");
-    } finally {
-      setIsSubmitting(false);
-    }
+    const taskType = selectedType as any;
+    const taskTypeObj = taskTypes.find(t => t.name === taskType);
+
+    onSubmit({
+      task_type: taskType,
+      task_type_id: taskTypeObj?.id,
+      custom_task_type: taskType === 'other' ? customType : undefined,
+      notes
+    });
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>New Time Session</DialogTitle>
-          <DialogDescription>
-            Start tracking your time and tasks.
-          </DialogDescription>
+          <DialogTitle>Start New Time Session</DialogTitle>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={handleSubmit(submitHandler)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="task_type_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Task Type</FormLabel>
-                  <FormControl>
-                    <TaskTypeField
-                      value={formData.task_type_id || ''}
-                      onChange={(value) => setFormData({ ...formData, task_type_id: value })}
-                      required={true}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="task-type">Task Type</Label>
+            <Select
+              value={selectedType}
+              onValueChange={setSelectedType}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select task type" />
+              </SelectTrigger>
+              <SelectContent>
+                {taskTypes.map((type) => (
+                  <SelectItem key={type.id} value={type.name}>
+                    {type.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {selectedType === 'other' && (
+            <div>
+              <Label htmlFor="custom-type">Custom Task Type</Label>
+              <Input
+                id="custom-type"
+                value={customType}
+                onChange={(e) => setCustomType(e.target.value)}
+                placeholder="Enter custom task type"
+                required
+              />
+            </div>
+          )}
+
+          <div>
+            <Label htmlFor="notes">Notes (optional)</Label>
+            <Input
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Add notes..."
             />
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Notes</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Add notes about the session" {...field} value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Submitting..." : "Start Session"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              Start Session
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
