@@ -1,29 +1,20 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { TimeEntry, TimeEntryTaskType } from '@/hooks/time-tracking/types';
+import { TimeEntry, TimeEntryStatus } from '@/hooks/time-tracking/types';
 
 export async function startTimeEntry(userId: string, data: {
   equipment_id?: number;
   intervention_id?: number;
-  task_type: TimeEntryTaskType;
+  task_type?: string;
   task_type_id?: string;
-  custom_task_type?: string;
   title?: string;
-  location?: string;
   notes?: string;
+  location?: string;
 }): Promise<TimeEntry> {
   try {
-    // Get task type ID if not provided
-    if (!data.task_type_id && data.task_type) {
-      const { data: taskTypeData } = await supabase
-        .from('task_types')
-        .select('id')
-        .eq('name', data.task_type)
-        .single();
-      
-      if (taskTypeData) {
-        data.task_type_id = taskTypeData.id;
-      }
+    // Validate task type ID
+    if (!data.task_type_id) {
+      throw new Error("Task type is required");
     }
 
     // Get equipment name for reference
@@ -40,11 +31,21 @@ export async function startTimeEntry(userId: string, data: {
       }
     }
     
+    // Get task type name
+    const { data: taskTypeData } = await supabase
+      .from('task_types')
+      .select('name')
+      .eq('id', data.task_type_id)
+      .single();
+      
+    const taskTypeName = taskTypeData?.name || 'Unknown';
+    
+    // Create a new entry in interventions table
     const timeEntryData = {
       owner_id: userId,
       equipment_id: data.equipment_id || null,
       equipment: equipmentName,
-      title: data.title || `${data.task_type} - ${new Date().toLocaleString()}`,
+      title: data.title || `${taskTypeName} - ${new Date().toLocaleString()}`,
       description: data.notes || '',
       status: 'active',
       date: new Date().toISOString(),
@@ -52,7 +53,7 @@ export async function startTimeEntry(userId: string, data: {
       priority: 'medium',
       technician: 'Self',
       task_type_id: data.task_type_id,
-      task_type: data.task_type
+      task_type: taskTypeName
     };
     
     const { data: result, error } = await supabase
@@ -63,13 +64,14 @@ export async function startTimeEntry(userId: string, data: {
     
     if (error) throw error;
     
-    return {
+    // Transform to TimeEntry format
+    const entry: TimeEntry = {
       id: result.id.toString(),
       user_id: userId,
       equipment_id: data.equipment_id,
       intervention_id: data.intervention_id,
-      task_type: data.task_type,
       task_type_id: data.task_type_id,
+      task_type: taskTypeName,
       notes: data.notes,
       start_time: result.date,
       status: 'active',
@@ -78,6 +80,8 @@ export async function startTimeEntry(userId: string, data: {
       created_at: result.created_at,
       updated_at: result.updated_at
     };
+    
+    return entry;
   } catch (error) {
     console.error("Error starting time entry:", error);
     throw error;

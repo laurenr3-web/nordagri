@@ -9,7 +9,8 @@ export function useSessionManagement() {
     setActiveTimeEntry, 
     setIsLoading, 
     setError,
-    calculateInitialDuration
+    calculateInitialDuration,
+    fetchUserName
   } = useTimeEntryState();
 
   const fetchActiveTimeEntry = async () => {
@@ -25,7 +26,23 @@ export function useSessionManagement() {
       const userId = sessionData.session.user.id;
       const activeEntry = await timeTrackingService.getActiveTimeEntry(userId);
       
+      // Also fetch the user's name
+      fetchUserName();
+      
       if (activeEntry) {
+        // If we have an active entry, fetch the task type name
+        if (activeEntry.task_type_id) {
+          const { data } = await supabase
+            .from('task_types')
+            .select('name')
+            .eq('id', activeEntry.task_type_id)
+            .single();
+          
+          if (data) {
+            activeEntry.task_type = data.name;
+          }
+        }
+        
         setActiveTimeEntry({
           ...activeEntry,
           current_duration: calculateInitialDuration(activeEntry.start_time)

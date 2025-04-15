@@ -1,61 +1,50 @@
 
 import { useState } from 'react';
-import { TimeEntry, TimeEntryFormData } from './types';
+import { supabase } from '@/integrations/supabase/client';
+import { ActiveTimeEntry } from './types';
+import { formatDuration } from '@/utils/dateHelpers';
 
 export function useTimeEntryState() {
-  // Form state for new time entries
-  const [formData, setFormData] = useState<TimeEntryFormData>({
-    equipment_id: undefined,
-    intervention_id: undefined,
-    task_type: 'maintenance',
-    custom_task_type: '',
-    location_id: undefined,
-    location: '',
-    notes: '',
-  });
-  
-  // Active time entry state
-  const [activeTimeEntry, setActiveTimeEntry] = useState<TimeEntry | null>(null);
+  const [activeTimeEntry, setActiveTimeEntry] = useState<ActiveTimeEntry | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-
-  const handleChange = (field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-    
-    if (field === 'task_type' && value !== 'other') {
-      setFormData(prev => ({
-        ...prev,
-        custom_task_type: ''
-      }));
-    }
-  };
-
-  // Helper function to calculate duration from start time
-  const calculateInitialDuration = (startTime: string): string => {
+  const [userName, setUserName] = useState<string>('');
+  
+  // Calculate initial duration based on start time
+  const calculateInitialDuration = (startTime: string) => {
     const start = new Date(startTime);
     const now = new Date();
     const diffMs = now.getTime() - start.getTime();
-    
-    const hours = Math.floor(diffMs / (1000 * 60 * 60));
-    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-    
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    return formatDuration(diffMs);
+  };
+
+  // Fetch user name from profiles table
+  const fetchUserName = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('first_name, last_name')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+      
+      if (error) throw error;
+      if (data) {
+        setUserName(`${data.first_name || ''} ${data.last_name || ''}`.trim() || 'User');
+      }
+    } catch (err) {
+      console.error('Error fetching user profile:', err);
+    }
   };
 
   return {
-    formData,
-    setFormData,
-    handleChange,
     activeTimeEntry,
     setActiveTimeEntry,
     isLoading,
     setIsLoading,
     error,
     setError,
-    calculateInitialDuration
+    calculateInitialDuration,
+    userName,
+    fetchUserName
   };
 }

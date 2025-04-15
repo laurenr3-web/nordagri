@@ -6,6 +6,7 @@ import { TimeEntryForm } from './TimeEntryForm';
 import { MainButton } from './button/MainButton';
 import { SessionControls } from './button/SessionControls';
 import { useTimeTrackingTimer } from '@/hooks/time-tracking/useTimer';
+import { useTimeEntryState } from '@/hooks/time-tracking/useTimeEntryState';
 
 interface TimeTrackingButtonProps {
   className?: string;
@@ -24,6 +25,8 @@ export function TimeTrackingButton({
     pauseTimeEntry,
     resumeTimeEntry
   } = useTimeTracking();
+  
+  const { userName } = useTimeEntryState();
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const duration = useTimeTrackingTimer(activeTimeEntry);
@@ -90,6 +93,10 @@ export function TimeTrackingButton({
           className
         )}
       >
+        {userName && (
+          <span className="text-sm font-medium mr-2">{userName}</span>
+        )}
+        
         <MainButton 
           onClick={handleMainButtonClick}
           isLoading={isLoading}

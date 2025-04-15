@@ -2,16 +2,43 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { Button } from '../ui/button';
+import { Skeleton } from "@/components/ui/skeleton";
+import { useTimeBreakdown } from '@/hooks/time-tracking/useTimeBreakdown';
 
-interface TimeBreakdownProps {
-  data: Array<{
-    task_type: string;
-    minutes: number;
-    color: string;
-  }>;
-}
+export function TimeBreakdownChart() {
+  const { data, isLoading, error } = useTimeBreakdown();
+  
+  if (isLoading) {
+    return (
+      <Card className="mt-6">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg">Time by Task Type</CardTitle>
+        </CardHeader>
+        <CardContent className="h-[200px]">
+          <div className="flex flex-col space-y-2 w-full h-full items-center justify-center">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-4/5" />
+            <Skeleton className="h-4 w-2/3" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  if (error) {
+    return (
+      <Card className="mt-6">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg">Time by Task Type</CardTitle>
+        </CardHeader>
+        <CardContent className="h-[200px] flex items-center justify-center">
+          <p className="text-red-500">Error loading data: {error}</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
-export function TimeBreakdownChart({ data }: TimeBreakdownProps) {
   if (!data || data.length === 0) {
     return (
       <Card className="mt-6">
@@ -19,7 +46,7 @@ export function TimeBreakdownChart({ data }: TimeBreakdownProps) {
           <CardTitle className="text-lg">Time by Task Type</CardTitle>
         </CardHeader>
         <CardContent className="h-[200px] flex items-center justify-center">
-          <p className="text-gray-500">No data available</p>
+          <p className="text-gray-500">No completed sessions available</p>
         </CardContent>
       </Card>
     );
@@ -77,5 +104,3 @@ export function TimeBreakdownChart({ data }: TimeBreakdownProps) {
     </Card>
   );
 }
-
-import { Button } from '../ui/button';
