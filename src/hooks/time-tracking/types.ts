@@ -39,6 +39,8 @@ export interface ActiveTimeEntry {
   equipment_name?: string;
   intervention_title?: string;
   current_duration?: string;
+  created_at: string | Date; // Added to match TimeEntry
+  updated_at: string | Date; // Added to match TimeEntry
 }
 
 export interface TimeSpentByEquipment {

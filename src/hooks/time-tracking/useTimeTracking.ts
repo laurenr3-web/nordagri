@@ -84,7 +84,9 @@ export function useTimeTracking() {
           status: activeEntry.status,
           equipment_name: activeEntry.equipment_name,
           intervention_title: activeEntry.intervention_title,
-          location: activeEntry.location
+          location: activeEntry.location,
+          created_at: activeEntry.created_at,
+          updated_at: activeEntry.updated_at
         });
       } else {
         setActiveTimeEntry(null);
@@ -147,7 +149,9 @@ export function useTimeTracking() {
         equipment_name: newEntry.equipment_name,
         intervention_title: newEntry.intervention_title,
         location: locationName,
-        location_id: params.location_id
+        location_id: params.location_id,
+        created_at: newEntry.created_at,
+        updated_at: newEntry.updated_at
       };
       
       setActiveTimeEntry(newActiveEntry);

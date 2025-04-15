@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
@@ -38,7 +37,7 @@ const TimeTrackingPage = () => {
   } = useTimeTracking();
   
   // Use the session monitoring hook
-  useActiveSessionMonitoring(activeTimeEntry);
+  useActiveSessionMonitoring(activeTimeEntry as TimeEntry);
   
   // Filters
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({

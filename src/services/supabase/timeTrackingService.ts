@@ -66,8 +66,9 @@ export const timeTrackingService = {
     equipment_id?: number;
     intervention_id?: number;
     task_type: TimeEntryTaskType;
+    title?: string;
     notes?: string;
-    location?: { lat: number; lng: number };
+    location?: string;
   }): Promise<TimeEntry> {
     try {
       // Get equipment name for reference
@@ -89,11 +90,11 @@ export const timeTrackingService = {
         owner_id: userId,
         equipment_id: data.equipment_id || null,
         equipment: equipmentName,
-        title: `${data.task_type} - ${new Date().toLocaleString()}`,
+        title: data.title || `${data.task_type} - ${new Date().toLocaleString()}`,
         description: data.notes || '',
         status: 'active',
         date: new Date().toISOString(),
-        location: data.location ? JSON.stringify(data.location) : 'Unknown',
+        location: data.location || 'Unknown',
         priority: 'medium',  // Default value
         technician: 'Self'   // Required field
       };
