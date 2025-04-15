@@ -1,11 +1,13 @@
+
 import React, { useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { TaskTypeField } from './form/TaskTypeField';
 import { EquipmentField } from './form/EquipmentField';
 import { InterventionField } from './form/InterventionField';
 import { LocationField } from './form/LocationField';
+import { FormHeader } from './form/FormHeader';
+import { FormActions } from './form/FormActions';
+import { NotesField } from './form/NotesField';
 import { useTimeEntryForm } from '@/hooks/time-tracking/useTimeEntryForm';
 import { toast } from 'sonner';
 
@@ -50,9 +52,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Start New Time Session</DialogTitle>
-        </DialogHeader>
+        <FormHeader />
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <TaskTypeField
@@ -84,26 +84,15 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
             onChange={handleChange}
           />
           
-          <div className="grid gap-2">
-            <Input
-              placeholder="Add notes..."
-              value={formData.notes}
-              onChange={(e) => handleChange('notes', e.target.value)}
-            />
-          </div>
+          <NotesField 
+            value={formData.notes}
+            onChange={(value) => handleChange('notes', value)}
+          />
 
-          <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              Start Session
-            </Button>
-          </div>
+          <FormActions 
+            onCancel={() => onOpenChange(false)}
+            loading={loading}
+          />
         </form>
       </DialogContent>
     </Dialog>
