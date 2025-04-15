@@ -8,6 +8,8 @@ interface TimeEntryFormData {
   intervention_id?: number;
   task_type: TimeEntryTaskType;
   custom_task_type: string;
+  location_id?: number;
+  location?: string;
   notes: string;
 }
 
@@ -17,11 +19,14 @@ export function useTimeEntryForm() {
     intervention_id: undefined,
     task_type: 'maintenance',
     custom_task_type: '',
+    location_id: undefined,
+    location: '',
     notes: '',
   });
   
   const [equipments, setEquipments] = useState<Array<{ id: number; name: string }>>([]);
   const [interventions, setInterventions] = useState<Array<{ id: number; title: string }>>([]);
+  const [locations, setLocations] = useState<Array<{ id: number; name: string }>>([]);
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -66,6 +71,24 @@ export function useTimeEntryForm() {
     }
   };
 
+  const fetchLocations = async () => {
+    try {
+      // For now, just use a hardcoded list of locations
+      // In the future, this could come from the database
+      const locations = [
+        { id: 1, name: "Atelier" },
+        { id: 2, name: "Champ Nord" },
+        { id: 3, name: "Champ Sud" },
+        { id: 4, name: "Hangar" },
+        { id: 5, name: "Serre" }
+      ];
+      setLocations(locations);
+    } catch (error) {
+      console.error("Error loading locations:", error);
+      setLocations([]);
+    }
+  };
+
   const handleChange = (field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
@@ -100,12 +123,13 @@ export function useTimeEntryForm() {
     formData,
     equipments,
     interventions,
+    locations,
     loading,
     formError,
     setFormError,
     handleChange,
     validateForm,
-    fetchEquipments
+    fetchEquipments,
+    fetchLocations
   };
 }
-

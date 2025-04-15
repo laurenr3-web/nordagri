@@ -5,7 +5,7 @@ import Navbar from '@/components/layout/Navbar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TimeEntryCard } from '@/components/time-tracking/TimeEntryCard';
-import { Calendar, ListFilter, Clock, Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar, ListFilter, Clock, Calendar as CalendarIcon, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { TimeEntry } from '@/hooks/time-tracking/types';
 import { timeTrackingService } from '@/services/supabase/timeTrackingService';
@@ -16,6 +16,10 @@ import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { startOfWeek, endOfWeek } from 'date-fns';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ActiveSessionsTable } from '@/components/time-tracking/ActiveSessionsTable';
+import { TimeBreakdownChart } from '@/components/time-tracking/TimeBreakdownChart';
+import { useTimeTracking } from '@/hooks/time-tracking/useTimeTracking';
+import { useActiveSessionMonitoring } from '@/hooks/time-tracking/useActiveSessionMonitoring';
 
 const TimeTrackingPage = () => {
   const [userId, setUserId] = useState<string | null>(null);
@@ -23,6 +27,18 @@ const TimeTrackingPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('list');
   const [isFormOpen, setIsFormOpen] = useState(false);
+  
+  const { 
+    activeTimeEntry, 
+    isLoading: isActiveSessionLoading, 
+    startTimeEntry, 
+    stopTimeEntry, 
+    pauseTimeEntry, 
+    resumeTimeEntry 
+  } = useTimeTracking();
+  
+  // Use the session monitoring hook
+  useActiveSessionMonitoring(activeTimeEntry);
   
   // Filters
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
@@ -39,8 +55,18 @@ const TimeTrackingPage = () => {
     totalMonth: 0
   });
   
+  // Time breakdown data
+  const [timeBreakdownData, setTimeBreakdownData] = useState<Array<{
+    task_type: string;
+    minutes: number;
+    color: string;
+  }>>([]);
+  
   // Filter options
   const [equipments, setEquipments] = useState<{ id: number; name: string }[]>([]);
+  
+  // Active sessions (including the current user's active session)
+  const [activeSessions, setActiveSessions] = useState<TimeEntry[]>([]);
   
   // Get user ID on load
   useEffect(() => {
@@ -60,6 +86,8 @@ const TimeTrackingPage = () => {
       fetchTimeEntries();
       fetchEquipments();
       calculateStats();
+      fetchTimeBreakdown();
+      fetchActiveSessions();
     }
   }, [userId, dateRange, equipmentFilter, taskTypeFilter]);
   
@@ -83,6 +111,44 @@ const TimeTrackingPage = () => {
       toast.error("Could not load time sessions");
     } finally {
       setIsLoading(false);
+    }
+  };
+  
+  // Fetch active sessions from all users
+  const fetchActiveSessions = async () => {
+    try {
+      // This is a mock implementation - in a real app, you would have 
+      // a service method to fetch all active sessions from the database
+      const mockSessions = [];
+      
+      if (activeTimeEntry) {
+        mockSessions.push({
+          ...activeTimeEntry,
+          user_name: 'Christophe'  // In real app, get from user profile
+        });
+      }
+      
+      setActiveSessions(mockSessions);
+    } catch (error) {
+      console.error("Error fetching active sessions:", error);
+    }
+  };
+  
+  // Fetch time breakdown by task type
+  const fetchTimeBreakdown = async () => {
+    try {
+      // In a real app, you would fetch this from the database
+      // This is just mock data for the demo
+      const mockData = [
+        { task_type: "Traite", minutes: 180, color: "#10B981" },
+        { task_type: "Entretien", minutes: 240, color: "#67E8F9" },
+        { task_type: "Plantation", minutes: 210, color: "#6EE7B7" },
+        { task_type: "Mécanique", minutes: 120, color: "#6B7280" }
+      ];
+      
+      setTimeBreakdownData(mockData);
+    } catch (error) {
+      console.error("Error fetching time breakdown:", error);
     }
   };
   
@@ -167,10 +233,11 @@ const TimeTrackingPage = () => {
     if (!userId) return;
     
     try {
-      await timeTrackingService.startTimeEntry(userId, data);
+      await startTimeEntry(data);
       setIsFormOpen(false);
       toast.success("Time session started");
       fetchTimeEntries();
+      fetchActiveSessions();
     } catch (error) {
       console.error("Error starting time tracking:", error);
       toast.error("Could not start session");
@@ -180,12 +247,39 @@ const TimeTrackingPage = () => {
   // Resume a paused session
   const handleResumeTimeEntry = async (entryId: string) => {
     try {
-      await timeTrackingService.resumeTimeEntry(entryId);
+      await resumeTimeEntry(entryId);
       toast.success("Session resumed");
       fetchTimeEntries();
+      fetchActiveSessions();
     } catch (error) {
       console.error("Error resuming time tracking:", error);
       toast.error("Could not resume session");
+    }
+  };
+  
+  // Pause an active session
+  const handlePauseTimeEntry = async (entryId: string) => {
+    try {
+      await pauseTimeEntry(entryId);
+      toast.success("Session paused");
+      fetchTimeEntries();
+      fetchActiveSessions();
+    } catch (error) {
+      console.error("Error pausing time tracking:", error);
+      toast.error("Could not pause session");
+    }
+  };
+  
+  // Stop an active session
+  const handleStopTimeEntry = async (entryId: string) => {
+    try {
+      await stopTimeEntry(entryId);
+      toast.success("Session completed");
+      fetchTimeEntries();
+      fetchActiveSessions();
+    } catch (error) {
+      console.error("Error stopping time tracking:", error);
+      toast.error("Could not stop session");
     }
   };
   
@@ -212,7 +306,11 @@ const TimeTrackingPage = () => {
           <div className="container py-6">
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-semibold">Time Tracking</h1>
-              <Button onClick={() => setIsFormOpen(true)}>
+              <Button 
+                id="start-time-session-btn"
+                onClick={() => setIsFormOpen(true)} 
+                className="bg-green-600 hover:bg-green-700"
+              >
                 <Clock className="h-4 w-4 mr-2" />
                 New Session
               </Button>
@@ -251,6 +349,61 @@ const TimeTrackingPage = () => {
                 </CardContent>
               </Card>
             </div>
+            
+            {/* Active Session Display */}
+            {activeTimeEntry && (
+              <Card className="mb-6 bg-blue-50 border-blue-200">
+                <CardContent className="pt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3">
+                    <div className="flex items-center gap-3">
+                      <User className="h-10 w-10 text-blue-500" />
+                      <div>
+                        <div className="text-sm text-blue-700">Christophe</div>
+                        <div className="text-3xl font-mono font-bold text-blue-900">
+                          {activeTimeEntry.current_duration || "00:00:00"}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col justify-center mt-4 md:mt-0">
+                      <div className="text-sm text-blue-700">
+                        {activeTimeEntry.task_type === 'other' 
+                          ? activeTimeEntry.custom_task_type 
+                          : activeTimeEntry.task_type} {activeTimeEntry.equipment_name ? `- ${activeTimeEntry.equipment_name}` : ''}
+                      </div>
+                      <div className="text-sm text-blue-700">
+                        {activeTimeEntry.location || 'No location'}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-end gap-2 mt-4 md:mt-0">
+                      <span className="mr-2 text-blue-700">
+                        {activeTimeEntry.status === 'active' ? 'In Progress' : 'Paused'}
+                      </span>
+                      {activeTimeEntry.status === 'active' ? (
+                        <Button
+                          onClick={() => handlePauseTimeEntry(activeTimeEntry.id)}
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
+                          Pause
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={() => handleResumeTimeEntry(activeTimeEntry.id)}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          Resume
+                        </Button>
+                      )}
+                      <Button
+                        variant="outline"
+                        onClick={() => handleStopTimeEntry(activeTimeEntry.id)}
+                      >
+                        Terminer
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
             
             {/* Filters */}
             <div className="bg-gray-50 p-4 rounded-md mb-6">
@@ -329,8 +482,19 @@ const TimeTrackingPage = () => {
               </div>
             </div>
             
+            {/* Time Breakdown Chart */}
+            <TimeBreakdownChart data={timeBreakdownData} />
+            
+            {/* Active Sessions Table */}
+            <ActiveSessionsTable
+              sessions={activeSessions}
+              onPause={handlePauseTimeEntry}
+              onResume={handleResumeTimeEntry}
+              onStop={handleStopTimeEntry}
+            />
+            
             {/* Tabs */}
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
               <TabsList className="mb-4">
                 <TabsTrigger value="list">
                   <ListFilter className="h-4 w-4 mr-2" />

@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { TimeEntry, ActiveTimeEntry, TimeEntryTaskType, TimeEntryStatus } from './types';
 import { toast } from 'sonner';
 import { timeTrackingService } from '@/services/supabase/timeTrackingService';
+import { formatDuration } from '@/utils/dateHelpers';
 
 export function useTimeTracking() {
   const [activeTimeEntry, setActiveTimeEntry] = useState<ActiveTimeEntry | null>(null);
@@ -14,6 +15,45 @@ export function useTimeTracking() {
   useEffect(() => {
     fetchActiveTimeEntry();
   }, []);
+
+  // Update timer for active time entry
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+    
+    if (activeTimeEntry && activeTimeEntry.status === 'active') {
+      // Update the timer every second
+      intervalId = setInterval(() => {
+        const start = new Date(activeTimeEntry.start_time);
+        const now = new Date();
+        const diffMs = now.getTime() - start.getTime();
+        
+        setActiveTimeEntry(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            current_duration: formatDuration(diffMs)
+          };
+        });
+      }, 1000);
+      
+      // Initial timer update
+      const start = new Date(activeTimeEntry.start_time);
+      const now = new Date();
+      const diffMs = now.getTime() - start.getTime();
+      
+      setActiveTimeEntry(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          current_duration: formatDuration(diffMs)
+        };
+      });
+    }
+    
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [activeTimeEntry?.id, activeTimeEntry?.status]);
 
   // Fetch the active time entry for the current user
   async function fetchActiveTimeEntry() {
@@ -39,10 +79,12 @@ export function useTimeTracking() {
           equipment_id: activeEntry.equipment_id,
           intervention_id: activeEntry.intervention_id,
           task_type: activeEntry.task_type,
+          custom_task_type: activeEntry.task_type === 'other' ? activeEntry.intervention_title : undefined,
           start_time: activeEntry.start_time,
           status: activeEntry.status,
           equipment_name: activeEntry.equipment_name,
-          intervention_title: activeEntry.intervention_title
+          intervention_title: activeEntry.intervention_title,
+          location: activeEntry.location
         });
       } else {
         setActiveTimeEntry(null);
@@ -60,8 +102,11 @@ export function useTimeTracking() {
     equipment_id?: number;
     intervention_id?: number;
     task_type: TimeEntryTaskType;
+    custom_task_type?: string;
+    location_id?: number;
+    location?: string;
     notes?: string;
-    location?: { lat: number; lng: number };
+    coordinates?: { lat: number; lng: number };
   }) {
     try {
       // Check if there's already an active entry
@@ -77,8 +122,17 @@ export function useTimeTracking() {
       
       const userId = sessionData.session.user.id;
       
+      // Prepare location data if provided
+      const locationName = params.location || 
+                          (params.location_id ? `Location ${params.location_id}` : undefined);
+      
       // Start time entry
-      const newEntry = await timeTrackingService.startTimeEntry(userId, params);
+      const newEntry = await timeTrackingService.startTimeEntry(userId, {
+        ...params,
+        // If task_type is 'other', use custom_task_type for the title
+        title: params.task_type === 'other' ? params.custom_task_type : undefined,
+        location: locationName
+      });
       
       // Update local state
       const newActiveEntry: ActiveTimeEntry = {
@@ -87,10 +141,13 @@ export function useTimeTracking() {
         equipment_id: newEntry.equipment_id,
         intervention_id: newEntry.intervention_id,
         task_type: newEntry.task_type,
+        custom_task_type: params.custom_task_type,
         start_time: newEntry.start_time,
         status: newEntry.status,
         equipment_name: newEntry.equipment_name,
-        intervention_title: newEntry.intervention_title
+        intervention_title: newEntry.intervention_title,
+        location: locationName,
+        location_id: params.location_id
       };
       
       setActiveTimeEntry(newActiveEntry);

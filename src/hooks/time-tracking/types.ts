@@ -8,10 +8,12 @@ export interface TimeEntry {
   equipment_id?: number;
   intervention_id?: number;
   task_type: TimeEntryTaskType;
+  custom_task_type?: string;
   start_time: string | Date;
   end_time?: string | Date | null;
   notes?: string;
-  location?: any; // Type GeoJSON simplifié
+  location?: string;
+  location_id?: number;
   status: TimeEntryStatus;
   created_at: string | Date;
   updated_at: string | Date;
@@ -19,6 +21,8 @@ export interface TimeEntry {
   // Propriétés jointes pour l'affichage
   equipment_name?: string;
   intervention_title?: string;
+  user_name?: string;
+  current_duration?: string;
 }
 
 export interface ActiveTimeEntry {
@@ -27,10 +31,14 @@ export interface ActiveTimeEntry {
   equipment_id?: number;
   intervention_id?: number;
   task_type: TimeEntryTaskType;
+  custom_task_type?: string;
   start_time: string | Date;
+  location?: string;
+  location_id?: number;
   status: TimeEntryStatus;
   equipment_name?: string;
   intervention_title?: string;
+  current_duration?: string;
 }
 
 export interface TimeSpentByEquipment {
