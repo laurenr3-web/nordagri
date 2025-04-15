@@ -73,18 +73,26 @@ export function useTimeTracking() {
       const activeEntry = await timeTrackingService.getActiveTimeEntry(userId);
       
       if (activeEntry) {
+        // Calculate initial duration
+        const start = new Date(activeEntry.start_time);
+        const now = new Date();
+        const diffMs = now.getTime() - start.getTime();
+        const initialDuration = formatDuration(diffMs);
+        
         setActiveTimeEntry({
           id: activeEntry.id,
           user_id: activeEntry.user_id,
           equipment_id: activeEntry.equipment_id,
           intervention_id: activeEntry.intervention_id,
           task_type: activeEntry.task_type,
+          task_type_id: activeEntry.task_type_id,
           custom_task_type: activeEntry.task_type === 'other' ? activeEntry.intervention_title : undefined,
           start_time: activeEntry.start_time,
           status: activeEntry.status,
           equipment_name: activeEntry.equipment_name,
           intervention_title: activeEntry.intervention_title,
           location: activeEntry.location,
+          current_duration: initialDuration, // Add the required current_duration
           created_at: activeEntry.created_at,
           updated_at: activeEntry.updated_at
         });
@@ -104,6 +112,7 @@ export function useTimeTracking() {
     equipment_id?: number;
     intervention_id?: number;
     task_type: TimeEntryTaskType;
+    task_type_id?: string;
     custom_task_type?: string;
     location_id?: number;
     location?: string;
@@ -136,6 +145,9 @@ export function useTimeTracking() {
         location: locationName
       });
       
+      // Calculate initial duration (0 seconds at start)
+      const initialDuration = formatDuration(0);
+      
       // Update local state
       const newActiveEntry: ActiveTimeEntry = {
         id: newEntry.id,
@@ -143,6 +155,7 @@ export function useTimeTracking() {
         equipment_id: newEntry.equipment_id,
         intervention_id: newEntry.intervention_id,
         task_type: newEntry.task_type,
+        task_type_id: newEntry.task_type_id,
         custom_task_type: params.custom_task_type,
         start_time: newEntry.start_time,
         status: newEntry.status,
@@ -150,6 +163,7 @@ export function useTimeTracking() {
         intervention_title: newEntry.intervention_title,
         location: locationName,
         location_id: params.location_id,
+        current_duration: initialDuration, // Add the required current_duration
         created_at: newEntry.created_at,
         updated_at: newEntry.updated_at
       };
