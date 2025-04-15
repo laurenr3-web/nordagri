@@ -338,8 +338,10 @@ export type Database = {
       }
       interventions: {
         Row: {
+          active_since: string | null
           coordinates: Json | null
           created_at: string | null
+          current_duration: string | null
           date: string
           description: string | null
           duration: number | null
@@ -359,8 +361,10 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          active_since?: string | null
           coordinates?: Json | null
           created_at?: string | null
+          current_duration?: string | null
           date: string
           description?: string | null
           duration?: number | null
@@ -380,8 +384,10 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          active_since?: string | null
           coordinates?: Json | null
           created_at?: string | null
+          current_duration?: string | null
           date?: string
           description?: string | null
           duration?: number | null
