@@ -3,10 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { timeTrackingService } from '@/services/supabase/timeTrackingService';
-import { TaskType } from '@/hooks/time-tracking/types';
+import { TaskTypeField } from './form/TaskTypeField';
+import { EquipmentField } from './form/EquipmentField';
+import { InterventionField } from './form/InterventionField';
+import { LocationField } from './form/LocationField';
+import { useTimeEntryForm } from '@/hooks/time-tracking/useTimeEntryForm';
 import { toast } from 'sonner';
 
 interface TimeEntryFormProps {
@@ -16,48 +18,35 @@ interface TimeEntryFormProps {
 }
 
 export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormProps) {
-  const [taskTypes, setTaskTypes] = useState<TaskType[]>([]);
-  const [selectedType, setSelectedType] = useState<string>('');
-  const [customType, setCustomType] = useState('');
-  const [notes, setNotes] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const {
+    formData,
+    equipments,
+    interventions,
+    locations,
+    loading,
+    formError,
+    handleChange,
+    validateForm,
+    fetchEquipments,
+    fetchLocations
+  } = useTimeEntryForm();
 
-  // Load task types on mount
   useEffect(() => {
-    const loadTaskTypes = async () => {
-      try {
-        const types = await timeTrackingService.getTaskTypes();
-        setTaskTypes(types);
-        if (types.length > 0) {
-          setSelectedType(types[0].name);
-        }
-      } catch (error) {
-        console.error('Error loading task types:', error);
-        toast.error('Could not load task types');
-      }
-    };
-
     if (isOpen) {
-      loadTaskTypes();
+      fetchEquipments();
+      fetchLocations();
     }
   }, [isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedType) {
-      toast.error('Please select a task type');
+    
+    if (!validateForm()) {
+      toast.error(formError || "Please fill in all required fields");
       return;
     }
 
-    const taskType = selectedType as any;
-    const taskTypeObj = taskTypes.find(t => t.name === taskType);
-
-    onSubmit({
-      task_type: taskType,
-      task_type_id: taskTypeObj?.id,
-      custom_task_type: taskType === 'other' ? customType : undefined,
-      notes
-    });
+    onSubmit(formData);
   };
 
   return (
@@ -68,45 +57,40 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="task-type">Task Type</Label>
-            <Select
-              value={selectedType}
-              onValueChange={setSelectedType}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select task type" />
-              </SelectTrigger>
-              <SelectContent>
-                {taskTypes.map((type) => (
-                  <SelectItem key={type.id} value={type.name}>
-                    {type.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {selectedType === 'other' && (
-            <div>
-              <Label htmlFor="custom-type">Custom Task Type</Label>
-              <Input
-                id="custom-type"
-                value={customType}
-                onChange={(e) => setCustomType(e.target.value)}
-                placeholder="Enter custom task type"
-                required
-              />
-            </div>
+          <TaskTypeField
+            taskType={formData.task_type}
+            customTaskType={formData.custom_task_type}
+            onChange={handleChange}
+          />
+          
+          <EquipmentField
+            equipment_id={formData.equipment_id}
+            equipments={equipments}
+            loading={loading}
+            onChange={handleChange}
+          />
+          
+          {formData.equipment_id && (
+            <InterventionField
+              intervention_id={formData.intervention_id}
+              interventions={interventions}
+              disabled={!formData.equipment_id}
+              onChange={handleChange}
+            />
           )}
-
-          <div>
-            <Label htmlFor="notes">Notes (optional)</Label>
+          
+          <LocationField
+            location_id={formData.location_id}
+            locations={locations}
+            disabled={loading}
+            onChange={handleChange}
+          />
+          
+          <div className="grid gap-2">
             <Input
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
               placeholder="Add notes..."
+              value={formData.notes}
+              onChange={(e) => handleChange('notes', e.target.value)}
             />
           </div>
 
@@ -118,7 +102,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={loading}>
               Start Session
             </Button>
           </div>
