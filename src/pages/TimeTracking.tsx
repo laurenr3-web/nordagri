@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
@@ -15,6 +14,7 @@ import { ActiveSessionPanel } from '@/components/time-tracking/ActiveSessionPane
 import { TimeEntriesList } from '@/components/time-tracking/TimeEntriesList';
 import { TimeEntryForm } from '@/components/time-tracking/TimeEntryForm';
 import { useTimeEntries } from '@/hooks/time-tracking/useTimeEntries';
+import { startOfWeek, endOfWeek } from 'date-fns';
 
 export default function TimeTracking() {
   const [userId, setUserId] = useState<string | null>(null);
