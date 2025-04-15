@@ -13,10 +13,10 @@ const Auth = () => {
   const [verifyingEmail, setVerifyingEmail] = useState(false);
   const { isAuthenticated } = useAuthContext();
   
-  // Récupérer la destination de redirection depuis les query params
+  // Get return path from query params or default to dashboard
   const getReturnPath = () => {
     const searchParams = new URLSearchParams(location.search);
-    return searchParams.get('returnTo') || '/';
+    return searchParams.get('returnTo') || '/dashboard';
   };
 
   // Check if the user is coming from a verification email
@@ -49,7 +49,7 @@ const Auth = () => {
           if (!error) {
             // User has verified their email and is now logged in
             setVerifyingEmail(false);
-            navigate(getReturnPath());
+            navigate('/dashboard');
           }
         } catch (error) {
           console.error('Email verification error:', error);
@@ -62,9 +62,9 @@ const Auth = () => {
   }, [location, navigate]);
 
   useEffect(() => {
-    // Si l'utilisateur est déjà authentifié, rediriger vers la page de retour
+    // If user is already authenticated, redirect to dashboard
     if (isAuthenticated) {
-      navigate(getReturnPath());
+      navigate('/dashboard');
     }
     setLoading(false);
   }, [isAuthenticated, navigate]);
@@ -86,7 +86,7 @@ const Auth = () => {
         <h1 className="text-3xl font-bold mb-2">OptiTractor</h1>
         <p className="text-muted-foreground">Système de gestion d'équipement agricole</p>
       </div>
-      <AuthForm onSuccess={() => navigate(getReturnPath())} />
+      <AuthForm onSuccess={() => navigate('/dashboard')} />
     </div>
   );
 };

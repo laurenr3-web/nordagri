@@ -33,8 +33,8 @@ function App() {
           <Router>
             <AuthProvider>
               <Routes>
-                {/* Redirect root to auth if not authenticated */}
-                <Route path="/" element={<Navigate to="/auth" replace />} />
+                {/* Redirect root to dashboard if authenticated, otherwise to auth */}
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/auth" element={<Auth />} />
                 
                 {/* Protected routes */}
