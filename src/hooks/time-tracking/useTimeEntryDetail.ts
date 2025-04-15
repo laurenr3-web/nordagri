@@ -81,14 +81,36 @@ export function useTimeEntryDetail(id: string | undefined) {
     setShowClosureDialog(true);
   };
 
-  const handleCloseClosureDialog = async () => {
+  const handleCloseClosureDialog = () => {
+    setShowClosureDialog(false);
+  };
+  
+  const handleSubmitClosureForm = async (data: any) => {
     if (!entry) return;
     try {
+      // First update the entry notes if they were changed
+      if (data.notes && data.notes !== entry.notes) {
+        await timeTrackingService.updateTimeEntry(entry.id, { 
+          ...entry, 
+          notes: data.notes 
+        });
+      }
+      
+      // Then stop the time entry
       await timeTrackingService.stopTimeEntry(entry.id);
-      setEntry({ ...entry, status: 'completed' });
+      
+      // Update local state
+      setEntry({ ...entry, status: 'completed', notes: data.notes || entry.notes });
       setShowClosureDialog(false);
-      toast.success('Session terminée');
+      
+      toast.success('Session terminée avec succès');
+      
+      // Redirect to time tracking main page after a short delay
+      setTimeout(() => {
+        navigate('/time-tracking');
+      }, 1500);
     } catch (error) {
+      console.error('Error stopping time entry:', error);
       toast.error('Erreur lors de l\'arrêt de la session');
     }
   };
@@ -123,6 +145,7 @@ export function useTimeEntryDetail(id: string | undefined) {
     handlePauseResume,
     handleStop,
     handleCloseClosureDialog,
+    handleSubmitClosureForm,
     handleNotesChange,
     handleCreateIntervention,
   };

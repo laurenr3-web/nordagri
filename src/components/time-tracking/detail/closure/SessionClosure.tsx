@@ -1,5 +1,6 @@
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 import { TimeEntry } from "@/hooks/time-tracking/types"
 import { SummarySection } from "./SummarySection"
 import { QuickEditSection } from "./QuickEditSection"
@@ -11,6 +12,7 @@ import { useSessionClosure } from "./useSessionClosure"
 interface SessionClosureProps {
   isOpen: boolean;
   onClose: () => void;
+  onSubmit: (data: any) => void;
   entry: TimeEntry;
   estimatedCost: number;
   onCreateIntervention: () => void;
@@ -19,6 +21,7 @@ interface SessionClosureProps {
 export function SessionClosure({
   isOpen,
   onClose,
+  onSubmit,
   entry,
   estimatedCost,
   onCreateIntervention
@@ -39,6 +42,17 @@ export function SessionClosure({
     handleExportPDF,
     handleSendEmail
   } = useSessionClosure(entry);
+
+  const handleSubmit = () => {
+    onSubmit({
+      notes,
+      material,
+      quantity,
+      createRecurring,
+      managerVerified,
+      selectedImage
+    });
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -77,6 +91,13 @@ export function SessionClosure({
             onSendEmail={handleSendEmail}
           />
         </div>
+
+        <DialogFooter className="mt-6 flex justify-between">
+          <Button variant="outline" onClick={onClose}>Annuler</Button>
+          <Button onClick={handleSubmit}>
+            Terminer la session
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -24,6 +24,7 @@ const TimeEntryDetail = () => {
     handlePauseResume,
     handleStop,
     handleCloseClosureDialog,
+    handleSubmitClosureForm,
     handleNotesChange,
     handleCreateIntervention,
   } = useTimeEntryDetail(id);
@@ -95,6 +96,7 @@ const TimeEntryDetail = () => {
         <SessionClosure
           isOpen={showClosureDialog}
           onClose={handleCloseClosureDialog}
+          onSubmit={handleSubmitClosureForm}
           entry={entry}
           estimatedCost={estimatedCost}
           onCreateIntervention={handleCreateIntervention}
