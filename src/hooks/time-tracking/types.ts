@@ -12,6 +12,7 @@ export interface TaskType {
 export interface TimeEntry {
   id: string;
   user_id: string;
+  user_name?: string;
   equipment_id?: number;
   intervention_id?: number;
   task_type_id?: string;
@@ -31,6 +32,10 @@ export interface TimeEntry {
 }
 
 export type TimeEntryStatus = 'active' | 'paused' | 'completed' | 'disputed';
+
+export interface ActiveTimeEntry extends TimeEntry {
+  current_duration: string;
+}
 
 export interface TimeSpentByEquipment {
   equipment_id: number;
