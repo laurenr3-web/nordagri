@@ -1,20 +1,18 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { TimeEntry } from '@/hooks/time-tracking/types';
+import { toast } from 'sonner';
 import { timeTrackingService } from '@/services/supabase/timeTrackingService';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { TimeEntry } from '@/hooks/time-tracking/types';
 import { SessionTimer } from '@/components/time-tracking/detail/SessionTimer';
 import { SessionInfo } from '@/components/time-tracking/detail/SessionInfo';
 import { SessionNotes } from '@/components/time-tracking/detail/SessionNotes';
-import { Pause, Play, StopCircle, Plus, Upload } from 'lucide-react';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { SessionActions } from '@/components/time-tracking/detail/SessionActions';
+import { SessionControls } from '@/components/time-tracking/detail/SessionControls';
+import { CostEstimate } from '@/components/time-tracking/detail/CostEstimate';
 
 const TimeEntryDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -35,23 +33,15 @@ const TimeEntryDetail = () => {
         return;
       }
 
-      // Récupérer toutes les entrées de temps de l'utilisateur
       const data = await timeTrackingService.getTimeEntries({
         userId: sessionData.session.user.id,
       });
 
-      console.log("Entrées récupérées:", data);
-      console.log("ID recherché:", id);
-
-      // Trouver l'entrée correspondante par ID (assurez-vous que les IDs sont comparés dans le même format)
       const foundEntry = data.find(e => String(e.id) === String(id));
       
       if (foundEntry) {
-        console.log("Entrée trouvée:", foundEntry);
         setEntry(foundEntry);
       } else {
-        console.error("Entrée non trouvée avec l'ID:", id);
-        console.error("Entrées disponibles:", data.map(e => e.id));
         toast.error("Session introuvable");
         navigate('/time-tracking');
       }
@@ -69,7 +59,6 @@ const TimeEntryDetail = () => {
 
   useEffect(() => {
     if (entry && entry.start_time) {
-      // Calculer le coût estimé (exemple: 50€/heure)
       const hourlyRate = 50;
       const start = new Date(entry.start_time);
       const end = entry.end_time ? new Date(entry.end_time) : new Date();
@@ -121,7 +110,6 @@ const TimeEntryDetail = () => {
     if (!file) return;
 
     try {
-      // Upload logic here
       toast.success('Photo ajoutée à la session');
     } catch (error) {
       toast.error('Erreur lors de l\'upload de la photo');
@@ -198,30 +186,11 @@ const TimeEntryDetail = () => {
                     status={entry.status}
                   />
                 </div>
-                
-                <div className="flex gap-2">
-                  {entry.status !== 'completed' && (
-                    <>
-                      <Button
-                        variant="outline"
-                        onClick={handlePauseResume}
-                      >
-                        {entry.status === 'active' ? (
-                          <><Pause className="mr-2 h-4 w-4" /> Pause</>
-                        ) : (
-                          <><Play className="mr-2 h-4 w-4" /> Reprendre</>
-                        )}
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={handleStop}
-                      >
-                        <StopCircle className="mr-2 h-4 w-4" />
-                        Terminer
-                      </Button>
-                    </>
-                  )}
-                </div>
+                <SessionControls
+                  status={entry.status}
+                  onPauseResume={handlePauseResume}
+                  onStop={handleStop}
+                />
               </div>
 
               {/* Informations de session */}
@@ -233,16 +202,7 @@ const TimeEntryDetail = () => {
                   equipmentName={entry.equipment_name}
                   location={entry.location}
                 />
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Coût estimé</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-bold">{estimatedCost}€</p>
-                    <p className="text-sm text-muted-foreground">Basé sur le taux horaire standard</p>
-                  </CardContent>
-                </Card>
+                <CostEstimate cost={estimatedCost} />
               </div>
 
               {/* Notes et actions supplémentaires */}
@@ -252,39 +212,11 @@ const TimeEntryDetail = () => {
                   onChange={handleNotesChange}
                   readOnly={entry.status === 'completed'}
                 />
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Actions</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <input
-                        type="file"
-                        id="photo"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={handleFileUpload}
-                      />
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => document.getElementById('photo')?.click()}
-                      >
-                        <Upload className="mr-2 h-4 w-4" />
-                        Ajouter une photo
-                      </Button>
-                    </div>
-                    
-                    <Button 
-                      className="w-full"
-                      onClick={handleCreateIntervention}
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Créer une intervention
-                    </Button>
-                  </CardContent>
-                </Card>
+                <SessionActions
+                  status={entry.status}
+                  onFileUpload={handleFileUpload}
+                  onCreateIntervention={handleCreateIntervention}
+                />
               </div>
             </div>
           </div>

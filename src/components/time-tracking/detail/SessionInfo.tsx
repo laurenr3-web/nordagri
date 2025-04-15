@@ -3,7 +3,7 @@ import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
-import { MapPin, Tool, User, Clock } from 'lucide-react';
+import { MapPin, Wrench, User, Clock } from 'lucide-react';
 
 interface SessionInfoProps {
   userName: string;
@@ -44,7 +44,7 @@ export const SessionInfo = ({
           
           {equipmentId && equipmentName && (
             <div className="flex items-center gap-2">
-              <Tool className="h-4 w-4 text-muted-foreground" />
+              <Wrench className="h-4 w-4 text-muted-foreground" />
               <Link 
                 to={`/equipment/${equipmentId}`}
                 className="text-primary hover:underline"
