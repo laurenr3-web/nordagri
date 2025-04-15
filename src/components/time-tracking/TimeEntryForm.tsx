@@ -1,13 +1,9 @@
 
 import React, { useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { TaskTypeField } from './form/TaskTypeField';
-import { EquipmentField } from './form/EquipmentField';
-import { InterventionField } from './form/InterventionField';
-import { LocationField } from './form/LocationField';
 import { FormHeader } from './form/FormHeader';
+import { FormFields } from './form/FormFields';
 import { FormActions } from './form/FormActions';
-import { NotesField } from './form/NotesField';
 import { useTimeEntryForm } from '@/hooks/time-tracking/useTimeEntryForm';
 import { toast } from 'sonner';
 
@@ -55,38 +51,13 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
         <FormHeader />
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <TaskTypeField
-            taskType={formData.task_type}
-            customTaskType={formData.custom_task_type}
-            onChange={handleChange}
-          />
-          
-          <EquipmentField
-            equipment_id={formData.equipment_id}
+          <FormFields
+            formData={formData}
             equipments={equipments}
+            interventions={interventions}
+            locations={locations}
             loading={loading}
             onChange={handleChange}
-          />
-          
-          {formData.equipment_id && (
-            <InterventionField
-              intervention_id={formData.intervention_id}
-              interventions={interventions}
-              disabled={!formData.equipment_id}
-              onChange={handleChange}
-            />
-          )}
-          
-          <LocationField
-            location_id={formData.location_id}
-            locations={locations}
-            disabled={loading}
-            onChange={handleChange}
-          />
-          
-          <NotesField 
-            value={formData.notes}
-            onChange={(value) => handleChange('notes', value)}
           />
 
           <FormActions 
