@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { timeTrackingService } from '@/services/supabase/timeTrackingService';
 import { TimeEntryTaskType } from './types';
 import { useTimeEntryState } from './useTimeEntryState';
+import { supabase } from '@/integrations/supabase/client';
 
 export function useTimeEntryActions() {
   const { 
@@ -23,7 +24,12 @@ export function useTimeEntryActions() {
     coordinates?: { lat: number; lng: number };
   }) => {
     try {
-      const newEntry = await timeTrackingService.startTimeEntry(userId, params);
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.user) {
+        throw new Error('User not authenticated');
+      }
+      
+      const newEntry = await timeTrackingService.startTimeEntry(session.session.user.id, params);
       
       setActiveTimeEntry({
         ...newEntry,
