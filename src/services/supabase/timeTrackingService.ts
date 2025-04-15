@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { TimeEntry, TimeEntryTaskType, TimeEntryStatus, TimeSpentByEquipment, TaskType } from '@/hooks/time-tracking/types';
 import { convertDatesToISOStrings } from '@/data/adapters/supabase/utils';
@@ -32,7 +31,7 @@ export const timeTrackingService = {
       throw error;
     }
   },
-
+  
   /**
    * Get the active time entry for a user
    */
@@ -331,8 +330,7 @@ export const timeTrackingService = {
       const endTime = new Date().getTime();
       const durationHours = (endTime - startTime) / (1000 * 60 * 60);
       
-      // Update the entry with duration and status, but don't try to set end_time
-      // as that column doesn't exist in the interventions table
+      // Update only the status and duration fields, not trying to set task_type
       const { error } = await supabase
         .from('interventions')
         .update({
@@ -353,6 +351,7 @@ export const timeTrackingService = {
    */
   async pauseTimeEntry(entryId: string): Promise<void> {
     try {
+      // Only update the status field, not trying to set task_type
       const { error } = await supabase
         .from('interventions')
         .update({
@@ -372,6 +371,7 @@ export const timeTrackingService = {
    */
   async resumeTimeEntry(entryId: string): Promise<void> {
     try {
+      // Only update the status field, not trying to set task_type
       const { error } = await supabase
         .from('interventions')
         .update({
@@ -391,22 +391,18 @@ export const timeTrackingService = {
    */
   async updateTimeEntry(entryId: string, data: Partial<TimeEntry>): Promise<void> {
     try {
-      // Convert TimeEntry data to interventions format
+      // Convert TimeEntry data to interventions format, but only include fields that exist in the table
       const updateData: any = {};
       
       if (data.notes) updateData.description = data.notes;
       if (data.status) updateData.status = data.status;
       if (data.equipment_id) updateData.equipment_id = data.equipment_id;
       
-      // Remove the end_time check since that column doesn't exist
-      if (data.start_time) {
+      // Calculate duration if both start_time and end_time are provided
+      if (data.start_time && data.end_time) {
         const startTime = new Date(data.start_time).getTime();
-        
-        // If there's an end time, calculate duration
-        if (data.end_time) {
-          const endTime = new Date(data.end_time).getTime();
-          updateData.duration = (endTime - startTime) / (1000 * 60 * 60);
-        }
+        const endTime = new Date(data.end_time).getTime();
+        updateData.duration = (endTime - startTime) / (1000 * 60 * 60);
       }
       
       const { error } = await supabase
