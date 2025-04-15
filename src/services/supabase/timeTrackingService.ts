@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { TimeEntry, TimeEntryTaskType, TimeEntryStatus, TimeSpentByEquipment, TaskType } from '@/hooks/time-tracking/types';
 import { convertDatesToISOStrings } from '@/data/adapters/supabase/utils';
@@ -330,12 +331,14 @@ export const timeTrackingService = {
       const endTime = new Date().getTime();
       const durationHours = (endTime - startTime) / (1000 * 60 * 60);
       
-      // Update the entry with end time and duration
+      // Update the entry with end time and duration, but avoid using task_type field
+      // which is causing the error
       const { error } = await supabase
         .from('interventions')
         .update({
           status: 'completed',
-          duration: durationHours
+          duration: durationHours,
+          end_time: new Date().toISOString()
         })
         .eq('id', parseInt(entryId, 10));
       
