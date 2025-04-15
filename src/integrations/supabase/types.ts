@@ -137,6 +137,63 @@ export type Database = {
         }
         Relationships: []
       }
+      equipment_logs: {
+        Row: {
+          created_at: string | null
+          date: string
+          duree: number | null
+          employe: string | null
+          employe_name: string | null
+          equipment_id: number | null
+          id: string
+          note: string | null
+          session_id: number | null
+          type_de_tache: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date?: string
+          duree?: number | null
+          employe?: string | null
+          employe_name?: string | null
+          equipment_id?: number | null
+          id?: string
+          note?: string | null
+          session_id?: number | null
+          type_de_tache: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          duree?: number | null
+          employe?: string | null
+          employe_name?: string | null
+          equipment_id?: number | null
+          id?: string
+          note?: string | null
+          session_id?: number | null
+          type_de_tache?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_logs_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "interventions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       equipment_maintenance_schedule: {
         Row: {
           completed: boolean | null
@@ -296,6 +353,7 @@ export type Database = {
           priority: string
           scheduled_duration: number | null
           status: string
+          task_type_id: string | null
           technician: string
           title: string
           updated_at: string | null
@@ -316,6 +374,7 @@ export type Database = {
           priority: string
           scheduled_duration?: number | null
           status: string
+          task_type_id?: string | null
           technician: string
           title: string
           updated_at?: string | null
@@ -336,11 +395,20 @@ export type Database = {
           priority?: string
           scheduled_duration?: number | null
           status?: string
+          task_type_id?: string | null
           technician?: string
           title?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "interventions_task_type_id_fkey"
+            columns: ["task_type_id"]
+            isOneToOne: false
+            referencedRelation: "task_types"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       maintenance_plans: {
         Row: {
@@ -651,6 +719,30 @@ export type Database = {
           units_system?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      task_types: {
+        Row: {
+          affecte_compteur: boolean | null
+          created_at: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          affecte_compteur?: boolean | null
+          created_at?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          affecte_compteur?: boolean | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
         }
         Relationships: []
       }

@@ -1,47 +1,36 @@
 
 export type TimeEntryTaskType = 'maintenance' | 'repair' | 'inspection' | 'installation' | 'other';
-export type TimeEntryStatus = 'active' | 'completed' | 'paused' | 'disputed';
+
+export interface TaskType {
+  id: string;
+  name: TimeEntryTaskType;
+  affecte_compteur: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface TimeEntry {
   id: string;
   user_id: string;
   equipment_id?: number;
   intervention_id?: number;
+  task_type_id?: string;
   task_type: TimeEntryTaskType;
   custom_task_type?: string;
-  start_time: string | Date;
-  end_time?: string | Date | null;
   notes?: string;
-  location?: string;
-  location_id?: number;
+  start_time: string;
+  end_time?: string | null;
   status: TimeEntryStatus;
-  created_at: string | Date;
-  updated_at: string | Date;
-  
-  // Propriétés jointes pour l'affichage
   equipment_name?: string;
   intervention_title?: string;
-  user_name?: string;
+  location?: string;
+  location_id?: number;
   current_duration?: string;
+  created_at: string;
+  updated_at: string;
 }
 
-export interface ActiveTimeEntry {
-  id: string;
-  user_id: string;
-  equipment_id?: number;
-  intervention_id?: number;
-  task_type: TimeEntryTaskType;
-  custom_task_type?: string;
-  start_time: string | Date;
-  location?: string;
-  location_id?: number;
-  status: TimeEntryStatus;
-  equipment_name?: string;
-  intervention_title?: string;
-  current_duration?: string;
-  created_at: string | Date; // Added to match TimeEntry
-  updated_at: string | Date; // Added to match TimeEntry
-}
+export type TimeEntryStatus = 'active' | 'paused' | 'completed' | 'disputed';
 
 export interface TimeSpentByEquipment {
   equipment_id: number;

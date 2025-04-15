@@ -1,12 +1,29 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { TimeEntry, TimeEntryTaskType, TimeEntryStatus, TimeSpentByEquipment } from '@/hooks/time-tracking/types';
+import { TimeEntry, TimeEntryTaskType, TimeEntryStatus, TimeSpentByEquipment, TaskType } from '@/hooks/time-tracking/types';
 import { convertDatesToISOStrings } from '@/data/adapters/supabase/utils';
 
 /**
  * Service for time tracking management
  */
 export const timeTrackingService = {
+  /**
+   * Get all task types
+   */
+  async getTaskTypes(): Promise<TaskType[]> {
+    try {
+      const { data, error } = await supabase
+        .from('task_types')
+        .select('*')
+        .order('name');
+      
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error("Error fetching task types:", error);
+      throw error;
+    }
+  },
+
   /**
    * Get the active time entry for a user
    */
@@ -55,149 +72,6 @@ export const timeTrackingService = {
       return null;
     } catch (error) {
       console.error("Error fetching active time entry:", error);
-      throw error;
-    }
-  },
-  
-  /**
-   * Start a new time entry
-   */
-  async startTimeEntry(userId: string, data: {
-    equipment_id?: number;
-    intervention_id?: number;
-    task_type: TimeEntryTaskType;
-    title?: string;
-    notes?: string;
-    location?: string;
-  }): Promise<TimeEntry> {
-    try {
-      // Get equipment name for reference
-      let equipmentName = "";
-      if (data.equipment_id) {
-        const { data: equipData } = await supabase
-          .from('equipment')
-          .select('name')
-          .eq('id', data.equipment_id)
-          .single();
-        
-        if (equipData) {
-          equipmentName = equipData.name;
-        }
-      }
-      
-      // Create a new entry in interventions table as temporary storage
-      const timeEntryData = {
-        owner_id: userId,
-        equipment_id: data.equipment_id || null,
-        equipment: equipmentName,
-        title: data.title || `${data.task_type} - ${new Date().toLocaleString()}`,
-        description: data.notes || '',
-        status: 'active',
-        date: new Date().toISOString(),
-        location: data.location || 'Unknown',
-        priority: 'medium',  // Default value
-        technician: 'Self'   // Required field
-      };
-      
-      const { data: result, error } = await supabase
-        .from('interventions')
-        .insert(timeEntryData)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      
-      // Transform to TimeEntry format
-      const entry: TimeEntry = {
-        id: result.id.toString(),
-        user_id: userId,
-        equipment_id: data.equipment_id,
-        intervention_id: data.intervention_id,
-        task_type: data.task_type,
-        notes: data.notes,
-        start_time: result.date,
-        status: 'active' as TimeEntryStatus,
-        equipment_name: result.equipment,
-        intervention_title: result.title,
-        created_at: result.created_at,
-        updated_at: result.updated_at
-      };
-      
-      return entry;
-    } catch (error) {
-      console.error("Error starting time entry:", error);
-      throw error;
-    }
-  },
-  
-  /**
-   * Stop a time entry
-   */
-  async stopTimeEntry(entryId: string): Promise<void> {
-    try {
-      // Calculate duration from start date to now
-      const { data: entry } = await supabase
-        .from('interventions')
-        .select('date')
-        .eq('id', parseInt(entryId, 10))
-        .single();
-      
-      if (!entry) throw new Error('Entry not found');
-      
-      const startTime = new Date(entry.date).getTime();
-      const endTime = new Date().getTime();
-      const durationHours = (endTime - startTime) / (1000 * 60 * 60);
-      
-      // Update the entry with end time and duration
-      const { error } = await supabase
-        .from('interventions')
-        .update({
-          status: 'completed',
-          duration: durationHours
-        })
-        .eq('id', parseInt(entryId, 10));
-      
-      if (error) throw error;
-    } catch (error) {
-      console.error("Error stopping time entry:", error);
-      throw error;
-    }
-  },
-  
-  /**
-   * Pause a time entry
-   */
-  async pauseTimeEntry(entryId: string): Promise<void> {
-    try {
-      const { error } = await supabase
-        .from('interventions')
-        .update({
-          status: 'paused'
-        })
-        .eq('id', parseInt(entryId, 10));
-      
-      if (error) throw error;
-    } catch (error) {
-      console.error("Error pausing time entry:", error);
-      throw error;
-    }
-  },
-  
-  /**
-   * Resume a paused time entry
-   */
-  async resumeTimeEntry(entryId: string): Promise<void> {
-    try {
-      const { error } = await supabase
-        .from('interventions')
-        .update({
-          status: 'active'
-        })
-        .eq('id', parseInt(entryId, 10));
-      
-      if (error) throw error;
-    } catch (error) {
-      console.error("Error resuming time entry:", error);
       throw error;
     }
   },
@@ -338,6 +212,166 @@ export const timeTrackingService = {
       if (error) throw error;
     } catch (error) {
       console.error("Error deleting time entry:", error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Start a new time entry
+   */
+  async startTimeEntry(userId: string, data: {
+    equipment_id?: number;
+    intervention_id?: number;
+    task_type: TimeEntryTaskType;
+    task_type_id?: string;
+    title?: string;
+    notes?: string;
+    location?: string;
+  }): Promise<TimeEntry> {
+    try {
+      // Get task type ID if not provided
+      if (!data.task_type_id && data.task_type) {
+        const { data: taskTypeData } = await supabase
+          .from('task_types')
+          .select('id')
+          .eq('name', data.task_type)
+          .single();
+        
+        if (taskTypeData) {
+          data.task_type_id = taskTypeData.id;
+        }
+      }
+
+      // Get equipment name for reference
+      let equipmentName = "";
+      if (data.equipment_id) {
+        const { data: equipData } = await supabase
+          .from('equipment')
+          .select('name')
+          .eq('id', data.equipment_id)
+          .single();
+        
+        if (equipData) {
+          equipmentName = equipData.name;
+        }
+      }
+      
+      // Create a new entry in interventions table
+      const timeEntryData = {
+        owner_id: userId,
+        equipment_id: data.equipment_id || null,
+        equipment: equipmentName,
+        title: data.title || `${data.task_type} - ${new Date().toLocaleString()}`,
+        description: data.notes || '',
+        status: 'active',
+        date: new Date().toISOString(),
+        location: data.location || 'Unknown',
+        priority: 'medium',
+        technician: 'Self',
+        task_type_id: data.task_type_id,
+        task_type: data.task_type
+      };
+      
+      const { data: result, error } = await supabase
+        .from('interventions')
+        .insert(timeEntryData)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      // Transform to TimeEntry format
+      const entry: TimeEntry = {
+        id: result.id.toString(),
+        user_id: userId,
+        equipment_id: data.equipment_id,
+        intervention_id: data.intervention_id,
+        task_type: data.task_type,
+        task_type_id: data.task_type_id,
+        notes: data.notes,
+        start_time: result.date,
+        status: 'active',
+        equipment_name: result.equipment,
+        intervention_title: result.title,
+        created_at: result.created_at,
+        updated_at: result.updated_at
+      };
+      
+      return entry;
+    } catch (error) {
+      console.error("Error starting time entry:", error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Stop a time entry
+   */
+  async stopTimeEntry(entryId: string): Promise<void> {
+    try {
+      // Calculate duration from start date to now
+      const { data: entry } = await supabase
+        .from('interventions')
+        .select('date')
+        .eq('id', parseInt(entryId, 10))
+        .single();
+      
+      if (!entry) throw new Error('Entry not found');
+      
+      const startTime = new Date(entry.date).getTime();
+      const endTime = new Date().getTime();
+      const durationHours = (endTime - startTime) / (1000 * 60 * 60);
+      
+      // Update the entry with end time and duration
+      const { error } = await supabase
+        .from('interventions')
+        .update({
+          status: 'completed',
+          duration: durationHours
+        })
+        .eq('id', parseInt(entryId, 10));
+      
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error stopping time entry:", error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Pause a time entry
+   */
+  async pauseTimeEntry(entryId: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('interventions')
+        .update({
+          status: 'paused'
+        })
+        .eq('id', parseInt(entryId, 10));
+      
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error pausing time entry:", error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Resume a paused time entry
+   */
+  async resumeTimeEntry(entryId: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('interventions')
+        .update({
+          status: 'active'
+        })
+        .eq('id', parseInt(entryId, 10));
+      
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error resuming time entry:", error);
       throw error;
     }
   },
