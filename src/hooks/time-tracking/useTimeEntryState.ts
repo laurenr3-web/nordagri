@@ -1,27 +1,35 @@
 
 import { useState } from 'react';
-import { ActiveTimeEntry } from './types';
-import { formatDuration } from '@/utils/dateHelpers';
+import { TimeEntryFormData } from './types';
 
 export function useTimeEntryState() {
-  const [activeTimeEntry, setActiveTimeEntry] = useState<ActiveTimeEntry | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [formData, setFormData] = useState<TimeEntryFormData>({
+    equipment_id: undefined,
+    intervention_id: undefined,
+    task_type: 'maintenance',
+    custom_task_type: '',
+    location_id: undefined,
+    location: '',
+    notes: '',
+  });
 
-  const calculateInitialDuration = (startTime: string): string => {
-    const start = new Date(startTime);
-    const now = new Date();
-    const diffMs = now.getTime() - start.getTime();
-    return formatDuration(diffMs);
+  const handleChange = (field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    
+    if (field === 'task_type' && value !== 'other') {
+      setFormData(prev => ({
+        ...prev,
+        custom_task_type: ''
+      }));
+    }
   };
 
   return {
-    activeTimeEntry,
-    setActiveTimeEntry,
-    isLoading,
-    setIsLoading,
-    error,
-    setError,
-    calculateInitialDuration
+    formData,
+    setFormData,
+    handleChange
   };
 }
