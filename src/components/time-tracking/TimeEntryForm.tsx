@@ -1,9 +1,7 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { timeTrackingService } from '@/services/supabase/timeTrackingService';
 import { TaskTypeField } from './form/TaskTypeField';
 import { EquipmentField } from './form/EquipmentField';
 import { InterventionField } from './form/InterventionField';

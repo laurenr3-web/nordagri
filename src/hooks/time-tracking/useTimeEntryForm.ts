@@ -1,17 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { TimeEntryTaskType } from './types';
-
-interface TimeEntryFormData {
-  equipment_id?: number;
-  intervention_id?: number;
-  task_type: TimeEntryTaskType;
-  custom_task_type: string;
-  location_id?: number;
-  location?: string;
-  notes: string;
-}
+import { TimeEntryTaskType, TimeEntryFormData } from './types';
+import { useTimeEntryValidation } from './useTimeEntryValidation';
 
 export function useTimeEntryForm() {
   const [formData, setFormData] = useState<TimeEntryFormData>({
@@ -28,7 +18,8 @@ export function useTimeEntryForm() {
   const [interventions, setInterventions] = useState<Array<{ id: number; title: string }>>([]);
   const [locations, setLocations] = useState<Array<{ id: number; name: string }>>([]);
   const [loading, setLoading] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
+  
+  const { formError, setFormError, validateForm } = useTimeEntryValidation();
 
   useEffect(() => {
     if (formData.equipment_id) {
@@ -105,20 +96,6 @@ export function useTimeEntryForm() {
     setFormError(null);
   };
 
-  const validateForm = () => {
-    if (!formData.equipment_id) {
-      setFormError("Please select an equipment.");
-      return false;
-    }
-    
-    if (formData.task_type === 'other' && !formData.custom_task_type.trim()) {
-      setFormError("Please enter a custom task type.");
-      return false;
-    }
-    
-    return true;
-  };
-
   return {
     formData,
     equipments,
@@ -126,9 +103,8 @@ export function useTimeEntryForm() {
     locations,
     loading,
     formError,
-    setFormError,
     handleChange,
-    validateForm,
+    validateForm: () => validateForm(formData),
     fetchEquipments,
     fetchLocations
   };

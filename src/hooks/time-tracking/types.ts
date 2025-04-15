@@ -1,4 +1,3 @@
-
 export type TimeEntryTaskType = 'maintenance' | 'repair' | 'inspection' | 'installation' | 'other';
 
 export interface TaskType {
@@ -41,4 +40,14 @@ export interface TimeSpentByEquipment {
   equipment_id: number;
   equipment_name: string;
   total_minutes: number;
+}
+
+export interface TimeEntryFormData {
+  equipment_id?: number;
+  intervention_id?: number;
+  task_type: TimeEntryTaskType;
+  custom_task_type: string;
+  location_id?: number;
+  location?: string;
+  notes: string;
 }
