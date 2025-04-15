@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
@@ -9,8 +10,8 @@ import { SessionActions } from '@/components/time-tracking/detail/SessionActions
 import { SessionControls } from '@/components/time-tracking/detail/SessionControls';
 import { CostEstimate } from '@/components/time-tracking/detail/CostEstimate';
 import { useTimeEntryDetail } from '@/hooks/time-tracking/useTimeEntryDetail';
-import { TimeEntryDetailLoading } from '@/components/time-tracking/detail/TimeEntryDetailError';
-import { TimeEntryDetailError } from '@/components/time-tracking/detail/TimeEntryDetailLoading';
+import { TimeEntryDetailLoading } from '@/components/time-tracking/detail/TimeEntryDetailLoading';
+import { TimeEntryDetailError } from '@/components/time-tracking/detail/TimeEntryDetailError';
 import { SessionClosure } from '@/components/time-tracking/detail/closure/SessionClosure';
 
 const TimeEntryDetail = () => {
