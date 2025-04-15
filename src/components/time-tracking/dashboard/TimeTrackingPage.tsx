@@ -1,10 +1,16 @@
 
 import React from 'react';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
 import { TimeTrackingHeader } from './TimeTrackingHeader';
 import { ActiveTimeSession } from './ActiveTimeSession';
 import { TimeTrackingSummary } from './TimeTrackingSummary';
+import { TimeTrackingFilters } from '../dashboard/TimeTrackingFilters';
+import { TimeBreakdownChart } from '../TimeBreakdownChart';
+import { ActiveSessionsTable } from '../ActiveSessionsTable';
+import { TimeEntryForm } from '../TimeEntryForm';
+import { TimeTrackingTabs } from './TimeTrackingTabs';
+import { startOfWeek, endOfWeek } from 'date-fns';
 import { useTimeTrackingData } from '@/hooks/time-tracking/useTimeTrackingData';
 
 export default function TimeTrackingPage() {
