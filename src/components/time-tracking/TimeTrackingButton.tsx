@@ -44,6 +44,25 @@ export function TimeTrackingButton({
       console.error("Error starting time tracking:", error);
     }
   };
+
+  // Handle pause, resume, and stop functions with the timeEntryId
+  const handlePause = () => {
+    if (activeTimeEntry) {
+      pauseTimeEntry(activeTimeEntry.id);
+    }
+  };
+
+  const handleResume = () => {
+    if (activeTimeEntry) {
+      resumeTimeEntry(activeTimeEntry.id);
+    }
+  };
+
+  const handleStop = () => {
+    if (activeTimeEntry) {
+      stopTimeEntry(activeTimeEntry.id);
+    }
+  };
   
   // Determine color class based on status
   const getColorClass = () => {
@@ -54,6 +73,8 @@ export function TimeTrackingButton({
         return 'bg-green-100 text-green-700 hover:bg-green-200';
       case 'paused':
         return 'bg-orange-100 text-orange-700 hover:bg-orange-200';
+      case 'disputed':
+        return 'bg-red-100 text-red-700 hover:bg-red-200';
       default:
         return 'bg-gray-100 text-gray-700 hover:bg-gray-200';
     }
@@ -79,9 +100,9 @@ export function TimeTrackingButton({
             <span className="font-mono text-sm font-medium">{duration}</span>
             <SessionControls
               status={activeTimeEntry.status}
-              onPause={pauseTimeEntry}
-              onResume={resumeTimeEntry}
-              onStop={stopTimeEntry}
+              onPause={handlePause}
+              onResume={handleResume}
+              onStop={handleStop}
             />
           </div>
         )}
