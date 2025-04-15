@@ -13,6 +13,7 @@ import { SessionNotes } from '@/components/time-tracking/detail/SessionNotes';
 import { SessionActions } from '@/components/time-tracking/detail/SessionActions';
 import { SessionControls } from '@/components/time-tracking/detail/SessionControls';
 import { CostEstimate } from '@/components/time-tracking/detail/CostEstimate';
+import { Button } from '@/components/ui/button';
 
 const TimeEntryDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -168,6 +169,10 @@ const TimeEntryDetail = () => {
     );
   }
 
+  // Convert the TimeEntryStatus to the expected component prop type
+  const safeStatus: 'active' | 'paused' | 'completed' = 
+    entry.status === 'disputed' ? 'completed' : entry.status;
+  
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
@@ -183,11 +188,11 @@ const TimeEntryDetail = () => {
                 <div className="flex-1 w-full md:w-auto">
                   <SessionTimer 
                     startTime={new Date(entry.start_time)} 
-                    status={entry.status}
+                    status={safeStatus}
                   />
                 </div>
                 <SessionControls
-                  status={entry.status}
+                  status={safeStatus}
                   onPauseResume={handlePauseResume}
                   onStop={handleStop}
                 />
@@ -210,10 +215,10 @@ const TimeEntryDetail = () => {
                 <SessionNotes
                   notes={entry.notes}
                   onChange={handleNotesChange}
-                  readOnly={entry.status === 'completed'}
+                  readOnly={safeStatus === 'completed'}
                 />
                 <SessionActions
-                  status={entry.status}
+                  status={safeStatus}
                   onFileUpload={handleFileUpload}
                   onCreateIntervention={handleCreateIntervention}
                 />
