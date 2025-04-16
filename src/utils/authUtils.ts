@@ -1,119 +1,67 @@
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Utility function to check the current authentication status
- * Logs the current session or error to the console
- * Useful for debugging authentication issues
+ * Check the authentication status of the current user
  */
 export const checkAuthStatus = async () => {
-  try {
-    const { data, error } = await supabase.auth.getSession();
-    
-    console.log("=== Authentication Status Check ===");
-    console.log("Session:", data.session);
-    console.log("User:", data.session?.user);
-    console.log("Error:", error);
-    
-    if (data.session) {
-      console.log("Authentication: AUTHENTICATED");
-      console.log("User ID:", data.session.user.id);
-      console.log("Email:", data.session.user.email);
-    } else {
-      console.log("Authentication: NOT AUTHENTICATED");
-    }
-    
-    console.log("=================================");
-    
-    return { 
-      isAuthenticated: !!data.session,
-      session: data.session,
-      error 
-    };
-  } catch (catchError) {
-    console.error("Error checking authentication status:", catchError);
-    return { 
-      isAuthenticated: false, 
-      session: null, 
-      error: catchError 
-    };
+  const { data, error } = await supabase.auth.getSession();
+  
+  if (error) {
+    console.error("Auth status check error:", error);
+    throw new Error("Authentication error: " + error.message);
   }
+  
+  if (!data.session) {
+    throw new Error("No active session found");
+  }
+  
+  return {
+    authenticated: !!data.session,
+    userId: data.session?.user?.id,
+    email: data.session?.user?.email
+  };
 };
 
 /**
- * Utility function to check if a user has write permissions on a specific table
- * Useful for debugging RLS issues
+ * Check if the current user has permissions to access a table
+ * @param tableName The name of the table to check permissions for
+ * @param recordId Optional record ID to check for specific record permissions
  */
-export const checkTablePermissions = async (tableName: string, rowId?: string | number) => {
+export const checkTablePermissions = async (tableName: string, recordId?: string) => {
   try {
-    console.log(`=== Checking permissions for ${tableName} ===`);
+    const { authenticated, userId } = await checkAuthStatus();
     
-    // Try to select from the table - using a type assertion to handle dynamic table names
-    const { data: readData, error: readError } = await supabase
-      .from(tableName as any)
-      .select('*')
-      .limit(1);
-    
-    console.log("Read permissions:", readError ? "DENIED" : "GRANTED");
-    if (readError) console.error("Read error:", readError);
-    
-    // Try to insert a dummy row with an explicit transaction that we'll roll back
-    console.log("Insert permissions: checking...");
-    let insertPermission = false;
-    
-    try {
-      // Start a transaction that we'll immediately roll back to test insert permission
-      const { data, error } = await supabase
-        .from(tableName as any)
-        .insert({})
-        .select()
-        .abortSignal(new AbortController().signal);  // This will abort the request
-      
-      // If we got here without an error, we have insert permission (though the request was aborted)
-      insertPermission = !error;
-    } catch (insertError) {
-      console.error("Insert error:", insertError);
+    if (!authenticated || !userId) {
+      throw new Error("You must be logged in to access this resource");
     }
     
-    console.log("Insert permissions:", insertPermission ? "GRANTED" : "DENIED");
-    
-    // If rowId is provided, check update permissions with a similar non-modifying approach
-    let updatePermission = undefined;
-    if (rowId) {
-      console.log("Update permissions: checking for row", rowId);
-      try {
-        // We'll just test if we can access the row with the intent to update
+    // For time tracking, we primarily check if the user is authenticated
+    // For specific record access, we could add additional checks here
+    if (recordId) {
+      // Example: Check if the user owns this record
+      // This is a simplified check - in a real app, you'd query the table
+      if (tableName === 'time_sessions') {
         const { data, error } = await supabase
-          .from(tableName as any)
-          .select('*')
-          .eq('id', rowId)
+          .from(tableName)
+          .select('user_id')
+          .eq('id', recordId)
           .single();
+          
+        if (error) {
+          console.error("Permission check error:", error);
+          throw new Error("Could not verify record permissions");
+        }
         
-        // If we found the row, we have at least read permission on it
-        // Full update testing would require an actual update, but we'll avoid that
-        updatePermission = !error;
-      } catch (error) {
-        console.error("Update error:", error);
+        if (data?.user_id !== userId) {
+          throw new Error("You don't have permission to modify this time entry");
+        }
       }
-      
-      console.log("Update permissions for row", rowId, ":", updatePermission ? "LIKELY GRANTED" : "DENIED");
     }
     
-    console.log("=================================");
-    
-    return {
-      read: !readError,
-      insert: insertPermission,
-      update: updatePermission
-    };
+    return true;
   } catch (error) {
-    console.error("Error checking table permissions:", error);
-    return { read: false, insert: false, update: false };
+    console.error("Permission check failed:", error);
+    throw error;
   }
 };
-
-// Expose the function for tests via the console
-if (typeof window !== 'undefined') {
-  (window as any).checkAuthStatus = checkAuthStatus;
-  (window as any).checkTablePermissions = checkTablePermissions;
-}
