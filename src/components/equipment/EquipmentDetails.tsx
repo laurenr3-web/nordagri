@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Separator } from '@/components/ui/separator';
 import EditEquipmentDialog from './dialogs/EditEquipmentDialog';
@@ -8,8 +7,9 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { equipmentService } from '@/services/supabase/equipmentService';
 import EquipmentImageGallery from './details/EquipmentImageGallery';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { EquipmentWearDisplay } from './wear/EquipmentWearDisplay';
 
 interface EquipmentDetailsProps {
   equipment: EquipmentItem;
@@ -78,6 +78,10 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
         </div>
         
         <div className="grid grid-cols-1 gap-6">
+          {/* Wear information card */}
+          <EquipmentWearDisplay equipment={localEquipment} />
+
+          {/* Basic information card */}
           <Card className="overflow-hidden border-2 border-primary/10">
             <div className="bg-primary/10 px-6 py-4">
               <h2 className="text-2xl font-bold text-primary">Informations de base</h2>
