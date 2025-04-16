@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Equipment } from './types';
 import { mapEquipmentToDatabase, mapEquipmentFromDatabase } from './mappers';
@@ -105,23 +104,41 @@ export async function deleteEquipment(id: number | string): Promise<void> {
       throw new Error('Utilisateur non authentifié');
     }
     
-    // Vérifier si l'équipement appartient à l'utilisateur
-    const { data: equipmentData, error: fetchError } = await supabase
-      .from('equipment')
-      .select('owner_id')
-      .eq('id', numericId)
-      .single();
-    
-    if (fetchError) {
-      console.error(`Error fetching equipment with ID ${numericId}:`, fetchError);
-      throw fetchError;
+    // Supprimer d'abord les références dans les tables liées
+    // 1. Supprimer les entrées de maintenance liées
+    const { error: maintenanceError } = await supabase
+      .from('equipment_maintenance_schedule')
+      .delete()
+      .eq('equipment_id', numericId);
+      
+    if (maintenanceError) {
+      console.error(`Error deleting maintenance records for equipment ${numericId}:`, maintenanceError);
+      // Continue avec la suppression d'équipement même si la suppression des tâches échoue
     }
     
-    if (!equipmentData) {
-      throw new Error(`Equipment with ID ${numericId} not found`);
+    // 2. Supprimer les codes QR liés à cet équipement
+    const { error: qrError } = await supabase
+      .from('equipment_qrcodes')
+      .delete()
+      .eq('equipment_id', numericId);
+      
+    if (qrError) {
+      console.error(`Error deleting QR codes for equipment ${numericId}:`, qrError);
+      // Continue avec la suppression d'équipement même si la suppression des QR échoue
     }
     
-    // La suppression ne réussira que si la politique RLS autorise l'opération
+    // 3. Supprimer les logs d'équipement liés
+    const { error: logsError } = await supabase
+      .from('equipment_logs')
+      .delete()
+      .eq('equipment_id', numericId);
+      
+    if (logsError) {
+      console.error(`Error deleting logs for equipment ${numericId}:`, logsError);
+      // Continue avec la suppression d'équipement même si la suppression des logs échoue
+    }
+    
+    // Maintenant supprimer l'équipement lui-même
     const { error } = await supabase
       .from('equipment')
       .delete()

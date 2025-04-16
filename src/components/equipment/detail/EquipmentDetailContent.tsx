@@ -44,7 +44,7 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
         ? parseInt(equipment.id, 10) 
         : equipment.id;
       
-      console.log(`Deleting equipment with ID: ${equipmentId}`);
+      console.log(`Attempting to delete equipment with ID: ${equipmentId}`);
       
       // Invalidate queries before deletion to prepare cache
       queryClient.invalidateQueries({ queryKey: ['equipment'] });
@@ -55,24 +55,12 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
       // Show success toast
       toast.success(`L'équipement ${equipment.name} a été supprimé avec succès`);
       
-      // Remove from cache
-      queryClient.setQueryData(['equipment', equipmentId], undefined);
-      
-      // Force invalidate related queries
-      queryClient.invalidateQueries({ queryKey: ['equipment'] });
-      queryClient.invalidateQueries({ queryKey: ['equipment-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['equipment-filter-options'] });
-      
-      // Force a longer delay before navigation to ensure the delete operation completes
-      // and Supabase has time to process the deletion and trigger realtime events
-      setTimeout(() => {
-        console.log('Navigating back to equipment list after deletion');
-        // Navigate back to equipment list
-        navigate('/equipment');
-      }, 1500);
+      // Navigate back to equipment list after successful deletion
+      navigate('/equipment');
     } catch (error: any) {
       console.error('Error deleting equipment:', error);
       toast.error(`Impossible de supprimer cet équipement: ${error.message || 'Erreur inconnue'}`);
+    } finally {
       setIsDeleting(false);
     }
   };
