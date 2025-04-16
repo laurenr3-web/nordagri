@@ -26,7 +26,7 @@ export function ActiveTimeSession({
             <User className="h-10 w-10 text-blue-500" />
             <div>
               <div className="text-sm text-blue-700">
-                {session.technician || session.owner_name || 'Non assigné'}
+                {session.user_name || session.owner_name || 'Non assigné'}
               </div>
               <div className="text-3xl font-mono font-bold text-blue-900">
                 {session.current_duration || "00:00:00"}

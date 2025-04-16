@@ -38,7 +38,7 @@ export default function TimeTracking() {
   
   useActiveSessionMonitoring(activeTimeEntry as TimeEntry);
   
-  const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
+  const [dateRange, setDateRange<{ from: Date; to: Date }>({
     from: startOfWeek(new Date(), { weekStartsOn: 1 }),
     to: endOfWeek(new Date(), { weekStartsOn: 1 })
   });
@@ -51,7 +51,7 @@ export default function TimeTracking() {
     totalMonth: 0
   });
   
-  const [timeBreakdownData, setTimeBreakdownData] = useState<Array<{
+  const [timeBreakdownData, setTimeBreakdownData<Array<{
     task_type: string;
     minutes: number;
     color: string;
@@ -296,7 +296,9 @@ export default function TimeTracking() {
                     <div className="flex items-center gap-3">
                       <User className="h-10 w-10 text-blue-500" />
                       <div>
-                        <div className="text-sm text-blue-700">Christophe</div>
+                        <div className="text-sm text-blue-700">
+                          {activeTimeEntry.user_name || activeTimeEntry.owner_name || 'Non assigné'}
+                        </div>
                         <div className="text-3xl font-mono font-bold text-blue-900">
                           {activeTimeEntry.current_duration || "00:00:00"}
                         </div>
