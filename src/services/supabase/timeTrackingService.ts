@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { TimeEntry, TimeEntryTaskType, TimeEntryStatus, TimeSpentByEquipment, TaskType } from '@/hooks/time-tracking/types';
 import { convertDatesToISOStrings } from '@/data/adapters/supabase/utils';
@@ -38,7 +37,6 @@ export const timeTrackingService = {
    */
   async getActiveTimeEntry(userId: string): Promise<TimeEntry | null> {
     try {
-      // Query the interventions table directly for active time entries
       const { data, error } = await supabase
         .from('interventions')
         .select(`
@@ -48,7 +46,9 @@ export const timeTrackingService = {
           description,
           date,
           status,
-          equipment
+          equipment,
+          owner_id,
+          profiles(first_name, last_name)
         `)
         .eq('owner_id', userId)
         .eq('status', 'active')
@@ -58,17 +58,20 @@ export const timeTrackingService = {
         .single();
       
       if (error && error.code !== 'PGRST116') {
-        // PGRST116 is the code for "No rows returned", which is normal if no active entry
         throw error;
       }
       
       if (data) {
-        // Transform data to match TimeEntry interface
+        const ownerName = data.profiles?.first_name && data.profiles?.last_name 
+          ? `${data.profiles.first_name} ${data.profiles.last_name}`
+          : undefined;
+
         return {
           id: data.id.toString(),
           user_id: userId,
+          owner_name: ownerName,
           equipment_id: data.equipment_id,
-          task_type: 'maintenance' as TimeEntryTaskType, // Default
+          task_type: 'maintenance' as TimeEntryTaskType,
           start_time: data.date,
           status: data.status as TimeEntryStatus,
           equipment_name: data.equipment,
