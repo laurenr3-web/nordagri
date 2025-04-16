@@ -17,8 +17,6 @@ export interface TimeEntry {
   location?: string;
   created_at: string;
   updated_at: string;
-  user_name?: string; // Added user_name property
-  current_duration?: string; // Added current_duration property
 }
 
 export interface ActiveTimeEntry extends TimeEntry {

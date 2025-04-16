@@ -1,8 +1,9 @@
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { ActiveTimeEntry } from "@/hooks/time-tracking/types";
-import { User } from "lucide-react";
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { User } from 'lucide-react';
+import { ActiveTimeEntry } from '@/hooks/time-tracking/types';
 
 interface ActiveTimeSessionProps {
   session: ActiveTimeEntry;
@@ -11,17 +12,12 @@ interface ActiveTimeSessionProps {
   onStop: (id: string) => void;
 }
 
-export function ActiveTimeSession({
-  session,
-  onPause,
-  onResume,
-  onStop
+export function ActiveTimeSession({ 
+  session, 
+  onPause, 
+  onResume, 
+  onStop 
 }: ActiveTimeSessionProps) {
-  const taskTitle = [
-    session.task_type === 'other' ? session.custom_task_type : session.task_type,
-    session.equipment_name
-  ].filter(Boolean).join(' - ');
-
   return (
     <Card className="mb-6 bg-blue-50 border-blue-200">
       <CardContent className="pt-6">
@@ -30,7 +26,7 @@ export function ActiveTimeSession({
             <User className="h-10 w-10 text-blue-500" />
             <div>
               <div className="text-sm text-blue-700">
-                {session.owner_name || 'Non assigné'}
+                {session.technician || session.owner_name || 'Non assigné'}
               </div>
               <div className="text-3xl font-mono font-bold text-blue-900">
                 {session.current_duration || "00:00:00"}
@@ -40,16 +36,18 @@ export function ActiveTimeSession({
           
           <div className="flex flex-col justify-center mt-4 md:mt-0">
             <div className="text-sm text-blue-700">
-              {taskTitle}
+              {session.task_type === 'other' 
+                ? session.custom_task_type 
+                : session.task_type} {session.equipment_name ? `- ${session.equipment_name}` : ''}
             </div>
             <div className="text-sm text-blue-700">
-              {session.location || 'No location'}
+              {session.location || 'Aucun emplacement'}
             </div>
           </div>
           
           <div className="flex items-center justify-end gap-2 mt-4 md:mt-0">
             <span className="mr-2 text-blue-700">
-              {session.status === 'active' ? 'In Progress' : 'Paused'}
+              {session.status === 'active' ? 'En cours' : 'En pause'}
             </span>
             {session.status === 'active' ? (
               <Button
@@ -63,7 +61,7 @@ export function ActiveTimeSession({
                 onClick={() => onResume(session.id)}
                 className="bg-green-600 hover:bg-green-700"
               >
-                Resume
+                Reprendre
               </Button>
             )}
             <Button
