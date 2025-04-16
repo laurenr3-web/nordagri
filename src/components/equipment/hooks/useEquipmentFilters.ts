@@ -18,6 +18,9 @@ export interface EquipmentItem {
   notes?: string;
   usage: { hours: number; target: number };
   nextService: { type: string; due: string };
+  unite_d_usure?: string;
+  valeur_actuelle?: number;
+  last_wear_update?: string | Date | null;
 }
 
 export const useEquipmentFilters = (equipmentData: EquipmentItem[]) => {

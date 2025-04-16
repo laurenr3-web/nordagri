@@ -10,11 +10,13 @@ interface WearInfo {
   lastUpdate: string | null;
 }
 
-export function useEquipmentWear(equipment: { 
-  unite_d_usure: string; 
-  valeur_actuelle: number;
+interface EquipmentWearData {
+  unite_d_usure?: string; 
+  valeur_actuelle?: number;
   last_wear_update?: string | Date | null;
-}): WearInfo {
+}
+
+export function useEquipmentWear(equipment: EquipmentWearData): WearInfo {
   return useMemo(() => {
     const unite = equipment.unite_d_usure || 'heures';
     const valeur = equipment.valeur_actuelle || 0;

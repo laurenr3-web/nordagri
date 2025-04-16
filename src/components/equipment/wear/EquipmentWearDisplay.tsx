@@ -6,14 +6,18 @@ import { CalendarClock } from 'lucide-react';
 
 interface EquipmentWearDisplayProps {
   equipment: {
-    unite_d_usure: string;
-    valeur_actuelle: number;
+    unite_d_usure?: string;
+    valeur_actuelle?: number;
     last_wear_update?: string | Date | null;
   };
 }
 
 export function EquipmentWearDisplay({ equipment }: EquipmentWearDisplayProps) {
-  const { formattedValue, lastUpdate } = useEquipmentWear(equipment);
+  const { formattedValue, lastUpdate } = useEquipmentWear({
+    unite_d_usure: equipment.unite_d_usure || 'heures',
+    valeur_actuelle: equipment.valeur_actuelle || 0,
+    last_wear_update: equipment.last_wear_update
+  });
 
   return (
     <Card>
