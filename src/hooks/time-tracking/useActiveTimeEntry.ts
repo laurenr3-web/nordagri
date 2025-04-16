@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ActiveTimeEntry, TimeEntry } from './types';
@@ -9,6 +8,19 @@ export function useActiveTimeEntry() {
   const [activeTimeEntry, setActiveTimeEntry] = useState<ActiveTimeEntry | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+
+  const updateCurrentDuration = (entry: TimeEntry) => {
+    if (entry && entry.start_time) {
+      const start = new Date(entry.start_time);
+      const now = new Date();
+      const diffMs = now.getTime() - start.getTime();
+      return {
+        ...entry,
+        current_duration: formatDuration(diffMs)
+      };
+    }
+    return entry;
+  };
 
   const fetchActiveTimeEntry = async () => {
     try {
@@ -24,15 +36,7 @@ export function useActiveTimeEntry() {
       const activeEntry = await timeTrackingService.getActiveTimeEntry(userId);
       
       if (activeEntry) {
-        const start = new Date(activeEntry.start_time);
-        const now = new Date();
-        const diffMs = now.getTime() - start.getTime();
-        const initialDuration = formatDuration(diffMs);
-        
-        setActiveTimeEntry({
-          ...activeEntry,
-          current_duration: initialDuration
-        });
+        setActiveTimeEntry(updateCurrentDuration(activeEntry));
       } else {
         setActiveTimeEntry(null);
       }
@@ -43,6 +47,23 @@ export function useActiveTimeEntry() {
       setIsLoading(false);
     }
   };
+
+  // Timer effect to update duration in real-time
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+
+    if (activeTimeEntry && activeTimeEntry.status === 'active') {
+      intervalId = setInterval(() => {
+        setActiveTimeEntry(prev => prev ? updateCurrentDuration(prev) : null);
+      }, 1000);
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [activeTimeEntry?.id, activeTimeEntry?.status]);
 
   // Load the active time entry when the component mounts
   useEffect(() => {

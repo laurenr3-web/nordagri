@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { TimeEntry, TimeEntryTaskType, TimeEntryStatus, TimeSpentByEquipment, TaskType } from '@/hooks/time-tracking/types';
 import { convertDatesToISOStrings } from '@/data/adapters/supabase/utils';
@@ -38,6 +37,12 @@ export const timeTrackingService = {
    */
   async getActiveTimeEntry(userId: string): Promise<TimeEntry | null> {
     try {
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
       const { data, error } = await supabase
         .from('time_sessions')
         .select(`
@@ -51,17 +56,19 @@ export const timeTrackingService = {
         .single();
       
       if (error && error.code !== 'PGRST116') {
-        // PGRST116 is "no rows returned" error, which is normal if no active session
         throw error;
       }
       
       if (data) {
-        // Transform the data to match TimeEntry interface
+        const userName = userProfile ? 
+          `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() : 
+          'Utilisateur';
+
         return {
           id: data.id,
           user_id: userId,
-          owner_name: data.technician || 'User',
-          user_name: data.technician || 'User',
+          owner_name: userName,
+          user_name: userName,
           equipment_id: data.equipment_id,
           task_type: data.custom_task_type as TimeEntryTaskType || 'maintenance',
           task_type_id: data.task_type_id,
@@ -75,7 +82,7 @@ export const timeTrackingService = {
           location: data.location,
           created_at: data.created_at,
           updated_at: data.updated_at,
-          current_duration: '00:00:00' // This will be calculated by the timer component
+          current_duration: '00:00:00'
         };
       }
       
