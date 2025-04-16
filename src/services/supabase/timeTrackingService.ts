@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { TimeEntry, TimeEntryTaskType, TimeEntryStatus, TimeSpentByEquipment, TaskType } from '@/hooks/time-tracking/types';
 import { convertDatesToISOStrings } from '@/data/adapters/supabase/utils';
@@ -47,8 +48,7 @@ export const timeTrackingService = {
           date,
           status,
           equipment,
-          owner_id,
-          profiles(first_name, last_name)
+          owner_id
         `)
         .eq('owner_id', userId)
         .eq('status', 'active')
@@ -62,9 +62,18 @@ export const timeTrackingService = {
       }
       
       if (data) {
-        const ownerName = data.profiles?.first_name && data.profiles?.last_name 
-          ? `${data.profiles.first_name} ${data.profiles.last_name}`
-          : undefined;
+        // Get owner name from profiles table
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('first_name, last_name')
+          .eq('id', userId)
+          .single();
+        
+        // Safely handle profile data
+        let ownerName = undefined;
+        if (profileData && 'first_name' in profileData && 'last_name' in profileData) {
+          ownerName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || undefined;
+        }
 
         return {
           id: data.id.toString(),
@@ -137,21 +146,41 @@ export const timeTrackingService = {
       
       if (error) throw error;
       
+      // Get profile data for user
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name')
+        .eq('id', filters.userId)
+        .single();
+      
+      // Safely extract user name from profile data
+      let userName = undefined;
+      if (profileData && 'first_name' in profileData && 'last_name' in profileData) {
+        userName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || undefined;
+      }
+      
       // Transform to TimeEntry format
       return (data || []).map(item => {
+        const endTime = item.duration 
+          ? new Date(new Date(item.date).getTime() + item.duration * 3600000).toISOString() 
+          : null;
+        
         return {
           id: item.id.toString(),
           user_id: item.owner_id,
+          user_name: userName, // Added user name
+          owner_name: userName, // Added owner name as backup
           equipment_id: item.equipment_id,
           task_type: 'maintenance' as TimeEntryTaskType, // Default
           start_time: item.date,
-          end_time: item.duration ? new Date(new Date(item.date).getTime() + item.duration * 3600000).toISOString() : null,
+          end_time: endTime,
           notes: item.description,
           status: item.status as TimeEntryStatus,
           equipment_name: item.equipment,
           intervention_title: item.title,
           created_at: item.created_at,
-          updated_at: item.updated_at
+          updated_at: item.updated_at,
+          current_duration: item.duration ? `${item.duration.toFixed(2)} h` : undefined
         } as TimeEntry;
       });
     } catch (error) {

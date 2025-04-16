@@ -14,6 +14,9 @@ export function SummarySection({ entry, estimatedCost }: SummarySectionProps) {
   const duration = entry.start_time ? 
     new Date().getTime() - new Date(entry.start_time).getTime() 
     : 0;
+  
+  // Use owner_name as fallback for user_name
+  const displayName = entry.user_name || entry.owner_name || 'Utilisateur';
 
   return (
     <Card>
@@ -34,11 +37,11 @@ export function SummarySection({ entry, estimatedCost }: SummarySectionProps) {
 
         <div className="flex items-center gap-4">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={entry.user_name ? `https://api.dicebear.com/7.x/initials/svg?seed=${entry.user_name}` : ''} />
-            <AvatarFallback>{entry.user_name?.[0] || 'U'}</AvatarFallback>
+            <AvatarImage src={displayName ? `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}` : ''} />
+            <AvatarFallback>{displayName[0] || 'U'}</AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <p className="text-sm font-medium">{entry.user_name || 'Utilisateur'}</p>
+            <p className="text-sm font-medium">{displayName}</p>
             <p className="text-sm text-muted-foreground">{entry.equipment_name || 'Équipement non spécifié'}</p>
           </div>
         </div>

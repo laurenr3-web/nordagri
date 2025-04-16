@@ -5,6 +5,7 @@ import { TimeEntry } from '@/hooks/time-tracking/types';
 import { timeTrackingService } from '@/services/supabase/timeTrackingService';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { formatDuration } from '@/utils/dateHelpers';
 
 export function useTimeEntryDetail(id: string | undefined) {
   const [entry, setEntry] = useState<TimeEntry | null>(null);
@@ -32,6 +33,14 @@ export function useTimeEntryDetail(id: string | undefined) {
       const foundEntry = data.find(e => String(e.id) === String(id));
       
       if (foundEntry) {
+        // If active entry, calculate current duration
+        if (foundEntry.status === 'active' && foundEntry.start_time) {
+          const start = new Date(foundEntry.start_time);
+          const now = new Date();
+          const diffMs = now.getTime() - start.getTime();
+          foundEntry.current_duration = formatDuration(diffMs);
+        }
+        
         setEntry(foundEntry);
       } else {
         toast.error("Session introuvable");
@@ -131,7 +140,7 @@ export function useTimeEntryDetail(id: string | undefined) {
       state: {
         equipment_id: entry.equipment_id,
         equipment_name: entry.equipment_name,
-        duration: entry.current_duration,
+        duration: entry.current_duration || '',
         notes: entry.notes
       }
     });

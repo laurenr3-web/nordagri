@@ -38,8 +38,9 @@ const TimeEntryDetail = () => {
   }
 
   // Convert the TimeEntryStatus to the expected component prop type
+  // Instead of comparing with "disputed" string, we check if status is not one of the valid enum values
   const safeStatus: 'active' | 'paused' | 'completed' = 
-    entry?.status === 'disputed' ? 'completed' : entry?.status || 'completed';
+    !['active', 'paused', 'completed'].includes(entry.status) ? 'completed' : (entry.status as 'active' | 'paused' | 'completed');
   
   return (
     <SidebarProvider>
@@ -67,7 +68,7 @@ const TimeEntryDetail = () => {
 
               <div className="grid md:grid-cols-2 gap-6">
                 <SessionInfo
-                  userName={entry.user_name || 'Utilisateur'}
+                  userName={entry.user_name || entry.owner_name || 'Utilisateur'}
                   taskType={entry.task_type}
                   equipmentId={entry.equipment_id}
                   equipmentName={entry.equipment_name}
