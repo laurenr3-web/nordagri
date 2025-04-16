@@ -59,6 +59,7 @@ const TimeEntryDetail = () => {
                 <div className="flex-1 w-full md:w-auto">
                   <SessionTimer 
                     startTime={new Date(entry.start_time)} 
+                    endTime={entry.end_time ? new Date(entry.end_time) : null}
                     status={safeStatus}
                   />
                 </div>

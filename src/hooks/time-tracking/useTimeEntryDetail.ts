@@ -61,7 +61,12 @@ export function useTimeEntryDetail(id: string | undefined) {
     if (entry && entry.start_time) {
       const hourlyRate = 50;
       const start = new Date(entry.start_time);
-      const end = entry.end_time ? new Date(entry.end_time) : new Date();
+      
+      // For completed sessions, use the fixed end time
+      const end = (entry.status === 'completed' && entry.end_time) 
+        ? new Date(entry.end_time) 
+        : new Date();
+        
       const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
       setEstimatedCost(Math.round(hours * hourlyRate * 100) / 100);
     }
@@ -109,7 +114,12 @@ export function useTimeEntryDetail(id: string | undefined) {
       await timeTrackingService.stopTimeEntry(entry.id);
       
       // Update local state
-      setEntry({ ...entry, status: 'completed', notes: data.notes || entry.notes });
+      setEntry({ 
+        ...entry, 
+        status: 'completed', 
+        notes: data.notes || entry.notes,
+        end_time: new Date().toISOString()
+      });
       setShowClosureDialog(false);
       
       toast.success('Session terminée avec succès');
