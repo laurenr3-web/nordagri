@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Equipment } from './types';
 import { mapEquipmentToDatabase, mapEquipmentFromDatabase } from './mappers';
@@ -98,7 +99,29 @@ export async function deleteEquipment(id: number | string): Promise<void> {
     
     console.log(`Attempting to delete equipment with ID: ${numericId}`);
     
-    // Delete the equipment - RLS will ensure only the owner can delete
+    // Vérifier si l'utilisateur est authentifié
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      throw new Error('Utilisateur non authentifié');
+    }
+    
+    // Vérifier si l'équipement appartient à l'utilisateur
+    const { data: equipmentData, error: fetchError } = await supabase
+      .from('equipment')
+      .select('owner_id')
+      .eq('id', numericId)
+      .single();
+    
+    if (fetchError) {
+      console.error(`Error fetching equipment with ID ${numericId}:`, fetchError);
+      throw fetchError;
+    }
+    
+    if (!equipmentData) {
+      throw new Error(`Equipment with ID ${numericId} not found`);
+    }
+    
+    // La suppression ne réussira que si la politique RLS autorise l'opération
     const { error } = await supabase
       .from('equipment')
       .delete()

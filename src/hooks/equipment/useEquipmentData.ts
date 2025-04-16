@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { equipmentService, Equipment, EquipmentFilter } from '@/services/supabase/equipmentService';
@@ -94,20 +95,29 @@ export function useEquipmentData() {
     }
   });
   
-  // Update the delete equipment mutation
+  // Delete equipment mutation avec amélioration de la gestion des erreurs
   const deleteEquipmentMutation = useMutation({
     mutationFn: async (equipmentId: number) => {
       console.log('Attempting to delete equipment:', equipmentId);
-      return equipmentService.deleteEquipment(equipmentId);
+      
+      try {
+        await equipmentService.deleteEquipment(equipmentId);
+        return equipmentId; // Retourne l'ID si la suppression a réussi
+      } catch (error) {
+        console.error(`Detailed error deleting equipment ${equipmentId}:`, error);
+        throw error; // Renvoie l'erreur pour être capturée par onError
+      }
     },
-    onSuccess: (_, equipmentId) => {
+    onSuccess: (equipmentId) => {
       console.log('✅ Equipment successfully deleted, ID:', equipmentId);
       
       // Update cache by removing the deleted item
       queryClient.setQueryData(['equipment', equipmentId], undefined);
+      
       // Force invalidate ALL equipment-related queries
       queryClient.invalidateQueries({ queryKey: ['equipment'] });
       queryClient.invalidateQueries({ queryKey: ['equipment-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['equipment-filter-options'] });
       
       toast({
         title: 'Équipement supprimé',
@@ -118,7 +128,9 @@ export function useEquipmentData() {
       setTimeout(() => {
         console.log('Forced refetch after equipment deletion');
         refetch();
-      }, 300);
+        // Force a more aggressive refetch of all equipment
+        queryClient.refetchQueries({ queryKey: ['equipment'] });
+      }, 500);
     },
     onError: (error: Error) => {
       console.error('❌ Error deleting equipment:', error);

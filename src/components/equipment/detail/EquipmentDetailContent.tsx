@@ -61,6 +61,7 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
       // Force invalidate related queries
       queryClient.invalidateQueries({ queryKey: ['equipment'] });
       queryClient.invalidateQueries({ queryKey: ['equipment-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['equipment-filter-options'] });
       
       // Force a longer delay before navigation to ensure the delete operation completes
       // and Supabase has time to process the deletion and trigger realtime events
@@ -68,10 +69,10 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
         console.log('Navigating back to equipment list after deletion');
         // Navigate back to equipment list
         navigate('/equipment');
-      }, 1000);
-    } catch (error) {
+      }, 1500);
+    } catch (error: any) {
       console.error('Error deleting equipment:', error);
-      toast.error('Impossible de supprimer cet équipement');
+      toast.error(`Impossible de supprimer cet équipement: ${error.message || 'Erreur inconnue'}`);
       setIsDeleting(false);
     }
   };
