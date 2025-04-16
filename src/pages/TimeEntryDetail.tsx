@@ -13,6 +13,7 @@ import { useTimeEntryDetail } from '@/hooks/time-tracking/useTimeEntryDetail';
 import { TimeEntryDetailLoading } from '@/components/time-tracking/detail/TimeEntryDetailLoading';
 import { TimeEntryDetailError } from '@/components/time-tracking/detail/TimeEntryDetailError';
 import { SessionClosure } from '@/components/time-tracking/detail/closure/SessionClosure';
+import { TimeEntryStatus } from '@/hooks/time-tracking/types';
 
 const TimeEntryDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -39,7 +40,10 @@ const TimeEntryDetail = () => {
 
   // Convert the TimeEntryStatus to the expected component prop type
   const safeStatus: 'active' | 'paused' | 'completed' = 
-    entry?.status === 'disputed' ? 'completed' : entry?.status || 'completed';
+    entry.status === 'disputed' ? 'completed' : entry.status;
+  
+  // Get display name from available properties
+  const displayName = entry.user_name || entry.owner_name || 'Utilisateur';
   
   return (
     <SidebarProvider>
@@ -67,7 +71,7 @@ const TimeEntryDetail = () => {
 
               <div className="grid md:grid-cols-2 gap-6">
                 <SessionInfo
-                  userName={entry.user_name || 'Utilisateur'}
+                  userName={displayName}
                   taskType={entry.task_type}
                   equipmentId={entry.equipment_id}
                   equipmentName={entry.equipment_name}

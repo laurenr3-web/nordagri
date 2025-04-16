@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TimeEntry } from '@/hooks/time-tracking/types';
@@ -131,7 +130,7 @@ export function useTimeEntryDetail(id: string | undefined) {
       state: {
         equipment_id: entry.equipment_id,
         equipment_name: entry.equipment_name,
-        duration: entry.current_duration,
+        duration: entry.current_duration || "00:00:00", // Provide a default value
         notes: entry.notes
       }
     });

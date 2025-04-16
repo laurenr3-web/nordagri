@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { TimeEntry, TimeEntryTaskType, TimeEntryStatus, TimeSpentByEquipment, TaskType } from '@/hooks/time-tracking/types';
 import { convertDatesToISOStrings } from '@/data/adapters/supabase/utils';
@@ -62,20 +63,32 @@ export const timeTrackingService = {
       }
       
       if (data) {
-        const ownerName = data.profiles?.first_name && data.profiles?.last_name 
-          ? `${data.profiles.first_name} ${data.profiles.last_name}`
-          : undefined;
+        // Safely try to extract profile info
+        let ownerName: string | undefined;
+        try {
+          // Check if profiles data exists before accessing properties
+          if (data.profiles && typeof data.profiles === 'object') {
+            const profiles = data.profiles as any; // Use type assertion for safety
+            if (profiles.first_name && profiles.last_name) {
+              ownerName = `${profiles.first_name} ${profiles.last_name}`;
+            }
+          }
+        } catch (e) {
+          console.warn("Could not extract profile information", e);
+        }
 
         return {
           id: data.id.toString(),
           user_id: userId,
           owner_name: ownerName,
+          user_name: ownerName, // Set user_name to match owner_name
           equipment_id: data.equipment_id,
           task_type: 'maintenance' as TimeEntryTaskType,
           start_time: data.date,
           status: data.status as TimeEntryStatus,
           equipment_name: data.equipment,
           intervention_title: data.title,
+          notes: data.description,
           created_at: data.date,
           updated_at: data.date
         };

@@ -44,9 +44,12 @@ export function ActiveSessionsTable({
               const diffMs = now.getTime() - start.getTime();
               const duration = formatDuration(diffMs);
               
+              // Get display name from available properties
+              const displayName = session.user_name || session.owner_name || 'Anonymous';
+              
               return (
                 <TableRow key={session.id}>
-                  <TableCell>{session.user_name || 'Anonymous'}</TableCell>
+                  <TableCell>{displayName}</TableCell>
                   <TableCell className="font-mono">{duration}</TableCell>
                   <TableCell>
                     {session.status === 'active' ? (
