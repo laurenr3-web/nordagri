@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { TaskTypeField } from './form/TaskTypeField';
 import { EquipmentField } from './form/EquipmentField';
 import { LocationField } from './form/LocationField';
 import { InterventionField } from './form/InterventionField';
+import { WorkstationField } from './form/WorkstationField';
 import { timeTrackingService } from '@/services/supabase/timeTrackingService';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -42,6 +42,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
     description: '',
     notes: '',
     location_id: undefined as number | undefined,
+    poste_travail: '',
     priority: 'medium' as const
   });
   
@@ -118,8 +119,8 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.equipment_id) {
-      toast.error('Please select equipment');
+    if (!formData.equipment_id && !formData.poste_travail) {
+      toast.error('Veuillez sélectionner un équipement ou un poste de travail');
       return;
     }
     
@@ -135,10 +136,16 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Start New Time Session</DialogTitle>
+          <DialogTitle>Démarrer une nouvelle session</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
+          <TaskTypeField
+            taskType={formData.task_type}
+            customTaskType={formData.custom_task_type}
+            onChange={handleChange}
+          />
+          
           <EquipmentField
             equipment_id={formData.equipment_id}
             equipments={equipments}
@@ -146,16 +153,18 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
             onChange={handleChange}
           />
           
+          {!formData.equipment_id && (
+            <WorkstationField
+              workstation={formData.poste_travail}
+              onChange={handleChange}
+              required={!formData.equipment_id}
+            />
+          )}
+          
           <InterventionField
             intervention_id={formData.intervention_id}
             interventions={interventions}
             disabled={!formData.equipment_id}
-            onChange={handleChange}
-          />
-          
-          <TaskTypeField
-            taskType={formData.task_type}
-            customTaskType={formData.custom_task_type}
             onChange={handleChange}
           />
           
@@ -194,10 +203,10 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              Annuler
             </Button>
             <Button type="submit" disabled={isLoading}>
-              Start Session
+              Démarrer la session
             </Button>
           </div>
         </form>

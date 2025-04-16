@@ -817,6 +817,7 @@ export type Database = {
           intervention_id: number | null
           location: string | null
           notes: string | null
+          poste_travail: string | null
           start_time: string
           status: string
           task_type_id: string | null
@@ -836,6 +837,7 @@ export type Database = {
           intervention_id?: number | null
           location?: string | null
           notes?: string | null
+          poste_travail?: string | null
           start_time?: string
           status?: string
           task_type_id?: string | null
@@ -855,6 +857,7 @@ export type Database = {
           intervention_id?: number | null
           location?: string | null
           notes?: string | null
+          poste_travail?: string | null
           start_time?: string
           status?: string
           task_type_id?: string | null
