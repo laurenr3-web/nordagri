@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
@@ -21,6 +20,7 @@ import { TimeTrackingStats } from '@/components/time-tracking/dashboard/TimeTrac
 import { TimeTrackingFilters } from '@/components/time-tracking/dashboard/TimeTrackingFilters';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ActiveTimeSession } from '@/components/time-tracking/dashboard/ActiveTimeSession';
+import { useTimeBreakdown } from '@/hooks/time-tracking/useTimeBreakdown';
 
 export default function TimeTracking() {
   const [userId, setUserId] = useState<string | null>(null);
@@ -53,15 +53,11 @@ export default function TimeTracking() {
     totalMonth: 0
   });
   
-  const [timeBreakdownData, setTimeBreakdownData] = useState<Array<{
-    task_type: string;
-    minutes: number;
-    color: string;
-  }>>([]);
-  
   const [equipments, setEquipments] = useState<{ id: number; name: string }[]>([]);
   
   const [activeSessions, setActiveSessions] = useState<TimeEntry[]>([]);
+  
+  const { data: timeBreakdownData, isLoading: isTimeBreakdownLoading, error: timeBreakdownError } = useTimeBreakdown();
   
   useEffect(() => {
     const fetchUserId = async () => {
@@ -79,7 +75,6 @@ export default function TimeTracking() {
       fetchTimeEntries();
       fetchEquipments();
       calculateStats();
-      fetchTimeBreakdown();
       fetchActiveSessions();
     }
   }, [userId, dateRange, equipmentFilter, taskTypeFilter]);
@@ -117,21 +112,6 @@ export default function TimeTracking() {
       setActiveSessions(mockSessions);
     } catch (error) {
       console.error("Error fetching active sessions:", error);
-    }
-  };
-  
-  const fetchTimeBreakdown = async () => {
-    try {
-      const mockData = [
-        { task_type: "Traite", minutes: 180, color: "#10B981" },
-        { task_type: "Entretien", minutes: 240, color: "#67E8F9" },
-        { task_type: "Plantation", minutes: 210, color: "#6EE7B7" },
-        { task_type: "Mécanique", minutes: 120, color: "#6B7280" }
-      ];
-      
-      setTimeBreakdownData(mockData);
-    } catch (error) {
-      console.error("Error fetching time breakdown:", error);
     }
   };
   
@@ -319,7 +299,11 @@ export default function TimeTracking() {
               }}
             />
             
-            <TimeBreakdownChart data={timeBreakdownData} />
+            <TimeBreakdownChart 
+              data={timeBreakdownData}
+              isLoading={isTimeBreakdownLoading}
+              error={timeBreakdownError}
+            />
             
             <ActiveSessionsTable
               sessions={activeSessions}

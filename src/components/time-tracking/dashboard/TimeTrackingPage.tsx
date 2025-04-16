@@ -12,6 +12,7 @@ import { TimeEntryForm } from '../TimeEntryForm';
 import { TimeTrackingTabs } from './TimeTrackingTabs';
 import { startOfWeek, endOfWeek } from 'date-fns';
 import { useTimeTrackingData } from '@/hooks/time-tracking/useTimeTrackingData';
+import { useTimeBreakdown } from '@/hooks/time-tracking/useTimeBreakdown';
 
 export default function TimeTrackingPage() {
   const {
@@ -21,7 +22,6 @@ export default function TimeTrackingPage() {
     activeTab,
     isFormOpen,
     stats,
-    timeBreakdownData,
     equipments,
     activeSessions,
     handleStartTimeEntry,
@@ -39,6 +39,8 @@ export default function TimeTrackingPage() {
     taskTypeFilter,
     setTaskTypeFilter,
   } = useTimeTrackingData();
+
+  const { data: timeBreakdownData, isLoading: isTimeBreakdownLoading, error: timeBreakdownError } = useTimeBreakdown();
 
   return (
     <SidebarProvider>
@@ -86,7 +88,11 @@ export default function TimeTrackingPage() {
               }}
             />
             
-            <TimeBreakdownChart data={timeBreakdownData} />
+            <TimeBreakdownChart 
+              data={timeBreakdownData} 
+              isLoading={isTimeBreakdownLoading} 
+              error={timeBreakdownError}
+            />
             
             <ActiveSessionsTable
               sessions={activeSessions}

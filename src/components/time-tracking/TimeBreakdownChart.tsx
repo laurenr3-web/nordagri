@@ -2,12 +2,16 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { useTimeBreakdown } from '@/hooks/time-tracking/useTimeBreakdown';
 import { Skeleton } from '@/components/ui/skeleton';
+import { TimeBreakdownData } from '@/hooks/time-tracking/useTimeBreakdown';
 
-export function TimeBreakdownChart() {
-  const { data, isLoading, error } = useTimeBreakdown();
+interface TimeBreakdownChartProps {
+  data?: TimeBreakdownData[];
+  isLoading?: boolean;
+  error?: Error | null;
+}
 
+export function TimeBreakdownChart({ data, isLoading, error }: TimeBreakdownChartProps) {
   if (isLoading) {
     return (
       <Card className="mb-6">
@@ -38,7 +42,7 @@ export function TimeBreakdownChart() {
     );
   }
 
-  if (!data.length) {
+  if (!data || !data.length) {
     return (
       <Card className="mb-6">
         <CardHeader>
