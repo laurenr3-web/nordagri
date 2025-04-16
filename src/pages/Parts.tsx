@@ -21,7 +21,7 @@ const Parts = () => {
       try {
         const status = await checkAuthStatus();
         
-        if (!status.isAuthenticated) {
+        if (!status.authenticated) { // Changed from isAuthenticated to authenticated
           toast({
             title: "Connexion requise",
             description: "Vous devez être connecté pour gérer vos pièces",
@@ -56,7 +56,7 @@ const Parts = () => {
     checkAuth();
   }, [toast]);
   
-  // Convertir setCurrentView pour qu'il accepte un string
+  // Convert setCurrentView to accept a string
   const setCurrentView = (view: string) => {
     if (view === 'grid' || view === 'list') {
       partsHookData.setCurrentView(view as PartsView);
