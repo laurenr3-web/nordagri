@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { TimeEntry, TimeEntryTaskType, TimeEntryStatus, TimeSpentByEquipment, TaskType } from '@/hooks/time-tracking/types';
 import { convertDatesToISOStrings } from '@/data/adapters/supabase/utils';
@@ -344,7 +345,10 @@ export const timeTrackingService = {
         })
         .eq('id', parseInt(entryId, 10));
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error in stopTimeEntry:", error);
+        throw error;
+      }
     } catch (error) {
       console.error("Error stopping time entry:", error);
       throw error;
@@ -356,7 +360,7 @@ export const timeTrackingService = {
    */
   async pauseTimeEntry(entryId: string): Promise<void> {
     try {
-      // Corrigé: N'essayer de mettre à jour que le statut sans inclure task_type
+      // Updated: Only update the status
       const { error } = await supabase
         .from('interventions')
         .update({
@@ -364,7 +368,10 @@ export const timeTrackingService = {
         })
         .eq('id', parseInt(entryId, 10));
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error in pauseTimeEntry:", error);
+        throw error;
+      }
     } catch (error) {
       console.error("Error pausing time entry:", error);
       throw error;
@@ -376,7 +383,7 @@ export const timeTrackingService = {
    */
   async resumeTimeEntry(entryId: string): Promise<void> {
     try {
-      // Corrigé: N'essayer de mettre à jour que le statut sans inclure task_type
+      // Updated: Only update the status
       const { error } = await supabase
         .from('interventions')
         .update({
@@ -384,7 +391,10 @@ export const timeTrackingService = {
         })
         .eq('id', parseInt(entryId, 10));
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error in resumeTimeEntry:", error);
+        throw error;
+      }
     } catch (error) {
       console.error("Error resuming time entry:", error);
       throw error;

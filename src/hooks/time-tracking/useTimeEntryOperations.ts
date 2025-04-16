@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { timeTrackingService } from '@/services/supabase/timeTrackingService';
 import { TimeEntryTaskType } from './types';
 import { supabase } from '@/integrations/supabase/client';
+import { checkAuthStatus } from '@/utils/authUtils';
 
 export function useTimeEntryOperations() {
   const startTimeEntry = async (params: {
@@ -27,6 +28,9 @@ export function useTimeEntryOperations() {
       const locationName = params.location || 
                           (params.location_id ? `Location ${params.location_id}` : undefined);
       
+      // Log auth status for debugging
+      await checkAuthStatus();
+      
       const newEntry = await timeTrackingService.startTimeEntry(userId, {
         ...params,
         location: locationName
@@ -48,6 +52,9 @@ export function useTimeEntryOperations() {
 
   const stopTimeEntry = async (timeEntryId: string) => {
     try {
+      // Log auth status for debugging
+      await checkAuthStatus();
+      
       await timeTrackingService.stopTimeEntry(timeEntryId);
       toast.success('Time tracking stopped', {
         description: 'Your time entry has been saved.'
@@ -63,6 +70,9 @@ export function useTimeEntryOperations() {
 
   const pauseTimeEntry = async (timeEntryId: string) => {
     try {
+      // Log auth status for debugging
+      await checkAuthStatus();
+      
       await timeTrackingService.pauseTimeEntry(timeEntryId);
       toast.success('Time tracking paused', {
         description: 'You can resume later.'
@@ -78,6 +88,9 @@ export function useTimeEntryOperations() {
 
   const resumeTimeEntry = async (timeEntryId: string) => {
     try {
+      // Log auth status for debugging
+      await checkAuthStatus();
+      
       await timeTrackingService.resumeTimeEntry(timeEntryId);
       toast.success('Time tracking resumed', {
         description: 'The timer is running again.'
