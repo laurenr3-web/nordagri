@@ -31,7 +31,7 @@ export function useEquipmentRealtime() {
             // Remove the deleted equipment from cache
             queryClient.setQueryData(['equipment', payload.old.id], undefined);
             // Force a refetch of all equipment-related queries
-            queryClient.invalidateQueries({ queryKey: ['equipment'] }, { exact: false });
+            queryClient.invalidateQueries({ queryKey: ['equipment'] });
           }
           // For all other events, just invalidate queries
           else {
