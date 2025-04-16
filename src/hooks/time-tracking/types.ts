@@ -21,6 +21,7 @@ export interface TimeEntry {
   created_at: string;
   updated_at: string;
   current_duration?: string; // Adding current_duration field
+  journee_id?: string; // Adding journee_id field
 }
 
 export interface ActiveTimeEntry extends TimeEntry {

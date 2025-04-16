@@ -82,7 +82,8 @@ export const timeTrackingService = {
           location: data.location,
           created_at: data.created_at,
           updated_at: data.updated_at,
-          current_duration: '00:00:00'
+          current_duration: '00:00:00',
+          journee_id: data.journee_id
         };
       }
       
@@ -165,7 +166,8 @@ export const timeTrackingService = {
           notes: item.notes,
           location: item.location,
           created_at: item.created_at,
-          updated_at: item.updated_at
+          updated_at: item.updated_at,
+          journee_id: item.journee_id
         } as TimeEntry;
       });
     } catch (error) {
@@ -566,6 +568,7 @@ export const timeTrackingService = {
       if (data.task_type_id !== undefined) updateData.task_type_id = data.task_type_id;
       if (data.location !== undefined) updateData.location = data.location;
       if (data.intervention_id !== undefined) updateData.intervention_id = data.intervention_id;
+      if (data.journee_id !== undefined) updateData.journee_id = data.journee_id;
       
       // Set end_time if provided or if status is being set to completed
       if (data.end_time) {
