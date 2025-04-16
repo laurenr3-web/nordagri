@@ -17,6 +17,7 @@ export interface TimeEntry {
   equipment_name?: string;
   intervention_title?: string;
   location?: string;
+  poste_travail?: string; // Adding poste_travail field
   created_at: string;
   updated_at: string;
   current_duration?: string; // Adding current_duration field
