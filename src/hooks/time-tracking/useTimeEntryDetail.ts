@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TimeEntry } from '@/hooks/time-tracking/types';
@@ -31,7 +32,13 @@ export function useTimeEntryDetail(id: string | undefined) {
       const foundEntry = data.find(e => String(e.id) === String(id));
       
       if (foundEntry) {
-        setEntry(foundEntry);
+        // Assurer que les champs requis existent
+        const enhancedEntry: TimeEntry = {
+          ...foundEntry,
+          user_name: foundEntry.user_name || foundEntry.owner_name || 'Utilisateur',
+          current_duration: foundEntry.current_duration || '00:00:00'
+        };
+        setEntry(enhancedEntry);
       } else {
         toast.error("Session introuvable");
         navigate('/time-tracking');
@@ -71,6 +78,7 @@ export function useTimeEntryDetail(id: string | undefined) {
         toast.success('Session reprise');
       }
     } catch (error) {
+      console.error('Erreur lors du changement de statut:', error);
       toast.error('Erreur lors du changement de statut');
     }
   };
@@ -130,7 +138,7 @@ export function useTimeEntryDetail(id: string | undefined) {
       state: {
         equipment_id: entry.equipment_id,
         equipment_name: entry.equipment_name,
-        duration: entry.current_duration || "00:00:00", // Provide a default value
+        duration: entry.current_duration || "00:00:00",
         notes: entry.notes
       }
     });

@@ -40,7 +40,7 @@ const TimeEntryDetail = () => {
 
   // Convert the TimeEntryStatus to the expected component prop type
   const safeStatus: 'active' | 'paused' | 'completed' = 
-    entry.status === 'disputed' ? 'completed' : entry.status;
+    entry.status === 'disputed' ? 'completed' : entry.status as 'active' | 'paused' | 'completed';
   
   // Get display name from available properties
   const displayName = entry.user_name || entry.owner_name || 'Utilisateur';

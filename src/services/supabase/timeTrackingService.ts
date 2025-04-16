@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { TimeEntry, TimeEntryTaskType, TimeEntryStatus, TimeSpentByEquipment, TaskType } from '@/hooks/time-tracking/types';
 import { convertDatesToISOStrings } from '@/data/adapters/supabase/utils';
@@ -38,6 +37,7 @@ export const timeTrackingService = {
    */
   async getActiveTimeEntry(userId: string): Promise<TimeEntry | null> {
     try {
+      // Mise à jour pour éviter la jointure avec profiles qui cause l'erreur
       const { data, error } = await supabase
         .from('interventions')
         .select(`
@@ -48,8 +48,7 @@ export const timeTrackingService = {
           date,
           status,
           equipment,
-          owner_id,
-          profiles(first_name, last_name)
+          owner_id
         `)
         .eq('owner_id', userId)
         .eq('status', 'active')
@@ -63,19 +62,8 @@ export const timeTrackingService = {
       }
       
       if (data) {
-        // Safely try to extract profile info
-        let ownerName: string | undefined;
-        try {
-          // Check if profiles data exists before accessing properties
-          if (data.profiles && typeof data.profiles === 'object') {
-            const profiles = data.profiles as any; // Use type assertion for safety
-            if (profiles.first_name && profiles.last_name) {
-              ownerName = `${profiles.first_name} ${profiles.last_name}`;
-            }
-          }
-        } catch (e) {
-          console.warn("Could not extract profile information", e);
-        }
+        // Nous n'essayons plus d'extraire les informations de profil qui causaient l'erreur
+        const ownerName = 'User'; // Valeur par défaut
 
         return {
           id: data.id.toString(),
@@ -368,7 +356,7 @@ export const timeTrackingService = {
    */
   async pauseTimeEntry(entryId: string): Promise<void> {
     try {
-      // Only update the status field, not trying to set task_type
+      // Corrigé: N'essayer de mettre à jour que le statut sans inclure task_type
       const { error } = await supabase
         .from('interventions')
         .update({
@@ -388,7 +376,7 @@ export const timeTrackingService = {
    */
   async resumeTimeEntry(entryId: string): Promise<void> {
     try {
-      // Only update the status field, not trying to set task_type
+      // Corrigé: N'essayer de mettre à jour que le statut sans inclure task_type
       const { error } = await supabase
         .from('interventions')
         .update({
