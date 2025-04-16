@@ -1,17 +1,29 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Edit } from 'lucide-react';
+import { Edit, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import QRCodeGenerator from '../qr/QRCodeGenerator';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface EquipmentHeaderProps {
   equipment: EquipmentItem;
   onEdit: () => void;
+  onDelete: () => void;
 }
 
-const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({ equipment, onEdit }) => {
+const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({ equipment, onEdit, onDelete }) => {
   return (
     <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
       <div>
@@ -43,6 +55,33 @@ const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({ equipment, onEdit }) 
           <Edit className="mr-2 h-4 w-4" />
           Modifier
         </Button>
+        
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" size="sm">
+              <Trash2 className="mr-2 h-4 w-4" />
+              Supprimer
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Cette action ne peut pas être annulée. Cela supprimera définitivement l'équipement 
+                "{equipment.name}" et toutes les données associées.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Annuler</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={onDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Supprimer
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

@@ -10,6 +10,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import EquipmentMaintenance from '../tabs/EquipmentMaintenance';
 import EquipmentMaintenanceHistory from '../tabs/EquipmentMaintenanceHistory';
 import EquipmentQRCode from '../tabs/EquipmentQRCode';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
+import { equipmentService } from '@/services/supabase/equipmentService';
 
 interface EquipmentDetailContentProps {
   equipment: EquipmentItem;
@@ -18,6 +21,7 @@ interface EquipmentDetailContentProps {
 
 const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentProps) => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleEditEquipment = () => {
     setIsEditDialogOpen(true);
@@ -27,10 +31,34 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
     await onUpdate(updatedData);
     setIsEditDialogOpen(false);
   };
+  
+  const handleEquipmentDelete = async () => {
+    try {
+      // Convert ID to number if it's a string
+      const equipmentId = typeof equipment.id === 'string' 
+        ? parseInt(equipment.id, 10) 
+        : equipment.id;
+      
+      // Call the delete service
+      await equipmentService.deleteEquipment(equipmentId);
+      
+      toast.success(`L'équipement ${equipment.name} a été supprimé avec succès`);
+      
+      // Navigate back to equipment list
+      navigate('/equipment');
+    } catch (error) {
+      console.error('Error deleting equipment:', error);
+      toast.error('Impossible de supprimer cet équipement');
+    }
+  };
 
   return (
     <div className="space-y-8">
-      <EquipmentHeader equipment={equipment} onEdit={handleEditEquipment} />
+      <EquipmentHeader 
+        equipment={equipment} 
+        onEdit={handleEditEquipment}
+        onDelete={handleEquipmentDelete}
+      />
       
       <Tabs defaultValue="overview">
         <TabsList className="mb-8 flex flex-wrap">
