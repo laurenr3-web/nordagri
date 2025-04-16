@@ -14,7 +14,8 @@ const EquipmentPage = () => {
   const {
     equipment,
     isLoading,
-    error
+    error,
+    refetch
   } = useEquipmentData();
   
   // Set up realtime updates
@@ -34,8 +35,10 @@ const EquipmentPage = () => {
   React.useEffect(() => {
     if (isSubscribed) {
       console.log('Successfully subscribed to equipment updates');
+      // Forcer un rafraîchissement des données lorsqu'on est abonné aux mises à jour
+      refetch();
     }
-  }, [isSubscribed]);
+  }, [isSubscribed, refetch]);
   
   // Transformer les équipements en EquipmentItem
   const transformedEquipment: EquipmentItem[] = React.useMemo(() => {

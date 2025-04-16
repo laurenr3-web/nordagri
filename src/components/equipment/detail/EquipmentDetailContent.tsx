@@ -39,6 +39,8 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
         ? parseInt(equipment.id, 10) 
         : equipment.id;
       
+      console.log(`Deleting equipment with ID: ${equipmentId}`);
+      
       // Call the delete service
       await equipmentService.deleteEquipment(equipmentId);
       

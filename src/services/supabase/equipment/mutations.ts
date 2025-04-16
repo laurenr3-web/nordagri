@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Equipment } from './types';
 import { mapEquipmentToDatabase, mapEquipmentFromDatabase } from './mappers';
@@ -98,15 +99,37 @@ export async function deleteEquipment(id: number | string): Promise<void> {
     
     console.log(`Attempting to delete equipment with ID: ${numericId}`);
     
-    // First try to delete maintenance tasks associated with this equipment
+    // First delete all related maintenance tasks
     const { error: maintenanceError } = await supabase
       .from('equipment_maintenance_schedule')
       .delete()
       .eq('equipment_id', numericId);
-    
+      
     if (maintenanceError) {
       console.warn(`Error deleting maintenance tasks for equipment ${numericId}:`, maintenanceError);
       // Continue with deletion even if maintenance task deletion fails
+    }
+    
+    // Delete maintenance plans associated with this equipment
+    const { error: plansError } = await supabase
+      .from('maintenance_plans')
+      .delete()
+      .eq('equipment_id', numericId);
+      
+    if (plansError) {
+      console.warn(`Error deleting maintenance plans for equipment ${numericId}:`, plansError);
+      // Continue with deletion even if plans deletion fails
+    }
+    
+    // Delete maintenance tasks associated with this equipment
+    const { error: tasksError } = await supabase
+      .from('maintenance_tasks')
+      .delete()
+      .eq('equipment_id', numericId);
+      
+    if (tasksError) {
+      console.warn(`Error deleting maintenance tasks for equipment ${numericId}:`, tasksError);
+      // Continue with deletion even if tasks deletion fails
     }
     
     // Delete the equipment

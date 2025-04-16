@@ -110,6 +110,9 @@ export function useEquipmentData() {
         title: 'Équipement supprimé',
         description: `L'équipement a été supprimé avec succès`,
       });
+      
+      // Explicitement rafraîchir la liste des équipements
+      refetch();
     },
     onError: (error: Error) => {
       console.error('❌ Error deleting equipment:', error);
