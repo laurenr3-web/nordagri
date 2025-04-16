@@ -805,6 +805,88 @@ export type Database = {
           },
         ]
       }
+      time_sessions: {
+        Row: {
+          coordinates: Json | null
+          created_at: string | null
+          custom_task_type: string | null
+          duration: number | null
+          end_time: string | null
+          equipment_id: number | null
+          id: string
+          intervention_id: number | null
+          location: string | null
+          notes: string | null
+          start_time: string
+          status: string
+          task_type_id: string | null
+          technician: string | null
+          title: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          coordinates?: Json | null
+          created_at?: string | null
+          custom_task_type?: string | null
+          duration?: number | null
+          end_time?: string | null
+          equipment_id?: number | null
+          id?: string
+          intervention_id?: number | null
+          location?: string | null
+          notes?: string | null
+          start_time?: string
+          status?: string
+          task_type_id?: string | null
+          technician?: string | null
+          title?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          coordinates?: Json | null
+          created_at?: string | null
+          custom_task_type?: string | null
+          duration?: number | null
+          end_time?: string | null
+          equipment_id?: number | null
+          id?: string
+          intervention_id?: number | null
+          location?: string | null
+          notes?: string | null
+          start_time?: string
+          status?: string
+          task_type_id?: string | null
+          technician?: string | null
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_sessions_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_sessions_intervention_id_fkey"
+            columns: ["intervention_id"]
+            isOneToOne: false
+            referencedRelation: "interventions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_sessions_task_type_id_fkey"
+            columns: ["task_type_id"]
+            isOneToOne: false
+            referencedRelation: "task_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string

@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ActiveTimeEntry, TimeEntry } from './types';
 import { timeTrackingService } from '@/services/supabase/timeTrackingService';
@@ -43,6 +43,31 @@ export function useActiveTimeEntry() {
       setIsLoading(false);
     }
   };
+
+  // Load the active time entry when the component mounts
+  useEffect(() => {
+    fetchActiveTimeEntry();
+    
+    // Set up a realtime subscription to listen for changes to time_sessions
+    const channel = supabase
+      .channel('time_sessions_changes')
+      .on('postgres_changes', 
+        {
+          event: '*',
+          schema: 'public',
+          table: 'time_sessions'
+        }, 
+        (payload) => {
+          console.log('Realtime update received for time_sessions:', payload);
+          fetchActiveTimeEntry();
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   return {
     activeTimeEntry,

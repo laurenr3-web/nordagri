@@ -4,7 +4,7 @@ import { TimeEntry, TimeEntryTaskType, TimeEntryStatus, TimeSpentByEquipment, Ta
 import { convertDatesToISOStrings } from '@/data/adapters/supabase/utils';
 
 /**
- * Service for time tracking management
+ * Service for time tracking management using the new time_sessions table
  */
 export const timeTrackingService = {
   /**
@@ -38,48 +38,44 @@ export const timeTrackingService = {
    */
   async getActiveTimeEntry(userId: string): Promise<TimeEntry | null> {
     try {
-      // Mise à jour pour éviter la jointure avec profiles qui cause l'erreur
       const { data, error } = await supabase
-        .from('interventions')
+        .from('time_sessions')
         .select(`
-          id,
-          equipment_id,
-          title,
-          description,
-          date,
-          status,
-          equipment,
-          owner_id
+          *,
+          equipment:equipment_id (name)
         `)
-        .eq('owner_id', userId)
+        .eq('user_id', userId)
         .eq('status', 'active')
-        .is('duration', null)  // If duration is null, the entry is still ongoing
-        .order('date', { ascending: false })
+        .order('start_time', { ascending: false })
         .limit(1)
         .single();
       
       if (error && error.code !== 'PGRST116') {
+        // PGRST116 is "no rows returned" error, which is normal if no active session
         throw error;
       }
       
       if (data) {
-        // Nous n'essayons plus d'extraire les informations de profil qui causaient l'erreur
-        const ownerName = 'User'; // Valeur par défaut
-
+        // Transform the data to match TimeEntry interface
         return {
-          id: data.id.toString(),
+          id: data.id,
           user_id: userId,
-          owner_name: ownerName,
-          user_name: ownerName, // Set user_name to match owner_name
+          owner_name: data.technician || 'User',
+          user_name: data.technician || 'User',
           equipment_id: data.equipment_id,
-          task_type: 'maintenance' as TimeEntryTaskType,
-          start_time: data.date,
+          task_type: data.custom_task_type as TimeEntryTaskType || 'maintenance',
+          task_type_id: data.task_type_id,
+          custom_task_type: data.custom_task_type,
+          start_time: data.start_time,
+          end_time: data.end_time,
           status: data.status as TimeEntryStatus,
-          equipment_name: data.equipment,
+          equipment_name: data.equipment?.name || 'Unknown Equipment',
           intervention_title: data.title,
-          notes: data.description,
-          created_at: data.date,
-          updated_at: data.date
+          notes: data.notes,
+          location: data.location,
+          created_at: data.created_at,
+          updated_at: data.updated_at,
+          current_duration: '00:00:00' // This will be calculated by the timer component
         };
       }
       
@@ -105,53 +101,62 @@ export const timeTrackingService = {
     try {
       // Create query
       let query = supabase
-        .from('interventions')
+        .from('time_sessions')
         .select(`
-          id,
-          owner_id,
-          equipment_id,
-          equipment,
-          title,
-          description,
-          date,
-          status,
-          duration,
-          created_at,
-          updated_at
+          *,
+          equipment:equipment_id (name)
         `)
-        .eq('owner_id', filters.userId);
+        .eq('user_id', filters.userId);
       
       // Apply optional filters
       if (filters.startDate) {
-        query = query.gte('date', filters.startDate.toISOString());
+        query = query.gte('start_time', filters.startDate.toISOString());
       }
       
       if (filters.endDate) {
-        query = query.lte('date', filters.endDate.toISOString());
+        query = query.lte('start_time', filters.endDate.toISOString());
       }
       
       if (filters.equipmentId && filters.equipmentId !== 0) {
         query = query.eq('equipment_id', filters.equipmentId);
       }
       
+      if (filters.interventionId) {
+        query = query.eq('intervention_id', filters.interventionId);
+      }
+      
+      if (filters.taskType) {
+        query = query.eq('custom_task_type', filters.taskType);
+      }
+      
+      if (filters.status) {
+        query = query.eq('status', filters.status);
+      }
+      
       // Execute query
-      const { data, error } = await query.order('date', { ascending: false });
+      const { data, error } = await query.order('start_time', { ascending: false });
       
       if (error) throw error;
       
       // Transform to TimeEntry format
       return (data || []).map(item => {
         return {
-          id: item.id.toString(),
-          user_id: item.owner_id,
+          id: item.id,
+          user_id: item.user_id,
+          owner_name: item.technician || 'User',
+          user_name: item.technician || 'User',
           equipment_id: item.equipment_id,
-          task_type: 'maintenance' as TimeEntryTaskType, // Default
-          start_time: item.date,
-          end_time: item.duration ? new Date(new Date(item.date).getTime() + item.duration * 3600000).toISOString() : null,
-          notes: item.description,
+          intervention_id: item.intervention_id,
+          task_type: item.custom_task_type as TimeEntryTaskType || 'maintenance',
+          task_type_id: item.task_type_id,
+          custom_task_type: item.custom_task_type,
+          start_time: item.start_time,
+          end_time: item.end_time,
           status: item.status as TimeEntryStatus,
-          equipment_name: item.equipment,
+          equipment_name: item.equipment?.name || 'Unknown Equipment',
           intervention_title: item.title,
+          notes: item.notes,
+          location: item.location,
           created_at: item.created_at,
           updated_at: item.updated_at
         } as TimeEntry;
@@ -171,19 +176,19 @@ export const timeTrackingService = {
     endDate?: Date
   ): Promise<TimeSpentByEquipment[]> {
     try {
-      // Create query for interventions with duration
+      // Create query for time_sessions with duration
       let query = supabase
-        .from('interventions')
+        .from('time_sessions')
         .select(`
           equipment_id,
-          equipment,
+          equipment:equipment_id (name),
           duration
         `)
-        .eq('owner_id', userId)
+        .eq('user_id', userId)
         .not('duration', 'is', null);
       
-      if (startDate) query = query.gte('date', startDate.toISOString());
-      if (endDate) query = query.lte('date', endDate.toISOString());
+      if (startDate) query = query.gte('start_time', startDate.toISOString());
+      if (endDate) query = query.lte('start_time', endDate.toISOString());
       
       const { data, error } = await query;
       
@@ -195,7 +200,7 @@ export const timeTrackingService = {
       data?.forEach(item => {
         if (item.equipment_id && item.duration) {
           const id = item.equipment_id;
-          const current = equipmentMap.get(id) || { name: item.equipment || 'Unknown', minutes: 0 };
+          const current = equipmentMap.get(id) || { name: item.equipment?.name || 'Unknown', minutes: 0 };
           current.minutes += item.duration * 60; // Convert hours to minutes
           equipmentMap.set(id, current);
         }
@@ -219,9 +224,9 @@ export const timeTrackingService = {
   async deleteTimeEntry(entryId: string): Promise<void> {
     try {
       const { error } = await supabase
-        .from('interventions')
+        .from('time_sessions')
         .delete()
-        .eq('id', parseInt(entryId, 10));
+        .eq('id', entryId);
       
       if (error) throw error;
     } catch (error) {
@@ -238,9 +243,11 @@ export const timeTrackingService = {
     intervention_id?: number;
     task_type: TimeEntryTaskType;
     task_type_id?: string;
+    custom_task_type?: string;
     title?: string;
     notes?: string;
     location?: string;
+    coordinates?: { lat: number; lng: number };
   }): Promise<TimeEntry> {
     try {
       // Get task type ID if not provided
@@ -270,43 +277,48 @@ export const timeTrackingService = {
         }
       }
       
-      // Create a new entry in interventions table - Remove the task_type field that doesn't exist
+      // Create a new entry in time_sessions table
       const timeEntryData = {
-        owner_id: userId,
+        user_id: userId,
         equipment_id: data.equipment_id || null,
-        equipment: equipmentName,
+        intervention_id: data.intervention_id || null,
+        task_type_id: data.task_type_id || null,
+        custom_task_type: data.custom_task_type || data.task_type,
         title: data.title || `${data.task_type} - ${new Date().toLocaleString()}`,
-        description: data.notes || '',
+        notes: data.notes || '',
         status: 'active',
-        date: new Date().toISOString(),
+        start_time: new Date().toISOString(),
         location: data.location || 'Unknown',
-        priority: 'medium',
-        technician: 'Self',
-        task_type_id: data.task_type_id
-        // Removed task_type field as it doesn't exist in the interventions table
+        coordinates: data.coordinates || null,
+        technician: 'Self'
       };
       
       const { data: result, error } = await supabase
-        .from('interventions')
+        .from('time_sessions')
         .insert(timeEntryData)
-        .select()
+        .select(`
+          *,
+          equipment:equipment_id (name)
+        `)
         .single();
       
       if (error) throw error;
       
       // Transform to TimeEntry format
       const entry: TimeEntry = {
-        id: result.id.toString(),
+        id: result.id,
         user_id: userId,
         equipment_id: data.equipment_id,
         intervention_id: data.intervention_id,
         task_type: data.task_type,
         task_type_id: data.task_type_id,
+        custom_task_type: data.custom_task_type,
         notes: data.notes,
-        start_time: result.date,
+        start_time: result.start_time,
         status: 'active',
-        equipment_name: result.equipment,
+        equipment_name: result.equipment?.name || equipmentName,
         intervention_title: result.title,
+        location: data.location,
         created_at: result.created_at,
         updated_at: result.updated_at
       };
@@ -323,27 +335,14 @@ export const timeTrackingService = {
    */
   async stopTimeEntry(entryId: string): Promise<void> {
     try {
-      // Calculate duration from start date to now
-      const { data: entry } = await supabase
-        .from('interventions')
-        .select('date')
-        .eq('id', parseInt(entryId, 10))
-        .single();
-      
-      if (!entry) throw new Error('Entry not found');
-      
-      const startTime = new Date(entry.date).getTime();
-      const endTime = new Date().getTime();
-      const durationHours = (endTime - startTime) / (1000 * 60 * 60);
-      
-      // Update only the status and duration fields, not trying to set task_type
+      // Update the time_sessions entry: mark as completed and set end_time
       const { error } = await supabase
-        .from('interventions')
+        .from('time_sessions')
         .update({
           status: 'completed',
-          duration: durationHours
+          end_time: new Date().toISOString()
         })
-        .eq('id', parseInt(entryId, 10));
+        .eq('id', entryId);
       
       if (error) {
         console.error("Error in stopTimeEntry:", error);
@@ -360,13 +359,13 @@ export const timeTrackingService = {
    */
   async pauseTimeEntry(entryId: string): Promise<void> {
     try {
-      // Updated: Only update the status
+      // Update the time_sessions entry: mark as paused
       const { error } = await supabase
-        .from('interventions')
+        .from('time_sessions')
         .update({
           status: 'paused'
         })
-        .eq('id', parseInt(entryId, 10));
+        .eq('id', entryId);
       
       if (error) {
         console.error("Error in pauseTimeEntry:", error);
@@ -383,13 +382,13 @@ export const timeTrackingService = {
    */
   async resumeTimeEntry(entryId: string): Promise<void> {
     try {
-      // Updated: Only update the status
+      // Update the time_sessions entry: mark as active
       const { error } = await supabase
-        .from('interventions')
+        .from('time_sessions')
         .update({
           status: 'active'
         })
-        .eq('id', parseInt(entryId, 10));
+        .eq('id', entryId);
       
       if (error) {
         console.error("Error in resumeTimeEntry:", error);
@@ -406,24 +405,31 @@ export const timeTrackingService = {
    */
   async updateTimeEntry(entryId: string, data: Partial<TimeEntry>): Promise<void> {
     try {
-      // Convert TimeEntry data to interventions format, but only include fields that exist in the table
+      // Convert TimeEntry data to time_sessions format
       const updateData: any = {};
       
-      if (data.notes) updateData.description = data.notes;
-      if (data.status) updateData.status = data.status;
-      if (data.equipment_id) updateData.equipment_id = data.equipment_id;
+      if (data.notes !== undefined) updateData.notes = data.notes;
+      if (data.status !== undefined) updateData.status = data.status;
+      if (data.equipment_id !== undefined) updateData.equipment_id = data.equipment_id;
+      if (data.task_type !== undefined) updateData.custom_task_type = data.task_type;
+      if (data.task_type_id !== undefined) updateData.task_type_id = data.task_type_id;
+      if (data.location !== undefined) updateData.location = data.location;
+      if (data.intervention_id !== undefined) updateData.intervention_id = data.intervention_id;
       
-      // Calculate duration if both start_time and end_time are provided
-      if (data.start_time && data.end_time) {
-        const startTime = new Date(data.start_time).getTime();
-        const endTime = new Date(data.end_time).getTime();
-        updateData.duration = (endTime - startTime) / (1000 * 60 * 60);
+      // Set end_time if provided or if status is being set to completed
+      if (data.end_time) {
+        updateData.end_time = data.end_time;
+      } else if (data.status === 'completed' && !updateData.end_time) {
+        updateData.end_time = new Date().toISOString();
       }
       
+      // Always update the updated_at timestamp
+      updateData.updated_at = new Date().toISOString();
+      
       const { error } = await supabase
-        .from('interventions')
+        .from('time_sessions')
         .update(updateData)
-        .eq('id', parseInt(entryId, 10));
+        .eq('id', entryId);
       
       if (error) throw error;
     } catch (error) {

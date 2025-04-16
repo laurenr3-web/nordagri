@@ -31,6 +31,9 @@ export function useTimeEntryOperations() {
       // Log auth status for debugging
       await checkAuthStatus();
       
+      // Check permissions on time_sessions table
+      await checkTablePermissions('time_sessions');
+      
       const newEntry = await timeTrackingService.startTimeEntry(userId, {
         ...params,
         location: locationName
@@ -55,6 +58,9 @@ export function useTimeEntryOperations() {
       // Log auth status for debugging
       await checkAuthStatus();
       
+      // Check permissions on time_sessions table
+      await checkTablePermissions('time_sessions', timeEntryId);
+      
       await timeTrackingService.stopTimeEntry(timeEntryId);
       toast.success('Time tracking stopped', {
         description: 'Your time entry has been saved.'
@@ -73,6 +79,9 @@ export function useTimeEntryOperations() {
       // Log auth status for debugging
       await checkAuthStatus();
       
+      // Check permissions on time_sessions table
+      await checkTablePermissions('time_sessions', timeEntryId);
+      
       await timeTrackingService.pauseTimeEntry(timeEntryId);
       toast.success('Time tracking paused', {
         description: 'You can resume later.'
@@ -90,6 +99,9 @@ export function useTimeEntryOperations() {
     try {
       // Log auth status for debugging
       await checkAuthStatus();
+      
+      // Check permissions on time_sessions table
+      await checkTablePermissions('time_sessions', timeEntryId);
       
       await timeTrackingService.resumeTimeEntry(timeEntryId);
       toast.success('Time tracking resumed', {
@@ -111,3 +123,4 @@ export function useTimeEntryOperations() {
     resumeTimeEntry
   };
 }
+
