@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import MainLayout from '@/ui/layouts/MainLayout';
 import EquipmentPageContent from '@/components/equipment/page/EquipmentPageContent';
 import EquipmentDialogs from '@/components/equipment/dialogs/EquipmentDialogs';
@@ -41,14 +41,26 @@ const EquipmentPage = () => {
     }
   }, [isSubscribed, refetch]);
   
-  // Forcer un rafraîchissement périodique des données (toutes les 30 secondes)
+  // Forcer un rafraîchissement périodique des données (toutes les 15 secondes)
   React.useEffect(() => {
     const interval = setInterval(() => {
       console.log('Periodic equipment data refresh');
       refetch();
-    }, 30000);
+    }, 15000); // Reduced from 30s to 15s for more responsive updates
     
     return () => clearInterval(interval);
+  }, [refetch]);
+
+  // Add extra effect to refetch data when returning to this page
+  useEffect(() => {
+    // This effect runs when the component mounts, which happens when navigating to this page
+    console.log('Equipment page mounted, refreshing data');
+    refetch();
+    
+    return () => {
+      // This cleanup runs when unmounting
+      console.log('Equipment page unmounting');
+    };
   }, [refetch]);
   
   // Transformer les équipements en EquipmentItem

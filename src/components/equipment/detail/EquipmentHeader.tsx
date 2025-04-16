@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Loader2, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import QRCodeGenerator from '../qr/QRCodeGenerator';
@@ -21,9 +21,15 @@ interface EquipmentHeaderProps {
   equipment: EquipmentItem;
   onEdit: () => void;
   onDelete: () => void;
+  isDeleting?: boolean;
 }
 
-const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({ equipment, onEdit, onDelete }) => {
+const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({ 
+  equipment, 
+  onEdit, 
+  onDelete,
+  isDeleting = false 
+}) => {
   return (
     <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
       <div>
@@ -51,16 +57,25 @@ const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({ equipment, onEdit, on
           equipmentName={equipment.name} 
         />
         
-        <Button variant="outline" size="sm" onClick={onEdit}>
+        <Button variant="outline" size="sm" onClick={onEdit} disabled={isDeleting}>
           <Edit className="mr-2 h-4 w-4" />
           Modifier
         </Button>
         
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="destructive" size="sm">
-              <Trash2 className="mr-2 h-4 w-4" />
-              Supprimer
+            <Button variant="destructive" size="sm" disabled={isDeleting}>
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Suppression...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Supprimer
+                </>
+              )}
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
@@ -76,8 +91,9 @@ const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({ equipment, onEdit, on
               <AlertDialogAction 
                 onClick={onDelete}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                disabled={isDeleting}
               >
-                Supprimer
+                {isDeleting ? 'Suppression...' : 'Supprimer'}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

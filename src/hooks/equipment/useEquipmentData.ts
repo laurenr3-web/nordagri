@@ -113,10 +113,13 @@ export function useEquipmentData() {
         description: `L'équipement a été supprimé avec succès`,
       });
       
-      // Explicitement rafraîchir la liste des équipements
+      // Use a longer delay and more explicit refetch to ensure UI updates
       setTimeout(() => {
+        console.log('Forced refetch after equipment deletion');
         refetch();
-      }, 100); // Add a small delay to ensure database operations complete
+        // Also force a refetch of all related queries
+        queryClient.refetchQueries({ queryKey: ['equipment'] });
+      }, 500);
     },
     onError: (error: Error) => {
       console.error('❌ Error deleting equipment:', error);

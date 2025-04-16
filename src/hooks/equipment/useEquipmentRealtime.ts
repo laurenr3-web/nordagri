@@ -32,6 +32,15 @@ export function useEquipmentRealtime() {
             queryClient.setQueryData(['equipment', payload.old.id], undefined);
             // Force a refetch of all equipment-related queries
             queryClient.invalidateQueries({ queryKey: ['equipment'] });
+            
+            // Add a small delay before invalidating other queries to ensure the cache is cleared properly
+            setTimeout(() => {
+              console.log('Invalidating related queries after equipment deletion');
+              queryClient.invalidateQueries({ queryKey: ['equipment-stats'] });
+              queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+              // Force refetch after a small delay to ensure UI updates
+              queryClient.refetchQueries({ queryKey: ['equipment'] });
+            }, 300);
           }
           // For all other events, just invalidate queries
           else {
@@ -42,10 +51,10 @@ export function useEquipmentRealtime() {
             if (payload.new && typeof payload.new === 'object' && 'id' in payload.new) {
               queryClient.invalidateQueries({ queryKey: ['equipment', payload.new.id] });
             }
+            
+            // Invalidate stats query
+            queryClient.invalidateQueries({ queryKey: ['equipment-stats'] });
           }
-          
-          // Invalidate stats query
-          queryClient.invalidateQueries({ queryKey: ['equipment-stats'] });
         }
       )
       .subscribe((status) => {

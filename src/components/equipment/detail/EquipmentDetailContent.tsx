@@ -13,6 +13,7 @@ import EquipmentQRCode from '../tabs/EquipmentQRCode';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { equipmentService } from '@/services/supabase/equipmentService';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface EquipmentDetailContentProps {
   equipment: EquipmentItem;
@@ -21,7 +22,9 @@ interface EquipmentDetailContentProps {
 
 const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentProps) => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const handleEditEquipment = () => {
     setIsEditDialogOpen(true);
@@ -34,6 +37,8 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
   
   const handleEquipmentDelete = async () => {
     try {
+      setIsDeleting(true);
+      
       // Convert ID to number if it's a string
       const equipmentId = typeof equipment.id === 'string' 
         ? parseInt(equipment.id, 10) 
@@ -41,19 +46,33 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
       
       console.log(`Deleting equipment with ID: ${equipmentId}`);
       
+      // Invalidate queries before deletion to prepare cache
+      queryClient.invalidateQueries({ queryKey: ['equipment'] });
+      
       // Call the delete service
       await equipmentService.deleteEquipment(equipmentId);
       
+      // Show success toast
       toast.success(`L'équipement ${equipment.name} a été supprimé avec succès`);
       
-      // Force a small delay before navigation to ensure the delete operation completes
+      // Remove from cache
+      queryClient.setQueryData(['equipment', equipmentId], undefined);
+      
+      // Force invalidate related queries
+      queryClient.invalidateQueries({ queryKey: ['equipment'] });
+      queryClient.invalidateQueries({ queryKey: ['equipment-stats'] });
+      
+      // Force a longer delay before navigation to ensure the delete operation completes
+      // and Supabase has time to process the deletion and trigger realtime events
       setTimeout(() => {
+        console.log('Navigating back to equipment list after deletion');
         // Navigate back to equipment list
         navigate('/equipment');
-      }, 300);
+      }, 1000);
     } catch (error) {
       console.error('Error deleting equipment:', error);
       toast.error('Impossible de supprimer cet équipement');
+      setIsDeleting(false);
     }
   };
 
@@ -63,6 +82,7 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
         equipment={equipment} 
         onEdit={handleEditEquipment}
         onDelete={handleEquipmentDelete}
+        isDeleting={isDeleting}
       />
       
       <Tabs defaultValue="overview">
