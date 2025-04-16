@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
 import { SessionTimer } from '@/components/time-tracking/detail/SessionTimer';
@@ -14,9 +13,14 @@ import { TimeEntryDetailLoading } from '@/components/time-tracking/detail/TimeEn
 import { TimeEntryDetailError } from '@/components/time-tracking/detail/TimeEntryDetailError';
 import { SessionClosure } from '@/components/time-tracking/detail/closure/SessionClosure';
 import { TimeEntryStatus } from '@/hooks/time-tracking/types';
+import { TimeEntryForm } from '@/components/time-tracking/TimeEntryForm';
+import { Button } from '@/components/ui/button';
 
 const TimeEntryDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [isNewTaskFormOpen, setIsNewTaskFormOpen] = useState(false);
+  
   const {
     entry,
     isLoading,
@@ -28,7 +32,24 @@ const TimeEntryDetail = () => {
     handleSubmitClosureForm,
     handleNotesChange,
     handleCreateIntervention,
+    prepareNewTaskData
   } = useTimeEntryDetail(id);
+
+  const handleStartNewTask = () => {
+    setIsNewTaskFormOpen(true);
+  };
+
+  const handleSubmitNewTask = async (data: any) => {
+    try {
+      const newEntryId = await prepareNewTaskData(data);
+      setIsNewTaskFormOpen(false);
+      if (newEntryId) {
+        navigate(`/time-tracking/detail/${newEntryId}`);
+      }
+    } catch (error) {
+      console.error('Error starting new task:', error);
+    }
+  };
 
   if (isLoading) {
     return <TimeEntryDetailLoading />;
@@ -70,6 +91,15 @@ const TimeEntryDetail = () => {
                     onStop={handleStop}
                   />
                 )}
+                {safeStatus === 'completed' && (
+                  <Button 
+                    variant="outline" 
+                    className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                    onClick={handleStartNewTask}
+                  >
+                    Commencer une nouvelle tâche
+                  </Button>
+                )}
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">
@@ -95,20 +125,54 @@ const TimeEntryDetail = () => {
                   onCreateIntervention={handleCreateIntervention}
                 />
               </div>
+
+              {entry.intervention_id && (
+                <div className="border rounded-md p-4 bg-blue-50">
+                  <h3 className="text-md font-medium mb-2">Intervention associée</h3>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Cette session fait partie d'une intervention plus large. Vous pouvez consulter toutes les sessions
+                    associées à cette intervention.
+                  </p>
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate(`/interventions/detail/${entry.intervention_id}`)}
+                  >
+                    Voir l'intervention
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+      
       {entry && showClosureDialog && (
         <SessionClosure
           isOpen={showClosureDialog}
           onClose={handleCloseClosureDialog}
           onSubmit={handleSubmitClosureForm}
+          onStartNewTask={handleStartNewTask}
           entry={entry}
           estimatedCost={estimatedCost}
           onCreateIntervention={handleCreateIntervention}
         />
       )}
+
+      <TimeEntryForm
+        isOpen={isNewTaskFormOpen}
+        onOpenChange={setIsNewTaskFormOpen}
+        onSubmit={handleSubmitNewTask}
+        initialData={entry ? {
+          equipment_id: entry.equipment_id,
+          intervention_id: entry.intervention_id,
+          task_type: entry.task_type,
+          custom_task_type: entry.custom_task_type,
+          location_id: entry.location ? parseInt(entry.location) : undefined,
+          location: entry.location,
+          title: `Suite: ${entry.task_type} - ${new Date().toLocaleString()}`
+        } : undefined}
+      />
     </SidebarProvider>
   );
 };

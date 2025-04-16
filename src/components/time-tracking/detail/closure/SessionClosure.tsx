@@ -13,6 +13,7 @@ interface SessionClosureProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: any) => void;
+  onStartNewTask?: () => void;
   entry: TimeEntry;
   estimatedCost: number;
   onCreateIntervention: () => void;
@@ -22,6 +23,7 @@ export function SessionClosure({
   isOpen,
   onClose,
   onSubmit,
+  onStartNewTask,
   entry,
   estimatedCost,
   onCreateIntervention
@@ -52,6 +54,22 @@ export function SessionClosure({
       managerVerified,
       selectedImage
     });
+  };
+
+  const handleSubmitAndStartNew = () => {
+    onSubmit({
+      notes,
+      material,
+      quantity,
+      createRecurring,
+      managerVerified,
+      selectedImage,
+      startNewTask: true
+    });
+
+    if (onStartNewTask) {
+      onStartNewTask();
+    }
   };
 
   return (
@@ -92,11 +110,23 @@ export function SessionClosure({
           />
         </div>
 
-        <DialogFooter className="mt-6 flex justify-between">
+        <DialogFooter className="mt-6 flex justify-between flex-col sm:flex-row gap-2">
           <Button variant="outline" onClick={onClose}>Annuler</Button>
-          <Button onClick={handleSubmit}>
-            Terminer la session
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="secondary" 
+              onClick={handleSubmitAndStartNew}
+              className="flex-1"
+            >
+              Terminer et démarrer nouvelle tâche
+            </Button>
+            <Button 
+              onClick={handleSubmit}
+              className="flex-1"
+            >
+              Terminer la session
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

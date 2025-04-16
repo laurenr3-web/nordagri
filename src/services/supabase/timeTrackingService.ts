@@ -175,6 +175,147 @@ export const timeTrackingService = {
   },
   
   /**
+   * Get a specific time entry by ID
+   */
+  async getTimeEntryById(entryId: string): Promise<TimeEntry | null> {
+    try {
+      const { data, error } = await supabase
+        .from('time_sessions')
+        .select(`
+          *,
+          equipment:equipment_id (name)
+        `)
+        .eq('id', entryId)
+        .single();
+      
+      if (error) {
+        console.error("Error getting time entry by ID:", error);
+        return null;
+      }
+      
+      if (!data) return null;
+      
+      // Transform to TimeEntry format
+      return {
+        id: data.id,
+        user_id: data.user_id,
+        owner_name: data.technician || 'User',
+        user_name: data.technician || 'User',
+        equipment_id: data.equipment_id,
+        intervention_id: data.intervention_id,
+        task_type: data.custom_task_type as TimeEntryTaskType || 'maintenance',
+        task_type_id: data.task_type_id,
+        custom_task_type: data.custom_task_type,
+        start_time: data.start_time,
+        end_time: data.end_time,
+        status: data.status as TimeEntryStatus,
+        equipment_name: data.equipment?.name || 'Unknown Equipment',
+        intervention_title: data.title,
+        notes: data.notes,
+        location: data.location,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        journee_id: data.journee_id
+      } as TimeEntry;
+    } catch (error) {
+      console.error("Error fetching time entry by ID:", error);
+      return null;
+    }
+  },
+  
+  /**
+   * Get time entries for a specific intervention
+   */
+  async getTimeEntriesByIntervention(interventionId: number): Promise<TimeEntry[]> {
+    try {
+      const { data, error } = await supabase
+        .from('time_sessions')
+        .select(`
+          *,
+          equipment:equipment_id (name)
+        `)
+        .eq('intervention_id', interventionId)
+        .order('start_time', { ascending: false });
+      
+      if (error) throw error;
+      
+      // Transform to TimeEntry format
+      return (data || []).map(item => {
+        return {
+          id: item.id,
+          user_id: item.user_id,
+          owner_name: item.technician || 'User',
+          user_name: item.technician || 'User',
+          equipment_id: item.equipment_id,
+          intervention_id: item.intervention_id,
+          task_type: item.custom_task_type as TimeEntryTaskType || 'maintenance',
+          task_type_id: item.task_type_id,
+          custom_task_type: item.custom_task_type,
+          start_time: item.start_time,
+          end_time: item.end_time,
+          status: item.status as TimeEntryStatus,
+          equipment_name: item.equipment?.name || 'Unknown Equipment',
+          intervention_title: item.title,
+          notes: item.notes,
+          location: item.location,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          journee_id: item.journee_id
+        } as TimeEntry;
+      });
+    } catch (error) {
+      console.error("Error getting time entries by intervention:", error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Get time entries for a specific day (using journee_id)
+   */
+  async getTimeEntriesByJourneeId(journeeId: string): Promise<TimeEntry[]> {
+    try {
+      const { data, error } = await supabase
+        .from('time_sessions')
+        .select(`
+          *,
+          equipment:equipment_id (name)
+        `)
+        .eq('journee_id', journeeId)
+        .order('start_time', { ascending: true });
+      
+      if (error) throw error;
+      
+      // Transform to TimeEntry format
+      return (data || []).map(item => {
+        return {
+          id: item.id,
+          user_id: item.user_id,
+          owner_name: item.technician || 'User',
+          user_name: item.technician || 'User',
+          equipment_id: item.equipment_id,
+          intervention_id: item.intervention_id,
+          task_type: item.custom_task_type as TimeEntryTaskType || 'maintenance',
+          task_type_id: item.task_type_id,
+          custom_task_type: item.custom_task_type,
+          start_time: item.start_time,
+          end_time: item.end_time,
+          status: item.status as TimeEntryStatus,
+          equipment_name: item.equipment?.name || 'Unknown Equipment',
+          intervention_title: item.title,
+          notes: item.notes,
+          location: item.location,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          journee_id: item.journee_id
+        } as TimeEntry;
+      });
+    } catch (error) {
+      console.error("Error getting time entries by journee_id:", error);
+      throw error;
+    }
+  },
+  
+  /**
    * Get time spent by equipment
    */
   async getTimeSpentByEquipment(
@@ -255,6 +396,7 @@ export const timeTrackingService = {
     notes?: string;
     location?: string;
     coordinates?: { lat: number; lng: number };
+    journee_id?: string; // Added support for journee_id
   }): Promise<TimeEntry> {
     try {
       // Get task type ID if not provided
@@ -297,7 +439,8 @@ export const timeTrackingService = {
         start_time: new Date().toISOString(),
         location: data.location || 'Unknown',
         coordinates: data.coordinates || null,
-        technician: 'Self'
+        technician: 'Self',
+        journee_id: data.journee_id || null // Use provided journee_id if available
       };
       
       const { data: result, error } = await supabase
@@ -327,7 +470,8 @@ export const timeTrackingService = {
         intervention_title: result.title,
         location: data.location,
         created_at: result.created_at,
-        updated_at: result.updated_at
+        updated_at: result.updated_at,
+        journee_id: result.journee_id
       };
       
       return entry;

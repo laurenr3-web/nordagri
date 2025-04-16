@@ -815,6 +815,7 @@ export type Database = {
           equipment_id: number | null
           id: string
           intervention_id: number | null
+          journee_id: string | null
           location: string | null
           notes: string | null
           poste_travail: string | null
@@ -835,6 +836,7 @@ export type Database = {
           equipment_id?: number | null
           id?: string
           intervention_id?: number | null
+          journee_id?: string | null
           location?: string | null
           notes?: string | null
           poste_travail?: string | null
@@ -855,6 +857,7 @@ export type Database = {
           equipment_id?: number | null
           id?: string
           intervention_id?: number | null
+          journee_id?: string | null
           location?: string | null
           notes?: string | null
           poste_travail?: string | null
@@ -970,7 +973,16 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      daily_time_summary: {
+        Row: {
+          journee_id: string | null
+          session_count: number | null
+          total_hours: number | null
+          user_id: string | null
+          work_date: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       generate_db_documentation: {

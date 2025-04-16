@@ -21,9 +21,20 @@ interface TimeEntryFormProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: any) => void;
+  initialData?: {
+    task_type?: string;
+    custom_task_type?: string;
+    equipment_id?: number;
+    intervention_id?: number;
+    title?: string;
+    location_id?: number;
+    location?: string;
+    notes?: string;
+    poste_travail?: string;
+  };
 }
 
-export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormProps) {
+export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: TimeEntryFormProps) {
   const isMobile = useIsMobile();
   const [taskTypes, setTaskTypes] = useState<TaskType[]>([]);
   const [equipments, setEquipments] = useState<Array<{ id: number; name: string }>>([]);
@@ -52,6 +63,39 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
   
   const [isLoading, setIsLoading] = useState(true);
   
+  // Apply initialData when form opens
+  useEffect(() => {
+    if (isOpen && initialData) {
+      setFormData(prev => ({
+        ...prev,
+        ...(initialData.task_type && { task_type: initialData.task_type as any }),
+        ...(initialData.custom_task_type && { custom_task_type: initialData.custom_task_type }),
+        ...(initialData.equipment_id && { equipment_id: initialData.equipment_id }),
+        ...(initialData.intervention_id && { intervention_id: initialData.intervention_id }),
+        ...(initialData.title && { title: initialData.title }),
+        ...(initialData.location_id && { location_id: initialData.location_id }),
+        ...(initialData.location && { location: initialData.location }),
+        ...(initialData.notes && { notes: initialData.notes }),
+        ...(initialData.poste_travail && { poste_travail: initialData.poste_travail })
+      }));
+    } else if (isOpen) {
+      // Reset form when opening without initialData
+      setFormData({
+        task_type: 'maintenance' as const,
+        task_type_id: '',
+        custom_task_type: '',
+        equipment_id: undefined,
+        intervention_id: undefined,
+        title: '',
+        description: '',
+        notes: '',
+        location_id: undefined,
+        poste_travail: '',
+        priority: 'medium' as const
+      });
+    }
+  }, [isOpen, initialData]);
+  
   useEffect(() => {
     if (isOpen) {
       loadTaskTypes();
@@ -71,7 +115,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
     try {
       const types = await timeTrackingService.getTaskTypes();
       setTaskTypes(types);
-      if (types.length > 0) {
+      if (types.length > 0 && !formData.task_type_id) {
         handleChange('task_type_id', types[0].id);
       }
     } catch (error) {
@@ -125,6 +169,11 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
     
     if (!formData.equipment_id && !formData.poste_travail) {
       toast.error('Veuillez sélectionner un équipement ou un poste de travail');
+      return;
+    }
+    
+    if (!formData.title) {
+      toast.error('Veuillez spécifier un titre pour cette session');
       return;
     }
     
