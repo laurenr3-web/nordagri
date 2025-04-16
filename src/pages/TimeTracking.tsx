@@ -19,6 +19,7 @@ import { useActiveSessionMonitoring } from '@/hooks/time-tracking/useActiveSessi
 import { TimeTrackingStats } from '@/components/time-tracking/dashboard/TimeTrackingStats';
 import { TimeTrackingFilters } from '@/components/time-tracking/dashboard/TimeTrackingFilters';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ActiveTimeSession } from '@/components/time-tracking/dashboard/ActiveTimeSession';
 
 export default function TimeTracking() {
   const [userId, setUserId] = useState<string | null>(null);
