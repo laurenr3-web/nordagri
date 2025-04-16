@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { equipmentService, Equipment, EquipmentFilter } from '@/services/supabase/equipmentService';
@@ -95,31 +94,31 @@ export function useEquipmentData() {
     }
   });
   
-  // Delete equipment mutation
+  // Update the delete equipment mutation
   const deleteEquipmentMutation = useMutation({
-    mutationFn: (equipmentId: number) => equipmentService.deleteEquipment(equipmentId),
+    mutationFn: async (equipmentId: number) => {
+      console.log('Attempting to delete equipment:', equipmentId);
+      return equipmentService.deleteEquipment(equipmentId);
+    },
     onSuccess: (_, equipmentId) => {
       console.log('✅ Equipment successfully deleted, ID:', equipmentId);
       
-      // Update cache by REMOVING the deleted item
+      // Update cache by removing the deleted item
       queryClient.setQueryData(['equipment', equipmentId], undefined);
-      // Force invalidate ALL equipment-related queries to ensure they refetch
+      // Force invalidate ALL equipment-related queries
       queryClient.invalidateQueries({ queryKey: ['equipment'] });
       queryClient.invalidateQueries({ queryKey: ['equipment-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['equipment-filter-options'] });
       
       toast({
         title: 'Équipement supprimé',
-        description: `L'équipement a été supprimé avec succès`,
+        description: 'L\'équipement a été supprimé avec succès',
       });
       
-      // Use a longer delay and more explicit refetch to ensure UI updates
+      // Force a refetch after a small delay
       setTimeout(() => {
         console.log('Forced refetch after equipment deletion');
         refetch();
-        // Also force a refetch of all related queries
-        queryClient.refetchQueries({ queryKey: ['equipment'] });
-      }, 500);
+      }, 300);
     },
     onError: (error: Error) => {
       console.error('❌ Error deleting equipment:', error);
