@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { TimeEntry, TimeEntryTaskType, TimeEntryStatus, TimeSpentByEquipment, TaskType } from '@/hooks/time-tracking/types';
 import { convertDatesToISOStrings } from '@/data/adapters/supabase/utils';
@@ -264,7 +265,7 @@ export const timeTrackingService = {
         }
       }
       
-      // Create a new entry in interventions table
+      // Create a new entry in interventions table - Remove the task_type field that doesn't exist
       const timeEntryData = {
         owner_id: userId,
         equipment_id: data.equipment_id || null,
@@ -276,8 +277,8 @@ export const timeTrackingService = {
         location: data.location || 'Unknown',
         priority: 'medium',
         technician: 'Self',
-        task_type_id: data.task_type_id,
-        task_type: data.task_type
+        task_type_id: data.task_type_id
+        // Removed task_type field as it doesn't exist in the interventions table
       };
       
       const { data: result, error } = await supabase

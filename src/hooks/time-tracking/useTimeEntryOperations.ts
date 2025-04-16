@@ -15,6 +15,7 @@ export function useTimeEntryOperations() {
     location?: string;
     notes?: string;
     coordinates?: { lat: number; lng: number };
+    title?: string;
   }) => {
     try {
       const { data: sessionData } = await supabase.auth.getSession();
@@ -28,7 +29,6 @@ export function useTimeEntryOperations() {
       
       const newEntry = await timeTrackingService.startTimeEntry(userId, {
         ...params,
-        title: params.task_type === 'other' ? params.custom_task_type : undefined,
         location: locationName
       });
       

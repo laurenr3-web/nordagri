@@ -9,23 +9,24 @@ export function useTimer(activeTimeEntry: TimeEntry | null) {
   useEffect(() => {
     let intervalId: NodeJS.Timeout | null = null;
     
-    if (activeTimeEntry && activeTimeEntry.status === 'active') {
-      intervalId = setInterval(() => {
-        const start = new Date(activeTimeEntry.start_time);
-        const now = new Date();
-        const diffMs = now.getTime() - start.getTime();
-        setDuration(formatDuration(diffMs));
-      }, 1000);
+    if (activeTimeEntry) {
+      // Initial calculation regardless of status
+      const start = new Date(activeTimeEntry.start_time);
+      const now = new Date();
+      const diffMs = now.getTime() - start.getTime();
+      setDuration(formatDuration(diffMs));
       
-      const start = new Date(activeTimeEntry.start_time);
-      const now = new Date();
-      const diffMs = now.getTime() - start.getTime();
-      setDuration(formatDuration(diffMs));
-    } else if (activeTimeEntry && activeTimeEntry.status === 'paused') {
-      const start = new Date(activeTimeEntry.start_time);
-      const now = new Date();
-      const diffMs = now.getTime() - start.getTime();
-      setDuration(formatDuration(diffMs));
+      // Only set up interval for active entries
+      if (activeTimeEntry.status === 'active') {
+        intervalId = setInterval(() => {
+          const start = new Date(activeTimeEntry.start_time);
+          const now = new Date();
+          const diffMs = now.getTime() - start.getTime();
+          setDuration(formatDuration(diffMs));
+        }, 1000);
+      }
+    } else {
+      setDuration('00:00:00');
     }
     
     return () => {

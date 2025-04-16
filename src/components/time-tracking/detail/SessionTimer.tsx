@@ -13,7 +13,16 @@ export const SessionTimer = ({ startTime, status }: SessionTimerProps) => {
   const [progressValue, setProgressValue] = useState(0);
   
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
+    let intervalId: NodeJS.Timeout | null = null;
+    
+    // Initial calculation
+    const now = new Date();
+    const diffMs = now.getTime() - new Date(startTime).getTime();
+    setCurrentDuration(formatDuration(diffMs));
+    
+    // Calculate progress (8 hours workday)
+    const progressPercent = Math.min((diffMs / (8 * 60 * 60 * 1000)) * 100, 100);
+    setProgressValue(progressPercent);
     
     if (status === 'active') {
       intervalId = setInterval(() => {
@@ -27,7 +36,9 @@ export const SessionTimer = ({ startTime, status }: SessionTimerProps) => {
       }, 1000);
     }
     
-    return () => clearInterval(intervalId);
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
   }, [startTime, status]);
 
   return (
