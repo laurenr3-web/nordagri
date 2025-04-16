@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,6 +13,7 @@ import BasicInfoFields from './form/BasicInfoFields';
 import AdditionalInfoFields from './form/AdditionalInfoFields';
 import ImageField from './form/ImageField';
 import NotesField from './form/NotesField';
+import { WearUnitField } from './form/WearUnitField';
 
 interface EquipmentFormProps {
   onSubmit: (data: EquipmentFormValues) => void;
@@ -45,6 +45,8 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
       purchaseDate: initialData?.purchaseDate,
       notes: initialData?.notes || '',
       image: initialData?.image || 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=500&auto=format&fit=crop',
+      unite_d_usure: initialData?.unite_d_usure || 'heures',
+      valeur_actuelle: initialData?.valeur_actuelle || 0,
     },
   });
 
@@ -76,14 +78,17 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
               customCategories={customCategories} 
               onAddCategoryClick={() => setIsAddCategoryDialogOpen(true)} 
             />
-
+          
+          <div className="space-y-6">
+            <WearUnitField form={form} />
             {/* Additional Information */}
             <AdditionalInfoFields form={form} />
           </div>
+        </div>
 
-          <ImageField form={form} />
+        <ImageField form={form} />
           
-          <NotesField form={form} />
+        <NotesField form={form} />
 
           <div className="flex justify-end space-x-2">
             <Button

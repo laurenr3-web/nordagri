@@ -1,4 +1,3 @@
-
 import { z } from 'zod';
 
 export const equipmentFormSchema = z.object({
@@ -12,6 +11,8 @@ export const equipmentFormSchema = z.object({
   status: z.string().min(1, { message: 'Please select a status.' }),
   location: z.string().min(1, { message: 'Location is required.' }),
   purchaseDate: z.coerce.date(),
+  unite_d_usure: z.string().min(1, { message: "L'unité d'usure est requise" }),
+  valeur_actuelle: z.number().min(0, { message: "La valeur doit être positive" }),
   notes: z.string().optional(),
   image: z.string().optional(),
 });

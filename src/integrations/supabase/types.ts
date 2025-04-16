@@ -16,6 +16,7 @@ export type Database = {
           farm_id: string | null
           id: number
           image: string | null
+          last_wear_update: string | null
           location: string | null
           manufacturer: string | null
           model: string | null
@@ -26,7 +27,9 @@ export type Database = {
           serial_number: string | null
           status: string | null
           type: string | null
+          unite_d_usure: string
           updated_at: string | null
+          valeur_actuelle: number | null
           year: number | null
         }
         Insert: {
@@ -35,6 +38,7 @@ export type Database = {
           farm_id?: string | null
           id?: number
           image?: string | null
+          last_wear_update?: string | null
           location?: string | null
           manufacturer?: string | null
           model?: string | null
@@ -45,7 +49,9 @@ export type Database = {
           serial_number?: string | null
           status?: string | null
           type?: string | null
+          unite_d_usure?: string
           updated_at?: string | null
+          valeur_actuelle?: number | null
           year?: number | null
         }
         Update: {
@@ -54,6 +60,7 @@ export type Database = {
           farm_id?: string | null
           id?: number
           image?: string | null
+          last_wear_update?: string | null
           location?: string | null
           manufacturer?: string | null
           model?: string | null
@@ -64,7 +71,9 @@ export type Database = {
           serial_number?: string | null
           status?: string | null
           type?: string | null
+          unite_d_usure?: string
           updated_at?: string | null
+          valeur_actuelle?: number | null
           year?: number | null
         }
         Relationships: [
@@ -897,7 +906,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      wear_unit_type: "heures" | "kilometres" | "acres" | "autre"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1012,6 +1021,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      wear_unit_type: ["heures", "kilometres", "acres", "autre"],
+    },
   },
 } as const
