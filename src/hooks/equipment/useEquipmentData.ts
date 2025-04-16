@@ -101,8 +101,10 @@ export function useEquipmentData() {
     onSuccess: (_, equipmentId) => {
       console.log('✅ Equipment successfully deleted, ID:', equipmentId);
       
-      // Update cache and refetch
-      queryClient.invalidateQueries({ queryKey: ['equipment'] });
+      // Update cache by REMOVING the deleted item
+      queryClient.setQueryData(['equipment', equipmentId], undefined);
+      // Force invalidate ALL equipment-related queries to ensure they refetch
+      queryClient.invalidateQueries({ queryKey: ['equipment'] }, { exact: false });
       queryClient.invalidateQueries({ queryKey: ['equipment-stats'] });
       queryClient.invalidateQueries({ queryKey: ['equipment-filter-options'] });
       
@@ -112,7 +114,9 @@ export function useEquipmentData() {
       });
       
       // Explicitement rafraîchir la liste des équipements
-      refetch();
+      setTimeout(() => {
+        refetch();
+      }, 100); // Add a small delay to ensure database operations complete
     },
     onError: (error: Error) => {
       console.error('❌ Error deleting equipment:', error);

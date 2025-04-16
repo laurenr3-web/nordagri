@@ -25,12 +25,23 @@ export function useEquipmentRealtime() {
         (payload) => {
           console.log('Realtime update for equipment:', payload);
           
-          // Invalidate queries to refresh the equipment data
-          queryClient.invalidateQueries({ queryKey: ['equipment'] });
-          
-          // If a specific equipment is updated, also invalidate that query
-          if (payload.new && typeof payload.new === 'object' && 'id' in payload.new) {
-            queryClient.invalidateQueries({ queryKey: ['equipment', payload.new.id] });
+          // Handle DELETE event specifically
+          if (payload.eventType === 'DELETE' && typeof payload.old === 'object' && 'id' in payload.old) {
+            console.log('Equipment deleted via realtime:', payload.old.id);
+            // Remove the deleted equipment from cache
+            queryClient.setQueryData(['equipment', payload.old.id], undefined);
+            // Force a refetch of all equipment-related queries
+            queryClient.invalidateQueries({ queryKey: ['equipment'] }, { exact: false });
+          }
+          // For all other events, just invalidate queries
+          else {
+            // Invalidate queries to refresh the equipment data
+            queryClient.invalidateQueries({ queryKey: ['equipment'] });
+            
+            // If a specific equipment is updated, also invalidate that query
+            if (payload.new && typeof payload.new === 'object' && 'id' in payload.new) {
+              queryClient.invalidateQueries({ queryKey: ['equipment', payload.new.id] });
+            }
           }
           
           // Invalidate stats query

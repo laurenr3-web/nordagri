@@ -32,6 +32,7 @@ const EquipmentPage = () => {
   }, [error]);
 
   // Afficher un message de succès lors de la connexion aux mises à jour en temps réel
+  // et forcer un rafraîchissement des données
   React.useEffect(() => {
     if (isSubscribed) {
       console.log('Successfully subscribed to equipment updates');
@@ -39,6 +40,16 @@ const EquipmentPage = () => {
       refetch();
     }
   }, [isSubscribed, refetch]);
+  
+  // Forcer un rafraîchissement périodique des données (toutes les 30 secondes)
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      console.log('Periodic equipment data refresh');
+      refetch();
+    }, 30000);
+    
+    return () => clearInterval(interval);
+  }, [refetch]);
   
   // Transformer les équipements en EquipmentItem
   const transformedEquipment: EquipmentItem[] = React.useMemo(() => {

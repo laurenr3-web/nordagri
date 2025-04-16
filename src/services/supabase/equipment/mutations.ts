@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Equipment } from './types';
 import { mapEquipmentToDatabase, mapEquipmentFromDatabase } from './mappers';
@@ -100,39 +99,50 @@ export async function deleteEquipment(id: number | string): Promise<void> {
     console.log(`Attempting to delete equipment with ID: ${numericId}`);
     
     // First delete all related maintenance tasks
-    const { error: maintenanceError } = await supabase
-      .from('equipment_maintenance_schedule')
-      .delete()
-      .eq('equipment_id', numericId);
-      
-    if (maintenanceError) {
-      console.warn(`Error deleting maintenance tasks for equipment ${numericId}:`, maintenanceError);
-      // Continue with deletion even if maintenance task deletion fails
-    }
-    
-    // Delete maintenance plans associated with this equipment
-    const { error: plansError } = await supabase
-      .from('maintenance_plans')
-      .delete()
-      .eq('equipment_id', numericId);
-      
-    if (plansError) {
-      console.warn(`Error deleting maintenance plans for equipment ${numericId}:`, plansError);
-      // Continue with deletion even if plans deletion fails
-    }
-    
-    // Delete maintenance tasks associated with this equipment
-    const { error: tasksError } = await supabase
+    const { error: maintenanceTasksError } = await supabase
       .from('maintenance_tasks')
       .delete()
       .eq('equipment_id', numericId);
       
-    if (tasksError) {
-      console.warn(`Error deleting maintenance tasks for equipment ${numericId}:`, tasksError);
-      // Continue with deletion even if tasks deletion fails
+    if (maintenanceTasksError) {
+      console.warn(`Error deleting maintenance tasks for equipment ${numericId}:`, maintenanceTasksError);
+      // Continue with deletion even if maintenance task deletion fails
     }
     
-    // Delete the equipment
+    // Delete maintenance plans associated with this equipment
+    const { error: maintenancePlansError } = await supabase
+      .from('maintenance_plans')
+      .delete()
+      .eq('equipment_id', numericId);
+      
+    if (maintenancePlansError) {
+      console.warn(`Error deleting maintenance plans for equipment ${numericId}:`, maintenancePlansError);
+      // Continue with deletion even if plans deletion fails
+    }
+    
+    // Delete equipment maintenance schedule entries for this equipment
+    const { error: scheduleError } = await supabase
+      .from('equipment_maintenance_schedule')
+      .delete()
+      .eq('equipment_id', numericId);
+      
+    if (scheduleError) {
+      console.warn(`Error deleting maintenance schedule for equipment ${numericId}:`, scheduleError);
+      // Continue with deletion even if schedule deletion fails
+    }
+    
+    // Delete any equipment logs associated with this equipment
+    const { error: logsError } = await supabase
+      .from('equipment_logs')
+      .delete()
+      .eq('equipment_id', numericId);
+      
+    if (logsError) {
+      console.warn(`Error deleting equipment logs for equipment ${numericId}:`, logsError);
+      // Continue with deletion even if logs deletion fails
+    }
+    
+    // Finally delete the equipment
     const { error } = await supabase
       .from('equipment')
       .delete()

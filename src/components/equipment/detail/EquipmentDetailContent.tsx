@@ -46,8 +46,11 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
       
       toast.success(`L'équipement ${equipment.name} a été supprimé avec succès`);
       
-      // Navigate back to equipment list
-      navigate('/equipment');
+      // Force a small delay before navigation to ensure the delete operation completes
+      setTimeout(() => {
+        // Navigate back to equipment list
+        navigate('/equipment');
+      }, 300);
     } catch (error) {
       console.error('Error deleting equipment:', error);
       toast.error('Impossible de supprimer cet équipement');
