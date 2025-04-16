@@ -1,9 +1,8 @@
-
 import { toast } from 'sonner';
 import { timeTrackingService } from '@/services/supabase/timeTrackingService';
 import { TimeEntryTaskType } from './types';
 import { supabase } from '@/integrations/supabase/client';
-import { checkAuthStatus } from '@/utils/authUtils';
+import { checkAuthStatus, checkTablePermissions } from '@/utils/authUtils';
 
 export function useTimeEntryOperations() {
   const startTimeEntry = async (params: {
@@ -123,4 +122,3 @@ export function useTimeEntryOperations() {
     resumeTimeEntry
   };
 }
-
