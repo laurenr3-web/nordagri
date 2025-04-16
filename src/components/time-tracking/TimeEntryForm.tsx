@@ -1,5 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,6 +15,7 @@ import { timeTrackingService } from '@/services/supabase/timeTrackingService';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { TaskType } from '@/hooks/time-tracking/types';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TimeEntryFormProps {
   isOpen: boolean;
@@ -21,6 +24,7 @@ interface TimeEntryFormProps {
 }
 
 export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormProps) {
+  const isMobile = useIsMobile();
   const [taskTypes, setTaskTypes] = useState<TaskType[]>([]);
   const [equipments, setEquipments] = useState<Array<{ id: number; name: string }>>([]);
   const [interventions, setInterventions] = useState<Array<{ id: number; title: string }>>([]);
@@ -131,6 +135,93 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
     
     onSubmit(submitData);
   };
+  
+  const FormContent = (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <TaskTypeField
+        taskType={formData.task_type}
+        customTaskType={formData.custom_task_type}
+        onChange={handleChange}
+      />
+      
+      <EquipmentField
+        equipment_id={formData.equipment_id}
+        equipments={equipments}
+        loading={isLoading}
+        onChange={handleChange}
+      />
+      
+      {!formData.equipment_id && (
+        <WorkstationField
+          workstation={formData.poste_travail}
+          onChange={handleChange}
+          required={!formData.equipment_id}
+        />
+      )}
+      
+      <InterventionField
+        intervention_id={formData.intervention_id}
+        interventions={interventions}
+        disabled={!formData.equipment_id}
+        onChange={handleChange}
+      />
+      
+      <LocationField
+        location_id={formData.location_id}
+        locations={locations}
+        disabled={false}
+        onChange={handleChange}
+      />
+      
+      <div className="grid gap-2">
+        <Label htmlFor="title">Title *</Label>
+        <Input
+          id="title"
+          value={formData.title}
+          onChange={(e) => handleChange('title', e.target.value)}
+          placeholder="Enter a title for this session"
+          required
+        />
+      </div>
+      
+      <div className="grid gap-2">
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => handleChange('description', e.target.value)}
+          placeholder="Enter a description..."
+          className="min-h-[100px]"
+        />
+      </div>
+      
+      <div className="flex justify-end gap-2 pb-6">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => onOpenChange(false)}
+        >
+          Annuler
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          Démarrer la session
+        </Button>
+      </div>
+    </form>
+  );
+
+  if (isMobile) {
+    return (
+      <Sheet open={isOpen} onOpenChange={onOpenChange}>
+        <SheetContent side="bottom" className="h-[90vh] overflow-y-auto">
+          <SheetHeader className="mb-4">
+            <SheetTitle>Démarrer une nouvelle session</SheetTitle>
+          </SheetHeader>
+          {FormContent}
+        </SheetContent>
+      </Sheet>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -138,78 +229,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
         <DialogHeader>
           <DialogTitle>Démarrer une nouvelle session</DialogTitle>
         </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <TaskTypeField
-            taskType={formData.task_type}
-            customTaskType={formData.custom_task_type}
-            onChange={handleChange}
-          />
-          
-          <EquipmentField
-            equipment_id={formData.equipment_id}
-            equipments={equipments}
-            loading={isLoading}
-            onChange={handleChange}
-          />
-          
-          {!formData.equipment_id && (
-            <WorkstationField
-              workstation={formData.poste_travail}
-              onChange={handleChange}
-              required={!formData.equipment_id}
-            />
-          )}
-          
-          <InterventionField
-            intervention_id={formData.intervention_id}
-            interventions={interventions}
-            disabled={!formData.equipment_id}
-            onChange={handleChange}
-          />
-          
-          <LocationField
-            location_id={formData.location_id}
-            locations={locations}
-            disabled={false}
-            onChange={handleChange}
-          />
-          
-          <div className="grid gap-2">
-            <Label htmlFor="title">Title *</Label>
-            <Input
-              id="title"
-              value={formData.title}
-              onChange={(e) => handleChange('title', e.target.value)}
-              placeholder="Enter a title for this session"
-              required
-            />
-          </div>
-          
-          <div className="grid gap-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleChange('description', e.target.value)}
-              placeholder="Enter a description..."
-              className="min-h-[100px]"
-            />
-          </div>
-          
-          <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Annuler
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              Démarrer la session
-            </Button>
-          </div>
-        </form>
+        {FormContent}
       </DialogContent>
     </Dialog>
   );
