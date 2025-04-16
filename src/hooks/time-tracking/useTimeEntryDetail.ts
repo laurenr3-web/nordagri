@@ -25,6 +25,8 @@ export function useTimeEntryDetail(id: string | undefined) {
         return;
       }
 
+      // Fetch all time entries for the user, then filter by the specific ID
+      // This ensures we can access completed sessions as well
       const data = await timeTrackingService.getTimeEntries({
         userId: sessionData.session.user.id,
       });
@@ -32,7 +34,7 @@ export function useTimeEntryDetail(id: string | undefined) {
       const foundEntry = data.find(e => String(e.id) === String(id));
       
       if (foundEntry) {
-        // Assurer que les champs requis existent
+        // Ensure required fields exist
         const enhancedEntry: TimeEntry = {
           ...foundEntry,
           user_name: foundEntry.user_name || foundEntry.owner_name || 'Utilisateur',

@@ -62,11 +62,13 @@ const TimeEntryDetail = () => {
                     status={safeStatus}
                   />
                 </div>
-                <SessionControls
-                  status={safeStatus}
-                  onPauseResume={handlePauseResume}
-                  onStop={handleStop}
-                />
+                {safeStatus !== 'completed' && (
+                  <SessionControls
+                    status={safeStatus}
+                    onPauseResume={handlePauseResume}
+                    onStop={handleStop}
+                  />
+                )}
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">
