@@ -278,7 +278,6 @@ export default function TimeTracking() {
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-semibold">Time Tracking</h1>
               <Button 
-                id="start-time-session-btn"
                 onClick={() => setIsFormOpen(true)} 
                 className="bg-green-600 hover:bg-green-700"
               >
@@ -290,57 +289,12 @@ export default function TimeTracking() {
             <TimeTrackingStats stats={stats} isLoading={isLoading} />
             
             {activeTimeEntry && (
-              <Card className="mb-6 bg-blue-50 border-blue-200">
-                <CardContent className="pt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3">
-                    <div className="flex items-center gap-3">
-                      <User className="h-10 w-10 text-blue-500" />
-                      <div>
-                        <div className="text-sm text-blue-700">Christophe</div>
-                        <div className="text-3xl font-mono font-bold text-blue-900">
-                          {activeTimeEntry.current_duration || "00:00:00"}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex flex-col justify-center mt-4 md:mt-0">
-                      <div className="text-sm text-blue-700">
-                        {activeTimeEntry.task_type === 'other' 
-                          ? activeTimeEntry.custom_task_type 
-                          : activeTimeEntry.task_type} {activeTimeEntry.equipment_name ? `- ${activeTimeEntry.equipment_name}` : ''}
-                      </div>
-                      <div className="text-sm text-blue-700">
-                        {activeTimeEntry.location || 'No location'}
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-end gap-2 mt-4 md:mt-0">
-                      <span className="mr-2 text-blue-700">
-                        {activeTimeEntry.status === 'active' ? 'In Progress' : 'Paused'}
-                      </span>
-                      {activeTimeEntry.status === 'active' ? (
-                        <Button
-                          onClick={() => handlePauseTimeEntry(activeTimeEntry.id)}
-                          className="bg-blue-600 hover:bg-blue-700"
-                        >
-                          Pause
-                        </Button>
-                      ) : (
-                        <Button
-                          onClick={() => handleResumeTimeEntry(activeTimeEntry.id)}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          Resume
-                        </Button>
-                      )}
-                      <Button
-                        variant="outline"
-                        onClick={() => handleStopTimeEntry(activeTimeEntry.id)}
-                      >
-                        Terminer
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <ActiveTimeSession
+                session={activeTimeEntry}
+                onPause={handlePauseTimeEntry}
+                onResume={handleResumeTimeEntry}
+                onStop={handleStopTimeEntry}
+              />
             )}
             
             <TimeTrackingFilters
