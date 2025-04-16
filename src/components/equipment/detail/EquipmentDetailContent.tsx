@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import EquipmentHeader from './EquipmentHeader';
-import EquipmentOverview from '../details/EquipmentOverview';
+import { EquipmentOverview } from '../details/EquipmentOverview';
 import EquipmentParts from '../details/EquipmentParts';
 import EquipmentPerformance from '../tabs/EquipmentPerformance';
 import EditEquipmentDialog from '../dialogs/EditEquipmentDialog';

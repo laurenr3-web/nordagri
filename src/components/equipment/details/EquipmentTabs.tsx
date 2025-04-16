@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import EquipmentOverview from './EquipmentOverview';
+import { EquipmentOverview } from './EquipmentOverview';
 import EquipmentMaintenanceStatus from './EquipmentMaintenanceStatus';
 import EquipmentParts from './EquipmentParts';
 import EquipmentTimeTracking from '@/components/equipment/tabs/EquipmentTimeTracking';

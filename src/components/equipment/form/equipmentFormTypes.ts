@@ -13,7 +13,9 @@ export const equipmentFormSchema = z.object({
   location: z.string().optional(),
   purchaseDate: z.date().optional(),
   notes: z.string().optional(),
-  image: z.string().optional()
+  image: z.string().optional(),
+  unite_d_usure: z.string().min(1, "L'unité d'usure est requise"),
+  valeur_actuelle: z.number().min(0, "La valeur doit être positive")
 });
 
 // Type dérivé du schéma zod

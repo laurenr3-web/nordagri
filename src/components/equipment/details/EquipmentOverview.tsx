@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -118,6 +119,11 @@ export function EquipmentOverview({ equipment }: { equipment: any }) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Add the EquipmentWearDisplay component */}
+      {hasData(equipment.unite_d_usure) && (
+        <EquipmentWearDisplay equipment={equipment} />
+      )}
       
       {/* Only show notes card if notes exist */}
       {hasData(equipment.notes) && (
@@ -134,4 +140,4 @@ export function EquipmentOverview({ equipment }: { equipment: any }) {
       )}
     </div>
   );
-};
+}
