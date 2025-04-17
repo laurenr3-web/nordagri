@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Calendar, FileText } from 'lucide-react';
 import { format, addMonths, subMonths } from 'date-fns';
@@ -20,7 +21,6 @@ import { TimeDistributionChart } from './TimeDistributionChart';
 import { TopEquipmentList } from './TopEquipmentList';
 import { useExportReport } from '@/hooks/time-tracking/useExportReport';
 import { Progress } from '@/components/ui/progress';
-import { PayrollPeriod } from './PayrollPeriod';
 
 const TimeTrackingRapport: React.FC = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -166,8 +166,24 @@ const TimeTrackingRapport: React.FC = () => {
         </CardContent>
       </Card>
       
-      {/* Pay Period Section - Updated */}
-      <PayrollPeriod />
+      {/* Pay Period Summary - Simple implementation */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Période de paie</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-muted-foreground">Mensuel</p>
+              <p className="text-lg font-medium">{summary?.month.toFixed(1)} heures</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Bi-hebdomadaire</p>
+              <p className="text-lg font-medium">{(summary?.week * 2).toFixed(1)} heures</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
       
       {/* Modal for day details */}
       {selectedDate && (

@@ -7,7 +7,6 @@ import { useTimeTrackingEquipment } from './useTimeTrackingEquipment';
 import { useActiveTimeTrackingSessions } from './useActiveTimeTrackingSessions';
 import { useTimeTrackingEntries } from './useTimeTrackingEntries';
 import { useTimeTracking } from './useTimeTracking';
-import { usePayrollPeriod } from './usePayrollPeriod';
 import { toast } from 'sonner';
 
 export function useTimeTrackingData() {
@@ -19,7 +18,6 @@ export function useTimeTrackingData() {
   });
   const [equipmentFilter, setEquipmentFilter] = useState<number | undefined>(undefined);
   const [taskTypeFilter, setTaskTypeFilter] = useState<string | undefined>(undefined);
-  const [payrollPeriodType, setPayrollPeriodType] = useState<string>('weekly');
 
   const { userId } = useTimeTrackingUser();
   const { stats } = useTimeTrackingStats(userId);
@@ -27,7 +25,7 @@ export function useTimeTrackingData() {
   const { 
     activeTimeEntry, 
     startTimeEntry, 
-    pauseTimeEntry
+    pauseTimeEntry 
   } = useTimeTracking();
   
   const { activeSessions } = useActiveTimeTrackingSessions(activeTimeEntry);
@@ -38,13 +36,6 @@ export function useTimeTrackingData() {
     handleDeleteTimeEntry,
     handleStopTimeEntry
   } = useTimeTrackingEntries(userId, dateRange, equipmentFilter, taskTypeFilter);
-
-  const { totalHours: payrollHours, isLoading: payrollLoading, error: payrollError } = usePayrollPeriod(
-    userId,
-    dateRange.from,
-    dateRange.to,
-    payrollPeriodType
-  );
 
   const handleStartTimeEntry = async (data: any) => {
     if (!userId) return;
@@ -76,16 +67,11 @@ export function useTimeTrackingData() {
     handleResumeTimeEntry,
     handleStopTimeEntry,
     handleDeleteTimeEntry,
-    handlePauseTimeEntry: pauseTimeEntry,
+    handlePauseTimeEntry: pauseTimeEntry, // Add the missing pauseTimeEntry function
     setIsFormOpen,
     setActiveTab,
     setDateRange,
     setEquipmentFilter,
     setTaskTypeFilter,
-    payrollHours,
-    payrollLoading,
-    payrollError,
-    payrollPeriodType,
-    setPayrollPeriodType,
   };
 }
