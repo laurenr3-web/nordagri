@@ -48,6 +48,7 @@ export function TimeTrackingButton({
 
   const handleStopTimeEntry = (entryId: string) => {
     try {
+      // Rediriger vers la page de détail de la session au lieu de terminer directement
       navigate(`/time-tracking/detail/${entryId}`);
       toast.info("Accès à la page de clôture de la session");
     } catch (error) {

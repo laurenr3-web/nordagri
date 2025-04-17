@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { startOfWeek, endOfWeek } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
@@ -211,7 +212,7 @@ export function useTimeTrackingData() {
   
   const handleStopTimeEntry = async (entryId: string) => {
     try {
-      // Utiliser le nouveau format d'URL avec /detail/
+      // Au lieu de terminer la session, rediriger vers la page de détail de la session
       navigate(`/time-tracking/detail/${entryId}`);
       toast.info("Accès à la page de clôture de la session");
     } catch (error) {
@@ -254,8 +255,5 @@ export function useTimeTrackingData() {
     setDateRange,
     setEquipmentFilter,
     setTaskTypeFilter,
-    fetchTimeEntries,
-    fetchActiveSessions,
-    calculateStats
   };
 }
