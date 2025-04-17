@@ -26,7 +26,7 @@ export function useDailyHours(month: Date) {
         
         const userId = sessionData.session.user.id;
         
-        // Get hours per day from time_sessions
+        // Use a more precise date handling approach
         const { data, error } = await supabase
           .from('time_sessions')
           .select(`
@@ -41,11 +41,13 @@ export function useDailyHours(month: Date) {
           
         if (error) throw error;
         
-        // Aggregate hours by date
+        // Aggregate hours by local date (not UTC date)
         const hoursByDate = new Map<string, number>();
         
         data?.forEach(session => {
-          const date = format(new Date(session.start_time), 'yyyy-MM-dd');
+          // Convert UTC date to local date format YYYY-MM-DD
+          const localDate = new Date(session.start_time);
+          const dateKey = format(localDate, 'yyyy-MM-dd');
           
           // Calculate duration if not available
           let sessionDuration = session.duration;
@@ -57,8 +59,8 @@ export function useDailyHours(month: Date) {
           
           // Only count if we have a valid duration
           if (sessionDuration) {
-            const currentTotal = hoursByDate.get(date) || 0;
-            hoursByDate.set(date, currentTotal + sessionDuration);
+            const currentTotal = hoursByDate.get(dateKey) || 0;
+            hoursByDate.set(dateKey, currentTotal + sessionDuration);
           }
         });
         

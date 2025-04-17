@@ -7,7 +7,8 @@ import {
   getDay,
   format,
   isSameMonth,
-  isToday
+  isToday,
+  parseISO
 } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { DailyHours } from '@/hooks/time-tracking/useDailyHours';
@@ -38,7 +39,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   // Create a lookup map for hours by date
   const hoursMap = new Map();
   dailyHours.forEach(day => {
-    hoursMap.set(format(new Date(day.date), 'yyyy-MM-dd'), day.hours);
+    hoursMap.set(day.date, day.hours);
   });
 
   if (isLoading) {

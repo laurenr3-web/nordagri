@@ -24,15 +24,20 @@ export function useTaskDetails(date: Date) {
       try {
         setIsLoading(true);
         
+        // Format date to YYYY-MM-DD
         const dateStr = format(date, 'yyyy-MM-dd');
-        const startOfDay = `${dateStr}T00:00:00`;
-        const endOfDay = `${dateStr}T23:59:59`;
+        
+        // Create start and end timestamps for the local day
+        // This ensures we get sessions that started on this calendar day in local time
+        const startOfDay = new Date(`${dateStr}T00:00:00`);
+        const endOfDay = new Date(`${dateStr}T23:59:59`);
         
         const { data: sessionData } = await supabase.auth.getSession();
         if (!sessionData.session?.user) return;
         
         const userId = sessionData.session.user.id;
         
+        // Use a query that gets all sessions that started on this local date
         const { data, error } = await supabase
           .from('time_sessions')
           .select(`
@@ -46,8 +51,8 @@ export function useTaskDetails(date: Date) {
             notes
           `)
           .eq('user_id', userId)
-          .gte('start_time', startOfDay)
-          .lte('start_time', endOfDay)
+          .gte('start_time', startOfDay.toISOString())
+          .lt('start_time', endOfDay.toISOString())
           .order('start_time');
           
         if (error) throw error;

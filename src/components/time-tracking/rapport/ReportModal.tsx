@@ -1,19 +1,19 @@
 
 import React from 'react';
-import { X, Clock } from 'lucide-react';
+import { X, Calendar, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Button } from '@/components/ui/button';
 import { useTaskDetails } from '@/hooks/time-tracking/useTaskDetails';
-import { formatTime } from '@/utils/dateHelpers';
 import { Skeleton } from '@/components/ui/skeleton';
+import { formatTime } from '@/utils/dateHelpers';
 
 interface ReportModalProps {
   date: Date;
@@ -21,65 +21,82 @@ interface ReportModalProps {
 }
 
 const ReportModal: React.FC<ReportModalProps> = ({ date, onClose }) => {
-  const { isLoading, tasks, totalHours } = useTaskDetails(date);
-  
-  const formattedDate = format(date, 'EEEE d MMMM yyyy', { locale: fr });
+  const { tasks, totalHours, isLoading } = useTaskDetails(date);
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="capitalize">{formattedDate}</DialogTitle>
-          <DialogDescription className="flex items-center">
-            <Clock className="h-4 w-4 mr-1" /> 
-            Total : {totalHours.toFixed(2)} heures
-          </DialogDescription>
+          <DialogTitle className="flex items-center">
+            <Calendar className="h-5 w-5 mr-2" />
+            <span>{format(date, 'EEEE dd MMMM yyyy', { locale: fr })}</span>
+          </DialogTitle>
+          <DialogClose asChild>
+            <Button variant="ghost" size="icon" className="absolute right-4 top-4">
+              <X className="h-4 w-4" />
+            </Button>
+          </DialogClose>
         </DialogHeader>
-        
-        <div className="space-y-4 mt-2">
-          {isLoading ? (
-            Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="space-y-2">
-                <Skeleton className="h-5 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-                <Skeleton className="h-4 w-1/3" />
-              </div>
-            ))
-          ) : tasks.length === 0 ? (
-            <p className="text-center text-muted-foreground py-4">
-              Aucune tâche enregistrée pour cette journée.
-            </p>
-          ) : (
-            tasks.map((task) => (
-              <div key={task.id} className="space-y-1 pb-3 border-b">
-                <div className="flex justify-between items-start">
-                  <h4 className="font-medium">{task.task_type}</h4>
-                  <span className="text-sm bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
-                    {task.duration.toFixed(1)}h
-                  </span>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {formatTime(task.start_time)} - {formatTime(task.end_time || new Date())}
-                </div>
-                {task.equipment_name && (
-                  <div className="text-sm">
-                    🔧 {task.equipment_name}
-                  </div>
-                )}
-                {task.notes && (
-                  <div className="text-sm mt-1 italic">
-                    {task.notes}
-                  </div>
-                )}
-              </div>
-            ))
-          )}
+
+        <div className="pb-2 pt-4 border-b">
+          <div className="flex flex-col">
+            <span className="text-sm text-muted-foreground">Total du jour</span>
+            <span className="text-xl font-medium">
+              {isLoading ? <Skeleton className="h-7 w-16" /> : `${totalHours.toFixed(1)} heures`}
+            </span>
+          </div>
         </div>
-        
-        <div className="flex justify-end">
-          <Button variant="outline" onClick={onClose}>
-            Fermer
-          </Button>
+
+        <div className="space-y-4">
+          <h3 className="text-sm font-medium">Sessions de travail</h3>
+          
+          {isLoading ? (
+            <div className="space-y-3">
+              {[1, 2].map((_, i) => (
+                <div key={i} className="p-3 border rounded-md">
+                  <Skeleton className="h-5 w-24 mb-2" />
+                  <Skeleton className="h-4 w-40" />
+                </div>
+              ))}
+            </div>
+          ) : tasks.length > 0 ? (
+            <div className="space-y-3 max-h-[40vh] overflow-y-auto">
+              {tasks.map((task) => (
+                <div key={task.id} className="p-3 border rounded-md space-y-2">
+                  <div className="font-medium">{task.task_type}</div>
+                  
+                  <div className="text-xs text-muted-foreground flex flex-col gap-1">
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5" />
+                      <span>
+                        {formatTime(task.start_time)} - {task.end_time ? formatTime(task.end_time) : "En cours"}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium">Durée:</span> {task.duration.toFixed(1)}h
+                    </div>
+                    
+                    {task.equipment_name && (
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium">Équipement:</span> {task.equipment_name}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {task.notes && (
+                    <div className="text-xs mt-1 border-t pt-1">
+                      <span className="font-medium">Notes:</span> {task.notes}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center p-4 text-muted-foreground text-sm">
+              Aucune session pour cette journée
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
