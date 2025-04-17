@@ -42,17 +42,17 @@ const EquipmentImageGallery: React.FC<EquipmentImageGalleryProps> = ({ equipment
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader className={isMobile ? "pb-2 px-4 py-3" : "pb-3"}>
-        <CardTitle className="text-lg font-medium">Images</CardTitle>
-        <CardDescription>Photos de l'équipement</CardDescription>
+      <CardHeader className={`${isMobile ? 'px-4 py-3' : 'p-6'} pb-2`}>
+        <CardTitle className="text-base md:text-lg font-medium text-center md:text-left">Images</CardTitle>
+        <CardDescription className="text-center md:text-left">Photos de l'équipement</CardDescription>
       </CardHeader>
-      <CardContent className={`${isMobile ? "p-4" : "p-6"} space-y-4`}>
+      <CardContent className={`${isMobile ? 'p-4' : 'p-6'} space-y-4`}>
         <div className="relative w-full overflow-hidden rounded-lg">
-          <AspectRatio ratio={16 / 9} className="bg-muted">
+          <AspectRatio ratio={4 / 3} className="bg-muted">
             <img
               src={images[currentIndex]}
               alt={`${equipment.name} - image ${currentIndex + 1}`}
-              className="object-contain w-full h-full transition-transform duration-500 hover:scale-105 cursor-pointer"
+              className="object-cover w-full h-full transition-transform duration-500 hover:scale-105 cursor-pointer mx-auto max-w-[320px] md:max-w-none"
               onClick={() => setIsZoomOpen(true)}
             />
             {images.length > 1 && (
@@ -102,9 +102,9 @@ const EquipmentImageGallery: React.FC<EquipmentImageGalleryProps> = ({ equipment
       </CardContent>
 
       <Dialog open={isZoomOpen} onOpenChange={setIsZoomOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{equipment.name}</DialogTitle>
+            <DialogTitle className="text-center">{equipment.name}</DialogTitle>
           </DialogHeader>
           <div className="relative w-full max-h-[70vh] overflow-hidden rounded-lg">
             <img

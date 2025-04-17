@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import EquipmentHeader from './EquipmentHeader';
@@ -73,7 +74,7 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
   };
 
   return (
-    <div className="space-y-6 pb-16">
+    <div className="space-y-6 pb-16 px-4 md:px-6">
       <EquipmentHeader 
         equipment={localEquipment} 
         onEdit={handleEditEquipment}
@@ -83,16 +84,18 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
       
       <Separator />
       
-      <div className={`grid grid-cols-1 gap-6 ${!isMobile ? 'md:grid-cols-2' : ''}`}>
-        <EquipmentImageGallery equipment={localEquipment} />
-        <EquipmentWearDisplay equipment={localEquipment} />
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="space-y-6">
+          <EquipmentImageGallery equipment={localEquipment} />
+          <EquipmentWearDisplay equipment={localEquipment} />
+        </div>
+        
+        <Card className="overflow-hidden h-fit">
+          <CardContent className={`${isMobile ? 'p-4' : 'p-6'}`}>
+            <EquipmentTabs equipment={localEquipment} />
+          </CardContent>
+        </Card>
       </div>
-      
-      <Card className="overflow-hidden">
-        <CardContent className={`${isMobile ? 'p-4' : 'p-6'}`}>
-          <EquipmentTabs equipment={localEquipment} />
-        </CardContent>
-      </Card>
       
       {isEditDialogOpen && (
         <EditEquipmentDialog
