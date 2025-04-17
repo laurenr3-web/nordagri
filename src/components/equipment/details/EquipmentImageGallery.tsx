@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Card, 
@@ -42,17 +41,17 @@ const EquipmentImageGallery: React.FC<EquipmentImageGalleryProps> = ({ equipment
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader className={`${isMobile ? 'px-4 py-3' : 'p-6'} pb-2`}>
+      <CardHeader className="p-4 md:p-6 pb-2">
         <CardTitle className="text-base md:text-lg font-medium text-center md:text-left">Images</CardTitle>
         <CardDescription className="text-center md:text-left">Photos de l'équipement</CardDescription>
       </CardHeader>
-      <CardContent className={`${isMobile ? 'p-4' : 'p-6'} space-y-4`}>
-        <div className="relative w-full overflow-hidden rounded-lg">
-          <AspectRatio ratio={4 / 3} className="bg-muted">
+      <CardContent className="p-4 md:p-6 space-y-4">
+        <div className="relative w-full overflow-hidden rounded-lg bg-muted">
+          <AspectRatio ratio={4 / 3}>
             <img
               src={images[currentIndex]}
               alt={`${equipment.name} - image ${currentIndex + 1}`}
-              className="object-cover w-full h-full transition-transform duration-500 hover:scale-105 cursor-pointer mx-auto max-w-[320px] md:max-w-none"
+              className="object-cover w-full h-full transition-transform duration-500 hover:scale-105 cursor-pointer"
               onClick={() => setIsZoomOpen(true)}
             />
             {images.length > 1 && (
@@ -102,29 +101,16 @@ const EquipmentImageGallery: React.FC<EquipmentImageGalleryProps> = ({ equipment
       </CardContent>
 
       <Dialog open={isZoomOpen} onOpenChange={setIsZoomOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl w-[95vw] max-h-[90vh] overflow-y-auto p-4 md:p-6">
           <DialogHeader>
             <DialogTitle className="text-center">{equipment.name}</DialogTitle>
           </DialogHeader>
-          <div className="relative w-full max-h-[70vh] overflow-hidden rounded-lg">
+          <div className="relative w-full overflow-hidden rounded-lg">
             <img
               src={images[currentIndex]}
               alt={`${equipment.name} - image ${currentIndex + 1}`}
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain max-h-[70vh]"
             />
-            {images.length > 1 && (
-              <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-1">
-                {images.map((_, index) => (
-                  <button
-                    key={index}
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      index === currentIndex ? 'bg-primary' : 'bg-gray-300'
-                    }`}
-                    onClick={() => setCurrentIndex(index)}
-                  />
-                ))}
-              </div>
-            )}
           </div>
         </DialogContent>
       </Dialog>
