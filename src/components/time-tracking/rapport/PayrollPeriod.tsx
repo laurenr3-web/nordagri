@@ -1,11 +1,13 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { addDays, startOfDay, endOfDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { useTimeTrackingData } from '@/hooks/time-tracking/useTimeTrackingData';
+import { useTimeTrackingUser } from '@/hooks/time-tracking/useTimeTrackingUser';
+import { usePayrollPeriod } from '@/hooks/time-tracking/usePayrollPeriod';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type PeriodType = 'weekly' | 'biweekly' | 'triweekly' | 'monthly' | 'custom';
 
@@ -15,15 +17,16 @@ interface PayrollPeriodProps {
 
 export function PayrollPeriod({ className }: PayrollPeriodProps) {
   const [periodType, setPeriodType] = useState<PeriodType>('weekly');
-  const [customDateRange, setCustomDateRange] = useState<{
+  const [dateRange, setDateRange] = useState<{
     from: Date;
     to: Date;
   }>({
     from: startOfDay(new Date()),
-    to: endOfDay(new Date())
+    to: endOfDay(addDays(new Date(), 7))
   });
 
-  const { stats } = useTimeTrackingData();
+  const { userId } = useTimeTrackingUser();
+  const { totalHours, isLoading } = usePayrollPeriod(userId, dateRange.from, dateRange.to);
 
   const getPeriodDates = useCallback((type: PeriodType) => {
     const today = new Date();
@@ -39,22 +42,34 @@ export function PayrollPeriod({ className }: PayrollPeriodProps) {
       case 'monthly':
         return { from: start, to: endOfDay(addDays(start, 30)) };
       case 'custom':
-        return customDateRange;
+        return dateRange;
       default:
         return { from: start, to: endOfDay(addDays(start, 7)) };
     }
-  }, [customDateRange]);
+  }, [dateRange]);
 
   const handlePeriodChange = (newPeriod: PeriodType) => {
     setPeriodType(newPeriod);
     if (newPeriod !== 'custom') {
       const newDates = getPeriodDates(newPeriod);
-      setCustomDateRange(newDates);
+      setDateRange(newDates);
     }
   };
 
-  const currentPeriod = getPeriodDates(periodType);
-  const hoursInPeriod = stats?.totalWeek || 0; // À adapter avec les nouvelles données de période
+  const handleCustomDateChange = (range: { from: Date; to: Date } | undefined) => {
+    if (range?.from && range?.to) {
+      setDateRange({
+        from: startOfDay(range.from),
+        to: endOfDay(range.to)
+      });
+    }
+  };
+
+  // Set initial period dates when component mounts
+  useEffect(() => {
+    const initialDates = getPeriodDates('weekly');
+    setDateRange(initialDates);
+  }, []);
 
   return (
     <Card className={className}>
@@ -79,22 +94,19 @@ export function PayrollPeriod({ className }: PayrollPeriodProps) {
         {periodType === 'custom' && (
           <div className="mb-4">
             <DateRangePicker
-              value={customDateRange}
-              onChange={(range) => {
-                if (range?.from && range?.to) {
-                  setCustomDateRange({
-                    from: startOfDay(range.from),
-                    to: endOfDay(range.to)
-                  });
-                }
-              }}
+              value={dateRange}
+              onChange={handleCustomDateChange}
             />
           </div>
         )}
         <div className="grid grid-cols-1 gap-4">
           <div>
             <p className="text-sm text-muted-foreground">Heures totales</p>
-            <p className="text-lg font-medium">{hoursInPeriod.toFixed(1)} heures</p>
+            {isLoading ? (
+              <Skeleton className="h-6 w-24 mt-1" />
+            ) : (
+              <p className="text-lg font-medium">{totalHours.toFixed(1)} heures</p>
+            )}
           </div>
         </div>
       </CardContent>
