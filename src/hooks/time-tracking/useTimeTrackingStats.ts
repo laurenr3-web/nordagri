@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { timeTrackingService } from '@/services/supabase/timeTrackingService';
 import { TimeEntry } from './types';
+import { startOfWeek, endOfWeek } from 'date-fns';
 
 export function useTimeTrackingStats(userId: string | null) {
   const [stats, setStats] = useState({
@@ -14,6 +15,7 @@ export function useTimeTrackingStats(userId: string | null) {
     if (!userId) return;
 
     try {
+      // Calcul pour aujourd'hui
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const tomorrow = new Date(today);
@@ -25,6 +27,17 @@ export function useTimeTrackingStats(userId: string | null) {
         endDate: tomorrow
       });
       
+      // Calcul pour la semaine
+      const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 }); // Commence le lundi
+      const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 }); // Finit le dimanche
+      
+      const weekEntries = await timeTrackingService.getTimeEntries({
+        userId,
+        startDate: weekStart,
+        endDate: weekEnd
+      });
+      
+      // Calcul pour le mois
       const firstDayOfMonth = new Date();
       firstDayOfMonth.setDate(1);
       firstDayOfMonth.setHours(0, 0, 0, 0);
@@ -40,7 +53,7 @@ export function useTimeTrackingStats(userId: string | null) {
 
       setStats({
         totalToday: calculateTotalHours(todayEntries),
-        totalWeek: 0, // Will be calculated in useTimeTrackingEntries
+        totalWeek: calculateTotalHours(weekEntries),
         totalMonth: calculateTotalHours(monthEntries)
       });
     } catch (error) {
