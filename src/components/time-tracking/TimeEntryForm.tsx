@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -11,7 +10,7 @@ import { EquipmentField } from './form/EquipmentField';
 import { LocationField } from './form/LocationField';
 import { InterventionField } from './form/InterventionField';
 import { WorkstationField } from './form/WorkstationField';
-import { timeTrackingService } from '@/services/supabase/time-tracking/index';
+import { timeTrackingService } from '@/services/supabase/time-tracking';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { TimeEntryTaskType } from '@/hooks/time-tracking/types';
@@ -55,7 +54,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
     equipment_id: undefined as number | undefined,
     intervention_id: undefined as number | undefined,
     title: '',
-    description: '',
+    description: '', // Ensure description is included in the initial state
     notes: '',
     location_id: undefined as number | undefined,
     poste_travail: '',
@@ -188,7 +187,8 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
     }
     
     const submitData = {
-      ...formData
+      ...formData,
+      description: formData.description || '', // Ensure description is always a string
     };
     
     onSubmit(submitData);
@@ -250,6 +250,17 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
           className="min-h-[100px]"
         />
       </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="description">ℹ️ Description</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => handleChange('description', e.target.value)}
+          placeholder="Entrer une description..."
+          className="min-h-[100px]"
+        />
+      </div>
       
       <div className="flex justify-end gap-2 pb-6">
         <Button
@@ -290,3 +301,5 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
     </Dialog>
   );
 }
+
+export default TimeEntryForm;

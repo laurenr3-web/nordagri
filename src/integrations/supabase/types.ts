@@ -810,6 +810,7 @@ export type Database = {
           coordinates: Json | null
           created_at: string | null
           custom_task_type: string | null
+          description: string | null
           duration: number | null
           end_time: string | null
           equipment_id: number | null
@@ -831,6 +832,7 @@ export type Database = {
           coordinates?: Json | null
           created_at?: string | null
           custom_task_type?: string | null
+          description?: string | null
           duration?: number | null
           end_time?: string | null
           equipment_id?: number | null
@@ -852,6 +854,7 @@ export type Database = {
           coordinates?: Json | null
           created_at?: string | null
           custom_task_type?: string | null
+          description?: string | null
           duration?: number | null
           end_time?: string | null
           equipment_id?: number | null

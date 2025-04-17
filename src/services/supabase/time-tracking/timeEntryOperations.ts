@@ -1,11 +1,7 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { TimeEntry } from '@/hooks/time-tracking/types';
 import { StartTimeEntryData } from './types';
 
-/**
- * Service for time entry operations (create, update, delete)
- */
 export const timeEntryOperations = {
   /**
    * Delete a time entry
@@ -23,10 +19,7 @@ export const timeEntryOperations = {
       throw error;
     }
   },
-  
-  /**
-   * Start a new time entry
-   */
+
   async startTimeEntry(userId: string, data: StartTimeEntryData): Promise<TimeEntry> {
     try {
       // Get task type ID if not provided
@@ -55,8 +48,11 @@ export const timeEntryOperations = {
           equipmentName = equipData.name;
         }
       }
-      
-      // Create a new entry in time_sessions table
+
+      // Assurez-vous que la description est toujours une chaîne
+      const description = data.description || '';
+
+      // Créer une nouvelle entrée dans la table time_sessions
       const timeEntryData = {
         user_id: userId,
         equipment_id: data.equipment_id || null,
@@ -65,14 +61,14 @@ export const timeEntryOperations = {
         custom_task_type: data.custom_task_type || data.task_type,
         title: data.title || `${data.task_type} - ${new Date().toLocaleString()}`,
         notes: data.notes || '',
+        description: description, // Ajouter la description
         status: 'active',
         start_time: new Date().toISOString(),
         location: data.location || 'Unknown',
         coordinates: data.coordinates || null,
         technician: 'Self',
-        journee_id: data.journee_id || null, // Use provided journee_id if available
+        journee_id: data.journee_id || null,
         poste_travail: data.poste_travail || '',
-        description: data.description || ''
       };
       
       const { data: result, error } = await supabase
@@ -86,7 +82,7 @@ export const timeEntryOperations = {
       
       if (error) throw error;
       
-      // Transform to TimeEntry format
+      // Transformer en format TimeEntry
       const entry: TimeEntry = {
         id: result.id,
         user_id: userId,
@@ -96,7 +92,7 @@ export const timeEntryOperations = {
         task_type_id: data.task_type_id,
         custom_task_type: data.custom_task_type,
         notes: data.notes,
-        description: data.description || '',
+        description: description, // Ajouter la description
         start_time: result.start_time,
         status: 'active',
         equipment_name: result.equipment?.name || equipmentName,
@@ -157,7 +153,7 @@ export const timeEntryOperations = {
         throw error;
       }
     } catch (error) {
-      console.error("Error pausing time entry:", error);
+      console.error("Error pausing time tracking:", error);
       throw error;
     }
   },
@@ -201,6 +197,7 @@ export const timeEntryOperations = {
       if (data.location !== undefined) updateData.location = data.location;
       if (data.intervention_id !== undefined) updateData.intervention_id = data.intervention_id;
       if (data.journee_id !== undefined) updateData.journee_id = data.journee_id;
+      if (data.description !== undefined) updateData.description = data.description;
       
       // Set end_time if provided or if status is being set to completed
       if (data.end_time) {
