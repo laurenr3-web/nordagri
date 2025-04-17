@@ -18,14 +18,14 @@ export function LocationField({ location_id, locations, disabled, onChange }: Lo
       <Label htmlFor="location_id">🗺️ Emplacement (facultatif)</Label>
       <Select
         value={location_id?.toString()}
-        onValueChange={(value) => onChange('location_id', value ? parseInt(value, 10) : undefined)}
+        onValueChange={(value) => onChange('location_id', value === "none" ? undefined : parseInt(value, 10))}
         disabled={disabled}
       >
         <SelectTrigger id="location_id">
           <SelectValue placeholder="Sélectionner un emplacement" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">Non spécifié</SelectItem>
+          <SelectItem value="none">Non spécifié</SelectItem>
           {safeLocations.map((location) => (
             <SelectItem key={location.id} value={location.id.toString()}>
               {location.name}

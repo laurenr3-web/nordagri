@@ -22,13 +22,13 @@ export function EquipmentField({ equipment_id, equipments, loading, onChange }: 
       ) : (
         <Select
           value={equipment_id?.toString()}
-          onValueChange={(value) => onChange('equipment_id', value ? parseInt(value, 10) : undefined)}
+          onValueChange={(value) => onChange('equipment_id', value === "none" ? undefined : parseInt(value, 10))}
         >
           <SelectTrigger id="equipment_id">
             <SelectValue placeholder="Sélectionner un équipement" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Aucun</SelectItem>
+            <SelectItem value="none">Aucun</SelectItem>
             {safeEquipments.map((equipment) => (
               <SelectItem key={equipment.id} value={equipment.id.toString()}>
                 {equipment.name}

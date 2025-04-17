@@ -25,7 +25,7 @@ export function InterventionField({ intervention_id, interventions, disabled, on
           <SelectValue placeholder={disabled ? "Sélectionnez d'abord un équipement" : "Sélectionner une intervention"} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">Aucune intervention</SelectItem>
+          <SelectItem value="none">Aucune intervention</SelectItem>
           {safeInterventions.map((intervention) => (
             <SelectItem key={intervention.id} value={intervention.id.toString()}>
               {intervention.title}

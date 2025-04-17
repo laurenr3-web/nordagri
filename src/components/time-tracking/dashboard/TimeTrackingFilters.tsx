@@ -44,7 +44,7 @@ export function TimeTrackingFilters({
             Equipment
           </label>
           <Select
-            value={equipmentFilter?.toString() || ""}
+            value={equipmentFilter?.toString() || "all"}
             onValueChange={(value) => onEquipmentChange(value !== "all" ? parseInt(value) : undefined)}
           >
             <SelectTrigger>
