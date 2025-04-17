@@ -1,21 +1,23 @@
 
 import React from 'react';
+import { Calendar, ListFilter, PieChart } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ListFilter, CalendarIcon, Clock } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { TimeEntryCard } from '@/components/time-tracking/TimeEntryCard';
 import { TimeEntry } from '@/hooks/time-tracking/types';
-import { TimeEntryCard } from '../TimeEntryCard';
+import { Skeleton } from '@/components/ui/skeleton';
+import CalendarView from '@/components/time-tracking/calendar/CalendarView';
+import TimeTrackingRapport from '@/components/time-tracking/rapport/TimeTrackingRapport';
 
 interface TimeTrackingTabsProps {
   activeTab: string;
-  onTabChange: (value: string) => void;
+  onTabChange: (tab: string) => void;
   entries: TimeEntry[];
   isLoading: boolean;
   onNewSession: () => void;
-  onResumeEntry: (id: string) => void;
-  onDeleteEntry: (id: string) => void;
+  onResumeEntry: (entryId: string) => void;
+  onDeleteEntry: (entryId: string) => void;
 }
 
 export function TimeTrackingTabs({
@@ -25,77 +27,70 @@ export function TimeTrackingTabs({
   isLoading,
   onNewSession,
   onResumeEntry,
-  onDeleteEntry
+  onDeleteEntry,
 }: TimeTrackingTabsProps) {
   return (
-    <Tabs value={activeTab} onValueChange={onTabChange} className="mt-6">
-      <TabsList className="mb-4">
-        <TabsTrigger value="list">
-          <ListFilter className="h-4 w-4 mr-2" />
-          List
-        </TabsTrigger>
-        <TabsTrigger value="calendar">
-          <CalendarIcon className="h-4 w-4 mr-2" />
-          Calendar
-        </TabsTrigger>
-      </TabsList>
+    <Tabs 
+      defaultValue={activeTab} 
+      value={activeTab}
+      onValueChange={onTabChange}
+      className="mt-6"
+    >
+      <div className="flex items-center justify-between mb-4">
+        <TabsList>
+          <TabsTrigger value="list" className="flex items-center gap-1">
+            <ListFilter className="h-4 w-4" />
+            <span>Liste</span>
+          </TabsTrigger>
+          <TabsTrigger value="calendar" className="flex items-center gap-1">
+            <Calendar className="h-4 w-4" />
+            <span>Calendrier</span>
+          </TabsTrigger>
+          <TabsTrigger value="rapport" className="flex items-center gap-1">
+            <PieChart className="h-4 w-4" />
+            <span>Rapport</span>
+          </TabsTrigger>
+        </TabsList>
+        
+        <Button size="sm" onClick={onNewSession} disabled={isLoading}>
+          Nouvelle session
+        </Button>
+      </div>
       
       <TabsContent value="list">
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Array(6).fill(0).map((_, i) => (
-              <Card key={i}>
-                <CardContent className="p-0">
-                  <div className="p-4">
-                    <Skeleton className="h-6 w-24 mb-3" />
-                    <Skeleton className="h-5 w-full mb-2" />
-                    <Skeleton className="h-4 w-1/2 mb-4" />
-                    <div className="flex justify-between">
-                      <Skeleton className="h-4 w-20" />
-                      <Skeleton className="h-4 w-12" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-24" />
             ))}
           </div>
+        ) : entries.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-10">
+            <p className="text-muted-foreground mb-4">Aucune session de travail enregistrée</p>
+            <Button onClick={onNewSession}>Démarrer une nouvelle session</Button>
+          </div>
         ) : (
-          entries.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <ScrollArea className="h-[calc(100vh-28rem)]">
+            <div className="space-y-4">
               {entries.map((entry) => (
                 <TimeEntryCard
                   key={entry.id}
                   entry={entry}
-                  onResume={onResumeEntry}
-                  onDelete={onDeleteEntry}
+                  onResume={() => onResumeEntry(entry.id)}
+                  onDelete={() => onDeleteEntry(entry.id)}
                 />
               ))}
             </div>
-          ) : (
-            <div className="text-center py-12 border rounded-md bg-gray-50">
-              <Clock className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-xl font-medium mb-2">No sessions found</h3>
-              <p className="text-gray-500 mb-4">
-                No time sessions match your search criteria.
-              </p>
-              <Button onClick={onNewSession}>
-                Start a session
-              </Button>
-            </div>
-          )
+          </ScrollArea>
         )}
       </TabsContent>
       
       <TabsContent value="calendar">
-        <div className="border rounded-lg p-6">
-          <div className="text-center">
-            <CalendarIcon className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-            <h3 className="text-lg font-medium mb-2">Calendar View</h3>
-            <p className="text-gray-500 mb-4">
-              This feature will be available soon.
-            </p>
-          </div>
-        </div>
+        <CalendarView />
+      </TabsContent>
+      
+      <TabsContent value="rapport">
+        <TimeTrackingRapport />
       </TabsContent>
     </Tabs>
   );

@@ -3,7 +3,7 @@ export interface TimeEntry {
   id: string;
   user_id: string;
   owner_name?: string;
-  user_name?: string; // Adding user_name field
+  user_name?: string;
   technician?: string;
   equipment_id?: number;
   intervention_id?: number;
@@ -17,11 +17,11 @@ export interface TimeEntry {
   equipment_name?: string;
   intervention_title?: string;
   location?: string;
-  poste_travail?: string; // Adding poste_travail field
+  poste_travail?: string;
   created_at: string;
   updated_at: string;
-  current_duration?: string; // Adding current_duration field
-  journee_id?: string; // Adding journee_id field
+  current_duration?: string;
+  journee_id?: string;
 }
 
 export interface ActiveTimeEntry extends TimeEntry {
@@ -29,7 +29,7 @@ export interface ActiveTimeEntry extends TimeEntry {
 }
 
 export type TimeEntryTaskType = 'maintenance' | 'repair' | 'inspection' | 'operation' | 'other';
-export type TimeEntryStatus = 'active' | 'paused' | 'completed' | 'disputed'; // Added disputed status
+export type TimeEntryStatus = 'active' | 'paused' | 'completed' | 'disputed';
 
 export interface TimeSpentByEquipment {
   equipment_id: number;
