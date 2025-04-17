@@ -1,7 +1,7 @@
 
 import { taskTypeService } from './taskTypeService';
 import { timeEntryQueries } from './timeEntryQueries';
-import { timeEntryOperations } from './timeEntryOperations';
+import { timeEntryOperations } from './operations';
 import { TimeEntry, TimeEntryTaskType, TimeEntryStatus, TimeSpentByEquipment } from '@/hooks/time-tracking/types';
 import { StartTimeEntryData, TimeEntriesFilter } from './types';
 
