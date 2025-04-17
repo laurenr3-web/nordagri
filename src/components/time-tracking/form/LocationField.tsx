@@ -18,14 +18,14 @@ interface LocationFieldProps {
 export function LocationField({ location_id, locations, disabled, onChange }: LocationFieldProps) {
   return (
     <div className="grid gap-2">
-      <Label htmlFor="location">Location</Label>
+      <Label htmlFor="location">Emplacement</Label>
       <Select
         value={location_id?.toString()}
         onValueChange={(value) => onChange('location_id', parseInt(value))}
         disabled={disabled || locations.length === 0}
       >
         <SelectTrigger id="location" className="w-full">
-          <SelectValue placeholder="Select a location" />
+          <SelectValue placeholder="Sélectionner un emplacement" />
         </SelectTrigger>
         <SelectContent>
           {locations.map((location) => (
@@ -35,7 +35,7 @@ export function LocationField({ location_id, locations, disabled, onChange }: Lo
           ))}
           {locations.length === 0 && (
             <div className="p-2 text-sm text-gray-500">
-              No locations available
+              Aucun emplacement disponible
             </div>
           )}
         </SelectContent>

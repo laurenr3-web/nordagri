@@ -3,8 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { TaskTypeField } from './form/TaskTypeField';
 import { EquipmentField } from './form/EquipmentField';
@@ -21,20 +19,9 @@ interface TimeEntryFormProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: any) => void;
-  initialData?: {
-    task_type?: string;
-    custom_task_type?: string;
-    equipment_id?: number;
-    intervention_id?: number;
-    title?: string;
-    location_id?: number;
-    location?: string;
-    notes?: string;
-    poste_travail?: string;
-  };
 }
 
-export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: TimeEntryFormProps) {
+export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormProps) {
   const isMobile = useIsMobile();
   const [taskTypes, setTaskTypes] = useState<TaskType[]>([]);
   const [equipments, setEquipments] = useState<Array<{ id: number; name: string }>>([]);
@@ -53,51 +40,30 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
     custom_task_type: '',
     equipment_id: undefined as number | undefined,
     intervention_id: undefined as number | undefined,
-    title: '',
     description: '',
     notes: '',
     location_id: undefined as number | undefined,
     poste_travail: '',
-    priority: 'medium' as const
   });
   
   const [isLoading, setIsLoading] = useState(true);
+  const [formError, setFormError] = useState<string | null>(null);
   
-  // Apply initialData when form opens
+  // Reset form when opened
   useEffect(() => {
-    if (isOpen && initialData) {
-      setFormData(prev => ({
-        ...prev,
-        ...(initialData.task_type && { task_type: initialData.task_type as any }),
-        ...(initialData.custom_task_type && { custom_task_type: initialData.custom_task_type }),
-        ...(initialData.equipment_id && { equipment_id: initialData.equipment_id }),
-        ...(initialData.intervention_id && { intervention_id: initialData.intervention_id }),
-        ...(initialData.title && { title: initialData.title }),
-        ...(initialData.location_id && { location_id: initialData.location_id }),
-        ...(initialData.location && { location: initialData.location }),
-        ...(initialData.notes && { notes: initialData.notes }),
-        ...(initialData.poste_travail && { poste_travail: initialData.poste_travail })
-      }));
-    } else if (isOpen) {
-      // Reset form when opening without initialData
+    if (isOpen) {
       setFormData({
         task_type: 'maintenance' as const,
         task_type_id: '',
         custom_task_type: '',
         equipment_id: undefined,
         intervention_id: undefined,
-        title: '',
         description: '',
         notes: '',
         location_id: undefined,
         poste_travail: '',
-        priority: 'medium' as const
       });
-    }
-  }, [isOpen, initialData]);
-  
-  useEffect(() => {
-    if (isOpen) {
+      setFormError(null);
       loadTaskTypes();
       loadEquipments();
     }
@@ -120,7 +86,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
       }
     } catch (error) {
       console.error('Error loading task types:', error);
-      toast.error('Could not load task types');
+      toast.error('Impossible de charger les types de tâches');
     }
   };
   
@@ -136,7 +102,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
       setIsLoading(false);
     } catch (error) {
       console.error('Error loading equipment:', error);
-      toast.error('Could not load equipment list');
+      toast.error('Impossible de charger la liste des équipements');
       setIsLoading(false);
     }
   };
@@ -162,24 +128,41 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
       ...prev,
       [field]: value
     }));
+    
+    // Clear formError when user makes changes
+    if (formError) {
+      setFormError(null);
+    }
+  };
+  
+  const validateForm = () => {
+    // Validation logic based on requirements
+    if (formData.task_type === 'other' && !formData.custom_task_type.trim()) {
+      setFormError('Veuillez saisir un nom pour la tâche personnalisée');
+      return false;
+    }
+    
+    if (!formData.poste_travail.trim()) {
+      setFormError('Veuillez indiquer votre poste de travail');
+      return false;
+    }
+    
+    return true;
   };
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.equipment_id && !formData.poste_travail) {
-      toast.error('Veuillez sélectionner un équipement ou un poste de travail');
+    if (!validateForm()) {
       return;
     }
     
-    if (!formData.title) {
-      toast.error('Veuillez spécifier un titre pour cette session');
-      return;
-    }
-    
+    // Prepare data for submission with the right title
     const submitData = {
       ...formData,
-      priority: formData.priority || 'medium',
+      title: formData.task_type === 'other' 
+        ? formData.custom_task_type 
+        : `${formData.task_type} - ${new Date().toLocaleDateString()}`
     };
     
     onSubmit(submitData);
@@ -187,12 +170,14 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
   
   const FormContent = (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Task Type Field (Required) */}
       <TaskTypeField
         taskType={formData.task_type}
         customTaskType={formData.custom_task_type}
         onChange={handleChange}
       />
       
+      {/* Equipment Field (Optional) */}
       <EquipmentField
         equipment_id={formData.equipment_id}
         equipments={equipments}
@@ -200,21 +185,14 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
         onChange={handleChange}
       />
       
-      {!formData.equipment_id && (
-        <WorkstationField
-          workstation={formData.poste_travail}
-          onChange={handleChange}
-          required={!formData.equipment_id}
-        />
-      )}
-      
-      <InterventionField
-        intervention_id={formData.intervention_id}
-        interventions={interventions}
-        disabled={!formData.equipment_id}
+      {/* Workstation Field (Required) */}
+      <WorkstationField
+        workstation={formData.poste_travail}
         onChange={handleChange}
+        required={true}
       />
       
+      {/* Location Field (Optional) */}
       <LocationField
         location_id={formData.location_id}
         locations={locations}
@@ -222,27 +200,34 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
         onChange={handleChange}
       />
       
-      <div className="grid gap-2">
-        <Label htmlFor="title">Title *</Label>
-        <Input
-          id="title"
-          value={formData.title}
-          onChange={(e) => handleChange('title', e.target.value)}
-          placeholder="Enter a title for this session"
-          required
-        />
-      </div>
+      {/* Intervention Field (Optional) - Only enabled if equipment is selected */}
+      <InterventionField
+        intervention_id={formData.intervention_id}
+        interventions={interventions}
+        disabled={!formData.equipment_id}
+        onChange={handleChange}
+      />
       
+      {/* Description Field (Optional) */}
       <div className="grid gap-2">
-        <Label htmlFor="description">Description</Label>
+        <label htmlFor="description" className="text-sm font-medium">
+          Description de la session
+        </label>
         <Textarea
           id="description"
           value={formData.description}
           onChange={(e) => handleChange('description', e.target.value)}
-          placeholder="Enter a description..."
+          placeholder="Description détaillée de la session..."
           className="min-h-[100px]"
         />
       </div>
+      
+      {/* Display form error if any */}
+      {formError && (
+        <div className="text-red-500 text-sm p-2 bg-red-50 rounded-md">
+          {formError}
+        </div>
+      )}
       
       <div className="flex justify-end gap-2 pb-6">
         <Button

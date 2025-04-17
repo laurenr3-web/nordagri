@@ -19,20 +19,20 @@ interface EquipmentFieldProps {
 export function EquipmentField({ equipment_id, equipments, loading, onChange }: EquipmentFieldProps) {
   return (
     <div className="grid gap-2">
-      <Label htmlFor="equipment">Equipment *</Label>
+      <Label htmlFor="equipment">Équipement</Label>
       <Select
         value={equipment_id?.toString()}
         onValueChange={(value) => onChange('equipment_id', parseInt(value))}
         disabled={loading}
       >
         <SelectTrigger id="equipment" className="w-full">
-          <SelectValue placeholder="Select equipment" />
+          <SelectValue placeholder="Sélectionner un équipement" />
         </SelectTrigger>
         <SelectContent>
           {loading ? (
             <div className="flex items-center justify-center p-2">
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              Loading...
+              Chargement...
             </div>
           ) : (
             equipments.map((equipment) => (

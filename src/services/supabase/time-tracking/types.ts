@@ -8,7 +8,9 @@ export interface StartTimeEntryData {
   task_type: TimeEntryTaskType;
   task_type_id?: string;
   custom_task_type?: string;
+  poste_travail?: string;
   title?: string;
+  description?: string;
   notes?: string;
   location?: string;
   coordinates?: { lat: number; lng: number };

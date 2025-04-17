@@ -15,7 +15,7 @@ export function TaskTypeField({ taskType, customTaskType, onChange }: TaskTypeFi
   return (
     <>
       <div className="grid gap-2">
-        <Label>Task type *</Label>
+        <Label>Type de tâche <span className="text-red-500">*</span></Label>
         <RadioGroup
           value={taskType}
           onValueChange={(value) => onChange('task_type', value as TimeEntryTaskType)}
@@ -27,7 +27,7 @@ export function TaskTypeField({ taskType, customTaskType, onChange }: TaskTypeFi
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="repair" id="repair" />
-            <Label htmlFor="repair">Repair</Label>
+            <Label htmlFor="repair">Réparation</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="inspection" id="inspection" />
@@ -39,19 +39,20 @@ export function TaskTypeField({ taskType, customTaskType, onChange }: TaskTypeFi
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="other" id="other" />
-            <Label htmlFor="other">Other</Label>
+            <Label htmlFor="other">Autre</Label>
           </div>
         </RadioGroup>
       </div>
 
       {taskType === 'other' && (
         <div className="grid gap-2">
-          <Label htmlFor="custom_task_type">Custom task type *</Label>
+          <Label htmlFor="custom_task_type">Nom de la tâche <span className="text-red-500">*</span></Label>
           <Input
             id="custom_task_type"
             value={customTaskType}
             onChange={(e) => onChange('custom_task_type', e.target.value)}
-            placeholder="Enter task type..."
+            placeholder="Saisissez le nom de la tâche"
+            required
           />
         </div>
       )}
