@@ -62,10 +62,17 @@ export function DatePicker({
             captionLayout={captionLayout}
             initialFocus
             locale={locale}
-            showMonthYearPicker={showMonthYearPicker}
+            // We need to convert showMonthYearPicker to year/month display mode
+            // because DayPicker doesn't have showMonthYearPicker prop
+            view={showMonthYearPicker ? "month" : "day"}
           />
         </PopoverContent>
       </Popover>
     </div>
   );
+}
+
+// Add this at the top of your file to have Locale type available
+declare global {
+  type Locale = import('date-fns').Locale;
 }

@@ -1,11 +1,11 @@
 
 import React, { useState } from 'react';
-import { format, subMonths } from 'date-fns';
+import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Grid } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DatePicker } from '@/components/ui/date-picker';
-import { TimeBreakdownChart } from '@/components/TimeBreakdownChart';
+import { TimeBreakdownChart } from './TimeBreakdownChart';
 import { useTimeBreakdown } from '@/hooks/time-tracking/useTimeBreakdown';
 import { Button } from '@/components/ui/button';
 import { useTaskTypeDistribution } from '@/hooks/time-tracking/useTaskTypeDistribution';
@@ -31,6 +31,19 @@ const TimeTrackingRapport: React.FC = () => {
     setIsReportModalOpen(true);
   };
   
+  const handleMonthSelect = (date: Date | Date[] | undefined) => {
+    // Handle only single date selection
+    if (date instanceof Date) {
+      setSelectedMonth(date);
+    }
+  };
+  
+  // Ensure all distribution items have a color
+  const distributionWithColors = distribution.map(item => ({
+    ...item,
+    color: item.color || '#999999' // Provide default color if missing
+  }));
+  
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -45,7 +58,7 @@ const TimeTrackingRapport: React.FC = () => {
           <DatePicker
             mode="single"
             selected={selectedMonth}
-            onSelect={setSelectedMonth}
+            onSelect={handleMonthSelect}
             showMonthYearPicker
             dateFormat="MMMM yyyy"
             locale={fr}
@@ -137,7 +150,7 @@ const TimeTrackingRapport: React.FC = () => {
       {/* Graphiques */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <TimeDistributionChart 
-          data={distribution} 
+          data={distributionWithColors}
           isLoading={isDistributionLoading}
           error={distributionError}
           title={`Répartition par type de tâche (${format(selectedMonth, 'MMMM yyyy', { locale: fr })})`}
@@ -164,7 +177,7 @@ const TimeTrackingRapport: React.FC = () => {
           mainTask: distribution.length > 0 ? distribution.sort((a, b) => b.hours - a.hours)[0].type : "Aucune",
           dailyAverage: distribution.length > 0 ? distribution.reduce((sum, item) => sum + item.hours, 0) / 22 : 0
         }}
-        taskDistribution={distribution}
+        taskDistribution={distributionWithColors}
       />
     </div>
   );

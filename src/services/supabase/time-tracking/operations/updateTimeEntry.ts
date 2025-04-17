@@ -61,10 +61,10 @@ export async function updateTimeEntry(
     }
     
     // Ensure we have valid TimeEntryStatus
-    let status: TimeEntryStatus = data.status;
-    // Make sure status is one of the allowed values
-    if (!['active', 'paused', 'completed', 'disputed'].includes(data.status)) {
-      status = 'completed'; // Default fallback
+    let status: TimeEntryStatus = 'completed'; // Default fallback
+    if (data.status === 'active' || data.status === 'paused' || 
+        data.status === 'completed' || data.status === 'disputed') {
+      status = data.status as TimeEntryStatus;
     }
     
     // Formater la réponse
@@ -80,7 +80,7 @@ export async function updateTimeEntry(
       custom_task_type: data.custom_task_type,
       start_time: data.start_time,
       end_time: data.end_time,
-      status: status as TimeEntryStatus,
+      status: status,
       equipment_name: data.equipment?.name || 'Unknown Equipment',
       intervention_title: data.title,
       notes: data.notes,
