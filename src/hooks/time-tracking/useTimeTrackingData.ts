@@ -22,7 +22,12 @@ export function useTimeTrackingData() {
   const { userId } = useTimeTrackingUser();
   const { stats } = useTimeTrackingStats(userId);
   const { equipments } = useTimeTrackingEquipment();
-  const { activeTimeEntry, startTimeEntry } = useTimeTracking();
+  const { 
+    activeTimeEntry, 
+    startTimeEntry, 
+    pauseTimeEntry 
+  } = useTimeTracking();
+  
   const { activeSessions } = useActiveTimeTrackingSessions(activeTimeEntry);
   const {
     entries,
@@ -62,6 +67,7 @@ export function useTimeTrackingData() {
     handleResumeTimeEntry,
     handleStopTimeEntry,
     handleDeleteTimeEntry,
+    handlePauseTimeEntry: pauseTimeEntry, // Add the missing pauseTimeEntry function
     setIsFormOpen,
     setActiveTab,
     setDateRange,
