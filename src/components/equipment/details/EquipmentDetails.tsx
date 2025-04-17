@@ -10,12 +10,15 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { formatDate, getStatusColor, getStatusText } from '../utils/statusUtils';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 interface EquipmentDetailsProps {
   equipment: any;
 }
 
 const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment }) => {
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  
   // Helper function to check if data exists and is not empty
   const hasData = (value: any): boolean => {
     if (value === undefined || value === null) return false;
@@ -24,14 +27,14 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <Card className="overflow-hidden border-2 border-primary/10">
-        <CardHeader className="bg-primary/10">
-          <CardTitle>Informations générales</CardTitle>
+        <CardHeader className={`bg-primary/10 ${isMobile ? 'px-4 py-3' : ''}`}>
+          <CardTitle className={isMobile ? "text-xl" : ""}>Informations générales</CardTitle>
           <CardDescription>Détails de base de l'équipement</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+        <CardContent className={isMobile ? "p-4" : "pt-4 p-6"}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
             {/* Always show name as it's required */}
             <div>
               <h4 className="text-sm font-medium text-muted-foreground mb-1">Nom</h4>
@@ -129,12 +132,12 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment }) => {
       {/* Only show notes card if notes exist */}
       {hasData(equipment.notes) && (
         <Card className="overflow-hidden border-2 border-muted/20">
-          <CardHeader className="bg-muted/10">
-            <CardTitle>Notes</CardTitle>
+          <CardHeader className={`bg-muted/10 ${isMobile ? 'px-4 py-3' : ''}`}>
+            <CardTitle className={isMobile ? "text-xl" : ""}>Notes</CardTitle>
             <CardDescription>Informations supplémentaires sur cet équipement</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="prose prose-sm max-w-none mt-4">
+          <CardContent className={isMobile ? "p-4" : ""}>
+            <div className="prose prose-sm max-w-none mt-2">
               <p className="whitespace-pre-wrap">{equipment.notes}</p>
             </div>
           </CardContent>

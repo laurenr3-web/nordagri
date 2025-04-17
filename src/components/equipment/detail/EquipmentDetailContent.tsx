@@ -12,6 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { EquipmentWearDisplay } from '../wear/EquipmentWearDisplay';
 import EquipmentImageGallery from '../details/EquipmentImageGallery';
 import { Separator } from '@/components/ui/separator';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 interface EquipmentDetailContentProps {
   equipment: EquipmentItem;
@@ -24,6 +25,7 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
   const [localEquipment, setLocalEquipment] = useState(equipment);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const handleEditEquipment = () => {
     setIsEditDialogOpen(true);
@@ -72,7 +74,7 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
   };
 
   return (
-    <div className="space-y-8 pb-16">
+    <div className="space-y-4 pb-16">
       <EquipmentHeader 
         equipment={localEquipment} 
         onEdit={handleEditEquipment}
@@ -82,18 +84,13 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
       
       <Separator />
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div>
-          <EquipmentImageGallery equipment={localEquipment} />
-        </div>
-        
-        <div>
-          <EquipmentWearDisplay equipment={localEquipment} />
-        </div>
+      <div className={`grid grid-cols-1 gap-4 ${!isMobile ? 'md:grid-cols-2' : ''}`}>
+        <EquipmentImageGallery equipment={localEquipment} />
+        <EquipmentWearDisplay equipment={localEquipment} />
       </div>
       
-      <Card className="overflow-hidden">
-        <CardContent className="p-4">
+      <Card>
+        <CardContent className="p-2 sm:p-4">
           <EquipmentTabs equipment={localEquipment} />
         </CardContent>
       </Card>

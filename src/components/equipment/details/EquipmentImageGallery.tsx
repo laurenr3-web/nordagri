@@ -12,6 +12,7 @@ import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 interface EquipmentImageGalleryProps {
   equipment: EquipmentItem;
@@ -22,6 +23,7 @@ const EquipmentImageGallery: React.FC<EquipmentImageGalleryProps> = ({ equipment
   const [images, setImages] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isZoomOpen, setIsZoomOpen] = useState(false);
+  const isMobile = useMediaQuery('(max-width: 768px)');
   
   // Mettre à jour les images lorsque l'équipement change
   useEffect(() => {
@@ -56,11 +58,11 @@ const EquipmentImageGallery: React.FC<EquipmentImageGalleryProps> = ({ equipment
   return (
     <>
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle>Images</CardTitle>
+        <CardHeader className={isMobile ? "pb-2 px-4 py-3" : "pb-3"}>
+          <CardTitle className="text-lg font-medium">Images</CardTitle>
           <CardDescription>Photos de l'équipement</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className={isMobile ? "px-4 py-2" : ""}>
           <div className="relative aspect-video w-full overflow-hidden rounded-md">
             <img
               src={images[currentIndex]}

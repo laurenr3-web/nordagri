@@ -11,6 +11,7 @@ import EquipmentImageGallery from './details/EquipmentImageGallery';
 import { Card, CardContent } from '@/components/ui/card';
 import { EquipmentWearDisplay } from './wear/EquipmentWearDisplay';
 import EquipmentTabs from './details/EquipmentTabs';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 interface EquipmentDetailsProps {
   equipment: EquipmentItem;
@@ -21,6 +22,7 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [localEquipment, setLocalEquipment] = useState(equipment);
   const navigate = useNavigate();
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const handleEquipmentUpdate = (updatedEquipment: any) => {
     console.log('EquipmentDetails received updated equipment:', updatedEquipment);
@@ -64,7 +66,7 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
   };
 
   return (
-    <div className="space-y-6 pb-16">
+    <div className="space-y-4 pb-16">
       <EquipmentHeader 
         equipment={localEquipment} 
         onEditClick={() => setIsEditDialogOpen(true)} 
@@ -73,19 +75,13 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
 
       <Separator />
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div>
-          <EquipmentImageGallery equipment={localEquipment} />
-        </div>
-        
-        <div>
-          {/* Wear information card */}
-          <EquipmentWearDisplay equipment={localEquipment} />
-        </div>
+      <div className={`grid grid-cols-1 gap-4 ${!isMobile ? 'md:grid-cols-2' : ''}`}>
+        <EquipmentImageGallery equipment={localEquipment} />
+        <EquipmentWearDisplay equipment={localEquipment} />
       </div>
       
-      <Card className="overflow-hidden">
-        <CardContent className="p-4">
+      <Card>
+        <CardContent className="p-2 sm:p-4">
           <EquipmentTabs equipment={localEquipment} />
         </CardContent>
       </Card>

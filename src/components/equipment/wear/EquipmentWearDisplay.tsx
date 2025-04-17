@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useEquipmentWear } from '@/hooks/equipment/useEquipmentWear';
 import { CalendarClock } from 'lucide-react';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 interface EquipmentWearDisplayProps {
   equipment: {
@@ -18,13 +19,15 @@ export function EquipmentWearDisplay({ equipment }: EquipmentWearDisplayProps) {
     valeur_actuelle: equipment.valeur_actuelle || 0,
     last_wear_update: equipment.last_wear_update
   });
+  
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   return (
     <Card>
-      <CardHeader className="pb-2">
+      <CardHeader className={isMobile ? "pb-2 px-4 py-3" : "pb-2"}>
         <CardTitle className="text-lg font-medium">Usure</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className={isMobile ? "px-4 py-2" : ""}>
         <div className="flex flex-col gap-2">
           <p className="text-2xl font-bold">{formattedValue}</p>
           {lastUpdate && (
