@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Calendar, FileText } from 'lucide-react';
 import { format, addMonths, subMonths } from 'date-fns';
@@ -25,6 +26,7 @@ import { PayrollPeriod } from './PayrollPeriod';
 const TimeTrackingRapport: React.FC = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [payrollPeriodType, setPayrollPeriodType] = useState('weekly');
   
   const { isLoading: isSummaryLoading, summary } = useMonthlySummary();
   const { isLoading: isDailyHoursLoading, dailyHours } = useDailyHours(currentMonth);
@@ -166,8 +168,11 @@ const TimeTrackingRapport: React.FC = () => {
         </CardContent>
       </Card>
       
-      {/* Pay Period Section - Updated */}
-      <PayrollPeriod />
+      {/* Pay Period Section with stable props */}
+      <PayrollPeriod 
+        payrollPeriodType={payrollPeriodType}
+        setPayrollPeriodType={setPayrollPeriodType}
+      />
       
       {/* Modal for day details */}
       {selectedDate && (

@@ -11,6 +11,7 @@ import { TimeEntryForm } from '../TimeEntryForm';
 import { TimeTrackingTabs } from './TimeTrackingTabs';
 import { startOfWeek, endOfWeek } from 'date-fns';
 import { useTimeTrackingData } from '@/hooks/time-tracking/useTimeTrackingData';
+import { PayrollPeriod } from '../rapport/PayrollPeriod';
 
 export default function TimeTrackingPage() {
   const {
@@ -36,6 +37,8 @@ export default function TimeTrackingPage() {
     setEquipmentFilter,
     taskTypeFilter,
     setTaskTypeFilter,
+    payrollPeriodType,
+    setPayrollPeriodType,
   } = useTimeTrackingData();
 
   return (
@@ -61,28 +64,38 @@ export default function TimeTrackingPage() {
                 onStop={handleStopTimeEntry}
               />
             )}
-            
-            <TimeTrackingFilters
-              dateRange={dateRange}
-              equipmentFilter={equipmentFilter}
-              taskTypeFilter={taskTypeFilter}
-              equipments={equipments}
-              onDateRangeChange={(range) => {
-                if (range?.from && range?.to) {
-                  setDateRange({ from: range.from, to: range.to });
-                }
-              }}
-              onEquipmentChange={setEquipmentFilter}
-              onTaskTypeChange={setTaskTypeFilter}
-              onReset={() => {
-                setDateRange({
-                  from: startOfWeek(new Date(), { weekStartsOn: 1 }),
-                  to: endOfWeek(new Date(), { weekStartsOn: 1 })
-                });
-                setEquipmentFilter(undefined);
-                setTaskTypeFilter(undefined);
-              }}
-            />
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="md:col-span-2">
+                <TimeTrackingFilters
+                  dateRange={dateRange}
+                  equipmentFilter={equipmentFilter}
+                  taskTypeFilter={taskTypeFilter}
+                  equipments={equipments}
+                  onDateRangeChange={(range) => {
+                    if (range?.from && range?.to) {
+                      setDateRange({ from: range.from, to: range.to });
+                    }
+                  }}
+                  onEquipmentChange={setEquipmentFilter}
+                  onTaskTypeChange={setTaskTypeFilter}
+                  onReset={() => {
+                    setDateRange({
+                      from: startOfWeek(new Date(), { weekStartsOn: 1 }),
+                      to: endOfWeek(new Date(), { weekStartsOn: 1 })
+                    });
+                    setEquipmentFilter(undefined);
+                    setTaskTypeFilter(undefined);
+                  }}
+                />
+              </div>
+              <div>
+                <PayrollPeriod
+                  payrollPeriodType={payrollPeriodType}
+                  setPayrollPeriodType={setPayrollPeriodType}
+                />
+              </div>
+            </div>
             
             <ActiveSessionsTable
               sessions={activeSessions}
