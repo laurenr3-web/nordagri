@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -78,7 +79,7 @@ function App() {
                     <TimeTracking />
                   </ProtectedRoute>
                 } />
-                <Route path="/time-tracking/:id" element={
+                <Route path="/time-tracking/detail/:id" element={
                   <ProtectedRoute>
                     <TimeEntryDetail />
                   </ProtectedRoute>
