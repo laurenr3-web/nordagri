@@ -182,6 +182,7 @@ export function useTimeEntryDetail(id: string | undefined) {
         custom_task_type: formData.custom_task_type,
         title: formData.title,
         notes: formData.notes,
+        description: formData.description, // S'assurer que la description est bien passée
         location: formData.location,
         journee_id: previousSession?.journee_id // Link to the same working day
       });

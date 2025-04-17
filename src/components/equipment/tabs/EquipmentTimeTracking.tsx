@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,12 +9,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { TimeEntryForm } from '@/components/time-tracking/TimeEntryForm';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useNavigate } from 'react-router-dom';
 
 interface EquipmentTimeTrackingProps {
   equipment: any;
 }
 
 const EquipmentTimeTracking: React.FC<EquipmentTimeTrackingProps> = ({ equipment }) => {
+  const navigate = useNavigate();
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
@@ -120,6 +121,11 @@ const EquipmentTimeTracking: React.FC<EquipmentTimeTrackingProps> = ({ equipment
     }
   };
   
+  // Handle time entry actions
+  const handleViewTimeEntry = (entryId: string) => {
+    navigate(`/time-tracking/detail/${entryId}`);
+  };
+  
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -175,6 +181,7 @@ const EquipmentTimeTracking: React.FC<EquipmentTimeTrackingProps> = ({ equipment
                   key={entry.id}
                   entry={entry}
                   onResume={handleResumeTimeEntry}
+                  onView={() => handleViewTimeEntry(entry.id)}
                   onDelete={handleDeleteTimeEntry}
                 />
               ))}

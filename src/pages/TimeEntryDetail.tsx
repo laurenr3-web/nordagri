@@ -52,6 +52,7 @@ const TimeEntryDetail = () => {
       const newEntryId = await prepareNewTaskData(data);
       setIsNewTaskFormOpen(false);
       if (newEntryId) {
+        // Utiliser le nouveau format d'URL pour la redirection vers la nouvelle tâche
         navigate(`/time-tracking/detail/${newEntryId}`);
       }
     } catch (error) {
