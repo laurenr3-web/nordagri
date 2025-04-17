@@ -3,38 +3,76 @@ import { supabase } from '@/integrations/supabase/client';
 import { TimeEntry } from '@/hooks/time-tracking/types';
 
 /**
- * Update a time entry
+ * Update a time entry with new data
  */
-export async function updateTimeEntry(entryId: string, data: Partial<TimeEntry>): Promise<void> {
+export async function updateTimeEntry(
+  entryId: string,
+  updateData: Partial<TimeEntry>
+): Promise<TimeEntry> {
   try {
-    // Convert TimeEntry data to time_sessions format
-    const updateData: any = {};
-    
-    if (data.notes !== undefined) updateData.notes = data.notes;
-    if (data.status !== undefined) updateData.status = data.status;
-    if (data.equipment_id !== undefined) updateData.equipment_id = data.equipment_id;
-    if (data.task_type !== undefined) updateData.custom_task_type = data.task_type;
-    if (data.task_type_id !== undefined) updateData.task_type_id = data.task_type_id;
-    if (data.location !== undefined) updateData.location = data.location;
-    if (data.intervention_id !== undefined) updateData.intervention_id = data.intervention_id;
-    if (data.journee_id !== undefined) updateData.journee_id = data.journee_id;
-    
-    // Set end_time if provided or if status is being set to completed
-    if (data.end_time) {
-      updateData.end_time = data.end_time;
-    } else if (data.status === 'completed' && !updateData.end_time) {
-      updateData.end_time = new Date().toISOString();
+    // Si nous avons un custom_task_type mais pas de task_type_id, 
+    // essayons de déterminer le task_type_id automatiquement
+    if (updateData.custom_task_type && !updateData.task_type_id) {
+      const { data: taskTypes } = await supabase
+        .from('task_types')
+        .select('id, name');
+        
+      if (taskTypes) {
+        const matchingType = taskTypes.find(
+          type => type.name.toLowerCase() === updateData.custom_task_type?.toLowerCase()
+        );
+        
+        if (matchingType) {
+          updateData.task_type_id = matchingType.id;
+        }
+      }
     }
     
-    // Always update the updated_at timestamp
-    updateData.updated_at = new Date().toISOString();
+    // Préparer les données à mettre à jour
+    const dataToUpdate = {
+      ...updateData,
+      updated_at: new Date().toISOString()
+    };
     
-    const { error } = await supabase
+    // Mise à jour dans la base de données
+    const { data, error } = await supabase
       .from('time_sessions')
-      .update(updateData)
-      .eq('id', entryId);
+      .update(dataToUpdate)
+      .eq('id', entryId)
+      .select(`
+        *,
+        equipment:equipment_id (name)
+      `)
+      .single();
     
     if (error) throw error;
+    
+    if (!data) throw new Error("Failed to update time entry");
+    
+    // Formater la réponse
+    const updatedEntry: TimeEntry = {
+      id: data.id,
+      user_id: data.user_id,
+      owner_name: data.technician || 'User',
+      user_name: data.technician || 'User',
+      equipment_id: data.equipment_id,
+      intervention_id: data.intervention_id,
+      task_type: data.custom_task_type || 'maintenance',
+      task_type_id: data.task_type_id,
+      custom_task_type: data.custom_task_type,
+      start_time: data.start_time,
+      end_time: data.end_time,
+      status: data.status,
+      equipment_name: data.equipment?.name || 'Unknown Equipment',
+      intervention_title: data.title,
+      notes: data.notes,
+      location: data.location,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+      journee_id: data.journee_id
+    };
+    
+    return updatedEntry;
   } catch (error) {
     console.error("Error updating time entry:", error);
     throw error;

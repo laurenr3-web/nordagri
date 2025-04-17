@@ -1,284 +1,255 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
-import { TaskTypeField } from './form/TaskTypeField';
-import { EquipmentField } from './form/EquipmentField';
-import { LocationField } from './form/LocationField';
-import { InterventionField } from './form/InterventionField';
-import { WorkstationField } from './form/WorkstationField';
+import { Input } from '@/components/ui/input';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { timeTrackingService } from '@/services/supabase/timeTrackingService';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { TaskType } from '@/hooks/time-tracking/types';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { EquipmentField } from './form/EquipmentField';
+import { InterventionField } from './form/InterventionField';
+import { LocationField } from './form/LocationField';
+import { TaskTypeField } from './form/TaskTypeField';
+import { WorkstationField } from './form/WorkstationField';
+
+// Schéma de validation amélioré
+const timeEntrySchema = z.object({
+  equipment_id: z.number().optional(),
+  intervention_id: z.number().optional(),
+  task_type: z.string().min(1, "Le type de tâche est requis"),
+  task_type_id: z.string().optional(),
+  custom_task_type: z.string().optional(),
+  title: z.string().optional(),
+  notes: z.string().optional(),
+  location: z.string().optional(),
+  poste_travail: z.string().optional(),
+});
+
+type TimeEntryFormValues = z.infer<typeof timeEntrySchema>;
 
 interface TimeEntryFormProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: any) => void;
-  initialData?: {
-    task_type?: string;
-    custom_task_type?: string;
-    equipment_id?: number;
-    intervention_id?: number;
-    title?: string;
-    location_id?: number;
-    location?: string;
-    notes?: string;
-    poste_travail?: string;
-  };
+  defaultValues?: Partial<TimeEntryFormValues>;
 }
 
-export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: TimeEntryFormProps) {
-  const isMobile = useIsMobile();
-  const [taskTypes, setTaskTypes] = useState<TaskType[]>([]);
-  const [equipments, setEquipments] = useState<Array<{ id: number; name: string }>>([]);
-  const [interventions, setInterventions] = useState<Array<{ id: number; title: string }>>([]);
-  const [locations] = useState<Array<{ id: number; name: string }>>([
-    { id: 1, name: "Atelier" },
-    { id: 2, name: "Champ Nord" },
-    { id: 3, name: "Champ Sud" },
-    { id: 4, name: "Hangar" },
-    { id: 5, name: "Serre" }
-  ]);
+export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, defaultValues }: TimeEntryFormProps) {
+  const [taskTypes, setTaskTypes] = useState<any[]>([]);
   
-  const [formData, setFormData] = useState({
-    task_type: 'maintenance' as const,
-    task_type_id: '',
-    custom_task_type: '',
-    equipment_id: undefined as number | undefined,
-    intervention_id: undefined as number | undefined,
-    title: '',
-    description: '',
-    notes: '',
-    location_id: undefined as number | undefined,
-    poste_travail: '',
-    priority: 'medium' as const
+  // Form definition with default values
+  const form = useForm<TimeEntryFormValues>({
+    resolver: zodResolver(timeEntrySchema),
+    defaultValues: {
+      equipment_id: defaultValues?.equipment_id,
+      intervention_id: defaultValues?.intervention_id,
+      task_type: defaultValues?.task_type || 'maintenance',
+      task_type_id: defaultValues?.task_type_id,
+      custom_task_type: defaultValues?.custom_task_type,
+      title: defaultValues?.title,
+      notes: defaultValues?.notes,
+      location: defaultValues?.location,
+      poste_travail: defaultValues?.poste_travail,
+    },
   });
   
-  const [isLoading, setIsLoading] = useState(true);
-  
-  // Apply initialData when form opens
+  // Fetch task types when component mounts
   useEffect(() => {
-    if (isOpen && initialData) {
-      setFormData(prev => ({
-        ...prev,
-        ...(initialData.task_type && { task_type: initialData.task_type as any }),
-        ...(initialData.custom_task_type && { custom_task_type: initialData.custom_task_type }),
-        ...(initialData.equipment_id && { equipment_id: initialData.equipment_id }),
-        ...(initialData.intervention_id && { intervention_id: initialData.intervention_id }),
-        ...(initialData.title && { title: initialData.title }),
-        ...(initialData.location_id && { location_id: initialData.location_id }),
-        ...(initialData.location && { location: initialData.location }),
-        ...(initialData.notes && { notes: initialData.notes }),
-        ...(initialData.poste_travail && { poste_travail: initialData.poste_travail })
-      }));
-    } else if (isOpen) {
-      // Reset form when opening without initialData
-      setFormData({
-        task_type: 'maintenance' as const,
-        task_type_id: '',
-        custom_task_type: '',
-        equipment_id: undefined,
-        intervention_id: undefined,
-        title: '',
-        description: '',
-        notes: '',
-        location_id: undefined,
-        poste_travail: '',
-        priority: 'medium' as const
-      });
-    }
-  }, [isOpen, initialData]);
-  
-  useEffect(() => {
-    if (isOpen) {
-      loadTaskTypes();
-      loadEquipments();
-    }
-  }, [isOpen]);
-  
-  useEffect(() => {
-    if (formData.equipment_id) {
-      loadInterventions(formData.equipment_id);
-    } else {
-      setInterventions([]);
-    }
-  }, [formData.equipment_id]);
-  
-  const loadTaskTypes = async () => {
-    try {
-      const types = await timeTrackingService.getTaskTypes();
-      setTaskTypes(types);
-      if (types.length > 0 && !formData.task_type_id) {
-        handleChange('task_type_id', types[0].id);
+    const fetchTaskTypes = async () => {
+      try {
+        const types = await timeTrackingService.getTaskTypes();
+        setTaskTypes(types);
+        
+        // Si task_type et pas task_type_id, essayer de trouver l'ID correspondant
+        if (defaultValues?.task_type && !defaultValues?.task_type_id) {
+          const matchedType = types.find(t => 
+            t.name.toLowerCase() === defaultValues.task_type.toLowerCase());
+          
+          if (matchedType) {
+            form.setValue('task_type_id', matchedType.id);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching task types:", error);
       }
-    } catch (error) {
-      console.error('Error loading task types:', error);
-      toast.error('Could not load task types');
-    }
-  };
-  
-  const loadEquipments = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('equipment')
-        .select('id, name')
-        .order('name');
-      
-      if (error) throw error;
-      setEquipments(data || []);
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Error loading equipment:', error);
-      toast.error('Could not load equipment list');
-      setIsLoading(false);
-    }
-  };
-  
-  const loadInterventions = async (equipmentId: number) => {
-    try {
-      const { data, error } = await supabase
-        .from('interventions')
-        .select('id, title')
-        .eq('equipment_id', equipmentId)
-        .order('date', { ascending: false });
-      
-      if (error) throw error;
-      setInterventions(data || []);
-    } catch (error) {
-      console.error('Error loading interventions:', error);
-      setInterventions([]);
-    }
-  };
-  
-  const handleChange = (field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-  
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.equipment_id && !formData.poste_travail) {
-      toast.error('Veuillez sélectionner un équipement ou un poste de travail');
-      return;
-    }
-    
-    if (!formData.title) {
-      toast.error('Veuillez spécifier un titre pour cette session');
-      return;
-    }
-    
-    const submitData = {
-      ...formData,
-      priority: formData.priority || 'medium',
     };
     
-    onSubmit(submitData);
+    fetchTaskTypes();
+  }, []);
+
+  // Handle form submission
+  const handleSubmit = async (values: TimeEntryFormValues) => {
+    try {
+      // Si c'est un type de tâche standard, trouvons l'ID correspondant
+      if (values.task_type !== 'other') {
+        const matchedType = taskTypes.find(t => 
+          t.name.toLowerCase() === values.task_type.toLowerCase());
+          
+        if (matchedType) {
+          values.task_type_id = matchedType.id;
+        }
+      }
+      
+      // Si c'est 'other' mais qu'aucun custom_task_type n'est fourni, utiliser "Autre"
+      if (values.task_type === 'other' && (!values.custom_task_type || values.custom_task_type.trim() === '')) {
+        values.custom_task_type = 'Autre';
+      }
+      
+      // S'assurer que task_type_id est défini si possible
+      if (!values.task_type_id && values.custom_task_type) {
+        // Chercher dans les types existants pour voir si le custom_task_type correspond à un type existant
+        const matchedType = taskTypes.find(t => 
+          t.name.toLowerCase() === values.custom_task_type?.toLowerCase());
+          
+        if (matchedType) {
+          values.task_type_id = matchedType.id;
+        }
+      }
+      
+      onSubmit(values);
+      form.reset();
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast.error("Erreur lors de la création de la session");
+    }
   };
   
-  const FormContent = (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <TaskTypeField
-        taskType={formData.task_type}
-        customTaskType={formData.custom_task_type}
-        onChange={handleChange}
-      />
-      
-      <EquipmentField
-        equipment_id={formData.equipment_id}
-        equipments={equipments}
-        loading={isLoading}
-        onChange={handleChange}
-      />
-      
-      {!formData.equipment_id && (
-        <WorkstationField
-          workstation={formData.poste_travail}
-          onChange={handleChange}
-          required={!formData.equipment_id}
-        />
-      )}
-      
-      <InterventionField
-        intervention_id={formData.intervention_id}
-        interventions={interventions}
-        disabled={!formData.equipment_id}
-        onChange={handleChange}
-      />
-      
-      <LocationField
-        location_id={formData.location_id}
-        locations={locations}
-        disabled={false}
-        onChange={handleChange}
-      />
-      
-      <div className="grid gap-2">
-        <Label htmlFor="title">Title *</Label>
-        <Input
-          id="title"
-          value={formData.title}
-          onChange={(e) => handleChange('title', e.target.value)}
-          placeholder="Enter a title for this session"
-          required
-        />
-      </div>
-      
-      <div className="grid gap-2">
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          value={formData.description}
-          onChange={(e) => handleChange('description', e.target.value)}
-          placeholder="Enter a description..."
-          className="min-h-[100px]"
-        />
-      </div>
-      
-      <div className="flex justify-end gap-2 pb-6">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => onOpenChange(false)}
-        >
-          Annuler
-        </Button>
-        <Button type="submit" disabled={isLoading}>
-          Démarrer la session
-        </Button>
-      </div>
-    </form>
-  );
-
-  if (isMobile) {
-    return (
-      <Sheet open={isOpen} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="h-[90vh] overflow-y-auto">
-          <SheetHeader className="mb-4">
-            <SheetTitle>Démarrer une nouvelle session</SheetTitle>
-          </SheetHeader>
-          {FormContent}
-        </SheetContent>
-      </Sheet>
-    );
-  }
+  // Update form values when props change
+  useEffect(() => {
+    if (defaultValues) {
+      Object.entries(defaultValues).forEach(([key, value]) => {
+        form.setValue(key as any, value);
+      });
+    }
+  }, [defaultValues]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Démarrer une nouvelle session</DialogTitle>
+          <DialogTitle>Nouvelle session de travail</DialogTitle>
         </DialogHeader>
-        {FormContent}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            {/* Type de tâche */}
+            <FormField
+              control={form.control}
+              name="task_type"
+              render={({ field }) => (
+                <TaskTypeField
+                  taskType={field.value as any}
+                  customTaskType={form.watch('custom_task_type') || ''}
+                  onChange={(name, value) => {
+                    if (name === 'task_type') {
+                      form.setValue('task_type', value);
+                      
+                      // Si on sélectionne un type standard, chercher l'ID correspondant
+                      if (value !== 'other') {
+                        const matchedType = taskTypes.find(t => t.name.toLowerCase() === value.toLowerCase());
+                        if (matchedType) {
+                          form.setValue('task_type_id', matchedType.id);
+                        }
+                      } else {
+                        // Si "other" est sélectionné, réinitialiser task_type_id
+                        form.setValue('task_type_id', undefined);
+                      }
+                    } else {
+                      form.setValue(name as any, value);
+                    }
+                  }}
+                />
+              )}
+            />
+
+            {/* Équipement */}
+            <FormField
+              control={form.control}
+              name="equipment_id"
+              render={({ field }) => (
+                <EquipmentField 
+                  value={field.value} 
+                  onChange={(value) => form.setValue('equipment_id', value)} 
+                />
+              )}
+            />
+            
+            {/* Intervention */}
+            <FormField
+              control={form.control}
+              name="intervention_id"
+              render={({ field }) => (
+                <InterventionField 
+                  value={field.value} 
+                  onChange={(value) => form.setValue('intervention_id', value)} 
+                />
+              )}
+            />
+            
+            {/* Titre */}
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Titre</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Titre de la session" {...field} value={field.value || ''} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            
+            {/* Lieu */}
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <LocationField 
+                  value={field.value || ''} 
+                  onChange={(value) => form.setValue('location', value)} 
+                />
+              )}
+            />
+            
+            {/* Poste de travail */}
+            <FormField
+              control={form.control}
+              name="poste_travail"
+              render={({ field }) => (
+                <WorkstationField 
+                  value={field.value || ''} 
+                  onChange={(value) => form.setValue('poste_travail', value)} 
+                />
+              )}
+            />
+            
+            {/* Notes */}
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Notes</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Notes sur la session..." {...field} value={field.value || ''} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Annuler
+              </Button>
+              <Button type="submit">Démarrer la session</Button>
+            </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

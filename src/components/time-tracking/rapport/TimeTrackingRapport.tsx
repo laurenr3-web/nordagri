@@ -1,197 +1,171 @@
 
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Calendar, FileText } from 'lucide-react';
-import { format, addMonths, subMonths } from 'date-fns';
+import { format, subMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { 
-  Card, 
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle 
-} from '@/components/ui/card';
+import { Grid } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DatePicker } from '@/components/ui/date-picker';
+import { TimeBreakdownChart } from '../../TimeBreakdownChart';
+import { useTimeBreakdown } from '@/hooks/time-tracking/useTimeBreakdown';
 import { Button } from '@/components/ui/button';
-import CalendarView from './CalendarView';
-import ReportModal from './ReportModal';
-import { useDailyHours } from '@/hooks/time-tracking/useDailyHours';
-import { useMonthlySummary } from '@/hooks/time-tracking/useMonthlySummary';
 import { useTaskTypeDistribution } from '@/hooks/time-tracking/useTaskTypeDistribution';
-import { useTopEquipment } from '@/hooks/time-tracking/useTopEquipment';
-import { TimeDistributionChart } from './TimeDistributionChart';
 import { TopEquipmentList } from './TopEquipmentList';
-import { useExportReport } from '@/hooks/time-tracking/useExportReport';
-import { Progress } from '@/components/ui/progress';
+import { TimeDistributionChart } from './TimeDistributionChart';
+import { toast } from 'sonner';
+import { ReportModal } from './ReportModal';
 
 const TimeTrackingRapport: React.FC = () => {
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   
-  const { isLoading: isSummaryLoading, summary } = useMonthlySummary();
-  const { isLoading: isDailyHoursLoading, dailyHours } = useDailyHours(currentMonth);
-  const { isLoading: isDistributionLoading, distribution } = useTaskTypeDistribution(currentMonth);
-  const { isLoading: isEquipmentLoading, equipment } = useTopEquipment(currentMonth);
-  const { exportToPdf, exportToExcel, isExporting } = useExportReport(currentMonth);
+  // Charger les données pour la répartition par type de tâche
+  const { distribution, isLoading: isDistributionLoading, error: distributionError } = 
+    useTaskTypeDistribution(selectedMonth);
   
-  const handlePreviousMonth = () => {
-    setCurrentMonth(prevMonth => subMonths(prevMonth, 1));
+  // Utiliser également useTimeBreakdown pour afficher plusieurs visualisations
+  const { data: timeBreakdownData, isLoading: isBreakdownLoading, error: breakdownError } =
+    useTimeBreakdown();
+  
+  const handleGenerateReport = () => {
+    toast.info('Génération du rapport en cours...');
+    setIsReportModalOpen(true);
   };
-
-  const handleNextMonth = () => {
-    setCurrentMonth(prevMonth => addMonths(prevMonth, 1));
-  };
-
-  const handleDateClick = (date: Date) => {
-    setSelectedDate(date);
-  };
-
-  const closeModal = () => {
-    setSelectedDate(null);
-  };
-
-  const handleExport = async (type: 'pdf' | 'excel') => {
-    if (type === 'pdf') {
-      await exportToPdf();
-    } else {
-      await exportToExcel();
-    }
-  };
-
+  
   return (
-    <div className="flex flex-col space-y-6 py-4">
-      {/* Header */}
-      <div className="flex flex-col space-y-2">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-lg font-semibold">NordAgri</h2>
-            <p className="text-sm text-muted-foreground">Plateforme de gestion agricole</p>
-          </div>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="flex items-center gap-1" 
-              onClick={() => handleExport('pdf')}
-              disabled={isExporting}
-            >
-              <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Exporter</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => handleExport('excel')}
-              disabled={isExporting}
-            >
-              <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Excel</span>
-            </Button>
-          </div>
+    <div className="space-y-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Rapport d'activité</h2>
+          <p className="text-muted-foreground">
+            Visualisez la répartition de votre temps de travail
+          </p>
         </div>
-
-        {/* Month Selector */}
-        <div className="flex items-center justify-between bg-muted/50 rounded-md px-3 py-2">
-          <Button variant="ghost" size="sm" onClick={handlePreviousMonth}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex items-center">
-            <Calendar className="h-4 w-4 mr-2" />
-            <span className="font-medium">
-              {format(currentMonth, 'MMMM yyyy', { locale: fr })}
-            </span>
-          </div>
-          <Button variant="ghost" size="sm" onClick={handleNextMonth}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-      
-      {/* Hours Summary */}
-      <div className="grid grid-cols-3 gap-2">
-        <Card className="bg-blue-50">
-          <CardContent className="p-3">
-            <p className="text-xs text-muted-foreground">Aujourd'hui</p>
-            <h3 className="text-xl font-bold">{summary?.today.toFixed(1)} h</h3>
-            <Progress value={summary?.todayPercentage || 0} className="h-1 mt-1" />
-          </CardContent>
-        </Card>
-        <Card className="bg-green-50">
-          <CardContent className="p-3">
-            <p className="text-xs text-muted-foreground">Cette semaine</p>
-            <h3 className="text-xl font-bold">{summary?.week.toFixed(1)} h</h3>
-            <Progress value={summary?.weekPercentage || 0} className="h-1 mt-1" />
-          </CardContent>
-        </Card>
-        <Card className="bg-purple-50">
-          <CardContent className="p-3">
-            <p className="text-xs text-muted-foreground">Ce mois</p>
-            <h3 className="text-xl font-bold">{summary?.month.toFixed(1)} h</h3>
-            <Progress value={summary?.monthPercentage || 0} className="h-1 mt-1" />
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Calendar */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Calendrier d'activité</CardTitle>
-          <CardDescription>Vue mensuelle avec total d'heures</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <CalendarView 
-            month={currentMonth}
-            dailyHours={dailyHours}
-            onDateClick={handleDateClick}
-            isLoading={isDailyHoursLoading}
+        
+        <div className="flex flex-col sm:flex-row gap-4">
+          <DatePicker
+            mode="single"
+            selected={selectedMonth}
+            onSelect={setSelectedMonth}
+            showMonthYearPicker
+            dateFormat="MMMM yyyy"
+            locale={fr}
+            captionLayout="dropdown-buttons"
           />
-        </CardContent>
-      </Card>
+          
+          <Button onClick={handleGenerateReport}>
+            <Grid className="h-4 w-4 mr-2" />
+            Générer un rapport
+          </Button>
+        </div>
+      </div>
       
-      {/* Task Type Distribution */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Répartition par type de tâche</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <TimeDistributionChart data={distribution} isLoading={isDistributionLoading} />
-        </CardContent>
-      </Card>
-      
-      {/* Top Equipment */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Équipements les plus utilisés</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <TopEquipmentList data={equipment} isLoading={isEquipmentLoading} />
-        </CardContent>
-      </Card>
-      
-      {/* Pay Period Summary - Simple implementation */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Période de paie</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Mensuel</p>
-              <p className="text-lg font-medium">{summary?.month.toFixed(1)} heures</p>
+      {/* Statistiques principales */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Heures enregistrées</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {isDistributionLoading ? (
+                "Chargement..."
+              ) : (
+                `${distribution.reduce((sum, item) => sum + item.hours, 0).toFixed(1)}h`
+              )}
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Bi-hebdomadaire</p>
-              <p className="text-lg font-medium">{(summary?.week * 2).toFixed(1)} heures</p>
+            <p className="text-xs text-muted-foreground">
+              En {format(selectedMonth, 'MMMM yyyy', { locale: fr })}
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Sessions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {isDistributionLoading ? "Chargement..." : distribution.length}
             </div>
-          </div>
-        </CardContent>
-      </Card>
+            <p className="text-xs text-muted-foreground">
+              Types de tâches différents
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Type principal</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {isDistributionLoading ? (
+                "Chargement..."
+              ) : distribution.length > 0 ? (
+                distribution.sort((a, b) => b.hours - a.hours)[0].type
+              ) : (
+                "Aucune donnée"
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Le plus d'heures enregistrées
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Moyenne quotidienne</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {isDistributionLoading ? (
+                "Chargement..."
+              ) : distribution.length > 0 ? (
+                `${(distribution.reduce((sum, item) => sum + item.hours, 0) / 22).toFixed(1)}h`
+              ) : (
+                "0h"
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Basé sur 22 jours ouvrables
+            </p>
+          </CardContent>
+        </Card>
+      </div>
       
-      {/* Modal for day details */}
-      {selectedDate && (
-        <ReportModal 
-          date={selectedDate}
-          onClose={closeModal}
+      {/* Graphiques */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TimeDistributionChart 
+          data={distribution} 
+          isLoading={isDistributionLoading}
+          error={distributionError}
+          title={`Répartition par type de tâche (${format(selectedMonth, 'MMMM yyyy', { locale: fr })})`}
         />
-      )}
+        
+        <TimeBreakdownChart 
+          data={timeBreakdownData}
+          isLoading={isBreakdownLoading}
+          error={breakdownError}
+        />
+      </div>
+      
+      {/* Top des équipements */}
+      <TopEquipmentList month={selectedMonth} />
+      
+      {/* Modal de rapport */}
+      <ReportModal 
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        month={selectedMonth}
+        statistics={{
+          totalHours: distribution.reduce((sum, item) => sum + item.hours, 0),
+          taskCount: distribution.length,
+          mainTask: distribution.length > 0 ? distribution.sort((a, b) => b.hours - a.hours)[0].type : "Aucune",
+          dailyAverage: distribution.length > 0 ? distribution.reduce((sum, item) => sum + item.hours, 0) / 22 : 0
+        }}
+        taskDistribution={distribution}
+      />
     </div>
   );
 };
