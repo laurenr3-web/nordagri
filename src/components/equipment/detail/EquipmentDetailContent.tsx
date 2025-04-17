@@ -2,18 +2,16 @@
 import React, { useState } from 'react';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import EquipmentHeader from './EquipmentHeader';
-import { EquipmentOverview } from '../details/EquipmentOverview';
-import EquipmentParts from '../details/EquipmentParts';
-import EquipmentPerformance from '../tabs/EquipmentPerformance';
 import EditEquipmentDialog from '../dialogs/EditEquipmentDialog';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import EquipmentMaintenance from '../tabs/EquipmentMaintenance';
-import EquipmentMaintenanceHistory from '../tabs/EquipmentMaintenanceHistory';
-import EquipmentQRCode from '../tabs/EquipmentQRCode';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { equipmentService } from '@/services/supabase/equipmentService';
 import { useQueryClient } from '@tanstack/react-query';
+import EquipmentTabs from '../details/EquipmentTabs';
+import { Card, CardContent } from '@/components/ui/card';
+import { EquipmentWearDisplay } from '../wear/EquipmentWearDisplay';
+import EquipmentImageGallery from '../details/EquipmentImageGallery';
+import { Separator } from '@/components/ui/separator';
 
 interface EquipmentDetailContentProps {
   equipment: EquipmentItem;
@@ -23,6 +21,7 @@ interface EquipmentDetailContentProps {
 const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentProps) => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [localEquipment, setLocalEquipment] = useState(equipment);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -31,8 +30,15 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
   };
 
   const handleEquipmentUpdate = async (updatedData: EquipmentItem) => {
-    await onUpdate(updatedData);
-    setIsEditDialogOpen(false);
+    try {
+      await onUpdate(updatedData);
+      setLocalEquipment(updatedData);
+      setIsEditDialogOpen(false);
+      toast.success('Équipement mis à jour avec succès');
+    } catch (error) {
+      console.error('Error updating equipment:', error);
+      toast.error('Impossible de mettre à jour cet équipement');
+    }
   };
   
   const handleEquipmentDelete = async () => {
@@ -68,53 +74,37 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
   return (
     <div className="space-y-8">
       <EquipmentHeader 
-        equipment={equipment} 
+        equipment={localEquipment} 
         onEdit={handleEditEquipment}
         onDelete={handleEquipmentDelete}
         isDeleting={isDeleting}
       />
       
-      <Tabs defaultValue="overview">
-        <TabsList className="mb-8 flex flex-wrap">
-          <TabsTrigger value="overview">Aperçu</TabsTrigger>
-          <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
-          <TabsTrigger value="history">Historique</TabsTrigger>
-          <TabsTrigger value="parts">Pièces</TabsTrigger>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
-          <TabsTrigger value="qrcode">QR Code</TabsTrigger>
-        </TabsList>
+      <Separator />
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div>
+          <EquipmentImageGallery equipment={localEquipment} />
+        </div>
         
-        <TabsContent value="overview">
-          <EquipmentOverview equipment={equipment} />
-        </TabsContent>
-        
-        <TabsContent value="maintenance">
-          <EquipmentMaintenance equipment={equipment} />
-        </TabsContent>
-        
-        <TabsContent value="history">
-          <EquipmentMaintenanceHistory equipment={equipment} />
-        </TabsContent>
-        
-        <TabsContent value="parts">
-          <EquipmentParts equipment={equipment} />
-        </TabsContent>
-        
-        <TabsContent value="performance">
-          <EquipmentPerformance equipment={equipment} />
-        </TabsContent>
-        
-        <TabsContent value="qrcode">
-          <EquipmentQRCode equipment={equipment} />
-        </TabsContent>
-      </Tabs>
+        <div>
+          {/* Wear information card */}
+          <EquipmentWearDisplay equipment={localEquipment} />
+        </div>
+      </div>
+      
+      <Card>
+        <CardContent className="p-4">
+          <EquipmentTabs equipment={localEquipment} />
+        </CardContent>
+      </Card>
       
       {/* Dialogs */}
       {isEditDialogOpen && (
         <EditEquipmentDialog
           isOpen={isEditDialogOpen}
           onOpenChange={setIsEditDialogOpen}
-          equipment={equipment}
+          equipment={localEquipment}
           onSubmit={handleEquipmentUpdate}
         />
       )}

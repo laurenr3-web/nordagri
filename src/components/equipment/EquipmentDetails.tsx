@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Separator } from '@/components/ui/separator';
 import EditEquipmentDialog from './dialogs/EditEquipmentDialog';
@@ -7,9 +8,9 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { equipmentService } from '@/services/supabase/equipmentService';
 import EquipmentImageGallery from './details/EquipmentImageGallery';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { EquipmentWearDisplay } from './wear/EquipmentWearDisplay';
+import EquipmentTabs from './details/EquipmentTabs';
 
 interface EquipmentDetailsProps {
   equipment: EquipmentItem;
@@ -72,99 +73,22 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
 
       <Separator />
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div>
           <EquipmentImageGallery equipment={localEquipment} />
         </div>
         
-        <div className="grid grid-cols-1 gap-6">
+        <div>
           {/* Wear information card */}
           <EquipmentWearDisplay equipment={localEquipment} />
-
-          {/* Basic information card */}
-          <Card className="overflow-hidden border-2 border-primary/10">
-            <div className="bg-primary/10 px-6 py-4">
-              <h2 className="text-2xl font-bold text-primary">Informations de base</h2>
-            </div>
-            <CardContent className="p-0">
-              <dl className="divide-y">
-                <div className="grid grid-cols-3 px-6 py-4">
-                  <dt className="text-sm font-medium text-muted-foreground">Nom</dt>
-                  <dd className="col-span-2 text-lg font-semibold">{localEquipment.name}</dd>
-                </div>
-                <div className="grid grid-cols-3 px-6 py-4">
-                  <dt className="text-sm font-medium text-muted-foreground">Type</dt>
-                  <dd className="col-span-2">{localEquipment.type}</dd>
-                </div>
-                <div className="grid grid-cols-3 px-6 py-4">
-                  <dt className="text-sm font-medium text-muted-foreground">Fabricant</dt>
-                  <dd className="col-span-2">{localEquipment.manufacturer || "-"}</dd>
-                </div>
-                <div className="grid grid-cols-3 px-6 py-4">
-                  <dt className="text-sm font-medium text-muted-foreground">Modèle</dt>
-                  <dd className="col-span-2">{localEquipment.model || "-"}</dd>
-                </div>
-                <div className="grid grid-cols-3 px-6 py-4">
-                  <dt className="text-sm font-medium text-muted-foreground">Année</dt>
-                  <dd className="col-span-2">{localEquipment.year || "-"}</dd>
-                </div>
-              </dl>
-            </CardContent>
-          </Card>
-          
-          <Card className="overflow-hidden border-2 border-secondary/20">
-            <div className="bg-secondary/20 px-6 py-4">
-              <h2 className="text-2xl font-bold text-secondary-foreground">Détails techniques</h2>
-            </div>
-            <CardContent className="p-0">
-              <dl className="divide-y">
-                <div className="grid grid-cols-3 px-6 py-4">
-                  <dt className="text-sm font-medium text-muted-foreground">Numéro de série</dt>
-                  <dd className="col-span-2">{localEquipment.serialNumber || "-"}</dd>
-                </div>
-                <div className="grid grid-cols-3 px-6 py-4">
-                  <dt className="text-sm font-medium text-muted-foreground">Statut</dt>
-                  <dd className="col-span-2">
-                    <Badge variant={
-                      localEquipment.status === 'operational' ? 'success' :
-                      localEquipment.status === 'maintenance' ? 'warning' :
-                      localEquipment.status === 'broken' ? 'destructive' : 'secondary'
-                    }>
-                      {localEquipment.status}
-                    </Badge>
-                  </dd>
-                </div>
-                <div className="grid grid-cols-3 px-6 py-4">
-                  <dt className="text-sm font-medium text-muted-foreground">Emplacement</dt>
-                  <dd className="col-span-2">{localEquipment.location || "-"}</dd>
-                </div>
-                <div className="grid grid-cols-3 px-6 py-4">
-                  <dt className="text-sm font-medium text-muted-foreground">Date d'achat</dt>
-                  <dd className="col-span-2">{localEquipment.purchaseDate 
-                    ? new Date(localEquipment.purchaseDate).toLocaleDateString('fr-FR', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric'
-                      }) 
-                    : "-"}
-                  </dd>
-                </div>
-              </dl>
-            </CardContent>
-          </Card>
-          
-          {localEquipment.notes && (
-            <Card className="overflow-hidden border-2 border-muted/20">
-              <div className="bg-muted/20 px-6 py-4">
-                <h2 className="text-2xl font-bold text-foreground">Notes</h2>
-              </div>
-              <CardContent className="p-6">
-                <p className="whitespace-pre-wrap">{localEquipment.notes}</p>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
+      
+      <Card>
+        <CardContent className="p-4">
+          <EquipmentTabs equipment={localEquipment} />
+        </CardContent>
+      </Card>
       
       {/* Edit Equipment Dialog */}
       {isEditDialogOpen && (
