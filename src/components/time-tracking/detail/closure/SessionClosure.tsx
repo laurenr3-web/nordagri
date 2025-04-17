@@ -8,6 +8,7 @@ import { AttachmentsSection } from "./AttachmentsSection"
 import { SmartActionsSection } from "./SmartActionsSection"
 import { ExportSection } from "./ExportSection"
 import { useSessionClosure } from "./useSessionClosure"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface SessionClosureProps {
   isOpen: boolean;
@@ -74,41 +75,43 @@ export function SessionClosure({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="text-2xl">Clôture de session</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
-          <SummarySection entry={entry} estimatedCost={estimatedCost} />
-          
-          <QuickEditSection
-            notes={notes}
-            setNotes={setNotes}
-            material={material}
-            setMaterial={setMaterial}
-            quantity={quantity}
-            setQuantity={setQuantity}
-          />
-          
-          <AttachmentsSection
-            selectedImage={selectedImage}
-            onFileChange={handleFileChange}
-          />
-          
-          <SmartActionsSection
-            createRecurring={createRecurring}
-            setCreateRecurring={setCreateRecurring}
-            managerVerified={managerVerified}
-            setManagerVerified={setManagerVerified}
-            onCreateIntervention={onCreateIntervention}
-          />
-          
-          <ExportSection
-            onExportPDF={handleExportPDF}
-            onSendEmail={handleSendEmail}
-          />
-        </div>
+        <ScrollArea className="max-h-[60vh] pr-4">
+          <div className="space-y-6">
+            <SummarySection entry={entry} estimatedCost={estimatedCost} />
+            
+            <QuickEditSection
+              notes={notes}
+              setNotes={setNotes}
+              material={material}
+              setMaterial={setMaterial}
+              quantity={quantity}
+              setQuantity={setQuantity}
+            />
+            
+            <AttachmentsSection
+              selectedImage={selectedImage}
+              onFileChange={handleFileChange}
+            />
+            
+            <SmartActionsSection
+              createRecurring={createRecurring}
+              setCreateRecurring={setCreateRecurring}
+              managerVerified={managerVerified}
+              setManagerVerified={setManagerVerified}
+              onCreateIntervention={onCreateIntervention}
+            />
+            
+            <ExportSection
+              onExportPDF={handleExportPDF}
+              onSendEmail={handleSendEmail}
+            />
+          </div>
+        </ScrollArea>
 
         <DialogFooter className="mt-6 flex justify-between flex-col sm:flex-row gap-2">
           <Button variant="outline" onClick={onClose}>Annuler</Button>
