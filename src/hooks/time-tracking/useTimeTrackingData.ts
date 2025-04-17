@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { startOfWeek, endOfWeek } from 'date-fns';
 import { useTimeTrackingUser } from './useTimeTrackingUser';
@@ -7,6 +6,7 @@ import { useTimeTrackingEquipment } from './useTimeTrackingEquipment';
 import { useActiveTimeTrackingSessions } from './useActiveTimeTrackingSessions';
 import { useTimeTrackingEntries } from './useTimeTrackingEntries';
 import { useTimeTracking } from './useTimeTracking';
+import { usePayrollPeriod } from './usePayrollPeriod';
 import { toast } from 'sonner';
 
 export function useTimeTrackingData() {
@@ -36,6 +36,12 @@ export function useTimeTrackingData() {
     handleDeleteTimeEntry,
     handleStopTimeEntry
   } = useTimeTrackingEntries(userId, dateRange, equipmentFilter, taskTypeFilter);
+
+  const { totalHours: payrollHours, isLoading: payrollLoading } = usePayrollPeriod(
+    userId,
+    dateRange.from,
+    dateRange.to
+  );
 
   const handleStartTimeEntry = async (data: any) => {
     if (!userId) return;
@@ -73,5 +79,7 @@ export function useTimeTrackingData() {
     setDateRange,
     setEquipmentFilter,
     setTaskTypeFilter,
+    payrollHours,
+    payrollLoading,
   };
 }
