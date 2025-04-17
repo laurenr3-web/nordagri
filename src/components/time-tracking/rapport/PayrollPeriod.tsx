@@ -8,6 +8,7 @@ import { fr } from 'date-fns/locale';
 import { useTimeTrackingUser } from '@/hooks/time-tracking/useTimeTrackingUser';
 import { usePayrollPeriod } from '@/hooks/time-tracking/usePayrollPeriod';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AlertCircle } from 'lucide-react';
 
 type PeriodType = 'weekly' | 'biweekly' | 'triweekly' | 'monthly' | 'custom' | 'today';
 
@@ -26,7 +27,7 @@ export function PayrollPeriod({ className }: PayrollPeriodProps) {
   });
 
   const { userId } = useTimeTrackingUser();
-  const { totalHours, isLoading } = usePayrollPeriod(
+  const { totalHours, isLoading, error, refetch } = usePayrollPeriod(
     userId,
     dateRange.from,
     dateRange.to,
@@ -78,6 +79,9 @@ export function PayrollPeriod({ className }: PayrollPeriodProps) {
     setDateRange(initialDates);
   }, [getPeriodDates]);
 
+  // Format total hours with one decimal place
+  const formattedHours = Number(totalHours).toFixed(1);
+
   return (
     <Card className={className}>
       <CardHeader className="pb-2">
@@ -110,10 +114,23 @@ export function PayrollPeriod({ className }: PayrollPeriodProps) {
         <div className="grid grid-cols-1 gap-4">
           <div>
             <p className="text-sm text-muted-foreground">Heures totales</p>
-            {isLoading ? (
+            {error ? (
+              <div className="flex items-center text-sm text-red-500 mt-1">
+                <AlertCircle className="h-4 w-4 mr-1" />
+                <span>Erreur de chargement</span>
+              </div>
+            ) : isLoading ? (
               <Skeleton className="h-6 w-24 mt-1" />
             ) : (
-              <p className="text-lg font-medium">{totalHours.toFixed(1)} heures</p>
+              <p className="text-lg font-medium">{formattedHours} heures</p>
+            )}
+            {error && (
+              <button 
+                className="text-xs text-blue-500 mt-1 underline"
+                onClick={() => refetch()}
+              >
+                Réessayer
+              </button>
             )}
           </div>
         </div>

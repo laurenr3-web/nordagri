@@ -19,7 +19,7 @@ export function useTimeTrackingData() {
   });
   const [equipmentFilter, setEquipmentFilter] = useState<number | undefined>(undefined);
   const [taskTypeFilter, setTaskTypeFilter] = useState<string | undefined>(undefined);
-  const [payrollPeriodType, setPayrollPeriodType] = useState('weekly');
+  const [payrollPeriodType, setPayrollPeriodType] = useState<string>('weekly');
 
   const { userId } = useTimeTrackingUser();
   const { stats } = useTimeTrackingStats(userId);
@@ -39,7 +39,7 @@ export function useTimeTrackingData() {
     handleStopTimeEntry
   } = useTimeTrackingEntries(userId, dateRange, equipmentFilter, taskTypeFilter);
 
-  const { totalHours: payrollHours, isLoading: payrollLoading } = usePayrollPeriod(
+  const { totalHours: payrollHours, isLoading: payrollLoading, error: payrollError } = usePayrollPeriod(
     userId,
     dateRange.from,
     dateRange.to,
@@ -84,6 +84,7 @@ export function useTimeTrackingData() {
     setTaskTypeFilter,
     payrollHours,
     payrollLoading,
+    payrollError,
     payrollPeriodType,
     setPayrollPeriodType,
   };
