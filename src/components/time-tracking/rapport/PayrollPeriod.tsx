@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -13,16 +14,10 @@ type PeriodType = 'weekly' | 'biweekly' | 'triweekly' | 'monthly' | 'custom' | '
 
 interface PayrollPeriodProps {
   className?: string;
-  payrollPeriodType?: string;
-  setPayrollPeriodType?: (type: string) => void;
 }
 
-export function PayrollPeriod({ 
-  className,
-  payrollPeriodType: externalPeriodType,
-  setPayrollPeriodType: setExternalPeriodType
-}: PayrollPeriodProps) {
-  const [periodType, setPeriodType] = useState<PeriodType>(externalPeriodType as PeriodType || 'weekly');
+export function PayrollPeriod({ className }: PayrollPeriodProps) {
+  const [periodType, setPeriodType] = useState<PeriodType>('weekly');
   const [dateRange, setDateRange] = useState<{
     from: Date;
     to: Date;
@@ -31,9 +26,6 @@ export function PayrollPeriod({
     to: endOfDay(addDays(new Date(), 7))
   });
 
-  // Use this to prevent flashing during updates
-  const [displayedHours, setDisplayedHours] = useState<string>("0.0");
-
   const { userId } = useTimeTrackingUser();
   const { totalHours, isLoading, error, refetch } = usePayrollPeriod(
     userId,
@@ -41,20 +33,6 @@ export function PayrollPeriod({
     dateRange.to,
     periodType
   );
-
-  useEffect(() => {
-    // Only update displayed hours when we have a stable value
-    if (!isLoading && totalHours !== undefined) {
-      setDisplayedHours(Number(totalHours).toFixed(1));
-    }
-  }, [totalHours, isLoading]);
-
-  // Keep local state in sync with external state if provided
-  useEffect(() => {
-    if (externalPeriodType && externalPeriodType !== periodType) {
-      setPeriodType(externalPeriodType as PeriodType);
-    }
-  }, [externalPeriodType]);
 
   const getPeriodDates = useCallback((type: PeriodType) => {
     const today = new Date();
@@ -80,10 +58,6 @@ export function PayrollPeriod({
 
   const handlePeriodChange = (newPeriod: PeriodType) => {
     setPeriodType(newPeriod);
-    if (setExternalPeriodType) {
-      setExternalPeriodType(newPeriod);
-    }
-    
     if (newPeriod !== 'custom') {
       const newDates = getPeriodDates(newPeriod);
       setDateRange(newDates);
@@ -101,9 +75,12 @@ export function PayrollPeriod({
 
   // Set initial period dates when component mounts
   useEffect(() => {
-    const initialDates = getPeriodDates(periodType);
+    const initialDates = getPeriodDates('weekly');
     setDateRange(initialDates);
-  }, [getPeriodDates, periodType]);
+  }, [getPeriodDates]);
+
+  // Format total hours with one decimal place
+  const formattedHours = Number(totalHours).toFixed(1);
 
   return (
     <Card className={className}>
@@ -142,10 +119,10 @@ export function PayrollPeriod({
                 <AlertCircle className="h-4 w-4 mr-1" />
                 <span>Erreur de chargement</span>
               </div>
-            ) : isLoading && !displayedHours ? (
+            ) : isLoading ? (
               <Skeleton className="h-6 w-24 mt-1" />
             ) : (
-              <p className="text-lg font-medium">{displayedHours} heures</p>
+              <p className="text-lg font-medium">{formattedHours} heures</p>
             )}
             {error && (
               <button 

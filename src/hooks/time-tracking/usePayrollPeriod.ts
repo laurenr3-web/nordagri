@@ -1,17 +1,11 @@
-
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { startOfDay, endOfDay, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
-import { withErrorHandling } from '@/utils/errorHandling';
 
 export function usePayrollPeriod(userId: string | null, startDate: Date, endDate: Date, periodType?: string) {
-  const [totalHours, setTotalHours] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [totalHours, setTotalHours] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const previousValueRef = useRef<number>(0);
-  
-  // Use this flag to prevent flickering during loading
-  const isInitialLoadRef = useRef<boolean>(true);
 
   const fetchPayrollData = useCallback(async () => {
     if (!userId) {
@@ -20,9 +14,7 @@ export function usePayrollPeriod(userId: string | null, startDate: Date, endDate
     }
 
     try {
-      if (isInitialLoadRef.current) {
-        setIsLoading(true);
-      }
+      setIsLoading(true);
       setError(null);
       
       let query = supabase
@@ -75,29 +67,17 @@ export function usePayrollPeriod(userId: string | null, startDate: Date, endDate
         return sum + (session.duration || 0);
       }, 0) || 0;
       
-      // Only update the value if it has actually changed or is initial load
-      if (Math.abs(previousValueRef.current - total) > 0.01 || isInitialLoadRef.current) {
-        setTotalHours(total);
-        previousValueRef.current = total;
-      }
+      setTotalHours(total);
     } catch (error) {
       console.error('Error in usePayrollPeriod:', error);
       setError(error instanceof Error ? error : new Error('Unknown error'));
       // Don't reset totalHours to 0 on error to maintain last valid value
     } finally {
       setIsLoading(false);
-      isInitialLoadRef.current = false;
     }
   }, [userId, startDate, endDate, periodType]);
 
-  // Memoize the refetch function to avoid recreating it on each render
-  const refetch = useCallback(() => {
-    fetchPayrollData();
-  }, [fetchPayrollData]);
-
   useEffect(() => {
-    // Reset the initial load flag when dependencies change
-    isInitialLoadRef.current = true;
     fetchPayrollData();
     
     // Set up an interval to refetch data every 5 minutes to keep it fresh
@@ -108,5 +88,5 @@ export function usePayrollPeriod(userId: string | null, startDate: Date, endDate
     return () => clearInterval(intervalId);
   }, [fetchPayrollData]);
 
-  return { totalHours, isLoading, error, refetch };
+  return { totalHours, isLoading, error, refetch: fetchPayrollData };
 }
