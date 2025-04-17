@@ -1,81 +1,110 @@
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { TimeEntry } from '@/hooks/time-tracking/types';
-import { supabase } from '@/integrations/supabase/client';
-import { updateTimeEntry } from '@/services/supabase/time-tracking/operations/updateTimeEntry';
-import { pauseTimeEntry } from '@/services/supabase/time-tracking/operations/pauseTimeEntry';
-import { resumeTimeEntry } from '@/services/supabase/time-tracking/operations/resumeTimeEntry';
-import { stopTimeEntry } from '@/services/supabase/time-tracking/operations/stopTimeEntry';
+import { timeTrackingService } from '@/services/supabase/timeTrackingService';
 import { toast } from 'sonner';
 
-export function useEntryActions(entryId: string | undefined, onRefresh: () => void) {
-  const [isUpdating, setIsUpdating] = useState<boolean>(false);
-  
-  const handlePauseResume = async (): Promise<void> => {
-    if (!entryId) return;
-    
+/**
+ * Hook for time entry action handlers (pause/resume, stop, notes update)
+ */
+export function useEntryActions(entry: TimeEntry | null, setEntry: (entry: TimeEntry | null) => void) {
+  const navigate = useNavigate();
+  const [showClosureDialog, setShowClosureDialog] = useState(false);
+
+  const handlePauseResume = async () => {
+    if (!entry) return;
     try {
-      setIsUpdating(true);
-      
-      // Toggle between pause and resume based on current status
-      if (status === 'active') {
-        await pauseTimeEntry(entryId);
+      if (entry.status === 'active') {
+        await timeTrackingService.pauseTimeEntry(entry.id);
+        setEntry({ ...entry, status: 'paused' });
         toast.success('Session mise en pause');
-      } else if (status === 'paused') {
-        await resumeTimeEntry(entryId);
+      } else {
+        await timeTrackingService.resumeTimeEntry(entry.id);
+        setEntry({ ...entry, status: 'active' });
         toast.success('Session reprise');
       }
-      
-      onRefresh();
     } catch (error) {
-      console.error('Error toggling pause/resume:', error);
-      toast.error('Erreur lors de la mise à jour de la session');
-    } finally {
-      setIsUpdating(false);
+      console.error('Erreur lors du changement de statut:', error);
+      toast.error('Erreur lors du changement de statut');
     }
   };
+
+  const handleStop = async () => {
+    if (!entry) return;
+    setShowClosureDialog(true);
+  };
+
+  const handleCloseClosureDialog = () => {
+    setShowClosureDialog(false);
+  };
   
-  const handleStop = async (): Promise<void> => {
-    if (!entryId) return;
-    
+  const handleSubmitClosureForm = async (data: any) => {
+    if (!entry) return;
     try {
-      setIsUpdating(true);
-      await stopTimeEntry(entryId);
-      toast.success('Session terminée');
-      onRefresh();
+      // First update the entry notes if they were changed
+      if (data.notes && data.notes !== entry.notes) {
+        await timeTrackingService.updateTimeEntry(entry.id, { 
+          ...entry, 
+          notes: data.notes 
+        });
+      }
+      
+      // Then stop the time entry
+      await timeTrackingService.stopTimeEntry(entry.id);
+      
+      // Update local state
+      setEntry({ 
+        ...entry, 
+        status: 'completed', 
+        notes: data.notes || entry.notes,
+        end_time: new Date().toISOString()
+      });
+      setShowClosureDialog(false);
+      
+      toast.success('Session terminée avec succès');
+      
+      // If user wants to start a new task immediately, don't redirect
+      if (!data.startNewTask) {
+        // Redirect to time tracking main page after a short delay
+        setTimeout(() => {
+          navigate('/time-tracking');
+        }, 1500);
+      }
     } catch (error) {
       console.error('Error stopping time entry:', error);
       toast.error('Erreur lors de l\'arrêt de la session');
-    } finally {
-      setIsUpdating(false);
     }
   };
-  
-  const handleNotesChange = async (notes: string): Promise<void> => {
-    if (!entryId) return;
-    
+
+  const handleNotesChange = async (notes: string) => {
+    if (!entry) return;
     try {
-      setIsUpdating(true);
-      await updateTimeEntry(entryId, { notes });
-      toast.success('Notes mises à jour');
-      onRefresh();
+      await timeTrackingService.updateTimeEntry(entry.id, { ...entry, notes });
+      setEntry({ ...entry, notes });
     } catch (error) {
-      console.error('Error updating notes:', error);
       toast.error('Erreur lors de la mise à jour des notes');
-    } finally {
-      setIsUpdating(false);
     }
   };
-  
-  const handleCreateIntervention = async (): Promise<void> => {
-    // This would be implemented to create a new intervention
-    toast.info('Création d\'une intervention en cours de développement');
+
+  const handleCreateIntervention = () => {
+    if (!entry) return;
+    navigate('/interventions/new', {
+      state: {
+        equipment_id: entry.equipment_id,
+        equipment_name: entry.equipment_name,
+        duration: entry.current_duration || "00:00:00",
+        notes: entry.notes
+      }
+    });
   };
-  
+
   return {
-    isUpdating,
+    showClosureDialog,
     handlePauseResume,
     handleStop,
+    handleCloseClosureDialog,
+    handleSubmitClosureForm,
     handleNotesChange,
     handleCreateIntervention
   };

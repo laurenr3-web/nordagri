@@ -9,11 +9,11 @@ interface Equipment {
   name: string;
 }
 
-export interface EquipmentFieldProps {
+interface EquipmentFieldProps {
   equipment_id?: number;
   equipments: Equipment[];
   loading: boolean;
-  onChange: (field: string, value: number) => void;
+  onChange: (field: string, value: any) => void;
 }
 
 export function EquipmentField({ equipment_id, equipments, loading, onChange }: EquipmentFieldProps) {
