@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
@@ -34,6 +35,13 @@ const TimeEntryDetail = () => {
     handleCreateIntervention,
     prepareNewTaskData
   } = useTimeEntryDetail(id);
+
+  // Afficher automatiquement la boîte de dialogue de clôture pour les sessions actives ou en pause
+  useEffect(() => {
+    if (entry && (entry.status === 'active' || entry.status === 'paused') && !showClosureDialog) {
+      handleStop();
+    }
+  }, [entry?.id, entry?.status]);
 
   const handleStartNewTask = () => {
     setIsNewTaskFormOpen(true);

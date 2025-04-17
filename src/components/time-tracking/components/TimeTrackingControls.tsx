@@ -33,6 +33,7 @@ export function TimeTrackingControls({
             size="icon"
             className="rounded-full p-2 h-8 w-8"
             onClick={onStop}
+            title="Terminer et aller à la page de clôture"
           >
             <Square className="h-4 w-4" />
           </Button>
@@ -52,6 +53,7 @@ export function TimeTrackingControls({
             size="icon"
             className="rounded-full p-2 h-8 w-8"
             onClick={onStop}
+            title="Terminer et aller à la page de clôture"
           >
             <Square className="h-4 w-4" />
           </Button>

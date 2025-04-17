@@ -7,8 +7,10 @@ import { useTimeTracking } from './useTimeTracking';
 import { useActiveSessionMonitoring } from './useActiveSessionMonitoring';
 import { TimeEntry } from './types';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 export function useTimeTrackingData() {
+  const navigate = useNavigate();
   const [userId, setUserId] = useState<string | null>(null);
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -210,13 +212,12 @@ export function useTimeTrackingData() {
   
   const handleStopTimeEntry = async (entryId: string) => {
     try {
-      await stopTimeEntry(entryId);
-      toast.success("Session completed");
-      fetchTimeEntries();
-      fetchActiveSessions();
+      // Au lieu de terminer la session, rediriger vers la page de détail de la session
+      navigate(`/time-tracking/detail/${entryId}`);
+      toast.info("Accès à la page de clôture de la session");
     } catch (error) {
-      console.error("Error stopping time tracking:", error);
-      toast.error("Could not stop session");
+      console.error("Error navigating to time entry detail:", error);
+      toast.error("Impossible d'accéder à la page de clôture");
     }
   };
   

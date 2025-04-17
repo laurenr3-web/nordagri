@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { User } from 'lucide-react';
 import { ActiveTimeEntry } from '@/hooks/time-tracking/types';
+import { useNavigate } from 'react-router-dom';
 
 interface ActiveTimeSessionProps {
   session: ActiveTimeEntry;
@@ -18,6 +19,13 @@ export function ActiveTimeSession({
   onResume, 
   onStop 
 }: ActiveTimeSessionProps) {
+  const navigate = useNavigate();
+  
+  const handleStop = () => {
+    // Redirection au lieu de clôture directe
+    navigate(`/time-tracking/detail/${session.id}`);
+  };
+  
   return (
     <Card className="mb-6 bg-blue-50 border-blue-200">
       <CardContent className="pt-6">
@@ -66,7 +74,8 @@ export function ActiveTimeSession({
             )}
             <Button
               variant="outline"
-              onClick={() => onStop(session.id)}
+              onClick={handleStop}
+              title="Aller à la page de clôture"
             >
               Terminer
             </Button>

@@ -27,6 +27,7 @@ export const SessionControls = ({ status, onPauseResume, onStop }: SessionContro
       <Button
         variant="destructive"
         onClick={onStop}
+        title="Terminer et clôturer la session"
       >
         <StopCircle className="mr-2 h-4 w-4" />
         Terminer

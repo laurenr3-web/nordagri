@@ -7,6 +7,8 @@ import { TimeEntryForm } from './TimeEntryForm';
 import { MainButton } from './components/MainButton';
 import { TimerDisplay } from './components/TimerDisplay';
 import { TimeTrackingControls } from './components/TimeTrackingControls';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface TimeTrackingButtonProps {
   className?: string;
@@ -17,11 +19,11 @@ export function TimeTrackingButton({
   className, 
   position = 'fixed' 
 }: TimeTrackingButtonProps) {
+  const navigate = useNavigate();
   const { 
     activeTimeEntry, 
     isLoading, 
     startTimeEntry, 
-    stopTimeEntry,
     pauseTimeEntry,
     resumeTimeEntry
   } = useTimeTracking();
@@ -41,6 +43,17 @@ export function TimeTrackingButton({
       setIsFormOpen(false);
     } catch (error) {
       console.error("Error starting time tracking:", error);
+    }
+  };
+
+  const handleStopTimeEntry = (entryId: string) => {
+    try {
+      // Rediriger vers la page de détail de la session au lieu de terminer directement
+      navigate(`/time-tracking/detail/${entryId}`);
+      toast.info("Accès à la page de clôture de la session");
+    } catch (error) {
+      console.error("Error navigating to time entry detail:", error);
+      toast.error("Impossible d'accéder à la page de clôture");
     }
   };
   
@@ -81,7 +94,7 @@ export function TimeTrackingButton({
               status={activeTimeEntry.status as 'active' | 'paused'}
               onPause={() => pauseTimeEntry(activeTimeEntry.id)}
               onResume={() => resumeTimeEntry(activeTimeEntry.id)}
-              onStop={() => stopTimeEntry(activeTimeEntry.id)}
+              onStop={() => handleStopTimeEntry(activeTimeEntry.id)}
             />
           </div>
         )}
