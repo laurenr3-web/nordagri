@@ -23,16 +23,16 @@ export function EquipmentWearDisplay({ equipment }: EquipmentWearDisplayProps) {
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   return (
-    <Card>
-      <CardHeader className={isMobile ? "pb-2 px-4 py-3" : "pb-2"}>
+    <Card className="overflow-hidden">
+      <CardHeader className={`${isMobile ? 'px-4 py-3' : 'p-6'} pb-2`}>
         <CardTitle className="text-lg font-medium">Usure</CardTitle>
       </CardHeader>
-      <CardContent className={isMobile ? "px-4 py-2" : ""}>
-        <div className="flex flex-col gap-2">
+      <CardContent className={`${isMobile ? 'p-4' : 'p-6'} pt-2`}>
+        <div className="flex flex-col gap-3">
           <p className="text-2xl font-bold">{formattedValue}</p>
           {lastUpdate && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <CalendarClock className="h-4 w-4" />
+              <CalendarClock className="h-4 w-4 flex-shrink-0" />
               <span>Mis à jour {lastUpdate}</span>
             </div>
           )}
