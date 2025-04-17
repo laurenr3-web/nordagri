@@ -74,17 +74,6 @@ const TimeEntryDetail = () => {
   // Get display name from available properties
   const displayName = entry.user_name || entry.owner_name || 'Utilisateur';
   
-  // Prepare initial data for the form if entry exists
-  const initialFormData = entry ? {
-    equipment_id: entry.equipment_id,
-    intervention_id: entry.intervention_id,
-    task_type: entry.task_type,
-    custom_task_type: entry.custom_task_type,
-    location_id: entry.location ? parseInt(entry.location) : undefined,
-    location: entry.location,
-    title: `Suite: ${entry.task_type} - ${new Date().toLocaleString()}`
-  } : undefined;
-  
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
@@ -182,7 +171,15 @@ const TimeEntryDetail = () => {
         isOpen={isNewTaskFormOpen}
         onOpenChange={setIsNewTaskFormOpen}
         onSubmit={handleSubmitNewTask}
-        initialData={initialFormData}
+        initialData={entry ? {
+          equipment_id: entry.equipment_id,
+          intervention_id: entry.intervention_id,
+          task_type: entry.task_type,
+          custom_task_type: entry.custom_task_type,
+          location_id: entry.location ? parseInt(entry.location) : undefined,
+          location: entry.location,
+          title: `Suite: ${entry.task_type} - ${new Date().toLocaleString()}`
+        } : undefined}
       />
     </SidebarProvider>
   );

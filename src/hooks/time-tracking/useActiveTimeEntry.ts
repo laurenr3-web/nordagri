@@ -1,12 +1,11 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { TimeEntry } from './types';
+import { ActiveTimeEntry, TimeEntry } from './types';
 import { timeTrackingService } from '@/services/supabase/timeTrackingService';
 import { formatDuration } from '@/utils/dateHelpers';
 
 export function useActiveTimeEntry() {
-  const [activeTimeEntry, setActiveTimeEntry] = useState<TimeEntry | null>(null);
+  const [activeTimeEntry, setActiveTimeEntry] = useState<ActiveTimeEntry | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
