@@ -64,7 +64,7 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-16">
       <EquipmentHeader 
         equipment={localEquipment} 
         onEditClick={() => setIsEditDialogOpen(true)} 
@@ -84,7 +84,7 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
         </div>
       </div>
       
-      <Card>
+      <Card className="overflow-hidden">
         <CardContent className="p-4">
           <EquipmentTabs equipment={localEquipment} />
         </CardContent>

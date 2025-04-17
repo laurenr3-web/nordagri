@@ -72,7 +72,7 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-16">
       <EquipmentHeader 
         equipment={localEquipment} 
         onEdit={handleEditEquipment}
@@ -88,12 +88,11 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
         </div>
         
         <div>
-          {/* Wear information card */}
           <EquipmentWearDisplay equipment={localEquipment} />
         </div>
       </div>
       
-      <Card>
+      <Card className="overflow-hidden">
         <CardContent className="p-4">
           <EquipmentTabs equipment={localEquipment} />
         </CardContent>
