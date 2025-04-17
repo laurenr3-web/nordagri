@@ -14,7 +14,7 @@ import { WorkstationField } from './form/WorkstationField';
 import { timeTrackingService } from '@/services/supabase/time-tracking/index';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { TaskType } from '@/hooks/time-tracking/types';
+import { TimeEntryTaskType } from '@/hooks/time-tracking/types';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TimeEntryFormProps {
@@ -22,7 +22,7 @@ interface TimeEntryFormProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: any) => void;
   initialData?: {
-    task_type?: string;
+    task_type?: TimeEntryTaskType;
     custom_task_type?: string;
     equipment_id?: number;
     intervention_id?: number;
@@ -37,7 +37,7 @@ interface TimeEntryFormProps {
 
 export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: TimeEntryFormProps) {
   const isMobile = useIsMobile();
-  const [taskTypes, setTaskTypes] = useState<TaskType[]>([]);
+  const [taskTypes, setTaskTypes] = useState<{ id: string; name: TimeEntryTaskType }[]>([]);
   const [equipments, setEquipments] = useState<Array<{ id: number; name: string }>>([]);
   const [interventions, setInterventions] = useState<Array<{ id: number; title: string }>>([]);
   const [locations] = useState<Array<{ id: number; name: string }>>([
@@ -49,7 +49,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
   ]);
   
   const [formData, setFormData] = useState({
-    task_type: 'maintenance' as const,
+    task_type: 'maintenance' as TimeEntryTaskType,
     task_type_id: '',
     custom_task_type: '',
     equipment_id: undefined as number | undefined,
@@ -68,7 +68,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
     if (isOpen && initialData) {
       setFormData(prev => ({
         ...prev,
-        ...(initialData.task_type && { task_type: initialData.task_type as any }),
+        ...(initialData.task_type && { task_type: initialData.task_type }),
         ...(initialData.custom_task_type && { custom_task_type: initialData.custom_task_type }),
         ...(initialData.equipment_id && { equipment_id: initialData.equipment_id }),
         ...(initialData.intervention_id && { intervention_id: initialData.intervention_id }),
@@ -82,7 +82,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
     } else if (isOpen) {
       // Reset form when opening without initialData
       setFormData({
-        task_type: 'maintenance' as const,
+        task_type: 'maintenance',
         task_type_id: '',
         custom_task_type: '',
         equipment_id: undefined,
@@ -176,7 +176,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
       return;
     }
     
-    if (!formData.title) {
+    if (!formData.title.trim()) {
       toast.error('Veuillez spécifier un nom pour cette tâche');
       return;
     }
