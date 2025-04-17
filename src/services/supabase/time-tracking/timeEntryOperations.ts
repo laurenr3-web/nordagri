@@ -70,7 +70,9 @@ export const timeEntryOperations = {
         location: data.location || 'Unknown',
         coordinates: data.coordinates || null,
         technician: 'Self',
-        journee_id: data.journee_id || null // Use provided journee_id if available
+        journee_id: data.journee_id || null, // Use provided journee_id if available
+        poste_travail: data.poste_travail || '',
+        description: data.description || ''
       };
       
       const { data: result, error } = await supabase
@@ -94,11 +96,13 @@ export const timeEntryOperations = {
         task_type_id: data.task_type_id,
         custom_task_type: data.custom_task_type,
         notes: data.notes,
+        description: data.description || '',
         start_time: result.start_time,
         status: 'active',
         equipment_name: result.equipment?.name || equipmentName,
         intervention_title: result.title,
         location: data.location,
+        poste_travail: data.poste_travail || '',
         created_at: result.created_at,
         updated_at: result.updated_at,
         journee_id: result.journee_id

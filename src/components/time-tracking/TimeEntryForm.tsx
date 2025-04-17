@@ -11,7 +11,7 @@ import { EquipmentField } from './form/EquipmentField';
 import { LocationField } from './form/LocationField';
 import { InterventionField } from './form/InterventionField';
 import { WorkstationField } from './form/WorkstationField';
-import { timeTrackingService } from '@/services/supabase/timeTrackingService';
+import { timeTrackingService } from '@/services/supabase/time-tracking/index';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { TaskType } from '@/hooks/time-tracking/types';
@@ -114,13 +114,14 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
   const loadTaskTypes = async () => {
     try {
       const types = await timeTrackingService.getTaskTypes();
-      setTaskTypes(types);
-      if (types.length > 0 && !formData.task_type_id) {
+      setTaskTypes(types || []);  // Ensure we always have an array
+      if (types && types.length > 0 && !formData.task_type_id) {
         handleChange('task_type_id', types[0].id);
       }
     } catch (error) {
       console.error('Error loading task types:', error);
       toast.error('Could not load task types');
+      setTaskTypes([]); // Set to empty array on error
     }
   };
   
@@ -137,6 +138,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
     } catch (error) {
       console.error('Error loading equipment:', error);
       toast.error('Could not load equipment list');
+      setEquipments([]); // Set to empty array on error
       setIsLoading(false);
     }
   };
@@ -153,7 +155,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
       setInterventions(data || []);
     } catch (error) {
       console.error('Error loading interventions:', error);
-      setInterventions([]);
+      setInterventions([]); // Set to empty array on error
     }
   };
   

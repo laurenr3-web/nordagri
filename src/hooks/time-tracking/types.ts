@@ -13,6 +13,7 @@ export interface TimeEntry {
   start_time: string;
   end_time?: string | null;
   notes?: string;
+  description?: string;
   status: TimeEntryStatus;
   equipment_name?: string;
   intervention_title?: string;

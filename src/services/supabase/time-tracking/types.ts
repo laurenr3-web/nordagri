@@ -10,9 +10,11 @@ export interface StartTimeEntryData {
   custom_task_type?: string;
   title?: string;
   notes?: string;
+  description?: string;
   location?: string;
   coordinates?: { lat: number; lng: number };
   journee_id?: string;
+  poste_travail?: string;
 }
 
 export interface TimeEntriesFilter {
