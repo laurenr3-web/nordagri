@@ -120,7 +120,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
       }
     } catch (error) {
       console.error('Error loading task types:', error);
-      toast.error('Could not load task types');
+      toast.error('Impossible de charger les types de tâches');
       setTaskTypes([]); // Set to empty array on error
     }
   };
@@ -137,7 +137,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
       setIsLoading(false);
     } catch (error) {
       console.error('Error loading equipment:', error);
-      toast.error('Could not load equipment list');
+      toast.error('Impossible de charger la liste des équipements');
       setEquipments([]); // Set to empty array on error
       setIsLoading(false);
     }
@@ -203,12 +203,12 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
       />
       
       <div className="grid gap-2">
-        <Label htmlFor="title">🧾 Nom de la tâche *</Label>
+        <Label htmlFor="title">🧾 Titre de la session *</Label>
         <Input
           id="title"
           value={formData.title}
           onChange={(e) => handleChange('title', e.target.value)}
-          placeholder="Entrez un nom pour cette tâche"
+          placeholder="Entrer un titre pour cette session"
           required
         />
       </div>
@@ -246,7 +246,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
           id="notes"
           value={formData.notes}
           onChange={(e) => handleChange('notes', e.target.value)}
-          placeholder="Entrez des observations..."
+          placeholder="Entrer des observations..."
           className="min-h-[100px]"
         />
       </div>

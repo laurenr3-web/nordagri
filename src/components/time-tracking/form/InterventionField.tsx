@@ -15,7 +15,7 @@ export function InterventionField({ intervention_id, interventions, disabled, on
   
   return (
     <div className="grid gap-2">
-      <Label htmlFor="intervention_id">🔗 Intervention associée (optionnel)</Label>
+      <Label htmlFor="intervention_id">🔗 Intervention associée (optionnelle)</Label>
       <Select
         value={intervention_id?.toString()}
         onValueChange={(value) => onChange('intervention_id', value ? parseInt(value, 10) : undefined)}

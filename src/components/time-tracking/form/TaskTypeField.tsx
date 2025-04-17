@@ -1,7 +1,6 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Input } from '@/components/ui/input';
 import { TimeEntryTaskType } from '@/hooks/time-tracking/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -24,7 +23,7 @@ export function TaskTypeField({ taskType, customTaskType, onChange }: TaskTypeFi
           <SelectValue placeholder="Sélectionner un type de tâche" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="maintenance">Maintenance</SelectItem>
+          <SelectItem value="maintenance">Entretien</SelectItem>
           <SelectItem value="repair">Réparation</SelectItem>
           <SelectItem value="inspection">Inspection</SelectItem>
           <SelectItem value="operation">Opération</SelectItem>
