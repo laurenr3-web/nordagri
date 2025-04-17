@@ -31,6 +31,7 @@ interface TimeEntryFormProps {
     location?: string;
     notes?: string;
     poste_travail?: string;
+    description?: string;
   };
 }
 
@@ -58,7 +59,6 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
     notes: '',
     location_id: undefined as number | undefined,
     poste_travail: '',
-    priority: 'medium' as const
   });
   
   const [isLoading, setIsLoading] = useState(true);
@@ -76,7 +76,8 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
         ...(initialData.location_id && { location_id: initialData.location_id }),
         ...(initialData.location && { location: initialData.location }),
         ...(initialData.notes && { notes: initialData.notes }),
-        ...(initialData.poste_travail && { poste_travail: initialData.poste_travail })
+        ...(initialData.poste_travail && { poste_travail: initialData.poste_travail }),
+        ...(initialData.description && { description: initialData.description })
       }));
     } else if (isOpen) {
       // Reset form when opening without initialData
@@ -91,7 +92,6 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
         notes: '',
         location_id: undefined,
         poste_travail: '',
-        priority: 'medium' as const
       });
     }
   }, [isOpen, initialData]);
@@ -169,31 +169,49 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.equipment_id && !formData.poste_travail) {
+    const isEquipmentOrWorkstationSelected = !!(formData.equipment_id || formData.poste_travail);
+    
+    if (!isEquipmentOrWorkstationSelected) {
       toast.error('Veuillez sélectionner un équipement ou un poste de travail');
       return;
     }
     
     if (!formData.title) {
-      toast.error('Veuillez spécifier un titre pour cette session');
+      toast.error('Veuillez spécifier un nom pour cette tâche');
+      return;
+    }
+    
+    // Si le type est "other" mais le custom_task_type est vide
+    if (formData.task_type === 'other' && !formData.custom_task_type.trim()) {
+      toast.error('Veuillez spécifier le type de tâche personnalisé');
       return;
     }
     
     const submitData = {
-      ...formData,
-      priority: formData.priority || 'medium',
+      ...formData
     };
     
     onSubmit(submitData);
   };
   
   const FormContent = (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-5">
       <TaskTypeField
         taskType={formData.task_type}
         customTaskType={formData.custom_task_type}
         onChange={handleChange}
       />
+      
+      <div className="grid gap-2">
+        <Label htmlFor="title">🧾 Nom de la tâche *</Label>
+        <Input
+          id="title"
+          value={formData.title}
+          onChange={(e) => handleChange('title', e.target.value)}
+          placeholder="Entrez un nom pour cette tâche"
+          required
+        />
+      </div>
       
       <EquipmentField
         equipment_id={formData.equipment_id}
@@ -202,19 +220,10 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
         onChange={handleChange}
       />
       
-      {!formData.equipment_id && (
-        <WorkstationField
-          workstation={formData.poste_travail}
-          onChange={handleChange}
-          required={!formData.equipment_id}
-        />
-      )}
-      
-      <InterventionField
-        intervention_id={formData.intervention_id}
-        interventions={interventions}
-        disabled={!formData.equipment_id}
+      <WorkstationField
+        workstation={formData.poste_travail}
         onChange={handleChange}
+        required={!formData.equipment_id}
       />
       
       <LocationField
@@ -224,24 +233,20 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
         onChange={handleChange}
       />
       
-      <div className="grid gap-2">
-        <Label htmlFor="title">Title *</Label>
-        <Input
-          id="title"
-          value={formData.title}
-          onChange={(e) => handleChange('title', e.target.value)}
-          placeholder="Enter a title for this session"
-          required
-        />
-      </div>
+      <InterventionField
+        intervention_id={formData.intervention_id}
+        interventions={interventions}
+        disabled={!formData.equipment_id}
+        onChange={handleChange}
+      />
       
       <div className="grid gap-2">
-        <Label htmlFor="description">Description</Label>
+        <Label htmlFor="notes">🗒️ Notes / Observations</Label>
         <Textarea
-          id="description"
-          value={formData.description}
-          onChange={(e) => handleChange('description', e.target.value)}
-          placeholder="Enter a description..."
+          id="notes"
+          value={formData.notes}
+          onChange={(e) => handleChange('notes', e.target.value)}
+          placeholder="Entrez des observations..."
           className="min-h-[100px]"
         />
       </div>

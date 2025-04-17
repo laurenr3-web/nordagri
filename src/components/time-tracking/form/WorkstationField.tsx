@@ -22,7 +22,7 @@ export function WorkstationField({ workstation, onChange, required = false }: Wo
   return (
     <div className="grid gap-2">
       <Label htmlFor="workstation">
-        Poste de travail {required && <span className="text-red-500">*</span>}
+        🧑‍🌾 Poste de travail {required && <span className="text-red-500">*</span>}
       </Label>
       <Select
         value={workstation}
