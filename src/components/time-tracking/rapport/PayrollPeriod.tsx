@@ -9,7 +9,7 @@ import { useTimeTrackingUser } from '@/hooks/time-tracking/useTimeTrackingUser';
 import { usePayrollPeriod } from '@/hooks/time-tracking/usePayrollPeriod';
 import { Skeleton } from '@/components/ui/skeleton';
 
-type PeriodType = 'weekly' | 'biweekly' | 'triweekly' | 'monthly' | 'custom';
+type PeriodType = 'weekly' | 'biweekly' | 'triweekly' | 'monthly' | 'custom' | 'today';
 
 interface PayrollPeriodProps {
   className?: string;
@@ -26,13 +26,20 @@ export function PayrollPeriod({ className }: PayrollPeriodProps) {
   });
 
   const { userId } = useTimeTrackingUser();
-  const { totalHours, isLoading } = usePayrollPeriod(userId, dateRange.from, dateRange.to);
+  const { totalHours, isLoading } = usePayrollPeriod(
+    userId,
+    dateRange.from,
+    dateRange.to,
+    periodType
+  );
 
   const getPeriodDates = useCallback((type: PeriodType) => {
     const today = new Date();
     const start = startOfDay(today);
     
     switch (type) {
+      case 'today':
+        return { from: start, to: endOfDay(start) };
       case 'weekly':
         return { from: start, to: endOfDay(addDays(start, 7)) };
       case 'biweekly':
@@ -69,7 +76,7 @@ export function PayrollPeriod({ className }: PayrollPeriodProps) {
   useEffect(() => {
     const initialDates = getPeriodDates('weekly');
     setDateRange(initialDates);
-  }, []);
+  }, [getPeriodDates]);
 
   return (
     <Card className={className}>
@@ -81,6 +88,7 @@ export function PayrollPeriod({ className }: PayrollPeriodProps) {
               <SelectValue placeholder="Sélectionner la période" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="today">Aujourd'hui</SelectItem>
               <SelectItem value="weekly">Hebdomadaire</SelectItem>
               <SelectItem value="biweekly">Bi-hebdomadaire</SelectItem>
               <SelectItem value="triweekly">Toutes les 3 semaines</SelectItem>

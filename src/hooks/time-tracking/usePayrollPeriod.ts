@@ -1,9 +1,9 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { startOfDay, endOfDay } from 'date-fns';
+import { startOfDay, endOfDay, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 
-export function usePayrollPeriod(userId: string | null, startDate: Date, endDate: Date) {
+export function usePayrollPeriod(userId: string | null, startDate: Date, endDate: Date, periodType?: string) {
   const [totalHours, setTotalHours] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -17,14 +17,44 @@ export function usePayrollPeriod(userId: string | null, startDate: Date, endDate
       try {
         setIsLoading(true);
         
-        // Fetch completed time sessions within the selected date range
-        const { data, error } = await supabase
+        let query = supabase
           .from('time_sessions')
           .select('duration')
           .eq('user_id', userId)
-          .gte('start_time', startOfDay(startDate).toISOString())
-          .lte('end_time', endOfDay(endDate).toISOString())
           .eq('status', 'completed');
+
+        // Apply date filters based on periodType
+        if (periodType === 'today') {
+          const today = new Date();
+          query = query
+            .gte('start_time', startOfDay(today).toISOString())
+            .lte('start_time', endOfDay(today).toISOString());
+        } else if (periodType === 'weekly') {
+          const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+          query = query
+            .gte('start_time', weekStart.toISOString())
+            .lte('start_time', new Date().toISOString());
+        } else if (periodType === 'biweekly') {
+          query = query
+            .gte('start_time', subDays(new Date(), 14).toISOString())
+            .lte('start_time', new Date().toISOString());
+        } else if (periodType === 'triweekly') {
+          query = query
+            .gte('start_time', subDays(new Date(), 21).toISOString())
+            .lte('start_time', new Date().toISOString());
+        } else if (periodType === 'monthly') {
+          const monthStart = startOfMonth(new Date());
+          query = query
+            .gte('start_time', monthStart.toISOString())
+            .lte('start_time', new Date().toISOString());
+        } else {
+          // Default to custom date range
+          query = query
+            .gte('start_time', startOfDay(startDate).toISOString())
+            .lte('start_time', endOfDay(endDate).toISOString());
+        }
+
+        const { data, error } = await query;
 
         if (error) {
           console.error('Error fetching payroll data:', error);
@@ -46,7 +76,7 @@ export function usePayrollPeriod(userId: string | null, startDate: Date, endDate
     };
 
     fetchPayrollData();
-  }, [userId, startDate, endDate]);
+  }, [userId, startDate, endDate, periodType]);
 
   return { totalHours, isLoading };
 }

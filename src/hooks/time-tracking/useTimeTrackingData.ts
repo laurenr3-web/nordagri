@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { startOfWeek, endOfWeek } from 'date-fns';
 import { useTimeTrackingUser } from './useTimeTrackingUser';
@@ -18,6 +19,7 @@ export function useTimeTrackingData() {
   });
   const [equipmentFilter, setEquipmentFilter] = useState<number | undefined>(undefined);
   const [taskTypeFilter, setTaskTypeFilter] = useState<string | undefined>(undefined);
+  const [payrollPeriodType, setPayrollPeriodType] = useState('weekly');
 
   const { userId } = useTimeTrackingUser();
   const { stats } = useTimeTrackingStats(userId);
@@ -25,7 +27,7 @@ export function useTimeTrackingData() {
   const { 
     activeTimeEntry, 
     startTimeEntry, 
-    pauseTimeEntry 
+    pauseTimeEntry
   } = useTimeTracking();
   
   const { activeSessions } = useActiveTimeTrackingSessions(activeTimeEntry);
@@ -40,7 +42,8 @@ export function useTimeTrackingData() {
   const { totalHours: payrollHours, isLoading: payrollLoading } = usePayrollPeriod(
     userId,
     dateRange.from,
-    dateRange.to
+    dateRange.to,
+    payrollPeriodType
   );
 
   const handleStartTimeEntry = async (data: any) => {
@@ -73,7 +76,7 @@ export function useTimeTrackingData() {
     handleResumeTimeEntry,
     handleStopTimeEntry,
     handleDeleteTimeEntry,
-    handlePauseTimeEntry: pauseTimeEntry, // Add the missing pauseTimeEntry function
+    handlePauseTimeEntry: pauseTimeEntry,
     setIsFormOpen,
     setActiveTab,
     setDateRange,
@@ -81,5 +84,7 @@ export function useTimeTrackingData() {
     setTaskTypeFilter,
     payrollHours,
     payrollLoading,
+    payrollPeriodType,
+    setPayrollPeriodType,
   };
 }
