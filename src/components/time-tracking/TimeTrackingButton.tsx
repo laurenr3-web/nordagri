@@ -48,7 +48,6 @@ export function TimeTrackingButton({
 
   const handleStopTimeEntry = (entryId: string) => {
     try {
-      // Utiliser le nouveau format d'URL avec /detail/
       navigate(`/time-tracking/detail/${entryId}`);
       toast.info("Accès à la page de clôture de la session");
     } catch (error) {

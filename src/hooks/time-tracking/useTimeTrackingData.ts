@@ -254,5 +254,8 @@ export function useTimeTrackingData() {
     setDateRange,
     setEquipmentFilter,
     setTaskTypeFilter,
+    fetchTimeEntries,
+    fetchActiveSessions,
+    calculateStats
   };
 }
