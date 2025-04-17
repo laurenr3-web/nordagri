@@ -1,106 +1,120 @@
 
 import React from 'react';
-import { X, Calendar, Clock } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogClose,
-} from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
-import { useTaskDetails } from '@/hooks/time-tracking/useTaskDetails';
-import { Skeleton } from '@/components/ui/skeleton';
-import { formatTime } from '@/utils/dateHelpers';
+import { Download, Printer, Share } from 'lucide-react';
 
-interface ReportModalProps {
-  date: Date;
-  onClose: () => void;
+interface Statistics {
+  totalHours: number;
+  taskCount: number;
+  mainTask: string;
+  dailyAverage: number;
 }
 
-const ReportModal: React.FC<ReportModalProps> = ({ date, onClose }) => {
-  const { tasks, totalHours, isLoading } = useTaskDetails(date);
+interface TaskDistribution {
+  type: string;
+  hours: number;
+  color: string;
+}
 
+interface ReportModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  month: Date;
+  statistics: Statistics;
+  taskDistribution: TaskDistribution[];
+}
+
+function ReportModal({ isOpen, onClose, month, statistics, taskDistribution }: ReportModalProps) {
+  const handlePrint = () => {
+    window.print();
+  };
+  
+  const handleDownload = () => {
+    // Basic implementation - in a real app this would create a PDF
+    alert('Cette fonctionnalité sera disponible prochainement');
+  };
+  
+  const handleShare = () => {
+    // Basic implementation - in a real app this would share the report
+    if (navigator.share) {
+      navigator.share({
+        title: `Rapport d'activité - ${format(month, 'MMMM yyyy', { locale: fr })}`,
+        text: 'Voici mon rapport d\'activité'
+      }).catch(err => {
+        console.error('Erreur lors du partage:', err);
+      });
+    } else {
+      alert('Partage non supporté par votre navigateur');
+    }
+  };
+  
   return (
-    <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center">
-            <Calendar className="h-5 w-5 mr-2" />
-            <span>{format(date, 'EEEE dd MMMM yyyy', { locale: fr })}</span>
+          <DialogTitle>
+            Rapport d'activité - {format(month, 'MMMM yyyy', { locale: fr })}
           </DialogTitle>
-          <DialogClose asChild>
-            <Button variant="ghost" size="icon" className="absolute right-4 top-4">
-              <X className="h-4 w-4" />
-            </Button>
-          </DialogClose>
         </DialogHeader>
-
-        <div className="pb-2 pt-4 border-b">
-          <div className="flex flex-col">
-            <span className="text-sm text-muted-foreground">Total du jour</span>
-            <span className="text-xl font-medium">
-              {isLoading ? <Skeleton className="h-7 w-16" /> : `${totalHours.toFixed(1)} heures`}
-            </span>
+        
+        <div className="py-4 space-y-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <h3 className="font-semibold mb-2">Statistiques générales</h3>
+              <ul className="space-y-1 text-sm">
+                <li>Heures totales: <span className="font-medium">{statistics.totalHours.toFixed(1)}h</span></li>
+                <li>Types de tâches: <span className="font-medium">{statistics.taskCount}</span></li>
+                <li>Tâche principale: <span className="font-medium">{statistics.mainTask}</span></li>
+                <li>Moyenne quotidienne: <span className="font-medium">{statistics.dailyAverage.toFixed(1)}h</span></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold mb-2">Répartition des tâches</h3>
+              {taskDistribution.length > 0 ? (
+                <ul className="space-y-1 text-sm">
+                  {taskDistribution.slice(0, 5).map((task, index) => (
+                    <li key={index}>
+                      <span className="inline-block w-3 h-3 mr-2" style={{ backgroundColor: task.color }}></span>
+                      {task.type}: <span className="font-medium">{task.hours.toFixed(1)}h</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-muted-foreground">Aucune donnée disponible</p>
+              )}
+            </div>
           </div>
-        </div>
-
-        <div className="space-y-4">
-          <h3 className="text-sm font-medium">Sessions de travail</h3>
           
-          {isLoading ? (
-            <div className="space-y-3">
-              {[1, 2].map((_, i) => (
-                <div key={i} className="p-3 border rounded-md">
-                  <Skeleton className="h-5 w-24 mb-2" />
-                  <Skeleton className="h-4 w-40" />
-                </div>
-              ))}
-            </div>
-          ) : tasks.length > 0 ? (
-            <div className="space-y-3 max-h-[40vh] overflow-y-auto">
-              {tasks.map((task) => (
-                <div key={task.id} className="p-3 border rounded-md space-y-2">
-                  <div className="font-medium">{task.task_type}</div>
-                  
-                  <div className="text-xs text-muted-foreground flex flex-col gap-1">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5" />
-                      <span>
-                        {formatTime(task.start_time)} - {task.end_time ? formatTime(task.end_time) : "En cours"}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center gap-1">
-                      <span className="font-medium">Durée:</span> {task.duration.toFixed(1)}h
-                    </div>
-                    
-                    {task.equipment_name && (
-                      <div className="flex items-center gap-1">
-                        <span className="font-medium">Équipement:</span> {task.equipment_name}
-                      </div>
-                    )}
-                  </div>
-                  
-                  {task.notes && (
-                    <div className="text-xs mt-1 border-t pt-1">
-                      <span className="font-medium">Notes:</span> {task.notes}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center p-4 text-muted-foreground text-sm">
-              Aucune session pour cette journée
-            </div>
-          )}
+          <div>
+            <h3 className="font-semibold mb-2">Performance</h3>
+            <p className="text-sm">
+              Votre performance ce mois représente {statistics.totalHours > 0 ? Math.min(100, (statistics.totalHours / 160) * 100).toFixed(0) : 0}% 
+              d'un mois de travail standard (160h).
+            </p>
+          </div>
+          
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button variant="outline" onClick={handleDownload} size="sm">
+              <Download className="mr-2 h-4 w-4" />
+              Télécharger PDF
+            </Button>
+            <Button variant="outline" onClick={handlePrint} size="sm">
+              <Printer className="mr-2 h-4 w-4" />
+              Imprimer
+            </Button>
+            <Button onClick={handleShare} size="sm">
+              <Share className="mr-2 h-4 w-4" />
+              Partager
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
   );
-};
+}
 
 export default ReportModal;

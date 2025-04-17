@@ -22,7 +22,7 @@ export function useEntryActions(
     if (!entry) return;
     
     try {
-      let updatedEntry;
+      let updatedEntry: TimeEntry | null = null;
       
       if (entry.status === 'active') {
         updatedEntry = await timeTrackingService.pauseTimeEntry(entry.id);
@@ -58,21 +58,23 @@ export function useEntryActions(
     
     try {
       // Update entry with form data first
-      let updatedEntry = await timeTrackingService.updateTimeEntry(entry.id, {
+      const updatedWithFormData = await timeTrackingService.updateTimeEntry(entry.id, {
         notes: formData.notes,
         task_type_id: formData.task_type_id,
         custom_task_type: formData.custom_task_type
       });
       
       // Then stop the entry
-      updatedEntry = await timeTrackingService.stopTimeEntry(entry.id);
+      const updatedEntry = await timeTrackingService.stopTimeEntry(entry.id);
       
       toast.success('Session terminée avec succès');
       setShowClosureDialog(false);
       navigate('/time-tracking');
+      return updatedEntry;
     } catch (error) {
       console.error('Error closing session:', error);
       toast.error('Erreur lors de la clôture de la session');
+      throw error;
     }
   };
 

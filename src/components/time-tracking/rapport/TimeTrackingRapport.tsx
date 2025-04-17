@@ -5,14 +5,14 @@ import { fr } from 'date-fns/locale';
 import { Grid } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DatePicker } from '@/components/ui/date-picker';
-import { TimeBreakdownChart } from '../../TimeBreakdownChart';
+import { TimeBreakdownChart } from '@/components/TimeBreakdownChart';
 import { useTimeBreakdown } from '@/hooks/time-tracking/useTimeBreakdown';
 import { Button } from '@/components/ui/button';
 import { useTaskTypeDistribution } from '@/hooks/time-tracking/useTaskTypeDistribution';
 import { TopEquipmentList } from './TopEquipmentList';
 import { TimeDistributionChart } from './TimeDistributionChart';
 import { toast } from 'sonner';
-import { ReportModal } from './ReportModal';
+import ReportModal from './ReportModal';
 
 const TimeTrackingRapport: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date());

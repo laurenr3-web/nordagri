@@ -8,11 +8,11 @@ interface Intervention {
   title: string;
 }
 
-interface InterventionFieldProps {
+export interface InterventionFieldProps {
   intervention_id?: number;
   interventions: Intervention[];
   disabled: boolean;
-  onChange: (field: string, value: any) => void;
+  onChange: (field: string, value: number) => void;
 }
 
 export function InterventionField({ intervention_id, interventions, disabled, onChange }: InterventionFieldProps) {

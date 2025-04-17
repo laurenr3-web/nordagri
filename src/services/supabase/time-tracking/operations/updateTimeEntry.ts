@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { TimeEntry } from '@/hooks/time-tracking/types';
+import { TimeEntry, TimeEntryStatus, TimeEntryTaskType } from '@/hooks/time-tracking/types';
 
 /**
  * Update a time entry with new data
@@ -49,6 +49,24 @@ export async function updateTimeEntry(
     
     if (!data) throw new Error("Failed to update time entry");
     
+    // Ensure we have valid TimeEntryTaskType
+    let taskType: TimeEntryTaskType = 'maintenance';
+    if (data.custom_task_type) {
+      // Try to map custom task type to a known type
+      const knownTypes: TimeEntryTaskType[] = ['maintenance', 'repair', 'inspection', 'operation'];
+      const normalizedType = data.custom_task_type.toLowerCase();
+      if (knownTypes.includes(normalizedType as TimeEntryTaskType)) {
+        taskType = normalizedType as TimeEntryTaskType;
+      }
+    }
+    
+    // Ensure we have valid TimeEntryStatus
+    let status: TimeEntryStatus = data.status;
+    // Make sure status is one of the allowed values
+    if (!['active', 'paused', 'completed', 'disputed'].includes(data.status)) {
+      status = 'completed'; // Default fallback
+    }
+    
     // Formater la réponse
     const updatedEntry: TimeEntry = {
       id: data.id,
@@ -57,12 +75,12 @@ export async function updateTimeEntry(
       user_name: data.technician || 'User',
       equipment_id: data.equipment_id,
       intervention_id: data.intervention_id,
-      task_type: data.custom_task_type || 'maintenance',
+      task_type: taskType,
       task_type_id: data.task_type_id,
       custom_task_type: data.custom_task_type,
       start_time: data.start_time,
       end_time: data.end_time,
-      status: data.status,
+      status: status as TimeEntryStatus,
       equipment_name: data.equipment?.name || 'Unknown Equipment',
       intervention_title: data.title,
       notes: data.notes,

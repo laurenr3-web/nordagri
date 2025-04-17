@@ -1,33 +1,35 @@
 
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 
-interface TaskDistribution {
-  type: string;
-  hours: number;
+export interface TimeBreakdownData {
+  task_type: string;
+  minutes: number;
   color: string;
 }
 
-interface TimeDistributionChartProps {
-  data: TaskDistribution[];
+interface TimeBreakdownChartProps {
+  data: TimeBreakdownData[];
   isLoading?: boolean;
   error?: Error | null;
-  title?: string;
 }
 
-export function TimeDistributionChart({ 
-  data, 
-  isLoading = false, 
-  error = null,
-  title = "Répartition du temps par type de tâche" 
-}: TimeDistributionChartProps) {
+export function TimeBreakdownChart({ data, isLoading = false, error = null }: TimeBreakdownChartProps) {
+  const totalMinutes = data.reduce((sum, item) => sum + item.minutes, 0);
+  
+  // Calculer le pourcentage pour l'affichage des labels
+  const chartData = data.map(item => ({
+    ...item,
+    percentage: ((item.minutes / totalMinutes) * 100).toFixed(0),
+  }));
+
   if (isLoading) {
     return (
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle>{title}</CardTitle>
+          <CardTitle>Répartition du temps par type de tâche</CardTitle>
         </CardHeader>
         <CardContent className="flex justify-center items-center h-80">
           <div className="flex flex-col items-center gap-2">
@@ -43,7 +45,7 @@ export function TimeDistributionChart({
     return (
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle>{title}</CardTitle>
+          <CardTitle>Répartition du temps par type de tâche</CardTitle>
         </CardHeader>
         <CardContent className="flex justify-center items-center h-80">
           <div className="text-center text-muted-foreground">
@@ -54,12 +56,12 @@ export function TimeDistributionChart({
       </Card>
     );
   }
-  
+
   if (!data.length) {
     return (
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle>{title}</CardTitle>
+          <CardTitle>Répartition du temps par type de tâche</CardTitle>
         </CardHeader>
         <CardContent className="flex justify-center items-center h-80">
           <div className="text-center text-muted-foreground">
@@ -76,45 +78,36 @@ export function TimeDistributionChart({
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle>{title}</CardTitle>
+        <CardTitle>Répartition du temps par type de tâche</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={data}
-              margin={{
-                top: 20,
-                right: 30,
-                left: 20,
-                bottom: 40,
-              }}
-            >
-              <XAxis 
-                dataKey="type" 
-                angle={-45} 
-                textAnchor="end"
-                tick={{ fontSize: 12 }}
-                height={60} 
-              />
-              <YAxis 
-                label={{ 
-                  value: 'Heures', 
-                  angle: -90, 
-                  position: 'insideLeft',
-                  style: { textAnchor: 'middle' } 
-                }} 
-              />
-              <Tooltip 
-                formatter={(value) => [`${value} heures`, "Temps passé"]}
-                labelFormatter={(value) => `Type: ${value}`}
-              />
-              <Bar dataKey="hours" name="Heures">
-                {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color || "#8884d8"} />
+            <PieChart>
+              <Pie
+                data={chartData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                outerRadius={100}
+                fill="#8884d8"
+                dataKey="minutes"
+                label={({ task_type, percentage }) => `${task_type} ${percentage}%`}
+              >
+                {chartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
-              </Bar>
-            </BarChart>
+              </Pie>
+              <Legend />
+              <Tooltip
+                formatter={(value, name, props) => {
+                  // Convert minutes to hours and minutes for display
+                  const hours = Math.floor(value as number / 60);
+                  const minutes = (value as number) % 60;
+                  return [`${hours}h ${minutes}m`, props.payload.task_type];
+                }}
+              />
+            </PieChart>
           </ResponsiveContainer>
         </div>
       </CardContent>

@@ -171,12 +171,11 @@ const TimeEntryDetail = () => {
         isOpen={isNewTaskFormOpen}
         onOpenChange={setIsNewTaskFormOpen}
         onSubmit={handleSubmitNewTask}
-        initialData={entry ? {
+        defaultValues={entry ? {
           equipment_id: entry.equipment_id,
           intervention_id: entry.intervention_id,
           task_type: entry.task_type,
           custom_task_type: entry.custom_task_type,
-          location_id: entry.location ? parseInt(entry.location) : undefined,
           location: entry.location,
           title: `Suite: ${entry.task_type} - ${new Date().toLocaleString()}`
         } : undefined}

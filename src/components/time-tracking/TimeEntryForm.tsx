@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -31,60 +32,116 @@ const timeEntrySchema = z.object({
 
 type TimeEntryFormValues = z.infer<typeof timeEntrySchema>;
 
-interface TimeEntryFormProps {
+export interface TimeEntryFormProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: any) => void;
+  initialData?: Partial<TimeEntryFormValues>;
   defaultValues?: Partial<TimeEntryFormValues>;
 }
 
-export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, defaultValues }: TimeEntryFormProps) {
+export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData, defaultValues }: TimeEntryFormProps) {
   const [taskTypes, setTaskTypes] = useState<any[]>([]);
+  const [equipments, setEquipments] = useState<any[]>([]);
+  const [interventions, setInterventions] = useState<any[]>([]);
+  const [locations, setLocations] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
   
-  // Form definition with default values
+  // Form definition with default values or initialData values
   const form = useForm<TimeEntryFormValues>({
     resolver: zodResolver(timeEntrySchema),
     defaultValues: {
-      equipment_id: defaultValues?.equipment_id,
-      intervention_id: defaultValues?.intervention_id,
-      task_type: defaultValues?.task_type || 'maintenance',
-      task_type_id: defaultValues?.task_type_id,
-      custom_task_type: defaultValues?.custom_task_type,
-      title: defaultValues?.title,
-      notes: defaultValues?.notes,
-      location: defaultValues?.location,
-      poste_travail: defaultValues?.poste_travail,
+      equipment_id: initialData?.equipment_id || defaultValues?.equipment_id,
+      intervention_id: initialData?.intervention_id || defaultValues?.intervention_id,
+      task_type: initialData?.task_type || defaultValues?.task_type || 'maintenance',
+      task_type_id: initialData?.task_type_id || defaultValues?.task_type_id,
+      custom_task_type: initialData?.custom_task_type || defaultValues?.custom_task_type,
+      title: initialData?.title || defaultValues?.title,
+      notes: initialData?.notes || defaultValues?.notes,
+      location: initialData?.location || defaultValues?.location,
+      poste_travail: initialData?.poste_travail || defaultValues?.poste_travail,
     },
   });
   
-  // Fetch task types when component mounts
+  // Fetch necessary data when component mounts
   useEffect(() => {
-    const fetchTaskTypes = async () => {
+    const fetchData = async () => {
+      setLoading(true);
       try {
+        // Fetch task types
         const types = await timeTrackingService.getTaskTypes();
         setTaskTypes(types);
         
-        // Si task_type et pas task_type_id, essayer de trouver l'ID correspondant
-        if (defaultValues?.task_type && !defaultValues?.task_type_id) {
+        // Fetch equipments
+        const { data: equipmentsData } = await supabase
+          .from('equipment')
+          .select('id, name')
+          .order('name');
+        setEquipments(equipmentsData || []);
+        
+        // If equipment_id is set, fetch interventions for that equipment
+        const equipmentId = form.watch('equipment_id');
+        if (equipmentId) {
+          const { data: interventionsData } = await supabase
+            .from('interventions')
+            .select('id, title')
+            .eq('equipment_id', equipmentId)
+            .order('date', { ascending: false });
+          setInterventions(interventionsData || []);
+        }
+        
+        // Set some mock locations for now
+        setLocations([
+          { id: 1, name: "Atelier" },
+          { id: 2, name: "Champ Nord" },
+          { id: 3, name: "Champ Sud" },
+          { id: 4, name: "Hangar" },
+          { id: 5, name: "Serre" }
+        ]);
+        
+        // Match task_type to task_type_id if needed
+        if ((initialData?.task_type || defaultValues?.task_type) && 
+            !(initialData?.task_type_id || defaultValues?.task_type_id)) {
           const matchedType = types.find(t => 
-            t.name.toLowerCase() === defaultValues.task_type.toLowerCase());
+            t.name.toLowerCase() === (initialData?.task_type || defaultValues?.task_type || '').toLowerCase());
           
           if (matchedType) {
             form.setValue('task_type_id', matchedType.id);
           }
         }
       } catch (error) {
-        console.error("Error fetching task types:", error);
+        console.error("Error fetching form data:", error);
+        toast.error("Erreur lors du chargement des données");
+      } finally {
+        setLoading(false);
       }
     };
     
-    fetchTaskTypes();
+    fetchData();
   }, []);
+  
+  // Update interventions when equipment changes
+  useEffect(() => {
+    const equipmentId = form.watch('equipment_id');
+    if (equipmentId) {
+      const fetchInterventions = async () => {
+        const { data } = await supabase
+          .from('interventions')
+          .select('id, title')
+          .eq('equipment_id', equipmentId)
+          .order('date', { ascending: false });
+        setInterventions(data || []);
+      };
+      fetchInterventions();
+    } else {
+      setInterventions([]);
+    }
+  }, [form.watch('equipment_id')]);
 
   // Handle form submission
   const handleSubmit = async (values: TimeEntryFormValues) => {
     try {
-      // Si c'est un type de tâche standard, trouvons l'ID correspondant
+      // If it's a standard task type, find the corresponding ID
       if (values.task_type !== 'other') {
         const matchedType = taskTypes.find(t => 
           t.name.toLowerCase() === values.task_type.toLowerCase());
@@ -94,14 +151,13 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, defaultValues }:
         }
       }
       
-      // Si c'est 'other' mais qu'aucun custom_task_type n'est fourni, utiliser "Autre"
+      // If it's 'other' but no custom_task_type is provided, use "Autre"
       if (values.task_type === 'other' && (!values.custom_task_type || values.custom_task_type.trim() === '')) {
         values.custom_task_type = 'Autre';
       }
       
-      // S'assurer que task_type_id est défini si possible
+      // Try to find task_type_id if possible
       if (!values.task_type_id && values.custom_task_type) {
-        // Chercher dans les types existants pour voir si le custom_task_type correspond à un type existant
         const matchedType = taskTypes.find(t => 
           t.name.toLowerCase() === values.custom_task_type?.toLowerCase());
           
@@ -119,14 +175,20 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, defaultValues }:
     }
   };
   
-  // Update form values when props change
+  // Update form values when initialData changes
   useEffect(() => {
-    if (defaultValues) {
-      Object.entries(defaultValues).forEach(([key, value]) => {
-        form.setValue(key as any, value);
+    if (initialData) {
+      Object.entries(initialData).forEach(([key, value]) => {
+        if (value !== undefined) {
+          form.setValue(key as any, value);
+        }
       });
     }
-  }, [defaultValues]);
+  }, [initialData]);
+
+  const handleFieldChange = (field: string, value: any) => {
+    form.setValue(field as any, value);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -172,8 +234,10 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, defaultValues }:
               name="equipment_id"
               render={({ field }) => (
                 <EquipmentField 
-                  value={field.value} 
-                  onChange={(value) => form.setValue('equipment_id', value)} 
+                  equipment_id={field.value} 
+                  equipments={equipments}
+                  loading={loading}
+                  onChange={handleFieldChange} 
                 />
               )}
             />
@@ -184,8 +248,10 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, defaultValues }:
               name="intervention_id"
               render={({ field }) => (
                 <InterventionField 
-                  value={field.value} 
-                  onChange={(value) => form.setValue('intervention_id', value)} 
+                  intervention_id={field.value} 
+                  interventions={interventions}
+                  disabled={!form.watch('equipment_id')}
+                  onChange={handleFieldChange} 
                 />
               )}
             />
@@ -210,8 +276,10 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, defaultValues }:
               name="location"
               render={({ field }) => (
                 <LocationField 
-                  value={field.value || ''} 
-                  onChange={(value) => form.setValue('location', value)} 
+                  location={field.value}
+                  locations={locations}
+                  disabled={false}
+                  onChange={handleFieldChange}
                 />
               )}
             />
@@ -221,9 +289,9 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, defaultValues }:
               control={form.control}
               name="poste_travail"
               render={({ field }) => (
-                <WorkstationField 
-                  value={field.value || ''} 
-                  onChange={(value) => form.setValue('poste_travail', value)} 
+                <WorkstationField
+                  workstation={field.value}
+                  onChange={handleFieldChange}
                 />
               )}
             />

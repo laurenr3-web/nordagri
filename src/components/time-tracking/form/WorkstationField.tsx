@@ -12,8 +12,8 @@ const WORKSTATIONS = [
   'mobilité'
 ] as const;
 
-interface WorkstationFieldProps {
-  workstation: string;
+export interface WorkstationFieldProps {
+  workstation?: string;
   onChange: (field: string, value: string) => void;
   required?: boolean;
 }
