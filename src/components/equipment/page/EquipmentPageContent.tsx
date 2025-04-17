@@ -31,7 +31,12 @@ const EquipmentPageContent: React.FC<EquipmentPageContentProps> = ({
   }, [currentView]);
   
   const handleEquipmentClick = (equipment: EquipmentItem) => {
-    navigate(`/equipment/${equipment.id}`);
+    // Dispatch the custom event with the equipment details
+    const event = new CustomEvent('equipment-selected', { detail: equipment });
+    window.dispatchEvent(event);
+
+    // Navigate is now only used for deep linking (optionally)
+    // navigate(`/equipment/${equipment.id}`);
   };
   
   return (
