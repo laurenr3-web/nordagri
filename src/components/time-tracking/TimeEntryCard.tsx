@@ -20,7 +20,7 @@ export function TimeEntryCard({ entry, onResume, onDelete }: TimeEntryCardProps)
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div>
-            <Link to={`/time-tracking/${entry.id}`} className="hover:underline">
+            <Link to={`/time-tracking/detail/${entry.id}`} className="hover:underline">
               <h3 className="font-medium">
                 {entry.task_type === 'other' ? entry.custom_task_type : entry.task_type}
               </h3>
@@ -41,7 +41,7 @@ export function TimeEntryCard({ entry, onResume, onDelete }: TimeEntryCardProps)
             </div>
           </div>
           <div className="flex flex-col items-end space-y-2">
-            <Link to={`/time-tracking/${entry.id}`}>
+            <Link to={`/time-tracking/detail/${entry.id}`}>
               <Button variant="outline" size="icon" title="Voir détails">
                 <ExternalLink className="h-4 w-4" />
               </Button>
