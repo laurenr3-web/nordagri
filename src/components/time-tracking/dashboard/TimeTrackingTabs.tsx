@@ -57,10 +57,10 @@ export function TimeTrackingTabs({
         </Button>
       </div>
       
-      <TabsContent value="list">
+      <TabsContent value="list" className="space-y-4">
         {isLoading ? (
           <div className="space-y-4">
-            {Array.from({ length: 3 }).map((_, i) => (
+            {Array.from({ length: 5 }).map((_, i) => (
               <Skeleton key={i} className="h-24" />
             ))}
           </div>
@@ -70,7 +70,7 @@ export function TimeTrackingTabs({
             <Button onClick={onNewSession}>Démarrer une nouvelle session</Button>
           </div>
         ) : (
-          <ScrollArea className="h-[calc(100vh-28rem)]">
+          <ScrollArea className="h-[calc(100vh-24rem)]">
             <div className="space-y-4">
               {entries.map((entry) => (
                 <TimeEntryCard
@@ -95,3 +95,4 @@ export function TimeTrackingTabs({
     </Tabs>
   );
 }
+

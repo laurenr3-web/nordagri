@@ -6,13 +6,11 @@ import { TimeTrackingHeader } from './TimeTrackingHeader';
 import { ActiveTimeSession } from './ActiveTimeSession';
 import { TimeTrackingSummary } from './TimeTrackingSummary';
 import { TimeTrackingFilters } from '../dashboard/TimeTrackingFilters';
-import { TimeBreakdownChart } from '../TimeBreakdownChart';
 import { ActiveSessionsTable } from '../ActiveSessionsTable';
 import { TimeEntryForm } from '../TimeEntryForm';
 import { TimeTrackingTabs } from './TimeTrackingTabs';
 import { startOfWeek, endOfWeek } from 'date-fns';
 import { useTimeTrackingData } from '@/hooks/time-tracking/useTimeTrackingData';
-import { useTimeBreakdown } from '@/hooks/time-tracking/useTimeBreakdown';
 
 export default function TimeTrackingPage() {
   const {
@@ -39,8 +37,6 @@ export default function TimeTrackingPage() {
     taskTypeFilter,
     setTaskTypeFilter,
   } = useTimeTrackingData();
-
-  const { data: timeBreakdownData, isLoading: isTimeBreakdownLoading, error: timeBreakdownError } = useTimeBreakdown();
 
   return (
     <SidebarProvider>
@@ -88,12 +84,6 @@ export default function TimeTrackingPage() {
               }}
             />
             
-            <TimeBreakdownChart 
-              data={timeBreakdownData} 
-              isLoading={isTimeBreakdownLoading} 
-              error={timeBreakdownError}
-            />
-            
             <ActiveSessionsTable
               sessions={activeSessions}
               onPause={handlePauseTimeEntry}
@@ -122,3 +112,4 @@ export default function TimeTrackingPage() {
     </SidebarProvider>
   );
 }
+
