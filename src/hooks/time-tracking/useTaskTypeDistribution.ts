@@ -47,7 +47,7 @@ export function useTaskTypeDistribution(month: Date) {
           taskTypeMap.set(type.id, type.name);
         });
         
-        // Get hours by task type
+        // Get time entries with duration
         const { data, error } = await supabase
           .from('time_sessions')
           .select(`
@@ -63,22 +63,22 @@ export function useTaskTypeDistribution(month: Date) {
           
         if (error) throw error;
         
-        // Aggregate hours by task type
+        // Aggregate hours by task type or custom type
         const hoursByType = new Map<string, number>();
         
         data?.forEach(session => {
-          // Determine task type name
           let taskType: string;
           
-          if (session.task_type_id && taskTypeMap.has(session.task_type_id)) {
-            taskType = taskTypeMap.get(session.task_type_id);
-          } else if (session.custom_task_type) {
+          // Use custom task type if available, otherwise use predefined task type
+          if (session.custom_task_type) {
             taskType = session.custom_task_type;
+          } else if (session.task_type_id && taskTypeMap.has(session.task_type_id)) {
+            taskType = taskTypeMap.get(session.task_type_id);
           } else {
             taskType = 'Non spécifié';
           }
           
-          // Calculate duration if not available
+          // Calculate duration
           let sessionDuration = session.duration;
           if (!sessionDuration && session.end_time) {
             const startTime = new Date(session.start_time);
@@ -92,14 +92,14 @@ export function useTaskTypeDistribution(month: Date) {
           }
         });
         
-        // Convert map to array and add colors
+        // Convert map to array and assign colors
         const result: TaskTypeDistribution[] = Array.from(hoursByType.entries())
-          .map(([type, hours]) => ({
-            type,
-            hours,
-            color: TASK_TYPE_COLORS[type.toLowerCase()] || '#999999'
-          }))
-          .sort((a, b) => b.hours - a.hours); // Sort by hours descending
+          .map(([type, hours]) => {
+            // Try to find a predefined color, otherwise use a default color
+            const color = TASK_TYPE_COLORS[type.toLowerCase()] || '#999999';
+            return { type, hours, color };
+          })
+          .sort((a, b) => b.hours - a.hours);
         
         setDistribution(result);
       } catch (err) {
