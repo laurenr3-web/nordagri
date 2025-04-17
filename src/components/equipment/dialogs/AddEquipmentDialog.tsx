@@ -5,6 +5,7 @@ import EquipmentForm from '@/components/equipment/EquipmentForm';
 import { EquipmentFormValues } from '@/components/equipment/form/equipmentFormTypes';
 import { useAddEquipment } from '@/hooks/equipment/useAddEquipment';
 import { toast } from 'sonner';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface AddEquipmentDialogProps {
   isOpen: boolean;
@@ -74,15 +75,17 @@ const AddEquipmentDialog: React.FC<AddEquipmentDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-3xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Ajouter un équipement</DialogTitle>
         </DialogHeader>
-        <EquipmentForm 
-          onSubmit={handleAddEquipment}
-          onCancel={() => onOpenChange(false)}
-          isSubmitting={isPending}
-        />
+        <ScrollArea className="max-h-[70vh] overflow-auto pr-4">
+          <EquipmentForm 
+            onSubmit={handleAddEquipment}
+            onCancel={() => onOpenChange(false)}
+            isSubmitting={isPending}
+          />
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

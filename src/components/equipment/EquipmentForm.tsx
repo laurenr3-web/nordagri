@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -71,7 +72,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
     <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             {/* Basic Information */}
             <BasicInfoFields 
               form={form} 
@@ -79,36 +80,35 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
               onAddCategoryClick={() => setIsAddCategoryDialogOpen(true)} 
             />
           
-          <div className="space-y-6">
             <WearUnitField form={form} />
+            
             {/* Additional Information */}
             <AdditionalInfoFields form={form} />
-          </div>
-        </div>
-
-        <ImageField form={form} />
           
-        <NotesField form={form} />
+            <ImageField form={form} />
+              
+            <NotesField form={form} />
 
-          <div className="flex justify-end space-x-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              disabled={isSubmitting}
-            >
-              Annuler
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Enregistrement...
-                </>
-              ) : (
-                'Enregistrer'
-              )}
-            </Button>
+            <div className="flex justify-end space-x-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                disabled={isSubmitting}
+              >
+                Annuler
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Enregistrement...
+                  </>
+                ) : (
+                  'Enregistrer'
+                )}
+              </Button>
+            </div>
           </div>
         </form>
       </Form>

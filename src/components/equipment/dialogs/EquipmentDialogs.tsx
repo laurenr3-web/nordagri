@@ -5,6 +5,7 @@ import EquipmentForm from '@/components/equipment/EquipmentForm';
 import EquipmentDetails from '@/components/equipment/EquipmentDetails';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import { useAddEquipment } from '@/hooks/equipment/useAddEquipment';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Type amélioré pour la création d'équipement avec les propriétés UI requises
 interface EquipmentItemWithUIProps extends EquipmentItem {
@@ -77,25 +78,29 @@ const EquipmentDialogs: React.FC = () => {
     <>
       {/* Add Equipment Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-3xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Add New Equipment</DialogTitle>
           </DialogHeader>
-          <EquipmentForm 
-            onSubmit={handleAddEquipment}
-            onCancel={() => setIsAddDialogOpen(false)}
-            isSubmitting={isPending}
-          />
+          <ScrollArea className="max-h-[70vh] overflow-auto pr-4">
+            <EquipmentForm 
+              onSubmit={handleAddEquipment}
+              onCancel={() => setIsAddDialogOpen(false)}
+              isSubmitting={isPending}
+            />
+          </ScrollArea>
         </DialogContent>
       </Dialog>
 
       {/* Equipment Details Dialog */}
       <Dialog open={!!selectedEquipment} onOpenChange={(open) => !open && setSelectedEquipment(null)}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Equipment Details</DialogTitle>
           </DialogHeader>
-          {selectedEquipment && <EquipmentDetails equipment={selectedEquipment} />}
+          <ScrollArea className="max-h-[70vh] overflow-auto pr-4">
+            {selectedEquipment && <EquipmentDetails equipment={selectedEquipment} />}
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     </>
