@@ -1,3 +1,4 @@
+
 // Task type enum
 export type TimeEntryTaskType = 'maintenance' | 'repair' | 'inspection' | 'installation' | 'other';
 
@@ -29,6 +30,9 @@ export interface TimeEntry {
   updated_at?: string;
   journee_id?: string;
 }
+
+// ActiveTimeEntry is a TimeEntry that's currently active or paused
+export type ActiveTimeEntry = TimeEntry;
 
 export interface TaskType {
   id: string;

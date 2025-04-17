@@ -12,16 +12,25 @@ import { WorkstationField } from './form/WorkstationField';
 import { timeTrackingService } from '@/services/supabase/timeTrackingService';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { TaskType } from '@/hooks/time-tracking/types';
+import { TaskType, TimeEntryTaskType } from '@/hooks/time-tracking/types';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TimeEntryFormProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: any) => void;
+  initialData?: {
+    equipment_id?: number;
+    intervention_id?: number;
+    task_type: TimeEntryTaskType;
+    custom_task_type?: string;
+    location_id?: number;
+    location?: string;
+    title?: string;
+  };
 }
 
-export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormProps) {
+export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: TimeEntryFormProps) {
   const isMobile = useIsMobile();
   const [taskTypes, setTaskTypes] = useState<TaskType[]>([]);
   const [equipments, setEquipments] = useState<Array<{ id: number; name: string }>>([]);
@@ -35,14 +44,14 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
   ]);
   
   const [formData, setFormData] = useState({
-    task_type: 'maintenance' as const,
+    task_type: (initialData?.task_type || 'maintenance') as TimeEntryTaskType,
     task_type_id: '',
-    custom_task_type: '',
-    equipment_id: undefined as number | undefined,
-    intervention_id: undefined as number | undefined,
+    custom_task_type: initialData?.custom_task_type || '',
+    equipment_id: initialData?.equipment_id,
+    intervention_id: initialData?.intervention_id,
     description: '',
     notes: '',
-    location_id: undefined as number | undefined,
+    location_id: initialData?.location_id,
     poste_travail: '',
   });
   
@@ -53,21 +62,21 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit }: TimeEntryFormP
   useEffect(() => {
     if (isOpen) {
       setFormData({
-        task_type: 'maintenance' as const,
+        task_type: (initialData?.task_type || 'maintenance') as TimeEntryTaskType,
         task_type_id: '',
-        custom_task_type: '',
-        equipment_id: undefined,
-        intervention_id: undefined,
+        custom_task_type: initialData?.custom_task_type || '',
+        equipment_id: initialData?.equipment_id,
+        intervention_id: initialData?.intervention_id,
         description: '',
         notes: '',
-        location_id: undefined,
+        location_id: initialData?.location_id,
         poste_travail: '',
       });
       setFormError(null);
       loadTaskTypes();
       loadEquipments();
     }
-  }, [isOpen]);
+  }, [isOpen, initialData]);
   
   useEffect(() => {
     if (formData.equipment_id) {

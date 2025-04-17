@@ -3,11 +3,11 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { User } from 'lucide-react';
-import { ActiveTimeEntry } from '@/hooks/time-tracking/types';
+import { TimeEntry } from '@/hooks/time-tracking/types';
 import { useNavigate } from 'react-router-dom';
 
 interface ActiveTimeSessionProps {
-  session: ActiveTimeEntry;
+  session: TimeEntry;
   onPause: (id: string) => void;
   onResume: (id: string) => void;
   onStop: (id: string) => void;
