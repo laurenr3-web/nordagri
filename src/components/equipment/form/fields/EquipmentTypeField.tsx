@@ -19,11 +19,13 @@ import { toast } from 'sonner';
 interface EquipmentTypeFieldProps {
   form: UseFormReturn<EquipmentFormValues>;
   language?: 'fr' | 'en';
+  onAddCustomType?: (type: string) => Promise<any>;
 }
 
 export const EquipmentTypeField = ({ 
   form,
-  language = 'fr'
+  language = 'fr',
+  onAddCustomType
 }: EquipmentTypeFieldProps) => {
   const [showNewTypeInput, setShowNewTypeInput] = useState(false);
   const [newTypeName, setNewTypeName] = useState('');
@@ -54,7 +56,16 @@ export const EquipmentTypeField = ({
     if (!newTypeName.trim()) return;
 
     try {
-      const result = await createType(newTypeName.trim());
+      let result;
+      
+      if (onAddCustomType) {
+        // Use the provided function if available
+        result = await onAddCustomType(newTypeName.trim());
+      } else {
+        // Fall back to the default implementation
+        result = await createType(newTypeName.trim());
+      }
+      
       if (result && result.name) {
         form.setValue('type', result.name);
         setShowNewTypeInput(false);

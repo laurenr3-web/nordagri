@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -62,9 +63,17 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
     }
   }
 
-  const addNewCategory = (category: string) => {
-    setCustomCategories([...customCategories, category]);
-    form.setValue('type', category);
+  const addNewCategory = async (category: string): Promise<any> => {
+    try {
+      setCustomCategories([...customCategories, category]);
+      form.setValue('type', category);
+      toast.success(`Type "${category}" ajouté avec succès`);
+      return { name: category }; // Return an object with name property to match expected structure
+    } catch (error) {
+      console.error('Error adding new category:', error);
+      toast.error('Erreur lors de l\'ajout du type');
+      throw error; // Re-throw to propagate error
+    }
   };
 
   return (
