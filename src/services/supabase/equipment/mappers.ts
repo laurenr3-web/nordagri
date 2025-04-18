@@ -12,7 +12,9 @@ export function mapEquipmentFromDatabase(dbEquipment: any): Equipment {
     manufacturer: dbEquipment.manufacturer,
     year: dbEquipment.year,
     serialNumber: dbEquipment.serial_number,
-    purchaseDate: dbEquipment.purchase_date ? new Date(dbEquipment.purchase_date) : undefined,
+    purchaseDate: dbEquipment.purchase_date 
+      ? new Date(dbEquipment.purchase_date) 
+      : undefined,
     location: dbEquipment.location,
     status: dbEquipment.status,
     type: dbEquipment.type,
@@ -28,10 +30,11 @@ export function mapEquipmentFromDatabase(dbEquipment: any): Equipment {
  */
 export function mapEquipmentToDatabase(equipment: Omit<Equipment, 'id'> | Equipment): any {
   // Convertir les dates en ISO string pour Supabase
-  let purchaseDate = equipment.purchaseDate;
-  if (purchaseDate instanceof Date) {
-    purchaseDate = purchaseDate.toISOString();
-  }
+  let purchaseDate = equipment.purchaseDate 
+    ? (equipment.purchaseDate instanceof Date 
+      ? equipment.purchaseDate.toISOString() 
+      : new Date(equipment.purchaseDate).toISOString())
+    : null;
   
   const dbEquipment = {
     name: equipment.name,
