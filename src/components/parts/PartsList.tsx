@@ -89,6 +89,7 @@ const PartsList: React.FC<PartsListProps> = ({
                   checked={allSelected}
                   onCheckedChange={(checked) => handleSelectAll(!!checked)}
                   aria-label="Sélectionner toutes les pièces"
+                  data-state={allSelected ? "checked" : (someSelected ? "indeterminate" : "unchecked")}
                 />
               </th>
               <th className="text-left p-3 font-medium">Image</th>
