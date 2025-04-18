@@ -30,7 +30,7 @@ const EquipmentDetailError: React.FC<EquipmentDetailErrorProps> = ({ id, error }
         </p>
         {error && (
           <p className="text-destructive mt-2">
-            Erreur: {error}
+            Erreur : {error}
           </p>
         )}
       </div>

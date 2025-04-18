@@ -21,11 +21,11 @@ interface AlertsSectionProps {
 const AlertsSection: React.FC<AlertsSectionProps> = ({ alerts, onViewAllClick }) => {
   return (
     <DashboardSection 
-      title="System Alerts" 
-      subtitle="Recent notifications" 
+      title="Alertes système" 
+      subtitle="Notifications récentes" 
       action={
         <Button variant="outline" size="sm" onClick={onViewAllClick}>
-          Clear All
+          Tout effacer
         </Button>
       }
     >

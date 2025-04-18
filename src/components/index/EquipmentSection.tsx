@@ -33,11 +33,11 @@ const EquipmentSection: React.FC<EquipmentSectionProps> = ({
 }) => {
   return (
     <DashboardSection 
-      title="Equipment Status" 
-      subtitle="Monitor your fleet performance" 
+      title="État de l'équipement" 
+      subtitle="Surveillance de votre flotte" 
       action={
         <Button variant="outline" size="sm" onClick={onViewAllClick}>
-          View All
+          Tout voir
         </Button>
       }
     >
