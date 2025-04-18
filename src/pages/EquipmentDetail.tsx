@@ -39,7 +39,8 @@ const EquipmentDetail = () => {
                 <EquipmentDetailContent 
                   equipment={equipment}
                   onUpdate={async (updatedData) => {
-                    return await handleEquipmentUpdate(updatedData);
+                    await handleEquipmentUpdate(updatedData);
+                    // Return void to match the expected type
                   }}
                 />
               )}
