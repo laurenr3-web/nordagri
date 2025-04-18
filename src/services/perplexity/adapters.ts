@@ -1,6 +1,7 @@
 
 import { Part } from '@/types/Part';
 import { PerplexityPart, PerplexityPriceResult } from '@/types/PerplexityTypes';
+import { ensureNumberId } from '@/utils/typeGuards';
 
 /**
  * Convertit une pièce format Perplexity en format application
@@ -11,7 +12,7 @@ import { PerplexityPart, PerplexityPriceResult } from '@/types/PerplexityTypes';
 export function convertToAppPart(perplexityPart: PerplexityPart): Part {
   // Conversion du format Perplexity vers le format de l'application
   return {
-    id: typeof perplexityPart.id === 'string' ? parseInt(perplexityPart.id, 10) : perplexityPart.id,
+    id: ensureNumberId(perplexityPart.id),
     name: perplexityPart.name,
     partNumber: perplexityPart.partNumber || perplexityPart.reference,
     reference: perplexityPart.reference,

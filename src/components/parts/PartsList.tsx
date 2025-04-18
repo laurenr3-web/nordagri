@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,7 @@ interface PartsListProps {
   parts: Part[];
   openPartDetails: (part: Part) => void;
   openOrderDialog: (part: Part) => void;
-  onDeleteSelected?: (partIds: number[]) => Promise<void>;
+  onDeleteSelected?: (partIds: (string | number)[]) => Promise<void>;
   isDeleting?: boolean;
 }
 
@@ -20,7 +21,7 @@ const PartsList: React.FC<PartsListProps> = ({
   onDeleteSelected,
   isDeleting = false
 }) => {
-  const [selectedParts, setSelectedParts] = useState<number[]>([]);
+  const [selectedParts, setSelectedParts] = useState<(string | number)[]>([]);
   const allCheckboxRef = useRef<HTMLButtonElement>(null);
 
   // Handle indeterminate checkbox state
@@ -34,10 +35,10 @@ const PartsList: React.FC<PartsListProps> = ({
   }, [selectedParts, parts]);
 
   const handleSelectAll = (checked: boolean) => {
-    setSelectedParts(checked ? parts.map(part => part.id as number) : []);
+    setSelectedParts(checked ? parts.map(part => part.id) : []);
   };
 
-  const handleSelectPart = (partId: number, checked: boolean) => {
+  const handleSelectPart = (partId: string | number, checked: boolean) => {
     setSelectedParts(prev => 
       checked 
         ? [...prev, partId]

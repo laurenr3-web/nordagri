@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Part } from '@/types/Part';
 import PartsHeader from './PartsHeader';
@@ -78,7 +79,7 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
     try {
       setIsDeletingMultiple(true);
       
-      // Delete all selected parts using the bulk delete function
+      // Delete all selected parts using the bulk delete function which now handles both string and number IDs
       await deleteMultipleParts(partIds);
 
       toast({

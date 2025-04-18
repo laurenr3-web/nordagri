@@ -2,6 +2,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deletePart } from '@/services/supabase/parts';
 import { useToast } from '@/hooks/use-toast';
+import { ensureNumberId } from '@/utils/typeGuards';
 
 export function useDeletePart() {
   const queryClient = useQueryClient();
@@ -10,6 +11,7 @@ export function useDeletePart() {
   const mutation = useMutation({
     mutationFn: async (partId: number | string) => {
       console.log('Deleting part ID:', partId);
+      // Use the deletePart function which now handles both string and number IDs
       return await deletePart(partId);
     },
     onSuccess: (_data, variables) => {
