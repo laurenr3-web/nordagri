@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Part } from '@/types/Part';
 import PartsHeader from './PartsHeader';
 import PartsGrid from './PartsGrid';
@@ -10,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import FilterSortDialogs from './dialogs/FilterSortDialogs';
 import PartDetailsDialog from './dialogs/PartDetailsDialog';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 interface PartsContainerProps {
   parts: Part[];
@@ -66,6 +66,36 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
   setIsAddPartDialogOpen,
   refetch
 }) => {
+  const { toast } = useToast();
+  const [isDeletingMultiple, setIsDeletingMultiple] = useState(false);
+
+  const handleDeleteMultiple = async (partIds: (string | number)[]) => {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer ${partIds.length} pièce(s) ?`)) {
+      return;
+    }
+
+    try {
+      setIsDeletingMultiple(true);
+      
+      // Delete all selected parts
+      await Promise.all(partIds.map(id => handleDeletePart(id)));
+
+      toast({
+        title: "Suppression réussie",
+        description: `${partIds.length} pièce(s) ont été supprimées avec succès`,
+      });
+    } catch (error) {
+      console.error('Error deleting multiple parts:', error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la suppression des pièces",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeletingMultiple(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] bg-background/80">
@@ -114,15 +144,17 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
         {filteredParts.length > 0 ? (
           currentView === 'grid' ? (
             <PartsGrid
-              parts={filteredParts as any}
+              parts={filteredParts}
               openPartDetails={openPartDetails}
               openOrderDialog={() => {}}
             />
           ) : (
             <PartsList
-              parts={filteredParts as any}
+              parts={filteredParts}
               openPartDetails={openPartDetails}
               openOrderDialog={() => {}}
+              onDeleteSelected={handleDeleteMultiple}
+              isDeleting={isDeletingMultiple}
             />
           )
         ) : parts.length > 0 ? (
