@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { EquipmentFormValues } from './equipmentFormTypes';
@@ -57,6 +58,8 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
       year: 'Year',
       addCategoryBtn: 'Add category',
       selectType: 'Select a type',
+      customTypeLabel: 'New type name',
+      customTypeButton: 'Add this type',
       namePlaceholder: 'Equipment name',
       manufacturerPlaceholder: 'Manufacturer',
       modelPlaceholder: 'Model',
