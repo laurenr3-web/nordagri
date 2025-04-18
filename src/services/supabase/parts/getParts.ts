@@ -24,22 +24,27 @@ export async function getParts(): Promise<Part[]> {
     
     console.log(`👤 Récupération des pièces pour l'utilisateur: ${userId}`);
     
-    // Query only parts owned by the current user from parts_inventory table
+    // Query parts from parts_inventory table with error handling
+    // Start with a simple select(*) without joins
     const { data, error } = await supabase
       .from('parts_inventory')
-      .select('*')
-      .eq('owner_id', userId);
+      .select('*');
     
     if (error) {
-      console.error('Erreur lors de la récupération des pièces:', error);
-      throw error;
+      console.error('Erreur Supabase détaillée:', error);
+      throw new Error(`Erreur lors de la récupération des pièces: ${error.message}`);
     }
     
-    console.log(`✅ ${data?.length || 0} pièce(s) trouvée(s) pour l'utilisateur ${userId}`);
-    console.log('Données brutes des pièces:', data);
+    console.log(`✅ ${data?.length || 0} pièce(s) trouvée(s)`);
+    
+    if (!data || data.length === 0) {
+      console.log('Aucune pièce trouvée dans la base de données');
+      // Return empty array instead of throwing error
+      return [];
+    }
     
     // Map the database fields to our Part interface
-    return (data || []).map(part => ({
+    return data.map(part => ({
       id: part.id,
       name: part.name,
       partNumber: part.part_number || '',
@@ -54,6 +59,6 @@ export async function getParts(): Promise<Part[]> {
     }));
   } catch (error) {
     console.error('❌ Erreur critique dans getParts:', error);
-    throw new Error(`Impossible de récupérer les pièces: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
+    throw error;
   }
 }

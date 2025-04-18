@@ -110,21 +110,23 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
           filterCount={filterCount}
         />
 
-        {currentView === 'grid' ? (
-          <PartsGrid
-            parts={filteredParts as any}
-            openPartDetails={openPartDetails}
-            openOrderDialog={() => {}}
-          />
-        ) : (
-          <PartsList
-            parts={filteredParts as any}
-            openPartDetails={openPartDetails}
-            openOrderDialog={() => {}}
-          />
-        )}
-
-        {filteredParts.length === 0 && parts.length > 0 && (
+        {/* Si nous avons des données à afficher */}
+        {filteredParts.length > 0 ? (
+          currentView === 'grid' ? (
+            <PartsGrid
+              parts={filteredParts as any}
+              openPartDetails={openPartDetails}
+              openOrderDialog={() => {}}
+            />
+          ) : (
+            <PartsList
+              parts={filteredParts as any}
+              openPartDetails={openPartDetails}
+              openOrderDialog={() => {}}
+            />
+          )
+        ) : parts.length > 0 ? (
+          // Si nous avons des pièces mais aucune ne correspond aux filtres
           <div className="flex flex-col items-center justify-center py-12 px-4">
             <p className="mb-4 text-center text-muted-foreground">
               Aucune pièce ne correspond à vos critères de recherche ou filtres.
@@ -136,12 +138,11 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
               Réinitialiser les filtres
             </Button>
           </div>
-        )}
-
-        {parts.length === 0 && (
+        ) : (
+          // Si nous n'avons aucune pièce
           <div className="flex flex-col items-center justify-center py-12 px-4">
             <p className="mb-4 text-center text-muted-foreground">
-              Votre inventaire de pièces est vide. Ajoutez votre première pièce.
+              Aucune pièce enregistrée. Ajoutez votre première pièce.
             </p>
             <Button
               variant="default"

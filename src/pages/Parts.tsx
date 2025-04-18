@@ -21,7 +21,7 @@ const Parts = () => {
       try {
         const status = await checkAuthStatus();
         
-        if (!status.authenticated) { // Changed from isAuthenticated to authenticated
+        if (!status.authenticated) {
           toast({
             title: "Connexion requise",
             description: "Vous devez être connecté pour gérer vos pièces",
@@ -31,18 +31,18 @@ const Parts = () => {
         
         // Vérification directe des données dans Supabase
         const { data: sessionData } = await supabase.auth.getSession();
-        const userId = sessionData.session?.user.id;
+        const userId = sessionData.session?.user?.id;
         
         if (userId) {
+          console.log('👤 Utilisateur authentifié:', userId);
+          
+          // Vérification directe de la table parts_inventory
           const { data, error } = await supabase
             .from('parts_inventory')
-            .select('*')
-            .eq('owner_id', userId);
+            .select('count(*)');
             
-          console.log('🔍 Vérification directe des pièces dans Supabase:', {
-            userId,
-            piècesTrouvées: data?.length || 0,
-            données: data,
+          console.log('🔍 Vérification de la table parts_inventory:', {
+            nombreDePièces: data?.[0]?.count || 0,
             erreur: error
           });
         }
