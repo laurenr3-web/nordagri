@@ -98,7 +98,10 @@ export const UserMenu = () => {
             <Settings className="mr-2 h-4 w-4" />
             <span>Paramètres</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setShowLogoutDialog(true)}>
+          <DropdownMenuItem 
+            onClick={() => setShowLogoutDialog(true)}
+            className="text-red-600 focus:bg-red-50 focus:text-red-600"
+          >
             <LogOut className="mr-2 h-4 w-4" />
             <span>Se déconnecter</span>
           </DropdownMenuItem>
@@ -115,7 +118,7 @@ export const UserMenu = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={handleLogout}>
+            <AlertDialogAction onClick={handleLogout} variant="destructive">
               Se déconnecter
             </AlertDialogAction>
           </AlertDialogFooter>
