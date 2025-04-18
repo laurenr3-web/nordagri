@@ -36,7 +36,7 @@ export function useManufacturers() {
     isLoading: query.isLoading,
     isError: query.isError,
     error: query.error,
-    addManufacturer: (name: string) => addMutation.mutate(name),
+    addManufacturer: (name: string) => addMutation.mutateAsync(name),
     isAdding: addMutation.isPending
   };
 }

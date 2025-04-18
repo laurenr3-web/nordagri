@@ -38,7 +38,7 @@ export function useStorageLocations() {
     isError: query.isError,
     error: query.error,
     addLocation: (name: string, description?: string) => 
-      addMutation.mutate({ name, description }),
+      addMutation.mutateAsync({ name, description }),
     isAdding: addMutation.isPending
   };
 }

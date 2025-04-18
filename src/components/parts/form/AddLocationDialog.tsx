@@ -37,13 +37,11 @@ export default function AddLocationDialog({
 
     try {
       const result = await addLocation(locationName.trim(), locationDescription.trim() || undefined);
-      if (result && result.name) {
+      if (result) {
         onSelectLocation(result.name);
         setLocationName('');
         setLocationDescription('');
         onOpenChange(false);
-      } else {
-        console.error('Location added but no name property returned');
       }
     } catch (error) {
       console.error('Failed to add location:', error);
