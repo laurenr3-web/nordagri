@@ -34,7 +34,16 @@ const TypeField: React.FC<TypeFieldProps> = ({
         render={({ field }) => (
           <FormItem>
             <FormLabel>{label}</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select 
+              onValueChange={(value) => {
+                if (value === "__add_new__") {
+                  setIsAddTypeDialogOpen(true);
+                } else {
+                  field.onChange(value);
+                }
+              }} 
+              value={field.value}
+            >
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder={placeholder} />
