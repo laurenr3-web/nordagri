@@ -1,10 +1,9 @@
-
 import { Part } from '@/types/Part';
 import { assertIsString, assertIsNumber, assertIsArray, assertIsObject } from '@/utils/typeAssertions';
 
 // Définition locale du type LocalPart pour éviter les conflits d'importation
 export interface LocalPart {
-  id: string | number;
+  id: number; // Changé de string | number à number uniquement
   name: string;
   reference?: string;
   partNumber: string;
@@ -33,11 +32,19 @@ export const convertToLocalPart = (part: unknown): LocalPart => {
   // S'assurer que part est bien un objet
   const typedPart = assertIsObject(part);
   
-  // Pour l'ID, on doit spécifiquement vérifier si c'est un string ou un number
+  // Pour l'ID, on doit spécifiquement s'assurer que c'est un number
   const id = typedPart.id;
-  const safeId: string | number = typeof id === 'string' ? id : 
-                                 typeof id === 'number' ? id : 
-                                 0; // Valeur par défaut si ni string ni number
+  let safeId: number;
+  if (typeof id === 'string') {
+    safeId = parseInt(id, 10);
+    if (isNaN(safeId)) {
+      safeId = 0; // Fallback à 0 si parse échoue
+    }
+  } else if (typeof id === 'number') {
+    safeId = id;
+  } else {
+    safeId = 0; // Valeur par défaut si ni string ni number
+  }
   
   return {
     id: safeId,
@@ -76,7 +83,7 @@ export const convertToPart = (localPart: unknown): Part => {
   
   // Conversion explicite vers le type Part
   return {
-    id: assertIsNumber(id),
+    id: isNaN(id) ? 0 : id, // Assure que l'id est toujours un number valide
     name: assertIsString(typedPart.name ?? ''),
     partNumber: assertIsString(typedPart.partNumber ?? ''),
     category: assertIsString(typedPart.category ?? ''),

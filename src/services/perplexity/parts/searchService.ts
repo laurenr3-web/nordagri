@@ -45,8 +45,9 @@ export const partsSearchService = {
    * Transform search results to application Part format
    */
   transformSearchResults(results: PartSearchResult[]): Part[] {
-    return results.map((item: PartSearchResult) => ({
-      id: `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+    return results.map((item: PartSearchResult, index: number) => ({
+      // Générer un ID numérique au lieu d'une chaîne
+      id: Date.now() + index, // Utiliser un timestamp + index comme ID numérique unique
       name: item.name || "Sans nom",
       partNumber: item.reference || item.partNumber || "N/A",
       category: item.category || "Non catégorisé",

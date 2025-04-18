@@ -11,7 +11,7 @@ import { PerplexityPart, PerplexityPriceResult } from '@/types/PerplexityTypes';
 export function convertToAppPart(perplexityPart: PerplexityPart): Part {
   // Conversion du format Perplexity vers le format de l'application
   return {
-    id: perplexityPart.id,
+    id: typeof perplexityPart.id === 'string' ? parseInt(perplexityPart.id, 10) : perplexityPart.id,
     name: perplexityPart.name,
     partNumber: perplexityPart.partNumber || perplexityPart.reference,
     reference: perplexityPart.reference,

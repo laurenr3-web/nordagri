@@ -86,7 +86,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
     // Simulation de récupération des pièces compatibles avec cet équipement
     const mockParts: Part[] = [
       {
-        id: "P001",
+        id: 1, // Converti en number au lieu de string "P001"
         name: "Filtre à huile",
         partNumber: "FH-JD-8R-001",
         category: "Filtres",
@@ -99,7 +99,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
         image: "/placeholder.svg",
       },
       {
-        id: "P002",
+        id: 2, // Converti en number au lieu de string "P002"
         name: "Kit courroie distribution",
         partNumber: "KCD-JD-8R-002",
         category: "Transmission",
@@ -112,7 +112,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
         image: "/placeholder.svg",
       },
       {
-        id: "P003",
+        id: 3, // Converti en number au lieu de string "P003"
         name: "Filtre à carburant",
         partNumber: "FC-JD-8R-003",
         category: "Filtres",

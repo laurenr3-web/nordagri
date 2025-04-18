@@ -1,13 +1,11 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-export async function deletePart(partId: number | string): Promise<void> {
-  const numericPartId = typeof partId === 'string' ? parseInt(partId, 10) : partId;
-
+export async function deletePart(partId: number): Promise<void> {
   const { error } = await supabase
     .from('parts_inventory')
     .delete()
-    .eq('id', numericPartId);
+    .eq('id', partId);
 
   if (error) {
     console.error('Error deleting part:', error);
@@ -15,14 +13,11 @@ export async function deletePart(partId: number | string): Promise<void> {
   }
 }
 
-export async function deleteMultipleParts(partIds: (number | string)[]): Promise<void> {
-  // Convert string IDs to numbers if necessary
-  const numericPartIds = partIds.map(id => typeof id === 'string' ? parseInt(id, 10) : id);
-  
+export async function deleteMultipleParts(partIds: number[]): Promise<void> {
   const { error } = await supabase
     .from('parts_inventory')
     .delete()
-    .in('id', numericPartIds);
+    .in('id', partIds);
 
   if (error) {
     console.error('Error deleting multiple parts:', error);
