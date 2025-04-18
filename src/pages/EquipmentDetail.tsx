@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
@@ -39,7 +39,7 @@ const EquipmentDetail = () => {
                 <EquipmentDetailContent 
                   equipment={equipment}
                   onUpdate={async (updatedData) => {
-                    await handleEquipmentUpdate(updatedData);
+                    return await handleEquipmentUpdate(updatedData);
                   }}
                 />
               )}

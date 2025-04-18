@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -12,13 +12,14 @@ import NotesField from '../form/NotesField';
 import AddCategorySection from './form/AddCategorySection';
 import { equipmentFormSchema, type EquipmentFormValues, type EquipmentStatus } from '../form/equipmentFormTypes';
 import { Form } from '@/components/ui/form';
+import { Loader2 } from 'lucide-react';
 import { createEquipmentType } from '@/services/supabase/equipment/types';
 
 interface EditEquipmentDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   equipment: any;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: any) => Promise<any>; // Changed to Promise<any> to handle async
 }
 
 const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({ 
@@ -29,6 +30,7 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
 }) => {
   const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
   const [customCategories, setCustomCategories] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Format equipment data for the form, ensuring purchaseDate is properly formatted
   const defaultValues: EquipmentFormValues = {
@@ -43,6 +45,8 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
     purchaseDate: equipment.purchaseDate ? new Date(equipment.purchaseDate) : undefined,
     notes: equipment.notes || '',
     image: equipment.image,
+    unite_d_usure: equipment.unite_d_usure || 'heures',
+    valeur_actuelle: equipment.valeur_actuelle || 0,
   };
 
   const form = useForm<EquipmentFormValues>({
@@ -50,8 +54,12 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
     defaultValues,
   });
 
-  const handleFormSubmit = (data: EquipmentFormValues) => {
+  const handleFormSubmit = async (data: EquipmentFormValues) => {
+    if (isSubmitting) return;
+    
     try {
+      setIsSubmitting(true);
+      
       // Convert form data back to equipment object format
       const updatedEquipment = {
         ...equipment,
@@ -66,14 +74,22 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
         purchaseDate: data.purchaseDate,
         notes: data.notes,
         image: data.image,
+        unite_d_usure: data.unite_d_usure,
+        valeur_actuelle: data.valeur_actuelle,
       };
       
-      onSubmit(updatedEquipment);
-      onOpenChange(false);  // Close the dialog after submission
+      // Wait for the submission to complete
+      await onSubmit(updatedEquipment);
+      
+      // Only close the dialog and show success toast if submission succeeded
+      onOpenChange(false);
       toast.success('Equipment updated successfully');
     } catch (error) {
       console.error('Error updating equipment:', error);
       toast.error('Failed to update equipment');
+      // Don't close the dialog on error
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -96,7 +112,11 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      // Prevent closing the dialog while submitting
+      if (isSubmitting && !open) return;
+      onOpenChange(open);
+    }}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Equipment</DialogTitle>
@@ -126,10 +146,27 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
             <NotesField form={form} />
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => onOpenChange(false)}
+                disabled={isSubmitting}
+              >
                 Cancel
               </Button>
-              <Button type="submit">Update Equipment</Button>
+              <Button 
+                type="submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  'Update Equipment'
+                )}
+              </Button>
             </DialogFooter>
           </form>
         </Form>
