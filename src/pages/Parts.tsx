@@ -45,6 +45,12 @@ const Parts = () => {
             nombreDePièces: data && data[0] ? data[0].count : 0,
             erreur: error
           });
+          
+          // Vérification supplémentaire des politiques RLS
+          if (error && error.message.includes('infinite recursion')) {
+            console.error('⚠️ Erreur de politique RLS détectée. La table user_roles a probablement une politique récursive.');
+            console.log('💡 Solution: Utiliser des données locales en attendant de corriger la politique RLS dans Supabase.');
+          }
         }
       } catch (err) {
         console.error('Erreur lors de la vérification de l\'authentification:', err);

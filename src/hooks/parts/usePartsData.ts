@@ -15,7 +15,10 @@ export function usePartsData() {
         return partsData as Part[];
       } catch (error) {
         console.error('❌ Error fetching parts data:', error);
-        throw error;
+        
+        // In case of error, return the fallback data
+        console.warn('📦 Using fallback parts data');
+        return partsData as Part[];
       }
     },
     retry: 1,
