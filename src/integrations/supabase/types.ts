@@ -622,6 +622,7 @@ export type Database = {
           category: string | null
           compatible_with: string[] | null
           created_at: string | null
+          farm_id: string | null
           id: number
           image_url: string | null
           last_ordered: string | null
@@ -639,6 +640,7 @@ export type Database = {
           category?: string | null
           compatible_with?: string[] | null
           created_at?: string | null
+          farm_id?: string | null
           id?: number
           image_url?: string | null
           last_ordered?: string | null
@@ -656,6 +658,7 @@ export type Database = {
           category?: string | null
           compatible_with?: string[] | null
           created_at?: string | null
+          farm_id?: string | null
           id?: number
           image_url?: string | null
           last_ordered?: string | null
@@ -669,12 +672,21 @@ export type Database = {
           unit_price?: number | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "parts_inventory_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
           avatar_url: string | null
           created_at: string
+          farm_id: string | null
           first_name: string | null
           id: string
           last_name: string | null
@@ -683,6 +695,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          farm_id?: string | null
           first_name?: string | null
           id: string
           last_name?: string | null
@@ -691,12 +704,21 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          farm_id?: string | null
           first_name?: string | null
           id?: string
           last_name?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       regional_preferences: {
         Row: {
@@ -1003,6 +1025,10 @@ export type Database = {
       get_user_role: {
         Args: { p_user_id: string }
         Returns: string
+      }
+      is_equipment_in_user_farm: {
+        Args: { equipment_id_param: number }
+        Returns: boolean
       }
     }
     Enums: {
