@@ -2,7 +2,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Part } from '@/types/Part';
 import { getParts } from '@/services/supabase/parts';
-import { partsData } from '@/data/partsData'; // Import fallback data
 
 export function usePartsData() {
   return useQuery({
@@ -15,10 +14,7 @@ export function usePartsData() {
         return partsData as Part[];
       } catch (error) {
         console.error('❌ Error fetching parts data:', error);
-        
-        // In case of error, return the fallback data
-        console.warn('📦 Using fallback parts data');
-        return partsData as Part[];
+        throw error;
       }
     },
     retry: 1,

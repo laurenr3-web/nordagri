@@ -6,12 +6,9 @@ import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import PartsContainer from '@/components/parts/PartsContainer';
 import { useToast } from '@/hooks/use-toast';
 import { checkAuthStatus } from '@/utils/authUtils';
-import { PartsView } from '@/hooks/parts/usePartsFilter';
-import { supabase } from '@/integrations/supabase/client';
 
 const Parts = () => {
   const { toast } = useToast();
-  // Initialize without arguments
   const partsHookData = useParts();
   const [isLoading, setIsLoading] = useState(true);
   
@@ -27,30 +24,6 @@ const Parts = () => {
             description: "Vous devez être connecté pour gérer vos pièces",
             variant: "destructive",
           });
-        }
-        
-        // Vérification directe des données dans Supabase
-        const { data: sessionData } = await supabase.auth.getSession();
-        const userId = sessionData.session?.user?.id;
-        
-        if (userId) {
-          console.log('👤 Utilisateur authentifié:', userId);
-          
-          // Vérification directe de la table parts_inventory
-          const { data, error } = await supabase
-            .from('parts_inventory')
-            .select('count');
-            
-          console.log('🔍 Vérification de la table parts_inventory:', {
-            nombreDePièces: data && data[0] ? data[0].count : 0,
-            erreur: error
-          });
-          
-          // Vérification supplémentaire des politiques RLS
-          if (error && error.message.includes('infinite recursion')) {
-            console.error('⚠️ Erreur de politique RLS détectée. La table user_roles a probablement une politique récursive.');
-            console.log('💡 Solution: Utiliser des données locales en attendant de corriger la politique RLS dans Supabase.');
-          }
         }
       } catch (err) {
         console.error('Erreur lors de la vérification de l\'authentification:', err);
