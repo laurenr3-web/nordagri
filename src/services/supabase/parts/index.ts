@@ -3,7 +3,7 @@ import { Part } from '@/types/Part';
 import { getParts } from './getParts';
 import { addPart } from './addPartService';
 import { updatePart } from './updatePart';
-import { deletePart } from './deletePart';
+import { deletePart, deleteMultipleParts } from './deletePart';
 import { getPartsForEquipment } from './getPartsForEquipment';
 
 // Create a consolidated service object for backward compatibility
@@ -12,6 +12,7 @@ export const partsService = {
   addPart,
   updatePart,
   deletePart,
+  deleteMultipleParts,
   getPartsForEquipment
 };
 
@@ -21,6 +22,7 @@ export {
   addPart,
   updatePart,
   deletePart,
+  deleteMultipleParts,
   getPartsForEquipment
 };
 
