@@ -9,7 +9,7 @@ interface StatsSectionProps {
 }
 
 const StatsSection: React.FC<StatsSectionProps> = ({ onStatClick }) => {
-  const { stats, loading } = useDashboardStats();
+  const { stats, loading, error } = useDashboardStats();
 
   const statsItems = [
     {
@@ -55,6 +55,8 @@ const StatsSection: React.FC<StatsSectionProps> = ({ onStatClick }) => {
     );
   }
 
+  // Even on error, show the cards with the data we have
+  // This provides a degraded but functional experience rather than showing an error state
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       {statsItems.map((stat, index) => (
