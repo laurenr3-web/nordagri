@@ -75,13 +75,13 @@ export function SessionClosure({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] w-[95vw] sm:w-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] w-[90vw] sm:w-auto overflow-hidden">
         <DialogHeader>
           <DialogTitle className="text-xl sm:text-2xl">Clôture de session</DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[calc(60vh-4rem)] sm:max-h-[60vh] pr-4">
-          <div className="space-y-4 sm:space-y-6">
+        <ScrollArea className="max-h-[calc(60vh-4rem)] sm:max-h-[60vh] pr-3 sm:pr-4 overflow-x-hidden">
+          <div className="space-y-4 sm:space-y-6 px-1">
             <SummarySection entry={entry} estimatedCost={estimatedCost} />
             
             <QuickEditSection
@@ -113,7 +113,7 @@ export function SessionClosure({
           </div>
         </ScrollArea>
 
-        <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-between mt-4">
+        <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-between mt-3 sm:mt-4">
           <Button 
             type="button" 
             variant="outline" 

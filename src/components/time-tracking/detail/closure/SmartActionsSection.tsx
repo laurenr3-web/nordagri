@@ -21,10 +21,10 @@ export function SmartActionsSection({
 }: SmartActionsSectionProps) {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Actions</CardTitle>
+      <CardHeader className="px-4">
+        <CardTitle className="text-base sm:text-lg">Actions</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 px-4">
         <Button className="w-full" onClick={onCreateIntervention}>
           <Plus className="mr-2 h-4 w-4" />
           Créer une intervention liée
