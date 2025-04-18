@@ -1,28 +1,16 @@
-import React, { useState } from 'react';
+
+import React, { useState, useRef, useEffect } from 'react';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Loader2, Trash2 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
-
-interface Part {
-  id: number;
-  name: string;
-  partNumber: string;
-  category: string;
-  compatibility: string[];
-  manufacturer: string;
-  price: number;
-  stock: number;
-  location: string;
-  reorderPoint: number;
-  image: string;
-}
+import { Part } from '@/types/Part';
 
 interface PartsListProps {
   parts: Part[];
   openPartDetails: (part: Part) => void;
   openOrderDialog: (part: Part) => void;
-  onDeleteSelected?: (string | number)[]
+  onDeleteSelected?: (partIds: (string | number)[]) => Promise<void>;
   isDeleting?: boolean;
 }
 
@@ -34,6 +22,17 @@ const PartsList: React.FC<PartsListProps> = ({
   isDeleting = false
 }) => {
   const [selectedParts, setSelectedParts] = useState<(string | number)[]>([]);
+  const allCheckboxRef = useRef<HTMLButtonElement>(null);
+
+  // Handle indeterminate checkbox state
+  useEffect(() => {
+    if (allCheckboxRef.current) {
+      const isIndeterminate = selectedParts.length > 0 && selectedParts.length < parts.length;
+      // Set the indeterminate property directly on the DOM element
+      allCheckboxRef.current.dataset.indeterminate = isIndeterminate ? 'true' : 'false';
+      allCheckboxRef.current.setAttribute('aria-checked', isIndeterminate ? 'mixed' : (selectedParts.length === parts.length ? 'true' : 'false'));
+    }
+  }, [selectedParts, parts]);
 
   const handleSelectAll = (checked: boolean) => {
     setSelectedParts(checked ? parts.map(part => part.id) : []);
@@ -86,9 +85,9 @@ const PartsList: React.FC<PartsListProps> = ({
             <tr className="bg-secondary/50">
               <th className="text-left p-3">
                 <Checkbox
+                  ref={allCheckboxRef}
                   checked={allSelected}
-                  indeterminate={someSelected}
-                  onCheckedChange={(checked: boolean) => handleSelectAll(checked)}
+                  onCheckedChange={(checked) => handleSelectAll(!!checked)}
                   aria-label="Sélectionner toutes les pièces"
                 />
               </th>
@@ -108,8 +107,8 @@ const PartsList: React.FC<PartsListProps> = ({
                 <td className="p-3">
                   <Checkbox
                     checked={selectedParts.includes(part.id)}
-                    onCheckedChange={(checked: boolean) => 
-                      handleSelectPart(part.id, checked)
+                    onCheckedChange={(checked) => 
+                      handleSelectPart(part.id, !!checked)
                     }
                     aria-label={`Sélectionner ${part.name}`}
                   />

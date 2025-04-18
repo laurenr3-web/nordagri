@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Part } from '@/types/Part';
 import PartsHeader from './PartsHeader';
@@ -10,6 +11,7 @@ import FilterSortDialogs from './dialogs/FilterSortDialogs';
 import PartDetailsDialog from './dialogs/PartDetailsDialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { deleteMultipleParts } from '@/services/supabase/parts';
 
 interface PartsContainerProps {
   parts: Part[];
@@ -77,13 +79,18 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
     try {
       setIsDeletingMultiple(true);
       
-      // Delete all selected parts
-      await Promise.all(partIds.map(id => handleDeletePart(id)));
+      // Delete all selected parts using the bulk delete function
+      await deleteMultipleParts(partIds);
 
       toast({
         title: "Suppression réussie",
         description: `${partIds.length} pièce(s) ont été supprimées avec succès`,
       });
+      
+      // Refresh the data without full page reload
+      if (refetch) {
+        refetch();
+      }
     } catch (error) {
       console.error('Error deleting multiple parts:', error);
       toast({
