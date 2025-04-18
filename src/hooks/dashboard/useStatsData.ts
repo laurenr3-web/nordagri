@@ -23,28 +23,28 @@ export const useStatsData = (user: any) => {
   const setMockData = () => {
     setStatsData([
       {
-        title: 'Équipements actifs',
+        title: 'Active Equipment',
         value: '24',
         icon: Tractor,
         change: 4,
         description: ''
       }, {
-        title: 'Tâches de maintenance',
+        title: 'Maintenance Tasks',
         value: '12',
         icon: Wrench,
-        description: '3 haute priorité',
+        description: '3 high priority',
         change: -2
       }, {
-        title: 'Inventaire de pièces',
+        title: 'Parts Inventory',
         value: '1,204',
         icon: Package,
-        description: '8 articles en stock faible',
+        description: '8 items low stock',
         change: 12
       }, {
-        title: 'Interventions sur le terrain',
+        title: 'Field Interventions',
         value: '8',
         icon: MapPin,
-        description: 'Interventions actives',
+        description: 'This week',
         change: 15
       }
     ]);
@@ -118,31 +118,31 @@ export const useStatsData = (user: any) => {
 
       const newStatsData: StatsCardData[] = [
         {
-          title: 'Équipements actifs',
+          title: 'Active Equipment',
           value: equipmentCount,
           icon: Tractor,
           change: 0,
           description: ''
         },
         {
-          title: 'Tâches de maintenance',
+          title: 'Maintenance Tasks',
           value: tasksCount,
           icon: Wrench,
-          description: highPriorityTasks > 0 ? `${highPriorityTasks} haute priorité` : '',
+          description: highPriorityTasks > 0 ? `${highPriorityTasks} high priority` : '',
           change: 0
         },
         {
-          title: 'Inventaire de pièces',
+          title: 'Parts Inventory',
           value: totalPartsCount, // FIXED: Now showing count of unique parts instead of sum of quantities
           icon: Package,
-          description: lowStockItems > 0 ? `${lowStockItems} articles en stock faible` : '',
+          description: lowStockItems > 0 ? `${lowStockItems} items low stock` : '',
           change: 0
         },
         {
-          title: 'Interventions sur le terrain',
+          title: 'Field Interventions',
           value: interventionsCount,
           icon: MapPin,
-          description: 'Interventions actives',
+          description: 'This week',
           change: 0
         }
       ];

@@ -33,19 +33,6 @@ export function EquipmentCard({ name, type, image, status, usage, nextService, c
     }
   };
 
-  const getStatusText = (status: 'operational' | 'maintenance' | 'repair') => {
-    switch (status) {
-      case 'operational':
-        return 'Opérationnel';
-      case 'maintenance':
-        return 'Entretien';
-      case 'repair':
-        return 'Réparation nécessaire';
-      default:
-        return status;
-    }
-  };
-
   return (
     <div 
       className={cn(
@@ -71,7 +58,9 @@ export function EquipmentCard({ name, type, image, status, usage, nextService, c
             "px-2.5 py-1 rounded-full text-xs font-medium",
             getStatusClass(status)
           )}>
-            {getStatusText(status)}
+            {status === 'operational' ? 'Operational' : 
+             status === 'maintenance' ? 'Maintenance' : 
+             'Repair Needed'}
           </div>
         </div>
       </div>
@@ -83,8 +72,8 @@ export function EquipmentCard({ name, type, image, status, usage, nextService, c
         <div className="space-y-4">
           <div>
             <div className="flex justify-between text-sm mb-1.5">
-              <span>Utilisation</span>
-              <span className="font-medium">{usage.hours} / {usage.target} heures</span>
+              <span>Usage</span>
+              <span className="font-medium">{usage.hours} / {usage.target} hrs</span>
             </div>
             <Progress 
               value={(usage.hours / usage.target) * 100} 
@@ -98,7 +87,7 @@ export function EquipmentCard({ name, type, image, status, usage, nextService, c
           </div>
           
           <div className="text-sm">
-            <p className="text-muted-foreground mb-1">Prochaine maintenance :</p>
+            <p className="text-muted-foreground mb-1">Next Service:</p>
             <p className="font-medium">{nextService.type}</p>
             <p className={cn(
               nextService.due.includes('Overdue') ? "text-alert-red font-medium" : 

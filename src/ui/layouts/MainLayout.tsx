@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
-import { SidebarContent } from '@/components/ui/sidebar/sidebar-structure';
+import { Sidebar, SidebarProvider, SidebarContent } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
 
 interface MainLayoutProps {
