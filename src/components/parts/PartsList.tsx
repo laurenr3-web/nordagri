@@ -9,7 +9,7 @@ interface PartsListProps {
   parts: Part[];
   openPartDetails: (part: Part) => void;
   openOrderDialog: (part: Part) => void;
-  onDeleteSelected?: (partIds: (string | number)[]) => Promise<void>;
+  onDeleteSelected?: (partIds: number[]) => Promise<void>;
   isDeleting?: boolean;
 }
 
@@ -20,7 +20,7 @@ const PartsList: React.FC<PartsListProps> = ({
   onDeleteSelected,
   isDeleting = false
 }) => {
-  const [selectedParts, setSelectedParts] = useState<(string | number)[]>([]);
+  const [selectedParts, setSelectedParts] = useState<number[]>([]);
   const allCheckboxRef = useRef<HTMLButtonElement>(null);
 
   // Handle indeterminate checkbox state
@@ -34,10 +34,10 @@ const PartsList: React.FC<PartsListProps> = ({
   }, [selectedParts, parts]);
 
   const handleSelectAll = (checked: boolean) => {
-    setSelectedParts(checked ? parts.map(part => part.id) : []);
+    setSelectedParts(checked ? parts.map(part => part.id as number) : []);
   };
 
-  const handleSelectPart = (partId: string | number, checked: boolean) => {
+  const handleSelectPart = (partId: number, checked: boolean) => {
     setSelectedParts(prev => 
       checked 
         ? [...prev, partId]
@@ -106,9 +106,9 @@ const PartsList: React.FC<PartsListProps> = ({
               <tr key={part.id} className="hover:bg-secondary/30">
                 <td className="p-3">
                   <Checkbox
-                    checked={selectedParts.includes(part.id)}
+                    checked={selectedParts.includes(part.id as number)}
                     onCheckedChange={(checked) => 
-                      handleSelectPart(part.id, !!checked)
+                      handleSelectPart(part.id as number, !!checked)
                     }
                     aria-label={`Sélectionner ${part.name}`}
                   />

@@ -1,6 +1,6 @@
 
 export interface Part {
-  id: string | number;
+  id: number;
   name: string;
   partNumber: string;
   category: string;
