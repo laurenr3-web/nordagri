@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -78,6 +77,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
               form={form} 
               customCategories={customCategories} 
               onAddCategoryClick={() => setIsAddCategoryDialogOpen(true)} 
+              onAddCustomType={addNewCategory}
             />
           
             <WearUnitField form={form} />

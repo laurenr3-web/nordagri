@@ -69,6 +69,7 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
       };
       
       onSubmit(updatedEquipment);
+      onOpenChange(false);  // Close the dialog after submission
       toast.success('Equipment updated successfully');
     } catch (error) {
       console.error('Error updating equipment:', error);
@@ -79,12 +80,18 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
   const addNewCategory = async (category: string) => {
     try {
       const newType = await createEquipmentType(category);
-      setCustomCategories([...customCategories, newType.name]);
-      form.setValue('type', newType.name);
-      toast.success(`Type "${newType.name}" added successfully`);
+      if (newType && newType.name) {
+        setCustomCategories([...customCategories, newType.name]);
+        form.setValue('type', newType.name);
+        toast.success(`Type "${newType.name}" added successfully`);
+        return newType;
+      } else {
+        throw new Error("Failed to create new type");
+      }
     } catch (error) {
       console.error('Error adding new category:', error);
       toast.error('Failed to add new equipment type');
+      throw error;
     }
   };
 

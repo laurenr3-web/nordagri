@@ -28,6 +28,7 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
       <EquipmentTypeField 
         form={form} 
         language={language}
+        onAddCustomType={onAddCustomType}
       />
     </div>
   );
