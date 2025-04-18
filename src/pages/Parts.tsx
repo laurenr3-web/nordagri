@@ -39,10 +39,10 @@ const Parts = () => {
           // Vérification directe de la table parts_inventory
           const { data, error } = await supabase
             .from('parts_inventory')
-            .select('count(*)');
+            .select('count');
             
           console.log('🔍 Vérification de la table parts_inventory:', {
-            nombreDePièces: data?.[0]?.count || 0,
+            nombreDePièces: data && data[0] ? data[0].count : 0,
             erreur: error
           });
         }
