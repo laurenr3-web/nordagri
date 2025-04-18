@@ -35,9 +35,13 @@ export default function AddManufacturerDialog({
 
     try {
       const result = await addManufacturer(manufacturerName.trim());
-      onSelectManufacturer(result.name);
-      setManufacturerName('');
-      onOpenChange(false);
+      if (result && result.name) {
+        onSelectManufacturer(result.name);
+        setManufacturerName('');
+        onOpenChange(false);
+      } else {
+        console.error('Manufacturer added but no name property returned');
+      }
     } catch (error) {
       console.error('Failed to add manufacturer:', error);
     }
