@@ -12,6 +12,7 @@ import NotesField from '../form/NotesField';
 import AddCategorySection from './form/AddCategorySection';
 import { equipmentFormSchema, type EquipmentFormValues, type EquipmentStatus } from '../form/equipmentFormTypes';
 import { Form } from '@/components/ui/form';
+import { createEquipmentType } from '@/services/supabase/equipment/types';
 
 interface EditEquipmentDialogProps {
   isOpen: boolean;
@@ -29,8 +30,6 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
   const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
   const [customCategories, setCustomCategories] = useState<string[]>([]);
 
-  console.log('Editing equipment:', equipment);
-
   // Format equipment data for the form, ensuring purchaseDate is properly formatted
   const defaultValues: EquipmentFormValues = {
     name: equipment.name,
@@ -46,8 +45,6 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
     image: equipment.image,
   };
 
-  console.log('Form default values:', defaultValues);
-
   const form = useForm<EquipmentFormValues>({
     resolver: zodResolver(equipmentFormSchema),
     defaultValues,
@@ -55,8 +52,6 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
 
   const handleFormSubmit = (data: EquipmentFormValues) => {
     try {
-      console.log('Form submitted with values:', data);
-      
       // Convert form data back to equipment object format
       const updatedEquipment = {
         ...equipment,
@@ -73,7 +68,6 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
         image: data.image,
       };
       
-      console.log('Updated equipment to be submitted:', updatedEquipment);
       onSubmit(updatedEquipment);
       toast.success('Equipment updated successfully');
     } catch (error) {
@@ -82,9 +76,16 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
     }
   };
 
-  const addNewCategory = (category: string) => {
-    setCustomCategories([...customCategories, category]);
-    form.setValue('type', category);
+  const addNewCategory = async (category: string) => {
+    try {
+      const newType = await createEquipmentType(category);
+      setCustomCategories([...customCategories, newType.name]);
+      form.setValue('type', newType.name);
+      toast.success(`Type "${newType.name}" added successfully`);
+    } catch (error) {
+      console.error('Error adding new category:', error);
+      toast.error('Failed to add new equipment type');
+    }
   };
 
   return (
@@ -105,6 +106,7 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
                 customCategories={customCategories}
                 onAddCategoryClick={() => setIsAddCategoryDialogOpen(true)}
                 language="en"
+                onAddCustomType={addNewCategory}
               />
               
               <AdditionalInfoFields 
