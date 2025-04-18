@@ -22,9 +22,15 @@ export function useEquipmentTypes() {
     }
   });
 
+  // Ensure we're returning the result from the mutation
+  const createType = async (name: string): Promise<EquipmentType> => {
+    const result = await createMutation.mutateAsync(name);
+    return result;
+  };
+
   return {
     types,
     isLoading,
-    createType: createMutation.mutate
+    createType
   };
 }

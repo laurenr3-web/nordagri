@@ -9,17 +9,26 @@ import { EquipmentTypeField } from './fields/EquipmentTypeField';
 interface BasicInfoFieldsProps {
   form: UseFormReturn<EquipmentFormValues>;
   language?: 'fr' | 'en';
+  customCategories?: string[];
+  onAddCategoryClick?: () => void;
+  onAddCustomType?: (type: string) => Promise<any>;
 }
 
 const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({ 
   form, 
-  language = 'fr'
+  language = 'fr',
+  customCategories = [],
+  onAddCategoryClick,
+  onAddCustomType
 }) => {
   return (
     <div className="space-y-4">
       <NameField form={form} />
       <ModelField form={form} />
-      <EquipmentTypeField form={form} language={language} />
+      <EquipmentTypeField 
+        form={form} 
+        language={language}
+      />
     </div>
   );
 };

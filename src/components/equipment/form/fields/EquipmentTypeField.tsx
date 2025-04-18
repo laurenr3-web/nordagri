@@ -54,11 +54,16 @@ export const EquipmentTypeField = ({
     if (!newTypeName.trim()) return;
 
     try {
-      const newType = await createType(newTypeName.trim());
-      form.setValue('type', newType.name);
-      setShowNewTypeInput(false);
-      setNewTypeName('');
-      toast.success(`Type "${newType.name}" ajouté avec succès`);
+      const result = await createType(newTypeName.trim());
+      if (result && result.name) {
+        form.setValue('type', result.name);
+        setShowNewTypeInput(false);
+        setNewTypeName('');
+        toast.success(`Type "${result.name}" ajouté avec succès`);
+      } else {
+        console.error('Error: createType returned invalid result', result);
+        toast.error('Erreur lors de l\'ajout du type');
+      }
     } catch (error) {
       console.error('Error adding new type:', error);
       toast.error('Erreur lors de l\'ajout du type');
