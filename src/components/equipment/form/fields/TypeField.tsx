@@ -1,9 +1,12 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EquipmentFormValues } from '../equipmentFormTypes';
+import { useEquipmentTypes } from '@/hooks/equipment/useEquipmentTypes';
+import { AddEquipmentTypeDialog } from '../AddEquipmentTypeDialog';
+import { Loader2 } from 'lucide-react';
 
 interface TypeFieldProps {
   form: UseFormReturn<EquipmentFormValues>;
@@ -14,33 +17,60 @@ interface TypeFieldProps {
 const TypeField: React.FC<TypeFieldProps> = ({ 
   form,
   label = "Type",
-  placeholder = "Select type"
+  placeholder = "Sélectionner un type"
 }) => {
+  const [isAddTypeDialogOpen, setIsAddTypeDialogOpen] = useState(false);
+  const { types, isLoading } = useEquipmentTypes();
+
+  const handleSuccess = (name: string) => {
+    form.setValue('type', name);
+  };
+
   return (
-    <FormField
-      control={form.control}
-      name="type"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>{label}</FormLabel>
-          <Select onValueChange={field.onChange} defaultValue={field.value}>
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder={placeholder} />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              <SelectItem value="Tractor">Tractor</SelectItem>
-              <SelectItem value="Harvester">Harvester</SelectItem>
-              <SelectItem value="Truck">Truck</SelectItem>
-              <SelectItem value="Implement">Implement</SelectItem>
-              <SelectItem value="Other">Other</SelectItem>
-            </SelectContent>
-          </Select>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
+    <>
+      <FormField
+        control={form.control}
+        name="type"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>{label}</FormLabel>
+            <Select onValueChange={field.onChange} value={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder={placeholder} />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {isLoading ? (
+                  <div className="flex items-center justify-center p-2">
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    <span>Chargement...</span>
+                  </div>
+                ) : (
+                  <>
+                    {types.map((type) => (
+                      <SelectItem key={type.id} value={type.name}>
+                        {type.name}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="__add_new__" className="text-primary font-medium">
+                      ➕ Ajouter un type...
+                    </SelectItem>
+                  </>
+                )}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <AddEquipmentTypeDialog 
+        open={isAddTypeDialogOpen} 
+        onOpenChange={setIsAddTypeDialogOpen}
+        onSuccess={handleSuccess}
+      />
+    </>
   );
 };
 

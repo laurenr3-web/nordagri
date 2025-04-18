@@ -1,53 +1,29 @@
 
-export interface Equipment {
-  id: number;
+import { supabase } from '@/integrations/supabase/client';
+
+export interface EquipmentType {
+  id: string;
   name: string;
-  model?: string;
-  manufacturer?: string;
-  year?: number;
-  serialNumber?: string;
-  purchaseDate?: Date | string;
-  location?: string;
-  status?: 'operational' | 'maintenance' | 'repair' | 'inactive';
-  type?: string;
-  category?: string;
-  image?: string;
-  notes?: string;
-  owner_id?: string;
+  farm_id: string | null;
 }
 
-export interface EquipmentFilter {
-  search?: string;
-  status?: string[];
-  type?: string[];
-  category?: string[];
-  manufacturer?: string[];
-  location?: string[];
-  yearMin?: number;
-  yearMax?: number;
+export async function getEquipmentTypes(): Promise<EquipmentType[]> {
+  const { data, error } = await supabase
+    .from('equipment_types')
+    .select('*')
+    .order('name');
+
+  if (error) throw error;
+  return data || [];
 }
 
-export interface EquipmentStats {
-  total: number;
-  operational: number;
-  maintenance: number;
-  repair: number;
-  inactive: number;
-  byCategory: Record<string, number>;
-  byType: Record<string, number>;
-}
+export async function createEquipmentType(name: string): Promise<EquipmentType> {
+  const { data, error } = await supabase
+    .from('equipment_types')
+    .insert([{ name }])
+    .select()
+    .single();
 
-export interface FilterOptions {
-  status: string[];
-  type: string[];
-  category: string[];
-  manufacturer: string[];
-  location: string[];
-  yearRange: { min: number; max: number };
-}
-
-export interface Category {
-  id: number;
-  name: string;
-  description?: string;
+  if (error) throw error;
+  return data;
 }
