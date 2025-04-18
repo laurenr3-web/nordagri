@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -117,7 +118,10 @@ export const UserMenu = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={handleLogout} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction 
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleLogout}
+            >
               Se déconnecter
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -126,3 +130,4 @@ export const UserMenu = () => {
     </>
   );
 };
+
