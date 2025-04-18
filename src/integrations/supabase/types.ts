@@ -616,6 +616,30 @@ export type Database = {
         }
         Relationships: []
       }
+      manufacturers: {
+        Row: {
+          created_at: string
+          farm_id: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          farm_id: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          farm_id?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notification_settings: {
         Row: {
           created_at: string
@@ -788,6 +812,33 @@ export type Database = {
           units_system?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      storage_locations: {
+        Row: {
+          created_at: string
+          description: string | null
+          farm_id: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          farm_id: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          farm_id?: string
+          id?: string
+          name?: string
+          updated_at?: string
         }
         Relationships: []
       }

@@ -2,35 +2,19 @@
 import { z } from 'zod';
 
 export const partFormSchema = z.object({
-  name: z.string().min(2, {
-    message: "Le nom doit contenir au moins 2 caractères",
-  }),
-  partNumber: z.string().min(1, {
-    message: "Le numéro de pièce est requis",
-  }),
-  category: z.string().min(1, {
-    message: "La catégorie est requise",
-  }),
-  manufacturer: z.string().min(1, {
-    message: "Le fabricant est requis",
-  }),
-  price: z.string().refine((val) => !isNaN(parseFloat(val)), {
-    message: "Le prix doit être un nombre valide",
-  }),
-  stock: z.string().refine((val) => !isNaN(parseInt(val)), {
-    message: "Le stock doit être un nombre entier valide",
-  }),
+  name: z.string().min(1, "Le nom est requis"),
+  partNumber: z.string().min(1, "La référence est requise"),
+  category: z.string().min(1, "La catégorie est requise"),
+  manufacturer: z.string().optional(),
+  price: z.string().optional(),
+  stock: z.string().optional(),
+  reorderPoint: z.string().optional(),
   location: z.string().optional(),
-  reorderPoint: z.string().refine((val) => !isNaN(parseInt(val)), {
-    message: "Le point de réapprovisionnement doit être un nombre valide",
-  }),
   compatibility: z.string().optional(),
-  image: z.string().url({
-    message: "Veuillez fournir une URL valide pour l'image",
-  }).optional().or(z.literal('')),
+  image: z.string().optional()
 });
 
-export type PartFormValues = z.infer<typeof partFormSchema>;
+export interface PartFormValues extends z.infer<typeof partFormSchema> {}
 
 export interface AddPartFormProps {
   onSuccess?: (data: PartFormValues) => void;

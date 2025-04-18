@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { UseFormReturn } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { PartFormValues } from '../partFormTypes';
+import { useManufacturers } from '@/hooks/parts/useManufacturers';
+import AddManufacturerDialog from '../AddManufacturerDialog';
 
 interface BasicInfoFieldsProps {
   form: UseFormReturn<PartFormValues>;
@@ -19,6 +21,13 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
   customCategories = [],
   onAddCategoryClick
 }) => {
+  const [isAddManufacturerDialogOpen, setIsAddManufacturerDialogOpen] = useState(false);
+  const { manufacturers, isLoading: isLoadingManufacturers } = useManufacturers();
+
+  const handleSelectManufacturer = (manufacturer: string) => {
+    form.setValue('manufacturer', manufacturer);
+  };
+
   return (
     <>
       <FormField
@@ -99,25 +108,59 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
         render={({ field }) => (
           <FormItem>
             <FormLabel>Fabricant</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un fabricant" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="John Deere">John Deere</SelectItem>
-                <SelectItem value="Case IH">Case IH</SelectItem>
-                <SelectItem value="New Holland">New Holland</SelectItem>
-                <SelectItem value="Kubota">Kubota</SelectItem>
-                <SelectItem value="Fendt">Fendt</SelectItem>
-                <SelectItem value="Massey Ferguson">Massey Ferguson</SelectItem>
-                <SelectItem value="Universel">Universel</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2">
+              <Select onValueChange={field.onChange} value={field.value || ""}>
+                <FormControl>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner un fabricant" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {/* Fabricants prédéfinis */}
+                  <SelectItem value="John Deere">John Deere</SelectItem>
+                  <SelectItem value="Case IH">Case IH</SelectItem>
+                  <SelectItem value="New Holland">New Holland</SelectItem>
+                  <SelectItem value="Kubota">Kubota</SelectItem>
+                  <SelectItem value="Fendt">Fendt</SelectItem>
+                  <SelectItem value="Massey Ferguson">Massey Ferguson</SelectItem>
+                  <SelectItem value="Universel">Universel</SelectItem>
+                  
+                  {/* Fabricants dynamiques de la base de données */}
+                  {manufacturers.map((manufacturer) => (
+                    <SelectItem key={manufacturer.id} value={manufacturer.name}>
+                      {manufacturer.name}
+                    </SelectItem>
+                  ))}
+                  
+                  {/* Option pour ajouter un nouveau fabricant */}
+                  <SelectItem 
+                    value="__add_new__" 
+                    className="text-primary italic flex items-center"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Ajouter un fabricant...
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="icon"
+                onClick={() => setIsAddManufacturerDialogOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
             <FormMessage />
           </FormItem>
         )}
+      />
+
+      {/* Dialog pour ajouter un nouveau fabricant */}
+      <AddManufacturerDialog
+        isOpen={isAddManufacturerDialogOpen}
+        onOpenChange={setIsAddManufacturerDialogOpen}
+        onSelectManufacturer={handleSelectManufacturer}
       />
     </>
   );

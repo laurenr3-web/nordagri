@@ -1,12 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { toast } from 'sonner';
 import { PartFormValues, AddPartFormProps } from './form/partFormTypes';
 import BasicInfoFields from './form/fields/BasicInfoFields';
-import InventoryInfoFields from './form/fields/InventoryInfoFields';
+import InventoryFields from './form/fields/InventoryFields';
 import CompatibilityField from './form/fields/CompatibilityField';
 import ImageField from './form/fields/ImageField';
 import AddCategoryDialog from './form/AddCategoryDialog';
@@ -18,6 +18,8 @@ export function AddPartForm({ onSuccess, onCancel }: AddPartFormProps) {
   const [newCategory, setNewCategory] = useState('');
   const [customCategories, setCustomCategories] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAddManufacturerDialogOpen, setIsAddManufacturerDialogOpen] = useState(false);
+  const [isAddLocationDialogOpen, setIsAddLocationDialogOpen] = useState(false);
   const createPartMutation = useCreatePart();
   
   const form = useForm<PartFormValues>({
@@ -34,6 +36,20 @@ export function AddPartForm({ onSuccess, onCancel }: AddPartFormProps) {
       image: ''
     }
   });
+
+  // Surveiller les changements de valeur dans le champ fabricant
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'manufacturer' && value.manufacturer === '__add_new__') {
+        form.setValue('manufacturer', ''); // Reset to empty
+        setIsAddManufacturerDialogOpen(true);
+      } else if (name === 'location' && value.location === '__add_new__') {
+        form.setValue('location', ''); // Reset to empty
+        setIsAddLocationDialogOpen(true);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   const addNewCategory = () => {
     if (newCategory.trim() !== '') {
@@ -101,7 +117,7 @@ export function AddPartForm({ onSuccess, onCancel }: AddPartFormProps) {
               customCategories={customCategories}
               onAddCategoryClick={() => setIsAddCategoryDialogOpen(true)}
             />
-            <InventoryInfoFields form={form} />
+            <InventoryFields form={form} />
             <ImageField form={form} />
           </div>
 
