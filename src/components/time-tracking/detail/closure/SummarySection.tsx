@@ -21,28 +21,28 @@ export function SummarySection({ entry, estimatedCost }: SummarySectionProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Résumé de la session</CardTitle>
+        <CardTitle className="text-base sm:text-lg">Résumé de la session</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
             <span>Durée : {formatDuration(duration)}</span>
           </div>
           <div className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <DollarSign className="h-4 w-4 text-muted-foreground shrink-0" />
             <span>Coût : ${estimatedCost}</span>
           </div>
         </div>
 
         <div className="flex items-center gap-4">
-          <Avatar className="h-8 w-8">
+          <Avatar className="h-8 w-8 shrink-0">
             <AvatarImage src={displayName ? `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}` : ''} />
             <AvatarFallback>{displayName?.[0] || 'U'}</AvatarFallback>
           </Avatar>
-          <div className="flex-1">
-            <p className="text-sm font-medium">{displayName}</p>
-            <p className="text-sm text-muted-foreground">{entry.equipment_name || 'Équipement non spécifié'}</p>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium truncate">{displayName}</p>
+            <p className="text-sm text-muted-foreground truncate">{entry.equipment_name || 'Équipement non spécifié'}</p>
           </div>
         </div>
       </CardContent>

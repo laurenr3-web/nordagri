@@ -75,13 +75,13 @@ export function SessionClosure({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh]">
+      <DialogContent className="max-w-2xl max-h-[90vh] w-[95vw] sm:w-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Clôture de session</DialogTitle>
+          <DialogTitle className="text-xl sm:text-2xl">Clôture de session</DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[60vh] pr-4">
-          <div className="space-y-6">
+        <ScrollArea className="max-h-[calc(60vh-4rem)] sm:max-h-[60vh] pr-4">
+          <div className="space-y-4 sm:space-y-6">
             <SummarySection entry={entry} estimatedCost={estimatedCost} />
             
             <QuickEditSection
@@ -113,19 +113,27 @@ export function SessionClosure({
           </div>
         </ScrollArea>
 
-        <DialogFooter className="mt-6 flex justify-between flex-col sm:flex-row gap-2">
-          <Button variant="outline" onClick={onClose}>Annuler</Button>
-          <div className="flex gap-2">
+        <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-between mt-4">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onClose}
+            className="w-full sm:w-auto"
+            aria-label="Annuler les modifications"
+          >
+            Annuler
+          </Button>
+          <div className="flex flex-col sm:flex-row gap-2">
             <Button 
               variant="secondary" 
               onClick={handleSubmitAndStartNew}
-              className="flex-1"
+              className="w-full sm:w-auto whitespace-normal sm:whitespace-nowrap text-sm"
             >
               Terminer et démarrer nouvelle tâche
             </Button>
             <Button 
               onClick={handleSubmit}
-              className="flex-1"
+              className="w-full sm:w-auto"
             >
               Terminer la session
             </Button>
