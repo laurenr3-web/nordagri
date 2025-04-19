@@ -1,8 +1,6 @@
 
 import React from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useEquipmentTypes } from '@/hooks/equipment/useEquipmentTypes';
-import { Skeleton } from '@/components/ui/skeleton';
 
 interface CategoryTabsProps {
   selectedCategory: string;
@@ -13,19 +11,6 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
   selectedCategory,
   setSelectedCategory
 }) => {
-  const { types, isLoading } = useEquipmentTypes();
-
-  if (isLoading) {
-    return (
-      <div className="mb-6">
-        <Skeleton className="h-10 w-full" />
-      </div>
-    );
-  }
-
-  // Check if there are any equipment without a type
-  const hasOtherCategory = types.length > 0;
-
   return (
     <div className="mb-6">
       <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
@@ -33,16 +18,24 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
           <TabsTrigger value="all">
             Tous
           </TabsTrigger>
-          {types.map((type) => (
-            <TabsTrigger key={type.id} value={type.name}>
-              {type.name}
-            </TabsTrigger>
-          ))}
-          {hasOtherCategory && (
-            <TabsTrigger value="other">
-              Autres
-            </TabsTrigger>
-          )}
+          <TabsTrigger value="Tractor">
+            Tracteurs
+          </TabsTrigger>
+          <TabsTrigger value="harvester">
+            Moissonneuses
+          </TabsTrigger>
+          <TabsTrigger value="seeder">
+            Semoirs
+          </TabsTrigger>
+          <TabsTrigger value="sprayer">
+            Pulvérisateurs
+          </TabsTrigger>
+          <TabsTrigger value="irrigation">
+            Irrigation
+          </TabsTrigger>
+          <TabsTrigger value="other">
+            Outils
+          </TabsTrigger>
         </TabsList>
       </Tabs>
     </div>

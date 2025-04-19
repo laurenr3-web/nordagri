@@ -1,48 +1,36 @@
 
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { createEquipmentType } from '@/services/supabase/equipment/types';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getEquipmentTypes, createEquipmentType, type EquipmentType } from '@/services/supabase/equipment/types';
 import { toast } from 'sonner';
 
-export type EquipmentType = {
-  id: string;
-  name: string;
-  farm_id: string | null;
-  created_at: string;
-  updated_at: string;
-};
-
 export function useEquipmentTypes() {
-  const query = useQuery({
-    queryKey: ['equipment-types'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('equipment_types')
-        .select('*')
-        .order('name');
+  const queryClient = useQueryClient();
 
-      if (error) throw error;
-      return data;
+  const { data: types = [], isLoading } = useQuery({
+    queryKey: ['equipment-types'],
+    queryFn: getEquipmentTypes
+  });
+
+  const createMutation = useMutation({
+    mutationFn: createEquipmentType,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['equipment-types'] });
+    },
+    onError: (error: Error) => {
+      console.error('Error creating equipment type:', error);
+      toast.error('Erreur lors de la création du type d\'équipement');
     }
   });
 
-  // Create new equipment type function wrapper
-  const createType = async (name: string) => {
-    try {
-      const result = await createEquipmentType(name);
-      // Invalidate query to refresh data
-      query.refetch();
-      return result;
-    } catch (error) {
-      console.error('Error creating equipment type:', error);
-      toast.error("Erreur lors de la création du type d'équipement");
-      throw error;
-    }
+  // Ensure we're returning the result from the mutation
+  const createType = async (name: string): Promise<EquipmentType> => {
+    const result = await createMutation.mutateAsync(name);
+    return result;
   };
 
   return {
-    ...query,
-    types: query.data || [],
+    types,
+    isLoading,
     createType
   };
 }
