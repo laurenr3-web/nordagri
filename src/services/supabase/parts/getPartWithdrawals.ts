@@ -18,7 +18,7 @@ export const getPartWithdrawals = async (partId: string | number) => {
         equipment (
           name
         ),
-        profiles!part_withdrawals_withdrawn_by_fkey (
+        profiles:withdrawn_by (
           first_name,
           last_name
         )
@@ -42,8 +42,8 @@ export const getPartWithdrawals = async (partId: string | number) => {
       withdrawnAt: item.withdrawn_at,
       withdrawnBy: {
         id: item.withdrawn_by,
-        name: item.profiles?.first_name && item.profiles?.last_name 
-          ? `${item.profiles.first_name} ${item.profiles.last_name}`
+        name: item.profiles 
+          ? `${item.profiles.first_name || ''} ${item.profiles.last_name || ''}`.trim() || 'Inconnu'
           : 'Inconnu'
       }
     }));
