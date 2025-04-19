@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Combobox } from "@/components/ui/combobox";
+import { Combobox, ComboboxOption } from "@/components/ui/combobox";
 import { DialogFooter } from "@/components/ui/dialog";
 import { useState } from "react";
 
@@ -83,23 +83,29 @@ export function PartWithdrawalForm() {
     },
   });
 
-  // Convert parts to combobox options
-  const partOptions = parts.map(part => ({
-    label: `${part.name} (Stock: ${part.quantity})`,
-    value: part.id.toString()
-  }));
+  // Convert parts to combobox options with safe fallbacks
+  const partOptions: ComboboxOption[] = Array.isArray(parts) 
+    ? parts.map(part => ({
+        label: `${part.name} (Stock: ${part.quantity})`,
+        value: String(part.id)
+      }))
+    : [];
 
-  // Convert equipment to combobox options
-  const equipmentOptions = equipment.map(eq => ({
-    label: eq.name,
-    value: eq.id.toString()
-  }));
+  // Convert equipment to combobox options with safe fallbacks
+  const equipmentOptions: ComboboxOption[] = Array.isArray(equipment) 
+    ? equipment.map(eq => ({
+        label: eq.name,
+        value: String(eq.id)
+      }))
+    : [];
 
-  // Convert tasks to combobox options
-  const taskOptions = tasks.map(task => ({
-    label: task.title,
-    value: task.id.toString()
-  }));
+  // Convert tasks to combobox options with safe fallbacks
+  const taskOptions: ComboboxOption[] = Array.isArray(tasks) 
+    ? tasks.map(task => ({
+        label: task.title,
+        value: String(task.id)
+      }))
+    : [];
 
   const onSubmit = async (values: FormValues) => {
     try {
@@ -132,6 +138,16 @@ export function PartWithdrawalForm() {
     }
   };
 
+  // Show loading state when data is still being fetched
+  if (isLoadingParts || isLoadingEquipment || isLoadingTasks) {
+    return (
+      <div className="flex flex-col items-center justify-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="mt-2 text-sm text-muted-foreground">Chargement des données...</p>
+      </div>
+    );
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -144,10 +160,10 @@ export function PartWithdrawalForm() {
               <FormControl>
                 <Combobox
                   options={partOptions}
-                  placeholder={isLoadingParts ? "Chargement..." : "Sélectionner une pièce"}
+                  placeholder="Sélectionner une pièce"
                   emptyMessage="Aucune pièce disponible"
                   onSelect={(value) => {
-                    if (value) {
+                    if (value && !isNaN(parseInt(value))) {
                       field.onChange(parseInt(value));
                       const part = parts.find(p => p.id === parseInt(value));
                       setSelectedPartStock(part?.quantity || 0);
@@ -173,6 +189,7 @@ export function PartWithdrawalForm() {
                   max={selectedPartStock}
                   {...field}
                   onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                  value={field.value || 1}
                 />
               </FormControl>
               <FormMessage />
@@ -189,9 +206,13 @@ export function PartWithdrawalForm() {
               <FormControl>
                 <Combobox
                   options={equipmentOptions}
-                  placeholder={isLoadingEquipment ? "Chargement..." : "Sélectionner un équipement"}
+                  placeholder="Sélectionner un équipement"
                   emptyMessage="Aucun équipement disponible"
-                  onSelect={(value) => value && field.onChange(parseInt(value))}
+                  onSelect={(value) => {
+                    if (value && !isNaN(parseInt(value))) {
+                      field.onChange(parseInt(value));
+                    }
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -208,9 +229,13 @@ export function PartWithdrawalForm() {
               <FormControl>
                 <Combobox
                   options={taskOptions}
-                  placeholder={isLoadingTasks ? "Chargement..." : "Sélectionner une tâche"}
+                  placeholder="Sélectionner une tâche"
                   emptyMessage="Aucune tâche disponible"
-                  onSelect={(value) => value && field.onChange(parseInt(value))}
+                  onSelect={(value) => {
+                    if (value && !isNaN(parseInt(value))) {
+                      field.onChange(parseInt(value));
+                    }
+                  }}
                 />
               </FormControl>
               <FormMessage />

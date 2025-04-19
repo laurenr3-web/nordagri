@@ -34,7 +34,7 @@ interface ComboboxProps {
 }
 
 export function Combobox({
-  options = [], // Set default empty array to prevent undefined
+  options = [], // Default to empty array
   placeholder = "Sélectionner une option...",
   emptyMessage = "Aucun résultat trouvé",
   onSelect,
@@ -51,28 +51,39 @@ export function Combobox({
   // Filter options based on search term
   const filteredOptions = React.useMemo(() => {
     if (!searchTerm) return safeOptions;
+    
     return safeOptions.filter(option => 
-      option && typeof option.label === 'string' && 
+      option && 
+      typeof option.label === 'string' && 
       typeof option.value === 'string' &&
       (option.label.toLowerCase().includes(searchTerm.toLowerCase()) || 
        option.value.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }, [searchTerm, safeOptions]);
 
+  // Handle select with validation
   const handleSelect = (currentValue: string) => {
-    if (!currentValue) return; // Prevent selecting undefined values
-    setValue(currentValue)
-    setOpen(false)
-    if (typeof onSelect === 'function') {
-      onSelect(currentValue)
+    if (currentValue && typeof currentValue === 'string') {
+      setValue(currentValue)
+      setOpen(false)
+      if (typeof onSelect === 'function') {
+        onSelect(currentValue)
+      }
     }
   }
 
-  // Safely find the selected label
+  // Find the selected option's label safely
   const selectedLabel = React.useMemo(() => {
-    const option = safeOptions.find(option => option && option.value === value)
-    return option ? option.label : value || placeholder
-  }, [value, safeOptions, placeholder])
+    if (!value) return placeholder;
+    
+    const option = safeOptions.find(option => 
+      option && 
+      typeof option.value === 'string' && 
+      option.value === value
+    );
+    
+    return option ? option.label : value;
+  }, [value, safeOptions, placeholder]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -95,8 +106,9 @@ export function Combobox({
             value={searchTerm}
             onValueChange={setSearchTerm}
           />
-          <CommandEmpty>{emptyMessage}</CommandEmpty>
-          {filteredOptions && filteredOptions.length > 0 ? (
+          {filteredOptions.length === 0 ? (
+            <CommandEmpty>{emptyMessage}</CommandEmpty>
+          ) : (
             <CommandGroup>
               {filteredOptions.map((option) => (
                 <CommandItem
@@ -114,7 +126,7 @@ export function Combobox({
                 </CommandItem>
               ))}
             </CommandGroup>
-          ) : null}
+          )}
         </Command>
       </PopoverContent>
     </Popover>

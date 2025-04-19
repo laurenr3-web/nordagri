@@ -85,8 +85,10 @@ const CommandGroup = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Group>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>
 >(({ className, children, ...props }, ref) => {
-  // Check if children is undefined, null, or empty array
-  if (!children || (Array.isArray(children) && children.length === 0) || React.Children.count(children) === 0) {
+  // Check if children exists and is not empty before rendering the group
+  const hasChildren = React.Children.count(children) > 0;
+  
+  if (!hasChildren) {
     return null;
   }
   
