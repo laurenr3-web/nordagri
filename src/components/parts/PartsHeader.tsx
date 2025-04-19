@@ -1,10 +1,12 @@
 
-import React from 'react';
-import { Input } from '@/components/ui/input';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ListFilter, Plus, RefreshCw, SlidersHorizontal, Grid, List, Package, Wrench } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import WithdrawPartDialog from './dialogs/WithdrawPartDialog';
+import { Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Filter, Grid, List, Plus, Zap } from 'lucide-react';
+import AddPartDialog from './dialogs/AddPartDialog';
+import ExpressAddPartDialog from './dialogs/ExpressAddPartDialog';
 
 interface PartsHeaderProps {
   searchTerm: string;
@@ -23,102 +25,73 @@ const PartsHeader: React.FC<PartsHeaderProps> = ({
   setCurrentView,
   onOpenFilterDialog,
   onOpenSortDialog,
-  filterCount
+  filterCount,
 }) => {
-  const [isWithdrawDialogOpen, setIsWithdrawDialogOpen] = React.useState(false);
+  const [isAddPartDialogOpen, setIsAddPartDialogOpen] = useState(false);
+  const [isExpressAddOpen, setIsExpressAddOpen] = useState(false);
 
   return (
-    <div className="space-y-4">
-      {/* Première ligne: titre et actions principales */}
-      <div className="flex flex-col md:flex-row justify-between gap-4">
-        <h2 className="text-2xl font-bold tracking-tight">Inventaire des pièces</h2>
-        <div className="flex gap-2 flex-wrap">
+    <div className="flex flex-col space-y-4">
+      <div className="flex flex-col space-y-2 sm:flex-row sm:justify-between sm:space-y-0">
+        <h2 className="text-3xl font-bold tracking-tight">Pièces</h2>
+        <div className="flex space-x-2">
           <Button 
-            variant="default"
-            onClick={() => setIsWithdrawDialogOpen(true)}
-            className="gap-2"
+            variant="secondary" 
+            onClick={() => setIsExpressAddOpen(true)}
+            className="flex items-center"
           >
-            <Wrench className="h-4 w-4" />
-            <span className="hidden md:inline">Retirer une pièce</span>
-            <span className="inline md:hidden">Retirer</span>
+            <Zap className="mr-2 h-4 w-4" />
+            Ajout Express
           </Button>
-          <Button 
-            variant="default"
-            onClick={() => document.getElementById('add-part-button')?.click()}
-            className="gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            <span className="hidden md:inline">Ajouter une pièce</span>
-            <span className="inline md:hidden">Ajouter</span>
+          <Button onClick={() => setIsAddPartDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Ajouter une pièce
           </Button>
         </div>
       </div>
 
-      {/* Seconde ligne: recherche et filtres */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
+      <div className="flex flex-col space-y-2 sm:flex-row sm:justify-between sm:items-center sm:space-y-0">
+        <div className="relative sm:max-w-xs w-full">
+          <Search className="absolute left-2 top-3 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Rechercher une pièce..."
+            placeholder="Rechercher..."
+            className="pl-8"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
           />
-          <Package className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            title="Filtre"
-            onClick={onOpenFilterDialog}
-            className={filterCount > 0 ? "relative" : ""}
-          >
-            <ListFilter className="h-5 w-5" />
-            {filterCount > 0 && (
-              <Badge 
-                variant="destructive"
-                className="absolute top-0 right-0 h-5 w-5 p-0 flex items-center justify-center transform translate-x-1/3 -translate-y-1/3"
-              >
-                {filterCount}
-              </Badge>
-            )}
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            title="Trier"
-            onClick={onOpenSortDialog}
-          >
-            <SlidersHorizontal className="h-5 w-5" />
-          </Button>
-          <div className="flex border rounded-md overflow-hidden">
-            <Button
-              variant={currentView === 'grid' ? 'secondary' : 'ghost'}
-              size="icon"
-              title="Vue grille"
-              onClick={() => setCurrentView('grid')}
-              className="rounded-none"
-            >
-              <Grid className="h-5 w-5" />
-            </Button>
-            <Button
-              variant={currentView === 'list' ? 'secondary' : 'ghost'}
-              size="icon"
-              title="Vue liste"
-              onClick={() => setCurrentView('list')}
-              className="rounded-none"
-            >
-              <List className="h-5 w-5" />
+
+        <div className="flex justify-between sm:justify-end w-full sm:w-auto">
+          <div className="flex space-x-1 sm:space-x-2">
+            <ToggleGroup type="single" value={currentView} onValueChange={(view) => setCurrentView(view as string)}>
+              <ToggleGroupItem value="grid" aria-label="Grid view">
+                <Grid className="h-4 w-4" />
+              </ToggleGroupItem>
+              <ToggleGroupItem value="list" aria-label="List view">
+                <List className="h-4 w-4" />
+              </ToggleGroupItem>
+            </ToggleGroup>
+            <Button variant="outline" size="icon" onClick={onOpenFilterDialog} className="relative">
+              <Filter className="h-4 w-4" />
+              {filterCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] text-primary-foreground flex items-center justify-center">
+                  {filterCount}
+                </span>
+              )}
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Dialog de retrait de pièce */}
-      <WithdrawPartDialog 
-        isOpen={isWithdrawDialogOpen}
-        onOpenChange={setIsWithdrawDialogOpen}
-        onSuccess={() => window.location.reload()}
+      {/* Dialogs */}
+      <AddPartDialog 
+        isOpen={isAddPartDialogOpen}
+        onOpenChange={setIsAddPartDialogOpen}
+      />
+      
+      <ExpressAddPartDialog
+        isOpen={isExpressAddOpen}
+        onOpenChange={setIsExpressAddOpen}
       />
     </div>
   );
