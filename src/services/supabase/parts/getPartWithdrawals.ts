@@ -23,8 +23,25 @@ export async function getPartWithdrawals(): Promise<PartWithdrawal[]> {
       return [];
     }
 
-    // Using raw SQL query instead of the query builder to handle potential type issues
-    const { data, error } = await supabase.rpc('get_part_withdrawals');
+    // Until the RPC functions are properly set up, we'll use raw SQL queries with the REST API
+    // This is a temporary solution and should be replaced with proper RPC once the functions are added
+    const { data, error } = await supabase
+      .from('parts_withdrawals')
+      .select(`
+        id,
+        part_id,
+        quantity,
+        withdrawn_by,
+        withdrawn_at,
+        equipment_id,
+        task_id,
+        notes,
+        farm_id,
+        created_at,
+        parts_inventory!parts_withdrawals_part_id_fkey (name),
+        equipment!parts_withdrawals_equipment_id_fkey (name)
+      `)
+      .order('created_at', { ascending: false });
     
     if (error) {
       console.error('Error fetching part withdrawals:', error);
@@ -43,13 +60,13 @@ export async function getPartWithdrawals(): Promise<PartWithdrawal[]> {
       notes: row.notes,
       farm_id: row.farm_id,
       created_at: row.created_at,
-      part_name: row.part_name,
-      equipment_name: row.equipment_name,
-      user_name: row.user_name || 'Unknown user'
+      part_name: row.parts_inventory?.name || 'Unknown part',
+      equipment_name: row.equipment?.name || undefined,
+      user_name: 'Unknown user' // We'll need to add a profiles join to get the user name
     }));
 
     return withdrawals;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to fetch part withdrawals:', error);
     throw error;
   }
@@ -60,10 +77,25 @@ export async function getPartWithdrawals(): Promise<PartWithdrawal[]> {
  */
 export async function getWithdrawalsForPart(partId: number): Promise<PartWithdrawal[]> {
   try {
-    // Using raw SQL query
-    const { data, error } = await supabase.rpc('get_withdrawals_for_part', {
-      part_id_param: partId
-    });
+    // Using the query builder with join approach
+    const { data, error } = await supabase
+      .from('parts_withdrawals')
+      .select(`
+        id,
+        part_id,
+        quantity,
+        withdrawn_by,
+        withdrawn_at,
+        equipment_id,
+        task_id,
+        notes,
+        farm_id,
+        created_at,
+        parts_inventory!parts_withdrawals_part_id_fkey (name),
+        equipment!parts_withdrawals_equipment_id_fkey (name)
+      `)
+      .eq('part_id', partId)
+      .order('created_at', { ascending: false });
     
     if (error) {
       console.error(`Error fetching withdrawals for part ${partId}:`, error);
@@ -82,13 +114,13 @@ export async function getWithdrawalsForPart(partId: number): Promise<PartWithdra
       notes: row.notes,
       farm_id: row.farm_id,
       created_at: row.created_at,
-      part_name: row.part_name,
-      equipment_name: row.equipment_name,
-      user_name: row.user_name || 'Unknown user'
+      part_name: row.parts_inventory?.name || 'Unknown part',
+      equipment_name: row.equipment?.name || undefined,
+      user_name: 'Unknown user' // We'll need to add a profiles join to get the user name
     }));
 
     return withdrawals;
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Failed to fetch withdrawals for part ${partId}:`, error);
     throw error;
   }

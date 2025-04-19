@@ -77,10 +77,10 @@ export async function withdrawPart(withdrawalData: PartWithdrawalRequest): Promi
         equipment_id: withdrawalData.equipment_id || null,
         task_id: withdrawalData.task_id || null,
         notes: withdrawalData.notes || null,
-        farm_id: profileData.farm_id
+        farm_id: profileData.farm_id,
+        withdrawn_at: new Date().toISOString()
       })
-      .select()
-      .single();
+      .select();
       
     if (error) {
       console.error('Error withdrawing part:', error);
@@ -95,7 +95,7 @@ export async function withdrawPart(withdrawalData: PartWithdrawalRequest): Promi
     return { 
       success: true, 
       message: 'Pièce retirée avec succès', 
-      id: data.id 
+      id: data[0]?.id as string 
     };
   } catch (error: any) {
     console.error('Withdrawal part error:', error);

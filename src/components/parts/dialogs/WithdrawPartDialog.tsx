@@ -77,8 +77,9 @@ const WithdrawPartDialog: React.FC<WithdrawPartDialogProps> = ({
     setIsSubmitting(true);
     
     try {
+      const partId = typeof part.id === 'string' ? parseInt(part.id) : part.id;
       const withdrawalData: PartWithdrawalRequest = {
-        part_id: part.id as number,
+        part_id: partId,
         quantity,
         equipment_id: equipmentId,
         notes
