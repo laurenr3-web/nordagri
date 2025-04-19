@@ -1,36 +1,18 @@
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getEquipmentTypes, createEquipmentType, type EquipmentType } from '@/services/supabase/equipment/types';
-import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 export function useEquipmentTypes() {
-  const queryClient = useQueryClient();
-
-  const { data: types = [], isLoading } = useQuery({
+  return useQuery({
     queryKey: ['equipment-types'],
-    queryFn: getEquipmentTypes
-  });
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('equipment_types')
+        .select('*')
+        .order('name');
 
-  const createMutation = useMutation({
-    mutationFn: createEquipmentType,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['equipment-types'] });
-    },
-    onError: (error: Error) => {
-      console.error('Error creating equipment type:', error);
-      toast.error('Erreur lors de la création du type d\'équipement');
+      if (error) throw error;
+      return data;
     }
   });
-
-  // Ensure we're returning the result from the mutation
-  const createType = async (name: string): Promise<EquipmentType> => {
-    const result = await createMutation.mutateAsync(name);
-    return result;
-  };
-
-  return {
-    types,
-    isLoading,
-    createType
-  };
 }

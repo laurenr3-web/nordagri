@@ -1,173 +1,109 @@
-
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 
 export interface EquipmentItem {
   id: number;
   name: string;
-  type?: string;
+  type: string;
+  category?: string;
   manufacturer?: string;
   model?: string;
-  status?: string;
   year?: number;
-  category?: string;
+  status?: string;
   location?: string;
+  lastMaintenance?: string;
   image?: string;
   serialNumber?: string;
-  purchaseDate?: string | Date;
+  purchaseDate?: string;
   notes?: string;
+  usage: { hours: number; target: number };
+  nextService: { type: string; due: string };
+  unite_d_usure?: string;
+  valeur_actuelle?: number;
+  last_wear_update?: string | Date | null;
 }
 
-export interface EquipmentFilters {
-  status: Record<string, boolean>;
-  type: Record<string, boolean>;
-  manufacturer: Record<string, boolean>;
-  year: { min: number; max: number };
-}
-
-export function useEquipmentFilters(equipment: EquipmentItem[]) {
-  // État de recherche et filtres
+export const useEquipmentFilters = (equipmentData: EquipmentItem[]) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentView, setCurrentView] = useState('grid');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [sortBy, setSortBy] = useState<string>('name');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  
-  // État des filtres avancés
-  const [filters, setFilters] = useState<EquipmentFilters>({
-    status: {},
-    type: {},
-    manufacturer: {},
-    year: { min: 0, max: new Date().getFullYear() }
+  const [filters, setFilters] = useState({
+    status: [] as string[],
+    type: [] as string[],
+    manufacturer: [] as string[],
+    year: [] as number[],
   });
   
-  // Récupérer les options de filtrage à partir des données d'équipement
-  const statusOptions = useMemo(() => {
-    const options = new Set<string>();
-    equipment.forEach(item => {
-      if (item.status) options.add(item.status);
-    });
-    return Array.from(options).sort();
-  }, [equipment]);
+  // Sort options
+  const [sortBy, setSortBy] = useState('name');
+  const [sortOrder, setSortOrder] = useState('asc');
+
+  // Get unique values for filter options
+  const statusOptions = useMemo(() => 
+    Array.from(new Set(equipmentData.map(item => item.status))),
+    [equipmentData]
+  );
   
-  const typeOptions = useMemo(() => {
-    const options = new Set<string>();
-    equipment.forEach(item => {
-      if (item.type) options.add(item.type);
-    });
-    return Array.from(options).sort();
-  }, [equipment]);
+  const typeOptions = useMemo(() => 
+    Array.from(new Set(equipmentData.map(item => item.type))),
+    [equipmentData]
+  );
   
-  const manufacturerOptions = useMemo(() => {
-    const options = new Set<string>();
-    equipment.forEach(item => {
-      if (item.manufacturer) options.add(item.manufacturer);
-    });
-    return Array.from(options).sort();
-  }, [equipment]);
+  const manufacturerOptions = useMemo(() => 
+    Array.from(new Set(equipmentData.map(item => item.manufacturer))),
+    [equipmentData]
+  );
   
   const yearOptions = useMemo(() => {
-    let min = Infinity;
-    let max = -Infinity;
-    
-    equipment.forEach(item => {
-      if (item.year) {
-        min = Math.min(min, item.year);
-        max = Math.max(max, item.year);
-      }
-    });
-    
-    // Si aucun équipement avec année, définir des valeurs par défaut
-    if (min === Infinity) min = new Date().getFullYear() - 20;
-    if (max === -Infinity) max = new Date().getFullYear();
-    
-    return { min, max };
-  }, [equipment]);
-  
-  // Vérifier si un filtre est actif
-  const isFilterActive = useCallback((type: string, value: string): boolean => {
-    return filters[type as keyof EquipmentFilters]?.[value] || false;
-  }, [filters]);
-  
-  // Basculer l'état d'un filtre
-  const toggleFilter = useCallback((type: string, value: string) => {
+    const years = equipmentData
+      .map(item => item.year)
+      .filter((year): year is number => typeof year === 'number')
+      .sort((a, b) => b - a);
+    return Array.from(new Set(years));
+  }, [equipmentData]);
+
+  // Toggle filter value
+  const toggleFilter = (type: 'status' | 'type' | 'manufacturer' | 'year', value: string | number) => {
     setFilters(prev => {
-      const updatedFilters = { ...prev };
-      
-      if (type === 'status' || type === 'type' || type === 'manufacturer') {
-        updatedFilters[type] = {
-          ...updatedFilters[type],
-          [value]: !updatedFilters[type][value]
-        };
+      const existing = prev[type];
+      if (existing.includes(value as never)) {
+        return { ...prev, [type]: existing.filter(item => item !== value) };
+      } else {
+        return { ...prev, [type]: [...existing, value as never] };
       }
-      
-      return updatedFilters;
     });
-  }, []);
+  };
   
-  // Réinitialiser les filtres par type
-  const clearFilters = useCallback((type?: string) => {
-    if (type) {
-      setFilters(prev => ({
-        ...prev,
-        [type]: type === 'year' ? { min: yearOptions.min, max: yearOptions.max } : {}
-      }));
-    } else {
-      setFilters({
-        status: {},
-        type: {},
-        manufacturer: {},
-        year: { min: yearOptions.min, max: yearOptions.max }
-      });
-      setSearchTerm('');
-      setSelectedCategory('all');
-    }
-  }, [yearOptions]);
+  // Check if a filter is active
+  const isFilterActive = (type: 'status' | 'type' | 'manufacturer' | 'year', value: string | number) => {
+    return filters[type].includes(value as never);
+  };
   
-  // Réinitialiser tous les filtres
-  const resetAllFilters = useCallback(() => {
-    clearFilters();
+  // Clear all filters
+  const clearFilters = () => {
+    setFilters({
+      status: [],
+      type: [],
+      manufacturer: [],
+      year: [],
+    });
+  };
+  
+  // Count active filters
+  const activeFilterCount = Object.values(filters).reduce(
+    (count, filterArray) => count + filterArray.length, 0
+  );
+  
+  // Reset all filters including search term and category
+  const resetAllFilters = () => {
     setSearchTerm('');
     setSelectedCategory('all');
-    setSortBy('name');
-    setSortOrder('asc');
-  }, [clearFilters]);
-  
-  // Calculer le nombre de filtres actifs
-  const activeFilterCount = useMemo(() => {
-    let count = 0;
-    
-    // Filtres de statut
-    Object.values(filters.status).forEach(value => {
-      if (value) count++;
-    });
-    
-    // Filtres de type
-    Object.values(filters.type).forEach(value => {
-      if (value) count++;
-    });
-    
-    // Filtres de fabricant
-    Object.values(filters.manufacturer).forEach(value => {
-      if (value) count++;
-    });
-    
-    // Filtre d'année (compter seulement si différent des valeurs par défaut)
-    if (filters.year.min !== yearOptions.min || filters.year.max !== yearOptions.max) {
-      count++;
-    }
-    
-    // Filtre de catégorie
-    if (selectedCategory !== 'all') {
-      count++;
-    }
-    
-    return count;
-  }, [filters, selectedCategory, yearOptions]);
-  
-  // Filtrer les équipements selon les critères
+    clearFilters();
+  };
+
   const filteredEquipment = useMemo(() => {
-    return equipment
+    return equipmentData
       .filter(item => {
-        // Filtrage par terme de recherche
+        // Filter by search term
         if (searchTerm) {
           const searchLower = searchTerm.toLowerCase();
           const matchesSearch = 
@@ -180,76 +116,61 @@ export function useEquipmentFilters(equipment: EquipmentItem[]) {
           if (!matchesSearch) return false;
         }
         
-        // Filtrage par catégorie
-        if (selectedCategory !== 'all' && item.category?.toLowerCase() !== selectedCategory.toLowerCase()) {
+        // Filter by category
+        if (selectedCategory === 'other') {
+          if (item.type) return false;
+        } else if (selectedCategory !== 'all' && item.type !== selectedCategory) {
           return false;
         }
+
+        // Status filtering
+        const matchesStatus = filters.status.length === 0 || 
+                             (item.status && filters.status.includes(item.status));
         
-        // Filtrage par statut
-        const activeStatusFilters = Object.entries(filters.status).filter(([_, active]) => active);
-        if (activeStatusFilters.length > 0) {
-          const statusValues = activeStatusFilters.map(([status]) => status);
-          if (!item.status || !statusValues.includes(item.status)) {
-            return false;
-          }
-        }
+        // Type filtering
+        const matchesType = filters.type.length === 0 || 
+                           (item.type && filters.type.includes(item.type));
         
-        // Filtrage par type
-        const activeTypeFilters = Object.entries(filters.type).filter(([_, active]) => active);
-        if (activeTypeFilters.length > 0) {
-          const typeValues = activeTypeFilters.map(([type]) => type);
-          if (!item.type || !typeValues.includes(item.type)) {
-            return false;
-          }
-        }
+        // Manufacturer filtering
+        const matchesManufacturer = filters.manufacturer.length === 0 || 
+                                   (item.manufacturer && filters.manufacturer.includes(item.manufacturer));
         
-        // Filtrage par fabricant
-        const activeManufacturerFilters = Object.entries(filters.manufacturer).filter(([_, active]) => active);
-        if (activeManufacturerFilters.length > 0) {
-          const manufacturerValues = activeManufacturerFilters.map(([manufacturer]) => manufacturer);
-          if (!item.manufacturer || !manufacturerValues.includes(item.manufacturer)) {
-            return false;
-          }
-        }
+        // Year filtering
+        const matchesYear = filters.year.length === 0 || 
+                           (item.year && filters.year.includes(item.year));
         
-        // Filtrage par année
-        if (item.year) {
-          if (item.year < filters.year.min || item.year > filters.year.max) {
-            return false;
-          }
-        }
-        
-        return true;
+        return matchesSearch && matchesStatus && matchesType && matchesManufacturer && matchesYear;
       })
       .sort((a, b) => {
-        // Trier par champ sélectionné
+        // Sort by selected property
+        let comparison = 0;
+        
         if (sortBy === 'name') {
-          return sortOrder === 'asc' 
-            ? a.name.localeCompare(b.name) 
-            : b.name.localeCompare(a.name);
-        } 
-        else if (sortBy === 'type' && a.type && b.type) {
-          return sortOrder === 'asc' 
-            ? a.type.localeCompare(b.type) 
-            : b.type.localeCompare(a.type);
-        }
-        else if (sortBy === 'status' && a.status && b.status) {
-          return sortOrder === 'asc' 
-            ? a.status.localeCompare(b.status) 
-            : b.status.localeCompare(a.status);
-        }
-        else if (sortBy === 'year') {
+          comparison = a.name.localeCompare(b.name);
+        } else if (sortBy === 'year') {
           const yearA = a.year || 0;
           const yearB = b.year || 0;
-          return sortOrder === 'asc' ? yearA - yearB : yearB - yearA;
+          comparison = yearA - yearB;
+        } else if (sortBy === 'manufacturer') {
+          const mfgA = a.manufacturer || '';
+          const mfgB = b.manufacturer || '';
+          comparison = mfgA.localeCompare(mfgB);
+        } else if (sortBy === 'status') {
+          const statusA = a.status || '';
+          const statusB = b.status || '';
+          comparison = statusA.localeCompare(statusB);
         }
-        return 0;
+        
+        // Apply sort order
+        return sortOrder === 'asc' ? comparison : -comparison;
       });
-  }, [equipment, searchTerm, selectedCategory, filters, sortBy, sortOrder]);
+  }, [equipmentData, searchTerm, selectedCategory, filters, sortBy, sortOrder]);
 
   return {
     searchTerm,
     setSearchTerm,
+    currentView,
+    setCurrentView,
     selectedCategory,
     setSelectedCategory,
     filters,
@@ -262,10 +183,10 @@ export function useEquipmentFilters(equipment: EquipmentItem[]) {
     clearFilters,
     resetAllFilters,
     activeFilterCount,
-    filteredEquipment,
     sortBy,
     setSortBy,
     sortOrder,
-    setSortOrder
+    setSortOrder,
+    filteredEquipment
   };
-}
+};
