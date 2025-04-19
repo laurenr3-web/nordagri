@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -33,6 +33,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export function PartWithdrawalForm() {
   const [selectedPartStock, setSelectedPartStock] = useState<number>(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -102,9 +103,12 @@ export function PartWithdrawalForm() {
 
   const onSubmit = async (values: FormValues) => {
     try {
+      setIsSubmitting(true);
+      
       // Vérifier que la quantité est disponible
       if (values.quantity > selectedPartStock) {
         toast.error("Quantité demandée supérieure au stock disponible");
+        setIsSubmitting(false);
         return;
       }
 
@@ -123,6 +127,8 @@ export function PartWithdrawalForm() {
     } catch (error) {
       console.error("Erreur lors du retrait:", error);
       toast.error("Erreur lors de l'enregistrement du retrait");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -141,9 +147,11 @@ export function PartWithdrawalForm() {
                   placeholder={isLoadingParts ? "Chargement..." : "Sélectionner une pièce"}
                   emptyMessage="Aucune pièce disponible"
                   onSelect={(value) => {
-                    field.onChange(parseInt(value));
-                    const part = parts.find(p => p.id === parseInt(value));
-                    setSelectedPartStock(part?.quantity || 0);
+                    if (value) {
+                      field.onChange(parseInt(value));
+                      const part = parts.find(p => p.id === parseInt(value));
+                      setSelectedPartStock(part?.quantity || 0);
+                    }
                   }}
                 />
               </FormControl>
@@ -183,7 +191,7 @@ export function PartWithdrawalForm() {
                   options={equipmentOptions}
                   placeholder={isLoadingEquipment ? "Chargement..." : "Sélectionner un équipement"}
                   emptyMessage="Aucun équipement disponible"
-                  onSelect={(value) => field.onChange(parseInt(value))}
+                  onSelect={(value) => value && field.onChange(parseInt(value))}
                 />
               </FormControl>
               <FormMessage />
@@ -202,7 +210,7 @@ export function PartWithdrawalForm() {
                   options={taskOptions}
                   placeholder={isLoadingTasks ? "Chargement..." : "Sélectionner une tâche"}
                   emptyMessage="Aucune tâche disponible"
-                  onSelect={(value) => field.onChange(parseInt(value))}
+                  onSelect={(value) => value && field.onChange(parseInt(value))}
                 />
               </FormControl>
               <FormMessage />
@@ -225,9 +233,18 @@ export function PartWithdrawalForm() {
         />
 
         <DialogFooter>
-          <Button type="submit">
-            <Check className="mr-2 h-4 w-4" />
-            Valider le retrait
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Traitement...
+              </>
+            ) : (
+              <>
+                <Check className="mr-2 h-4 w-4" />
+                Valider le retrait
+              </>
+            )}
           </Button>
         </DialogFooter>
       </form>

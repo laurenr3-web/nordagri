@@ -45,15 +45,17 @@ export function Combobox({
   const [value, setValue] = React.useState(defaultValue || "")
   const [searchTerm, setSearchTerm] = React.useState("")
 
-  // Ensure options is always an array
+  // Ensure options is always a valid array
   const safeOptions = Array.isArray(options) ? options : [];
   
   // Filter options based on search term
   const filteredOptions = React.useMemo(() => {
     if (!searchTerm) return safeOptions;
     return safeOptions.filter(option => 
-      option.label.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      option.value.toLowerCase().includes(searchTerm.toLowerCase())
+      option && typeof option.label === 'string' && 
+      typeof option.value === 'string' &&
+      (option.label.toLowerCase().includes(searchTerm.toLowerCase()) || 
+       option.value.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }, [searchTerm, safeOptions]);
 
@@ -68,7 +70,7 @@ export function Combobox({
 
   // Safely find the selected label
   const selectedLabel = React.useMemo(() => {
-    const option = safeOptions.find(option => option.value === value)
+    const option = safeOptions.find(option => option && option.value === value)
     return option ? option.label : value || placeholder
   }, [value, safeOptions, placeholder])
 
@@ -80,6 +82,7 @@ export function Combobox({
           role="combobox"
           aria-expanded={open}
           className={cn("w-full justify-between", className)}
+          data-testid="combobox-trigger"
         >
           <span className="truncate">{selectedLabel}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
