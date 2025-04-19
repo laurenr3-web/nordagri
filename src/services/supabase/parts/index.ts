@@ -1,10 +1,11 @@
-
 import { Part } from '@/types/Part';
 import { getParts } from './getParts';
 import { addPart } from './addPartService';
 import { updatePart } from './updatePart';
 import { deletePart, deleteMultipleParts } from './deletePart';
 import { getPartsForEquipment } from './getPartsForEquipment';
+import { withdrawPart } from './withdrawPart';
+import { getPartWithdrawals, getPartWithdrawalsCount } from './getPartWithdrawals';
 
 // Create a consolidated service object for backward compatibility
 export const partsService = {
@@ -13,7 +14,10 @@ export const partsService = {
   updatePart,
   deletePart,
   deleteMultipleParts,
-  getPartsForEquipment
+  getPartsForEquipment,
+  withdrawPart,
+  getPartWithdrawals,
+  getPartWithdrawalsCount
 };
 
 // Export individual functions for direct imports
@@ -23,7 +27,10 @@ export {
   updatePart,
   deletePart,
   deleteMultipleParts,
-  getPartsForEquipment
+  getPartsForEquipment,
+  withdrawPart,
+  getPartWithdrawals,
+  getPartWithdrawalsCount
 };
 
 // Export the Part type for convenience
