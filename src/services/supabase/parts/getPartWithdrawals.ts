@@ -9,50 +9,47 @@ import { PartWithdrawal } from '@/types/PartWithdrawal';
  */
 export async function getPartWithdrawals(partId?: number): Promise<PartWithdrawal[]> {
   try {
-    // Utiliser le SQL brut pour contourner les problèmes de typage de Supabase
-    let query = `
-      SELECT 
-        pw.*,
-        pi.name as part_name,
-        e.name as equipment_name,
-        CONCAT(p.first_name, ' ', p.last_name) as user_name
-      FROM parts_withdrawals pw
-      LEFT JOIN parts_inventory pi ON pw.part_id = pi.id
-      LEFT JOIN equipment e ON pw.equipment_id = e.id
-      LEFT JOIN profiles p ON pw.withdrawn_by = p.id
-    `;
-
-    const params: any[] = [];
+    // Utilisation d'une requête simple au lieu de SQL brut
+    let query = supabase
+      .from('parts_withdrawals')
+      .select(`
+        *,
+        parts_inventory(name),
+        equipment(name),
+        profiles(first_name, last_name)
+      `)
+      .order('withdrawn_at', { ascending: false });
     
+    // Ajouter un filtre par partId si fourni
     if (partId) {
-      query += " WHERE pw.part_id = $1";
-      params.push(partId);
+      query = query.eq('part_id', partId);
     }
     
-    query += " ORDER BY pw.withdrawn_at DESC";
-    
-    const { data, error } = await supabase.rpc('execute_sql', { 
-      query_text: query,
-      query_params: params
-    });
+    const { data, error } = await query;
     
     if (error) {
       console.error('Erreur lors de la récupération des retraits:', error);
-      
-      // Fallback: essayer avec une approche plus simple
-      const { data: fallbackData, error: fallbackError } = await supabase
-        .from('parts_withdrawals')
-        .select('*')
-        .order('withdrawn_at', { ascending: false });
-      
-      if (fallbackError) {
-        throw fallbackError;
-      }
-      
-      return fallbackData as unknown as PartWithdrawal[];
+      return [];
     }
     
-    return data as PartWithdrawal[];
+    // Transformer les données au format PartWithdrawal
+    return (data || []).map(row => ({
+      id: row.id,
+      part_id: row.part_id,
+      quantity: row.quantity,
+      withdrawn_by: row.withdrawn_by,
+      withdrawn_at: row.withdrawn_at,
+      equipment_id: row.equipment_id,
+      task_id: row.task_id,
+      notes: row.notes,
+      farm_id: row.farm_id,
+      created_at: row.created_at,
+      
+      // Champs joints
+      part_name: row.parts_inventory?.name || `#${row.part_id}`,
+      equipment_name: row.equipment?.name || (row.equipment_id ? `#${row.equipment_id}` : undefined),
+      user_name: row.profiles ? `${row.profiles.first_name} ${row.profiles.last_name}`.trim() : undefined
+    }));
   } catch (error) {
     console.error('Erreur lors de la récupération des retraits de pièces:', error);
     return [];
@@ -66,43 +63,22 @@ export async function getPartWithdrawals(partId?: number): Promise<PartWithdrawa
  */
 export async function getPartWithdrawalsCount(partId?: number): Promise<number> {
   try {
-    const query = `
-      SELECT COUNT(*) as count
-      FROM parts_withdrawals
-      ${partId ? 'WHERE part_id = $1' : ''}
-    `;
+    let query = supabase
+      .from('parts_withdrawals')
+      .select('*', { count: 'exact', head: true });
     
-    const params = partId ? [partId] : [];
+    if (partId) {
+      query = query.eq('part_id', partId);
+    }
     
-    const { data, error } = await supabase.rpc('execute_sql', { 
-      query_text: query,
-      query_params: params
-    });
+    const { count, error } = await query;
     
     if (error) {
       console.error('Erreur lors du comptage des retraits:', error);
-      
-      // Approche alternative
-      try {
-        // Utiliser le API REST directement si RPC échoue
-        const response = await fetch(`${supabase.supabaseUrl}/rest/v1/parts_withdrawals?select=count`, {
-          headers: {
-            'apikey': supabase.supabaseKey,
-            'Content-Type': 'application/json',
-            'Prefer': 'count=exact'
-          },
-          method: 'HEAD'
-        });
-        
-        const count = response.headers.get('content-range')?.split('/')[1];
-        return count ? parseInt(count, 10) : 0;
-      } catch (fetchError) {
-        console.error('Erreur lors du comptage alternatif:', fetchError);
-        return 0;
-      }
+      return 0;
     }
     
-    return data[0]?.count || 0;
+    return count || 0;
   } catch (error) {
     console.error('Erreur lors du comptage des retraits de pièces:', error);
     return 0;

@@ -1,6 +1,12 @@
 
 import { useState, useEffect } from 'react';
 
+// Define the window interface to include Speech Recognition
+interface WindowWithSpeechRecognition extends Window {
+  SpeechRecognition?: typeof SpeechRecognition;
+  webkitSpeechRecognition?: typeof SpeechRecognition;
+}
+
 // Defining proper interfaces for the Web Speech API
 interface SpeechRecognitionEvent {
   results: SpeechRecognitionResultList;
@@ -27,14 +33,6 @@ interface SpeechRecognitionAlternative {
 
 interface SpeechRecognitionError {
   error: string;
-}
-
-// Declare global interfaces for the Web Speech API
-declare global {
-  interface Window {
-    SpeechRecognition?: new () => SpeechRecognitionInstance;
-    webkitSpeechRecognition?: new () => SpeechRecognitionInstance;
-  }
 }
 
 interface SpeechRecognitionInstance {
@@ -69,8 +67,9 @@ export const useSpeechRecognition = (): SpeechRecognitionHook => {
   const [recognition, setRecognition] = useState<SpeechRecognitionInstance | null>(null);
 
   // Vérifier si le navigateur supporte la reconnaissance vocale
+  const windowWithSpeechRecognition = window as WindowWithSpeechRecognition;
   const browserSupportsSpeechRecognition = typeof window !== 'undefined' && 
-    !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+    !!(windowWithSpeechRecognition.SpeechRecognition || windowWithSpeechRecognition.webkitSpeechRecognition);
 
   useEffect(() => {
     if (!browserSupportsSpeechRecognition) {
@@ -79,10 +78,11 @@ export const useSpeechRecognition = (): SpeechRecognitionHook => {
     }
 
     // Get the appropriate constructor
-    const SpeechRecognitionConstructor = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognitionConstructor = windowWithSpeechRecognition.SpeechRecognition || 
+      windowWithSpeechRecognition.webkitSpeechRecognition;
     
     if (SpeechRecognitionConstructor) {
-      const recognitionInstance = new SpeechRecognitionConstructor();
+      const recognitionInstance = new SpeechRecognitionConstructor() as SpeechRecognitionInstance;
       
       recognitionInstance.continuous = true;
       recognitionInstance.interimResults = true;
@@ -93,8 +93,9 @@ export const useSpeechRecognition = (): SpeechRecognitionHook => {
         // Process results properly
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const result = event.results[i];
-          const transcript = result[0].transcript;
-          transcriptText += transcript;
+          if (result && result[0]) {
+            transcriptText += result[0].transcript;
+          }
         }
         setTranscript(transcriptText);
       };
