@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -77,7 +76,7 @@ export function WithdrawPartDialog({ isOpen, onOpenChange, onSuccess }: Withdraw
         if (error) throw error;
         
         // Convertir les données brutes en objets Part
-        const convertedParts: Part[] = data.map(item => ({
+        const convertedParts: Part[] = (data || []).map(item => ({
           id: item.id,
           name: item.name,
           partNumber: item.part_number || '',

@@ -47,8 +47,7 @@ export async function withdrawPart(withdrawalData: PartWithdrawalData): Promise<
       return false;
     }
     
-    // Utiliser une approche directe pour insérer le retrait et mettre à jour le stock
-    // Mise à jour du stock
+    // Mettre à jour le stock dans parts_inventory
     const { error: updateError } = await supabase
       .from('parts_inventory')
       .update({ quantity: partData.quantity - withdrawalData.quantity })
@@ -59,17 +58,27 @@ export async function withdrawPart(withdrawalData: PartWithdrawalData): Promise<
       throw updateError;
     }
     
-    // Insertion directe du retrait
-    const { error: insertError } = await supabase
-      .from('parts_withdrawals').insert({
-        part_id: withdrawalData.part_id,
-        quantity: withdrawalData.quantity,
-        withdrawn_by: (await supabase.auth.getUser()).data.user?.id,
-        equipment_id: withdrawalData.equipment_id,
-        task_id: withdrawalData.task_id,
-        notes: withdrawalData.notes,
-        farm_id: profileData.farm_id
-      } as any);
+    // Insérer le retrait par insertion SQL directe pour contourner les problèmes de typage
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    
+    const insertQuery = `
+      INSERT INTO parts_withdrawals (
+        part_id, quantity, withdrawn_by, equipment_id, task_id, notes, farm_id
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `;
+    
+    const { error: insertError } = await supabase.rpc('execute_sql', {
+      query_text: insertQuery,
+      query_params: [
+        withdrawalData.part_id,
+        withdrawalData.quantity,
+        userId,
+        withdrawalData.equipment_id || null,
+        withdrawalData.task_id || null,
+        withdrawalData.notes || null,
+        profileData.farm_id
+      ]
+    });
     
     if (insertError) {
       console.error('Erreur lors de l\'insertion du retrait:', insertError);

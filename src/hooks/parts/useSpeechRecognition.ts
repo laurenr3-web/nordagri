@@ -1,33 +1,40 @@
 
 import { useState, useEffect } from 'react';
 
-// Définir les interfaces pour les objets de reconnaissance vocale
+// Defining proper interfaces for the Web Speech API
 interface SpeechRecognitionEvent {
-  results: {
-    [index: number]: {
-      [index: number]: {
-        transcript: string;
-      };
-    };
-  };
+  results: SpeechRecognitionResultList;
   resultIndex: number;
+}
+
+interface SpeechRecognitionResultList {
+  readonly length: number;
+  [index: number]: SpeechRecognitionResult;
+  item(index: number): SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  readonly length: number;
+  [index: number]: SpeechRecognitionAlternative;
+  item(index: number): SpeechRecognitionAlternative;
+  isFinal: boolean;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
 }
 
 interface SpeechRecognitionError {
   error: string;
 }
 
-// Déclaration d'interface globale pour compléter les types de Window
+// Declare global interfaces for the Web Speech API
 declare global {
   interface Window {
-    SpeechRecognition?: typeof SpeechRecognition;
-    webkitSpeechRecognition?: typeof SpeechRecognition;
+    SpeechRecognition?: new () => SpeechRecognitionInstance;
+    webkitSpeechRecognition?: new () => SpeechRecognitionInstance;
   }
-}
-
-// Définir l'interface pour l'API SpeechRecognition
-interface SpeechRecognitionAPI {
-  new(): SpeechRecognitionInstance;
 }
 
 interface SpeechRecognitionInstance {
@@ -71,23 +78,25 @@ export const useSpeechRecognition = (): SpeechRecognitionHook => {
       return;
     }
 
-    const SpeechRecognition = (window.SpeechRecognition || 
-      window.webkitSpeechRecognition) as unknown as SpeechRecognitionAPI;
+    // Get the appropriate constructor
+    const SpeechRecognitionConstructor = window.SpeechRecognition || window.webkitSpeechRecognition;
     
-    if (SpeechRecognition) {
-      const recognitionInstance = new SpeechRecognition();
+    if (SpeechRecognitionConstructor) {
+      const recognitionInstance = new SpeechRecognitionConstructor();
       
       recognitionInstance.continuous = true;
       recognitionInstance.interimResults = true;
       recognitionInstance.lang = 'fr-FR';
       
       recognitionInstance.onresult = (event: SpeechRecognitionEvent) => {
-        const transcriptResult = Array.from(event.results)
-          .slice(event.resultIndex)
-          .map(result => result[0].transcript)
-          .join('');
-        
-        setTranscript(transcriptResult);
+        let transcriptText = '';
+        // Process results properly
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const result = event.results[i];
+          const transcript = result[0].transcript;
+          transcriptText += transcript;
+        }
+        setTranscript(transcriptText);
       };
       
       recognitionInstance.onerror = (event: SpeechRecognitionError) => {
@@ -144,7 +153,7 @@ export const useSpeechRecognition = (): SpeechRecognitionHook => {
     startListening,
     stopListening,
     resetTranscript,
-    browserSupportsSpeechRecognition: !!browserSupportsSpeechRecognition
+    browserSupportsSpeechRecognition
   };
 };
 

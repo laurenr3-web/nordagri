@@ -16,7 +16,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { getPartWithdrawals, PartWithdrawal } from '@/services/supabase/parts/getPartWithdrawals';
+import { getPartWithdrawals } from '@/services/supabase/parts/getPartWithdrawals';
+import { PartWithdrawal } from '@/types/PartWithdrawal';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Package, Loader2, CalendarDays, Info } from 'lucide-react';
@@ -45,10 +46,18 @@ const PartsWithdrawalsHistoryDialog = ({
       
       try {
         const data = await getPartWithdrawals(partId);
-        setWithdrawals(data);
+        // Make sure we're dealing with an array before setting state
+        if (Array.isArray(data)) {
+          setWithdrawals(data);
+        } else {
+          console.error('Data returned is not an array:', data);
+          setWithdrawals([]);
+          setError("Format de données invalide");
+        }
       } catch (err) {
         console.error('Erreur lors du chargement des retraits:', err);
         setError("Impossible de charger l'historique des retraits");
+        setWithdrawals([]);
       } finally {
         setIsLoading(false);
       }
