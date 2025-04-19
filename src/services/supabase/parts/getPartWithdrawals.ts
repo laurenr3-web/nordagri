@@ -47,8 +47,9 @@ export async function getPartWithdrawals(): Promise<PartWithdrawal[]> {
         if (typeof item.profiles === 'object') {
           // Check if profiles is a direct object with first_name/last_name
           if ('first_name' in item.profiles || 'last_name' in item.profiles) {
-            const firstName = (item.profiles as any).first_name || '';
-            const lastName = (item.profiles as any).last_name || '';
+            const profilesData = item.profiles as { first_name?: string; last_name?: string };
+            const firstName = profilesData.first_name || '';
+            const lastName = profilesData.last_name || '';
             userName = `${firstName} ${lastName}`.trim() || undefined;
           }
         }
@@ -124,8 +125,9 @@ export async function getWithdrawalsForPart(partId: number): Promise<PartWithdra
         if (typeof item.profiles === 'object') {
           // Check if profiles is a direct object with first_name/last_name
           if ('first_name' in item.profiles || 'last_name' in item.profiles) {
-            const firstName = (item.profiles as any).first_name || '';
-            const lastName = (item.profiles as any).last_name || '';
+            const profilesData = item.profiles as { first_name?: string; last_name?: string };
+            const firstName = profilesData.first_name || '';
+            const lastName = profilesData.last_name || '';
             userName = `${firstName} ${lastName}`.trim() || undefined;
           }
         }
