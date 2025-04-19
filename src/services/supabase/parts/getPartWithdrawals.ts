@@ -9,9 +9,16 @@ export async function getPartWithdrawals(): Promise<PartWithdrawal[]> {
   try {
     console.log('Fetching all part withdrawals');
     
+    // Use a direct query instead of RPC since the RPC function is not available
     const { data, error } = await supabase
-      .rpc('get_part_withdrawals')
-      .select();
+      .from('part_withdrawals')
+      .select(`
+        *,
+        part:parts_inventory(name),
+        equipment:equipment(name),
+        user:profiles(first_name, last_name)
+      `)
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching part withdrawals:', error.message);
@@ -24,7 +31,7 @@ export async function getPartWithdrawals(): Promise<PartWithdrawal[]> {
     }
 
     // Map the results to our PartWithdrawal type
-    const withdrawals = data.map(item => ({
+    const withdrawals: PartWithdrawal[] = data.map(item => ({
       id: item.id as string,
       part_id: item.part_id as number,
       quantity: item.quantity as number,
@@ -35,9 +42,9 @@ export async function getPartWithdrawals(): Promise<PartWithdrawal[]> {
       notes: item.notes as string | undefined,
       farm_id: item.farm_id as string | undefined,
       created_at: item.created_at as string,
-      part_name: item.part_name as string | undefined,
-      equipment_name: item.equipment_name as string | undefined,
-      user_name: item.user_name as string | undefined
+      part_name: item.part?.name as string | undefined,
+      equipment_name: item.equipment?.name as string | undefined,
+      user_name: item.user ? `${item.user.first_name} ${item.user.last_name}`.trim() : undefined
     }));
 
     return withdrawals;
@@ -54,9 +61,17 @@ export async function getWithdrawalsForPart(partId: number): Promise<PartWithdra
   try {
     console.log(`Fetching withdrawals for part ID: ${partId}`);
     
+    // Use a direct query instead of RPC
     const { data, error } = await supabase
-      .rpc('get_withdrawals_for_part', { part_id_param: partId })
-      .select();
+      .from('part_withdrawals')
+      .select(`
+        *,
+        part:parts_inventory(name),
+        equipment:equipment(name),
+        user:profiles(first_name, last_name)
+      `)
+      .eq('part_id', partId)
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching withdrawals for part:', error.message);
@@ -69,7 +84,7 @@ export async function getWithdrawalsForPart(partId: number): Promise<PartWithdra
     }
 
     // Map the results to our PartWithdrawal type
-    const withdrawals = data.map(item => ({
+    const withdrawals: PartWithdrawal[] = data.map(item => ({
       id: item.id as string,
       part_id: item.part_id as number,
       quantity: item.quantity as number,
@@ -80,9 +95,9 @@ export async function getWithdrawalsForPart(partId: number): Promise<PartWithdra
       notes: item.notes as string | undefined,
       farm_id: item.farm_id as string | undefined,
       created_at: item.created_at as string,
-      part_name: item.part_name as string | undefined,
-      equipment_name: item.equipment_name as string | undefined,
-      user_name: item.user_name as string | undefined
+      part_name: item.part?.name as string | undefined,
+      equipment_name: item.equipment?.name as string | undefined,
+      user_name: item.user ? `${item.user.first_name} ${item.user.last_name}`.trim() : undefined
     }));
 
     return withdrawals;
