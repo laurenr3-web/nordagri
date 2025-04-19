@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -41,7 +40,14 @@ const Navbar = () => {
   const location = useLocation();
   const isMobile = useIsMobile();
 
-  const isActive = (path: string) => location.pathname === path;
+  // Update isActive to handle nested routes better
+  const isActive = (path: string) => {
+    if (path === '/dashboard') {
+      return location.pathname === path;
+    }
+    // For other routes, check if the current path starts with the nav item path
+    return location.pathname.startsWith(path);
+  };
 
   const navItems = [
     {
