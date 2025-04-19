@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Filter, Grid, List, Plus, Zap } from 'lucide-react';
+import { Filter, Grid, List, Plus, Zap, Package } from 'lucide-react';
 import AddPartDialog from './dialogs/AddPartDialog';
 import ExpressAddPartDialog from './dialogs/ExpressAddPartDialog';
+import { WithdrawalDialog } from '../parts/withdrawal/WithdrawalDialog';
 
 interface PartsHeaderProps {
   searchTerm: string;
@@ -29,6 +30,7 @@ const PartsHeader: React.FC<PartsHeaderProps> = ({
 }) => {
   const [isAddPartDialogOpen, setIsAddPartDialogOpen] = useState(false);
   const [isExpressAddOpen, setIsExpressAddOpen] = useState(false);
+  const [isWithdrawalDialogOpen, setIsWithdrawalDialogOpen] = useState(false);
 
   return (
     <div className="flex flex-col space-y-4">
@@ -43,9 +45,21 @@ const PartsHeader: React.FC<PartsHeaderProps> = ({
             <Zap className="mr-2 h-4 w-4" />
             Ajout Express
           </Button>
-          <Button onClick={() => setIsAddPartDialogOpen(true)}>
+          <Button 
+            variant="secondary" 
+            onClick={() => setIsAddPartDialogOpen(true)} 
+            className="flex items-center mr-2"
+          >
             <Plus className="mr-2 h-4 w-4" />
             Ajouter une pièce
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => setIsWithdrawalDialogOpen(true)}
+            className="flex items-center"
+          >
+            <Package className="mr-2 h-4 w-4" />
+            Retirer une pièce
           </Button>
         </div>
       </div>
@@ -92,6 +106,11 @@ const PartsHeader: React.FC<PartsHeaderProps> = ({
       <ExpressAddPartDialog
         isOpen={isExpressAddOpen}
         onOpenChange={setIsExpressAddOpen}
+      />
+
+      <WithdrawalDialog 
+        open={isWithdrawalDialogOpen}
+        onOpenChange={setIsWithdrawalDialogOpen}
       />
     </div>
   );
