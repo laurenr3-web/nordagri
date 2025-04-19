@@ -42,11 +42,12 @@ export function useEquipmentUpdate(id: string | undefined, setEquipment: (equipm
       queryClient.invalidateQueries({ queryKey: ['equipment'] });
       queryClient.invalidateQueries({ queryKey: ['equipment', Number(id)] });
       
-      return result; // Return the result to allow proper promise chaining
+      toast.success('Équipement mis à jour avec succès');
+      return result;
     } catch (error: any) {
       console.error('Error updating equipment:', error);
       toast.error(`Erreur lors de la mise à jour : ${error.message}`);
-      throw error; // Re-throw to propagate error
+      throw error;
     } finally {
       setLoading(false);
     }

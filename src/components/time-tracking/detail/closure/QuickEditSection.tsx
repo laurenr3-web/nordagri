@@ -24,10 +24,10 @@ export function QuickEditSection({
 }: QuickEditSectionProps) {
   return (
     <Card>
-      <CardHeader className="px-4">
-        <CardTitle className="text-base sm:text-lg">Édition rapide</CardTitle>
+      <CardHeader>
+        <CardTitle className="text-lg">Édition rapide</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 px-4">
+      <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="notes">Notes finales</Label>
           <Textarea
@@ -35,11 +35,10 @@ export function QuickEditSection({
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Ajouter des notes finales..."
-            className="max-w-full"
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Matériel utilisé</Label>
             <Select value={material} onValueChange={setMaterial}>

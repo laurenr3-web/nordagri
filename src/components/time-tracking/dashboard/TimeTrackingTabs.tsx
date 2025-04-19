@@ -1,6 +1,8 @@
+
 import React from 'react';
 import { Calendar, ListFilter, PieChart } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { TimeEntryCard } from '@/components/time-tracking/TimeEntryCard';
 import { TimeEntry } from '@/hooks/time-tracking/types';
@@ -49,6 +51,10 @@ export function TimeTrackingTabs({
             <span>Rapport</span>
           </TabsTrigger>
         </TabsList>
+        
+        <Button size="sm" onClick={onNewSession} disabled={isLoading}>
+          Nouvelle session
+        </Button>
       </div>
       
       <TabsContent value="list" className="space-y-4">
@@ -61,6 +67,7 @@ export function TimeTrackingTabs({
         ) : entries.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10">
             <p className="text-muted-foreground mb-4">Aucune session de travail enregistrée</p>
+            <Button onClick={onNewSession}>Démarrer une nouvelle session</Button>
           </div>
         ) : (
           <ScrollArea className="h-[calc(100vh-24rem)]">
@@ -88,3 +95,4 @@ export function TimeTrackingTabs({
     </Tabs>
   );
 }
+

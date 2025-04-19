@@ -15,37 +15,32 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 interface EquipmentDetailsProps {
   equipment: EquipmentItem;
-  onUpdate?: (updatedEquipment: any) => Promise<any>;
+  onUpdate?: (updatedEquipment: any) => void;
 }
 
 const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate }) => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [localEquipment, setLocalEquipment] = useState(equipment);
-  const [isUpdating, setIsUpdating] = useState(false);
   const navigate = useNavigate();
   const isMobile = useMediaQuery('(max-width: 768px)');
 
-  const handleEquipmentUpdate = async (updatedEquipment: any) => {
-    try {
-      console.log('EquipmentDetails received updated equipment:', updatedEquipment);
-      setIsUpdating(true);
-      
-      // Update local state first for immediate UI feedback
-      setLocalEquipment(updatedEquipment);
-      
-      // Call parent update handler if provided
-      if (onUpdate) {
-        await onUpdate(updatedEquipment);
+  const handleEquipmentUpdate = (updatedEquipment: any) => {
+    console.log('EquipmentDetails received updated equipment:', updatedEquipment);
+    
+    // Update local state first for immediate UI feedback
+    setLocalEquipment(updatedEquipment);
+    
+    // Call parent update handler if provided
+    if (onUpdate) {
+      try {
+        onUpdate(updatedEquipment);
+      } catch (error) {
+        console.error('Error during equipment update:', error);
+        toast.error('Failed to update equipment on the server');
       }
-      
-      return updatedEquipment;
-    } catch (error) {
-      console.error('Error during equipment update:', error);
-      toast.error('Failed to update equipment on the server');
-      throw error;
-    } finally {
-      setIsUpdating(false);
     }
+    
+    setIsEditDialogOpen(false);
   };
 
   const handleEquipmentDelete = async () => {

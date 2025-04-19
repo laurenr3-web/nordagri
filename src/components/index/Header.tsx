@@ -14,10 +14,10 @@ const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) => {
       <div className="agri-gradient rounded-xl p-8 shadow-lg text-white">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="chip chip-primary mb-2">Tableau de bord agricole</div>
-            <h1 className="text-3xl font-medium tracking-tight mb-1">Bienvenue</h1>
+            <div className="chip chip-primary mb-2">Agricultural ERP Dashboard</div>
+            <h1 className="text-3xl font-medium tracking-tight mb-1">Welcome Back</h1>
             <p className="text-agri-light">
-              Voici les dernières nouvelles concernant votre équipement agricole
+              Here's what's happening with your agricultural equipment today
             </p>
           </div>
           
@@ -25,15 +25,15 @@ const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) => {
             <TabsList className="grid w-full grid-cols-3 md:w-auto bg-white/10">
               <TabsTrigger value="main" className="gap-2 text-white data-[state=active]:bg-white data-[state=active]:text-agri-dark">
                 <LayoutDashboard size={16} />
-                <span className="px-[23px]">Tableau de bord</span>
+                <span className="px-[23px]">Dashboard</span>
               </TabsTrigger>
               <TabsTrigger value="calendar" className="gap-2 text-white data-[state=active]:bg-white data-[state=active]:text-agri-dark">
                 <CalendarClock size={16} />
-                <span>Calendrier</span>
+                <span>June 2023</span>
               </TabsTrigger>
               <TabsTrigger value="alerts" className="gap-2 text-white data-[state=active]:bg-white data-[state=active]:text-agri-dark">
                 <AlertTriangle size={16} />
-                <span>Alertes</span>
+                <span>Alerts</span>
               </TabsTrigger>
             </TabsList>
           </Tabs>

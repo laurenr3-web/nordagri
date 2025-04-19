@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -12,14 +12,12 @@ import NotesField from '../form/NotesField';
 import AddCategorySection from './form/AddCategorySection';
 import { equipmentFormSchema, type EquipmentFormValues, type EquipmentStatus } from '../form/equipmentFormTypes';
 import { Form } from '@/components/ui/form';
-import { Loader2 } from 'lucide-react';
-import { createEquipmentType } from '@/services/supabase/equipment/types';
 
 interface EditEquipmentDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   equipment: any;
-  onSubmit: (data: any) => Promise<any>; // Changed to Promise<any> to handle async
+  onSubmit: (data: any) => void;
 }
 
 const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({ 
@@ -30,7 +28,8 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
 }) => {
   const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
   const [customCategories, setCustomCategories] = useState<string[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  console.log('Editing equipment:', equipment);
 
   // Format equipment data for the form, ensuring purchaseDate is properly formatted
   const defaultValues: EquipmentFormValues = {
@@ -45,20 +44,18 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
     purchaseDate: equipment.purchaseDate ? new Date(equipment.purchaseDate) : undefined,
     notes: equipment.notes || '',
     image: equipment.image,
-    unite_d_usure: equipment.unite_d_usure || 'heures',
-    valeur_actuelle: equipment.valeur_actuelle || 0,
   };
+
+  console.log('Form default values:', defaultValues);
 
   const form = useForm<EquipmentFormValues>({
     resolver: zodResolver(equipmentFormSchema),
     defaultValues,
   });
 
-  const handleFormSubmit = async (data: EquipmentFormValues) => {
-    if (isSubmitting) return;
-    
+  const handleFormSubmit = (data: EquipmentFormValues) => {
     try {
-      setIsSubmitting(true);
+      console.log('Form submitted with values:', data);
       
       // Convert form data back to equipment object format
       const updatedEquipment = {
@@ -74,49 +71,24 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
         purchaseDate: data.purchaseDate,
         notes: data.notes,
         image: data.image,
-        unite_d_usure: data.unite_d_usure,
-        valeur_actuelle: data.valeur_actuelle,
       };
       
-      // Wait for the submission to complete
-      await onSubmit(updatedEquipment);
-      
-      // Only close the dialog and show success toast if submission succeeded
-      onOpenChange(false);
+      console.log('Updated equipment to be submitted:', updatedEquipment);
+      onSubmit(updatedEquipment);
       toast.success('Equipment updated successfully');
     } catch (error) {
       console.error('Error updating equipment:', error);
       toast.error('Failed to update equipment');
-      // Don't close the dialog on error
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
-  const addNewCategory = async (category: string) => {
-    try {
-      const newType = await createEquipmentType(category);
-      if (newType && newType.name) {
-        setCustomCategories([...customCategories, newType.name]);
-        form.setValue('type', newType.name);
-        toast.success(`Type "${newType.name}" added successfully`);
-        return newType;
-      } else {
-        throw new Error("Failed to create new type");
-      }
-    } catch (error) {
-      console.error('Error adding new category:', error);
-      toast.error('Failed to add new equipment type');
-      throw error;
-    }
+  const addNewCategory = (category: string) => {
+    setCustomCategories([...customCategories, category]);
+    form.setValue('type', category);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      // Prevent closing the dialog while submitting
-      if (isSubmitting && !open) return;
-      onOpenChange(open);
-    }}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Equipment</DialogTitle>
@@ -133,7 +105,6 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
                 customCategories={customCategories}
                 onAddCategoryClick={() => setIsAddCategoryDialogOpen(true)}
                 language="en"
-                onAddCustomType={addNewCategory}
               />
               
               <AdditionalInfoFields 
@@ -146,27 +117,10 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
             <NotesField form={form} />
 
             <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => onOpenChange(false)}
-                disabled={isSubmitting}
-              >
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button 
-                type="submit"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Updating...
-                  </>
-                ) : (
-                  'Update Equipment'
-                )}
-              </Button>
+              <Button type="submit">Update Equipment</Button>
             </DialogFooter>
           </form>
         </Form>

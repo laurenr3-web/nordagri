@@ -1,36 +1,50 @@
 
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
 
 interface AddCategoryDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddCategory: (category: string) => Promise<any>;
+  onAddCategory: (category: string) => void;
 }
 
 const AddCategoryDialog: React.FC<AddCategoryDialogProps> = ({
   isOpen,
   onOpenChange,
-  onAddCategory,
+  onAddCategory
 }) => {
   const [categoryName, setCategoryName] = useState('');
+  const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!categoryName.trim()) return;
+    if (!categoryName.trim()) {
+      toast.error('Le nom de la catégorie est requis');
+      return;
+    }
     
     setIsSubmitting(true);
+    
     try {
-      await onAddCategory(categoryName.trim());
+      // Ici, vous pourriez ajouter la catégorie à Supabase
+      // Pour l'instant, nous la gérons uniquement en local
+      onAddCategory(categoryName);
+      toast.success('Catégorie ajoutée avec succès');
+      
+      // Réinitialiser le formulaire et fermer le dialogue
       setCategoryName('');
+      setDescription('');
       onOpenChange(false);
     } catch (error) {
-      console.error('Error adding category:', error);
+      console.error('Erreur lors de l\'ajout de la catégorie:', error);
+      toast.error('Erreur lors de l\'ajout de la catégorie');
     } finally {
       setIsSubmitting(false);
     }
@@ -38,37 +52,45 @@ const AddCategoryDialog: React.FC<AddCategoryDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Ajouter un nouveau type d'équipement</DialogTitle>
+          <DialogTitle>Ajouter une nouvelle catégorie</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="categoryName">Nom de la catégorie</Label>
             <Input
-              placeholder="Nom du type"
+              id="categoryName"
               value={categoryName}
               onChange={(e) => setCategoryName(e.target.value)}
-              autoFocus
+              placeholder="Entrez le nom de la catégorie"
+              required
             />
           </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Description de la catégorie (optionnel)"
+              rows={3}
+            />
+          </div>
+          
           <DialogFooter>
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
             >
               Annuler
             </Button>
-            <Button type="submit" disabled={isSubmitting || !categoryName.trim()}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Ajout...
-                </>
-              ) : (
-                'Ajouter'
-              )}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Ajout en cours...' : 'Ajouter'}
             </Button>
           </DialogFooter>
         </form>
