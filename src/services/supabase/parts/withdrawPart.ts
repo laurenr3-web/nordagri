@@ -47,48 +47,42 @@ export async function withdrawPart(withdrawalData: PartWithdrawalData): Promise<
       return false;
     }
     
-    // Utiliser une fonction RPC personnalisée ou SQL brut pour contourner les problèmes de typage
-    const { data, error } = await supabase.rpc('withdraw_part', {
-      p_part_id: withdrawalData.part_id,
-      p_quantity: withdrawalData.quantity,
-      p_equipment_id: withdrawalData.equipment_id,
-      p_task_id: withdrawalData.task_id,
-      p_notes: withdrawalData.notes,
-      p_farm_id: profileData.farm_id
-    });
-
-    // Si la fonction RPC n'existe pas, utilisons une solution de contournement
-    if (error && error.message.includes('function "withdraw_part" does not exist')) {
-      console.log('Fonction RPC non trouvée, utilisation de méthodes alternatives');
+    // Utiliser une approche directe pour insérer le retrait et mettre à jour le stock
+    // Mise à jour du stock
+    const { error: updateError } = await supabase
+      .from('parts_inventory')
+      .update({ quantity: partData.quantity - withdrawalData.quantity })
+      .eq('id', withdrawalData.part_id);
       
-      // Mise à jour du stock
-      const { error: updateError } = await supabase
-        .from('parts_inventory')
-        .update({ quantity: partData.quantity - withdrawalData.quantity })
-        .eq('id', withdrawalData.part_id);
-        
-      if (updateError) {
-        console.error('Erreur lors de la mise à jour du stock:', updateError);
-        throw updateError;
+    if (updateError) {
+      console.error('Erreur lors de la mise à jour du stock:', updateError);
+      throw updateError;
+    }
+    
+    // Insertion directe du retrait
+    const { error: insertError } = await supabase
+      .from('parts_withdrawals').insert({
+        part_id: withdrawalData.part_id,
+        quantity: withdrawalData.quantity,
+        withdrawn_by: (await supabase.auth.getUser()).data.user?.id,
+        equipment_id: withdrawalData.equipment_id,
+        task_id: withdrawalData.task_id,
+        notes: withdrawalData.notes,
+        farm_id: profileData.farm_id
+      } as any);
+    
+    if (insertError) {
+      console.error('Erreur lors de l\'insertion du retrait:', insertError);
+      
+      // En cas d'erreur, essayons de restaurer le stock
+      try {
+        await supabase
+          .from('parts_inventory')
+          .update({ quantity: partData.quantity })
+          .eq('id', withdrawalData.part_id);
+      } catch (rollbackError) {
+        console.error('Erreur lors de la restauration du stock:', rollbackError);
       }
-      
-      // Insertion directe du retrait via SQL brut
-      const { error: insertError } = await supabase.rpc('insert_part_withdrawal', {
-        p_part_id: withdrawalData.part_id,
-        p_quantity: withdrawalData.quantity,
-        p_user_id: (await supabase.auth.getUser()).data.user?.id,
-        p_equipment_id: withdrawalData.equipment_id,
-        p_task_id: withdrawalData.task_id,
-        p_notes: withdrawalData.notes,
-        p_farm_id: profileData.farm_id
-      });
-      
-      if (insertError) {
-        console.error('Erreur lors de l\'insertion du retrait:', insertError);
-        throw insertError;
-      }
-    } else if (error) {
-      console.error('Erreur lors du retrait de pièce:', error);
       
       toast({
         title: "Erreur",

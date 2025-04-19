@@ -17,6 +17,14 @@ interface SpeechRecognitionError {
   error: string;
 }
 
+// Déclaration d'interface globale pour compléter les types de Window
+declare global {
+  interface Window {
+    SpeechRecognition?: typeof SpeechRecognition;
+    webkitSpeechRecognition?: typeof SpeechRecognition;
+  }
+}
+
 // Définir l'interface pour l'API SpeechRecognition
 interface SpeechRecognitionAPI {
   new(): SpeechRecognitionInstance;
@@ -55,7 +63,7 @@ export const useSpeechRecognition = (): SpeechRecognitionHook => {
 
   // Vérifier si le navigateur supporte la reconnaissance vocale
   const browserSupportsSpeechRecognition = typeof window !== 'undefined' && 
-    !!(window.SpeechRecognition || (window as any).webkitSpeechRecognition);
+    !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 
   useEffect(() => {
     if (!browserSupportsSpeechRecognition) {
@@ -64,7 +72,7 @@ export const useSpeechRecognition = (): SpeechRecognitionHook => {
     }
 
     const SpeechRecognition = (window.SpeechRecognition || 
-      (window as any).webkitSpeechRecognition) as SpeechRecognitionAPI;
+      window.webkitSpeechRecognition) as unknown as SpeechRecognitionAPI;
     
     if (SpeechRecognition) {
       const recognitionInstance = new SpeechRecognition();
@@ -75,8 +83,8 @@ export const useSpeechRecognition = (): SpeechRecognitionHook => {
       
       recognitionInstance.onresult = (event: SpeechRecognitionEvent) => {
         const transcriptResult = Array.from(event.results)
-          .map((result: any) => result[0])
-          .map((result: any) => result.transcript)
+          .slice(event.resultIndex)
+          .map(result => result[0].transcript)
           .join('');
         
         setTranscript(transcriptResult);

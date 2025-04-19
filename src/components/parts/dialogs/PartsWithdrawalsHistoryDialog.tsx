@@ -16,8 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { getPartWithdrawals } from '@/services/supabase/parts/getPartWithdrawals';
-import { PartWithdrawal } from '@/types/PartWithdrawal';
+import { getPartWithdrawals, PartWithdrawal } from '@/services/supabase/parts/getPartWithdrawals';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Package, Loader2, CalendarDays, Info } from 'lucide-react';
