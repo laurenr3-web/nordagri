@@ -42,7 +42,7 @@ export function PartWithdrawalForm() {
   });
 
   // Fetch available parts
-  const { data: parts } = useQuery({
+  const { data: parts = [], isLoading: isLoadingParts } = useQuery({
     queryKey: ["available-parts"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -51,12 +51,12 @@ export function PartWithdrawalForm() {
         .gt("quantity", 0);
 
       if (error) throw error;
-      return data;
+      return data || [];
     },
   });
 
   // Fetch equipment
-  const { data: equipment } = useQuery({
+  const { data: equipment = [], isLoading: isLoadingEquipment } = useQuery({
     queryKey: ["equipment"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -64,12 +64,12 @@ export function PartWithdrawalForm() {
         .select("id, name");
 
       if (error) throw error;
-      return data;
+      return data || [];
     },
   });
 
   // Fetch maintenance tasks
-  const { data: tasks } = useQuery({
+  const { data: tasks = [], isLoading: isLoadingTasks } = useQuery({
     queryKey: ["maintenance-tasks"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -78,9 +78,27 @@ export function PartWithdrawalForm() {
         .eq("status", "active");
 
       if (error) throw error;
-      return data;
+      return data || [];
     },
   });
+
+  // Convert parts to combobox options
+  const partOptions = parts.map(part => ({
+    label: `${part.name} (Stock: ${part.quantity})`,
+    value: part.id.toString()
+  }));
+
+  // Convert equipment to combobox options
+  const equipmentOptions = equipment.map(eq => ({
+    label: eq.name,
+    value: eq.id.toString()
+  }));
+
+  // Convert tasks to combobox options
+  const taskOptions = tasks.map(task => ({
+    label: task.title,
+    value: task.id.toString()
+  }));
 
   const onSubmit = async (values: FormValues) => {
     try {
@@ -119,14 +137,12 @@ export function PartWithdrawalForm() {
               <FormLabel>Pièce</FormLabel>
               <FormControl>
                 <Combobox
-                  options={parts?.map(part => ({
-                    label: `${part.name} (Stock: ${part.quantity})`,
-                    value: part.id.toString()
-                  })) || []}
-                  placeholder="Sélectionner une pièce"
+                  options={partOptions}
+                  placeholder={isLoadingParts ? "Chargement..." : "Sélectionner une pièce"}
+                  emptyMessage="Aucune pièce disponible"
                   onSelect={(value) => {
                     field.onChange(parseInt(value));
-                    const part = parts?.find(p => p.id === parseInt(value));
+                    const part = parts.find(p => p.id === parseInt(value));
                     setSelectedPartStock(part?.quantity || 0);
                   }}
                 />
@@ -148,7 +164,7 @@ export function PartWithdrawalForm() {
                   min={1}
                   max={selectedPartStock}
                   {...field}
-                  onChange={(e) => field.onChange(parseInt(e.target.value))}
+                  onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
                 />
               </FormControl>
               <FormMessage />
@@ -164,11 +180,9 @@ export function PartWithdrawalForm() {
               <FormLabel>Équipement</FormLabel>
               <FormControl>
                 <Combobox
-                  options={equipment?.map(eq => ({
-                    label: eq.name,
-                    value: eq.id.toString()
-                  })) || []}
-                  placeholder="Sélectionner un équipement"
+                  options={equipmentOptions}
+                  placeholder={isLoadingEquipment ? "Chargement..." : "Sélectionner un équipement"}
+                  emptyMessage="Aucun équipement disponible"
                   onSelect={(value) => field.onChange(parseInt(value))}
                 />
               </FormControl>
@@ -185,11 +199,9 @@ export function PartWithdrawalForm() {
               <FormLabel>Tâche (optionnel)</FormLabel>
               <FormControl>
                 <Combobox
-                  options={tasks?.map(task => ({
-                    label: task.title,
-                    value: task.id.toString()
-                  })) || []}
-                  placeholder="Sélectionner une tâche"
+                  options={taskOptions}
+                  placeholder={isLoadingTasks ? "Chargement..." : "Sélectionner une tâche"}
+                  emptyMessage="Aucune tâche disponible"
                   onSelect={(value) => field.onChange(parseInt(value))}
                 />
               </FormControl>

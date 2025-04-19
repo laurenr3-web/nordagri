@@ -45,7 +45,7 @@ export function Combobox({
   const [value, setValue] = React.useState(defaultValue || "")
   const [searchTerm, setSearchTerm] = React.useState("")
 
-  // Safely check options array exists before filtering
+  // Ensure options is always an array
   const safeOptions = Array.isArray(options) ? options : [];
   
   // Filter options based on search term
@@ -94,7 +94,7 @@ export function Combobox({
           />
           <CommandEmpty>{emptyMessage}</CommandEmpty>
           {filteredOptions && filteredOptions.length > 0 ? (
-            <CommandGroup className="max-h-60 overflow-y-auto">
+            <CommandGroup>
               {filteredOptions.map((option) => (
                 <CommandItem
                   key={option.value}
