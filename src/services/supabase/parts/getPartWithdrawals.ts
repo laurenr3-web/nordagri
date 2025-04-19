@@ -13,9 +13,9 @@ export async function getPartWithdrawals(): Promise<PartWithdrawal[]> {
       .from('part_withdrawals')
       .select(`
         *,
-        parts_inventory!part_id(name),
-        equipment!equipment_id(name),
-        profiles!withdrawn_by(first_name, last_name)
+        parts_inventory(name),
+        equipment(name),
+        profiles(first_name, last_name)
       `)
       .order('created_at', { ascending: false });
 
@@ -30,23 +30,40 @@ export async function getPartWithdrawals(): Promise<PartWithdrawal[]> {
     }
 
     // Map the results to our PartWithdrawal type
-    const withdrawals: PartWithdrawal[] = data.map(item => ({
-      id: item.id,
-      part_id: item.part_id,
-      quantity: item.quantity,
-      withdrawn_by: item.withdrawn_by,
-      withdrawn_at: item.withdrawn_at,
-      equipment_id: item.equipment_id,
-      task_id: item.task_id,
-      notes: item.notes,
-      farm_id: item.farm_id,
-      created_at: item.created_at,
-      part_name: item.parts_inventory?.name,
-      equipment_name: item.equipment?.name,
-      user_name: item.profiles ? 
-        `${item.profiles.first_name || ''} ${item.profiles.last_name || ''}`.trim() : 
-        undefined
-    }));
+    const withdrawals: PartWithdrawal[] = data.map(item => {
+      // Safely access nested properties
+      const partName = item.parts_inventory && item.parts_inventory.length > 0 
+        ? item.parts_inventory[0]?.name 
+        : undefined;
+        
+      const equipmentName = item.equipment && item.equipment.length > 0 
+        ? item.equipment[0]?.name 
+        : undefined;
+      
+      let userName = undefined;
+      if (item.profiles && item.profiles.length > 0) {
+        const profile = item.profiles[0];
+        const firstName = profile?.first_name || '';
+        const lastName = profile?.last_name || '';
+        userName = `${firstName} ${lastName}`.trim() || undefined;
+      }
+
+      return {
+        id: item.id,
+        part_id: item.part_id,
+        quantity: item.quantity,
+        withdrawn_by: item.withdrawn_by,
+        withdrawn_at: item.withdrawn_at,
+        equipment_id: item.equipment_id,
+        task_id: item.task_id,
+        notes: item.notes,
+        farm_id: item.farm_id,
+        created_at: item.created_at,
+        part_name: partName,
+        equipment_name: equipmentName,
+        user_name: userName
+      };
+    });
 
     return withdrawals;
   } catch (error: any) {
@@ -66,9 +83,9 @@ export async function getWithdrawalsForPart(partId: number): Promise<PartWithdra
       .from('part_withdrawals')
       .select(`
         *,
-        parts_inventory!part_id(name),
-        equipment!equipment_id(name),
-        profiles!withdrawn_by(first_name, last_name)
+        parts_inventory(name),
+        equipment(name),
+        profiles(first_name, last_name)
       `)
       .eq('part_id', partId)
       .order('created_at', { ascending: false });
@@ -84,23 +101,40 @@ export async function getWithdrawalsForPart(partId: number): Promise<PartWithdra
     }
 
     // Map the results to our PartWithdrawal type
-    const withdrawals: PartWithdrawal[] = data.map(item => ({
-      id: item.id,
-      part_id: item.part_id,
-      quantity: item.quantity,
-      withdrawn_by: item.withdrawn_by,
-      withdrawn_at: item.withdrawn_at,
-      equipment_id: item.equipment_id,
-      task_id: item.task_id,
-      notes: item.notes,
-      farm_id: item.farm_id,
-      created_at: item.created_at,
-      part_name: item.parts_inventory?.name,
-      equipment_name: item.equipment?.name,
-      user_name: item.profiles ? 
-        `${item.profiles.first_name || ''} ${item.profiles.last_name || ''}`.trim() : 
-        undefined
-    }));
+    const withdrawals: PartWithdrawal[] = data.map(item => {
+      // Safely access nested properties
+      const partName = item.parts_inventory && item.parts_inventory.length > 0 
+        ? item.parts_inventory[0]?.name 
+        : undefined;
+        
+      const equipmentName = item.equipment && item.equipment.length > 0 
+        ? item.equipment[0]?.name 
+        : undefined;
+      
+      let userName = undefined;
+      if (item.profiles && item.profiles.length > 0) {
+        const profile = item.profiles[0];
+        const firstName = profile?.first_name || '';
+        const lastName = profile?.last_name || '';
+        userName = `${firstName} ${lastName}`.trim() || undefined;
+      }
+
+      return {
+        id: item.id,
+        part_id: item.part_id,
+        quantity: item.quantity,
+        withdrawn_by: item.withdrawn_by,
+        withdrawn_at: item.withdrawn_at,
+        equipment_id: item.equipment_id,
+        task_id: item.task_id,
+        notes: item.notes,
+        farm_id: item.farm_id,
+        created_at: item.created_at,
+        part_name: partName,
+        equipment_name: equipmentName,
+        user_name: userName
+      };
+    });
 
     return withdrawals;
   } catch (error: any) {
