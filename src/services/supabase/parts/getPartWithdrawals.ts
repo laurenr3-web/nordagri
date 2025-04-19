@@ -31,21 +31,27 @@ export async function getPartWithdrawals(): Promise<PartWithdrawal[]> {
 
     // Map the results to our PartWithdrawal type
     const withdrawals: PartWithdrawal[] = data.map(item => {
-      // Safely access nested properties
-      const partName = item.parts_inventory && item.parts_inventory.length > 0 
-        ? item.parts_inventory[0]?.name 
+      // Safely access nested properties with correct types
+      const partName = item.parts_inventory ? 
+        typeof item.parts_inventory === 'object' && 'name' in item.parts_inventory ? 
+          item.parts_inventory.name : undefined
         : undefined;
-        
-      const equipmentName = item.equipment && item.equipment.length > 0 
-        ? item.equipment[0]?.name 
+      
+      const equipmentName = item.equipment ? 
+        typeof item.equipment === 'object' && 'name' in item.equipment ? 
+          item.equipment.name : undefined
         : undefined;
       
       let userName = undefined;
-      if (item.profiles && item.profiles.length > 0) {
-        const profile = item.profiles[0];
-        const firstName = profile?.first_name || '';
-        const lastName = profile?.last_name || '';
-        userName = `${firstName} ${lastName}`.trim() || undefined;
+      if (item.profiles) {
+        if (typeof item.profiles === 'object') {
+          // Check if profiles is a direct object with first_name/last_name
+          if ('first_name' in item.profiles || 'last_name' in item.profiles) {
+            const firstName = (item.profiles as any).first_name || '';
+            const lastName = (item.profiles as any).last_name || '';
+            userName = `${firstName} ${lastName}`.trim() || undefined;
+          }
+        }
       }
 
       return {
@@ -102,21 +108,27 @@ export async function getWithdrawalsForPart(partId: number): Promise<PartWithdra
 
     // Map the results to our PartWithdrawal type
     const withdrawals: PartWithdrawal[] = data.map(item => {
-      // Safely access nested properties
-      const partName = item.parts_inventory && item.parts_inventory.length > 0 
-        ? item.parts_inventory[0]?.name 
+      // Safely access nested properties with correct types
+      const partName = item.parts_inventory ? 
+        typeof item.parts_inventory === 'object' && 'name' in item.parts_inventory ? 
+          item.parts_inventory.name : undefined
         : undefined;
-        
-      const equipmentName = item.equipment && item.equipment.length > 0 
-        ? item.equipment[0]?.name 
+      
+      const equipmentName = item.equipment ? 
+        typeof item.equipment === 'object' && 'name' in item.equipment ? 
+          item.equipment.name : undefined
         : undefined;
       
       let userName = undefined;
-      if (item.profiles && item.profiles.length > 0) {
-        const profile = item.profiles[0];
-        const firstName = profile?.first_name || '';
-        const lastName = profile?.last_name || '';
-        userName = `${firstName} ${lastName}`.trim() || undefined;
+      if (item.profiles) {
+        if (typeof item.profiles === 'object') {
+          // Check if profiles is a direct object with first_name/last_name
+          if ('first_name' in item.profiles || 'last_name' in item.profiles) {
+            const firstName = (item.profiles as any).first_name || '';
+            const lastName = (item.profiles as any).last_name || '';
+            userName = `${firstName} ${lastName}`.trim() || undefined;
+          }
+        }
       }
 
       return {
