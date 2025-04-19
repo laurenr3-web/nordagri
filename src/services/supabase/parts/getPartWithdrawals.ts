@@ -9,14 +9,13 @@ export async function getPartWithdrawals(): Promise<PartWithdrawal[]> {
   try {
     console.log('Fetching all part withdrawals');
     
-    // Use a direct query instead of RPC since the RPC function is not available
     const { data, error } = await supabase
       .from('part_withdrawals')
       .select(`
         *,
-        part:parts_inventory(name),
-        equipment:equipment(name),
-        user:profiles(first_name, last_name)
+        parts_inventory(name),
+        equipment(name),
+        profiles(first_name, last_name)
       `)
       .order('created_at', { ascending: false });
 
@@ -32,19 +31,19 @@ export async function getPartWithdrawals(): Promise<PartWithdrawal[]> {
 
     // Map the results to our PartWithdrawal type
     const withdrawals: PartWithdrawal[] = data.map(item => ({
-      id: item.id as string,
-      part_id: item.part_id as number,
-      quantity: item.quantity as number,
-      withdrawn_by: item.withdrawn_by as string,
-      withdrawn_at: item.withdrawn_at as string,
-      equipment_id: item.equipment_id as number | undefined,
-      task_id: item.task_id as number | undefined,
-      notes: item.notes as string | undefined,
-      farm_id: item.farm_id as string | undefined,
-      created_at: item.created_at as string,
-      part_name: item.part?.name as string | undefined,
-      equipment_name: item.equipment?.name as string | undefined,
-      user_name: item.user ? `${item.user.first_name} ${item.user.last_name}`.trim() : undefined
+      id: item.id,
+      part_id: item.part_id,
+      quantity: item.quantity,
+      withdrawn_by: item.withdrawn_by,
+      withdrawn_at: item.withdrawn_at,
+      equipment_id: item.equipment_id,
+      task_id: item.task_id,
+      notes: item.notes,
+      farm_id: item.farm_id,
+      created_at: item.created_at,
+      part_name: item.parts_inventory?.name,
+      equipment_name: item.equipment?.name,
+      user_name: item.profiles ? `${item.profiles.first_name} ${item.profiles.last_name}`.trim() : undefined
     }));
 
     return withdrawals;
@@ -61,14 +60,13 @@ export async function getWithdrawalsForPart(partId: number): Promise<PartWithdra
   try {
     console.log(`Fetching withdrawals for part ID: ${partId}`);
     
-    // Use a direct query instead of RPC
     const { data, error } = await supabase
       .from('part_withdrawals')
       .select(`
         *,
-        part:parts_inventory(name),
-        equipment:equipment(name),
-        user:profiles(first_name, last_name)
+        parts_inventory(name),
+        equipment(name),
+        profiles(first_name, last_name)
       `)
       .eq('part_id', partId)
       .order('created_at', { ascending: false });
@@ -85,19 +83,19 @@ export async function getWithdrawalsForPart(partId: number): Promise<PartWithdra
 
     // Map the results to our PartWithdrawal type
     const withdrawals: PartWithdrawal[] = data.map(item => ({
-      id: item.id as string,
-      part_id: item.part_id as number,
-      quantity: item.quantity as number,
-      withdrawn_by: item.withdrawn_by as string,
-      withdrawn_at: item.withdrawn_at as string,
-      equipment_id: item.equipment_id as number | undefined,
-      task_id: item.task_id as number | undefined,
-      notes: item.notes as string | undefined,
-      farm_id: item.farm_id as string | undefined,
-      created_at: item.created_at as string,
-      part_name: item.part?.name as string | undefined,
-      equipment_name: item.equipment?.name as string | undefined,
-      user_name: item.user ? `${item.user.first_name} ${item.user.last_name}`.trim() : undefined
+      id: item.id,
+      part_id: item.part_id,
+      quantity: item.quantity,
+      withdrawn_by: item.withdrawn_by,
+      withdrawn_at: item.withdrawn_at,
+      equipment_id: item.equipment_id,
+      task_id: item.task_id,
+      notes: item.notes,
+      farm_id: item.farm_id,
+      created_at: item.created_at,
+      part_name: item.parts_inventory?.name,
+      equipment_name: item.equipment?.name,
+      user_name: item.profiles ? `${item.profiles.first_name} ${item.profiles.last_name}`.trim() : undefined
     }));
 
     return withdrawals;

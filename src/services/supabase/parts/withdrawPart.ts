@@ -3,13 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { WithdrawPartData } from '@/types/PartWithdrawal';
 import { toast } from '@/hooks/use-toast';
 
-/**
- * Withdraw a part from inventory
- * Handles:
- * - Check if enough quantity is available
- * - Insert withdrawal record
- * - Update parts_inventory quantity
- */
 export async function withdrawPart(withdrawData: WithdrawPartData): Promise<{success: boolean; error?: string; id?: string}> {
   try {
     console.log('Withdrawing part with data:', withdrawData);
@@ -56,7 +49,7 @@ export async function withdrawPart(withdrawData: WithdrawPartData): Promise<{suc
       return { success: false, error: errorMsg };
     }
     
-    // Begin a transaction using supabase-js (Note: This is not a true transaction, just sequential operations)
+    // Begin transaction-like operations
     
     // 1. Insert withdrawal record
     const { data: withdrawalData, error: withdrawalError } = await supabase
@@ -68,8 +61,7 @@ export async function withdrawPart(withdrawData: WithdrawPartData): Promise<{suc
         equipment_id: withdrawData.equipment_id || null,
         task_id: withdrawData.task_id || null,
         notes: withdrawData.notes || null,
-        farm_id: withdrawData.farm_id || null,
-        withdrawn_at: new Date().toISOString()
+        farm_id: withdrawData.farm_id || null
       })
       .select('id')
       .single();
@@ -90,7 +82,6 @@ export async function withdrawPart(withdrawData: WithdrawPartData): Promise<{suc
     
     if (updateError) {
       console.error('Error updating inventory:', updateError);
-      // Note: In a real transaction, we would roll back the withdrawal insertion here
       return { success: false, error: updateError.message };
     }
     
@@ -113,28 +104,5 @@ export async function withdrawPart(withdrawData: WithdrawPartData): Promise<{suc
       success: false,
       error: error.message || 'Erreur inconnue'
     };
-  }
-}
-
-/**
- * Check if withdrawal is possible for given quantity
- */
-export async function checkWithdrawalAvailability(partId: number, quantity: number): Promise<boolean> {
-  try {
-    const { data, error } = await supabase
-      .from('parts_inventory')
-      .select('quantity')
-      .eq('id', partId)
-      .single();
-
-    if (error) {
-      console.error('Error checking withdrawal availability:', error);
-      return false;
-    }
-
-    return data && data.quantity >= quantity;
-  } catch (error) {
-    console.error('Error in checkWithdrawalAvailability:', error);
-    return false;
   }
 }
