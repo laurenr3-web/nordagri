@@ -3,6 +3,38 @@ import { supabase } from '@/integrations/supabase/client';
 import { WithdrawPartData } from '@/types/PartWithdrawal';
 import { toast } from '@/hooks/use-toast';
 
+/**
+ * Check if there's enough inventory to withdraw the requested quantity
+ */
+export async function checkWithdrawalAvailability(partId: number, quantity: number): Promise<boolean> {
+  try {
+    console.log(`Checking availability for part ID: ${partId}, quantity: ${quantity}`);
+    
+    // Get current inventory level
+    const { data: inventoryData, error: inventoryError } = await supabase
+      .from('parts_inventory')
+      .select('quantity')
+      .eq('id', partId)
+      .single();
+    
+    if (inventoryError) {
+      console.error('Error checking inventory:', inventoryError);
+      return false;
+    }
+    
+    // Check if there's enough inventory
+    if (!inventoryData || inventoryData.quantity < quantity) {
+      console.log(`Insufficient stock. Available: ${inventoryData?.quantity || 0}, Requested: ${quantity}`);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error in checkWithdrawalAvailability:', error);
+    return false;
+  }
+}
+
 export async function withdrawPart(withdrawData: WithdrawPartData): Promise<{success: boolean; error?: string; id?: string}> {
   try {
     console.log('Withdrawing part with data:', withdrawData);

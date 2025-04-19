@@ -13,9 +13,9 @@ export async function getPartWithdrawals(): Promise<PartWithdrawal[]> {
       .from('part_withdrawals')
       .select(`
         *,
-        parts_inventory(name),
-        equipment(name),
-        profiles(first_name, last_name)
+        parts_inventory:part_id(name),
+        equipment:equipment_id(name),
+        profiles:withdrawn_by(first_name, last_name)
       `)
       .order('created_at', { ascending: false });
 
@@ -43,7 +43,9 @@ export async function getPartWithdrawals(): Promise<PartWithdrawal[]> {
       created_at: item.created_at,
       part_name: item.parts_inventory?.name,
       equipment_name: item.equipment?.name,
-      user_name: item.profiles ? `${item.profiles.first_name} ${item.profiles.last_name}`.trim() : undefined
+      user_name: item.profiles ? 
+        `${item.profiles.first_name || ''} ${item.profiles.last_name || ''}`.trim() : 
+        undefined
     }));
 
     return withdrawals;
@@ -64,9 +66,9 @@ export async function getWithdrawalsForPart(partId: number): Promise<PartWithdra
       .from('part_withdrawals')
       .select(`
         *,
-        parts_inventory(name),
-        equipment(name),
-        profiles(first_name, last_name)
+        parts_inventory:part_id(name),
+        equipment:equipment_id(name),
+        profiles:withdrawn_by(first_name, last_name)
       `)
       .eq('part_id', partId)
       .order('created_at', { ascending: false });
@@ -95,7 +97,9 @@ export async function getWithdrawalsForPart(partId: number): Promise<PartWithdra
       created_at: item.created_at,
       part_name: item.parts_inventory?.name,
       equipment_name: item.equipment?.name,
-      user_name: item.profiles ? `${item.profiles.first_name} ${item.profiles.last_name}`.trim() : undefined
+      user_name: item.profiles ? 
+        `${item.profiles.first_name || ''} ${item.profiles.last_name || ''}`.trim() : 
+        undefined
     }));
 
     return withdrawals;
