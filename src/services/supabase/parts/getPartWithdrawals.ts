@@ -13,9 +13,9 @@ export async function getPartWithdrawals(): Promise<PartWithdrawal[]> {
       .from('part_withdrawals')
       .select(`
         *,
-        parts_inventory:part_id(name),
-        equipment:equipment_id(name),
-        profiles:withdrawn_by(first_name, last_name)
+        parts_inventory!part_id(name),
+        equipment!equipment_id(name),
+        profiles!withdrawn_by(first_name, last_name)
       `)
       .order('created_at', { ascending: false });
 
@@ -66,9 +66,9 @@ export async function getWithdrawalsForPart(partId: number): Promise<PartWithdra
       .from('part_withdrawals')
       .select(`
         *,
-        parts_inventory:part_id(name),
-        equipment:equipment_id(name),
-        profiles:withdrawn_by(first_name, last_name)
+        parts_inventory!part_id(name),
+        equipment!equipment_id(name),
+        profiles!withdrawn_by(first_name, last_name)
       `)
       .eq('part_id', partId)
       .order('created_at', { ascending: false });
