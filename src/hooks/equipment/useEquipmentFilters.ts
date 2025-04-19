@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from 'react';
 
 export interface EquipmentItem {
@@ -100,70 +101,58 @@ export const useEquipmentFilters = (equipmentData: EquipmentItem[]) => {
     clearFilters();
   };
 
+  // Filter and sort equipment
   const filteredEquipment = useMemo(() => {
-    return equipmentData
-      .filter(item => {
-        // Filter by search term
-        if (searchTerm) {
-          const searchLower = searchTerm.toLowerCase();
-          const matchesSearch = 
-            (item.name?.toLowerCase().includes(searchLower)) ||
-            (item.model?.toLowerCase().includes(searchLower)) ||
-            (item.manufacturer?.toLowerCase().includes(searchLower)) ||
-            (item.type?.toLowerCase().includes(searchLower)) ||
-            (item.serialNumber?.toLowerCase().includes(searchLower));
-          
-          if (!matchesSearch) return false;
-        }
-        
-        // Filter by category
-        if (selectedCategory === 'other') {
-          if (item.type) return false;
-        } else if (selectedCategory !== 'all' && item.type !== selectedCategory) {
-          return false;
-        }
-
-        // Status filtering
-        const matchesStatus = filters.status.length === 0 || 
-                             (item.status && filters.status.includes(item.status));
-        
-        // Type filtering
-        const matchesType = filters.type.length === 0 || 
-                           (item.type && filters.type.includes(item.type));
-        
-        // Manufacturer filtering
-        const matchesManufacturer = filters.manufacturer.length === 0 || 
-                                   (item.manufacturer && filters.manufacturer.includes(item.manufacturer));
-        
-        // Year filtering
-        const matchesYear = filters.year.length === 0 || 
-                           (item.year && filters.year.includes(item.year));
-        
-        return matchesSearch && matchesStatus && matchesType && matchesManufacturer && matchesYear;
-      })
-      .sort((a, b) => {
-        // Sort by selected property
-        let comparison = 0;
-        
-        if (sortBy === 'name') {
-          comparison = a.name.localeCompare(b.name);
-        } else if (sortBy === 'year') {
-          const yearA = a.year || 0;
-          const yearB = b.year || 0;
-          comparison = yearA - yearB;
-        } else if (sortBy === 'manufacturer') {
-          const mfgA = a.manufacturer || '';
-          const mfgB = b.manufacturer || '';
-          comparison = mfgA.localeCompare(mfgB);
-        } else if (sortBy === 'status') {
-          const statusA = a.status || '';
-          const statusB = b.status || '';
-          comparison = statusA.localeCompare(statusB);
-        }
-        
-        // Apply sort order
-        return sortOrder === 'asc' ? comparison : -comparison;
-      });
+    return equipmentData.filter(equipment => {
+      // Search term filtering
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch = equipment.name.toLowerCase().includes(searchLower) ||
+                           (equipment.manufacturer?.toLowerCase() || '').includes(searchLower) ||
+                           (equipment.model?.toLowerCase() || '').includes(searchLower);
+      
+      // Category filtering - modification ici pour filtrer par type au lieu de catégorie
+      const matchesCategory = selectedCategory === 'all' || equipment.type === selectedCategory;
+      
+      // Status filtering
+      const matchesStatus = filters.status.length === 0 || 
+                           (equipment.status && filters.status.includes(equipment.status));
+      
+      // Type filtering
+      const matchesType = filters.type.length === 0 || 
+                         (equipment.type && filters.type.includes(equipment.type));
+      
+      // Manufacturer filtering
+      const matchesManufacturer = filters.manufacturer.length === 0 || 
+                                 (equipment.manufacturer && filters.manufacturer.includes(equipment.manufacturer));
+      
+      // Year filtering
+      const matchesYear = filters.year.length === 0 || 
+                         (equipment.year && filters.year.includes(equipment.year));
+      
+      return matchesSearch && matchesCategory && matchesStatus && matchesType && matchesManufacturer && matchesYear;
+    }).sort((a, b) => {
+      // Sort by selected property
+      let comparison = 0;
+      
+      if (sortBy === 'name') {
+        comparison = a.name.localeCompare(b.name);
+      } else if (sortBy === 'year') {
+        const yearA = a.year || 0;
+        const yearB = b.year || 0;
+        comparison = yearA - yearB;
+      } else if (sortBy === 'manufacturer') {
+        const mfgA = a.manufacturer || '';
+        const mfgB = b.manufacturer || '';
+        comparison = mfgA.localeCompare(mfgB);
+      } else if (sortBy === 'status') {
+        const statusA = a.status || '';
+        const statusB = b.status || '';
+        comparison = statusA.localeCompare(statusB);
+      }
+      
+      // Apply sort order
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
   }, [equipmentData, searchTerm, selectedCategory, filters, sortBy, sortOrder]);
 
   return {

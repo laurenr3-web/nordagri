@@ -13,7 +13,7 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
   selectedCategory,
   setSelectedCategory
 }) => {
-  const { data: types = [], isLoading } = useEquipmentTypes();
+  const { types, isLoading } = useEquipmentTypes();
 
   if (isLoading) {
     return (
@@ -22,6 +22,9 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
       </div>
     );
   }
+
+  // Check if there are any equipment without a type
+  const hasOtherCategory = types.length > 0;
 
   return (
     <div className="mb-6">
@@ -35,9 +38,11 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
               {type.name}
             </TabsTrigger>
           ))}
-          <TabsTrigger value="other">
-            Autres
-          </TabsTrigger>
+          {hasOtherCategory && (
+            <TabsTrigger value="other">
+              Autres
+            </TabsTrigger>
+          )}
         </TabsList>
       </Tabs>
     </div>
