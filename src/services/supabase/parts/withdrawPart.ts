@@ -26,35 +26,75 @@ export async function withdrawPart(withdrawalData: PartWithdrawalData): Promise<
       throw new Error('Impossible de déterminer votre ferme');
     }
     
-    const { data, error } = await supabase
-      .from('parts_withdrawals')
-      .insert({
-        part_id: withdrawalData.part_id,
-        quantity: withdrawalData.quantity,
-        withdrawn_by: (await supabase.auth.getUser()).data.user?.id,
-        equipment_id: withdrawalData.equipment_id,
-        task_id: withdrawalData.task_id,
-        notes: withdrawalData.notes,
-        farm_id: profileData.farm_id
-      })
-      .select();
+    // Vérifier d'abord si le stock est suffisant
+    const { data: partData, error: partError } = await supabase
+      .from('parts_inventory')
+      .select('quantity')
+      .eq('id', withdrawalData.part_id)
+      .single();
+      
+    if (partError) {
+      console.error('Erreur lors de la récupération du stock:', partError);
+      throw new Error('Impossible de vérifier le stock disponible');
+    }
+    
+    if (!partData || partData.quantity < withdrawalData.quantity) {
+      toast({
+        title: "Stock insuffisant",
+        description: "La quantité demandée dépasse le stock disponible",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    // Utiliser une fonction RPC personnalisée ou SQL brut pour contourner les problèmes de typage
+    const { data, error } = await supabase.rpc('withdraw_part', {
+      p_part_id: withdrawalData.part_id,
+      p_quantity: withdrawalData.quantity,
+      p_equipment_id: withdrawalData.equipment_id,
+      p_task_id: withdrawalData.task_id,
+      p_notes: withdrawalData.notes,
+      p_farm_id: profileData.farm_id
+    });
 
-    if (error) {
+    // Si la fonction RPC n'existe pas, utilisons une solution de contournement
+    if (error && error.message.includes('function "withdraw_part" does not exist')) {
+      console.log('Fonction RPC non trouvée, utilisation de méthodes alternatives');
+      
+      // Mise à jour du stock
+      const { error: updateError } = await supabase
+        .from('parts_inventory')
+        .update({ quantity: partData.quantity - withdrawalData.quantity })
+        .eq('id', withdrawalData.part_id);
+        
+      if (updateError) {
+        console.error('Erreur lors de la mise à jour du stock:', updateError);
+        throw updateError;
+      }
+      
+      // Insertion directe du retrait via SQL brut
+      const { error: insertError } = await supabase.rpc('insert_part_withdrawal', {
+        p_part_id: withdrawalData.part_id,
+        p_quantity: withdrawalData.quantity,
+        p_user_id: (await supabase.auth.getUser()).data.user?.id,
+        p_equipment_id: withdrawalData.equipment_id,
+        p_task_id: withdrawalData.task_id,
+        p_notes: withdrawalData.notes,
+        p_farm_id: profileData.farm_id
+      });
+      
+      if (insertError) {
+        console.error('Erreur lors de l\'insertion du retrait:', insertError);
+        throw insertError;
+      }
+    } else if (error) {
       console.error('Erreur lors du retrait de pièce:', error);
       
-      if (error.message.includes('Stock insuffisant')) {
-        toast({
-          title: "Stock insuffisant",
-          description: "La quantité demandée dépasse le stock disponible",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Erreur",
-          description: "Impossible de retirer cette pièce",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Erreur",
+        description: "Impossible de retirer cette pièce",
+        variant: "destructive",
+      });
       
       return false;
     }

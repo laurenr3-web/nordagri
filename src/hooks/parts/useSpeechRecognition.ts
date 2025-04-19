@@ -1,6 +1,38 @@
 
 import { useState, useEffect } from 'react';
 
+// Définir les interfaces pour les objets de reconnaissance vocale
+interface SpeechRecognitionEvent {
+  results: {
+    [index: number]: {
+      [index: number]: {
+        transcript: string;
+      };
+    };
+  };
+  resultIndex: number;
+}
+
+interface SpeechRecognitionError {
+  error: string;
+}
+
+// Définir l'interface pour l'API SpeechRecognition
+interface SpeechRecognitionAPI {
+  new(): SpeechRecognitionInstance;
+}
+
+interface SpeechRecognitionInstance {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: ((event: SpeechRecognitionError) => void) | null;
+  onend: (() => void) | null;
+}
+
 interface SpeechRecognitionHook {
   isListening: boolean;
   transcript: string;
@@ -19,11 +51,11 @@ export const useSpeechRecognition = (): SpeechRecognitionHook => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [recognition, setRecognition] = useState<any>(null);
+  const [recognition, setRecognition] = useState<SpeechRecognitionInstance | null>(null);
 
   // Vérifier si le navigateur supporte la reconnaissance vocale
   const browserSupportsSpeechRecognition = typeof window !== 'undefined' && 
-    (window.SpeechRecognition || window.webkitSpeechRecognition);
+    !!(window.SpeechRecognition || (window as any).webkitSpeechRecognition);
 
   useEffect(() => {
     if (!browserSupportsSpeechRecognition) {
@@ -31,36 +63,40 @@ export const useSpeechRecognition = (): SpeechRecognitionHook => {
       return;
     }
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognitionInstance = new SpeechRecognition();
+    const SpeechRecognition = (window.SpeechRecognition || 
+      (window as any).webkitSpeechRecognition) as SpeechRecognitionAPI;
     
-    recognitionInstance.continuous = true;
-    recognitionInstance.interimResults = true;
-    recognitionInstance.lang = 'fr-FR';
-    
-    recognitionInstance.onresult = (event: any) => {
-      const transcriptResult = Array.from(event.results)
-        .map((result: any) => result[0])
-        .map((result: any) => result.transcript)
-        .join('');
+    if (SpeechRecognition) {
+      const recognitionInstance = new SpeechRecognition();
       
-      setTranscript(transcriptResult);
-    };
-    
-    recognitionInstance.onerror = (event: any) => {
-      setError(`Erreur de reconnaissance vocale: ${event.error}`);
-      setIsListening(false);
-    };
-    
-    recognitionInstance.onend = () => {
-      setIsListening(false);
-    };
-    
-    setRecognition(recognitionInstance);
+      recognitionInstance.continuous = true;
+      recognitionInstance.interimResults = true;
+      recognitionInstance.lang = 'fr-FR';
+      
+      recognitionInstance.onresult = (event: SpeechRecognitionEvent) => {
+        const transcriptResult = Array.from(event.results)
+          .map((result: any) => result[0])
+          .map((result: any) => result.transcript)
+          .join('');
+        
+        setTranscript(transcriptResult);
+      };
+      
+      recognitionInstance.onerror = (event: SpeechRecognitionError) => {
+        setError(`Erreur de reconnaissance vocale: ${event.error}`);
+        setIsListening(false);
+      };
+      
+      recognitionInstance.onend = () => {
+        setIsListening(false);
+      };
+      
+      setRecognition(recognitionInstance);
+    }
     
     return () => {
-      if (recognitionInstance) {
-        recognitionInstance.stop();
+      if (recognition) {
+        recognition.stop();
       }
     };
   }, [browserSupportsSpeechRecognition]);

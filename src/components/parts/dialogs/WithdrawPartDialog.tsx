@@ -28,6 +28,7 @@ import { withdrawPart } from '@/services/supabase/parts/withdrawPart';
 import { supabase } from '@/integrations/supabase/client';
 import { Part } from '@/types/Part';
 import { Combobox } from '@/components/ui/combobox';
+import { convertToLocalPart } from '@/utils/partTypeConverters';
 
 // Définition du schéma de validation
 const withdrawalFormSchema = z.object({
@@ -75,7 +76,22 @@ export function WithdrawPartDialog({ isOpen, onOpenChange, onSuccess }: Withdraw
           
         if (error) throw error;
         
-        setParts(data || []);
+        // Convertir les données brutes en objets Part
+        const convertedParts: Part[] = data.map(item => ({
+          id: item.id,
+          name: item.name,
+          partNumber: item.part_number || '',
+          category: item.category || '',
+          compatibility: item.compatible_with || [],
+          manufacturer: item.supplier || '',
+          price: item.unit_price || 0,
+          stock: item.quantity,
+          location: item.location || '',
+          reorderPoint: item.reorder_threshold || 5,
+          image: item.image_url || 'https://placehold.co/400x300/png?text=No+Image'
+        }));
+        
+        setParts(convertedParts);
       } catch (error) {
         console.error("Erreur lors du chargement des pièces:", error);
         toast({
@@ -201,7 +217,7 @@ export function WithdrawPartDialog({ isOpen, onOpenChange, onSuccess }: Withdraw
                     <Combobox
                       options={parts.map(part => ({
                         value: part.id.toString(),
-                        label: `${part.name} (${part.quantity} en stock)`,
+                        label: `${part.name} (${part.stock} en stock)`,
                       }))}
                       placeholder="Rechercher une pièce..."
                       emptyMessage="Aucune pièce trouvée"
@@ -224,7 +240,7 @@ export function WithdrawPartDialog({ isOpen, onOpenChange, onSuccess }: Withdraw
                     <Input
                       type="number"
                       min={1}
-                      max={selectedPart?.quantity || 1}
+                      max={selectedPart?.stock || 1}
                       {...field}
                       onChange={(e) => field.onChange(Number(e.target.value))}
                       disabled={!selectedPart}
@@ -232,7 +248,7 @@ export function WithdrawPartDialog({ isOpen, onOpenChange, onSuccess }: Withdraw
                   </FormControl>
                   {selectedPart && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      Quantité maximum: {selectedPart.quantity}
+                      Quantité maximum: {selectedPart.stock}
                     </p>
                   )}
                   <FormMessage />
