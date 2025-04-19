@@ -12,7 +12,7 @@ export function ExportSection({ onExportPDF, onSendEmail }: ExportSectionProps) 
     <div className="flex gap-4">
       <Button variant="outline" className="flex-1" onClick={onExportPDF}>
         <FileText className="mr-2 h-4 w-4" />
-        Export PDF
+        Exporter PDF
       </Button>
       <Button variant="outline" className="flex-1" onClick={onSendEmail}>
         <Send className="mr-2 h-4 w-4" />

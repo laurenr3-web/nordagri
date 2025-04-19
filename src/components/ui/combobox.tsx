@@ -45,7 +45,7 @@ export function Combobox({
   const [value, setValue] = React.useState(defaultValue || "")
   const [searchTerm, setSearchTerm] = React.useState("")
 
-  // Safely check options array exists before filtering
+  // Make sure options is always an array, even if undefined is passed
   const safeOptions = Array.isArray(options) ? options : [];
   
   // Filter options based on search term
@@ -58,7 +58,7 @@ export function Combobox({
   }, [searchTerm, safeOptions]);
 
   const handleSelect = (currentValue: string) => {
-    if (!currentValue) return; // Prevent selecting undefined values
+    if (currentValue === undefined) return; // Prevent selecting undefined values
     setValue(currentValue)
     setOpen(false)
     if (typeof onSelect === 'function') {

@@ -85,16 +85,14 @@ const CommandGroup = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Group>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>
 >(({ className, children, ...props }, ref) => {
-  // Ensure children is not undefined or null before rendering the CommandGroup
-  const hasValidChildren = React.Children.count(children) > 0;
+  // Early return if children is nullish to prevent rendering empty group
+  if (!children) return null;
   
-  // Only render CommandGroup if there are valid children
-  if (!hasValidChildren) return null;
+  // Make sure we have an array of children that we can safely check
+  const childrenArray = React.Children.toArray(children);
   
-  // Make sure children is always an array that can be mapped over
-  const safeChildren = React.Children.toArray(children);
-  
-  if (safeChildren.length === 0) return null;
+  // Only render the group if there are valid children
+  if (childrenArray.length === 0) return null;
   
   return (
     <CommandPrimitive.Group
@@ -105,7 +103,7 @@ const CommandGroup = React.forwardRef<
       )}
       {...props}
     >
-      {safeChildren}
+      {childrenArray}
     </CommandPrimitive.Group>
   );
 })
