@@ -42,6 +42,7 @@ export const getPartWithdrawals = async (partId: string | number) => {
       withdrawnAt: item.withdrawn_at,
       withdrawnBy: {
         id: item.withdrawn_by,
+        // Use optional chaining and nullish coalescing to handle potential undefined values
         name: item.profiles 
           ? `${item.profiles.first_name || ''} ${item.profiles.last_name || ''}`.trim() || 'Inconnu'
           : 'Inconnu'
