@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,6 +36,8 @@ export function useFuelLogs(equipmentId: number) {
         throw new Error("Erreur d'authentification");
       }
 
+      console.log('Submitting fuel log with farm_id:', farmId);
+      
       const { data, error } = await supabase
         .from('fuel_logs')
         .insert([{
@@ -50,7 +53,10 @@ export function useFuelLogs(equipmentId: number) {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error inserting fuel log:', error);
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {

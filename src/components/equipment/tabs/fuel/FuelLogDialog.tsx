@@ -34,15 +34,14 @@ export function FuelLogDialog({ open, onOpenChange, onSubmit, isSubmitting, equi
     quantity?: string;
     price?: string;
   }>({});
+  const [attemptingSubmit, setAttemptingSubmit] = useState(false);
   
-  const { farmId } = useFarmId(equipmentId);
+  const { farmId, isLoading: isFarmIdLoading } = useFarmId(equipmentId);
   
   // Memoize the validation failed handler
   const handleValidationFailed = useCallback(() => {
-    if (open) {
-      onOpenChange(false);
-    }
-  }, [open, onOpenChange]);
+    setAttemptingSubmit(false);
+  }, []);
 
   // Reset form when dialog opens/closes
   React.useEffect(() => {
@@ -53,6 +52,7 @@ export function FuelLogDialog({ open, onOpenChange, onSubmit, isSubmitting, equi
       setHours('');
       setNotes('');
       setErrors({});
+      setAttemptingSubmit(false);
     }
   }, [open]);
 
@@ -80,18 +80,51 @@ export function FuelLogDialog({ open, onOpenChange, onSubmit, isSubmitting, equi
     return validateForm();
   }, [validateForm]);
 
+  // Debug utility to help track farm ID issues
+  React.useEffect(() => {
+    if (open) {
+      console.log('FuelLogDialog opened with equipmentId:', equipmentId);
+      console.log('Current farmId:', farmId);
+      console.log('Farm ID loading:', isFarmIdLoading);
+    }
+  }, [open, equipmentId, farmId, isFarmIdLoading]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm() || !farmId) return;
+    setAttemptingSubmit(true);
     
-    onSubmit({
-      date,
-      fuel_quantity_liters: Number(quantity),
-      price_per_liter: Number(price),
-      hours_at_fillup: hours ? Number(hours) : undefined,
-      notes: notes || undefined,
-    });
+    if (!validateForm()) {
+      setAttemptingSubmit(false);
+      return;
+    }
+    
+    // Only proceed with submit if we have a farmId
+    if (farmId) {
+      onSubmit({
+        date,
+        fuel_quantity_liters: Number(quantity),
+        price_per_liter: Number(price),
+        hours_at_fillup: hours ? Number(hours) : undefined,
+        notes: notes || undefined,
+      });
+    }
   };
+
+  // Show loading state while farmId is being retrieved
+  if (open && isFarmIdLoading) {
+    return (
+      <DialogWrapper
+        title="Chargement..."
+        description="Préparation du formulaire en cours"
+        open={open}
+        onOpenChange={onOpenChange}
+      >
+        <div className="flex justify-center p-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </DialogWrapper>
+    );
+  }
 
   return (
     <DialogWrapper
@@ -103,7 +136,7 @@ export function FuelLogDialog({ open, onOpenChange, onSubmit, isSubmitting, equi
       <FormValidation
         isValid={isFormValid}
         farmId={farmId}
-        isSubmitting={isSubmitting}
+        isSubmitting={attemptingSubmit}
         onValidationFailed={handleValidationFailed}
       >
         <form onSubmit={handleSubmit} className="space-y-4">

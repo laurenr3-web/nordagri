@@ -17,18 +17,18 @@ export const FormValidation: React.FC<FormValidationProps> = ({
   onValidationFailed,
   children
 }) => {
-  // Only run the effect if farm ID is missing and not already submitting
+  // Only show the toast error if farm ID is missing and user is attempting to submit
   useEffect(() => {
-    if (!farmId && !isSubmitting) {
+    if (!farmId && isSubmitting) {
       toast.error("Impossible de soumettre le formulaire", {
         description: "La ferme n'a pas pu être identifiée"
       });
       onValidationFailed();
     }
-  }, [farmId, isSubmitting, onValidationFailed]); // Include onValidationFailed as dependency but ensure it's memoized by parent
+  }, [farmId, isSubmitting, onValidationFailed]);
 
-  // Only render children if farm ID exists and form is valid
-  if (!farmId || !isValid) {
+  // Still render children even if farm ID is missing, only prevent submission
+  if (!isValid) {
     return null;
   }
 

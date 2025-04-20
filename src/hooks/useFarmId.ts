@@ -32,7 +32,6 @@ export const useFarmId = (equipmentId?: number) => {
         
         if (authError || !user) {
           console.error('Erreur auth:', authError);
-          toast.error("Erreur d'authentification");
           setIsLoading(false);
           return;
         }
@@ -54,9 +53,33 @@ export const useFarmId = (equipmentId?: number) => {
           console.log('Farm ID trouvé via profil:', profileData.farm_id);
           setFarmId(profileData.farm_id);
         } else {
-          console.log('Aucun farm_id trouvé');
-          // Optionnel: Ajouter un toast pour informer que le farm_id est manquant
-          toast.warning("Aucune ferme n'est associée à ce profil");
+          console.log('Aucun farm_id trouvé dans le profil, création d\'un identifiant par défaut');
+          
+          // 3. Si aucune ferme n'est associée, utiliser une valeur par défaut pour éviter les blocages d'interface
+          const defaultFarmId = user.id; // Utiliser l'ID utilisateur comme ID de ferme par défaut
+          setFarmId(defaultFarmId);
+          
+          // Option: créer automatiquement une ferme pour cet utilisateur
+          const { data: newFarm, error: farmError } = await supabase
+            .from('farms')
+            .insert({
+              name: 'Ma Ferme',
+              owner_id: user.id
+            })
+            .select('id')
+            .single();
+          
+          if (!farmError && newFarm?.id) {
+            console.log('Nouvelle ferme créée avec ID:', newFarm.id);
+            
+            // Mettre à jour le profil avec le nouveau farm_id
+            await supabase
+              .from('profiles')
+              .update({ farm_id: newFarm.id })
+              .eq('id', user.id);
+              
+            setFarmId(newFarm.id);
+          }
         }
       } catch (error) {
         console.error('Erreur lors de la récupération du farm_id:', error);
