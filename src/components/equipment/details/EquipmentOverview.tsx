@@ -1,5 +1,5 @@
+
 import React from 'react';
-import { Timer } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -18,29 +18,8 @@ export function EquipmentOverview({ equipment }: { equipment: any }) {
     return true;
   };
 
-  // Format engine hours display
-  const formatEngineHours = () => {
-    const hours = equipment.valeur_actuelle || equipment.current_hours;
-    if (!hasData(hours)) return "Non renseigné";
-    return `${hours} ${equipment.unite_d_usure === 'kilometres' ? 'km' : 'h'}`;
-  };
-
   return (
-    <div className="space-y-4">
-      {/* Engine Hours Card */}
-      <Card className="overflow-hidden border bg-muted/50">
-        <CardContent className="p-4">
-          <div className="text-center space-y-2">
-            <div className="flex items-center justify-center gap-2 text-muted-foreground">
-              <Timer className="h-4 w-4" />
-              <h3 className="text-sm font-medium">Heures moteur</h3>
-            </div>
-            <p className="text-2xl font-semibold">{formatEngineHours()}</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* General Information Card */}
+    <div className="space-y-6">
       <Card className="overflow-hidden border-2 border-primary/10">
         <CardHeader className="bg-primary/10">
           <CardTitle>Informations générales</CardTitle>
@@ -146,7 +125,7 @@ export function EquipmentOverview({ equipment }: { equipment: any }) {
         <EquipmentWearDisplay equipment={equipment} />
       )}
       
-      {/* Notes Card */}
+      {/* Only show notes card if notes exist */}
       {hasData(equipment.notes) && (
         <Card className="overflow-hidden border-2 border-muted/20">
           <CardHeader className="bg-muted/10">
