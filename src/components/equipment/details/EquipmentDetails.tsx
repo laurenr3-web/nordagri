@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { formatDate, getStatusColor, getStatusText } from '../utils/statusUtils';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { Timer } from 'lucide-react';
 
 interface EquipmentDetailsProps {
   equipment: any;
@@ -26,44 +27,65 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment }) => {
     return true;
   };
 
+  // Format engine hours
+  const formatEngineHours = (hours: number | null | undefined): string => {
+    if (hours === null || hours === undefined) return 'Non renseigné';
+    return `${hours} h`;
+  };
+
+  // Get engine hours from either engine_hours or current_hours
+  const engineHours = equipment.engine_hours ?? equipment.current_hours;
+
   return (
     <div className="space-y-4">
+      {isMobile && (
+        <Card className="overflow-hidden border-2 border-muted/20">
+          <CardContent className="p-4">
+            <div className="flex flex-col items-center gap-2 py-2">
+              <Timer className="h-6 w-6 text-muted-foreground" />
+              <h3 className="text-sm font-medium text-muted-foreground">Heures moteur</h3>
+              <p className="text-lg font-semibold">{formatEngineHours(engineHours)}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card className="overflow-hidden border-2 border-primary/10">
         <CardHeader className={`bg-primary/10 ${isMobile ? 'px-4 py-3' : ''}`}>
           <CardTitle className={isMobile ? "text-xl" : ""}>Informations générales</CardTitle>
           <CardDescription>Détails de base de l'équipement</CardDescription>
         </CardHeader>
-        <CardContent className={isMobile ? "p-4" : "pt-4 p-6"}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+        <CardContent className={`${isMobile ? 'p-4 space-y-3' : 'pt-4 p-6'}`}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {/* Always show name as it's required */}
-            <div>
-              <h4 className="text-sm font-medium text-muted-foreground mb-1">Nom</h4>
-              <p className="text-lg font-medium">{equipment.name}</p>
+            <div className="space-y-1">
+              <h4 className="text-sm font-medium text-muted-foreground">Nom</h4>
+              <p className={`${isMobile ? 'text-base' : 'text-lg'} font-medium`}>{equipment.name}</p>
             </div>
-            
-            {/* Only show status if it exists */}
-            {hasData(equipment.status) && (
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-1">Statut</h4>
-                <Badge className={getStatusColor(equipment.status)} variant="secondary">
-                  {getStatusText(equipment.status)}
-                </Badge>
-              </div>
-            )}
             
             {/* Only show type if it exists */}
             {hasData(equipment.type) && (
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-1">Type</h4>
-                <p>{equipment.type}</p>
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium text-muted-foreground">Type</h4>
+                <p className={isMobile ? 'text-sm' : ''}>{equipment.type}</p>
               </div>
             )}
             
             {/* Only show category if it exists */}
             {hasData(equipment.category) && (
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-1">Catégorie</h4>
-                <p>{equipment.category}</p>
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium text-muted-foreground">Catégorie</h4>
+                <p className={isMobile ? 'text-sm' : ''}>{equipment.category}</p>
+              </div>
+            )}
+            
+            {/* Status moved here for mobile */}
+            {hasData(equipment.status) && (
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium text-muted-foreground">Statut</h4>
+                <Badge className={getStatusColor(equipment.status)} variant="secondary">
+                  {getStatusText(equipment.status)}
+                </Badge>
               </div>
             )}
             
@@ -75,33 +97,33 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment }) => {
             
             {/* Only show manufacturer if it exists */}
             {hasData(equipment.manufacturer) && (
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-1">Fabricant</h4>
-                <p>{equipment.manufacturer}</p>
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium text-muted-foreground">Fabricant</h4>
+                <p className={isMobile ? 'text-sm' : ''}>{equipment.manufacturer}</p>
               </div>
             )}
             
             {/* Only show model if it exists */}
             {hasData(equipment.model) && (
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-1">Modèle</h4>
-                <p>{equipment.model}</p>
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium text-muted-foreground">Modèle</h4>
+                <p className={isMobile ? 'text-sm' : ''}>{equipment.model}</p>
               </div>
             )}
             
             {/* Only show year if it exists */}
             {hasData(equipment.year) && (
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-1">Année</h4>
-                <p>{equipment.year}</p>
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium text-muted-foreground">Année</h4>
+                <p className={isMobile ? 'text-sm' : ''}>{equipment.year}</p>
               </div>
             )}
             
             {/* Only show serial number if it exists */}
             {hasData(equipment.serialNumber) && (
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-1">Numéro de série</h4>
-                <p>{equipment.serialNumber}</p>
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium text-muted-foreground">Numéro de série</h4>
+                <p className={isMobile ? 'text-sm' : ''}>{equipment.serialNumber}</p>
               </div>
             )}
             
@@ -112,17 +134,17 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment }) => {
             
             {/* Only show location if it exists */}
             {hasData(equipment.location) && (
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-1">Emplacement</h4>
-                <p>{equipment.location}</p>
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium text-muted-foreground">Emplacement</h4>
+                <p className={isMobile ? 'text-sm' : ''}>{equipment.location}</p>
               </div>
             )}
             
             {/* Only show purchase date if it exists */}
             {hasData(equipment.purchaseDate) && (
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-1">Date d'achat</h4>
-                <p>{formatDate(equipment.purchaseDate)}</p>
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium text-muted-foreground">Date d'achat</h4>
+                <p className={isMobile ? 'text-sm' : ''}>{formatDate(equipment.purchaseDate)}</p>
               </div>
             )}
           </div>
@@ -138,7 +160,7 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment }) => {
           </CardHeader>
           <CardContent className={isMobile ? "p-4" : ""}>
             <div className="prose prose-sm max-w-none mt-2">
-              <p className="whitespace-pre-wrap">{equipment.notes}</p>
+              <p className="whitespace-pre-wrap text-sm">{equipment.notes}</p>
             </div>
           </CardContent>
         </Card>
