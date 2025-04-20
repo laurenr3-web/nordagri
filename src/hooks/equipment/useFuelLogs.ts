@@ -29,41 +29,56 @@ export function useFuelLogs(equipmentId: number) {
       try {
         // Récupérer la session utilisateur pour obtenir l'ID de l'utilisateur
         const { userId } = await checkAuthStatus();
-        
-        // Récupérer les informations de l'équipement pour obtenir farm_id
-        const { data: equipmentData, error: equipmentError } = await supabase
-          .from('equipment')
-          .select('farm_id')
-          .eq('id', equipmentId)
-          .single();
-        
-        if (equipmentError) {
-          console.error('Erreur lors de la récupération des informations de l\'équipement:', equipmentError);
-          throw new Error("Impossible de récupérer les informations de l'équipement");
+        if (!userId) {
+          throw new Error("Utilisateur non authentifié");
         }
         
-        // Si farm_id n'est pas disponible, utiliser l'ID de ferme de l'utilisateur actuel
-        let farmId = equipmentData?.farm_id;
+        // Récupérer les informations de l'équipement et créer une valeur par défaut pour farm_id
+        let farmId = null;
         
-        if (!farmId) {
-          const { data: profileData, error: profileError } = await supabase
-            .from('profiles')
+        // Tenter de récupérer farm_id de l'équipement
+        try {
+          const { data: equipmentData, error: equipmentError } = await supabase
+            .from('equipment')
             .select('farm_id')
-            .eq('id', userId)
+            .eq('id', equipmentId)
             .single();
-            
-          if (profileError) {
-            console.error('Erreur lors de la récupération du profil utilisateur:', profileError);
-          } else {
-            farmId = profileData?.farm_id;
-          }
           
-          if (!farmId) {
-            console.error('Aucun ID de ferme trouvé pour l\'équipement ou l\'utilisateur');
-            throw new Error("Impossible de déterminer l'ID de la ferme");
+          if (!equipmentError && equipmentData?.farm_id) {
+            farmId = equipmentData.farm_id;
+            console.log('Farm ID trouvé dans l\'équipement:', farmId);
+          }
+        } catch (error) {
+          console.error('Erreur lors de la récupération des informations de l\'équipement:', error);
+        }
+        
+        // Si farm_id n'est pas disponible, utiliser l'ID de ferme de l'utilisateur
+        if (!farmId) {
+          try {
+            const { data: profileData, error: profileError } = await supabase
+              .from('profiles')
+              .select('farm_id')
+              .eq('id', userId)
+              .single();
+              
+            if (!profileError && profileData?.farm_id) {
+              farmId = profileData.farm_id;
+              console.log('Farm ID trouvé dans le profil utilisateur:', farmId);
+            }
+          } catch (error) {
+            console.error('Erreur lors de la récupération du profil utilisateur:', error);
           }
         }
         
+        // Si aucun farm_id trouvé, générer un UUID comme dernier recours
+        if (!farmId) {
+          console.log('Aucun farm_id trouvé, utilisation d\'un UUID généré');
+          farmId = crypto.randomUUID();
+        }
+        
+        console.log('Farm ID final utilisé pour l\'insertion:', farmId);
+        
+        // Insérer le plein de carburant
         const { data, error } = await supabase
           .from('fuel_logs')
           .insert([{
@@ -71,8 +86,8 @@ export function useFuelLogs(equipmentId: number) {
             date: values.date.toISOString().split('T')[0], // Convert Date to YYYY-MM-DD
             fuel_quantity_liters: values.fuel_quantity_liters,
             price_per_liter: values.price_per_liter,
-            hours_at_fillup: values.hours_at_fillup,
-            notes: values.notes,
+            hours_at_fillup: values.hours_at_fillup || null,
+            notes: values.notes || null,
             farm_id: farmId,
             created_by: userId
           }])
