@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EquipmentOverview } from './EquipmentOverview';
@@ -7,7 +8,6 @@ import EquipmentTimeTracking from '@/components/equipment/tabs/EquipmentTimeTrac
 import EquipmentPerformance from '@/components/equipment/tabs/EquipmentPerformance';
 import EquipmentMaintenanceHistory from '@/components/equipment/tabs/EquipmentMaintenanceHistory';
 import EquipmentQRCode from '@/components/equipment/tabs/EquipmentQRCode';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface EquipmentTabsProps {
@@ -19,8 +19,8 @@ const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment }) => {
   
   return (
     <Tabs defaultValue="overview" className="w-full">
-      <div className="w-full overflow-x-auto pb-2">
-        <TabsList className="w-full flex gap-2 whitespace-nowrap">
+      <div className="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 pb-2">
+        <TabsList className="w-full inline-flex gap-2 whitespace-nowrap">
           <TabsTrigger value="overview" className={isMobile ? "py-1 px-2 text-sm" : ""}>
             Aperçu
           </TabsTrigger>
@@ -30,22 +30,18 @@ const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment }) => {
           <TabsTrigger value="history" className={isMobile ? "py-1 px-2 text-sm" : ""}>
             Historique
           </TabsTrigger>
-          {!isMobile && (
-            <>
-              <TabsTrigger value="parts" className={isMobile ? "py-1 px-2 text-sm" : ""}>
-                Pièces
-              </TabsTrigger>
-              <TabsTrigger value="performance" className={isMobile ? "py-1 px-2 text-sm" : ""}>
-                Performance
-              </TabsTrigger>
-              <TabsTrigger value="timeTracking" className={isMobile ? "py-1 px-2 text-sm" : ""}>
-                Temps
-              </TabsTrigger>
-              <TabsTrigger value="qrcode" className={isMobile ? "py-1 px-2 text-sm" : ""}>
-                QR Code
-              </TabsTrigger>
-            </>
-          )}
+          <TabsTrigger value="parts" className={isMobile ? "py-1 px-2 text-sm" : ""}>
+            Pièces
+          </TabsTrigger>
+          <TabsTrigger value="performance" className={isMobile ? "py-1 px-2 text-sm" : ""}>
+            Performance
+          </TabsTrigger>
+          <TabsTrigger value="timeTracking" className={isMobile ? "py-1 px-2 text-sm" : ""}>
+            Temps
+          </TabsTrigger>
+          <TabsTrigger value="qrcode" className={isMobile ? "py-1 px-2 text-sm" : ""}>
+            QR Code
+          </TabsTrigger>
         </TabsList>
       </div>
 

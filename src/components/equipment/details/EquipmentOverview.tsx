@@ -18,8 +18,26 @@ export function EquipmentOverview({ equipment }: { equipment: any }) {
     return true;
   };
 
+  // Format engine hours display
+  const formatEngineHours = () => {
+    const hours = equipment.valeur_actuelle || equipment.current_hours;
+    if (!hasData(hours)) return "Non renseigné";
+    return `${hours} ${equipment.unite_d_usure === 'kilometres' ? 'km' : 'h'}`;
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* Engine Hours Card */}
+      <Card className="overflow-hidden border bg-muted/50">
+        <CardContent className="p-4">
+          <div className="text-center space-y-2">
+            <h3 className="text-sm font-medium text-muted-foreground">⏱ Heures moteur</h3>
+            <p className="text-2xl font-semibold">{formatEngineHours()}</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* General Information Card */}
       <Card className="overflow-hidden border-2 border-primary/10">
         <CardHeader className="bg-primary/10">
           <CardTitle>Informations générales</CardTitle>
@@ -125,7 +143,7 @@ export function EquipmentOverview({ equipment }: { equipment: any }) {
         <EquipmentWearDisplay equipment={equipment} />
       )}
       
-      {/* Only show notes card if notes exist */}
+      {/* Notes Card */}
       {hasData(equipment.notes) && (
         <Card className="overflow-hidden border-2 border-muted/20">
           <CardHeader className="bg-muted/10">

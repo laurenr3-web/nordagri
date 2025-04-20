@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import EquipmentHeader from '../detail/EquipmentHeader';
@@ -83,35 +82,27 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
     <div className="flex flex-col w-full max-w-[500px] mx-auto p-4 pb-16">
       <EquipmentHeader 
         equipment={localEquipment} 
-        onEdit={() => setIsEditDialogOpen(true)} 
-        onDelete={handleEquipmentDelete}
+        onEditClick={handleEditEquipment} 
+        onDeleteClick={handleEquipmentDelete}
         isDeleting={isDeleting}
       />
       
       <Separator className="my-4" />
       
       <div className="space-y-4">
-        <Card className="overflow-hidden">
-          <CardContent className="p-4">
-            <div className="space-y-4">
-              <EquipmentImageGallery 
-                equipment={localEquipment} 
-              />
-              
-              <div className="grid grid-cols-1 gap-4 mt-4">
-                <div className="space-y-2">
-                  <h3 className="text-sm font-medium text-muted-foreground">Heures moteur</h3>
-                  <p className="text-lg font-medium">
-                    {formatWearValue(localEquipment.valeur_actuelle, localEquipment.unite_d_usure || 'heures')}
-                  </p>
-                </div>
-                <EquipmentWearDisplay equipment={localEquipment} />
-              </div>
+        <Card className="overflow-hidden rounded-2xl">
+          <CardContent className="p-4 space-y-4">
+            <EquipmentImageGallery 
+              equipment={localEquipment} 
+            />
+            
+            <div className="grid grid-cols-1 gap-4 mt-4">
+              <EquipmentWearDisplay equipment={localEquipment} />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden rounded-2xl">
           <CardContent className="p-4">
             <EquipmentTabs equipment={localEquipment} />
           </CardContent>
