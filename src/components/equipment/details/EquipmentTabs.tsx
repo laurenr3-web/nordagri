@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EquipmentOverview } from './EquipmentOverview';
 import EquipmentMaintenanceStatus from './EquipmentMaintenanceStatus';
@@ -7,20 +8,51 @@ import EquipmentTimeTracking from '@/components/equipment/tabs/EquipmentTimeTrac
 import EquipmentPerformance from '@/components/equipment/tabs/EquipmentPerformance';
 import EquipmentMaintenanceHistory from '@/components/equipment/tabs/EquipmentMaintenanceHistory';
 import EquipmentQRCode from '@/components/equipment/tabs/EquipmentQRCode';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { useIsMobile } from '@/hooks/use-mobile';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+import { Menu } from 'lucide-react';
 
 interface EquipmentTabsProps {
   equipment: any;
 }
 
+const moreTabs = [
+  {
+    value: "parts",
+    label: "Pièces"
+  },
+  {
+    value: "performance",
+    label: "Performance"
+  },
+  {
+    value: "timeTracking",
+    label: "Temps"
+  },
+  {
+    value: "qrcode",
+    label: "QR Code"
+  }
+];
+
 const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment }) => {
   const isMobile = useIsMobile();
-  
+  const [tabValue, setTabValue] = useState("overview");
+
+  // Gérer le changement d'onglet (depuis tab ou menu)
+  const handleTabChange = (newValue: string) => {
+    setTabValue(newValue);
+  };
+
   return (
-    <Tabs defaultValue="overview" className="w-full">
+    <Tabs value={tabValue} onValueChange={handleTabChange} className="w-full">
       <div className="w-full overflow-x-auto pb-2">
-        <TabsList className="w-full flex gap-2 whitespace-nowrap">
+        <TabsList className="w-full flex gap-2 whitespace-nowrap items-center">
           <TabsTrigger value="overview" className={isMobile ? "py-1 px-2 text-sm" : ""}>
             Aperçu
           </TabsTrigger>
@@ -30,22 +62,33 @@ const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment }) => {
           <TabsTrigger value="history" className={isMobile ? "py-1 px-2 text-sm" : ""}>
             Historique
           </TabsTrigger>
-          {!isMobile && (
-            <>
-              <TabsTrigger value="parts" className={isMobile ? "py-1 px-2 text-sm" : ""}>
-                Pièces
-              </TabsTrigger>
-              <TabsTrigger value="performance" className={isMobile ? "py-1 px-2 text-sm" : ""}>
-                Performance
-              </TabsTrigger>
-              <TabsTrigger value="timeTracking" className={isMobile ? "py-1 px-2 text-sm" : ""}>
-                Temps
-              </TabsTrigger>
-              <TabsTrigger value="qrcode" className={isMobile ? "py-1 px-2 text-sm" : ""}>
-                QR Code
-              </TabsTrigger>
-            </>
-          )}
+          {/* Menu déroulant pour les autres onglets */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                aria-label="Plus d'onglets"
+                className="ml-1 px-2 py-1 rounded hover:bg-muted/80 focus:bg-muted bg-background border border-input flex items-center"
+                type="button"
+                tabIndex={0}
+              >
+                <Menu className="h-4 w-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" sideOffset={4} className="z-50 min-w-[7rem]">
+              {moreTabs.map(tab => (
+                <DropdownMenuItem
+                  key={tab.value}
+                  onSelect={() => handleTabChange(tab.value)}
+                  className={[
+                    "cursor-pointer",
+                    tabValue === tab.value ? "bg-muted font-semibold" : ""
+                  ].join(" ")}
+                >
+                  {tab.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </TabsList>
       </div>
 
@@ -77,3 +120,4 @@ const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment }) => {
 };
 
 export default EquipmentTabs;
+
