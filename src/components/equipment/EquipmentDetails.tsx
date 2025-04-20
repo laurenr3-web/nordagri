@@ -66,7 +66,7 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
   };
 
   return (
-    <div className="max-w-[500px] mx-auto p-4 space-y-4 overflow-x-hidden pb-16">
+    <div className="space-y-4 pb-16">
       <EquipmentHeader 
         equipment={localEquipment} 
         onEditClick={() => setIsEditDialogOpen(true)} 
@@ -75,21 +75,18 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
 
       <Separator />
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="w-full">
-          <EquipmentImageGallery equipment={localEquipment} />
-        </div>
-        <div className="w-full">
-          <EquipmentWearDisplay equipment={localEquipment} />
-        </div>
+      <div className={`grid grid-cols-1 gap-4 ${!isMobile ? 'md:grid-cols-2' : ''}`}>
+        <EquipmentImageGallery equipment={localEquipment} />
+        <EquipmentWearDisplay equipment={localEquipment} />
       </div>
       
-      <Card className="overflow-hidden">
-        <CardContent className="p-0 sm:p-4">
+      <Card>
+        <CardContent className="p-2 sm:p-4">
           <EquipmentTabs equipment={localEquipment} />
         </CardContent>
       </Card>
       
+      {/* Edit Equipment Dialog */}
       {isEditDialogOpen && (
         <EditEquipmentDialog
           isOpen={isEditDialogOpen}

@@ -2,7 +2,20 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Edit, Trash2 } from 'lucide-react';
-import { StatusBadge } from '../details/StatusBadge';
+import { Badge } from '@/components/ui/badge';
+import { getStatusText, getStatusColor } from '../utils/statusUtils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import QRCodeGenerator from '../qr/QRCodeGenerator';
 
 interface EquipmentHeaderProps {
   equipment: any;
@@ -10,42 +23,60 @@ interface EquipmentHeaderProps {
   onDeleteClick: () => void;
 }
 
-const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({
-  equipment,
-  onEditClick,
-  onDeleteClick,
-}) => {
+const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({ equipment, onEditClick, onDeleteClick }) => {
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col space-y-2">
-        <h1 className="text-xl sm:text-2xl font-bold truncate">{equipment.name}</h1>
-        <div className="flex items-center gap-2">
-          <StatusBadge status={equipment.status} />
-          <span className="text-sm text-muted-foreground">
-            {equipment.manufacturer} {equipment.model}
-          </span>
+    <div className="flex flex-col sm:flex-row justify-between gap-4">
+      <div>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold tracking-tight">{equipment.name}</h1>
+          <Badge className={getStatusColor(equipment.status)} variant="secondary">
+            {getStatusText(equipment.status)}
+          </Badge>
+        </div>
+        
+        <div className="text-muted-foreground mt-1">
+          {equipment.manufacturer && equipment.model ? (
+            <p>{equipment.manufacturer} {equipment.model} {equipment.year && `(${equipment.year})`}</p>
+          ) : (
+            <p>{equipment.type || 'Équipement'} {equipment.year && `(${equipment.year})`}</p>
+          )}
         </div>
       </div>
       
-      <div className="flex flex-wrap gap-2">
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={onEditClick}
-          className="flex-1 sm:flex-none"
-        >
-          <Edit className="h-4 w-4 mr-2" />
+      <div className="flex gap-2 self-start">
+        <QRCodeGenerator equipmentId={equipment.id} equipmentName={equipment.name} />
+        
+        <Button variant="outline" size="sm" onClick={onEditClick}>
+          <Edit className="mr-2 h-4 w-4" />
           Modifier
         </Button>
-        <Button 
-          variant="destructive" 
-          size="sm"
-          onClick={onDeleteClick}
-          className="flex-1 sm:flex-none"
-        >
-          <Trash2 className="h-4 w-4 mr-2" />
-          Supprimer
-        </Button>
+        
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" size="sm">
+              <Trash2 className="mr-2 h-4 w-4" />
+              Supprimer
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Cette action ne peut pas être annulée. Cela supprimera définitivement l'équipement 
+                "{equipment.name}" et toutes les données associées.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Annuler</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={onDeleteClick}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Supprimer
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

@@ -20,33 +20,33 @@ const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment }) => {
   
   return (
     <Tabs defaultValue="overview" className="w-full">
-      <div className="flex gap-2 overflow-x-auto whitespace-nowrap px-2 pb-2">
-        <TabsList className="flex-none">
-          <TabsTrigger value="overview" className="text-sm">
+      <ScrollArea className="w-full pb-2">
+        <TabsList className={`w-full flex justify-start mb-2 overflow-x-auto ${isMobile ? 'gap-1 px-1' : 'gap-2'}`}>
+          <TabsTrigger value="overview" className={isMobile ? "py-1 px-2 text-xs" : ""}>
             Aperçu
           </TabsTrigger>
-          <TabsTrigger value="maintenance" className="text-sm">
+          <TabsTrigger value="maintenance" className={isMobile ? "py-1 px-2 text-xs" : ""}>
             Maintenance
           </TabsTrigger>
-          <TabsTrigger value="history" className="text-sm">
+          <TabsTrigger value="history" className={isMobile ? "py-1 px-2 text-xs" : ""}>
             Historique
           </TabsTrigger>
-          <TabsTrigger value="parts" className="text-sm">
+          <TabsTrigger value="parts" className={isMobile ? "py-1 px-2 text-xs" : ""}>
             Pièces
           </TabsTrigger>
-          <TabsTrigger value="performance" className="text-sm">
+          <TabsTrigger value="performance" className={isMobile ? "py-1 px-2 text-xs" : ""}>
             Performance
           </TabsTrigger>
-          <TabsTrigger value="timeTracking" className="text-sm">
+          <TabsTrigger value="timeTracking" className={isMobile ? "py-1 px-2 text-xs" : ""}>
             Temps
           </TabsTrigger>
-          <TabsTrigger value="qrcode" className="text-sm">
+          <TabsTrigger value="qrcode" className={isMobile ? "py-1 px-2 text-xs" : ""}>
             QR Code
           </TabsTrigger>
         </TabsList>
-      </div>
+      </ScrollArea>
       
-      <div className="mt-2 px-2">
+      <div className="mt-2">
         <TabsContent value="overview">
           <EquipmentOverview equipment={equipment} />
         </TabsContent>
