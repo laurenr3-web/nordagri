@@ -150,6 +150,7 @@ const EquipmentPerformance: React.FC<EquipmentPerformanceProps> = ({ equipment }
         onOpenChange={setIsAddDialogOpen}
         onSubmit={(values) => addFuelLog.mutate(values)}
         isSubmitting={addFuelLog.isPending}
+        equipmentId={equipment.id}
       />
     </div>
   );
