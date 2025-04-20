@@ -15,7 +15,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import QRCodeGenerator from '../qr/QRCodeGenerator';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface EquipmentHeaderProps {
   equipment: any;
@@ -24,17 +24,19 @@ interface EquipmentHeaderProps {
 }
 
 const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({ equipment, onEditClick, onDeleteClick }) => {
+  const isMobile = useIsMobile();
+  
   return (
-    <div className="flex flex-col sm:flex-row justify-between gap-4">
-      <div>
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold tracking-tight">{equipment.name}</h1>
+    <div className="flex flex-col gap-4">
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{equipment.name}</h1>
           <Badge className={getStatusColor(equipment.status)} variant="secondary">
             {getStatusText(equipment.status)}
           </Badge>
         </div>
         
-        <div className="text-muted-foreground mt-1">
+        <div className="text-muted-foreground text-sm">
           {equipment.manufacturer && equipment.model ? (
             <p>{equipment.manufacturer} {equipment.model} {equipment.year && `(${equipment.year})`}</p>
           ) : (
@@ -43,17 +45,15 @@ const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({ equipment, onEditClic
         </div>
       </div>
       
-      <div className="flex gap-2 self-start">
-        <QRCodeGenerator equipmentId={equipment.id} equipmentName={equipment.name} />
-        
-        <Button variant="outline" size="sm" onClick={onEditClick}>
+      <div className="flex gap-2">
+        <Button variant="outline" size={isMobile ? "sm" : "default"} onClick={onEditClick}>
           <Edit className="mr-2 h-4 w-4" />
           Modifier
         </Button>
         
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="destructive" size="sm">
+            <Button variant="destructive" size={isMobile ? "sm" : "default"}>
               <Trash2 className="mr-2 h-4 w-4" />
               Supprimer
             </Button>

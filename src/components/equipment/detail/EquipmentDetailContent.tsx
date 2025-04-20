@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import EquipmentHeader from './EquipmentHeader';
@@ -73,30 +72,52 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
     }
   };
 
+  // Format wear value with appropriate unit
+  const formatWearValue = (value: number | null | undefined, unit: string) => {
+    if (value === null || value === undefined) return 'Non disponible';
+    return `${value} ${unit === 'heures' ? 'h' : unit === 'kilometres' ? 'km' : unit}`;
+  };
+
   return (
-    <div className="space-y-6 pb-16 px-4 md:px-6 max-w-[1400px] mx-auto">
+    <div className="flex flex-col w-full max-w-[500px] mx-auto p-4 pb-16">
       <EquipmentHeader 
         equipment={localEquipment} 
-        onEdit={handleEditEquipment}
-        onDelete={handleEquipmentDelete}
+        onEditClick={() => setIsEditDialogOpen(true)} 
+        onDeleteClick={handleEquipmentDelete}
         isDeleting={isDeleting}
       />
       
-      <Separator />
+      <Separator className="my-4" />
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-6">
-          <EquipmentImageGallery equipment={localEquipment} />
-          <EquipmentWearDisplay equipment={localEquipment} />
-        </div>
-        
-        <Card className="overflow-hidden h-fit">
-          <CardContent className="p-4 md:p-6">
+      <div className="space-y-4">
+        <Card className="overflow-hidden">
+          <CardContent className="p-4">
+            <div className="space-y-4">
+              <EquipmentImageGallery 
+                equipment={localEquipment} 
+                className="max-w-xs mx-auto rounded-lg"
+              />
+              
+              <div className="grid grid-cols-1 gap-4 mt-4">
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium text-muted-foreground">Heures moteur</h3>
+                  <p className="text-lg font-medium">
+                    {formatWearValue(localEquipment.valeur_actuelle, localEquipment.unite_d_usure || 'heures')}
+                  </p>
+                </div>
+                <EquipmentWearDisplay equipment={localEquipment} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="overflow-hidden">
+          <CardContent className="p-4">
             <EquipmentTabs equipment={localEquipment} />
           </CardContent>
         </Card>
       </div>
-      
+
       {isEditDialogOpen && (
         <EditEquipmentDialog
           isOpen={isEditDialogOpen}
