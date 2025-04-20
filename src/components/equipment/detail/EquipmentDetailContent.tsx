@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
-import EquipmentHeader from '../details/EquipmentHeader';
+import EquipmentHeader from '../detail/EquipmentHeader';
 import EditEquipmentDialog from '../dialogs/EditEquipmentDialog';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
