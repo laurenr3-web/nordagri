@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
-import EquipmentHeader from './EquipmentHeader';
+import EquipmentHeader from '../details/EquipmentHeader';
 import EditEquipmentDialog from '../dialogs/EditEquipmentDialog';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -82,8 +83,8 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
     <div className="flex flex-col w-full max-w-[500px] mx-auto p-4 pb-16">
       <EquipmentHeader 
         equipment={localEquipment} 
-        onEditClick={() => setIsEditDialogOpen(true)} 
-        onDeleteClick={handleEquipmentDelete}
+        onEdit={() => setIsEditDialogOpen(true)} 
+        onDelete={handleEquipmentDelete}
         isDeleting={isDeleting}
       />
       
@@ -95,7 +96,6 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
             <div className="space-y-4">
               <EquipmentImageGallery 
                 equipment={localEquipment} 
-                className="max-w-xs mx-auto rounded-lg"
               />
               
               <div className="grid grid-cols-1 gap-4 mt-4">
