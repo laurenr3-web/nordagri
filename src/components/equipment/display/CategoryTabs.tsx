@@ -34,7 +34,7 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
             Irrigation
           </TabsTrigger>
           <TabsTrigger value="Other">
-            Outils
+            Autre
           </TabsTrigger>
         </TabsList>
       </Tabs>

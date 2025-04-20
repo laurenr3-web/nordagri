@@ -39,12 +39,12 @@ const CategoryField: React.FC<CategoryFieldProps> = ({
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="tractor">Tracteur</SelectItem>
-                <SelectItem value="harvester">Moissonneuse</SelectItem>
-                <SelectItem value="seeder">Semoir</SelectItem>
-                <SelectItem value="sprayer">Pulvérisateur</SelectItem>
-                <SelectItem value="tool">Outil</SelectItem>
-                <SelectItem value="other">Autre</SelectItem>
+                <SelectItem value="Tractor">Tracteur</SelectItem>
+                <SelectItem value="Harvester">Moissonneuse</SelectItem>
+                <SelectItem value="Seeder">Semoir</SelectItem>
+                <SelectItem value="Sprayer">Pulvérisateur</SelectItem>
+                <SelectItem value="Irrigation">Irrigation</SelectItem>
+                <SelectItem value="Other">Autre</SelectItem>
                 {customCategories.map((category) => (
                   <SelectItem key={category} value={category}>
                     {category}

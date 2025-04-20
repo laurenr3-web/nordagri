@@ -1,4 +1,3 @@
-
 import { useState, useMemo, useCallback } from 'react';
 
 export interface EquipmentItem {
@@ -180,9 +179,17 @@ export function useEquipmentFilters(equipment: EquipmentItem[]) {
           if (!matchesSearch) return false;
         }
         
-        // Filtrage par catégorie
-        if (selectedCategory !== 'all' && item.category?.toLowerCase() !== selectedCategory.toLowerCase()) {
-          return false;
+        // Filtrage par catégorie - s'assurer que la comparaison est exacte et insensible à la casse
+        if (selectedCategory !== 'all') {
+          if (!item.type) return false;
+          
+          // Pour le débogage
+          console.log(`Comparing item type: "${item.type}" with selected category: "${selectedCategory}"`);
+          
+          // Vérification insensible à la casse
+          if (item.type.toLowerCase() !== selectedCategory.toLowerCase()) {
+            return false;
+          }
         }
         
         // Filtrage par statut
