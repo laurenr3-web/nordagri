@@ -25,6 +25,20 @@ export function useFuelLogs(equipmentId: number) {
 
   const addFuelLog = useMutation({
     mutationFn: async (values: FuelLogFormValues) => {
+      // Récupérer la session utilisateur pour obtenir l'ID de l'utilisateur
+      const { data: authData } = await supabase.auth.getSession();
+      const userId = authData.session?.user?.id;
+      
+      // Récupérer les informations de l'équipement pour obtenir farm_id
+      const { data: equipmentData, error: equipmentError } = await supabase
+        .from('equipment')
+        .select('farm_id')
+        .eq('id', equipmentId)
+        .single();
+      
+      if (equipmentError) throw equipmentError;
+      if (!equipmentData?.farm_id) throw new Error("Impossible de déterminer l'ID de la ferme");
+      
       const { data, error } = await supabase
         .from('fuel_logs')
         .insert([{
@@ -34,6 +48,8 @@ export function useFuelLogs(equipmentId: number) {
           price_per_liter: values.price_per_liter,
           hours_at_fillup: values.hours_at_fillup,
           notes: values.notes,
+          farm_id: equipmentData.farm_id,
+          created_by: userId
         }])
         .select()
         .single();
