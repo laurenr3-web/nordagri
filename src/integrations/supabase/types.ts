@@ -377,6 +377,56 @@ export type Database = {
         }
         Relationships: []
       }
+      fuel_logs: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          date: string
+          equipment_id: number | null
+          farm_id: string | null
+          fuel_quantity_liters: number
+          hours_at_fillup: number | null
+          id: string
+          notes: string | null
+          price_per_liter: number
+          total_cost: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          date: string
+          equipment_id?: number | null
+          farm_id?: string | null
+          fuel_quantity_liters: number
+          hours_at_fillup?: number | null
+          id?: string
+          notes?: string | null
+          price_per_liter: number
+          total_cost?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          date?: string
+          equipment_id?: number | null
+          farm_id?: string | null
+          fuel_quantity_liters?: number
+          hours_at_fillup?: number | null
+          id?: string
+          notes?: string | null
+          price_per_liter?: number
+          total_cost?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fuel_logs_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interventions: {
         Row: {
           active_since: string | null
@@ -672,74 +722,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      part_withdrawals: {
-        Row: {
-          created_at: string
-          equipment_id: number | null
-          farm_id: string | null
-          id: string
-          notes: string | null
-          part_id: number
-          quantity: number
-          task_id: number | null
-          withdrawn_at: string
-          withdrawn_by: string | null
-        }
-        Insert: {
-          created_at?: string
-          equipment_id?: number | null
-          farm_id?: string | null
-          id?: string
-          notes?: string | null
-          part_id: number
-          quantity: number
-          task_id?: number | null
-          withdrawn_at?: string
-          withdrawn_by?: string | null
-        }
-        Update: {
-          created_at?: string
-          equipment_id?: number | null
-          farm_id?: string | null
-          id?: string
-          notes?: string | null
-          part_id?: number
-          quantity?: number
-          task_id?: number | null
-          withdrawn_at?: string
-          withdrawn_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "part_withdrawals_equipment_id_fkey"
-            columns: ["equipment_id"]
-            isOneToOne: false
-            referencedRelation: "equipment"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "part_withdrawals_farm_id_fkey"
-            columns: ["farm_id"]
-            isOneToOne: false
-            referencedRelation: "farms"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "part_withdrawals_part_id_fkey"
-            columns: ["part_id"]
-            isOneToOne: false
-            referencedRelation: "parts_inventory"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "part_withdrawals_task_id_fkey"
-            columns: ["task_id"]
-            isOneToOne: false
-            referencedRelation: "maintenance_tasks"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       parts_inventory: {
         Row: {

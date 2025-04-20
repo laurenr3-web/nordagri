@@ -1,14 +1,31 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
+import { useFuelLogs } from '@/hooks/equipment/useFuelLogs';
+import { FuelLogDialog } from './fuel/FuelLogDialog';
+import { FuelLogsTable } from './fuel/FuelLogsTable';
+import { Plus } from 'lucide-react';
 
 interface EquipmentPerformanceProps {
   equipment: EquipmentItem;
 }
 
 const EquipmentPerformance: React.FC<EquipmentPerformanceProps> = ({ equipment }) => {
+  const {
+    fuelLogs,
+    isLoading,
+    addFuelLog,
+    isAddDialogOpen,
+    setIsAddDialogOpen
+  } = useFuelLogs(equipment.id);
+
+  // Calculate fuel statistics
+  const totalFuel = fuelLogs?.reduce((sum, log) => sum + log.fuel_quantity_liters, 0) || 0;
+  const totalCost = fuelLogs?.reduce((sum, log) => sum + log.total_cost, 0) || 0;
+  const averageCostPerHour = equipment.usage?.hours ? totalCost / equipment.usage.hours : 0;
+
   // Données fictives pour démonstration
   const performanceData = [
     { month: 'Jan', heures: 45, consommation: 350 },
@@ -21,6 +38,57 @@ const EquipmentPerformance: React.FC<EquipmentPerformanceProps> = ({ equipment }
 
   return (
     <div className="grid grid-cols-1 gap-6">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Suivi du carburant</CardTitle>
+          <Button
+            size="sm"
+            className="ml-auto"
+            onClick={() => setIsAddDialogOpen(true)}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Ajouter un plein
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-primary/10 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-muted-foreground">Consommation totale</h3>
+              <p className="text-2xl font-bold">{totalFuel.toFixed(0)} L</p>
+            </div>
+            
+            <div className="bg-green-500/10 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-muted-foreground">Coût total</h3>
+              <p className="text-2xl font-bold">{totalCost.toFixed(2)} €</p>
+            </div>
+            
+            <div className="bg-blue-500/10 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-muted-foreground">Coût horaire</h3>
+              <p className="text-2xl font-bold">{averageCostPerHour.toFixed(2)} €/h</p>
+            </div>
+            
+            <div className="bg-orange-500/10 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-muted-foreground">Dernier plein</h3>
+              <p className="text-2xl font-bold">
+                {fuelLogs?.[0]?.fuel_quantity_liters.toFixed(0) || '0'} L
+              </p>
+            </div>
+          </div>
+
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : fuelLogs?.length ? (
+            <FuelLogsTable logs={fuelLogs} />
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              Aucun plein enregistré
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Utilisation mensuelle</CardTitle>
@@ -76,6 +144,13 @@ const EquipmentPerformance: React.FC<EquipmentPerformanceProps> = ({ equipment }
           </div>
         </CardContent>
       </Card>
+
+      <FuelLogDialog
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        onSubmit={(values) => addFuelLog.mutate(values)}
+        isSubmitting={addFuelLog.isPending}
+      />
     </div>
   );
 };
