@@ -21,7 +21,9 @@ export function mapEquipmentFromDatabase(dbEquipment: any): Equipment {
     category: dbEquipment.category,
     image: dbEquipment.image,
     notes: dbEquipment.notes,
-    owner_id: dbEquipment.owner_id
+    owner_id: dbEquipment.owner_id,
+    unite_d_usure: dbEquipment.unite_d_usure || 'heures',
+    valeur_actuelle: dbEquipment.valeur_actuelle || 0
   };
 }
 
@@ -30,7 +32,7 @@ export function mapEquipmentFromDatabase(dbEquipment: any): Equipment {
  */
 export function mapEquipmentToDatabase(equipment: Omit<Equipment, 'id'> | Equipment): any {
   // Convertir les dates en ISO string pour Supabase
-  let purchaseDate = equipment.purchaseDate 
+  const purchaseDate = equipment.purchaseDate 
     ? (equipment.purchaseDate instanceof Date 
       ? equipment.purchaseDate.toISOString() 
       : new Date(equipment.purchaseDate).toISOString())
@@ -48,7 +50,10 @@ export function mapEquipmentToDatabase(equipment: Omit<Equipment, 'id'> | Equipm
     type: equipment.type,
     category: equipment.category,
     image: equipment.image,
-    notes: equipment.notes
+    notes: equipment.notes,
+    unite_d_usure: equipment.unite_d_usure || 'heures',
+    valeur_actuelle: equipment.valeur_actuelle || 0,
+    updated_at: new Date().toISOString()
   };
 
   // Add id only if it exists

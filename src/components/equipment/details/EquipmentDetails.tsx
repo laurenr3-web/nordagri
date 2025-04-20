@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Card, 
   CardContent, 
@@ -33,13 +33,13 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment }) => {
     return `${hours} h`;
   };
 
-  // Get engine hours from either engine_hours or current_hours
-  const engineHours = equipment.engine_hours ?? equipment.current_hours;
+  // Get engine hours from either engine_hours or current_hours or valeur_actuelle
+  const engineHours = equipment.engine_hours ?? equipment.current_hours ?? equipment.valeur_actuelle;
 
   return (
     <div className="space-y-4">
       {isMobile && (
-        <Card className="overflow-hidden border-2 border-muted/20">
+        <Card className="overflow-hidden border-2 border-muted/20 rounded-xl">
           <CardContent className="p-4">
             <div className="flex flex-col items-center gap-2 py-2">
               <Timer className="h-6 w-6 text-muted-foreground" />
@@ -50,7 +50,7 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment }) => {
         </Card>
       )}
 
-      <Card className="overflow-hidden border-2 border-primary/10">
+      <Card className="overflow-hidden border-2 border-primary/10 rounded-xl">
         <CardHeader className={`bg-primary/10 ${isMobile ? 'px-4 py-3' : ''}`}>
           <CardTitle className={isMobile ? "text-xl" : ""}>Informations générales</CardTitle>
           <CardDescription>Détails de base de l'équipement</CardDescription>
@@ -86,6 +86,14 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment }) => {
                 <Badge className={getStatusColor(equipment.status)} variant="secondary">
                   {getStatusText(equipment.status)}
                 </Badge>
+              </div>
+            )}
+            
+            {/* Mobile: Show engine hours */}
+            {isMobile && engineHours !== undefined && (
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium text-muted-foreground">Heures moteur</h4>
+                <p className={isMobile ? 'text-lg font-semibold' : ''}>{formatEngineHours(engineHours)}</p>
               </div>
             )}
             
@@ -153,7 +161,7 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment }) => {
       
       {/* Only show notes card if notes exist */}
       {hasData(equipment.notes) && (
-        <Card className="overflow-hidden border-2 border-muted/20">
+        <Card className="overflow-hidden border-2 border-muted/20 rounded-xl">
           <CardHeader className={`bg-muted/10 ${isMobile ? 'px-4 py-3' : ''}`}>
             <CardTitle className={isMobile ? "text-xl" : ""}>Notes</CardTitle>
             <CardDescription>Informations supplémentaires sur cet équipement</CardDescription>

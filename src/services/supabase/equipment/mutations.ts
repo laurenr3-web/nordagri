@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Equipment } from './types';
 import { mapEquipmentToDatabase, mapEquipmentFromDatabase } from './mappers';
@@ -58,6 +59,8 @@ export async function updateEquipment(equipment: Equipment): Promise<Equipment> 
       throw new Error('Le nom de l\'équipement est requis');
     }
     
+    console.log('Updating equipment with data:', equipment);
+    
     // Préparation des données pour la base de données
     const dbEquipment = {
       ...mapEquipmentToDatabase(equipment),
@@ -77,6 +80,7 @@ export async function updateEquipment(equipment: Equipment): Promise<Equipment> 
       throw error;
     }
     
+    console.log('Update successful, received data:', data);
     return mapEquipmentFromDatabase(data);
   } catch (error) {
     console.error('Error in updateEquipment:', error);

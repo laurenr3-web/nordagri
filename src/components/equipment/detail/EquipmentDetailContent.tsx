@@ -33,13 +33,25 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
 
   const handleEquipmentUpdate = async (updatedData: EquipmentItem) => {
     try {
-      await onUpdate(updatedData);
+      console.log('Starting equipment update with data:', updatedData);
+      
+      // Mise à jour locale immédiate pour l'UI
       setLocalEquipment(updatedData);
+      
+      // Appel au service de mise à jour
+      await onUpdate(updatedData);
+      
+      // Invalider le cache de requêtes pour rafraîchir les données
+      queryClient.invalidateQueries({ queryKey: ['equipment'] });
+      queryClient.invalidateQueries({ queryKey: ['equipment', updatedData.id] });
+      
       setIsEditDialogOpen(false);
       toast.success('Équipement mis à jour avec succès');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating equipment:', error);
-      toast.error('Impossible de mettre à jour cet équipement');
+      toast.error('Impossible de mettre à jour cet équipement', {
+        description: error.message || 'Une erreur s\'est produite'
+      });
     }
   };
   
@@ -83,7 +95,7 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
     <div className="flex flex-col w-full max-w-[500px] mx-auto p-4 pb-16">
       <EquipmentHeader 
         equipment={localEquipment} 
-        onEdit={() => setIsEditDialogOpen(true)} 
+        onEdit={handleEditEquipment} 
         onDelete={handleEquipmentDelete}
         isDeleting={isDeleting}
       />
@@ -91,7 +103,7 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
       <Separator className="my-4" />
       
       <div className="space-y-4">
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden rounded-xl">
           <CardContent className="p-4">
             <div className="space-y-4">
               <EquipmentImageGallery 
@@ -111,7 +123,7 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
           </CardContent>
         </Card>
 
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden rounded-xl">
           <CardContent className="p-4">
             <EquipmentTabs equipment={localEquipment} />
           </CardContent>

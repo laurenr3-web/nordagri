@@ -12,6 +12,7 @@ import NotesField from '../form/NotesField';
 import AddCategorySection from './form/AddCategorySection';
 import { equipmentFormSchema, type EquipmentFormValues, type EquipmentStatus } from '../form/equipmentFormTypes';
 import { Form } from '@/components/ui/form';
+import { WearUnitField } from '../form/WearUnitField';
 
 interface EditEquipmentDialogProps {
   isOpen: boolean;
@@ -28,22 +29,25 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
 }) => {
   const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
   const [customCategories, setCustomCategories] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   console.log('Editing equipment:', equipment);
 
   // Format equipment data for the form, ensuring purchaseDate is properly formatted
   const defaultValues: EquipmentFormValues = {
     name: equipment.name,
-    type: equipment.type,
-    manufacturer: equipment.manufacturer,
-    model: equipment.model,
-    year: equipment.year.toString(),
+    type: equipment.type || '',
+    manufacturer: equipment.manufacturer || '',
+    model: equipment.model || '',
+    year: equipment.year ? equipment.year.toString() : '',
     serialNumber: equipment.serialNumber || '',
-    status: equipment.status as EquipmentStatus,
-    location: equipment.location,
+    status: (equipment.status as EquipmentStatus) || 'operational',
+    location: equipment.location || '',
     purchaseDate: equipment.purchaseDate ? new Date(equipment.purchaseDate) : undefined,
     notes: equipment.notes || '',
-    image: equipment.image,
+    image: equipment.image || '',
+    unite_d_usure: equipment.unite_d_usure || 'heures',
+    valeur_actuelle: equipment.valeur_actuelle || 0
   };
 
   console.log('Form default values:', defaultValues);
@@ -53,8 +57,9 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
     defaultValues,
   });
 
-  const handleFormSubmit = (data: EquipmentFormValues) => {
+  const handleFormSubmit = async (data: EquipmentFormValues) => {
     try {
+      setIsSubmitting(true);
       console.log('Form submitted with values:', data);
       
       // Convert form data back to equipment object format
@@ -64,21 +69,24 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
         type: data.type,
         manufacturer: data.manufacturer,
         model: data.model,
-        year: parseInt(data.year || '0'),
+        year: data.year ? parseInt(data.year) : undefined,
         serialNumber: data.serialNumber,
         status: data.status,
         location: data.location,
         purchaseDate: data.purchaseDate,
         notes: data.notes,
         image: data.image,
+        unite_d_usure: data.unite_d_usure,
+        valeur_actuelle: data.valeur_actuelle
       };
       
       console.log('Updated equipment to be submitted:', updatedEquipment);
-      onSubmit(updatedEquipment);
-      toast.success('Equipment updated successfully');
+      await onSubmit(updatedEquipment);
     } catch (error) {
       console.error('Error updating equipment:', error);
       toast.error('Failed to update equipment');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -91,9 +99,9 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Equipment</DialogTitle>
+          <DialogTitle>Modifier l'équipement</DialogTitle>
           <DialogDescription>
-            Update the information for this equipment
+            Mettre à jour les informations de cet équipement
           </DialogDescription>
         </DialogHeader>
         
@@ -104,23 +112,34 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
                 form={form}
                 customCategories={customCategories}
                 onAddCategoryClick={() => setIsAddCategoryDialogOpen(true)}
-                language="en"
+                language="fr"
               />
               
               <AdditionalInfoFields 
                 form={form}
-                language="en"
+                language="fr"
               />
             </div>
 
+            <WearUnitField form={form} />
             <ImageField form={form} />
             <NotesField form={form} />
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => onOpenChange(false)}
+                disabled={isSubmitting}
+              >
+                Annuler
               </Button>
-              <Button type="submit">Update Equipment</Button>
+              <Button 
+                type="submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Mise à jour...' : 'Mettre à jour'}
+              </Button>
             </DialogFooter>
           </form>
         </Form>
