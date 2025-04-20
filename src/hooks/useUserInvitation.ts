@@ -12,6 +12,11 @@ export function useUserInvitation() {
   const [isLoading, setIsLoading] = useState(false);
 
   const inviteUser = async ({ email, role }: InviteUserProps) => {
+    if (!email) {
+      toast.error("L'email est requis");
+      return false;
+    }
+
     setIsLoading(true);
     try {
       // 1. Vérifier si l'utilisateur a un farm_id
