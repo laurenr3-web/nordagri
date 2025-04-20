@@ -67,6 +67,13 @@ const EquipmentPage = () => {
   const transformedEquipment: EquipmentItem[] = React.useMemo(() => {
     if (!equipment) return [];
     
+    // Log pour le débogage
+    console.log('Equipment data from API:', equipment);
+    
+    // Log des types d'équipement uniques pour le débogage
+    const uniqueTypes = new Set(equipment.map(item => item.type));
+    console.log('Available equipment types:', Array.from(uniqueTypes));
+    
     return equipment.map((item: Equipment) => ({
       id: item.id,
       name: item.name,
@@ -86,7 +93,10 @@ const EquipmentPage = () => {
            : String(item.purchaseDate))
         : '',
       usage: { hours: 0, target: 500 },
-      nextService: { type: 'Regular maintenance', due: 'In 30 days' }
+      nextService: { type: 'Regular maintenance', due: 'In 30 days' },
+      unite_d_usure: item.unite_d_usure || 'heures',
+      valeur_actuelle: item.valeur_actuelle || 0,
+      last_wear_update: item.last_wear_update || null
     }));
   }, [equipment]);
   

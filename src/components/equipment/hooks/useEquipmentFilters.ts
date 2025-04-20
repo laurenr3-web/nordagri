@@ -109,8 +109,9 @@ export const useEquipmentFilters = (equipmentData: EquipmentItem[]) => {
                            (equipment.manufacturer?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
                            (equipment.model?.toLowerCase() || '').includes(searchTerm.toLowerCase());
       
-      // Category filtering - modification ici pour filtrer par type au lieu de catégorie
-      const matchesCategory = selectedCategory === 'all' || equipment.type === selectedCategory;
+      // Category filtering - modification pour rendre la comparaison insensible à la casse
+      const matchesCategory = selectedCategory === 'all' || 
+                             (equipment.type && equipment.type.toLowerCase() === selectedCategory.toLowerCase());
       
       // Status filtering
       const matchesStatus = filters.status.length === 0 || 
