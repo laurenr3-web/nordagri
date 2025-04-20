@@ -29,7 +29,11 @@ export function useFuelLogs(equipmentId: number) {
         .from('fuel_logs')
         .insert([{
           equipment_id: equipmentId,
-          ...values,
+          date: values.date.toISOString().split('T')[0], // Convert Date to YYYY-MM-DD
+          fuel_quantity_liters: values.fuel_quantity_liters,
+          price_per_liter: values.price_per_liter,
+          hours_at_fillup: values.hours_at_fillup,
+          notes: values.notes,
         }])
         .select()
         .single();
