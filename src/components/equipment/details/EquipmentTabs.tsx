@@ -2,13 +2,13 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EquipmentOverview } from './EquipmentOverview';
+import { useIsMobile } from '@/hooks/use-mobile';
 import EquipmentMaintenanceStatus from './EquipmentMaintenanceStatus';
 import EquipmentParts from '@/components/equipment/tabs/EquipmentParts';
 import EquipmentTimeTracking from '@/components/equipment/tabs/EquipmentTimeTracking';
 import EquipmentPerformance from '@/components/equipment/tabs/EquipmentPerformance';
 import EquipmentMaintenanceHistory from '@/components/equipment/tabs/EquipmentMaintenanceHistory';
 import EquipmentQRCode from '@/components/equipment/tabs/EquipmentQRCode';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 interface EquipmentTabsProps {
   equipment: any;

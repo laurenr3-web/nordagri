@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { Timer } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -31,7 +31,10 @@ export function EquipmentOverview({ equipment }: { equipment: any }) {
       <Card className="overflow-hidden border bg-muted/50">
         <CardContent className="p-4">
           <div className="text-center space-y-2">
-            <h3 className="text-sm font-medium text-muted-foreground">⏱ Heures moteur</h3>
+            <div className="flex items-center justify-center gap-2 text-muted-foreground">
+              <Timer className="h-4 w-4" />
+              <h3 className="text-sm font-medium">Heures moteur</h3>
+            </div>
             <p className="text-2xl font-semibold">{formatEngineHours()}</p>
           </div>
         </CardContent>
