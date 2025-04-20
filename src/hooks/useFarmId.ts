@@ -55,6 +55,8 @@ export const useFarmId = (equipmentId?: number) => {
           setFarmId(profileData.farm_id);
         } else {
           console.log('Aucun farm_id trouvé');
+          // Optionnel: Ajouter un toast pour informer que le farm_id est manquant
+          toast.warning("Aucune ferme n'est associée à ce profil");
         }
       } catch (error) {
         console.error('Erreur lors de la récupération du farm_id:', error);
