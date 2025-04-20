@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 // Type pour les équipements
@@ -17,6 +16,9 @@ export interface Equipment {
   image?: string;
   notes?: string;
   owner_id?: string;
+  unite_d_usure?: string;
+  valeur_actuelle?: number;
+  last_wear_update?: string | Date;
 }
 
 // Types pour la fonctionnalité de filtrage d'équipements
