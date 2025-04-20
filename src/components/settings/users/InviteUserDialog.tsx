@@ -32,7 +32,10 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
   });
 
   const onSubmit = async (data: InviteUserFormData) => {
-    const success = await inviteUser(data);
+    const success = await inviteUser({
+      email: data.email,  // Explicitly pass email and role
+      role: data.role
+    });
     if (success) {
       reset();
       onOpenChange(false);

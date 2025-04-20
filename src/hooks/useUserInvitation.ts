@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface InviteUserProps {
-  email: string;
+  email: string;  // Make email explicitly required
   role: 'administrator' | 'employee';
 }
 
