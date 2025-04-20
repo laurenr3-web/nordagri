@@ -1,8 +1,6 @@
-
 import React, { useEffect, useState } from 'react';
-import Navbar from '@/components/layout/Navbar';
 import { useParts } from '@/hooks/useParts';
-import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
+import MainLayout from '@/ui/layouts/MainLayout';
 import PartsContainer from '@/components/parts/PartsContainer';
 import { useToast } from '@/hooks/use-toast';
 import { checkAuthStatus } from '@/utils/authUtils';
@@ -36,7 +34,6 @@ const Parts = () => {
     checkAuth();
   }, [toast]);
   
-  // Convert setCurrentView to accept a string
   const setCurrentView = (view: string) => {
     if (view === 'grid' || view === 'list') {
       partsHookData.setCurrentView(view as PartsView);
@@ -44,28 +41,22 @@ const Parts = () => {
   };
   
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
-        <Sidebar className="border-r">
-          <Navbar />
-        </Sidebar>
-        
-        <div className="flex-1 p-6">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold">Gestion des pièces</h1>
-            <p className="text-muted-foreground mt-1">
-              Gérez votre inventaire de pièces et commandez de nouvelles pièces
-            </p>
-          </div>
-          
-          <PartsContainer 
-            {...partsHookData}
-            setCurrentView={setCurrentView}
-            refetch={partsHookData.isError ? () => partsHookData.refetch() : undefined}
-          />
+    <MainLayout>
+      <div>
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold">Gestion des pièces</h1>
+          <p className="text-muted-foreground mt-1">
+            Gérez votre inventaire de pièces et commandez de nouvelles pièces
+          </p>
         </div>
+        
+        <PartsContainer 
+          {...partsHookData}
+          setCurrentView={setCurrentView}
+          refetch={partsHookData.isError ? () => partsHookData.refetch() : undefined}
+        />
       </div>
-    </SidebarProvider>
+    </MainLayout>
   );
 };
 

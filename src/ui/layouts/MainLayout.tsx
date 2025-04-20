@@ -10,15 +10,17 @@ interface MainLayoutProps {
 export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-bg-light">
+      <div className="flex min-h-screen w-full bg-background overflow-x-hidden">
         <Sidebar className="border-r border-sidebar-border bg-agri-dark">
           <SidebarContent>
             <Navbar />
           </SidebarContent>
         </Sidebar>
         
-        <div className="flex-1 w-full">
-          {children}
+        <div className="flex-1 w-full overflow-x-hidden">
+          <div className="px-4 py-6">
+            {children}
+          </div>
         </div>
       </div>
     </SidebarProvider>
