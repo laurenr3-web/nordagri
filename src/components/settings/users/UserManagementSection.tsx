@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { SettingsSection } from '../SettingsSection';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,7 @@ import { toast } from 'sonner';
 import { TeamMember } from './TeamMember';
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { InviteUserDialog } from './InviteUserDialog';
 
 interface TeamMemberType {
   id: string;
@@ -37,6 +37,9 @@ export const UserManagementSection = () => {
   const [loading, setLoading] = useState(true);
   const [farmId, setFarmId] = useState<string | null>(null);
   const [noFarmAlert, setNoFarmAlert] = useState(false);
+
+  // Add this new state for the invite dialog
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -224,7 +227,13 @@ export const UserManagementSection = () => {
           <div className="space-y-2 flex-1">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-medium">Team Members</h3>
-              <Button size="sm" onClick={() => setAddUserDialogOpen(true)} disabled={loading || !farmId}>Add User</Button>
+              <Button 
+                size="sm" 
+                onClick={() => setInviteDialogOpen(true)} 
+                disabled={loading || !farmId}
+              >
+                Add User
+              </Button>
             </div>
             {loading ? (
               <div className="text-center py-4 text-muted-foreground">Loading team members...</div>
@@ -250,6 +259,12 @@ export const UserManagementSection = () => {
           </div>
         </div>
       )}
+
+      {/* Add User Dialog */}
+      <InviteUserDialog 
+        open={inviteDialogOpen} 
+        onOpenChange={setInviteDialogOpen} 
+      />
 
       {/* Add User Dialog */}
       <Dialog open={addUserDialogOpen} onOpenChange={setAddUserDialogOpen}>
