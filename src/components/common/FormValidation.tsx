@@ -24,7 +24,7 @@ export const FormValidation: React.FC<FormValidationProps> = ({
       });
       onValidationFailed();
     }
-  }, [farmId, isSubmitting, onValidationFailed]);
+  }, [farmId, isSubmitting]); // Adding proper dependencies to prevent infinite loop
 
   if (!farmId || !isValid) {
     return null;

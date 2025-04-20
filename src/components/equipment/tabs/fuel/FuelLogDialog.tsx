@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { FormValidation } from '@/components/common/FormValidation';
 import { useFarmId } from '@/hooks/useFarmId';
+import { useCallback } from 'react';
 
 interface FuelLogDialogProps {
   open: boolean;
@@ -34,6 +35,13 @@ export function FuelLogDialog({ open, onOpenChange, onSubmit, isSubmitting, equi
   }>({});
   
   const { farmId } = useFarmId(equipmentId);
+  
+  // Memoize the validation failed handler to prevent it from causing re-renders
+  const handleValidationFailed = useCallback(() => {
+    if (open) {
+      onOpenChange(false);
+    }
+  }, [open, onOpenChange]);
 
   // Reset form when dialog opens/closes
   React.useEffect(() => {
@@ -89,7 +97,7 @@ export function FuelLogDialog({ open, onOpenChange, onSubmit, isSubmitting, equi
         isValid={validateForm()}
         farmId={farmId}
         isSubmitting={isSubmitting}
-        onValidationFailed={() => onOpenChange(false)}
+        onValidationFailed={handleValidationFailed}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
