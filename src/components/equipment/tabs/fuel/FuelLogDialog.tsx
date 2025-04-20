@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { DialogWrapper } from '@/components/ui/dialog-wrapper';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { FormValidation } from '@/components/common/FormValidation';
 import { useFarmId } from '@/hooks/useFarmId';
-import { useCallback } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 interface FuelLogDialogProps {
   open: boolean;
@@ -24,19 +25,19 @@ interface FuelLogDialogProps {
 }
 
 export function FuelLogDialog({ open, onOpenChange, onSubmit, isSubmitting, equipmentId }: FuelLogDialogProps) {
-  const [date, setDate] = React.useState<Date>(new Date());
-  const [quantity, setQuantity] = React.useState('');
-  const [price, setPrice] = React.useState('');
-  const [hours, setHours] = React.useState('');
-  const [notes, setNotes] = React.useState('');
-  const [errors, setErrors] = React.useState<{
+  const [date, setDate] = useState<Date>(new Date());
+  const [quantity, setQuantity] = useState('');
+  const [price, setPrice] = useState('');
+  const [hours, setHours] = useState('');
+  const [notes, setNotes] = useState('');
+  const [errors, setErrors] = useState<{
     quantity?: string;
     price?: string;
   }>({});
   
   const { farmId } = useFarmId(equipmentId);
   
-  // Memoize the validation failed handler to prevent it from causing re-renders
+  // Memoize the validation failed handler
   const handleValidationFailed = useCallback(() => {
     if (open) {
       onOpenChange(false);
@@ -55,7 +56,8 @@ export function FuelLogDialog({ open, onOpenChange, onSubmit, isSubmitting, equi
     }
   }, [open]);
 
-  const validateForm = (): boolean => {
+  // Memoize the form validation function to prevent it from running on every render
+  const validateForm = useCallback((): boolean => {
     const newErrors: {
       quantity?: string;
       price?: string;
@@ -71,7 +73,12 @@ export function FuelLogDialog({ open, onOpenChange, onSubmit, isSubmitting, equi
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [quantity, price]);
+  
+  // Memoize the isValid result
+  const isFormValid = useMemo(() => {
+    return validateForm();
+  }, [validateForm]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,7 +101,7 @@ export function FuelLogDialog({ open, onOpenChange, onSubmit, isSubmitting, equi
       onOpenChange={onOpenChange}
     >
       <FormValidation
-        isValid={validateForm()}
+        isValid={isFormValid}
         farmId={farmId}
         isSubmitting={isSubmitting}
         onValidationFailed={handleValidationFailed}

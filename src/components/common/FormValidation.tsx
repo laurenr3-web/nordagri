@@ -17,6 +17,7 @@ export const FormValidation: React.FC<FormValidationProps> = ({
   onValidationFailed,
   children
 }) => {
+  // Only run the effect if farm ID is missing and not already submitting
   useEffect(() => {
     if (!farmId && !isSubmitting) {
       toast.error("Impossible de soumettre le formulaire", {
@@ -24,8 +25,9 @@ export const FormValidation: React.FC<FormValidationProps> = ({
       });
       onValidationFailed();
     }
-  }, [farmId, isSubmitting]); // Adding proper dependencies to prevent infinite loop
+  }, [farmId, isSubmitting, onValidationFailed]); // Include onValidationFailed as dependency but ensure it's memoized by parent
 
+  // Only render children if farm ID exists and form is valid
   if (!farmId || !isValid) {
     return null;
   }
