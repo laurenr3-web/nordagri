@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { startOfWeek, endOfWeek } from 'date-fns';
 import { useTimeTrackingUser } from './useTimeTrackingUser';
 import { useTimeTrackingStats } from './useTimeTrackingStats';
@@ -20,6 +20,10 @@ export function useTimeTrackingData() {
   const [taskTypeFilter, setTaskTypeFilter] = useState<string | undefined>(undefined);
 
   const { userId } = useTimeTrackingUser();
+  
+  // Use useMemo to memoize and prevent unnecessary recalculations
+  const dateRangeMemo = useMemo(() => dateRange, [dateRange.from, dateRange.to]);
+  
   const { stats } = useTimeTrackingStats(userId);
   const { equipments } = useTimeTrackingEquipment();
   const { 
@@ -35,7 +39,7 @@ export function useTimeTrackingData() {
     handleResumeTimeEntry,
     handleDeleteTimeEntry,
     handleStopTimeEntry
-  } = useTimeTrackingEntries(userId, dateRange, equipmentFilter, taskTypeFilter);
+  } = useTimeTrackingEntries(userId, dateRangeMemo, equipmentFilter, taskTypeFilter);
 
   const handleStartTimeEntry = async (data: any) => {
     if (!userId) return;
@@ -67,7 +71,7 @@ export function useTimeTrackingData() {
     handleResumeTimeEntry,
     handleStopTimeEntry,
     handleDeleteTimeEntry,
-    handlePauseTimeEntry: pauseTimeEntry, // Add the missing pauseTimeEntry function
+    handlePauseTimeEntry: pauseTimeEntry,
     setIsFormOpen,
     setActiveTab,
     setDateRange,

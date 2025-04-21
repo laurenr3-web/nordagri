@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo, useMemo } from 'react';
 import { 
   startOfMonth, 
   endOfMonth, 
@@ -8,7 +8,6 @@ import {
   format,
   isSameMonth,
   isToday,
-  parseISO
 } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { DailyHours } from '@/hooks/time-tracking/useDailyHours';
@@ -21,30 +20,35 @@ interface CalendarViewProps {
   isLoading: boolean;
 }
 
-const CalendarView: React.FC<CalendarViewProps> = ({ 
+function CalendarViewComponent({ 
   month, 
   dailyHours, 
   onDateClick,
   isLoading
-}) => {
-  const monthStart = startOfMonth(month);
-  const monthEnd = endOfMonth(month);
-  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
-  
-  // Get day of week for the first day of month (0-6, 0 is Sunday)
-  const startDay = getDay(monthStart);
-  
-  // Convert Sunday-based index (0-6) to Monday-based index (0-6, where 0 is Monday)
-  // Sunday (0) becomes 6, Monday (1) becomes 0, Tuesday (2) becomes 1, etc.
-  const mondayBasedStartDay = startDay === 0 ? 6 : startDay - 1;
+}: CalendarViewProps) {
+  // Memoize calculations to prevent re-rendering
+  const { monthStart, monthEnd, days, mondayBasedStartDay, hoursMap } = useMemo(() => {
+    const monthStart = startOfMonth(month);
+    const monthEnd = endOfMonth(month);
+    const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+    
+    // Get day of week for the first day of month (0-6, 0 is Sunday)
+    const startDay = getDay(monthStart);
+    
+    // Convert Sunday-based index (0-6) to Monday-based index (0-6, where 0 is Monday)
+    // Sunday (0) becomes 6, Monday (1) becomes 0, Tuesday (2) becomes 1, etc.
+    const mondayBasedStartDay = startDay === 0 ? 6 : startDay - 1;
+    
+    // Create a lookup map for hours by date
+    const hoursMap = new Map();
+    dailyHours.forEach(day => {
+      hoursMap.set(day.date, day.hours);
+    });
+    
+    return { monthStart, monthEnd, days, mondayBasedStartDay, hoursMap };
+  }, [month, dailyHours]);
   
   const weekdays = ['Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di'];
-  
-  // Create a lookup map for hours by date
-  const hoursMap = new Map();
-  dailyHours.forEach(day => {
-    hoursMap.set(day.date, day.hours);
-  });
 
   if (isLoading) {
     return (
@@ -113,6 +117,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       </div>
     </div>
   );
-};
+}
 
-export default CalendarView;
+// Export a memoized version
+export default memo(CalendarViewComponent);

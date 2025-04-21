@@ -1,11 +1,14 @@
 
-import React from 'react';
-import { TimeTrackingButton } from './TimeTrackingButton';
+import React, { memo } from 'react';
+import { MemoizedTimeTrackingButton } from './TimeTrackingButton';
 
 interface TimeTrackerProps {
   className?: string;
 }
 
-export function TimeTracker({ className }: TimeTrackerProps) {
-  return <TimeTrackingButton position="relative" className={className} />;
+function TimeTrackerComponent({ className }: TimeTrackerProps) {
+  return <MemoizedTimeTrackingButton position="relative" className={className} />;
 }
+
+// Use memo to prevent unnecessary re-renders
+export const TimeTracker = memo(TimeTrackerComponent);

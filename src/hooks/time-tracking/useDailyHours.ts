@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { startOfMonth, endOfMonth, format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -13,13 +13,18 @@ export function useDailyHours(month: Date) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
+  // Memoize date range calculations to prevent unnecessary effects
+  const dateRange = useMemo(() => {
+    return {
+      startDate: startOfMonth(month),
+      endDate: endOfMonth(month)
+    };
+  }, [month]);
+
   useEffect(() => {
     const fetchDailyHours = async () => {
       try {
         setIsLoading(true);
-        
-        const startDate = startOfMonth(month);
-        const endDate = endOfMonth(month);
         
         const { data: sessionData } = await supabase.auth.getSession();
         if (!sessionData.session?.user) return;
@@ -35,8 +40,8 @@ export function useDailyHours(month: Date) {
             duration
           `)
           .eq('user_id', userId)
-          .gte('start_time', startDate.toISOString())
-          .lte('start_time', endDate.toISOString())
+          .gte('start_time', dateRange.startDate.toISOString())
+          .lte('start_time', dateRange.endDate.toISOString())
           .order('start_time');
           
         if (error) throw error;
@@ -80,7 +85,7 @@ export function useDailyHours(month: Date) {
     };
     
     fetchDailyHours();
-  }, [month]);
+  }, [dateRange.startDate, dateRange.endDate]);
   
   return {
     dailyHours,

@@ -70,6 +70,7 @@ export function useActiveTimeEntry() {
     fetchActiveTimeEntry();
     
     // Set up a realtime subscription to listen for changes to time_sessions
+    // We keep this subscription as it's critical for active time entries
     const channel = supabase
       .channel('time_sessions_changes')
       .on('postgres_changes', 

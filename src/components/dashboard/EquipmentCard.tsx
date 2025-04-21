@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 
@@ -21,7 +21,17 @@ interface EquipmentCardProps {
   onClick?: () => void;
 }
 
-export function EquipmentCard({ name, type, image, status, usage, nextService, className, style, onClick }: EquipmentCardProps) {
+function EquipmentCardComponent({ 
+  name, 
+  type, 
+  image, 
+  status, 
+  usage, 
+  nextService, 
+  className, 
+  style, 
+  onClick 
+}: EquipmentCardProps) {
   const getStatusClass = (status: 'operational' | 'maintenance' | 'repair') => {
     switch (status) {
       case 'operational':
@@ -99,3 +109,6 @@ export function EquipmentCard({ name, type, image, status, usage, nextService, c
     </div>
   );
 }
+
+// Export a memoized version for better performance
+export const EquipmentCard = memo(EquipmentCardComponent);

@@ -15,6 +15,7 @@ export function usePartsRealtime() {
     console.log('👂 Setting up parts realtime subscription');
 
     try {
+      // Only react to real database changes instead of using refetchInterval
       const channel = supabase
         .channel('parts-changes')
         .on(
@@ -27,23 +28,10 @@ export function usePartsRealtime() {
           async (payload) => {
             console.log('🔄 Realtime parts update received:', payload);
             
-            // Option 1: Simply invalidate the query to trigger a refetch
+            // Invalidate query to trigger a refetch on next focus
             queryClient.invalidateQueries({ queryKey: ['parts'] });
             
-            // Option 2: Update the cache directly (more advanced)
-            try {
-              const currentParts = queryClient.getQueryData(['parts']);
-              if (currentParts) {
-                // For more complex updates, we might need different handling
-                // based on the event type (INSERT, UPDATE, DELETE)
-                const freshParts = await getParts();
-                queryClient.setQueryData(['parts'], freshParts);
-              }
-            } catch (error) {
-              console.error('Error updating parts cache:', error);
-            }
-            
-            // Notify the user
+            // Notify the user about the update
             toast({
               title: "Inventaire mis à jour",
               description: "Les données des pièces ont été mises à jour",

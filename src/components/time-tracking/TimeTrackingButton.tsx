@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, memo } from 'react';
 import { cn } from '@/lib/utils';
 import { useTimeTracking } from '@/hooks/time-tracking/useTimeTracking';
 import { useTimer } from '@/hooks/time-tracking/useTimer';
@@ -14,6 +14,10 @@ interface TimeTrackingButtonProps {
   className?: string;
   position?: 'fixed' | 'relative';
 }
+
+// Create memoized components for better performance
+const MemoizedTimerDisplay = memo(TimerDisplay);
+const MemoizedTimeTrackingControls = memo(TimeTrackingControls);
 
 export function TimeTrackingButton({ 
   className, 
@@ -31,22 +35,23 @@ export function TimeTrackingButton({
   const [isFormOpen, setIsFormOpen] = useState(false);
   const duration = useTimer(activeTimeEntry);
   
-  const handleMainButtonClick = () => {
+  // Use useCallback to prevent unnecessary re-renders
+  const handleMainButtonClick = useCallback(() => {
     if (!activeTimeEntry) {
       setIsFormOpen(true);
     }
-  };
+  }, [activeTimeEntry]);
   
-  const handleStartTimeEntry = async (data: any) => {
+  const handleStartTimeEntry = useCallback(async (data: any) => {
     try {
       await startTimeEntry(data);
       setIsFormOpen(false);
     } catch (error) {
       console.error("Error starting time tracking:", error);
     }
-  };
+  }, [startTimeEntry]);
 
-  const handleStopTimeEntry = (entryId: string) => {
+  const handleStopTimeEntry = useCallback((entryId: string) => {
     try {
       // Rediriger vers la page de détail de la session au lieu de terminer directement
       navigate(`/time-tracking/detail/${entryId}`);
@@ -55,9 +60,17 @@ export function TimeTrackingButton({
       console.error("Error navigating to time entry detail:", error);
       toast.error("Impossible d'accéder à la page de clôture");
     }
-  };
+  }, [navigate]);
   
-  const getColorClass = () => {
+  const handlePauseTimeEntry = useCallback((id: string) => {
+    pauseTimeEntry(id);
+  }, [pauseTimeEntry]);
+  
+  const handleResumeTimeEntry = useCallback((id: string) => {
+    resumeTimeEntry(id);
+  }, [resumeTimeEntry]);
+  
+  const getColorClass = useCallback(() => {
     if (!activeTimeEntry) return 'bg-gray-100 text-gray-700 hover:bg-gray-200';
     
     switch (activeTimeEntry.status) {
@@ -68,7 +81,7 @@ export function TimeTrackingButton({
       default:
         return 'bg-gray-100 text-gray-700 hover:bg-gray-200';
     }
-  };
+  }, [activeTimeEntry]);
   
   return (
     <>
@@ -88,12 +101,12 @@ export function TimeTrackingButton({
         
         {activeTimeEntry && (
           <div className="flex items-center gap-2">
-            <TimerDisplay duration={duration} />
+            <MemoizedTimerDisplay duration={duration} />
             
-            <TimeTrackingControls
+            <MemoizedTimeTrackingControls
               status={activeTimeEntry.status as 'active' | 'paused'}
-              onPause={() => pauseTimeEntry(activeTimeEntry.id)}
-              onResume={() => resumeTimeEntry(activeTimeEntry.id)}
+              onPause={() => handlePauseTimeEntry(activeTimeEntry.id)}
+              onResume={() => handleResumeTimeEntry(activeTimeEntry.id)}
               onStop={() => handleStopTimeEntry(activeTimeEntry.id)}
             />
           </div>
@@ -108,3 +121,6 @@ export function TimeTrackingButton({
     </>
   );
 }
+
+// Export a memoized version
+export const MemoizedTimeTrackingButton = memo(TimeTrackingButton);

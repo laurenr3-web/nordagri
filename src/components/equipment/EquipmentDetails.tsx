@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, memo, useCallback } from 'react';
 import { Separator } from '@/components/ui/separator';
 import EditEquipmentDialog from './dialogs/EditEquipmentDialog';
 import { EquipmentItem } from './hooks/useEquipmentFilters';
@@ -18,13 +18,22 @@ interface EquipmentDetailsProps {
   onUpdate?: (updatedEquipment: any) => void;
 }
 
-const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate }) => {
+// Memoized EquipmentImageGallery component
+const MemoizedEquipmentImageGallery = memo(EquipmentImageGallery);
+
+// Memoized EquipmentWearDisplay component
+const MemoizedEquipmentWearDisplay = memo(EquipmentWearDisplay);
+
+// Memoized EquipmentTabs component
+const MemoizedEquipmentTabs = memo(EquipmentTabs);
+
+function EquipmentDetailsComponent({ equipment, onUpdate }: EquipmentDetailsProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [localEquipment, setLocalEquipment] = useState(equipment);
   const navigate = useNavigate();
   const isMobile = useMediaQuery('(max-width: 768px)');
 
-  const handleEquipmentUpdate = (updatedEquipment: any) => {
+  const handleEquipmentUpdate = useCallback((updatedEquipment: any) => {
     console.log('EquipmentDetails received updated equipment:', updatedEquipment);
     
     // Update local state first for immediate UI feedback
@@ -41,9 +50,9 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
     }
     
     setIsEditDialogOpen(false);
-  };
+  }, [onUpdate]);
 
-  const handleEquipmentDelete = async () => {
+  const handleEquipmentDelete = useCallback(async () => {
     console.log('Deleting equipment with ID:', localEquipment.id);
     
     try {
@@ -63,26 +72,30 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
       console.error('Error deleting equipment:', error);
       toast.error('Impossible de supprimer cet équipement');
     }
-  };
+  }, [localEquipment.id, localEquipment.name, navigate]);
+
+  const handleEditClick = useCallback(() => {
+    setIsEditDialogOpen(true);
+  }, []);
 
   return (
     <div className="space-y-4 pb-16">
       <EquipmentHeader 
         equipment={localEquipment} 
-        onEditClick={() => setIsEditDialogOpen(true)} 
+        onEditClick={handleEditClick} 
         onDeleteClick={handleEquipmentDelete}
       />
 
       <Separator />
       
       <div className={`grid grid-cols-1 gap-4 ${!isMobile ? 'md:grid-cols-2' : ''}`}>
-        <EquipmentImageGallery equipment={localEquipment} />
-        <EquipmentWearDisplay equipment={localEquipment} />
+        <MemoizedEquipmentImageGallery equipment={localEquipment} />
+        <MemoizedEquipmentWearDisplay equipment={localEquipment} />
       </div>
       
       <Card>
         <CardContent className="p-2 sm:p-4">
-          <EquipmentTabs equipment={localEquipment} />
+          <MemoizedEquipmentTabs equipment={localEquipment} />
         </CardContent>
       </Card>
       
@@ -97,6 +110,8 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
       )}
     </div>
   );
-};
+}
 
+// Export a memoized version
+const EquipmentDetails = memo(EquipmentDetailsComponent);
 export default EquipmentDetails;
