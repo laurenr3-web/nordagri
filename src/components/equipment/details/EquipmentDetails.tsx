@@ -25,12 +25,7 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   const handleEquipmentUpdate = (updatedEquipment: any) => {
-    console.log('EquipmentDetails received updated equipment:', updatedEquipment);
-
-    // Update local state first for immediate UI feedback
     setLocalEquipment(updatedEquipment);
-
-    // Call parent update handler if provided
     if (onUpdate) {
       try {
         onUpdate(updatedEquipment);
@@ -39,25 +34,17 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
         toast.error('Failed to update equipment on the server');
       }
     }
-
     setIsEditDialogOpen(false);
   };
 
   const handleEquipmentDelete = async () => {
-    console.log('Deleting equipment with ID:', localEquipment.id);
-
     try {
-      // Convert ID to number if it's a string
       const equipmentId = typeof localEquipment.id === 'string'
         ? parseInt(localEquipment.id, 10)
         : localEquipment.id;
 
-      // Call the deleteEquipment service
       await equipmentService.deleteEquipment(equipmentId);
-
       toast.success(`L'équipement ${localEquipment.name} a été supprimé avec succès`);
-
-      // Navigate away from the deleted equipment page
       navigate('/equipment');
     } catch (error) {
       console.error('Error deleting equipment:', error);
@@ -66,24 +53,37 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
   };
 
   return (
-    <div className="space-y-4 pb-16">
+    <div className="space-y-4 pb-8 px-2 md:px-4">
       <EquipmentHeader
         equipment={localEquipment}
         onEditClick={() => setIsEditDialogOpen(true)}
         onDeleteClick={handleEquipmentDelete}
       />
-
       <Separator />
 
-      <div className={`grid grid-cols-1 gap-4 ${!isMobile ? 'md:grid-cols-3' : ''}`}>
-        <EquipmentImageGallery equipment={localEquipment} />
-        <EquipmentWearDisplay equipment={localEquipment} />
-        <div className="md:col-span-1">
-          <EquipmentTabs equipment={localEquipment} />
+      {/* GRID: Desktop = 2 colonnes égales, Mobile = 1 colonne */}
+      <div
+        className={`grid gap-4 ${
+          isMobile ? 'grid-cols-1' : 'grid-cols-2'
+        }`}
+      >
+        <div>
+          <EquipmentImageGallery equipment={localEquipment} />
+        </div>
+        <div>
+          <EquipmentWearDisplay equipment={localEquipment} />
         </div>
       </div>
 
-      {/* Edit Equipment Dialog */}
+      {/* Onglets TOUJOURS visibles en horizontal sur desktop */}
+      <div>
+        <Card className="shadow-none border-none bg-transparent">
+          <CardContent className="p-0">
+            <EquipmentTabs equipment={localEquipment} forceDesktopTabs={!isMobile} />
+          </CardContent>
+        </Card>
+      </div>
+
       {isEditDialogOpen && (
         <EditEquipmentDialog
           isOpen={isEditDialogOpen}
@@ -97,3 +97,4 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
 };
 
 export default EquipmentDetails;
+

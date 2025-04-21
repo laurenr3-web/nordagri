@@ -20,6 +20,7 @@ import { Menu } from 'lucide-react';
 
 interface EquipmentTabsProps {
   equipment: any;
+  forceDesktopTabs?: boolean; // <-- nouvelle prop
 }
 
 const moreTabs = [
@@ -45,7 +46,8 @@ const moreTabs = [
   }
 ];
 
-const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment }) => {
+const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment, forceDesktopTabs }) => {
+  // On détecte le mobile UNIQUEMENT pour l’apparence, mais on force tab-list complet si forceDesktopTabs
   const isMobile = useIsMobile();
   const [tabValue, setTabValue] = useState("overview");
 
@@ -54,27 +56,29 @@ const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment }) => {
     setTabValue(newValue);
   };
 
+  const showDropdownMenu = !forceDesktopTabs && isMobile;
+
   return (
     <Tabs value={tabValue} onValueChange={handleTabChange} className="w-full">
       <div className={`w-full overflow-x-auto pb-2`}>
         <TabsList
           className={
-            isMobile
+            isMobile && !forceDesktopTabs
               ? "w-full flex gap-2 whitespace-nowrap items-center"
               : "w-full flex gap-4 whitespace-nowrap items-center bg-muted p-1 rounded-md"
           }
         >
-          <TabsTrigger value="overview" className={isMobile ? "py-1 px-2 text-sm" : "py-2 px-6 text-base"}>
+          <TabsTrigger value="overview" className={isMobile && !forceDesktopTabs ? "py-1 px-2 text-sm" : "py-2 px-6 text-base"}>
             Aperçu
           </TabsTrigger>
-          <TabsTrigger value="maintenance" className={isMobile ? "py-1 px-2 text-sm" : "py-2 px-6 text-base"}>
+          <TabsTrigger value="maintenance" className={isMobile && !forceDesktopTabs ? "py-1 px-2 text-sm" : "py-2 px-6 text-base"}>
             Maintenance
           </TabsTrigger>
-          <TabsTrigger value="history" className={isMobile ? "py-1 px-2 text-sm" : "py-2 px-6 text-base"}>
+          <TabsTrigger value="history" className={isMobile && !forceDesktopTabs ? "py-1 px-2 text-sm" : "py-2 px-6 text-base"}>
             Historique
           </TabsTrigger>
           {/* Menu déroulant pour les autres onglets en mobile, sinon tous visibles */}
-          {isMobile ? (
+          {showDropdownMenu ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
