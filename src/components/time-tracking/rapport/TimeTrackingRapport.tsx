@@ -15,7 +15,14 @@ import { useTopEquipment } from '@/hooks/time-tracking/useTopEquipment';
 import { TimeDistributionChart } from './TimeDistributionChart';
 import { TopEquipmentList } from './TopEquipmentList';
 import { useExportReport } from '@/hooks/time-tracking/useExportReport';
-import { startOfMonth, endOfMonth, getISOWeek, startOfWeek } from 'date-fns';
+import { 
+  startOfMonth, 
+  endOfMonth, 
+  getISOWeek, 
+  startOfWeek, 
+  subMonths, 
+  addMonths 
+} from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { isEven } from '@/utils/dateHelpers';
 import Header from './Header';
