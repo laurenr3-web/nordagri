@@ -61,12 +61,7 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
       />
       <Separator />
 
-      {/* GRID: Desktop = 2 colonnes égales, Mobile = 1 colonne */}
-      <div
-        className={`grid gap-4 ${
-          isMobile ? 'grid-cols-1' : 'grid-cols-2'
-        }`}
-      >
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <EquipmentImageGallery equipment={localEquipment} />
         </div>
@@ -75,8 +70,7 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
         </div>
       </div>
 
-      {/* Onglets TOUJOURS visibles en horizontal sur desktop */}
-      <div>
+      <div className="mt-4">
         <Card className="shadow-none border-none bg-transparent">
           <CardContent className="p-0">
             <EquipmentTabs equipment={localEquipment} forceDesktopTabs={!isMobile} />
@@ -97,4 +91,3 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipment, onUpdate
 };
 
 export default EquipmentDetails;
-

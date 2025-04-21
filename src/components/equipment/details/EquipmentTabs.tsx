@@ -20,7 +20,7 @@ import { Menu } from 'lucide-react';
 
 interface EquipmentTabsProps {
   equipment: any;
-  forceDesktopTabs?: boolean; // <-- nouvelle prop
+  forceDesktopTabs?: boolean;
 }
 
 const moreTabs = [
@@ -47,37 +47,44 @@ const moreTabs = [
 ];
 
 const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment, forceDesktopTabs }) => {
-  // On détecte le mobile UNIQUEMENT pour l’apparence, mais on force tab-list complet si forceDesktopTabs
   const isMobile = useIsMobile();
   const [tabValue, setTabValue] = useState("overview");
 
-  // Gérer le changement d'onglet (depuis tab ou menu)
   const handleTabChange = (newValue: string) => {
     setTabValue(newValue);
   };
 
   const showDropdownMenu = !forceDesktopTabs && isMobile;
-
+  
   return (
     <Tabs value={tabValue} onValueChange={handleTabChange} className="w-full">
-      <div className={`w-full overflow-x-auto pb-2`}>
-        <TabsList
+      <div className="w-full overflow-x-auto pb-2">
+        <TabsList 
           className={
             isMobile && !forceDesktopTabs
               ? "w-full flex gap-2 whitespace-nowrap items-center"
-              : "w-full flex gap-4 whitespace-nowrap items-center bg-muted p-1 rounded-md"
+              : "w-full flex gap-1 md:gap-2 whitespace-nowrap items-center bg-muted p-1 rounded-md flex-wrap"
           }
         >
-          <TabsTrigger value="overview" className={isMobile && !forceDesktopTabs ? "py-1 px-2 text-sm" : "py-2 px-6 text-base"}>
+          <TabsTrigger 
+            value="overview" 
+            className={isMobile && !forceDesktopTabs ? "py-1 px-2 text-sm" : "py-1 px-3 text-sm md:py-2 md:px-4 md:text-base"}
+          >
             Aperçu
           </TabsTrigger>
-          <TabsTrigger value="maintenance" className={isMobile && !forceDesktopTabs ? "py-1 px-2 text-sm" : "py-2 px-6 text-base"}>
+          <TabsTrigger 
+            value="maintenance" 
+            className={isMobile && !forceDesktopTabs ? "py-1 px-2 text-sm" : "py-1 px-3 text-sm md:py-2 md:px-4 md:text-base"}
+          >
             Maintenance
           </TabsTrigger>
-          <TabsTrigger value="history" className={isMobile && !forceDesktopTabs ? "py-1 px-2 text-sm" : "py-2 px-6 text-base"}>
+          <TabsTrigger 
+            value="history" 
+            className={isMobile && !forceDesktopTabs ? "py-1 px-2 text-sm" : "py-1 px-3 text-sm md:py-2 md:px-4 md:text-base"}
+          >
             Historique
           </TabsTrigger>
-          {/* Menu déroulant pour les autres onglets en mobile, sinon tous visibles */}
+          
           {showDropdownMenu ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -111,7 +118,7 @@ const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment, forceDesktopTa
                 <TabsTrigger
                   key={tab.value}
                   value={tab.value}
-                  className="py-2 px-6 text-base"
+                  className="py-1 px-3 text-sm md:py-2 md:px-4 md:text-base"
                 >
                   {tab.label}
                 </TabsTrigger>
