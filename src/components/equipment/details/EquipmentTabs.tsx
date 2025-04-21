@@ -51,44 +51,64 @@ const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment }) => {
 
   return (
     <Tabs value={tabValue} onValueChange={handleTabChange} className="w-full">
-      <div className="w-full overflow-x-auto pb-2">
-        <TabsList className="w-full flex gap-2 whitespace-nowrap items-center">
-          <TabsTrigger value="overview" className={isMobile ? "py-1 px-2 text-sm" : ""}>
+      <div className={`w-full overflow-x-auto pb-2`}>
+        <TabsList
+          className={
+            isMobile
+              ? "w-full flex gap-2 whitespace-nowrap items-center"
+              : "w-full flex gap-4 whitespace-nowrap items-center bg-muted p-1 rounded-md"
+          }
+        >
+          <TabsTrigger value="overview" className={isMobile ? "py-1 px-2 text-sm" : "py-2 px-6 text-base"}>
             Aperçu
           </TabsTrigger>
-          <TabsTrigger value="maintenance" className={isMobile ? "py-1 px-2 text-sm" : ""}>
+          <TabsTrigger value="maintenance" className={isMobile ? "py-1 px-2 text-sm" : "py-2 px-6 text-base"}>
             Maintenance
           </TabsTrigger>
-          <TabsTrigger value="history" className={isMobile ? "py-1 px-2 text-sm" : ""}>
+          <TabsTrigger value="history" className={isMobile ? "py-1 px-2 text-sm" : "py-2 px-6 text-base"}>
             Historique
           </TabsTrigger>
-          {/* Menu déroulant pour les autres onglets */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                aria-label="Plus d'onglets"
-                className="ml-1 px-2 py-1 rounded hover:bg-muted/80 focus:bg-muted bg-background border border-input flex items-center"
-                type="button"
-                tabIndex={0}
-              >
-                <Menu className="h-4 w-4" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" sideOffset={4} className="z-50 min-w-[7rem]">
+          {/* Menu déroulant pour les autres onglets en mobile, sinon tous visibles */}
+          {isMobile ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  aria-label="Plus d'onglets"
+                  className="ml-1 px-2 py-1 rounded hover:bg-muted/80 focus:bg-muted bg-background border border-input flex items-center"
+                  type="button"
+                  tabIndex={0}
+                >
+                  <Menu className="h-4 w-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" sideOffset={4} className="z-50 min-w-[7rem]">
+                {moreTabs.map(tab => (
+                  <DropdownMenuItem
+                    key={tab.value}
+                    onSelect={() => handleTabChange(tab.value)}
+                    className={[
+                      "cursor-pointer",
+                      tabValue === tab.value ? "bg-muted font-semibold" : ""
+                    ].join(" ")}
+                  >
+                    {tab.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <>
               {moreTabs.map(tab => (
-                <DropdownMenuItem
+                <TabsTrigger
                   key={tab.value}
-                  onSelect={() => handleTabChange(tab.value)}
-                  className={[
-                    "cursor-pointer",
-                    tabValue === tab.value ? "bg-muted font-semibold" : ""
-                  ].join(" ")}
+                  value={tab.value}
+                  className="py-2 px-6 text-base"
                 >
                   {tab.label}
-                </DropdownMenuItem>
+                </TabsTrigger>
               ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </>
+          )}
         </TabsList>
       </div>
 
@@ -120,4 +140,3 @@ const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment }) => {
 };
 
 export default EquipmentTabs;
-

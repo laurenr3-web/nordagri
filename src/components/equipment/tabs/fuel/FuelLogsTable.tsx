@@ -30,8 +30,8 @@ export function FuelLogsTable({ logs, onDelete, isDeletingId }: FuelLogsTablePro
           <TableRow>
             <TableHead>Date</TableHead>
             <TableHead>Quantité (L)</TableHead>
-            <TableHead>Prix/L ($)</TableHead>
-            <TableHead>Coût total ($)</TableHead>
+            <TableHead>Prix/L&nbsp;($)</TableHead>
+            <TableHead>Coût total&nbsp;($)</TableHead>
             <TableHead>Heures</TableHead>
             <TableHead>Notes</TableHead>
             {onDelete && <TableHead>Actions</TableHead>}
@@ -42,8 +42,12 @@ export function FuelLogsTable({ logs, onDelete, isDeletingId }: FuelLogsTablePro
             <TableRow key={log.id}>
               <TableCell>{format(new Date(log.date), 'dd/MM/yyyy')}</TableCell>
               <TableCell>{log.fuel_quantity_liters.toFixed(2)}</TableCell>
-              <TableCell>{log.price_per_liter.toFixed(3)}</TableCell>
-              <TableCell>{log.total_cost.toFixed(2)}</TableCell>
+              <TableCell>
+                {log.price_per_liter.toFixed(3)}&nbsp;$
+              </TableCell>
+              <TableCell>
+                {log.total_cost.toFixed(2)}&nbsp;$
+              </TableCell>
               <TableCell>{log.hours_at_fillup?.toFixed(1) || '-'}</TableCell>
               <TableCell className="max-w-xs truncate">{log.notes || '-'}</TableCell>
               {onDelete &&
