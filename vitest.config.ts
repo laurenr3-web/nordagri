@@ -9,7 +9,11 @@ export default defineConfig({
     coverage: {
       provider: 'c8',
       reporter: ['text', 'json-summary', 'html'],
-      reportsDirectory: './coverage'
+      reportsDirectory: './coverage',
+      lines: 80,
+      branches: 80,
+      functions: 80,
+      statements: 80,
     }
   },
   resolve: {
