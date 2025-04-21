@@ -43,3 +43,10 @@ export function formatDateTime(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date;
   return `${formatDate(d)} ${formatTime(d)}`;
 }
+
+/**
+ * Check if a number is even
+ */
+export function isEven(number: number): boolean {
+  return number % 2 === 0;
+}
