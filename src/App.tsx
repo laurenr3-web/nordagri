@@ -48,8 +48,9 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <RealtimeCacheProvider>
-        <AuthProvider>
-          <Router>
+        {/* Place Router BEFORE AuthProvider */}
+        <Router>
+          <AuthProvider>
             <Toaster position="top-center" richColors closeButton />
             <Routes>
               <Route path="/auth" element={<Auth />} />
@@ -63,8 +64,8 @@ function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </Router>
-        </AuthProvider>
+          </AuthProvider>
+        </Router>
       </RealtimeCacheProvider>
     </QueryClientProvider>
   );
