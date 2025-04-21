@@ -1,11 +1,13 @@
+
 import { toast } from 'sonner';
 import { timeTrackingService } from '@/services/supabase/timeTrackingService';
 import { TimeEntryTaskType } from './types';
 import { supabase } from '@/integrations/supabase/client';
 import { checkAuthStatus, checkTablePermissions } from '@/utils/authUtils';
+import { useCallback } from 'react';
 
 export function useTimeEntryOperations() {
-  const startTimeEntry = async (params: {
+  const startTimeEntry = useCallback(async (params: {
     equipment_id?: number;
     intervention_id?: number;
     task_type: TimeEntryTaskType;
@@ -50,9 +52,9 @@ export function useTimeEntryOperations() {
       });
       throw err;
     }
-  };
+  }, []);
 
-  const stopTimeEntry = async (timeEntryId: string) => {
+  const stopTimeEntry = useCallback(async (timeEntryId: string) => {
     try {
       // Log auth status for debugging
       await checkAuthStatus();
@@ -71,9 +73,9 @@ export function useTimeEntryOperations() {
       });
       throw err;
     }
-  };
+  }, []);
 
-  const pauseTimeEntry = async (timeEntryId: string) => {
+  const pauseTimeEntry = useCallback(async (timeEntryId: string) => {
     try {
       // Log auth status for debugging
       await checkAuthStatus();
@@ -92,9 +94,9 @@ export function useTimeEntryOperations() {
       });
       throw err;
     }
-  };
+  }, []);
 
-  const resumeTimeEntry = async (timeEntryId: string) => {
+  const resumeTimeEntry = useCallback(async (timeEntryId: string) => {
     try {
       // Log auth status for debugging
       await checkAuthStatus();
@@ -113,7 +115,7 @@ export function useTimeEntryOperations() {
       });
       throw err;
     }
-  };
+  }, []);
 
   return {
     startTimeEntry,

@@ -1,6 +1,5 @@
 
-import { useState } from 'react';
-import { startOfWeek, endOfWeek } from 'date-fns';
+import { useCallback } from 'react';
 import { useTimeTrackingUser } from './useTimeTrackingUser';
 import { useTimeTrackingStats } from './useTimeTrackingStats';
 import { useTimeTrackingEquipment } from './useTimeTrackingEquipment';
@@ -8,16 +7,25 @@ import { useActiveTimeTrackingSessions } from './useActiveTimeTrackingSessions';
 import { useTimeTrackingEntries } from './useTimeTrackingEntries';
 import { useTimeTracking } from './useTimeTracking';
 import { toast } from 'sonner';
+import { useTimeTrackingContext } from '@/store/TimeTrackingContext';
 
 export function useTimeTrackingData() {
-  const [activeTab, setActiveTab] = useState('list');
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [dateRange, setDateRange] = useState({
-    from: startOfWeek(new Date(), { weekStartsOn: 1 }),
-    to: endOfWeek(new Date(), { weekStartsOn: 1 })
-  });
-  const [equipmentFilter, setEquipmentFilter] = useState<number | undefined>(undefined);
-  const [taskTypeFilter, setTaskTypeFilter] = useState<string | undefined>(undefined);
+  const {
+    state: {
+      activeTab,
+      isFormOpen,
+      dateRange,
+      equipmentFilter,
+      taskTypeFilter
+    },
+    setActiveTab,
+    setIsFormOpen,
+    setDateRange,
+    setEquipmentFilter,
+    setTaskTypeFilter,
+    setEntries,
+    resetFilters
+  } = useTimeTrackingContext();
 
   const { userId } = useTimeTrackingUser();
   const { stats } = useTimeTrackingStats(userId);
@@ -34,21 +42,29 @@ export function useTimeTrackingData() {
     isLoading,
     handleResumeTimeEntry,
     handleDeleteTimeEntry,
-    handleStopTimeEntry
+    handleStopTimeEntry,
+    fetchTimeEntries
   } = useTimeTrackingEntries(userId, dateRange, equipmentFilter, taskTypeFilter);
 
-  const handleStartTimeEntry = async (data: any) => {
+  // Mise à jour des entrées dans le contexte
+  if (entries.length > 0) {
+    setEntries(entries);
+  }
+
+  const handleStartTimeEntry = useCallback(async (data: any) => {
     if (!userId) return;
     
     try {
       await startTimeEntry(data);
       setIsFormOpen(false);
       toast.success("Time session started");
+      // Rechargement des données après création
+      fetchTimeEntries();
     } catch (error) {
       console.error("Error starting time tracking:", error);
       toast.error("Could not start session");
     }
-  };
+  }, [userId, startTimeEntry, setIsFormOpen, fetchTimeEntries]);
 
   return {
     userId,
@@ -67,11 +83,12 @@ export function useTimeTrackingData() {
     handleResumeTimeEntry,
     handleStopTimeEntry,
     handleDeleteTimeEntry,
-    handlePauseTimeEntry: pauseTimeEntry, // Add the missing pauseTimeEntry function
+    handlePauseTimeEntry: pauseTimeEntry,
     setIsFormOpen,
     setActiveTab,
     setDateRange,
     setEquipmentFilter,
     setTaskTypeFilter,
+    resetFilters,
   };
 }

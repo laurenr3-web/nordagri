@@ -9,10 +9,18 @@ import { TimeTrackingFilters } from '../dashboard/TimeTrackingFilters';
 import { ActiveSessionsTable } from '../ActiveSessionsTable';
 import { TimeEntryForm } from '../TimeEntryForm';
 import { TimeTrackingTabs } from './TimeTrackingTabs';
-import { startOfWeek, endOfWeek } from 'date-fns';
 import { useTimeTrackingData } from '@/hooks/time-tracking/useTimeTrackingData';
+import { TimeTrackingProvider } from '@/store/TimeTrackingContext';
 
 export default function TimeTrackingPage() {
+  return (
+    <TimeTrackingProvider>
+      <TimeTrackingPageContent />
+    </TimeTrackingProvider>
+  );
+}
+
+function TimeTrackingPageContent() {
   const {
     userId,
     entries,
@@ -36,6 +44,7 @@ export default function TimeTrackingPage() {
     setEquipmentFilter,
     taskTypeFilter,
     setTaskTypeFilter,
+    resetFilters,
   } = useTimeTrackingData();
 
   return (
@@ -74,14 +83,7 @@ export default function TimeTrackingPage() {
               }}
               onEquipmentChange={setEquipmentFilter}
               onTaskTypeChange={setTaskTypeFilter}
-              onReset={() => {
-                setDateRange({
-                  from: startOfWeek(new Date(), { weekStartsOn: 1 }),
-                  to: endOfWeek(new Date(), { weekStartsOn: 1 })
-                });
-                setEquipmentFilter(undefined);
-                setTaskTypeFilter(undefined);
-              }}
+              onReset={resetFilters}
             />
             
             <ActiveSessionsTable
