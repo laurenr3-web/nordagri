@@ -1143,6 +1143,10 @@ export type Database = {
       }
     }
     Functions: {
+      current_user_farm_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       generate_db_documentation: {
         Args: Record<PropertyKey, never>
         Returns: string
