@@ -1,7 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Calendar, FileText } from 'lucide-react';
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, getISOWeek, startOfWeek } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import { 
   Card, 
   CardContent,
@@ -9,7 +6,6 @@ import {
   CardHeader,
   CardTitle 
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import CalendarView from './CalendarView';
 import ReportModal from './ReportModal';
 import { useDailyHours } from '@/hooks/time-tracking/useDailyHours';
@@ -19,9 +15,13 @@ import { useTopEquipment } from '@/hooks/time-tracking/useTopEquipment';
 import { TimeDistributionChart } from './TimeDistributionChart';
 import { TopEquipmentList } from './TopEquipmentList';
 import { useExportReport } from '@/hooks/time-tracking/useExportReport';
-import { Progress } from '@/components/ui/progress';
+import { startOfMonth, endOfMonth, getISOWeek, startOfWeek } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { isEven } from '@/utils/dateHelpers';
+import Header from './Header';
+import MonthSelector from './MonthSelector';
+import HoursSummary from './HoursSummary';
+import PayPeriodSummary from './PayPeriodSummary';
 
 const TimeTrackingRapport: React.FC = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -171,77 +171,11 @@ const TimeTrackingRapport: React.FC = () => {
   return (
     <div className="flex flex-col space-y-6 py-4">
       {/* Header */}
-      <div className="flex flex-col space-y-2">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-lg font-semibold">NordAgri</h2>
-            <p className="text-sm text-muted-foreground">Plateforme de gestion agricole</p>
-          </div>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="flex items-center gap-1" 
-              onClick={() => handleExport('pdf')}
-              disabled={isExporting}
-            >
-              <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Exporter</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => handleExport('excel')}
-              disabled={isExporting}
-            >
-              <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Excel</span>
-            </Button>
-          </div>
-        </div>
-
-        {/* Month Selector */}
-        <div className="flex items-center justify-between bg-muted/50 rounded-md px-3 py-2">
-          <Button variant="ghost" size="sm" onClick={handlePreviousMonth}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex items-center">
-            <Calendar className="h-4 w-4 mr-2" />
-            <span className="font-medium">
-              {format(currentMonth, 'MMMM yyyy', { locale: fr })}
-            </span>
-          </div>
-          <Button variant="ghost" size="sm" onClick={handleNextMonth}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-      
+      <Header isExporting={isExporting} onExport={handleExport} />
+      {/* Month Selector */}
+      <MonthSelector currentMonth={currentMonth} onPrevious={handlePreviousMonth} onNext={handleNextMonth} />
       {/* Hours Summary */}
-      <div className="grid grid-cols-3 gap-2">
-        <Card className="bg-blue-50">
-          <CardContent className="p-3">
-            <p className="text-xs text-muted-foreground">Aujourd'hui</p>
-            <h3 className="text-xl font-bold">{summary?.today.toFixed(1)} h</h3>
-            <Progress value={summary?.todayPercentage || 0} className="h-1 mt-1" />
-          </CardContent>
-        </Card>
-        <Card className="bg-green-50">
-          <CardContent className="p-3">
-            <p className="text-xs text-muted-foreground">Cette semaine</p>
-            <h3 className="text-xl font-bold">{summary?.week.toFixed(1)} h</h3>
-            <Progress value={summary?.weekPercentage || 0} className="h-1 mt-1" />
-          </CardContent>
-        </Card>
-        <Card className="bg-purple-50">
-          <CardContent className="p-3">
-            <p className="text-xs text-muted-foreground">Ce mois</p>
-            <h3 className="text-xl font-bold">{summary?.month.toFixed(1)} h</h3>
-            <Progress value={summary?.monthPercentage || 0} className="h-1 mt-1" />
-          </CardContent>
-        </Card>
-      </div>
-      
+      <HoursSummary summary={summary} />
       {/* Calendar */}
       <Card>
         <CardHeader className="pb-2">
@@ -257,7 +191,6 @@ const TimeTrackingRapport: React.FC = () => {
           />
         </CardContent>
       </Card>
-      
       {/* Task Type Distribution */}
       <Card>
         <CardHeader className="pb-2">
@@ -267,7 +200,6 @@ const TimeTrackingRapport: React.FC = () => {
           <TimeDistributionChart data={distribution} isLoading={isDistributionLoading} />
         </CardContent>
       </Card>
-      
       {/* Top Equipment */}
       <Card>
         <CardHeader className="pb-2">
@@ -277,34 +209,12 @@ const TimeTrackingRapport: React.FC = () => {
           <TopEquipmentList data={equipment} isLoading={isEquipmentLoading} />
         </CardContent>
       </Card>
-      
-      {/* Pay Period Summary - Updated implementation */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Période de paie</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Mensuelle</p>
-              {isLoadingPayPeriod ? (
-                <p className="text-lg font-medium">Chargement...</p>
-              ) : (
-                <p className="text-lg font-medium">{payPeriodStats.monthly.toFixed(1)} heures</p>
-              )}
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Bi-hebdomadaire</p>
-              {isLoadingPayPeriod ? (
-                <p className="text-lg font-medium">Chargement...</p>
-              ) : (
-                <p className="text-lg font-medium">{payPeriodStats.biWeekly.toFixed(1)} heures</p>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
+      {/* Pay Period Summary */}
+      <PayPeriodSummary 
+        isLoading={isLoadingPayPeriod}
+        monthly={payPeriodStats.monthly}
+        biWeekly={payPeriodStats.biWeekly}
+      />
       {/* Modal for day details */}
       {selectedDate && (
         <ReportModal 
