@@ -1,16 +1,16 @@
 
 import React, { useState } from 'react';
 import { Separator } from '@/components/ui/separator';
-import EditEquipmentDialog from './dialogs/EditEquipmentDialog';
-import { EquipmentItem } from './hooks/useEquipmentFilters';
-import EquipmentHeader from './details/EquipmentHeader';
+import EditEquipmentDialog from '../dialogs/EditEquipmentDialog';
+import { EquipmentItem } from '@/components/equipment/hooks/useEquipmentFilters';
+import EquipmentHeader from '@/components/equipment/details/EquipmentHeader';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { equipmentService } from '@/services/supabase/equipmentService';
-import EquipmentImageGallery from './details/EquipmentImageGallery';
+import EquipmentImageGallery from '@/components/equipment/details/EquipmentImageGallery';
 import { Card, CardContent } from '@/components/ui/card';
-import { EquipmentWearDisplay } from './wear/EquipmentWearDisplay';
-import EquipmentTabs from './details/EquipmentTabs';
+import { EquipmentWearDisplay } from '@/components/equipment/wear/EquipmentWearDisplay';
+import EquipmentTabs from '@/components/equipment/details/EquipmentTabs';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 interface EquipmentDetailsProps {
