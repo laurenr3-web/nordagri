@@ -31,8 +31,12 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const monthEnd = endOfMonth(month);
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
   
-  // Get first day of month (0-6, 0 is Sunday)
+  // Get day of week for the first day of month (0-6, 0 is Sunday)
   const startDay = getDay(monthStart);
+  
+  // Convert Sunday-based index (0-6) to Monday-based index (0-6, where 0 is Monday)
+  // Sunday (0) becomes 6, Monday (1) becomes 0, Tuesday (2) becomes 1, etc.
+  const mondayBasedStartDay = startDay === 0 ? 6 : startDay - 1;
   
   const weekdays = ['Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di'];
   
@@ -75,7 +79,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       {/* Calendar grid */}
       <div className="grid grid-cols-7 gap-1">
         {/* Empty cells for days before the month starts */}
-        {Array.from({ length: startDay }).map((_, index) => (
+        {Array.from({ length: mondayBasedStartDay }).map((_, index) => (
           <div key={`empty-start-${index}`} className="h-10" />
         ))}
         
