@@ -1,73 +1,100 @@
 
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { Toaster } from 'sonner';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
+import { ThemeProvider } from '@/components/theme-provider';
+import { Toaster } from '@/components/ui/sonner';
+import { RealtimeCacheProvider } from '@/providers/RealtimeCacheProvider';
+import { AuthProvider } from '@/providers/AuthProvider';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import MobileMenu from '@/components/layout/MobileMenu';
 
-// Import existing pages rather than missing ones
-import Dashboard from './pages/Dashboard';
-import Equipment from './pages/Equipment';
-import EquipmentDetail from './pages/EquipmentDetail';
-import Maintenance from './pages/Maintenance';
-import Parts from './pages/Parts';
-import Settings from './pages/Settings';
-import Auth from './pages/Auth';
-import NotFound from './pages/NotFound';
-import TimeTracking from './pages/TimeTracking';
+// Pages
+import Index from '@/pages/Index';
+import Equipment from '@/pages/Equipment';
+import EquipmentDetail from '@/pages/EquipmentDetail';
+import Maintenance from '@/pages/Maintenance';
+import Parts from '@/pages/Parts';
+import Interventions from '@/pages/Interventions';
+import Dashboard from '@/pages/Dashboard';
+import Settings from '@/pages/Settings';
+import NotFound from '@/pages/NotFound';
+import Auth from '@/pages/Auth';
+import ScanRedirect from '@/pages/ScanRedirect';
+import TimeTracking from '@/pages/TimeTracking';
+import TimeEntryDetail from '@/pages/TimeEntryDetail';
 
-// Use existing providers and components
-import { AuthProvider } from './providers/AuthProvider';
-import { RealtimeCacheProvider } from './providers/RealtimeCacheProvider';
-import useDataInitialization from './hooks/useDataInitialization';
-
-// Create a new QueryClient instance
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 30, // 30 minutes
-      refetchOnWindowFocus: false,
-      retry: 2,
-    },
-  },
-});
+// Create a client
+const queryClient = new QueryClient();
 
 function App() {
-  // Initialize data and migrations
-  const { isLoading: isDataInitializing, error: dataInitError } = useDataInitialization();
-
-  // You might want to show a loading state while migrations are being applied
-  if (isDataInitializing) {
-    return <div className="p-8 text-center">Initializing application...</div>;
-  }
-
-  if (dataInitError) {
-    return <div className="p-8 text-center text-red-500">Error initializing application: {dataInitError.message}</div>;
-  }
-
   return (
-    <QueryClientProvider client={queryClient}>
-      <RealtimeCacheProvider>
-        {/* Place Router BEFORE AuthProvider */}
-        <Router>
-          <AuthProvider>
-            <Toaster position="top-center" richColors closeButton />
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/equipment" element={<Equipment />} />
-              <Route path="/equipment/:id" element={<EquipmentDetail />} />
-              <Route path="/maintenance" element={<Maintenance />} />
-              <Route path="/parts" element={<Parts />} />
-              <Route path="/time-tracking" element={<TimeTracking />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AuthProvider>
-        </Router>
-      </RealtimeCacheProvider>
-    </QueryClientProvider>
+    <ThemeProvider defaultTheme="light" storageKey="agri-erp-theme">
+      <QueryClientProvider client={queryClient}>
+        <RealtimeCacheProvider>
+          <Router>
+            <AuthProvider>
+              <Routes>
+                {/* Redirect root to dashboard if authenticated, otherwise to auth */}
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/auth" element={<Auth />} />
+                
+                {/* Protected routes */}
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/equipment" element={
+                  <ProtectedRoute>
+                    <Equipment />
+                  </ProtectedRoute>
+                } />
+                <Route path="/equipment/:id" element={
+                  <ProtectedRoute>
+                    <EquipmentDetail />
+                  </ProtectedRoute>
+                } />
+                <Route path="/maintenance" element={
+                  <ProtectedRoute>
+                    <Maintenance />
+                  </ProtectedRoute>
+                } />
+                <Route path="/parts" element={
+                  <ProtectedRoute>
+                    <Parts />
+                  </ProtectedRoute>
+                } />
+                <Route path="/interventions" element={
+                  <ProtectedRoute>
+                    <Interventions />
+                  </ProtectedRoute>
+                } />
+                <Route path="/settings" element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                } />
+                <Route path="/time-tracking" element={
+                  <ProtectedRoute>
+                    <TimeTracking />
+                  </ProtectedRoute>
+                } />
+                <Route path="/time-tracking/detail/:id" element={
+                  <ProtectedRoute>
+                    <TimeEntryDetail />
+                  </ProtectedRoute>
+                } />
+                {/* Route pour le scan de QR code */}
+                <Route path="/scan/:id" element={<ScanRedirect />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <MobileMenu />
+              <Toaster />
+            </AuthProvider>
+          </Router>
+        </RealtimeCacheProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 

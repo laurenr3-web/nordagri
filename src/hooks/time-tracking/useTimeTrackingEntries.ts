@@ -1,10 +1,9 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { TimeEntry } from './types';
 import { timeTrackingService } from '@/services/supabase/timeTrackingService';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 
 export function useTimeTrackingEntries(
   userId: string | null,
@@ -16,7 +15,7 @@ export function useTimeTrackingEntries(
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchTimeEntries = useCallback(async () => {
+  const fetchTimeEntries = async () => {
     if (!userId) return;
     
     setIsLoading(true);
@@ -36,9 +35,9 @@ export function useTimeTrackingEntries(
     } finally {
       setIsLoading(false);
     }
-  }, [userId, dateRange, equipmentFilter, taskTypeFilter]);
+  };
 
-  const handleResumeTimeEntry = useCallback(async (entryId: string) => {
+  const handleResumeTimeEntry = async (entryId: string) => {
     try {
       await timeTrackingService.resumeTimeEntry(entryId);
       toast.success("Session resumed");
@@ -47,9 +46,9 @@ export function useTimeTrackingEntries(
       console.error("Error resuming time tracking:", error);
       toast.error("Could not resume session");
     }
-  }, [fetchTimeEntries]);
+  };
 
-  const handleDeleteTimeEntry = useCallback(async (entryId: string) => {
+  const handleDeleteTimeEntry = async (entryId: string) => {
     try {
       await timeTrackingService.deleteTimeEntry(entryId);
       toast.success("Session deleted");
@@ -58,9 +57,9 @@ export function useTimeTrackingEntries(
       console.error("Error deleting time entry:", error);
       toast.error("Could not delete session");
     }
-  }, [fetchTimeEntries]);
+  };
 
-  const handleStopTimeEntry = useCallback(async (entryId: string) => {
+  const handleStopTimeEntry = async (entryId: string) => {
     try {
       navigate(`/time-tracking/detail/${entryId}`);
       toast.info("Accès à la page de clôture de la session");
@@ -68,37 +67,13 @@ export function useTimeTrackingEntries(
       console.error("Error navigating to time entry detail:", error);
       toast.error("Impossible d'accéder à la page de clôture");
     }
-  }, [navigate]);
+  };
 
   useEffect(() => {
     if (userId) {
       fetchTimeEntries();
     }
-  }, [userId, fetchTimeEntries]);
-
-  // Écouter les changements des sessions en temps réel au lieu d'utiliser refetchInterval
-  useEffect(() => {
-    if (!userId) return;
-
-    const channel = supabase
-      .channel('time_entries_changes')
-      .on('postgres_changes', 
-        {
-          event: '*',
-          schema: 'public',
-          table: 'time_sessions',
-          filter: `user_id=eq.${userId}`
-        }, 
-        () => {
-          fetchTimeEntries();
-        }
-      )
-      .subscribe();
-    
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userId, fetchTimeEntries]);
+  }, [userId, dateRange, equipmentFilter, taskTypeFilter]);
 
   return {
     entries,

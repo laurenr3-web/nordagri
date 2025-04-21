@@ -10,7 +10,7 @@ import { fetchUserProfile } from './useProfileData';
  */
 export function useAuthHandlers() {
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate(); // This hook will now be used in the Router context
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   /**

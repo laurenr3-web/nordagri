@@ -1,5 +1,5 @@
 
-import React, { memo } from 'react';
+import React from 'react';
 import { 
   startOfMonth, 
   endOfMonth, 
@@ -21,7 +21,7 @@ interface CalendarViewProps {
   isLoading: boolean;
 }
 
-const CalendarView: React.FC<CalendarViewProps> = memo(({ 
+const CalendarView: React.FC<CalendarViewProps> = ({ 
   month, 
   dailyHours, 
   onDateClick,
@@ -41,13 +41,10 @@ const CalendarView: React.FC<CalendarViewProps> = memo(({
   const weekdays = ['Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di'];
   
   // Create a lookup map for hours by date
-  const hoursMap = React.useMemo(() => {
-    const map = new Map();
-    dailyHours.forEach(day => {
-      map.set(day.date, day.hours);
-    });
-    return map;
-  }, [dailyHours]);
+  const hoursMap = new Map();
+  dailyHours.forEach(day => {
+    hoursMap.set(day.date, day.hours);
+  });
 
   if (isLoading) {
     return (
@@ -116,8 +113,6 @@ const CalendarView: React.FC<CalendarViewProps> = memo(({
       </div>
     </div>
   );
-});
-
-CalendarView.displayName = 'CalendarView';
+};
 
 export default CalendarView;
