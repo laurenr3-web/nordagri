@@ -39,17 +39,8 @@ export function RealtimeCacheProvider({ children }: RealtimeCacheProviderProps) 
 
   // Initialiser l'application et les réglages du cache
   useEffect(() => {
-    // Configurer les paramètres globaux du cache
-    queryClient.setDefaultOptions({
-      queries: {
-        staleTime: 1000 * 60 * 5, // 5 minutes
-        gcTime: 1000 * 60 * 30, // 30 minutes (anciennement cacheTime)
-        refetchOnWindowFocus: false, // Désactivé pour réduire les rechargements inutiles
-        refetchOnReconnect: true,
-        retry: 2, // Moins de tentatives pour éviter de surcharger
-        refetchInterval: false, // Désactiver le refetch automatique
-      },
-    });
+    // We don't need to set default options here anymore since it's done in App.tsx
+    // This avoids duplicate configuration
     
     // Simuler un temps d'initialisation
     const timer = setTimeout(() => {
