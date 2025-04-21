@@ -27,10 +27,7 @@ export const FormValidation: React.FC<FormValidationProps> = ({
     }
   }, [farmId, isSubmitting, onValidationFailed]);
 
-  // Still render children even if farm ID is missing, only prevent submission
-  if (!isValid) {
-    return null;
-  }
-
+  // Still render children regardless of farm ID status
+  // We'll handle the submission prevention in the parent component
   return <>{children}</>;
-};
+}

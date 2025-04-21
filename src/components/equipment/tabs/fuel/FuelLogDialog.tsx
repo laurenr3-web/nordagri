@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { FormValidation } from '@/components/common/FormValidation';
 import { useFarmId } from '@/hooks/useFarmId';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 interface FuelLogDialogProps {
   open: boolean;
@@ -44,7 +44,7 @@ export function FuelLogDialog({ open, onOpenChange, onSubmit, isSubmitting, equi
   }, []);
 
   // Reset form when dialog opens/closes
-  React.useEffect(() => {
+  useEffect(() => {
     if (open) {
       setDate(new Date());
       setQuantity('');
@@ -81,7 +81,7 @@ export function FuelLogDialog({ open, onOpenChange, onSubmit, isSubmitting, equi
   }, [validateForm]);
 
   // Debug utility to help track farm ID issues
-  React.useEffect(() => {
+  useEffect(() => {
     if (open) {
       console.log('FuelLogDialog opened with equipmentId:', equipmentId);
       console.log('Current farmId:', farmId);
@@ -133,13 +133,13 @@ export function FuelLogDialog({ open, onOpenChange, onSubmit, isSubmitting, equi
       open={open}
       onOpenChange={onOpenChange}
     >
-      <FormValidation
-        isValid={isFormValid}
-        farmId={farmId}
-        isSubmitting={attemptingSubmit}
-        onValidationFailed={handleValidationFailed}
-      >
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <FormValidation
+          isValid={isFormValid}
+          farmId={farmId}
+          isSubmitting={attemptingSubmit}
+          onValidationFailed={handleValidationFailed}
+        >
           <div className="space-y-2">
             <Label htmlFor="fuel-date">Date <span className="text-red-500">*</span></Label>
             <Popover>
@@ -241,14 +241,14 @@ export function FuelLogDialog({ open, onOpenChange, onSubmit, isSubmitting, equi
             </Button>
             <Button 
               type="submit" 
-              disabled={isSubmitting}
+              disabled={isSubmitting || isFarmIdLoading || !farmId}
               className="w-full sm:w-auto order-1 sm:order-2"
             >
               {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
             </Button>
           </div>
-        </form>
-      </FormValidation>
+        </FormValidation>
+      </form>
     </DialogWrapper>
   );
 }

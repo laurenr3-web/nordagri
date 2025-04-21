@@ -65,14 +65,20 @@ export function useFuelLogs(equipmentId: number) {
       setIsAddDialogOpen(false);
     },
     onError: (error: Error) => {
-      const errorMessage = error.message === "La ferme n'a pas pu être identifiée"
-        ? "Impossible d'enregistrer le plein : la ferme n'a pas pu être identifiée"
-        : "Erreur lors de l'enregistrement du plein";
-      
-      toast.error(errorMessage, {
-        description: error.message
-      });
       console.error('Error adding fuel log:', error);
+      
+      let errorMessage = "Erreur lors de l'enregistrement du plein";
+      let description = error.message;
+      
+      if (error.message === "La ferme n'a pas pu être identifiée") {
+        errorMessage = "Impossible d'enregistrer le plein";
+        description = "La ferme n'a pas pu être identifiée. Veuillez réessayer plus tard.";
+      } else if (error.message.includes("violates foreign key constraint")) {
+        errorMessage = "Erreur de référence";
+        description = "Une erreur est survenue avec la référence à l'équipement ou à la ferme.";
+      }
+      
+      toast.error(errorMessage, { description });
     },
   });
 

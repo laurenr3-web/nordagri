@@ -10,7 +10,7 @@ export const useFarmId = (equipmentId?: number) => {
   useEffect(() => {
     const fetchFarmId = async () => {
       try {
-        // 1. D'abord, essayer de récupérer via l'équipement si disponible
+        // First attempt: Try to get farm_id from equipment if available
         if (equipmentId) {
           console.log('Tentative de récupération du farm_id depuis l\'équipement:', equipmentId);
           const { data: equipmentData, error: equipmentError } = await supabase
@@ -27,11 +27,12 @@ export const useFarmId = (equipmentId?: number) => {
           }
         }
 
-        // 2. Sinon, essayer via le profil utilisateur
+        // Second attempt: Try via user profile
         const { data: { user }, error: authError } = await supabase.auth.getUser();
         
         if (authError || !user) {
           console.error('Erreur auth:', authError);
+          toast.error("Erreur d'authentification");
           setIsLoading(false);
           return;
         }
@@ -43,53 +44,82 @@ export const useFarmId = (equipmentId?: number) => {
           .eq('id', user.id)
           .single();
 
-        if (profileError) {
+        if (profileError && profileError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
           console.error('Erreur profil:', profileError);
+          toast.error("Erreur lors de la récupération du profil");
           setIsLoading(false);
           return;
         }
 
+        // If farm_id found in profile, use it
         if (profileData?.farm_id) {
           console.log('Farm ID trouvé via profil:', profileData.farm_id);
           setFarmId(profileData.farm_id);
-        } else {
-          console.log('Aucun farm_id trouvé dans le profil, création d\'un identifiant par défaut');
+          setIsLoading(false);
+          return;
+        }
+
+        // Third attempt: Create a new farm and update profile
+        console.log('Aucun farm_id trouvé dans le profil, création d\'une ferme par défaut');
+        
+        // Create a new farm 
+        const { data: newFarm, error: farmError } = await supabase
+          .from('farms')
+          .insert({
+            name: 'Ma Ferme',
+            owner_id: user.id
+          })
+          .select('id')
+          .single();
+        
+        if (farmError) {
+          console.error('Erreur lors de la création de la ferme:', farmError);
+          toast.error("Erreur lors de la création de la ferme");
+          setIsLoading(false);
+          return;
+        }
+
+        if (newFarm?.id) {
+          console.log('Nouvelle ferme créée avec ID:', newFarm.id);
           
-          // 3. Si aucune ferme n'est associée, utiliser une valeur par défaut pour éviter les blocages d'interface
-          const defaultFarmId = user.id; // Utiliser l'ID utilisateur comme ID de ferme par défaut
-          setFarmId(defaultFarmId);
-          
-          // Option: créer automatiquement une ferme pour cet utilisateur
-          const { data: newFarm, error: farmError } = await supabase
-            .from('farms')
-            .insert({
-              name: 'Ma Ferme',
-              owner_id: user.id
-            })
-            .select('id')
-            .single();
-          
-          if (!farmError && newFarm?.id) {
-            console.log('Nouvelle ferme créée avec ID:', newFarm.id);
+          // Update profile with new farm_id
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .upsert({ 
+              id: user.id,
+              farm_id: newFarm.id 
+            });
             
-            // Mettre à jour le profil avec le nouveau farm_id
-            await supabase
-              .from('profiles')
-              .update({ farm_id: newFarm.id })
-              .eq('id', user.id);
+          if (updateError) {
+            console.error('Erreur lors de la mise à jour du profil:', updateError);
+          }
               
-            setFarmId(newFarm.id);
+          setFarmId(newFarm.id);
+          setIsLoading(false);
+          
+          // If equipmentId is provided, also update the equipment with the new farm_id
+          if (equipmentId) {
+            const { error: equipUpdateError } = await supabase
+              .from('equipment')
+              .update({ farm_id: newFarm.id })
+              .eq('id', equipmentId);
+              
+            if (equipUpdateError) {
+              console.error('Erreur lors de la mise à jour de l\'équipement:', equipUpdateError);
+            }
           }
         }
       } catch (error) {
         console.error('Erreur lors de la récupération du farm_id:', error);
-      } finally {
+        toast.error("Une erreur inattendue s'est produite");
         setIsLoading(false);
       }
     };
 
-    fetchFarmId();
-  }, [equipmentId]);
+    if (isLoading) {
+      fetchFarmId();
+    }
+  }, [equipmentId, isLoading]);
 
   return { farmId, isLoading };
 };
