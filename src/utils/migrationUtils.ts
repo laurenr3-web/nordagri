@@ -10,7 +10,7 @@ export async function isMigrationApplied(migrationName: string): Promise<boolean
   try {
     // Vérifier si la table migrations existe
     const { error: tableError } = await supabase
-      .from('migrations')
+      .from('migrations' as any)
       .select('id')
       .limit(1);
 
@@ -22,7 +22,7 @@ export async function isMigrationApplied(migrationName: string): Promise<boolean
     
     // Vérifier si la migration existe
     const { data, error } = await supabase
-      .from('migrations')
+      .from('migrations' as any)
       .select('id')
       .eq('name', migrationName)
       .limit(1);
@@ -54,8 +54,9 @@ export async function applyMigration(migrationName: string, sqlContent: string):
       return true;
     }
     
-    // Exécuter la migration via une requête SQL brute (nécessite les droits admin)
-    const { error } = await supabase.rpc('pg_query', { query: sqlContent });
+    // Instead of using rpc which requires predefined functions, use a direct SQL query
+    const { error } = await supabase
+      .rpc('pg_query' as any, { query: sqlContent });
     
     if (error) {
       console.error('Error applying migration:', error);

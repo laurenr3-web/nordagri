@@ -1,100 +1,69 @@
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Toaster } from 'sonner';
 
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
-import { ThemeProvider } from '@/components/theme-provider';
-import { Toaster } from '@/components/ui/sonner';
-import { RealtimeCacheProvider } from '@/providers/RealtimeCacheProvider';
-import { AuthProvider } from '@/providers/AuthProvider';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import MobileMenu from '@/components/layout/MobileMenu';
-
-// Pages
-import Index from '@/pages/Index';
-import Equipment from '@/pages/Equipment';
-import EquipmentDetail from '@/pages/EquipmentDetail';
-import Maintenance from '@/pages/Maintenance';
-import Parts from '@/pages/Parts';
-import Interventions from '@/pages/Interventions';
-import Dashboard from '@/pages/Dashboard';
-import Settings from '@/pages/Settings';
-import NotFound from '@/pages/NotFound';
-import Auth from '@/pages/Auth';
-import ScanRedirect from '@/pages/ScanRedirect';
-import TimeTracking from '@/pages/TimeTracking';
-import TimeEntryDetail from '@/pages/TimeEntryDetail';
-
-// Create a client
-const queryClient = new QueryClient();
+import Home from './pages/Home';
+import EquipmentList from './pages/EquipmentList';
+import EquipmentDetail from './pages/EquipmentDetail';
+import MaintenanceSchedule from './pages/MaintenanceSchedule';
+import FuelLogs from './pages/FuelLogs';
+import PartsInventory from './pages/PartsInventory';
+import Settings from './pages/Settings';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Profile from './pages/Profile';
+import RequireAuth from './components/auth/RequireAuth';
+import { AuthProvider } from './context/AuthContext';
+import { SiteLayout } from './components/layout/SiteLayout';
+import { EquipmentProvider } from './context/EquipmentContext';
+import { FarmProvider } from './context/FarmContext';
+import { TimeSessionProvider } from './context/TimeSessionContext';
+import { MaintenanceProvider } from './context/MaintenanceContext';
+import { GlobalProvider } from './context/GlobalContext';
+import useDataInitialization from './hooks/useDataInitialization';
 
 function App() {
+  // Initialize data and migrations
+  const { isLoading: isDataInitializing, error: dataInitError } = useDataInitialization();
+
+  // You might want to show a loading state while migrations are being applied
+  if (isDataInitializing) {
+    return <div className="p-8 text-center">Initializing application...</div>;
+  }
+
+  if (dataInitError) {
+    return <div className="p-8 text-center text-red-500">Error initializing application: {dataInitError.message}</div>;
+  }
+
   return (
-    <ThemeProvider defaultTheme="light" storageKey="agri-erp-theme">
-      <QueryClientProvider client={queryClient}>
-        <RealtimeCacheProvider>
-          <Router>
-            <AuthProvider>
-              <Routes>
-                {/* Redirect root to dashboard if authenticated, otherwise to auth */}
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/auth" element={<Auth />} />
-                
-                {/* Protected routes */}
-                <Route path="/dashboard" element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } />
-                <Route path="/equipment" element={
-                  <ProtectedRoute>
-                    <Equipment />
-                  </ProtectedRoute>
-                } />
-                <Route path="/equipment/:id" element={
-                  <ProtectedRoute>
-                    <EquipmentDetail />
-                  </ProtectedRoute>
-                } />
-                <Route path="/maintenance" element={
-                  <ProtectedRoute>
-                    <Maintenance />
-                  </ProtectedRoute>
-                } />
-                <Route path="/parts" element={
-                  <ProtectedRoute>
-                    <Parts />
-                  </ProtectedRoute>
-                } />
-                <Route path="/interventions" element={
-                  <ProtectedRoute>
-                    <Interventions />
-                  </ProtectedRoute>
-                } />
-                <Route path="/settings" element={
-                  <ProtectedRoute>
-                    <Settings />
-                  </ProtectedRoute>
-                } />
-                <Route path="/time-tracking" element={
-                  <ProtectedRoute>
-                    <TimeTracking />
-                  </ProtectedRoute>
-                } />
-                <Route path="/time-tracking/detail/:id" element={
-                  <ProtectedRoute>
-                    <TimeEntryDetail />
-                  </ProtectedRoute>
-                } />
-                {/* Route pour le scan de QR code */}
-                <Route path="/scan/:id" element={<ScanRedirect />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              <MobileMenu />
-              <Toaster />
-            </AuthProvider>
-          </Router>
-        </RealtimeCacheProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
+    <GlobalProvider>
+      <AuthProvider>
+        <Router>
+          <Toaster position="top-center" richColors closeButton />
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route element={<RequireAuth><SiteLayout /></RequireAuth>}>
+              <Route path="/" element={<Home />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/equipment" element={
+                <FarmProvider><EquipmentProvider><EquipmentList /></EquipmentProvider></FarmProvider>} />
+              <Route path="/equipment/:id" element={
+                <FarmProvider><EquipmentProvider><EquipmentDetail /></EquipmentProvider></FarmProvider>} />
+              <Route path="/maintenance" element={
+                <FarmProvider><MaintenanceProvider><EquipmentProvider><MaintenanceSchedule /></EquipmentProvider></MaintenanceProvider></FarmProvider>} />
+              <Route path="/fuel-logs" element={
+                <FarmProvider><EquipmentProvider><FuelLogs /></EquipmentProvider></FarmProvider>} />
+              <Route path="/parts-inventory" element={
+                <FarmProvider><EquipmentProvider><PartsInventory /></EquipmentProvider></FarmProvider>} />
+              <Route path="/time-sessions" element={
+                <FarmProvider><TimeSessionProvider><EquipmentProvider><EquipmentList /></EquipmentProvider></TimeSessionProvider></FarmProvider>} />
+              <Route path="/settings" element={<Settings />} />
+            </Route>
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </GlobalProvider>
   );
 }
 
