@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,8 +16,8 @@ interface TimeEntryCardProps {
 
 export function TimeEntryCard({ entry, onResume, onDelete }: TimeEntryCardProps) {
   return (
-    <Card className="w-full rounded-xl border px-6 py-4">
-      <CardContent className="p-0">
+    <Card>
+      <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div>
             <Link to={`/time-tracking/detail/${entry.id}`} className="hover:underline">
