@@ -16,6 +16,9 @@ import { FormValidation } from '@/components/common/FormValidation';
 import { useFarmId } from '@/hooks/useFarmId';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+// Utilisation d'un input custom pour ajouter un suffixe "$" au champ prix
+import { InputWithSuffix } from '@/components/ui/input-with-suffix';
+
 interface FuelLogDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -189,9 +192,9 @@ export function FuelLogDialog({ open, onOpenChange, onSubmit, isSubmitting, equi
 
           <div className="space-y-2">
             <Label htmlFor="fuel-price">
-              Prix par litre (€) <span className="text-red-500">*</span>
+              Prix par litre ($) <span className="text-red-500">*</span>
             </Label>
-            <Input
+            <InputWithSuffix
               id="fuel-price"
               type="number"
               step="0.001"
@@ -200,6 +203,7 @@ export function FuelLogDialog({ open, onOpenChange, onSubmit, isSubmitting, equi
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               className={errors.price ? "border-red-500" : ""}
+              suffix="$"
             />
             {errors.price && (
               <p className="text-red-500 text-sm mt-1">{errors.price}</p>

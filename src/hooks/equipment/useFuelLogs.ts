@@ -31,7 +31,7 @@ export function useFuelLogs(equipmentId: number) {
         throw error;
       }
     },
-    enabled: !!equipmentId, // Ne pas exécuter la requête si equipmentId n'est pas défini
+    enabled: !!equipmentId,
   });
 
   const addFuelLog = useMutation({
@@ -71,12 +71,9 @@ export function useFuelLogs(equipmentId: number) {
 
         if (error) {
           console.error('Erreur lors de l\'insertion du log de carburant:', error);
-          
-          // Log détaillé de l'erreur
           console.error('Code d\'erreur:', error.code);
           console.error('Message d\'erreur:', error.message);
           console.error('Détails:', error.details);
-          
           throw error;
         }
         
@@ -113,6 +110,29 @@ export function useFuelLogs(equipmentId: number) {
     },
   });
 
+  // Mutation pour la suppression d'un plein
+  const deleteFuelLog = useMutation({
+    mutationFn: async (fuelLogId: string) => {
+      const { error } = await supabase
+        .from('fuel_logs')
+        .delete()
+        .eq('id', fuelLogId);
+      if (error) {
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fuelLogs', equipmentId] });
+      toast.success('Plein supprimé avec succès');
+    },
+    onError: (error: any) => {
+      console.error('Erreur lors de la suppression du plein:', error);
+      toast.error("Erreur lors de la suppression du plein", {
+        description: error.message || "Une erreur est survenue"
+      });
+    }
+  });
+
   return {
     fuelLogs,
     isLoading,
@@ -120,6 +140,7 @@ export function useFuelLogs(equipmentId: number) {
     isAddDialogOpen,
     setIsAddDialogOpen,
     isFarmIdLoading,
-    farmId // Exposer farmId pour permettre des vérifications supplémentaires
+    farmId,
+    deleteFuelLog,
   };
 }

@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
@@ -18,8 +19,11 @@ const EquipmentPerformance: React.FC<EquipmentPerformanceProps> = ({ equipment }
     isLoading,
     addFuelLog,
     isAddDialogOpen,
-    setIsAddDialogOpen
+    setIsAddDialogOpen,
+    deleteFuelLog
   } = useFuelLogs(equipment.id);
+
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Calculate fuel statistics
   const totalFuel = fuelLogs?.reduce((sum, log) => sum + log.fuel_quantity_liters, 0) || 0;
@@ -35,6 +39,13 @@ const EquipmentPerformance: React.FC<EquipmentPerformanceProps> = ({ equipment }
     { month: 'Mai', heures: 60, consommation: 420 },
     { month: 'Juin', heures: 70, consommation: 520 }
   ];
+
+  const handleDeleteLog = (id: string) => {
+    setDeletingId(id);
+    deleteFuelLog.mutate(id, {
+      onSettled: () => setDeletingId(null),
+    });
+  };
 
   return (
     <div className="grid grid-cols-1 gap-6">
@@ -59,12 +70,12 @@ const EquipmentPerformance: React.FC<EquipmentPerformanceProps> = ({ equipment }
             
             <div className="bg-green-500/10 rounded-lg p-4">
               <h3 className="text-sm font-medium text-muted-foreground">Coût total</h3>
-              <p className="text-2xl font-bold">{totalCost.toFixed(2)} €</p>
+              <p className="text-2xl font-bold">{totalCost.toFixed(2)} $</p>
             </div>
             
             <div className="bg-blue-500/10 rounded-lg p-4">
               <h3 className="text-sm font-medium text-muted-foreground">Coût horaire</h3>
-              <p className="text-2xl font-bold">{averageCostPerHour.toFixed(2)} €/h</p>
+              <p className="text-2xl font-bold">{averageCostPerHour.toFixed(2)} $/h</p>
             </div>
             
             <div className="bg-orange-500/10 rounded-lg p-4">
@@ -80,7 +91,7 @@ const EquipmentPerformance: React.FC<EquipmentPerformanceProps> = ({ equipment }
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : fuelLogs?.length ? (
-            <FuelLogsTable logs={fuelLogs} />
+            <FuelLogsTable logs={fuelLogs} onDelete={handleDeleteLog} isDeletingId={deletingId} />
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               Aucun plein enregistré
@@ -138,7 +149,7 @@ const EquipmentPerformance: React.FC<EquipmentPerformanceProps> = ({ equipment }
             
             <div className="bg-orange-500/10 rounded-lg p-4">
               <h3 className="text-sm font-medium text-muted-foreground">Coût opérationnel</h3>
-              <p className="text-2xl font-bold">32 €/h</p>
+              <p className="text-2xl font-bold">32 $/h</p>
               <p className="text-xs text-muted-foreground mt-1">Moyenne sur la période</p>
             </div>
           </div>
