@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Calendar, FileText } from 'lucide-react';
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, getISOWeek, startOfWeek, isEven } from 'date-fns';
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, getISOWeek, startOfWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { 
   Card, 
@@ -21,6 +21,7 @@ import { TopEquipmentList } from './TopEquipmentList';
 import { useExportReport } from '@/hooks/time-tracking/useExportReport';
 import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
+import { isEven } from '@/utils/dateHelpers';
 
 const TimeTrackingRapport: React.FC = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
