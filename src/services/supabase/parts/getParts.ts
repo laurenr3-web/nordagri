@@ -7,19 +7,7 @@ export async function getParts(): Promise<Part[]> {
   console.log('🔍 Fetching all parts from Supabase parts_inventory table...');
   
   try {
-    // Vérifier et afficher les politiques RLS actives
-    console.log('🔐 Vérification des politiques RLS pour parts_inventory...');
-    // La fonction get_policies_for_table n'est pas reconnue, utilisons une requête SQL directe à la place
-    const { data: policies, error: policiesError } = await supabase
-      .from('pg_policies')
-      .select('*')
-      .eq('tablename', 'parts_inventory');
-      
-    if (policiesError) {
-      console.warn('⚠️ Impossible de vérifier les politiques RLS:', policiesError.message);
-    } else {
-      console.log('🔐 Politiques RLS actives:', policies);
-    }
+    // (Removed pg_policies debug logic)
     
     // Get the current user ID from the session
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
