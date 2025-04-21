@@ -1,25 +1,22 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Toaster } from 'sonner';
 
-import Home from './pages/Home';
-import EquipmentList from './pages/EquipmentList';
+// Import existing pages rather than missing ones
+import Dashboard from './pages/Dashboard';
+import Equipment from './pages/Equipment';
 import EquipmentDetail from './pages/EquipmentDetail';
-import MaintenanceSchedule from './pages/MaintenanceSchedule';
-import FuelLogs from './pages/FuelLogs';
-import PartsInventory from './pages/PartsInventory';
+import Maintenance from './pages/Maintenance';
+import Parts from './pages/Parts';
 import Settings from './pages/Settings';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Profile from './pages/Profile';
-import RequireAuth from './components/auth/RequireAuth';
-import { AuthProvider } from './context/AuthContext';
-import { SiteLayout } from './components/layout/SiteLayout';
-import { EquipmentProvider } from './context/EquipmentContext';
-import { FarmProvider } from './context/FarmContext';
-import { TimeSessionProvider } from './context/TimeSessionContext';
-import { MaintenanceProvider } from './context/MaintenanceContext';
-import { GlobalProvider } from './context/GlobalContext';
+import Auth from './pages/Auth';
+import NotFound from './pages/NotFound';
+import TimeTracking from './pages/TimeTracking';
+
+// Use existing providers and components
+import { AuthProvider } from './providers/AuthProvider';
+import { RealtimeCacheProvider } from './providers/RealtimeCacheProvider';
 import useDataInitialization from './hooks/useDataInitialization';
 
 function App() {
@@ -36,34 +33,25 @@ function App() {
   }
 
   return (
-    <GlobalProvider>
+    <RealtimeCacheProvider>
       <AuthProvider>
         <Router>
           <Toaster position="top-center" richColors closeButton />
           <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route element={<RequireAuth><SiteLayout /></RequireAuth>}>
-              <Route path="/" element={<Home />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/equipment" element={
-                <FarmProvider><EquipmentProvider><EquipmentList /></EquipmentProvider></FarmProvider>} />
-              <Route path="/equipment/:id" element={
-                <FarmProvider><EquipmentProvider><EquipmentDetail /></EquipmentProvider></FarmProvider>} />
-              <Route path="/maintenance" element={
-                <FarmProvider><MaintenanceProvider><EquipmentProvider><MaintenanceSchedule /></EquipmentProvider></MaintenanceProvider></FarmProvider>} />
-              <Route path="/fuel-logs" element={
-                <FarmProvider><EquipmentProvider><FuelLogs /></EquipmentProvider></FarmProvider>} />
-              <Route path="/parts-inventory" element={
-                <FarmProvider><EquipmentProvider><PartsInventory /></EquipmentProvider></FarmProvider>} />
-              <Route path="/time-sessions" element={
-                <FarmProvider><TimeSessionProvider><EquipmentProvider><EquipmentList /></EquipmentProvider></TimeSessionProvider></FarmProvider>} />
-              <Route path="/settings" element={<Settings />} />
-            </Route>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/equipment" element={<Equipment />} />
+            <Route path="/equipment/:id" element={<EquipmentDetail />} />
+            <Route path="/maintenance" element={<Maintenance />} />
+            <Route path="/parts" element={<Parts />} />
+            <Route path="/time-tracking" element={<TimeTracking />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Router>
       </AuthProvider>
-    </GlobalProvider>
+    </RealtimeCacheProvider>
   );
 }
 
