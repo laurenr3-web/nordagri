@@ -2,18 +2,49 @@
 import { useQuery } from '@tanstack/react-query';
 import { Part } from '@/types/Part';
 import { getParts } from '@/services/supabase/parts';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export function usePartsData() {
+  const { toast } = useToast();
+
   return useQuery({
     queryKey: ['parts'],
     queryFn: async () => {
       try {
-        console.log('🔄 Calling getParts service function...');
+        // Vérifier d'abord l'état de l'authentification
+        const { data: session, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) {
+          console.error('❌ Erreur de session:', sessionError.message);
+          throw new Error(`Erreur d'authentification: ${sessionError.message}`);
+        }
+        
+        if (!session.session) {
+          console.warn('⚠️ Aucune session active, l\'utilisateur n\'est pas connecté');
+          return [];
+        }
+        
+        console.log('🔄 Session active pour l\'utilisateur:', session.session.user.id);
+        console.log('🔄 Appel du service getParts...');
+        
         const partsData = await getParts();
-        console.log('📦 Parts data received:', partsData);
+        
+        console.log('📦 Données de pièces reçues:', partsData);
+        console.log(`📊 Nombre de pièces récupérées: ${partsData.length}`);
+        
+        // Vérifier si des données ont été retournées
+        if (partsData.length === 0) {
+          console.warn('⚠️ Aucune pièce trouvée dans la base de données');
+        }
+        
         return partsData as Part[];
       } catch (error) {
-        console.error('❌ Error fetching parts data:', error);
+        console.error('❌ Erreur lors de la récupération des pièces:', error);
+        toast({
+          title: "Erreur de chargement",
+          description: error instanceof Error ? error.message : "Impossible de charger les pièces",
+          variant: "destructive",
+        });
         throw error;
       }
     },

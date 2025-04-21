@@ -8,6 +8,7 @@ import EquipmentTimeTracking from '@/components/equipment/tabs/EquipmentTimeTrac
 import EquipmentPerformance from '@/components/equipment/tabs/EquipmentPerformance';
 import EquipmentMaintenanceHistory from '@/components/equipment/tabs/EquipmentMaintenanceHistory';
 import EquipmentQRCode from '@/components/equipment/tabs/EquipmentQRCode';
+import EquipmentFuelLogs from '@/components/equipment/tabs/fuel/EquipmentFuelLogs';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   DropdownMenu,
@@ -25,6 +26,10 @@ const moreTabs = [
   {
     value: "parts",
     label: "Pièces"
+  },
+  {
+    value: "fuel",
+    label: "Carburant"
   },
   {
     value: "performance",
@@ -124,6 +129,9 @@ const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment }) => {
         </TabsContent>
         <TabsContent value="parts">
           <EquipmentParts equipment={equipment} />
+        </TabsContent>
+        <TabsContent value="fuel">
+          <EquipmentFuelLogs equipment={equipment} />
         </TabsContent>
         <TabsContent value="performance">
           <EquipmentPerformance equipment={equipment} />
