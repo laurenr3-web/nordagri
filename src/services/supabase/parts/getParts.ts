@@ -9,9 +9,11 @@ export async function getParts(): Promise<Part[]> {
   try {
     // Vérifier et afficher les politiques RLS actives
     console.log('🔐 Vérification des politiques RLS pour parts_inventory...');
+    // La fonction get_policies_for_table n'est pas reconnue, utilisons une requête SQL directe à la place
     const { data: policies, error: policiesError } = await supabase
-      .rpc('get_policies_for_table', { table_name: 'parts_inventory' })
-      .select();
+      .from('pg_policies')
+      .select('*')
+      .eq('tablename', 'parts_inventory');
       
     if (policiesError) {
       console.warn('⚠️ Impossible de vérifier les politiques RLS:', policiesError.message);

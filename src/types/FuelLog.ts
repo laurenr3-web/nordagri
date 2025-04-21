@@ -14,7 +14,7 @@ export interface FuelLog {
 }
 
 export interface FuelLogFormValues {
-  date: string;
+  date: Date;
   fuel_quantity_liters: number;
   price_per_liter: number; 
   hours_at_fillup?: number | null;

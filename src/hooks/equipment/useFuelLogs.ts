@@ -50,9 +50,12 @@ export function useFuelLogs(equipmentId: number) {
         console.log('Submitting fuel log with farm_id:', farmId);
         console.log('User ID:', user.id);
         
+        // Format the date as ISO string and extract just the date part (YYYY-MM-DD)
+        const formattedDate = values.date.toISOString().split('T')[0];
+        
         const newFuelLog = {
           equipment_id: equipmentId,
-          date: values.date.toISOString().split('T')[0],
+          date: formattedDate,
           fuel_quantity_liters: Number(values.fuel_quantity_liters),
           price_per_liter: Number(values.price_per_liter),
           hours_at_fillup: values.hours_at_fillup ? Number(values.hours_at_fillup) : null,
