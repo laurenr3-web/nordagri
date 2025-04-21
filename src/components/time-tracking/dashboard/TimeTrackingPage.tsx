@@ -44,15 +44,12 @@ export default function TimeTrackingPage() {
         <Sidebar className="border-r">
           <Navbar />
         </Sidebar>
-        
         <div className="flex-1 overflow-y-auto">
-          <div className="container py-6">
+          <div className="container py-6 max-w-screen-xl mx-auto w-full px-4 md:px-8 min-h-[600px] overflow-x-hidden">
             <TimeTrackingHeader
               onNewSession={() => setIsFormOpen(true)}
             />
-            
             <TimeTrackingSummary stats={stats} isLoading={isLoading} />
-            
             {activeTimeEntry && (
               <ActiveTimeSession
                 session={activeTimeEntry}
@@ -61,49 +58,54 @@ export default function TimeTrackingPage() {
                 onStop={handleStopTimeEntry}
               />
             )}
-            
-            <TimeTrackingFilters
-              dateRange={dateRange}
-              equipmentFilter={equipmentFilter}
-              taskTypeFilter={taskTypeFilter}
-              equipments={equipments}
-              onDateRangeChange={(range) => {
-                if (range?.from && range?.to) {
-                  setDateRange({ from: range.from, to: range.to });
-                }
-              }}
-              onEquipmentChange={setEquipmentFilter}
-              onTaskTypeChange={setTaskTypeFilter}
-              onReset={() => {
-                setDateRange({
-                  from: startOfWeek(new Date(), { weekStartsOn: 1 }),
-                  to: endOfWeek(new Date(), { weekStartsOn: 1 })
-                });
-                setEquipmentFilter(undefined);
-                setTaskTypeFilter(undefined);
-              }}
-            />
-            
+            {/* FILTERS + TABS LAYOUT */}
+            <div className="flex flex-col md:flex-row md:gap-6 mb-6">
+              <div className="flex-1">
+                <TimeTrackingFilters
+                  dateRange={dateRange}
+                  equipmentFilter={equipmentFilter}
+                  taskTypeFilter={taskTypeFilter}
+                  equipments={equipments}
+                  onDateRangeChange={(range) => {
+                    if (range?.from && range?.to) {
+                      setDateRange({ from: range.from, to: range.to });
+                    }
+                  }}
+                  onEquipmentChange={setEquipmentFilter}
+                  onTaskTypeChange={setTaskTypeFilter}
+                  onReset={() => {
+                    setDateRange({
+                      from: startOfWeek(new Date(), { weekStartsOn: 1 }),
+                      to: endOfWeek(new Date(), { weekStartsOn: 1 })
+                    });
+                    setEquipmentFilter(undefined);
+                    setTaskTypeFilter(undefined);
+                  }}
+                />
+              </div>
+              {/* Tabs+New Session always right for desktop */}
+              <div className="w-full md:w-auto flex md:justify-end items-end mt-4 md:mt-0">
+                <TimeTrackingTabs
+                  activeTab={activeTab}
+                  onTabChange={setActiveTab}
+                  entries={entries}
+                  isLoading={isLoading}
+                  onNewSession={() => setIsFormOpen(true)}
+                  onResumeEntry={handleResumeTimeEntry}
+                  onDeleteEntry={handleDeleteTimeEntry}
+                />
+              </div>
+            </div>
+            {/* Session table/cards */}
             <ActiveSessionsTable
               sessions={activeSessions}
               onPause={handlePauseTimeEntry}
               onResume={handleResumeTimeEntry}
               onStop={handleStopTimeEntry}
             />
-            
-            <TimeTrackingTabs
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-              entries={entries}
-              isLoading={isLoading}
-              onNewSession={() => setIsFormOpen(true)}
-              onResumeEntry={handleResumeTimeEntry}
-              onDeleteEntry={handleDeleteTimeEntry}
-            />
           </div>
         </div>
       </div>
-      
       <TimeEntryForm
         isOpen={isFormOpen}
         onOpenChange={setIsFormOpen}

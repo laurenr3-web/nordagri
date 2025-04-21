@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { TimeEntry } from "@/hooks/time-tracking/types"
@@ -112,10 +111,10 @@ export function SessionClosure({
             />
           </div>
         </ScrollArea>
-
-        <DialogFooter className="mt-6 flex justify-between flex-col sm:flex-row gap-2">
-          <Button variant="outline" onClick={onClose}>Annuler</Button>
-          <div className="flex gap-2">
+        {/* Responsive footer for closure actions */}
+        <DialogFooter className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-2 w-full">
+          <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">Annuler</Button>
+          <div className="flex flex-col sm:flex-row gap-2 w-full">
             <Button 
               variant="secondary" 
               onClick={handleSubmitAndStartNew}
