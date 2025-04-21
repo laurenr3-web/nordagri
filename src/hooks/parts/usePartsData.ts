@@ -21,10 +21,12 @@ export function usePartsData() {
         
         if (!session.session) {
           console.warn('⚠️ Aucune session active, l\'utilisateur n\'est pas connecté');
-          return [];
+          console.warn('⚠️ Les politiques RLS empêcheront probablement l\'accès aux données');
+          // Note: on continue quand même la requête pour voir si des politiques RLS permettent l'accès
+        } else {
+          console.log('🔑 Session active pour l\'utilisateur:', session.session.user.id);
         }
         
-        console.log('🔄 Session active pour l\'utilisateur:', session.session.user.id);
         console.log('🔄 Appel du service getParts...');
         
         const partsData = await getParts();
@@ -40,11 +42,19 @@ export function usePartsData() {
         return partsData as Part[];
       } catch (error) {
         console.error('❌ Erreur lors de la récupération des pièces:', error);
+        
+        // Afficher des informations plus détaillées sur l'erreur
+        if (error instanceof Error) {
+          console.error('❌ Détail de l\'erreur:', error.message);
+          console.error('❌ Stack trace:', error.stack);
+        }
+        
         toast({
           title: "Erreur de chargement",
           description: error instanceof Error ? error.message : "Impossible de charger les pièces",
           variant: "destructive",
         });
+        
         throw error;
       }
     },

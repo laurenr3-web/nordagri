@@ -7,6 +7,18 @@ export async function getParts(): Promise<Part[]> {
   console.log('🔍 Fetching all parts from Supabase parts_inventory table...');
   
   try {
+    // Vérifier et afficher les politiques RLS actives
+    console.log('🔐 Vérification des politiques RLS pour parts_inventory...');
+    const { data: policies, error: policiesError } = await supabase
+      .rpc('get_policies_for_table', { table_name: 'parts_inventory' })
+      .select();
+      
+    if (policiesError) {
+      console.warn('⚠️ Impossible de vérifier les politiques RLS:', policiesError.message);
+    } else {
+      console.log('🔐 Politiques RLS actives:', policies);
+    }
+    
     // Get the current user ID from the session
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     
@@ -19,13 +31,31 @@ export async function getParts(): Promise<Part[]> {
     
     // If user is not authenticated, handle gracefully
     if (!userId) {
-      console.warn('Utilisateur non authentifié, retourne un tableau de pièces vide');
-      return [];
+      console.warn('❓ Utilisateur non authentifié, tentative de récupération des pièces sans authentification');
+      
+      // Try to query anyway (might work if there are permissive RLS policies)
+      const { data, error } = await supabase
+        .from('parts_inventory')
+        .select('*');
+        
+      if (error) {
+        console.error('❌ Erreur Supabase (utilisateur non authentifié):', error);
+        
+        // En mode développement, retourner des données fictives pour faciliter le développement
+        if (import.meta.env.DEV) {
+          console.warn('⚠️ MODE DEV: Retour de données fictives pour permettre le développement');
+          return transformPartsData(partsData);
+        }
+        
+        throw error;
+      }
+      
+      return transformPartsData(data || []);
     }
     
     console.log(`👤 Récupération des pièces pour l'utilisateur: ${userId}`);
     
-    // Get user's farm_id from profiles table
+    // Get user's profile to check farm_id
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('farm_id')
@@ -33,49 +63,30 @@ export async function getParts(): Promise<Part[]> {
       .single();
     
     if (profileError) {
-      console.error('Erreur lors de la récupération du profil:', profileError);
-      // Fall back to using owner_id (for backward compatibility)
-      const { data: partsData, error: partsError } = await supabase
-        .from('parts_inventory')
-        .select('*')
-        .eq('owner_id', userId);
-        
-      if (partsError) {
-        console.error('Erreur Supabase:', partsError);
-        throw new Error(`Erreur lors de la récupération des pièces: ${partsError.message}`);
-      }
-      
-      return transformPartsData(partsData || []);
+      console.warn('⚠️ Profil non trouvé pour cet utilisateur:', profileError);
+    } else if (profileData && profileData.farm_id) {
+      console.log(`👨‍🌾 Farm ID de l'utilisateur: ${profileData.farm_id}`);
+    } else {
+      console.warn('⚠️ L\'utilisateur n\'a pas de farm_id dans son profil');
     }
     
-    const farmId = profileData?.farm_id;
-    
-    // If farm_id is available, query by farm_id, otherwise fall back to owner_id
-    let query = supabase
+    // Tenter de récupérer toutes les pièces avec debug
+    console.log('🔍 Tentative de requête de toutes les pièces...');
+    const { data, error } = await supabase
       .from('parts_inventory')
       .select('*');
       
-    if (farmId) {
-      console.log(`👨‍🌾 Récupération des pièces pour la ferme: ${farmId}`);
-      query = query.eq('farm_id', farmId);
-    } else {
-      console.log('⚠️ Aucune ferme associée, récupération des pièces par owner_id');
-      query = query.eq('owner_id', userId);
-    }
-    
-    const { data, error } = await query;
-    
     if (error) {
-      console.error('Erreur Supabase:', error);
+      console.error('❌ Erreur Supabase:', error);
       throw new Error(`Erreur lors de la récupération des pièces: ${error.message}`);
     }
     
     if (!data || data.length === 0) {
-      console.log('Aucune pièce trouvée dans la base de données');
+      console.log('ℹ️ Aucune pièce trouvée dans la base de données');
       return [];
     }
     
-    console.log(`✅ ${data.length} pièce(s) trouvée(s)`);
+    console.log(`✅ ${data.length} pièce(s) trouvée(s)`, data);
     
     return transformPartsData(data);
   } catch (error) {
@@ -85,6 +96,7 @@ export async function getParts(): Promise<Part[]> {
 }
 
 function transformPartsData(data: any[]): Part[] {
+  console.log('🔄 Transformation des données parts_inventory en objets Part...');
   // Map the database fields to our Part interface
   return data.map(part => ({
     id: part.id,
