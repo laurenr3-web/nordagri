@@ -161,7 +161,7 @@ export function useExportReport(month: Date) {
       const monthlyHours = data.summary.totalHours;
       
       exportReportToPDF(
-        month,
+        format(month, 'MMMM yyyy', { locale: fr }),
         {
           daily: dailyHours,
           weekly: weeklyHours,
