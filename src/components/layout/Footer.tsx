@@ -9,6 +9,10 @@ const Footer: React.FC = () => (
     <Link to="/legal" className="underline hover:text-primary transition">
       Mentions légales &amp; Confidentialité
     </Link>
+    <span className="mx-2 hidden sm:inline">|</span>
+    <Link to="/pricing" className="underline hover:text-primary transition">
+      Tarifs
+    </Link>
   </footer>
 );
 

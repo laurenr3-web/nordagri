@@ -27,6 +27,7 @@ import TimeEntryDetail from '@/pages/TimeEntryDetail';
 import TimeTrackingStatistics from '@/pages/TimeTrackingStatistics';
 import Footer from "@/components/layout/Footer";
 import LegalPage from "@/pages/Legal";
+import Pricing from "@/pages/Pricing";
 
 const queryClient = new QueryClient();
 
@@ -94,6 +95,7 @@ function App() {
                   <Route path="/scan/:id" element={<ScanRedirect />} />
                   <Route path="*" element={<NotFound />} />
                   <Route path="/legal" element={<LegalPage />} />
+                  <Route path="/pricing" element={<Pricing />} />
                 </Routes>
                 <MobileMenu />
                 <Toaster />
