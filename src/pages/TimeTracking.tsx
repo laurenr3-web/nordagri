@@ -8,7 +8,7 @@ const TimeTracking = () => {
   const { t } = useTranslation();
   return (
     <MainLayout>
-      <div className="w-full max-w-screen-xl mx-auto px-6 lg:px-12" style={{ overflowX: "hidden" }}>
+      <div className="w-full max-w-screen-2xl mx-auto px-8 lg:px-8" style={{ overflowX: "hidden" }}>
         <TimeTrackingPage />
       </div>
     </MainLayout>
