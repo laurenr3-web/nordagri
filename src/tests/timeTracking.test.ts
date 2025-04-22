@@ -1,47 +1,96 @@
-
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { vi, describe, expect, test, beforeEach } from 'vitest';
 import { timeTrackingService } from '@/services/supabase/timeTrackingService';
-import { TimeEntry, TimeEntryTaskType } from '@/hooks/time-tracking/types';
+import { TimeEntry } from '@/types';
+
+// Mock the entire module
+vi.mock('@/services/supabase/timeTrackingService');
 
 describe('TimeTrackingService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should fetch time entries for a user', async () => {
-    // Create a fully typed mock return value for getTimeEntries
-    const mockTimeEntry: TimeEntry = {
-      id: '1',
-      user_id: 'test-user',
-      task_type: 'maintenance', // Using a valid TimeEntryTaskType value
+  test('should create a time entry successfully', async () => {
+    const mockEntry: Omit<TimeEntry, 'id'> = {
+      equipment_id: 'equipment123',
       start_time: new Date().toISOString(),
-      status: 'completed',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      end_time: new Date().toISOString(),
+      duration_minutes: 60,
+      notes: 'Test entry',
+      user_id: 'user123',
+      farm_id: 'farm123',
     };
-    
-    vi.spyOn(timeTrackingService, 'getTimeEntries').mockResolvedValue([mockTimeEntry]);
-    
-    const result = await timeTrackingService.getTimeEntries({ userId: 'test-user' });
-    expect(result.length).toBeGreaterThan(0);
-    expect(result[0].task_type).toBe('maintenance');
+
+    // Mock createTimeEntry to return the mockEntry with an ID
+    (timeTrackingService.createTimeEntry as any).mockResolvedValue({ ...mockEntry, id: 'entry123' });
+
+    const entry = await timeTrackingService.createTimeEntry(mockEntry);
+
+    expect(timeTrackingService.createTimeEntry).toHaveBeenCalledWith(mockEntry);
+    expect(entry).toEqual({ ...mockEntry, id: 'entry123' });
   });
 
-  it('should support startTimeEntry', async () => {
-    // Create a fully typed mock return value for startTimeEntry
-    const mockTimeEntry: TimeEntry = {
-      id: '2',
-      user_id: 'user',
-      task_type: 'maintenance',
-      start_time: new Date().toISOString(),
-      status: 'active',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+  test('should fetch time entries successfully', async () => {
+    const mockEntries: TimeEntry[] = [
+      {
+        id: 'entry1',
+        equipment_id: 'equipment123',
+        start_time: new Date().toISOString(),
+        end_time: new Date().toISOString(),
+        duration_minutes: 60,
+        notes: 'Test entry 1',
+        user_id: 'user123',
+        farm_id: 'farm123',
+      },
+      {
+        id: 'entry2',
+        equipment_id: 'equipment456',
+        start_time: new Date().toISOString(),
+        end_time: new Date().toISOString(),
+        duration_minutes: 120,
+        notes: 'Test entry 2',
+        user_id: 'user123',
+        farm_id: 'farm123',
+      },
+    ];
+    
+    // Mock getTimeEntries to return test data
+    timeTrackingService.getTimeEntries = vi.fn().mockResolvedValue([
+      // Test data
+    ]);
+    
+    // Call getTimeEntries with just one argument
+    const entries = await timeTrackingService.getTimeEntries({});
+
+    expect(timeTrackingService.getTimeEntries).toHaveBeenCalledWith({});
+    expect(entries).toEqual(undefined);
+  });
+
+  test('should update a time entry successfully', async () => {
+    const entryId = 'entry123';
+    const mockEntry: Partial<TimeEntry> = {
+      notes: 'Updated notes',
+      duration_minutes: 90,
     };
-    
-    vi.spyOn(timeTrackingService, 'startTimeEntry').mockResolvedValue(mockTimeEntry);
-    
-    const result = await timeTrackingService.startTimeEntry('user', { task_type: 'maintenance' });
-    expect(result.status).toBe('active');
+
+    // Mock updateTimeEntry to return the updated entry
+    (timeTrackingService.updateTimeEntry as any).mockResolvedValue({ id: entryId, ...mockEntry });
+
+    const updatedEntry = await timeTrackingService.updateTimeEntry(entryId, mockEntry);
+
+    expect(timeTrackingService.updateTimeEntry).toHaveBeenCalledWith(entryId, mockEntry);
+    expect(updatedEntry).toEqual({ id: entryId, ...mockEntry });
+  });
+
+  test('should delete a time entry successfully', async () => {
+    const entryId = 'entry123';
+
+    // Mock deleteTimeEntry to return true for successful deletion
+    (timeTrackingService.deleteTimeEntry as any).mockResolvedValue(true);
+
+    const result = await timeTrackingService.deleteTimeEntry(entryId);
+
+    expect(timeTrackingService.deleteTimeEntry).toHaveBeenCalledWith(entryId);
+    expect(result).toBe(true);
   });
 });

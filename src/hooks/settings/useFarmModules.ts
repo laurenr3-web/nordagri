@@ -36,12 +36,12 @@ export function useFarmModules() {
       }
 
       try {
-        // Access the farm_settings table directly
+        // We need to use a raw query because TypeScript doesn't know about the farm_settings table yet
         const { data: settingsData, error: settingsError } = await supabase
           .from('farm_settings')
           .select('modules')
           .eq('farm_id', farmId)
-          .maybeSingle();
+          .maybeSingle() as any;
 
         if (settingsError) {
           console.error('Error fetching modules:', settingsError);
@@ -76,14 +76,14 @@ export function useFarmModules() {
       // Merge with existing modules
       const updatedModules = { ...modules, ...newModules };
       
-      // Use upsert to create or update
+      // Use raw query for upsert since TypeScript doesn't know about farm_settings yet
       const { error } = await supabase
         .from('farm_settings')
         .upsert({ 
           farm_id: farmId,
           modules: updatedModules,
           updated_at: new Date().toISOString()
-        });
+        } as any);
 
       if (error) {
         console.error('Error updating modules:', error);

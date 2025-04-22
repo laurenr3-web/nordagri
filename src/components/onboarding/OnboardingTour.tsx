@@ -1,17 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import Joyride, { CallBackProps, Status, Step } from 'react-joyride';
+import Joyride, { CallBackProps, Status } from 'react-joyride';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
-interface OnboardingTourProps {
-  onComplete: () => void;
-  onSkip: () => void;
-}
-
-export default function OnboardingTour({ onComplete, onSkip }: OnboardingTourProps) {
-  const [run, setRun] = useState(true);
-  const [steps] = useState<Step[]>([
+export default function OnboardingTour() {
+  const [run, setRun] = useState(false);
+  const [steps] = useState([
     {
       target: 'body',
       content: (
@@ -76,8 +71,14 @@ export default function OnboardingTour({ onComplete, onSkip }: OnboardingTourPro
   ]);
 
   useEffect(() => {
+    // Check if user has seen the tutorial before
+    const hasSeenTutorial = localStorage.getItem('hasSeenTutorial') === 'true';
+    
+    if (!hasSeenTutorial) {
+      setRun(true);
+    }
+    
     // Check if there are matching elements for each step
-    // This prevents errors when a step's target doesn't exist
     steps.forEach((step, index) => {
       if (index > 0 && step.target !== 'body') {
         const target = document.querySelector(step.target as string);
@@ -91,15 +92,29 @@ export default function OnboardingTour({ onComplete, onSkip }: OnboardingTourPro
   const handleJoyrideCallback = (data: CallBackProps) => {
     const { status } = data;
     
-    if (status === 'finished') {
+    if (status === 'finished' || status === 'skipped') {
+      // Mark tutorial as seen
+      localStorage.setItem('hasSeenTutorial', 'true');
       setRun(false);
-      onComplete();
-      toast.success("Tutoriel terminé avec succès!");
-    } else if (status === 'skipped') {
-      setRun(false);
-      onSkip();
-      toast.info("Tutoriel désactivé");
+      
+      if (status === 'finished') {
+        toast.success("Tutoriel terminé avec succès!");
+      } else if (status === 'skipped') {
+        toast.info("Tutoriel désactivé");
+      }
     }
+  };
+
+  const onComplete = () => {
+    localStorage.setItem('hasSeenTutorial', 'true');
+    setRun(false);
+    toast.success("Tutoriel terminé avec succès!");
+  };
+
+  const onSkip = () => {
+    localStorage.setItem('hasSeenTutorial', 'true');
+    setRun(false);
+    toast.info("Tutoriel désactivé");
   };
 
   return (

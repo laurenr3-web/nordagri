@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -7,7 +8,7 @@ import { AuthProvider } from '@/providers/AuthProvider';
 import { OfflineProvider } from '@/providers/OfflineProvider';
 import { ModulesProvider } from '@/providers/ModulesProvider';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
+import OnboardingTour from '@/components/onboarding/OnboardingTour';
 import MobileMenu from '@/components/layout/MobileMenu';
 
 // Pages
