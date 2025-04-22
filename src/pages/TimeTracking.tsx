@@ -1,3 +1,4 @@
+
 import React from 'react';
 import MainLayout from '@/ui/layouts/MainLayout';
 import { useTranslation } from "react-i18next";
