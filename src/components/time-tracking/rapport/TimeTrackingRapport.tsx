@@ -12,8 +12,11 @@ import { useDailyHours } from '@/hooks/time-tracking/useDailyHours';
 import { useMonthlySummary } from '@/hooks/time-tracking/useMonthlySummary';
 import { useTaskTypeDistribution } from '@/hooks/time-tracking/useTaskTypeDistribution';
 import { useTopEquipment } from '@/hooks/time-tracking/useTopEquipment';
+import { useEmployeeHours } from '@/hooks/time-tracking/useEmployeeHours';
 import { TimeDistributionChart } from './TimeDistributionChart';
 import { TopEquipmentList } from './TopEquipmentList';
+import { EmployeeHoursChart } from './EmployeeHoursChart';
+import { ExportButton } from '@/components/common/ExportButton';
 import { useExportReport } from '@/hooks/time-tracking/useExportReport';
 import { 
   startOfMonth, 
@@ -21,8 +24,10 @@ import {
   getISOWeek, 
   startOfWeek, 
   subMonths, 
-  addMonths 
+  addMonths,
+  format 
 } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { isEven } from '@/utils/dateHelpers';
 import Header from './Header';
@@ -43,9 +48,9 @@ const TimeTrackingRapport: React.FC = () => {
   const { isLoading: isDailyHoursLoading, dailyHours } = useDailyHours(currentMonth);
   const { isLoading: isDistributionLoading, distribution } = useTaskTypeDistribution(currentMonth);
   const { isLoading: isEquipmentLoading, equipment } = useTopEquipment(currentMonth);
+  const { isLoading: isEmployeeHoursLoading, data: employeeHours, error: employeeHoursError } = useEmployeeHours(currentMonth);
   const { exportToPdf, exportToExcel, isExporting } = useExportReport(currentMonth);
   
-  // Helper function to calculate bi-weekly start date (last even Monday)
   const getLastEvenMondayStart = () => {
     const today = new Date();
     // Start from beginning of current week (Monday)
@@ -64,7 +69,6 @@ const TimeTrackingRapport: React.FC = () => {
     return lastWeekStart;
   };
   
-  // Fetch pay period statistics
   useEffect(() => {
     const fetchPayPeriodStats = async () => {
       setIsLoadingPayPeriod(true);
@@ -175,14 +179,33 @@ const TimeTrackingRapport: React.FC = () => {
     }
   };
 
+  const getPeriodLabel = () => {
+    return format(currentMonth, 'MMMM yyyy', { locale: fr });
+  };
+
   return (
     <div className="flex flex-col space-y-6 py-4">
-      {/* Header */}
-      <Header isExporting={isExporting} onExport={handleExport} />
+      {/* Header with Export Button */}
+      <div className="flex justify-between items-center">
+        <Header isExporting={isExporting} onExport={handleExport} />
+        <ExportButton
+          data={summary ? [summary] : []}
+          filename={`rapport-temps-${format(currentMonth, 'yyyy-MM', { locale: fr })}`}
+          headers={[
+            { label: 'Mois', key: 'month' },
+            { label: 'Heures totales', key: 'totalHours' },
+            { label: 'Sessions', key: 'totalSessions' }
+          ]}
+          onExportPDF={async () => exportToPdf()}
+        />
+      </div>
+      
       {/* Month Selector */}
       <MonthSelector currentMonth={currentMonth} onPrevious={handlePreviousMonth} onNext={handleNextMonth} />
+      
       {/* Hours Summary */}
       <HoursSummary summary={summary} />
+      
       {/* Calendar */}
       <Card>
         <CardHeader className="pb-2">
@@ -198,6 +221,14 @@ const TimeTrackingRapport: React.FC = () => {
           />
         </CardContent>
       </Card>
+      
+      {/* Employee Hours Chart (NEW) */}
+      <EmployeeHoursChart 
+        data={employeeHours}
+        isLoading={isEmployeeHoursLoading}
+        error={employeeHoursError}
+      />
+      
       {/* Task Type Distribution */}
       <Card>
         <CardHeader className="pb-2">
@@ -207,6 +238,7 @@ const TimeTrackingRapport: React.FC = () => {
           <TimeDistributionChart data={distribution} isLoading={isDistributionLoading} />
         </CardContent>
       </Card>
+      
       {/* Top Equipment */}
       <Card>
         <CardHeader className="pb-2">
@@ -216,12 +248,14 @@ const TimeTrackingRapport: React.FC = () => {
           <TopEquipmentList data={equipment} isLoading={isEquipmentLoading} />
         </CardContent>
       </Card>
+      
       {/* Pay Period Summary */}
       <PayPeriodSummary 
         isLoading={isLoadingPayPeriod}
         monthly={payPeriodStats.monthly}
         biWeekly={payPeriodStats.biWeekly}
       />
+      
       {/* Modal for day details */}
       {selectedDate && (
         <ReportModal 
