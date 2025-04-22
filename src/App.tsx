@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -26,6 +25,8 @@ import ScanRedirect from '@/pages/ScanRedirect';
 import TimeTracking from '@/pages/TimeTracking';
 import TimeEntryDetail from '@/pages/TimeEntryDetail';
 import TimeTrackingStatistics from '@/pages/TimeTrackingStatistics';
+import Footer from "@/components/layout/Footer";
+import LegalPage from "@/pages/Legal";
 
 const queryClient = new QueryClient();
 
@@ -92,9 +93,11 @@ function App() {
                   } />
                   <Route path="/scan/:id" element={<ScanRedirect />} />
                   <Route path="*" element={<NotFound />} />
+                  <Route path="/legal" element={<LegalPage />} />
                 </Routes>
                 <MobileMenu />
                 <Toaster />
+                <Footer />
               </AuthProvider>
             </Router>
           </RealtimeCacheProvider>
