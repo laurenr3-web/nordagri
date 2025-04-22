@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
@@ -75,7 +74,7 @@ export default function TimeTrackingPage() {
             <TimeTrackingHeader
               onNewSession={() => setIsFormOpen(true)}
               exportData={exportableEntries}
-              exportHeaders={exportHeaders}
+              exportHeaders={headers}
               onExportPDF={handleExportPDF}
             />
             

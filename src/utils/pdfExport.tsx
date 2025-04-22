@@ -74,7 +74,7 @@ interface PDFDocumentProps {
 // Generic PDF document component
 const PDFDocument: React.FC<PDFDocumentProps> = ({ title, subtitle, headers, data }) => (
   <Document>
-    <Page style={styles.page} size="A4">
+    <Page size="A4" style={styles.page}>
       <View style={styles.header}>
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.subtitle}>{subtitle}</Text>
