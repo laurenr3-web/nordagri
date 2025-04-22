@@ -1,81 +1,75 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Settings, Wrench, Tractor, Folder, PieChart, Clock } from 'lucide-react';
+import { useLocation, NavLink } from 'react-router-dom';
+import { Settings, Tool, Tractor, Clock, FileText, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { TimeTracker } from '@/components/time-tracking/TimeTracker';
+import { useModules } from '@/providers/ModulesProvider';
 
-const MobileMenu = () => {
+export default function MobileMenu() {
   const location = useLocation();
-  const isActive = (path: string) => location.pathname === path;
-
-  const navItems = [
-    {
-      path: '/dashboard',
-      icon: <PieChart className="h-6 w-6" />,
-      label: 'Dashboard',
+  const { canAccess } = useModules();
+  
+  const menuItems = [
+    { 
+      icon: <Tractor className="h-5 w-5" />, 
+      label: 'Équipements', 
+      href: '/equipment',
+      moduleKey: 'show_equipment'
     },
-    {
-      path: '/equipment',
-      icon: <Tractor className="h-6 w-6" />,
-      label: 'Équipement',
+    { 
+      icon: <Tool className="h-5 w-5" />, 
+      label: 'Maintenance', 
+      href: '/maintenance',
+      moduleKey: 'show_maintenance' 
     },
-    {
-      path: '/maintenance',
-      icon: <Wrench className="h-6 w-6" />,
-      label: 'Maintenance',
+    { 
+      icon: <Clock className="h-5 w-5" />, 
+      label: 'Temps', 
+      href: '/time-tracking',
+      moduleKey: 'show_time_tracking'
     },
-    {
-      path: '/parts',
-      icon: <Folder className="h-6 w-6" />,
-      label: 'Pièces',
+    { 
+      icon: <FileText className="h-5 w-5" />, 
+      label: 'Interventions', 
+      href: '/interventions',
+      moduleKey: 'show_interventions'
     },
-    {
-      path: '/time-tracking',
-      icon: <Clock className="h-6 w-6" />,
-      label: 'Temps',
+    { 
+      icon: <Shield className="h-5 w-5" />, 
+      label: 'Pièces', 
+      href: '/parts',
+      moduleKey: 'show_parts'
     },
-    {
-      path: '/settings',
-      icon: <Settings className="h-6 w-6" />,
-      label: 'Paramètres',
+    { 
+      icon: <Settings className="h-5 w-5" />, 
+      label: 'Paramètres', 
+      href: '/settings',
+      moduleKey: null // Toujours visible
     },
   ];
 
-  // Masquer le menu sur la page de connexion
-  if (location.pathname === '/auth') {
-    return null;
-  }
+  // Filtrer les modules non activés
+  const visibleMenuItems = menuItems.filter(
+    item => item.moduleKey === null || canAccess(item.moduleKey as any)
+  );
 
   return (
-    <>
-      {/* TimeTrackingButton flottante */}
-      <div className="lg:hidden">
-        <TimeTracker />
-      </div>
-      
-      {/* Menu de navigation mobile */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t lg:hidden">
-        <div className="grid grid-cols-6 h-16">
-          {navItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={cn(
-                'flex flex-col items-center justify-center px-2 transition-colors',
-                isActive(item.path) 
-                  ? 'text-primary' 
-                  : 'text-muted-foreground hover:text-primary'
-              )}
-            >
-              {item.icon}
-              <span className="text-xs mt-1">{item.label}</span>
-            </Link>
-          ))}
-        </div>
-      </nav>
-    </>
+    <div className="btm-nav md:hidden bg-white border-t border-gray-200 z-50">
+      {visibleMenuItems.map((item) => (
+        <NavLink
+          key={item.href}
+          to={item.href}
+          className={({ isActive }) => cn(
+            'text-xs flex flex-col items-center justify-center transition-colors',
+            isActive 
+              ? 'text-green-700 border-t-2 border-green-700' 
+              : 'text-gray-500 hover:text-green-600'
+          )}
+        >
+          {item.icon}
+          <span className="text-[10px] mt-1">{item.label}</span>
+        </NavLink>
+      ))}
+    </div>
   );
-};
-
-export default MobileMenu;
+}
