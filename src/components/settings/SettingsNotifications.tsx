@@ -7,8 +7,63 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Bell, Clock, Mail } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+// @feature: advanced-notifications
+const NOTIF_INIT = {
+  stock_low_enabled: true,
+  maintenance_reminder_enabled: true,
+};
 
 export const SettingsNotifications = () => {
+  const [notifPrefs, setNotifPrefs] = useState(NOTIF_INIT);
+  const [loadingNotif, setLoadingNotif] = useState(true);
+
+  useEffect(() => {
+    // Charge depuis notification_settings pour l'utilisateur courant si existe
+    const fetchSettings = async () => {
+      setLoadingNotif(true);
+      const { data: session } = await supabase.auth.getSession();
+      const userId = session?.session?.user?.id;
+      if (!userId) {
+        setLoadingNotif(false);
+        return;
+      }
+      const { data, error } = await supabase
+        .from('notification_settings')
+        .select('stock_low_enabled, maintenance_reminder_enabled')
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (!error && data) setNotifPrefs(data);
+      setLoadingNotif(false);
+    };
+    fetchSettings();
+  }, []);
+
+  // Enregistrement automatique lors du changement
+  const handleNotifChange = (key: keyof typeof NOTIF_INIT, value: boolean) => {
+    setNotifPrefs((old) => ({ ...old, [key]: value }));
+
+    supabase.auth.getSession().then(async ({ data: session }) => {
+      const userId = session?.session?.user?.id;
+      if (!userId) return;
+      // update ou insert notification_settings
+      const { error } = await supabase
+        .from('notification_settings')
+        .upsert(
+          { user_id: userId, [key]: value },
+          { onConflict: 'user_id' }
+        );
+      if (error) {
+        toast.error('Erreur lors de la sauvegarde des notifications');
+      } else {
+        toast.success('Préférences notifications sauvegardées');
+      }
+    });
+  };
+
   return (
     <div className="space-y-6">
       <SettingsSection 
@@ -63,6 +118,21 @@ export const SettingsNotifications = () => {
                 </p>
               </div>
               <Switch id="auto-reorder" defaultChecked />
+            </div>
+            
+            <div className="flex items-center justify-between pt-2">
+              <div className="space-y-0.5">
+                <Label htmlFor="stock-low-alert-enabled">Activate Stock Low Alerts</Label>
+                <p className="text-sm text-muted-foreground">
+                  <span>Enable/disable email & SMS if parts are below threshold</span>
+                </p>
+              </div>
+              <Switch
+                id="stock-low-alert-enabled"
+                checked={!!notifPrefs.stock_low_enabled}
+                disabled={loadingNotif}
+                onCheckedChange={(v) => handleNotifChange('stock_low_enabled', v)}
+              />
             </div>
           </div>
         </div>
@@ -158,6 +228,23 @@ export const SettingsNotifications = () => {
                 <Button className="mt-4">Save Calendar Settings</Button>
               </SheetContent>
             </Sheet>
+            
+            <div className="flex items-center justify-between pt-2">
+              <div className="space-y-0.5">
+                <Label htmlFor="maintenance-reminder-enabled">Enable Maintenance Reminders</Label>
+                <p className="text-sm text-muted-foreground">
+                  <span>Receive reminders for upcoming maintenance tasks</span>
+                </p>
+              </div>
+              <Switch
+                id="maintenance-reminder-enabled"
+                checked={!!notifPrefs.maintenance_reminder_enabled}
+                disabled={loadingNotif}
+                onCheckedChange={(v) =>
+                  handleNotifChange('maintenance_reminder_enabled', v)
+                }
+              />
+            </div>
           </div>
         </div>
       </SettingsSection>

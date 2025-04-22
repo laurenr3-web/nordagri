@@ -320,6 +320,11 @@ export type Database = {
       farms: {
         Row: {
           address: string | null
+          api_access_enabled: boolean
+          api_equipment_enabled: boolean
+          api_fuel_logs_enabled: boolean
+          api_inventory_sync_enabled: boolean
+          api_time_entries_enabled: boolean
           company_name: string | null
           created_at: string
           default_currency: string | null
@@ -339,6 +344,11 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          api_access_enabled?: boolean
+          api_equipment_enabled?: boolean
+          api_fuel_logs_enabled?: boolean
+          api_inventory_sync_enabled?: boolean
+          api_time_entries_enabled?: boolean
           company_name?: string | null
           created_at?: string
           default_currency?: string | null
@@ -358,6 +368,11 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          api_access_enabled?: boolean
+          api_equipment_enabled?: boolean
+          api_fuel_logs_enabled?: boolean
+          api_inventory_sync_enabled?: boolean
+          api_time_entries_enabled?: boolean
           company_name?: string | null
           created_at?: string
           default_currency?: string | null
@@ -695,9 +710,11 @@ export type Database = {
           created_at: string
           email_notifications: boolean
           id: string
+          maintenance_reminder_enabled: boolean
           notification_preferences: Json
           push_notifications: boolean
           sms_notifications: boolean
+          stock_low_enabled: boolean
           updated_at: string
           user_id: string
         }
@@ -705,9 +722,11 @@ export type Database = {
           created_at?: string
           email_notifications?: boolean
           id?: string
+          maintenance_reminder_enabled?: boolean
           notification_preferences?: Json
           push_notifications?: boolean
           sms_notifications?: boolean
+          stock_low_enabled?: boolean
           updated_at?: string
           user_id: string
         }
@@ -715,9 +734,11 @@ export type Database = {
           created_at?: string
           email_notifications?: boolean
           id?: string
+          maintenance_reminder_enabled?: boolean
           notification_preferences?: Json
           push_notifications?: boolean
           sms_notifications?: boolean
+          stock_low_enabled?: boolean
           updated_at?: string
           user_id?: string
         }
