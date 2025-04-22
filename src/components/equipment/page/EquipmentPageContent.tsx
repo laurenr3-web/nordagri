@@ -33,7 +33,10 @@ const EquipmentPageContent: React.FC<EquipmentPageContentProps> = ({
         equipment={equipment}
         isLoading={isLoading}
         filterState={filterState}
-        viewState={{ currentView, setCurrentView }}
+        viewState={{ 
+          currentView, 
+          setCurrentView: (view: string) => setCurrentView(view as "grid" | "list")
+        }}
         handleEquipmentClick={handleEquipmentClick}
       />
       {selectedEquipment && (
