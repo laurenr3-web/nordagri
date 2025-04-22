@@ -4,58 +4,60 @@ import { Link, useLocation } from 'react-router-dom';
 import { Settings, Wrench, Tractor, Folder, PieChart, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TimeTracker } from '@/components/time-tracking/TimeTracker';
+import { useTranslation } from "react-i18next";
 
 const MobileMenu = () => {
   const location = useLocation();
+  const { t } = useTranslation();
   const isActive = (path: string) => location.pathname === path;
 
   const navItems = [
     {
       path: '/dashboard',
-      icon: <PieChart className="h-6 w-6" />,
-      label: 'Dashboard',
+      icon: <PieChart className="h-6 w-6" aria-hidden="true" />,
+      label: t("mobilemenu.dashboard"),
     },
     {
       path: '/equipment',
-      icon: <Tractor className="h-6 w-6" />,
-      label: 'Équipement',
+      icon: <Tractor className="h-6 w-6" aria-hidden="true" />,
+      label: t("mobilemenu.equipment"),
     },
     {
       path: '/maintenance',
-      icon: <Wrench className="h-6 w-6" />,
-      label: 'Maintenance',
+      icon: <Wrench className="h-6 w-6" aria-hidden="true" />,
+      label: t("mobilemenu.maintenance"),
     },
     {
       path: '/parts',
-      icon: <Folder className="h-6 w-6" />,
-      label: 'Pièces',
+      icon: <Folder className="h-6 w-6" aria-hidden="true" />,
+      label: t("mobilemenu.parts"),
     },
     {
       path: '/time-tracking',
-      icon: <Clock className="h-6 w-6" />,
-      label: 'Temps',
+      icon: <Clock className="h-6 w-6" aria-hidden="true" />,
+      label: t("mobilemenu.time"),
     },
     {
       path: '/settings',
-      icon: <Settings className="h-6 w-6" />,
-      label: 'Paramètres',
+      icon: <Settings className="h-6 w-6" aria-hidden="true" />,
+      label: t("mobilemenu.settings"),
     },
   ];
 
-  // Masquer le menu sur la page de connexion
   if (location.pathname === '/auth') {
     return null;
   }
 
   return (
     <>
-      {/* TimeTrackingButton flottante */}
-      <div className="lg:hidden">
+      <div className="lg:hidden" aria-label={t("mobilemenu.time")}>
         <TimeTracker />
       </div>
-      
-      {/* Menu de navigation mobile */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t lg:hidden">
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t lg:hidden"
+        role="navigation"
+        aria-label="Menu principal mobile"
+      >
         <div className="grid grid-cols-6 h-16">
           {navItems.map((item) => (
             <Link
@@ -67,6 +69,10 @@ const MobileMenu = () => {
                   ? 'text-primary' 
                   : 'text-muted-foreground hover:text-primary'
               )}
+              role="tab"
+              aria-selected={isActive(item.path)}
+              aria-label={item.label}
+              tabIndex={0}
             >
               {item.icon}
               <span className="text-xs mt-1">{item.label}</span>
