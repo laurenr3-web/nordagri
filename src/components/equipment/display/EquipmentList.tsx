@@ -45,6 +45,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
               key={item.id} 
               className="cursor-pointer hover:bg-muted/50"
               onClick={() => handleEquipmentClick(item)}
+              data-testid={`equipment-row-${item.id}`}
             >
               <TableCell>
                 <div className="w-16 h-12 overflow-hidden rounded-md">

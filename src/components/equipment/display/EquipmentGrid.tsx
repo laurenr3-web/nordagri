@@ -24,6 +24,7 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({
           key={item.id} 
           className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
           onClick={() => handleEquipmentClick(item)}
+          data-testid={`equipment-card-${item.id}`}
         >
           <div className="aspect-video relative overflow-hidden">
             <img

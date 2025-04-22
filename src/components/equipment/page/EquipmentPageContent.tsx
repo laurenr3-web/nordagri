@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import EquipmentContentSection from './EquipmentContentSection';
 import { useNavigate } from 'react-router-dom';
 import { useEquipmentFilters, EquipmentItem } from '../hooks/useEquipmentFilters';
+import ViewEquipmentDialog from '../dialogs/ViewEquipmentDialog';
 
 interface EquipmentPageContentProps {
   equipment: EquipmentItem[];
@@ -15,6 +16,7 @@ const EquipmentPageContent: React.FC<EquipmentPageContentProps> = ({
 }) => {
   const navigate = useNavigate();
   const [currentView, setCurrentView] = useState('grid');
+  const [selectedEquipment, setSelectedEquipment] = useState<EquipmentItem | null>(null);
   const filterState = useEquipmentFilters(equipment);
   
   // Load saved view preference on component mount
@@ -31,12 +33,18 @@ const EquipmentPageContent: React.FC<EquipmentPageContentProps> = ({
   }, [currentView]);
   
   const handleEquipmentClick = (equipment: EquipmentItem) => {
-    // Dispatch the custom event with the equipment details
-    const event = new CustomEvent('equipment-selected', { detail: equipment });
-    window.dispatchEvent(event);
-
-    // Navigate is now only used for deep linking (optionally)
-    // navigate(`/equipment/${equipment.id}`);
+    console.log('Equipment item clicked:', equipment);
+    
+    // Naviguer vers la page de détails directement
+    navigate(`/equipment/${equipment.id}`);
+    
+    // Optionnel: également déclencher l'événement pour la compatibilité avec le système existant
+    // const event = new CustomEvent('equipment-selected', { detail: equipment });
+    // window.dispatchEvent(event);
+  };
+  
+  const handleDialogClose = () => {
+    setSelectedEquipment(null);
   };
   
   return (
@@ -48,6 +56,14 @@ const EquipmentPageContent: React.FC<EquipmentPageContentProps> = ({
         viewState={{ currentView, setCurrentView }}
         handleEquipmentClick={handleEquipmentClick}
       />
+      
+      {/* Dialog pour la compatibilité avec l'ancien système */}
+      {selectedEquipment && (
+        <ViewEquipmentDialog 
+          equipment={selectedEquipment} 
+          onClose={handleDialogClose} 
+        />
+      )}
     </div>
   );
 };
