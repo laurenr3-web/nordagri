@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -160,9 +161,11 @@ export function useExportReport(month: Date) {
       // Monthly total
       const monthlyHours = data.summary.totalHours;
       
-      // Fix: Pass the formatted string for display, but keep Date type for the month parameter
+      // Format the month for display
+      const formattedMonth = format(month, 'MMMM yyyy', { locale: fr });
+      
       exportReportToPDF(
-        format(month, 'MMMM yyyy', { locale: fr }),
+        formattedMonth,
         {
           daily: dailyHours,
           weekly: weeklyHours,
