@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { Document, Page, Text, View, StyleSheet, pdf } from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
 
@@ -73,7 +74,7 @@ interface PDFDocumentProps {
 // Generic PDF document component
 const PDFDocument: React.FC<PDFDocumentProps> = ({ title, subtitle, headers, data }) => (
   <Document>
-    <Page size="A4" style={styles.page}>
+    <Page style={styles.page} size="A4">
       <View style={styles.header}>
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.subtitle}>{subtitle}</Text>
