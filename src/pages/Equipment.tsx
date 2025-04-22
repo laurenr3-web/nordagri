@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import EquipmentPageContent from '@/components/equipment/page/EquipmentPageContent';
 import { useEquipmentData } from '@/hooks/equipment/useEquipmentData';
 import { EquipmentItem } from '@/components/equipment/hooks/useEquipmentFilters';
-import { Equipment } from '@/services/supabase/equipmentService';
+import type { Equipment } from '@/services/supabase/equipmentService';
 
 const Equipment = () => {
   const { t } = useTranslation();
