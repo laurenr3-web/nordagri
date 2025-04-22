@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Part } from '@/types/Part';
 import PartsHeader from './PartsHeader';
@@ -12,7 +11,6 @@ import PartDetailsDialog from './dialogs/PartDetailsDialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { deleteMultipleParts } from '@/services/supabase/parts';
-
 interface PartsContainerProps {
   parts: Part[];
   filteredParts: Part[];
@@ -42,7 +40,6 @@ interface PartsContainerProps {
   setIsAddPartDialogOpen: (open: boolean) => void;
   refetch?: () => void;
 }
-
 const PartsContainer: React.FC<PartsContainerProps> = ({
   parts,
   filteredParts,
@@ -68,25 +65,24 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
   setIsAddPartDialogOpen,
   refetch
 }) => {
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [isDeletingMultiple, setIsDeletingMultiple] = useState(false);
-
   const handleDeleteMultiple = async (partIds: (string | number)[]) => {
     if (!confirm(`Êtes-vous sûr de vouloir supprimer ${partIds.length} pièce(s) ?`)) {
       return;
     }
-
     try {
       setIsDeletingMultiple(true);
-      
+
       // Delete all selected parts using the bulk delete function which now handles both string and number IDs
       await deleteMultipleParts(partIds);
-
       toast({
         title: "Suppression réussie",
-        description: `${partIds.length} pièce(s) ont été supprimées avec succès`,
+        description: `${partIds.length} pièce(s) ont été supprimées avec succès`
       });
-      
+
       // Refresh the data without full page reload
       if (refetch) {
         refetch();
@@ -96,120 +92,60 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
       toast({
         title: "Erreur",
         description: "Une erreur est survenue lors de la suppression des pièces",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsDeletingMultiple(false);
     }
   };
-
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] bg-background/80">
+    return <div className="flex flex-col items-center justify-center min-h-[400px] bg-background/80">
         <Loader2 className="h-8 w-8 animate-spin opacity-70" />
         <p className="mt-2 text-sm text-muted-foreground">Chargement des pièces...</p>
-      </div>
-    );
+      </div>;
   }
-
   if (isError) {
-    return (
-      <Alert variant="destructive" className="my-4">
+    return <Alert variant="destructive" className="my-4">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Erreur</AlertTitle>
         <AlertDescription>
           Impossible de charger les pièces. Veuillez réessayer plus tard.
-          {refetch && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="mt-2"
-              onClick={() => refetch()}
-            >
+          {refetch && <Button variant="outline" size="sm" className="mt-2" onClick={() => refetch()}>
               Réessayer
-            </Button>
-          )}
+            </Button>}
         </AlertDescription>
-      </Alert>
-    );
+      </Alert>;
   }
-
-  return (
-    <div className="space-y-4">
-      <Card className="p-6">
-        <PartsHeader
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          currentView={currentView}
-          setCurrentView={setCurrentView}
-          onOpenFilterDialog={() => setIsFilterDialogOpen(true)}
-          onOpenSortDialog={() => setIsSortDialogOpen(true)}
-          filterCount={filterCount}
-        />
+  return <div className="space-y-4">
+      <Card className="p-6 px-[144px]">
+        <PartsHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} currentView={currentView} setCurrentView={setCurrentView} onOpenFilterDialog={() => setIsFilterDialogOpen(true)} onOpenSortDialog={() => setIsSortDialogOpen(true)} filterCount={filterCount} />
 
         {/* Si nous avons des données à afficher */}
-        {filteredParts.length > 0 ? (
-          currentView === 'grid' ? (
-            <PartsGrid
-              parts={filteredParts}
-              openPartDetails={openPartDetails}
-              openOrderDialog={() => {}}
-            />
-          ) : (
-            <PartsList
-              parts={filteredParts}
-              openPartDetails={openPartDetails}
-              openOrderDialog={() => {}}
-              onDeleteSelected={handleDeleteMultiple}
-              isDeleting={isDeletingMultiple}
-            />
-          )
-        ) : parts.length > 0 ? (
-          // Si nous avons des pièces mais aucune ne correspond aux filtres
-          <div className="flex flex-col items-center justify-center py-12 px-4">
+        {filteredParts.length > 0 ? currentView === 'grid' ? <PartsGrid parts={filteredParts} openPartDetails={openPartDetails} openOrderDialog={() => {}} /> : <PartsList parts={filteredParts} openPartDetails={openPartDetails} openOrderDialog={() => {}} onDeleteSelected={handleDeleteMultiple} isDeleting={isDeletingMultiple} /> : parts.length > 0 ?
+      // Si nous avons des pièces mais aucune ne correspond aux filtres
+      <div className="flex flex-col items-center justify-center py-12 px-4">
             <p className="mb-4 text-center text-muted-foreground">
               Aucune pièce ne correspond à vos critères de recherche ou filtres.
             </p>
-            <Button
-              variant="outline"
-              onClick={clearFilters}
-            >
+            <Button variant="outline" onClick={clearFilters}>
               Réinitialiser les filtres
             </Button>
-          </div>
-        ) : (
-          // Si nous n'avons aucune pièce
-          <div className="flex flex-col items-center justify-center py-12 px-4">
+          </div> :
+      // Si nous n'avons aucune pièce
+      <div className="flex flex-col items-center justify-center py-12 px-4">
             <p className="mb-4 text-center text-muted-foreground">
               Aucune pièce enregistrée. Ajoutez votre première pièce.
             </p>
-            <Button
-              variant="default"
-              onClick={() => setIsAddPartDialogOpen(true)}
-            >
+            <Button variant="default" onClick={() => setIsAddPartDialogOpen(true)}>
               Ajouter une pièce
             </Button>
-          </div>
-        )}
+          </div>}
       </Card>
 
       {/* Dialogs */}
-      <FilterSortDialogs
-        isFilterDialogOpen={isFilterDialogOpen}
-        setIsFilterDialogOpen={setIsFilterDialogOpen}
-        isSortDialogOpen={isSortDialogOpen}
-        setIsSortDialogOpen={setIsSortDialogOpen}
-      />
+      <FilterSortDialogs isFilterDialogOpen={isFilterDialogOpen} setIsFilterDialogOpen={setIsFilterDialogOpen} isSortDialogOpen={isSortDialogOpen} setIsSortDialogOpen={setIsSortDialogOpen} />
 
-      <PartDetailsDialog
-        isOpen={isPartDetailsDialogOpen}
-        onOpenChange={setIsPartDetailsDialogOpen}
-        selectedPart={selectedPart}
-        onEdit={handleUpdatePart}
-        onDelete={handleDeletePart}
-      />
-    </div>
-  );
+      <PartDetailsDialog isOpen={isPartDetailsDialogOpen} onOpenChange={setIsPartDetailsDialogOpen} selectedPart={selectedPart} onEdit={handleUpdatePart} onDelete={handleDeletePart} />
+    </div>;
 };
-
 export default PartsContainer;
