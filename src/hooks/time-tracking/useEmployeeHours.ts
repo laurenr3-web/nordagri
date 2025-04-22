@@ -57,11 +57,10 @@ export function useEmployeeHours(month: Date) {
         }>();
         
         sessionData.forEach(entry => {
-          if (!entry.profiles) return;
-          
           const userId = entry.user_id;
-          const firstName = entry.profiles?.first_name || 'Unknown';
-          const lastName = entry.profiles?.last_name || 'User';
+          const profiles = entry.profiles as any;
+          const firstName = profiles?.first_name || 'Unknown';
+          const lastName = profiles?.last_name || 'User';
           const name = `${firstName} ${lastName}`;
           
           // Calculate duration in hours

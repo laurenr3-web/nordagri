@@ -63,13 +63,15 @@ const styles = StyleSheet.create({
   },
 });
 
+interface PDFDocumentProps {
+  title: string;
+  subtitle: string;
+  headers: { label: string; key: string }[];
+  data: any[];
+}
+
 // Generic PDF document component
-const PDFDocument = ({ title, subtitle, headers, data }: { 
-  title: string; 
-  subtitle: string; 
-  headers: { label: string; key: string }[]; 
-  data: any[] 
-}) => (
+const PDFDocument: React.FC<PDFDocumentProps> = ({ title, subtitle, headers, data }) => (
   <Document>
     <Page size="A4" style={styles.page}>
       <View style={styles.header}>
@@ -122,9 +124,9 @@ export const exportToPDF = async (
   title: string, 
   subtitle: string,
   filename: string
-) => {
+): Promise<void> => {
   const blob = await pdf(
-    <PDFDocument
+    <PDFDocument 
       title={title}
       subtitle={subtitle}
       headers={headers}
