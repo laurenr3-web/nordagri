@@ -1,107 +1,107 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { startOfMonth, endOfMonth } from 'date-fns';
 
-export interface EmployeeHoursData {
+interface EmployeeHoursData {
+  userId: string;
   name: string;
   hours: number;
   color: string;
 }
 
-// Helper function to generate colors for the chart
-const getRandomColor = (index: number) => {
-  const colors = [
-    '#2563EB', // blue
-    '#16A34A', // green
-    '#D97706', // amber
-    '#DC2626', // red
-    '#7C3AED', // purple
-    '#059669', // emerald
-    '#DB2777', // pink
-    '#2563EB', // blue
-    '#9D174D', // rose
-    '#4B5563', // gray
-  ];
-  return colors[index % colors.length];
-};
-
 export function useEmployeeHours(month: Date) {
   const [data, setData] = useState<EmployeeHoursData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  
   useEffect(() => {
     const fetchEmployeeHours = async () => {
       try {
         setIsLoading(true);
         setError(null);
-
+        
         const startDate = startOfMonth(month);
         const endDate = endOfMonth(month);
         
-        const { data: sessionData } = await supabase.auth.getSession();
-        if (!sessionData?.session?.user) return;
-        
-        // Get the farm_id of the current user
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('farm_id')
-          .eq('id', sessionData.session.user.id)
-          .single();
-          
-        if (!profileData?.farm_id) return;
-
-        // Fetch employee hours for the current farm
-        const { data: hours, error: hoursError } = await supabase
+        // Get all time entries for the month grouped by employee
+        const { data: sessionData, error: sessionError } = await supabase
           .from('time_sessions')
           .select(`
-            duration,
             user_id,
+            duration,
+            start_time,
+            end_time,
             profiles:user_id (
-              id, 
-              first_name, 
+              first_name,
               last_name
             )
           `)
           .gte('start_time', startDate.toISOString())
           .lte('start_time', endDate.toISOString())
-          .eq('status', 'completed')
-          .filter('profiles.farm_id', 'eq', profileData.farm_id);
+          .not('end_time', 'is', null);
         
-        if (hoursError) throw hoursError;
-
-        // Calculate total hours per employee
-        const employeeHoursMap: { [key: string]: { name: string, hours: number } } = {};
+        if (sessionError) {
+          throw sessionError;
+        }
         
-        hours?.forEach(session => {
-          if (!session.duration || !session.profiles) return;
+        if (!sessionData || sessionData.length === 0) {
+          setData([]);
+          return;
+        }
+        
+        // Process the data to calculate hours per employee
+        const employeeMap = new Map<string, { 
+          name: string;
+          hours: number;
+        }>();
+        
+        sessionData.forEach(entry => {
+          if (!entry.profiles) return;
           
-          const userId = session.user_id;
-          const firstName = session.profiles.first_name || '';
-          const lastName = session.profiles.last_name || '';
-          const name = `${firstName} ${lastName}`.trim() || 'Utilisateur inconnu';
+          const userId = entry.user_id;
+          const firstName = entry.profiles.first_name || 'Unknown';
+          const lastName = entry.profiles.last_name || 'User';
+          const name = `${firstName} ${lastName}`;
           
-          if (!employeeHoursMap[userId]) {
-            employeeHoursMap[userId] = { name, hours: 0 };
+          // Calculate duration in hours
+          let hours = 0;
+          if (entry.duration) {
+            hours = entry.duration;
+          } else if (entry.start_time && entry.end_time) {
+            const start = new Date(entry.start_time);
+            const end = new Date(entry.end_time);
+            hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
           }
           
-          employeeHoursMap[userId].hours += session.duration;
+          const current = employeeMap.get(userId);
+          if (current) {
+            employeeMap.set(userId, {
+              name,
+              hours: current.hours + hours
+            });
+          } else {
+            employeeMap.set(userId, { name, hours });
+          }
         });
         
-        // Convert to array and sort by hours (descending)
-        const formattedData = Object.values(employeeHoursMap)
-          .map((employee, index) => ({
-            ...employee,
-            hours: parseFloat(employee.hours.toFixed(1)),
-            color: getRandomColor(index)
-          }))
-          .sort((a, b) => b.hours - a.hours);
+        // Convert to array and add colors
+        const colors = [
+          '#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088fe', 
+          '#00C49F', '#FFBB28', '#FF8042', '#a4de6c', '#d0ed57'
+        ];
         
-        setData(formattedData);
-      } catch (err) {
-        console.error('Error fetching employee hours:', err);
-        setError(err instanceof Error ? err : new Error('Unknown error'));
+        const result = Array.from(employeeMap.entries()).map(([userId, info], index) => ({
+          userId,
+          name: info.name,
+          hours: parseFloat(info.hours.toFixed(2)),
+          color: colors[index % colors.length]
+        }));
+        
+        setData(result);
+      } catch (e) {
+        console.error('Error fetching employee hours:', e);
+        setError('Failed to load employee hours data');
       } finally {
         setIsLoading(false);
       }
@@ -109,6 +109,6 @@ export function useEmployeeHours(month: Date) {
     
     fetchEmployeeHours();
   }, [month]);
-
+  
   return { data, isLoading, error };
 }

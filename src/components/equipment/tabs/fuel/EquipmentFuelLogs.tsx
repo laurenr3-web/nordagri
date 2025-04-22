@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Clock, Plus, Calendar } from 'lucide-react';
+import { Clock, Plus } from 'lucide-react';
 import { FuelLogsTable } from './FuelLogsTable';
 import { useFuelLogs } from '@/hooks/equipment/useFuelLogs';
 import { useFuelLogsExport } from '@/hooks/equipment/useFuelLogsExport';
@@ -38,6 +38,10 @@ const EquipmentFuelLogs: React.FC<EquipmentFuelLogsProps> = ({ equipment }) => {
     }
   };
 
+  const handleDeleteLog = (id: string) => {
+    deleteFuelLog.mutate(id);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -60,11 +64,11 @@ const EquipmentFuelLogs: React.FC<EquipmentFuelLogsProps> = ({ equipment }) => {
       <FuelLogsTable
         logs={fuelLogs || []}
         isLoading={isLoading}
-        onDelete={deleteFuelLog}
+        onDelete={handleDeleteLog}
       />
 
       <FuelLogDialog
-        isOpen={isAddDialogOpen}
+        open={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}
         onSubmit={(data) => addFuelLog.mutate(data)}
         isSubmitting={addFuelLog.isPending}
