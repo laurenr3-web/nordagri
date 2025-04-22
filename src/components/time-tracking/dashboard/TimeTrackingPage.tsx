@@ -53,7 +53,7 @@ export default function TimeTrackingPage() {
     setTaskTypeFilter,
   } = useTimeTrackingData();
 
-  // Classe responsive : Exploite toute la largeur sur desktop, reste fluide sur mobile
+  // Classe responsive : Exploite toute la largeur sur desktop, reste fluide sur mobile
   const desktopMaxW =
     "w-full max-w-screen-2xl mx-auto px-8";
   const mobileMaxW =
