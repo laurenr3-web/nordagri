@@ -4,8 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { 
   CalendarDays, 
-  Clock, 
-  AlertOctagon, 
   Wrench, 
   ArrowRight,
   ListChecks,
@@ -70,7 +68,7 @@ const MaintenanceNavigation: React.FC<MaintenanceNavigationProps> = ({
         >
           <div className="flex items-start">
             <div className={`p-2 rounded-full ${
-              currentView === item.view ? 'bg-primary text-white' : 'bg-muted'
+              currentView === item.view ? 'bg-primary text-primary-foreground' : 'bg-muted'
             }`}>
               {item.icon}
             </div>

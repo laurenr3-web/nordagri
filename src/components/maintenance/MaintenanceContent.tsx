@@ -23,7 +23,7 @@ interface MaintenanceContentProps {
 }
 
 /** 
- * UI principal Maintenance. Ne gère plus la logique métier, seulement l’affichage.
+ * UI principal Maintenance. Ne gère plus la logique métier, seulement l'affichage.
  */
 const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
   tasks,
@@ -53,7 +53,7 @@ const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
         filterOptions={filterOptions}
         userName={userName}
       />
-      <div className="mt-md">
+      <div className="mt-4">
         {currentView === 'calendar' ? (
           <CalendarView 
             tasks={getCurrentTasks(currentView)}
@@ -64,8 +64,8 @@ const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
         ) : (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-xs text-lg md:text-xl">
-                <CalendarIcon className="mr-xs h-5 w-5" />
+              <CardTitle className="flex items-center gap-1 text-lg md:text-xl">
+                <CalendarIcon className="mr-1 h-5 w-5" />
                 {currentView === 'today' ? 'Tâches du jour' : 
                  currentView === 'overdue' ? 'Tâches en retard' :
                  currentView === 'completed' ? 'Tâches terminées' : 'Tâches à venir'}
@@ -76,7 +76,7 @@ const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
                   currentView === 'completed' ? "Historique des tâches terminées" : "Tâches planifiées à venir"}
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-md">
+            <CardContent className="p-4">
               <MaintenanceTable 
                 tasks={getCurrentTasks(currentView)}
                 updateTaskStatus={updateTaskStatus}

@@ -93,7 +93,7 @@ const Maintenance = () => {
             <MaintenanceNotificationsPopover />
           </div>
           
-          <div className="pt-6 pb-16 px-4 sm:px-8 md:px-12">
+          <div className="pt-6 pb-16 px-4 sm:px-6 md:px-8">
             <div className="max-w-7xl mx-auto">
               <Tabs defaultValue="tasks" value={dashboardView} onValueChange={setDashboardView}>
                 <div className="flex justify-between items-center mb-6">

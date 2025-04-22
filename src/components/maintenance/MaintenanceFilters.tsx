@@ -78,7 +78,7 @@ export const MaintenanceFilters: React.FC<MaintenanceFiltersProps> = ({
         >
           <Clock className="h-4 w-4 mr-2" />
           <span>Aujourd'hui</span>
-          <Badge variant="secondary" className="ml-1 bg-primary/20">
+          <Badge variant="secondary" className="ml-1">
             {/* Count of today's tasks would go here */}
           </Badge>
         </Button>

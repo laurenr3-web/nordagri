@@ -62,9 +62,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       case 'high':
         return 'bg-orange-100 text-orange-800';
       case 'critical':
-        return 'bg-red-100 text-red-800';
+        return 'bg-destructive/20 text-destructive';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -90,14 +90,14 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       
       <div className="grid grid-cols-7 gap-px bg-muted">
         {/* Calendar header - days of the week */}
-        {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day, i) => (
+        {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day) => (
           <div key={day} className="p-2 text-center text-sm font-medium">
             {day}
           </div>
         ))}
         
         {/* Days of the month */}
-        {monthDays.map((day, i) => {
+        {monthDays.map((day) => {
           const dayTasks = getTasksForDay(day);
           const isCurrentMonth = isSameMonth(day, month);
           
@@ -106,7 +106,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
               key={day.toString()}
               className={`min-h-[120px] p-2 relative ${
                 !isCurrentMonth ? 'bg-muted/50 text-muted-foreground' : 
-                isToday(day) ? 'bg-blue-50' : 'bg-card'
+                isToday(day) ? 'bg-primary/5' : 'bg-card'
               }`}
             >
               <div className="flex justify-between">

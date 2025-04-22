@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, CalendarPlus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 interface MaintenanceHeaderProps {
   setIsNewTaskDialogOpen: (open: boolean) => void;

@@ -20,8 +20,8 @@ const MaintenanceStats: React.FC<MaintenanceStatsProps> = ({ tasks, upcomingTask
             <div key={task.id} className="flex items-start gap-3 pb-3 border-b last:border-0">
               <div className={`h-10 w-10 rounded-full flex items-center justify-center
                 ${task.priority === 'critical' ? 'bg-destructive/20 text-destructive' : 
-                  task.priority === 'high' ? 'bg-red-100 text-red-800' : 
-                  'bg-secondary text-muted-foreground'}`}>
+                  task.priority === 'high' ? 'bg-orange-100 text-orange-800' : 
+                  'bg-muted text-muted-foreground'}`}>
                 {task.type === 'preventive' ? (
                   <CheckCircle2 size={20} />
                 ) : (
@@ -75,14 +75,14 @@ const MaintenanceStats: React.FC<MaintenanceStatsProps> = ({ tasks, upcomingTask
           </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full bg-harvest-500"></div>
+              <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
               <span>Medium</span>
             </div>
             <span className="font-medium">{tasks.filter(t => t.priority === 'medium').length}</span>
           </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full bg-agri-500"></div>
+              <div className="h-3 w-3 rounded-full bg-blue-500"></div>
               <span>Low</span>
             </div>
             <span className="font-medium">{tasks.filter(t => t.priority === 'low').length || 0}</span>

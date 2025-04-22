@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { formatDate, getStatusBadge, getPriorityBadge } from './MaintenanceUtils';
 
 /**
- * Affiche un résumé visuel d’une tâche de maintenance.
+ * Affiche un résumé visuel d'une tâche de maintenance.
  * @param task Données de tâche
  * @param onViewDetails Callback pour ouvrir les détails
  */
@@ -20,27 +20,27 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onViewDetails }) => {
   return (
     <BlurContainer 
       key={task.id}
-      className="mb-md animate-fade-in overflow-hidden"
+      className="mb-4 animate-fade-in overflow-hidden"
     >
-      <div className="p-md">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-sm mb-md">
+      <div className="p-4">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-4">
           <div>
-            <h3 className="font-semibold text-base mb-xs">{task.title}</h3>
+            <h3 className="font-semibold text-base mb-1">{task.title}</h3>
             <p className="text-muted-foreground text-xs">{task.equipment}</p>
           </div>
-          <div className="flex flex-wrap gap-xs">
+          <div className="flex flex-wrap gap-1">
             {getStatusBadge(task.status)}
             {getPriorityBadge(task.priority)}
           </div>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-md mb-md">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
           <div>
-            <p className="text-xs text-muted-foreground mb-xs">Due Date</p>
+            <p className="text-xs text-muted-foreground mb-1">Due Date</p>
             <p className="font-medium">{formatDate(task.dueDate)}</p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground mb-xs">Engine Hours</p>
+            <p className="text-xs text-muted-foreground mb-1">Engine Hours</p>
             <p className="font-medium">
               {task.status === 'completed' && task.actualDuration ? 
                 `${task.actualDuration} hrs (Actual)` : 
@@ -49,8 +49,8 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onViewDetails }) => {
             </p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground mb-xs">Assigned To</p>
-            <div className="flex items-center gap-xs">
+            <p className="text-xs text-muted-foreground mb-1">Assigned To</p>
+            <div className="flex items-center gap-1">
               <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center">
                 <User size={14} className="text-primary" />
               </div>
@@ -60,16 +60,16 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onViewDetails }) => {
         </div>
         
         {task.notes && (
-          <div className="mb-md">
+          <div className="mb-4">
             <p className="text-xs text-muted-foreground mb-1">Notes</p>
-            <p className="text-xs bg-secondary/40 p-2 rounded-md">{task.notes}</p>
+            <p className="text-xs bg-muted p-2 rounded-md">{task.notes}</p>
           </div>
         )}
         
         <div className="flex justify-end">
           <Button 
             variant="outline" 
-            className="gap-xs px-md py-xs text-sm"
+            className="gap-1 px-4 py-1 text-sm"
             onClick={() => onViewDetails(task)}
           >
             <span>Détails</span>

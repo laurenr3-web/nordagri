@@ -1,126 +1,107 @@
 
 import React from 'react';
+import { format, isToday, isPast, isFuture } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, CheckCircle2, Clock, AlertTriangle, XCircle, User } from 'lucide-react';
-import { MaintenanceTask } from '@/hooks/maintenance/maintenanceSlice';
+import { MaintenanceTask, MaintenanceStatus, MaintenancePriority } from '@/hooks/maintenance/maintenanceSlice';
+import { CheckCircle2, AlertTriangle, Clock } from 'lucide-react';
 
-// Helper function to format date
-export const formatDate = (date: Date) => {
-  return new Date(date).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  });
+/**
+ * Formats a date to a human-readable string
+ */
+export const formatDate = (date: Date): string => {
+  return format(date, 'dd MMM yyyy', { locale: fr });
 };
 
-// Helper function for status badge
-export const getStatusBadge = (status: string) => {
+/**
+ * Returns a badge component for the given task status
+ */
+export const getStatusBadge = (status: MaintenanceStatus) => {
   switch (status) {
-    case 'scheduled':
+    case 'completed':
       return (
-        <Badge variant="outline" className="bg-secondary flex items-center gap-1 text-muted-foreground">
-          <Calendar size={12} />
-          <span>Scheduled</span>
+        <Badge variant="success" className="flex items-center gap-1">
+          <CheckCircle2 className="h-3 w-3" />
+          <span>Terminé</span>
         </Badge>
       );
     case 'in-progress':
       return (
-        <Badge className="bg-harvest-100 text-harvest-800 flex items-center gap-1">
-          <Clock size={12} />
-          <span>In Progress</span>
+        <Badge variant="info" className="flex items-center gap-1">
+          <Clock className="h-3 w-3" />
+          <span>En cours</span>
         </Badge>
       );
-    case 'completed':
+    case 'scheduled':
       return (
-        <Badge className="bg-agri-100 text-agri-800 flex items-center gap-1">
-          <CheckCircle2 size={12} />
-          <span>Completed</span>
-        </Badge>
-      );
-    case 'pending-parts':
-      return (
-        <Badge variant="outline" className="bg-orange-100 text-orange-800 flex items-center gap-1">
-          <AlertTriangle size={12} />
-          <span>Pending Parts</span>
-        </Badge>
-      );
-    case 'cancelled':
-      return (
-        <Badge variant="destructive" className="flex items-center gap-1">
-          <XCircle size={12} />
-          <span>Cancelled</span>
+        <Badge variant="outline" className="flex items-center gap-1">
+          <Clock className="h-3 w-3" />
+          <span>Planifié</span>
         </Badge>
       );
     default:
       return (
-        <Badge variant="outline" className="bg-secondary text-muted-foreground">
-          {status}
+        <Badge variant="outline" className="flex items-center gap-1">
+          <span>{status}</span>
         </Badge>
       );
   }
 };
 
-// Helper function for priority badge
-export const getPriorityBadge = (priority: string) => {
+/**
+ * Returns a badge component for the given task priority
+ */
+export const getPriorityBadge = (priority: MaintenancePriority) => {
   switch (priority) {
     case 'critical':
       return (
         <Badge variant="destructive" className="flex items-center gap-1">
-          <XCircle size={12} />
-          <span>Critical</span>
+          <AlertTriangle className="h-3 w-3" />
+          <span>Critique</span>
         </Badge>
       );
     case 'high':
-      return (
-        <Badge className="bg-red-100 text-red-800 flex items-center gap-1">
-          <AlertTriangle size={12} />
-          <span>High</span>
-        </Badge>
-      );
+      return <Badge variant="warning">Haute</Badge>;
     case 'medium':
-      return (
-        <Badge className="bg-harvest-100 text-harvest-800">Medium</Badge>
-      );
+      return <Badge variant="secondary">Moyenne</Badge>;
     case 'low':
-      return (
-        <Badge className="bg-agri-100 text-agri-800">Low</Badge>
-      );
+      return <Badge variant="outline">Basse</Badge>;
     default:
-      return (
-        <Badge variant="outline">{priority}</Badge>
-      );
+      return <Badge variant="outline">{priority}</Badge>;
   }
 };
 
-// Helper function to get priority color
-export const getPriorityColor = (priority: string) => {
-  switch (priority) {
-    case 'critical':
-      return 'bg-red-100 text-red-800';
-    case 'high':
-      return 'bg-orange-100 text-orange-800';
-    case 'medium':
-      return 'bg-blue-100 text-blue-800';
-    case 'low':
-      return 'bg-green-100 text-green-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  }
-};
-
-// Helper functions for task filtering
-export const getUpcomingTasks = (tasks: MaintenanceTask[]) => {
+/**
+ * Get upcoming tasks (not completed, due in the future)
+ */
+export const getUpcomingTasks = (tasks: MaintenanceTask[]): MaintenanceTask[] => {
   return tasks.filter(task => 
-    task.status === 'scheduled' || task.status === 'pending-parts'
-  ).sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
+    task.status !== 'completed' && isFuture(task.dueDate) && !isToday(task.dueDate)
+  );
 };
 
-export const getActiveTasks = (tasks: MaintenanceTask[]) => {
-  return tasks.filter(task => task.status === 'in-progress')
-    .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
+/**
+ * Get active tasks (not completed, due today or in-progress)
+ */
+export const getActiveTasks = (tasks: MaintenanceTask[]): MaintenanceTask[] => {
+  return tasks.filter(task => 
+    task.status !== 'completed' && 
+    (isToday(task.dueDate) || task.status === 'in-progress')
+  );
 };
 
-export const getCompletedTasks = (tasks: MaintenanceTask[]) => {
-  return tasks.filter(task => task.status === 'completed')
-    .sort((a, b) => (b.completedDate?.getTime() || 0) - (a.completedDate?.getTime() || 0));
+/**
+ * Get completed tasks
+ */
+export const getCompletedTasks = (tasks: MaintenanceTask[]): MaintenanceTask[] => {
+  return tasks.filter(task => task.status === 'completed');
+};
+
+/**
+ * Get overdue tasks (not completed, past due date)
+ */
+export const getOverdueTasks = (tasks: MaintenanceTask[]): MaintenanceTask[] => {
+  return tasks.filter(task => 
+    task.status !== 'completed' && isPast(task.dueDate) && !isToday(task.dueDate)
+  );
 };
