@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SettingsEssentials } from '@/components/settings/SettingsEssentials';
 import { SettingsSecurity } from '@/components/settings/SettingsSecurity';
-import { SettingsCustomization } from '@/components/settings/SettingsCustomization';
 
 export default function SettingsTabs() {
   const [activeTab, setActiveTab] = useState('essentials');
@@ -15,10 +14,9 @@ export default function SettingsTabs() {
       value={activeTab} 
       onValueChange={setActiveTab}
     >
-      <TabsList className="grid grid-cols-2 md:grid-cols-5 mb-8">
+      <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-8">
         <TabsTrigger value="essentials">Essentials</TabsTrigger>
         <TabsTrigger value="security">Sécurité</TabsTrigger>
-        <TabsTrigger value="customization">Personnalisation</TabsTrigger>
         <TabsTrigger value="notifications">Notifications</TabsTrigger>
         <TabsTrigger value="interface">Interface</TabsTrigger>
       </TabsList>
@@ -29,10 +27,6 @@ export default function SettingsTabs() {
       
       <TabsContent value="security">
         <SettingsSecurity />
-      </TabsContent>
-      
-      <TabsContent value="customization">
-        <SettingsCustomization />
       </TabsContent>
       
       <TabsContent value="notifications">

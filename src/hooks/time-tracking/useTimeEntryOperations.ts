@@ -1,96 +1,124 @@
-import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { TimeEntry } from '@/types/TimeEntry';
 import { timeTrackingService } from '@/services/supabase/timeTrackingService';
+import { TimeEntryTaskType } from './types';
+import { supabase } from '@/integrations/supabase/client';
+import { checkAuthStatus, checkTablePermissions } from '@/utils/authUtils';
 
-export const useTimeEntryOperations = () => {
-  const [entries, setEntries] = useState<TimeEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Fetch entries
-  const fetchEntries = async () => {
-    setIsLoading(true);
+export function useTimeEntryOperations() {
+  const startTimeEntry = async (params: {
+    equipment_id?: number;
+    intervention_id?: number;
+    task_type: TimeEntryTaskType;
+    task_type_id?: string;
+    custom_task_type?: string;
+    location_id?: number;
+    location?: string;
+    notes?: string;
+    coordinates?: { lat: number; lng: number };
+    title?: string;
+  }) => {
     try {
-      // Just passing one argument instead of two
-      const data = await timeTrackingService.getTimeEntries({});
-      if (data) {
-        setEntries(data);
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session?.user) {
+        throw new Error("You must be logged in to track time.");
       }
-    } catch (error) {
-      console.error("Error fetching time entries:", error);
-      setError("Failed to load time entries");
-    } finally {
-      setIsLoading(false);
+      
+      const userId = sessionData.session.user.id;
+      const locationName = params.location || 
+                          (params.location_id ? `Location ${params.location_id}` : undefined);
+      
+      // Log auth status for debugging
+      await checkAuthStatus();
+      
+      // Check permissions on time_sessions table
+      await checkTablePermissions('time_sessions');
+      
+      const newEntry = await timeTrackingService.startTimeEntry(userId, {
+        ...params,
+        location: locationName
+      });
+      
+      toast.success('Time tracking started', {
+        description: 'The timer is now running.'
+      });
+      
+      return newEntry;
+    } catch (err) {
+      console.error("Error starting time tracking:", err);
+      toast.error('Error', {
+        description: err instanceof Error ? err.message : 'Error starting time tracking'
+      });
+      throw err;
     }
   };
 
-  // Add entry
-  const addEntry = async (entry: Omit<TimeEntry, 'id'>) => {
-    setIsLoading(true);
+  const stopTimeEntry = async (timeEntryId: string) => {
     try {
-      const newEntry = await timeTrackingService.addTimeEntry(entry);
-      if (newEntry) {
-        setEntries(prevEntries => [...prevEntries, newEntry]);
-        toast.success("Time entry added successfully");
-      } else {
-        toast.error("Failed to add time entry");
-      }
-    } catch (error) {
-      console.error("Error adding time entry:", error);
-      toast.error("Failed to add time entry");
-    } finally {
-      setIsLoading(false);
+      // Log auth status for debugging
+      await checkAuthStatus();
+      
+      // Check permissions on time_sessions table
+      await checkTablePermissions('time_sessions', timeEntryId);
+      
+      await timeTrackingService.stopTimeEntry(timeEntryId);
+      toast.success('Time tracking stopped', {
+        description: 'Your time entry has been saved.'
+      });
+    } catch (err) {
+      console.error("Error stopping time tracking:", err);
+      toast.error('Error', {
+        description: err instanceof Error ? err.message : 'Error stopping time tracking'
+      });
+      throw err;
     }
   };
 
-  // Update entry
-  const updateEntry = async (id: string, updates: Partial<TimeEntry>) => {
-    setIsLoading(true);
+  const pauseTimeEntry = async (timeEntryId: string) => {
     try {
-      const updatedEntry = await timeTrackingService.updateTimeEntry(id, updates);
-      if (updatedEntry) {
-        setEntries(prevEntries =>
-          prevEntries.map(entry => (entry.id === id ? { ...entry, ...updatedEntry } : entry))
-        );
-        toast.success("Time entry updated successfully");
-      } else {
-        toast.error("Failed to update time entry");
-      }
-    } catch (error) {
-      console.error("Error updating time entry:", error);
-      toast.error("Failed to update time entry");
-    } finally {
-      setIsLoading(false);
+      // Log auth status for debugging
+      await checkAuthStatus();
+      
+      // Check permissions on time_sessions table
+      await checkTablePermissions('time_sessions', timeEntryId);
+      
+      await timeTrackingService.pauseTimeEntry(timeEntryId);
+      toast.success('Time tracking paused', {
+        description: 'You can resume later.'
+      });
+    } catch (err) {
+      console.error("Error pausing time tracking:", err);
+      toast.error('Error', {
+        description: err instanceof Error ? err.message : 'Error pausing'
+      });
+      throw err;
     }
   };
 
-  // Delete entry
-  const deleteEntry = async (id: string) => {
-    setIsLoading(true);
+  const resumeTimeEntry = async (timeEntryId: string) => {
     try {
-      await timeTrackingService.deleteTimeEntry(id);
-      setEntries(prevEntries => prevEntries.filter(entry => entry.id !== id));
-      toast.success("Time entry deleted successfully");
-    } catch (error) {
-      console.error("Error deleting time entry:", error);
-      toast.error("Failed to delete time entry");
-    } finally {
-      setIsLoading(false);
+      // Log auth status for debugging
+      await checkAuthStatus();
+      
+      // Check permissions on time_sessions table
+      await checkTablePermissions('time_sessions', timeEntryId);
+      
+      await timeTrackingService.resumeTimeEntry(timeEntryId);
+      toast.success('Time tracking resumed', {
+        description: 'The timer is running again.'
+      });
+    } catch (err) {
+      console.error("Error resuming time tracking:", err);
+      toast.error('Error', {
+        description: err instanceof Error ? err.message : 'Error resuming'
+      });
+      throw err;
     }
   };
-
-  useEffect(() => {
-    fetchEntries();
-  }, []);
 
   return {
-    entries,
-    isLoading,
-    error,
-    addEntry,
-    updateEntry,
-    deleteEntry,
-    refetch: fetchEntries
+    startTimeEntry,
+    stopTimeEntry,
+    pauseTimeEntry,
+    resumeTimeEntry
   };
-};
+}

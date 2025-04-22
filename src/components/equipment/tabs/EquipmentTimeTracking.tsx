@@ -82,10 +82,9 @@ const EquipmentTimeTracking: React.FC<EquipmentTimeTrackingProps> = ({ equipment
       const equipmentId = typeof equipment.id === 'string' ? parseInt(equipment.id, 10) : equipment.id;
       
       // Pre-fill equipment from current page
-      await timeTrackingService.startTimeEntry({
+      await timeTrackingService.startTimeEntry(userId, {
         ...data,
-        equipment_id: equipmentId,
-        user_id: userId
+        equipment_id: equipmentId
       });
       
       setIsFormOpen(false);
