@@ -29,7 +29,7 @@ export const useFuelLogsExport = () => {
   };
 
   // Export to Excel
-  const exportToExcel = (logs: FuelLog[], equipmentName?: string) => {
+  const exportFuelLogsToExcel = (logs: FuelLog[], equipmentName?: string) => {
     const formattedData = formatLogsForExport(logs, equipmentName);
     
     const columns: ExcelColumn[] = [
@@ -51,7 +51,7 @@ export const useFuelLogsExport = () => {
   };
 
   return {
-    exportToExcel,
+    exportToExcel: exportFuelLogsToExcel,
     formatLogsForExport
   };
 };

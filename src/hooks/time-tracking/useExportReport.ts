@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -65,7 +64,7 @@ export function useExportReport(month: Date) {
       // Calculate summary data
       let totalHours = 0;
       const taskTypeMap = new Map<string, number>();
-      const equipmentMap = new Map<string, number>();
+      const equipmentMap = new Map<number, { name: string, hours: number }>();
       const dailyHoursMap = new Map<string, number>();
       
       // Transform into TimeEntry objects
@@ -83,10 +82,13 @@ export function useExportReport(month: Date) {
         const taskType = entry.custom_task_type || 'Non spécifié';
         taskTypeMap.set(taskType, (taskTypeMap.get(taskType) || 0) + duration);
         
-        // Equipment usage
+        // Equipment usage - store ID along with name and hours
         if (entry.equipment_id && entry.equipment) {
           const equipmentName = entry.equipment.name;
-          equipmentMap.set(equipmentName, (equipmentMap.get(equipmentName) || 0) + duration);
+          const equipmentId = entry.equipment_id;
+          const currentEntry = equipmentMap.get(equipmentId) || { name: equipmentName, hours: 0 };
+          currentEntry.hours += duration;
+          equipmentMap.set(equipmentId, currentEntry);
         }
         
         // Daily hours
@@ -116,7 +118,7 @@ export function useExportReport(month: Date) {
           totalHours,
           taskTypeDistribution: Array.from(taskTypeMap.entries()).map(([type, hours]) => ({ type, hours })),
           topEquipment: Array.from(equipmentMap.entries())
-            .map(([name, hours]) => ({ name, hours }))
+            .map(([id, { name, hours }]) => ({ id, name, hours }))
             .sort((a, b) => b.hours - a.hours)
             .slice(0, 5)
         },
