@@ -9,11 +9,12 @@ export function useExportTimeTracking() {
   const formatTimeEntriesForExport = (entries: TimeEntry[]) => {
     return entries.map(entry => {
       // Calculate duration if not provided
-      let duration = entry.duration || 0;
-      if (!duration && entry.end_time) {
+      let durationInHours = 0;
+      
+      if (entry.end_time) {
         const start = new Date(entry.start_time);
         const end = new Date(entry.end_time);
-        duration = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+        durationInHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
       }
 
       const startDate = new Date(entry.start_time);
@@ -22,7 +23,7 @@ export function useExportTimeTracking() {
         date: startDate.toLocaleDateString(),
         startTime: startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         endTime: entry.end_time ? new Date(entry.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-',
-        duration: duration.toFixed(2) + 'h',
+        duration: durationInHours.toFixed(2) + 'h',
         taskType: entry.custom_task_type || 'Non spécifié',
         equipment: entry.equipment_name || '-',
         notes: entry.notes || '-'
