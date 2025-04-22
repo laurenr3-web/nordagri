@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
@@ -8,10 +9,8 @@ import { TimeTrackingFilters } from '../dashboard/TimeTrackingFilters';
 import { ActiveSessionsTable } from '../ActiveSessionsTable';
 import { TimeEntryForm } from '../TimeEntryForm';
 import { TimeTrackingTabs } from './TimeTrackingTabs';
-import { startOfWeek, endOfWeek, format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { startOfWeek, endOfWeek } from 'date-fns';
 import { useTimeTrackingData } from '@/hooks/time-tracking/useTimeTrackingData';
-import { useExportTimeTracking } from '@/hooks/time-tracking/useExportTimeTracking';
 
 export default function TimeTrackingPage() {
   const {
@@ -39,29 +38,6 @@ export default function TimeTrackingPage() {
     setTaskTypeFilter,
   } = useTimeTrackingData();
 
-  const { 
-    formatTimeEntriesForExport, 
-    exportTimeEntriesToPDF,
-    headers,
-    isExporting
-  } = useExportTimeTracking();
-
-  const exportableEntries = formatTimeEntriesForExport(entries);
-  
-  // Format period label for export
-  const getPeriodLabel = () => {
-    if (!dateRange.from || !dateRange.to) return '';
-    
-    const fromStr = format(dateRange.from, 'dd/MM/yyyy', { locale: fr });
-    const toStr = format(dateRange.to, 'dd/MM/yyyy', { locale: fr });
-    
-    return `${fromStr} au ${toStr}`;
-  };
-  
-  const handleExportPDF = async () => {
-    await exportTimeEntriesToPDF(entries, getPeriodLabel());
-  };
-
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
@@ -73,9 +49,6 @@ export default function TimeTrackingPage() {
           <div className="container py-6">
             <TimeTrackingHeader
               onNewSession={() => setIsFormOpen(true)}
-              exportData={exportableEntries}
-              exportHeaders={headers}
-              onExportPDF={handleExportPDF}
             />
             
             <TimeTrackingSummary stats={stats} isLoading={isLoading} />
