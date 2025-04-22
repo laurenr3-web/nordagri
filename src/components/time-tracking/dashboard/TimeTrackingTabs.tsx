@@ -1,14 +1,14 @@
 
 import React from 'react';
-import { Calendar, ListFilter, PieChart } from 'lucide-react';
+import { Calendar, ListFilter, BarChart, PieChart } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { TimeEntryCard } from '@/components/time-tracking/TimeEntryCard';
 import { TimeEntry } from '@/hooks/time-tracking/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import CalendarView from '@/components/time-tracking/calendar/CalendarView';
 import TimeTrackingRapport from '@/components/time-tracking/rapport/TimeTrackingRapport';
+import { Link } from 'react-router-dom';
 
 interface TimeTrackingTabsProps {
   activeTab: string;
@@ -42,9 +42,9 @@ export function TimeTrackingTabs({
             <ListFilter className="h-4 w-4" />
             <span>Liste</span>
           </TabsTrigger>
-          <TabsTrigger value="calendar" className="flex items-center gap-1">
-            <Calendar className="h-4 w-4" />
-            <span>Calendrier</span>
+          <TabsTrigger value="statistics" className="flex items-center gap-1">
+            <BarChart className="h-4 w-4" />
+            <span>Statistiques</span>
           </TabsTrigger>
           <TabsTrigger value="rapport" className="flex items-center gap-1">
             <PieChart className="h-4 w-4" />
@@ -85,8 +85,13 @@ export function TimeTrackingTabs({
         )}
       </TabsContent>
       
-      <TabsContent value="calendar">
-        <CalendarView />
+      <TabsContent value="statistics">
+        <div className="flex flex-col space-y-4">
+          <p className="text-muted-foreground mb-4">Accédez à des analyses détaillées de votre temps de travail</p>
+          <Link to="/time-tracking/statistics">
+            <Button>Voir les statistiques</Button>
+          </Link>
+        </div>
       </TabsContent>
       
       <TabsContent value="rapport">
@@ -95,4 +100,3 @@ export function TimeTrackingTabs({
     </Tabs>
   );
 }
-

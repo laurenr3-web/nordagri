@@ -25,6 +25,7 @@ import Auth from '@/pages/Auth';
 import ScanRedirect from '@/pages/ScanRedirect';
 import TimeTracking from '@/pages/TimeTracking';
 import TimeEntryDetail from '@/pages/TimeEntryDetail';
+import TimeTrackingStatistics from '@/pages/TimeTrackingStatistics';
 
 const queryClient = new QueryClient();
 
@@ -82,6 +83,11 @@ function App() {
                   <Route path="/time-tracking/detail/:id" element={
                     <ProtectedRoute>
                       <TimeEntryDetail />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/time-tracking/statistics" element={
+                    <ProtectedRoute>
+                      <TimeTrackingStatistics />
                     </ProtectedRoute>
                   } />
                   <Route path="/scan/:id" element={<ScanRedirect />} />
