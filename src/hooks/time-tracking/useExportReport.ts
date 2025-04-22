@@ -4,27 +4,24 @@ import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useExportTimeTracking } from './useExportTimeTracking';
+import { TimeEntry } from './types';
+import { TaskTypeDistribution } from './useTaskTypeDistribution';
+import { TopEquipment } from './useTopEquipment';
 
 interface ExportData {
   summary: {
     totalHours: number;
-    taskTypeDistribution: { type: string, hours: number }[];
-    topEquipment: { name: string, hours: number }[];
+    taskTypeDistribution: TaskTypeDistribution[];
+    topEquipment: TopEquipment[];
   };
   dailyHours: { date: string, hours: number }[];
-  tasks: {
-    date: string;
-    startTime: string;
-    endTime: string;
-    duration: number;
-    taskType: string;
-    equipment: string;
-    notes: string;
-  }[];
+  tasks: TimeEntry[];
 }
 
 export function useExportReport(month: Date) {
   const [isExporting, setIsExporting] = useState(false);
+  const { exportReportToPDF, exportEntriesToExcel } = useExportTimeTracking();
 
   const fetchExportData = async (): Promise<ExportData | null> => {
     try {
@@ -54,7 +51,9 @@ export function useExportReport(month: Date) {
           custom_task_type,
           equipment_id,
           equipment:equipment_id (name),
-          notes
+          notes,
+          user_id,
+          status
         `)
         .eq('user_id', userId)
         .gte('start_time', startDate.toISOString())
@@ -69,6 +68,7 @@ export function useExportReport(month: Date) {
       const equipmentMap = new Map<string, number>();
       const dailyHoursMap = new Map<string, number>();
       
+      // Transform into TimeEntry objects
       const tasks = timeEntries.map(entry => {
         let duration = entry.duration || 0;
         if (!duration && entry.end_time) {
@@ -93,16 +93,21 @@ export function useExportReport(month: Date) {
         const dateString = format(new Date(entry.start_time), 'yyyy-MM-dd');
         dailyHoursMap.set(dateString, (dailyHoursMap.get(dateString) || 0) + duration);
         
-        // Format task for export
+        // Return TimeEntry object
         return {
-          date: format(new Date(entry.start_time), 'yyyy-MM-dd'),
-          startTime: format(new Date(entry.start_time), 'HH:mm'),
-          endTime: entry.end_time ? format(new Date(entry.end_time), 'HH:mm') : '-',
-          duration,
-          taskType,
-          equipment: entry.equipment?.name || '-',
-          notes: entry.notes || ''
-        };
+          id: entry.id,
+          user_id: entry.user_id,
+          owner_name: userData?.first_name + " " + userData?.last_name || "Utilisateur",
+          user_name: userData?.first_name + " " + userData?.last_name || "Utilisateur",
+          equipment_id: entry.equipment_id,
+          custom_task_type: entry.custom_task_type,
+          start_time: entry.start_time,
+          end_time: entry.end_time,
+          status: entry.status,
+          equipment_name: entry.equipment?.name || "Équipement non spécifié",
+          notes: entry.notes,
+          task_type: entry.custom_task_type || "Non spécifié"
+        } as TimeEntry;
       });
       
       // Prepare data for export
@@ -129,16 +134,40 @@ export function useExportReport(month: Date) {
   const exportToPdf = async () => {
     try {
       setIsExporting(true);
-      
-      // Display a toast message that this would generate a PDF in a real app
       toast.info("Génération du PDF...");
       
-      // In a real implementation, we would:
-      // 1. Fetch all the data using fetchExportData
-      // 2. Use a PDF library like jsPDF or pdfmake
-      // 3. Generate and download the PDF
+      const data = await fetchExportData();
+      if (!data) {
+        toast.error("Aucune donnée à exporter");
+        return;
+      }
       
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate processing
+      // Get daily/weekly/monthly summary
+      const today = new Date();
+      const todayString = format(today, 'yyyy-MM-dd');
+      const dailyHours = data.dailyHours.find(d => d.date === todayString)?.hours || 0;
+      
+      // Weekly hours calculation - simplified for this implementation
+      const weeklyHours = data.dailyHours.reduce((sum, day) => {
+        // Simple calculation just to have a non-zero value
+        const dayDate = new Date(day.date);
+        const diffDays = Math.abs(Math.floor((today.getTime() - dayDate.getTime()) / (1000 * 60 * 60 * 24)));
+        return diffDays <= 7 ? sum + day.hours : sum;
+      }, 0);
+      
+      // Monthly total
+      const monthlyHours = data.summary.totalHours;
+      
+      exportReportToPDF(
+        month,
+        {
+          daily: dailyHours,
+          weekly: weeklyHours,
+          monthly: monthlyHours
+        },
+        data.summary.taskTypeDistribution,
+        data.summary.topEquipment
+      );
       
       toast.success("Rapport PDF exporté avec succès");
     } catch (error) {
@@ -152,16 +181,15 @@ export function useExportReport(month: Date) {
   const exportToExcel = async () => {
     try {
       setIsExporting(true);
-      
-      // Display a toast message that this would generate an Excel file in a real app
       toast.info("Génération du fichier Excel...");
       
-      // In a real implementation, we would:
-      // 1. Fetch all the data using fetchExportData
-      // 2. Use a library like exceljs or xlsx
-      // 3. Generate and download the Excel file
+      const data = await fetchExportData();
+      if (!data) {
+        toast.error("Aucune donnée à exporter");
+        return;
+      }
       
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate processing
+      exportEntriesToExcel(data.tasks);
       
       toast.success("Rapport Excel exporté avec succès");
     } catch (error) {
