@@ -64,47 +64,70 @@ const styles = StyleSheet.create({
 });
 
 // Generic PDF document component
-const PDFDocument = ({ title, subtitle, headers, data }) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
-      </View>
-      
-      <View style={styles.table}>
-        {/* Table Header */}
-        <View style={[styles.tableRow, styles.tableHeader]}>
-          {headers.map((header, index) => (
-            <Text 
-              key={index} 
-              style={[styles.tableHeaderCell, { width: `${100 / headers.length}%` }]}
-            >
-              {header.label}
-            </Text>
-          ))}
-        </View>
+const PDFDocument = ({ title, subtitle, headers, data }: { 
+  title: string; 
+  subtitle: string; 
+  headers: { label: string; key: string }[]; 
+  data: any[] 
+}) => (
+  Document({
+    children: Page({
+      size: "A4",
+      style: styles.page,
+      children: [
+        View({
+          style: styles.header,
+          children: [
+            Text({
+              style: styles.title,
+              children: title
+            }),
+            Text({
+              style: styles.subtitle,
+              children: subtitle
+            })
+          ]
+        }),
         
-        {/* Table Rows */}
-        {data.map((row, rowIndex) => (
-          <View key={rowIndex} style={[styles.tableRow, { backgroundColor: rowIndex % 2 === 0 ? '#FFFFFF' : '#F9F9F9' }]}>
-            {headers.map((header, cellIndex) => (
-              <Text 
-                key={cellIndex} 
-                style={[styles.tableCell, { width: `${100 / headers.length}%` }]}
-              >
-                {row[header.key]?.toString() || ''}
-              </Text>
-            ))}
-          </View>
-        ))}
-      </View>
-      
-      <Text style={styles.footer}>
-        Généré le {new Date().toLocaleString('fr-FR')} - NordAgri © {new Date().getFullYear()}
-      </Text>
-    </Page>
-  </Document>
+        View({
+          style: styles.table,
+          children: [
+            // Table Header
+            View({
+              style: [styles.tableRow, styles.tableHeader],
+              children: headers.map((header, index) => (
+                Text({
+                  key: index.toString(),
+                  style: [styles.tableHeaderCell, { width: `${100 / headers.length}%` }],
+                  children: header.label
+                })
+              ))
+            }),
+            
+            // Table Rows
+            ...data.map((row, rowIndex) => (
+              View({
+                key: rowIndex.toString(),
+                style: [styles.tableRow, { backgroundColor: rowIndex % 2 === 0 ? '#FFFFFF' : '#F9F9F9' }],
+                children: headers.map((header, cellIndex) => (
+                  Text({
+                    key: cellIndex.toString(),
+                    style: [styles.tableCell, { width: `${100 / headers.length}%` }],
+                    children: row[header.key]?.toString() || ''
+                  })
+                ))
+              })
+            ))
+          ]
+        }),
+        
+        Text({
+          style: styles.footer,
+          children: `Généré le ${new Date().toLocaleString('fr-FR')} - NordAgri © ${new Date().getFullYear()}`
+        })
+      ]
+    })
+  })
 );
 
 // Export data as PDF
@@ -116,12 +139,12 @@ export const exportToPDF = async (
   filename: string
 ) => {
   const blob = await pdf(
-    <PDFDocument 
-      title={title}
-      subtitle={subtitle}
-      headers={headers}
-      data={data}
-    />
+    PDFDocument({
+      title,
+      subtitle,
+      headers,
+      data
+    })
   ).toBlob();
   
   saveAs(blob, `${filename}.pdf`);
