@@ -12,7 +12,22 @@ import { TimeTrackingTabs } from './TimeTrackingTabs';
 import { startOfWeek, endOfWeek } from 'date-fns';
 import { useTimeTrackingData } from '@/hooks/time-tracking/useTimeTrackingData';
 
+// Hook utilitaire pour détecter le desktop (>=1024px)
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkDesktop = () => setIsDesktop(window.innerWidth >= 1024);
+    checkDesktop();
+    window.addEventListener('resize', checkDesktop);
+    return () => window.removeEventListener('resize', checkDesktop);
+  }, []);
+
+  return isDesktop;
+}
+
 export default function TimeTrackingPage() {
+  const isDesktop = useIsDesktop();
   const {
     userId,
     entries,
@@ -38,15 +53,27 @@ export default function TimeTrackingPage() {
     setTaskTypeFilter,
   } = useTimeTrackingData();
 
+  // Classe responsive : Exploite toute la largeur sur desktop, reste fluide sur mobile
+  const desktopMaxW =
+    "w-full max-w-screen-2xl mx-auto px-8";
+  const mobileMaxW =
+    "w-full px-2"; // ou px-4 selon ta base
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
         <Sidebar className="border-r">
           <Navbar />
         </Sidebar>
-        
         <div className="flex-1 overflow-y-auto">
-          <div className="container py-6">
+          <div
+            className={
+              isDesktop
+                ? desktopMaxW
+                : mobileMaxW
+            }
+            // Plus de className "container" (on laisse toute la largeur sur desktop)
+          >
             <TimeTrackingHeader
               onNewSession={() => setIsFormOpen(true)}
             />
