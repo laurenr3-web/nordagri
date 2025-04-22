@@ -72,7 +72,7 @@ const EquipmentFuelLogs: React.FC<EquipmentFuelLogsProps> = ({ equipment }) => {
         onOpenChange={setIsAddDialogOpen}
         onSubmit={(data) => addFuelLog.mutate(data)}
         isSubmitting={addFuelLog.isPending}
-        equipment={equipment}
+        equipmentId={equipment?.id}
       />
     </div>
   );

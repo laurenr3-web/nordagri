@@ -24,7 +24,7 @@ export function useExportTimeTracking() {
         endTime: entry.end_time ? new Date(entry.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-',
         duration: duration.toFixed(2) + 'h',
         taskType: entry.custom_task_type || 'Non spécifié',
-        equipment: entry.equipment?.name || '-',
+        equipment: entry.equipment_name || '-',
         notes: entry.notes || '-'
       };
     });
@@ -63,6 +63,15 @@ export function useExportTimeTracking() {
   return {
     formatTimeEntriesForExport,
     exportTimeEntriesToPDF,
-    isExporting
+    isExporting,
+    headers: [
+      { label: 'Date', key: 'date' },
+      { label: 'Début', key: 'startTime' },
+      { label: 'Fin', key: 'endTime' },
+      { label: 'Durée', key: 'duration' },
+      { label: 'Type de tâche', key: 'taskType' },
+      { label: 'Équipement', key: 'equipment' },
+      { label: 'Notes', key: 'notes' }
+    ]
   };
 }

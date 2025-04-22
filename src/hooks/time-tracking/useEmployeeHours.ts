@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { startOfMonth, endOfMonth } from 'date-fns';
 
-interface EmployeeHoursData {
+export interface EmployeeHoursData {
   userId: string;
   name: string;
   hours: number;
@@ -13,7 +13,7 @@ interface EmployeeHoursData {
 export function useEmployeeHours(month: Date) {
   const [data, setData] = useState<EmployeeHoursData[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<Error | null>(null);
   
   useEffect(() => {
     const fetchEmployeeHours = async () => {
@@ -60,8 +60,8 @@ export function useEmployeeHours(month: Date) {
           if (!entry.profiles) return;
           
           const userId = entry.user_id;
-          const firstName = entry.profiles.first_name || 'Unknown';
-          const lastName = entry.profiles.last_name || 'User';
+          const firstName = entry.profiles?.first_name || 'Unknown';
+          const lastName = entry.profiles?.last_name || 'User';
           const name = `${firstName} ${lastName}`;
           
           // Calculate duration in hours
@@ -101,7 +101,7 @@ export function useEmployeeHours(month: Date) {
         setData(result);
       } catch (e) {
         console.error('Error fetching employee hours:', e);
-        setError('Failed to load employee hours data');
+        setError(e instanceof Error ? e : new Error('Failed to load employee hours data'));
       } finally {
         setIsLoading(false);
       }

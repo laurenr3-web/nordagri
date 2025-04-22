@@ -12,7 +12,7 @@ import { useDailyHours } from '@/hooks/time-tracking/useDailyHours';
 import { useMonthlySummary } from '@/hooks/time-tracking/useMonthlySummary';
 import { useTaskTypeDistribution } from '@/hooks/time-tracking/useTaskTypeDistribution';
 import { useTopEquipment } from '@/hooks/time-tracking/useTopEquipment';
-import { useEmployeeHours } from '@/hooks/time-tracking/useEmployeeHours';
+import { useEmployeeHours, EmployeeHoursData } from '@/hooks/time-tracking/useEmployeeHours';
 import { TimeDistributionChart } from './TimeDistributionChart';
 import { TopEquipmentList } from './TopEquipmentList';
 import { EmployeeHoursChart } from './EmployeeHoursChart';

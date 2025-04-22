@@ -18,9 +18,10 @@ interface FuelLogsTableProps {
   logs: FuelLog[];
   onDelete?: (fuelLogId: string) => void;
   isDeletingId?: string | null;
+  isLoading?: boolean;
 }
 
-export function FuelLogsTable({ logs, onDelete, isDeletingId }: FuelLogsTableProps) {
+export function FuelLogsTable({ logs, onDelete, isDeletingId, isLoading }: FuelLogsTableProps) {
   const [alertOpenId, setAlertOpenId] = React.useState<string | null>(null);
 
   return (
@@ -38,7 +39,13 @@ export function FuelLogsTable({ logs, onDelete, isDeletingId }: FuelLogsTablePro
           </TableRow>
         </TableHeader>
         <TableBody>
-          {logs.map((log) => (
+          {isLoading ? (
+            <TableRow>
+              <TableCell colSpan={onDelete ? 7 : 6} className="text-center py-4">
+                Chargement...
+              </TableCell>
+            </TableRow>
+          ) : logs.map((log) => (
             <TableRow key={log.id}>
               <TableCell>{format(new Date(log.date), 'dd/MM/yyyy')}</TableCell>
               <TableCell>{log.fuel_quantity_liters.toFixed(2)}</TableCell>

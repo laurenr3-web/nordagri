@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
@@ -40,12 +41,13 @@ export default function TimeTrackingPage() {
   } = useTimeTrackingData();
 
   const { 
-    formatEntriesForExport, 
+    formatTimeEntriesForExport, 
     exportTimeEntriesToPDF,
-    headers: exportHeaders
+    headers,
+    isExporting
   } = useExportTimeTracking();
 
-  const exportableEntries = formatEntriesForExport(entries);
+  const exportableEntries = formatTimeEntriesForExport(entries);
   
   // Format period label for export
   const getPeriodLabel = () => {
