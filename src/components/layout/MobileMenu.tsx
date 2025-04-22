@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useLocation, NavLink } from 'react-router-dom';
-import { Settings, Tool, Tractor, Clock, FileText, Shield } from 'lucide-react';
+import { Settings, Wrench, Tractor, Clock, FileText, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useModules } from '@/providers/ModulesProvider';
 
@@ -17,7 +17,7 @@ export default function MobileMenu() {
       moduleKey: 'show_equipment'
     },
     { 
-      icon: <Tool className="h-5 w-5" />, 
+      icon: <Wrench className="h-5 w-5" />, 
       label: 'Maintenance', 
       href: '/maintenance',
       moduleKey: 'show_maintenance' 
@@ -44,11 +44,11 @@ export default function MobileMenu() {
       icon: <Settings className="h-5 w-5" />, 
       label: 'Paramètres', 
       href: '/settings',
-      moduleKey: null // Toujours visible
+      moduleKey: null // Always visible
     },
   ];
 
-  // Filtrer les modules non activés
+  // Filter modules that are not enabled
   const visibleMenuItems = menuItems.filter(
     item => item.moduleKey === null || canAccess(item.moduleKey as any)
   );

@@ -1,131 +1,106 @@
 
 import React, { useState, useEffect } from 'react';
-import Joyride, { CallBackProps, STATUS, Step } from 'react-joyride';
-import { useLocation } from 'react-router-dom';
-import { toast } from 'sonner';
+import Joyride, { CallBackProps, Status, Step } from 'react-joyride';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface OnboardingTourProps {
-  onComplete?: () => void;
+  onComplete: () => void;
+  onSkip: () => void;
 }
 
-export const OnboardingTour = ({ onComplete }: OnboardingTourProps) => {
-  const [run, setRun] = useState(false);
-  const [steps, setSteps] = useState<Step[]>([]);
-  const location = useLocation();
+export default function OnboardingTour({ onComplete, onSkip }: OnboardingTourProps) {
+  const [run, setRun] = useState(true);
+  const [steps] = useState<Step[]>([
+    {
+      target: 'body',
+      content: (
+        <div className="space-y-2">
+          <h3 className="font-medium text-lg">Bienvenue à NordAgri</h3>
+          <p>Découvrez comment gérer facilement vos équipements agricoles.</p>
+        </div>
+      ),
+      placement: 'center',
+      disableBeacon: true,
+    },
+    {
+      target: '.navbar-link-equipment',
+      content: (
+        <div className="space-y-2">
+          <h3 className="font-medium">Gestion d'équipements</h3>
+          <p>Consultez et gérez tous vos équipements agricoles ici.</p>
+        </div>
+      ),
+      placement: 'right',
+    },
+    {
+      target: '.time-tracking-button',
+      content: (
+        <div className="space-y-2">
+          <h3 className="font-medium">Suivi du temps</h3>
+          <p>Suivez le temps passé sur chaque équipement et intervention.</p>
+        </div>
+      ),
+      placement: 'top',
+    },
+    {
+      target: '.filter-section',
+      content: (
+        <div className="space-y-2">
+          <h3 className="font-medium">Filtres avancés</h3>
+          <p>Utilisez ces filtres pour trouver rapidement ce que vous cherchez.</p>
+        </div>
+      ),
+      placement: 'bottom',
+    },
+    {
+      target: '.reports-section',
+      content: (
+        <div className="space-y-2">
+          <h3 className="font-medium">Rapports et analyses</h3>
+          <p>Générez des rapports détaillés pour analyser vos activités.</p>
+        </div>
+      ),
+      placement: 'bottom',
+    },
+    {
+      target: 'body',
+      content: (
+        <div className="space-y-2">
+          <h3 className="font-medium">Prêt à commencer!</h3>
+          <p>Vous avez maintenant une vue d'ensemble de l'application. Bonne utilisation!</p>
+        </div>
+      ),
+      placement: 'center',
+    }
+  ]);
 
-  // Effet pour déterminer quels steps afficher selon la page
   useEffect(() => {
-    // Récupérer le statut de l'onboarding
-    const hasSeenTutorial = localStorage.getItem('hasSeenTutorial') === 'true';
-    
-    if (hasSeenTutorial) {
-      return;
-    }
-
-    // Définir les étapes selon la page actuelle
-    const currentSteps: Step[] = [];
-    
-    // Étapes pour la page dashboard
-    if (location.pathname === '/dashboard') {
-      currentSteps.push(
-        {
-          target: 'body',
-          content: 'Bienvenue sur NordAgri! Découvrez comment utiliser l\'application avec ce tutoriel rapide.',
-          placement: 'center',
-          disableBeacon: true,
-        },
-        {
-          target: '.time-tracking-button',
-          content: 'Suivez votre temps de travail avec cet outil. Cliquez pour démarrer une nouvelle session.',
-          placement: 'top',
+    // Check if there are matching elements for each step
+    // This prevents errors when a step's target doesn't exist
+    steps.forEach((step, index) => {
+      if (index > 0 && step.target !== 'body') {
+        const target = document.querySelector(step.target as string);
+        if (!target) {
+          console.warn(`Target element for step ${index} not found: ${step.target}`);
         }
-      );
-    }
-
-    // Étapes pour la page équipement
-    else if (location.pathname === '/equipment') {
-      currentSteps.push(
-        {
-          target: '.equipment-filters',
-          content: 'Filtrez vos équipements par catégorie ou état.',
-          placement: 'bottom',
-        },
-        {
-          target: '.equipment-add-button',
-          content: 'Ajoutez un nouvel équipement en cliquant ici.',
-          placement: 'left',
-        }
-      );
-    }
-
-    // Étapes pour la page de pièces
-    else if (location.pathname === '/parts') {
-      currentSteps.push(
-        {
-          target: '.parts-search',
-          content: 'Recherchez des pièces par nom ou référence.',
-          placement: 'bottom',
-        },
-        {
-          target: '.add-part-button',
-          content: 'Ajoutez une nouvelle pièce à votre inventaire.',
-          placement: 'left',
-        }
-      );
-    }
-
-    // Étapes pour la page de suivi du temps
-    else if (location.pathname === '/time-tracking') {
-      currentSteps.push(
-        {
-          target: '.time-tracking-filters',
-          content: 'Filtrez vos sessions par date, équipement ou type de tâche.',
-          placement: 'bottom',
-        },
-        {
-          target: '.export-reports-button',
-          content: 'Exportez vos rapports de temps en PDF ou Excel.',
-          placement: 'left',
-        }
-      );
-    }
-
-    // Si des étapes ont été définies, démarrer le tour
-    if (currentSteps.length > 0) {
-      setSteps(currentSteps);
-      setRun(true);
-    }
-  }, [location.pathname]);
+      }
+    });
+  }, [steps]);
 
   const handleJoyrideCallback = (data: CallBackProps) => {
     const { status } = data;
     
-    // Si le tutoriel est terminé ou sauté
-    if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
+    if (status === 'finished') {
       setRun(false);
-      
-      // Montrer un toast pour proposer de désactiver définitivement
-      toast.info(
-        "Tutoriel terminé", 
-        { 
-          description: "Vous pouvez le réactiver depuis les paramètres.", 
-          action: {
-            label: "Ne plus afficher",
-            onClick: () => {
-              localStorage.setItem('hasSeenTutorial', 'true');
-              if (onComplete) onComplete();
-            }
-          }
-        }
-      );
+      onComplete();
+      toast.success("Tutoriel terminé avec succès!");
+    } else if (status === 'skipped') {
+      setRun(false);
+      onSkip();
+      toast.info("Tutoriel désactivé");
     }
   };
-
-  // Si aucune étape n'est définie ou si le tutoriel a déjà été vu, ne rien afficher
-  if (steps.length === 0) {
-    return null;
-  }
 
   return (
     <Joyride
@@ -139,23 +114,22 @@ export const OnboardingTour = ({ onComplete }: OnboardingTourProps) => {
       steps={steps}
       styles={{
         options: {
-          primaryColor: '#22c55e', // vert comme le thème agricole
           zIndex: 10000,
+          primaryColor: '#22c55e',
         },
-        tooltip: {
-          fontSize: '14px',
+        tooltipContainer: {
+          textAlign: 'left',
         },
-        buttonSkip: {
-          color: '#666',
+        buttonBack: {
+          marginRight: 10,
         },
       }}
       locale={{
-        back: 'Précédent',
-        close: 'Fermer',
         last: 'Terminer',
+        skip: 'Désactiver le tutoriel',
         next: 'Suivant',
-        skip: 'Passer',
+        back: 'Précédent',
       }}
     />
   );
-};
+}

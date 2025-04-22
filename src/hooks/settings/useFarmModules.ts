@@ -27,7 +27,7 @@ export function useFarmModules() {
   const [modules, setModules] = useState<FarmModules>(defaultModules);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Récupération des modules actifs pour la ferme
+  // Fetch active modules for the farm
   useEffect(() => {
     const fetchFarmModules = async () => {
       if (!farmId) {
@@ -36,25 +36,26 @@ export function useFarmModules() {
       }
 
       try {
-        const { data, error } = await supabase
+        // Access the farm_settings table directly
+        const { data: settingsData, error: settingsError } = await supabase
           .from('farm_settings')
           .select('modules')
           .eq('farm_id', farmId)
-          .single();
+          .maybeSingle();
 
-        if (error) {
-          console.error('Erreur lors de la récupération des modules:', error);
-          // Par défaut, tous les modules sont activés
+        if (settingsError) {
+          console.error('Error fetching modules:', settingsError);
+          // Default: all modules are enabled
           setModules(defaultModules);
-        } else if (data?.modules) {
-          // Si des paramètres existent, les utiliser
+        } else if (settingsData?.modules) {
+          // If settings exist, use them
           setModules({
             ...defaultModules,
-            ...data.modules
+            ...settingsData.modules
           });
         }
       } catch (error) {
-        console.error('Exception lors de la récupération des modules:', error);
+        console.error('Exception fetching modules:', error);
       } finally {
         setIsLoading(false);
       }
@@ -65,16 +66,17 @@ export function useFarmModules() {
     }
   }, [farmId, isFarmLoading]);
 
-  // Mise à jour des modules
+  // Update modules
   const updateModules = async (newModules: Partial<FarmModules>) => {
     if (!farmId) return false;
 
     try {
       setIsLoading(true);
       
-      // Fusionner avec les modules existants
+      // Merge with existing modules
       const updatedModules = { ...modules, ...newModules };
       
+      // Use upsert to create or update
       const { error } = await supabase
         .from('farm_settings')
         .upsert({ 
@@ -84,18 +86,18 @@ export function useFarmModules() {
         });
 
       if (error) {
-        console.error('Erreur lors de la mise à jour des modules:', error);
-        toast.error('Erreur lors de la sauvegarde des paramètres');
+        console.error('Error updating modules:', error);
+        toast.error('Error saving settings');
         return false;
       }
 
-      // Mise à jour du state local
+      // Update local state
       setModules(updatedModules);
-      toast.success('Paramètres enregistrés avec succès');
+      toast.success('Settings saved successfully');
       return true;
     } catch (error) {
-      console.error('Exception lors de la mise à jour des modules:', error);
-      toast.error('Une erreur est survenue');
+      console.error('Exception updating modules:', error);
+      toast.error('An error occurred');
       return false;
     } finally {
       setIsLoading(false);
