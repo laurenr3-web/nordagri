@@ -160,6 +160,7 @@ export function useExportReport(month: Date) {
       // Monthly total
       const monthlyHours = data.summary.totalHours;
       
+      // Fix: Pass the formatted string for display, but keep Date type for the month parameter
       exportReportToPDF(
         format(month, 'MMMM yyyy', { locale: fr }),
         {

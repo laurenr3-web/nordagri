@@ -39,7 +39,7 @@ export const useExportTimeTracking = () => {
 
   // Export report to PDF
   const exportReportToPDF = (
-    month: Date,
+    month: string,
     summary: {
       daily: number;
       weekly: number;
@@ -48,9 +48,6 @@ export const useExportTimeTracking = () => {
     taskDistribution: TaskTypeDistribution[],
     topEquipment: TopEquipment[]
   ) => {
-    // Format the month for display
-    const monthName = format(month, 'MMMM yyyy', { locale: fr });
-    
     // Convert taskDistribution to the required format
     const formattedTaskDistribution = taskDistribution.map(task => ({
       type: task.type,
@@ -60,11 +57,11 @@ export const useExportTimeTracking = () => {
     
     // Export to PDF
     exportTimeReportToPDF(
-      monthName,
+      month,
       summary,
       formattedTaskDistribution,
       topEquipment,
-      `rapport-temps-${format(month, 'yyyy-MM')}`
+      `rapport-temps-${format(new Date(), 'yyyy-MM')}`
     );
   };
 
