@@ -1,7 +1,7 @@
+
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, pdf } from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
-
 // Define styles for PDF
 const styles = StyleSheet.create({
   page: {
