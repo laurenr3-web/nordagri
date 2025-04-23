@@ -18,44 +18,83 @@ export function useFarmSettings(farmId?: string) {
 
   const fetchSettings = useCallback(async () => {
     if (!farmId) return;
+    
     setLoading(true);
-    const { data, error } = await supabase
-      .from('farm_settings')
-      .select('*')
-      .eq('farm_id', farmId)
-      .maybeSingle();
-    if (!error && data) setSettings(data);
-    setLoading(false);
+    
+    try {
+      const { data, error } = await supabase
+        .from('farm_settings')
+        .select('*')
+        .eq('farm_id', farmId)
+        .maybeSingle();
+      
+      if (!error && data) {
+        setSettings(data);
+      } else if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching farm settings:', error);
+      }
+    } catch (err) {
+      console.error('Exception when fetching farm settings:', err);
+    } finally {
+      setLoading(false);
+    }
   }, [farmId]);
 
   // Vérifie le rôle admin dans la ferme (accessible pour modifier)
   const checkIsAdmin = useCallback(async () => {
     if (!farmId) return setIsAdmin(false);
-    const { data: session } = await supabase.auth.getSession();
-    const userId = session?.session?.user?.id;
-    if (!userId) return setIsAdmin(false);
-    const { data } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .eq('farm_id', farmId);
-    setIsAdmin(!!data?.find(r => r.role === 'admin'));
+    
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const userId = session?.session?.user?.id;
+      
+      if (!userId) return setIsAdmin(false);
+      
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .eq('farm_id', farmId);
+      
+      setIsAdmin(!!data?.find(r => r.role === 'admin'));
+    } catch (err) {
+      console.error('Error checking admin status:', err);
+      setIsAdmin(false);
+    }
   }, [farmId]);
 
   const updateSettings = useCallback(async (partial: Partial<FarmSettings>) => {
-    if (!farmId || !settings) return;
+    if (!farmId || !settings?.id) return { error: new Error('Missing farm ID or settings'), data: null };
+    
     setLoading(true);
-    const { error, data } = await supabase
-      .from('farm_settings')
-      .update(partial)
-      .eq('farm_id', farmId)
-      .select()
-      .single();
-    if (!error && data) setSettings(data);
-    setLoading(false);
-    return { error, data };
+    
+    try {
+      const { error, data } = await supabase
+        .from('farm_settings')
+        .update(partial)
+        .eq('id', settings.id)
+        .select()
+        .single();
+      
+      if (!error && data) {
+        setSettings(data);
+      }
+      
+      setLoading(false);
+      return { error, data };
+    } catch (err) {
+      setLoading(false);
+      return { 
+        error: err instanceof Error ? err : new Error('Unknown error'), 
+        data: null 
+      };
+    }
   }, [farmId, settings]);
 
-  useEffect(() => { fetchSettings(); checkIsAdmin(); }, [fetchSettings, checkIsAdmin]);
+  useEffect(() => { 
+    fetchSettings(); 
+    checkIsAdmin(); 
+  }, [fetchSettings, checkIsAdmin]);
+  
   return { settings, loading, updateSettings, refresh: fetchSettings, isAdmin };
 }
