@@ -1,15 +1,16 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { FuelLog, FuelLogFormValues } from '@/types/FuelLog';
 import { toast } from 'sonner';
 import { useFarmId } from '@/hooks/useFarmId';
+import { useOfflineSync } from '@/hooks/offline/useOfflineSync';
 
 export function useFuelLogs(equipmentId: number) {
   const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { farmId, isLoading: isFarmIdLoading } = useFarmId(equipmentId);
+  const { queueOffline } = useOfflineSync();
 
   const { data: fuelLogs, isLoading } = useQuery({
     queryKey: ['fuelLogs', equipmentId],
@@ -47,12 +48,9 @@ export function useFuelLogs(equipmentId: number) {
           throw new Error("Erreur d'authentification");
         }
 
-        console.log('Submitting fuel log with farm_id:', farmId);
-        console.log('User ID:', user.id);
-        
         // Format the date as ISO string and extract just the date part (YYYY-MM-DD)
         const formattedDate = values.date.toISOString().split('T')[0];
-        
+
         const newFuelLog = {
           equipment_id: equipmentId,
           date: formattedDate,
@@ -64,8 +62,13 @@ export function useFuelLogs(equipmentId: number) {
           created_by: user.id
         };
         
-        console.log('Données à insérer:', newFuelLog);
-        
+        // OFFLINE MODE HANDLING
+        if (!navigator.onLine) {
+          queueOffline("fuel_log", newFuelLog);
+          toast.info("Mode hors-ligne : le plein sera synchronisé dès la reconnexion.");
+          return newFuelLog;
+        }
+
         const { data, error } = await supabase
           .from('fuel_logs')
           .insert([newFuelLog])
@@ -73,17 +76,10 @@ export function useFuelLogs(equipmentId: number) {
           .single();
 
         if (error) {
-          console.error('Erreur lors de l\'insertion du log de carburant:', error);
-          console.error('Code d\'erreur:', error.code);
-          console.error('Message d\'erreur:', error.message);
-          console.error('Détails:', error.details);
           throw error;
         }
-        
-        console.log('Log de carburant ajouté avec succès:', data);
         return data;
       } catch (error: any) {
-        console.error('Exception lors de l\'ajout du plein:', error);
         throw error;
       }
     },
@@ -93,8 +89,6 @@ export function useFuelLogs(equipmentId: number) {
       setIsAddDialogOpen(false);
     },
     onError: (error: any) => {
-      console.error('Erreur lors de l\'ajout du plein:', error);
-      
       let errorMessage = "Erreur lors de l'enregistrement du plein";
       let description = error.message || "Une erreur s'est produite";
       

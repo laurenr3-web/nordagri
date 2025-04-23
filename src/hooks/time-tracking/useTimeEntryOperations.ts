@@ -3,8 +3,11 @@ import { timeTrackingService } from '@/services/supabase/timeTrackingService';
 import { TimeEntryTaskType } from './types';
 import { supabase } from '@/integrations/supabase/client';
 import { checkAuthStatus, checkTablePermissions } from '@/utils/authUtils';
+import { useOfflineSync } from '@/hooks/offline/useOfflineSync';
 
 export function useTimeEntryOperations() {
+  const { queueOffline } = useOfflineSync();
+
   const startTimeEntry = async (params: {
     equipment_id?: number;
     intervention_id?: number;
@@ -29,10 +32,25 @@ export function useTimeEntryOperations() {
       
       // Log auth status for debugging
       await checkAuthStatus();
-      
-      // Check permissions on time_sessions table
       await checkTablePermissions('time_sessions');
       
+      // OFFLINE HANDLING -----
+      if (!navigator.onLine) {
+        // Préparer la structure pour time_sessions (l'API .insert([...]) attend un objet plat)
+        // Les colonnes nullables doivent être explicites !
+        const pending = {
+          ...params,
+          user_id: userId,
+          location: locationName,
+          status: "active",
+          start_time: new Date().toISOString(),
+        };
+        queueOffline("time_session", pending);
+        toast.info("Mode hors-ligne : la session sera synchronisée dès la reconnexion.");
+        return pending;
+      }
+      // ----------------------
+
       const newEntry = await timeTrackingService.startTimeEntry(userId, {
         ...params,
         location: locationName
