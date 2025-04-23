@@ -18,9 +18,9 @@ export function TimeTrackingStats({ stats, isLoading }: TimeTrackingStatsProps) 
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 w-full">
       {/* Time Today */}
-      <Card>
+      <Card className="w-full max-w-full">
         <CardContent className="pt-6">
           <h3 className="text-sm font-medium text-muted-foreground mb-2">
             Temps Aujourd'hui
@@ -36,7 +36,7 @@ export function TimeTrackingStats({ stats, isLoading }: TimeTrackingStatsProps) 
       </Card>
 
       {/* Time This Week */}
-      <Card>
+      <Card className="w-full max-w-full">
         <CardContent className="pt-6">
           <h3 className="text-sm font-medium text-muted-foreground mb-2">
             Temps Cette Semaine
@@ -52,7 +52,7 @@ export function TimeTrackingStats({ stats, isLoading }: TimeTrackingStatsProps) 
       </Card>
 
       {/* Time This Month */}
-      <Card>
+      <Card className="w-full max-w-full">
         <CardContent className="pt-6">
           <h3 className="text-sm font-medium text-muted-foreground mb-2">
             Temps Ce Mois

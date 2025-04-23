@@ -10,16 +10,18 @@ export default function SettingsTabs() {
   return (
     <Tabs 
       defaultValue="essentials" 
-      className="w-full" 
+      className="w-full"
       value={activeTab} 
       onValueChange={setActiveTab}
     >
-      <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-8">
-        <TabsTrigger value="essentials">Essentials</TabsTrigger>
-        <TabsTrigger value="security">Sécurité</TabsTrigger>
-        <TabsTrigger value="notifications">Notifications</TabsTrigger>
-        <TabsTrigger value="interface">Interface</TabsTrigger>
-      </TabsList>
+      <div className="overflow-x-auto w-full mb-8">
+        <TabsList className="flex min-w-[600px] sm:min-w-0 grid grid-cols-2 md:grid-cols-4">
+          <TabsTrigger value="essentials" className="min-w-[120px]">Essentials</TabsTrigger>
+          <TabsTrigger value="security" className="min-w-[120px]">Sécurité</TabsTrigger>
+          <TabsTrigger value="notifications" className="min-w-[120px]">Notifications</TabsTrigger>
+          <TabsTrigger value="interface" className="min-w-[120px]">Interface</TabsTrigger>
+        </TabsList>
+      </div>
       
       <TabsContent value="essentials">
         <SettingsEssentials />

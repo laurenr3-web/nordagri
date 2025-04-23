@@ -24,8 +24,8 @@ export function FuelLogsTable({ logs, onDelete, isDeletingId }: FuelLogsTablePro
   const [alertOpenId, setAlertOpenId] = React.useState<string | null>(null);
 
   return (
-    <>
-      <Table>
+    <div className="overflow-x-auto w-full">
+      <Table className="min-w-[800px]">
         <TableHeader>
           <TableRow>
             <TableHead>Date</TableHead>
@@ -74,6 +74,6 @@ export function FuelLogsTable({ logs, onDelete, isDeletingId }: FuelLogsTablePro
           ))}
         </TableBody>
       </Table>
-    </>
+    </div>
   );
 }

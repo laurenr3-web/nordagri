@@ -85,7 +85,7 @@ const EquipmentFuelLogs: React.FC<EquipmentFuelLogsProps> = ({ equipment }) => {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="w-full max-w-full">
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
             Historique de carburant
@@ -101,11 +101,11 @@ const EquipmentFuelLogs: React.FC<EquipmentFuelLogsProps> = ({ equipment }) => {
 
   if (error) {
     return (
-      <Card>
+      <Card className="w-full max-w-full">
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
             Historique de carburant
-            <Button size="sm" onClick={handleAddFuelLog} disabled={isLoading}>
+            <Button size="sm" onClick={handleAddFuelLog} disabled={isLoading} className="min-h-[44px]">
               <Plus className="h-4 w-4 mr-1" /> Nouveau plein
             </Button>
           </CardTitle>
@@ -118,11 +118,11 @@ const EquipmentFuelLogs: React.FC<EquipmentFuelLogsProps> = ({ equipment }) => {
   }
 
   return (
-    <Card>
+    <Card className="w-full max-w-full">
       <CardHeader>
         <CardTitle className="flex justify-between items-center">
           Historique de carburant
-          <Button size="sm" onClick={handleAddFuelLog}>
+          <Button size="sm" onClick={handleAddFuelLog} className="min-h-[44px]">
             <Plus className="h-4 w-4 mr-1" /> Nouveau plein
           </Button>
         </CardTitle>
@@ -139,7 +139,7 @@ const EquipmentFuelLogs: React.FC<EquipmentFuelLogsProps> = ({ equipment }) => {
             <p className="text-muted-foreground mb-4">
               Aucun historique de carburant enregistré pour cet équipement.
             </p>
-            <Button onClick={handleAddFuelLog}>
+            <Button onClick={handleAddFuelLog} className="min-h-[44px]">
               <Plus className="h-4 w-4 mr-1" /> Ajouter un premier plein
             </Button>
           </div>

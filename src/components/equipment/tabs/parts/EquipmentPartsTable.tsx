@@ -78,8 +78,8 @@ const EquipmentPartsTable: React.FC<EquipmentPartsTableProps> = ({
   }
 
   return (
-    <div className="overflow-x-auto">
-      <Table>
+    <div className="overflow-x-auto w-full">
+      <Table className="min-w-[900px]">
         <TableHeader>
           <TableRow>
             <TableHead>Image</TableHead>

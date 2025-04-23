@@ -28,10 +28,10 @@ export function ActiveTimeSession({
   return (
     <Card className="mb-6 bg-blue-50 border-blue-200 rounded-xl overflow-x-hidden">
       <CardContent className="pt-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-2 w-full">
           {/* Utilisateur et durée */}
-          <div className="flex items-center gap-3">
-            <User className="h-10 w-10 text-blue-500" />
+          <div className="flex items-center gap-3 w-full">
+            <User className="h-10 w-10 text-blue-500 flex-shrink-0" />
             <div>
               <div className="text-sm text-blue-700">
                 {session.user_name || session.owner_name || 'Non assigné'}
@@ -55,21 +55,21 @@ export function ActiveTimeSession({
           </div>
           
           {/* Boutons */}
-          <div className="flex items-center justify-end gap-2 mt-2 md:mt-0 flex-wrap">
+          <div className="flex items-center justify-end gap-2 mt-2 md:mt-0 flex-wrap w-full sm:w-auto">
             <span className="mr-2 text-blue-700 min-w-max">
               {session.status === 'active' ? 'En cours' : 'En pause'}
             </span>
             {session.status === 'active' ? (
               <Button
                 onClick={() => onPause(session.id)}
-                className="bg-blue-600 hover:bg-blue-700 min-h-[44px]"
+                className="bg-blue-600 hover:bg-blue-700 min-h-[44px] w-full sm:w-auto"
               >
                 Pause
               </Button>
             ) : (
               <Button
                 onClick={() => onResume(session.id)}
-                className="bg-green-600 hover:bg-green-700 min-h-[44px]"
+                className="bg-green-600 hover:bg-green-700 min-h-[44px] w-full sm:w-auto"
               >
                 Reprendre
               </Button>
@@ -78,7 +78,7 @@ export function ActiveTimeSession({
               variant="outline"
               onClick={handleStop}
               title="Aller à la page de clôture"
-              className="min-h-[44px]"
+              className="min-h-[44px] w-full sm:w-auto"
             >
               Terminer
             </Button>
@@ -88,4 +88,3 @@ export function ActiveTimeSession({
     </Card>
   );
 }
-
