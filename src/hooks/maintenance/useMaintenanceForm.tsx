@@ -1,10 +1,9 @@
-
 import { useState } from 'react';
 import { MaintenanceFormValues } from '@/hooks/maintenance/maintenanceSlice';
 import { useFormFields } from './useFormFields';
 import { useStaffManagement } from './useStaffManagement';
 import { useEquipmentOptions } from './useEquipmentOptions';
-import { toast } from 'sonner';
+import { toast } from 'sonner';  // Use sonner's toast directly
 
 export const useMaintenanceForm = (
   onSubmit: (formValues: MaintenanceFormValues) => void, 
@@ -26,10 +25,7 @@ export const useMaintenanceForm = (
       (formFields.trigger_unit === 'kilometers' && formFields.trigger_kilometers > 0);
     
     if (!hasDueDate && !hasTriggerThreshold) {
-      toast({
-        description: "Veuillez définir une date d'échéance ou un seuil d'usure.",
-        variant: "destructive",
-      });
+      toast.error("Veuillez définir une date d'échéance ou un seuil d'usure.");
       return;
     }
 
