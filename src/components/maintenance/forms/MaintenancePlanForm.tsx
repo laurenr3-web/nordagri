@@ -104,6 +104,7 @@ export default function MaintenancePlanForm({
       trigger_kilometers: values.trigger_kilometers || undefined
     };
     
+    console.log('Submitting maintenance plan with values:', maintenancePlan);
     onSubmit(maintenancePlan);
   };
 
@@ -145,6 +146,13 @@ export default function MaintenancePlanForm({
   // Obtenir la valeur actuelle de la fréquence
   const currentFrequency = form.watch('frequency');
   const isCustomFrequency = currentFrequency === 'custom';
+  
+  // Debugging log
+  React.useEffect(() => {
+    console.log('MaintenancePlanForm equipment:', equipment);
+    console.log('Initial data:', initialData);
+    console.log('Form values:', form.getValues());
+  }, [equipment, initialData]);
 
   return (
     <Form {...form}>

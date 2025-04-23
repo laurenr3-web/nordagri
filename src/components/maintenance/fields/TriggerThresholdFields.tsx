@@ -21,6 +21,12 @@ export function TriggerThresholdFields({ form, equipment }: TriggerThresholdFiel
   const showKilometersField = triggerUnit === 'kilometers';
   const showHoursField = triggerUnit === 'hours';
 
+  React.useEffect(() => {
+    // Log pour le débogage
+    console.log('Equipment data in TriggerThresholdFields:', equipment);
+    console.log('Current triggerUnit:', triggerUnit);
+  }, [equipment, triggerUnit]);
+
   return (
     <div className="space-y-4">
       <FormField

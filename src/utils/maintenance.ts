@@ -17,6 +17,8 @@ export function isMaintenanceDue(plan: MaintenancePlan, equipment: any): boolean
     ? plan.trigger_hours || 0
     : plan.trigger_kilometers || 0;
 
+  console.log(`Comparaison pour "${plan.title}": ${currentValue} >= ${threshold} (${plan.trigger_unit})`);
+
   // La maintenance est due si la valeur actuelle dépasse le seuil
   return currentValue >= threshold;
 }
