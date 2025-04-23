@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { MaintenanceTask, MaintenancePriority, MaintenanceStatus, MaintenanceType } from './maintenanceSlice';
@@ -28,79 +27,14 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
           console.log(`Found ${fetchedTasks.length} maintenance tasks:`, fetchedTasks);
           setTasks(fetchedTasks);
         } else {
-          console.log("No maintenance tasks found, using mock data");
-          // Données fictives pour la démo
-          const mockTasks: MaintenanceTask[] = [
-            {
-              id: 4,
-              title: 'Brake System Check',
-              equipment: 'New Holland T6.180',
-              equipmentId: 1,
-              type: 'preventive' as MaintenanceType,
-              status: 'completed' as MaintenanceStatus,
-              priority: 'medium' as MaintenancePriority,
-              dueDate: new Date('2023-06-08'),
-              completedDate: new Date('2023-06-08'),
-              engineHours: 2500,
-              actualDuration: 1.5,
-              assignedTo: 'Michael Torres',
-              notes: 'Routine inspection completed. Brake pads still in good condition.'
-            },
-            {
-              id: 5,
-              title: 'Vidange moteur',
-              equipment: 'John Deere 6M',
-              equipmentId: 2,
-              type: 'preventive' as MaintenanceType,
-              status: 'scheduled' as MaintenanceStatus,
-              priority: 'high' as MaintenancePriority,
-              dueDate: new Date(new Date().setDate(new Date().getDate() + 5)),
-              engineHours: 500,
-              assignedTo: 'Laurent Delisle',
-              notes: 'Vidange à effectuer avant la saison des récoltes.'
-            },
-            {
-              id: 6,
-              title: 'Remplacement filtres',
-              equipment: 'Fendt 724 Vario',
-              equipmentId: 3,
-              type: 'preventive' as MaintenanceType,
-              status: 'scheduled' as MaintenanceStatus,
-              priority: 'medium' as MaintenancePriority,
-              dueDate: new Date(new Date().setDate(new Date().getDate() + 14)),
-              engineHours: 250,
-              assignedTo: 'Marie Dubois',
-              notes: 'Changer tous les filtres.'
-            }
-          ];
-          
-          setTasks(mockTasks);
+          console.log("No maintenance tasks found");
+          setTasks([]);
         }
       } catch (error: any) {
         console.error('Error fetching maintenance tasks:', error);
         setError(error.message || "Une erreur est survenue lors de la récupération des tâches");
         toast.error('Impossible de charger les tâches de maintenance');
-        
-        // Utiliser des données fictives en cas d'erreur
-        const mockTasks: MaintenanceTask[] = [
-          {
-            id: 4,
-            title: 'Brake System Check',
-            equipment: 'New Holland T6.180',
-            equipmentId: 1,
-            type: 'preventive' as MaintenanceType,
-            status: 'completed' as MaintenanceStatus,
-            priority: 'medium' as MaintenancePriority,
-            dueDate: new Date('2023-06-08'),
-            completedDate: new Date('2023-06-08'),
-            engineHours: 2500,
-            actualDuration: 1.5,
-            assignedTo: 'Michael Torres',
-            notes: 'Routine inspection completed. Brake pads still in good condition.'
-          }
-        ];
-        
-        setTasks(mockTasks);
+        setTasks([]);
       } finally {
         setIsLoading(false);
       }
@@ -110,7 +44,6 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
   }, [initialTasks]);
 
   const addTask = (task: Omit<MaintenanceTask, 'id'>) => {
-    // Ajouter une nouvelle tâche
     console.info('Adding task:', task);
     
     try {
