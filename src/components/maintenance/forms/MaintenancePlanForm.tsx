@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -430,7 +431,7 @@ export default function MaintenancePlanForm({
 
         </div>
 
-        
+        {/* Section des conditions de déclenchement */}
         <div className="border-t pt-4 mt-4">
           <h3 className="text-lg font-medium mb-4">Conditions de déclenchement</h3>
           <TriggerThresholdFields form={form} equipment={equipment} />

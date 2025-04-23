@@ -29,7 +29,7 @@ export function TriggerThresholdFields({ form, equipment }: TriggerThresholdFiel
         render={({ field }) => (
           <FormItem>
             <FormLabel>Unité de seuil</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value || 'hours'}>
+            <Select onValueChange={field.onChange} value={field.value || 'none'}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner une unité" />
