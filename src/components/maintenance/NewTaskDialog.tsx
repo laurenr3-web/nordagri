@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -48,6 +49,9 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({
     dueDate, setDueDate,
     engineHours, setEngineHours,
     notes, setNotes,
+    trigger_unit, setTrigger_unit,
+    trigger_hours, setTrigger_hours,
+    trigger_kilometers, setTrigger_kilometers,
     
     // Equipment data
     equipment, setEquipment,
@@ -224,8 +228,8 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({
             <Label>Seuil de déclenchement (optionnel)</Label>
             <div className="flex gap-4">
               <Select
-                value={form.watch('trigger_unit')}
-                onValueChange={(value) => form.setValue('trigger_unit', value)}
+                value={trigger_unit}
+                onValueChange={setTrigger_unit}
               >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Choisir une unité" />
@@ -237,28 +241,28 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({
                 </SelectContent>
               </Select>
 
-              {form.watch('trigger_unit') === 'hours' && (
+              {trigger_unit === 'hours' && (
                 <div className="flex-1">
                   <Input
                     type="number"
                     min="0"
                     step="0.5"
                     placeholder="Seuil en heures"
-                    value={form.watch('trigger_hours') || ''}
-                    onChange={(e) => form.setValue('trigger_hours', parseFloat(e.target.value))}
+                    value={trigger_hours || ''}
+                    onChange={(e) => setTrigger_hours(parseFloat(e.target.value))}
                   />
                 </div>
               )}
 
-              {form.watch('trigger_unit') === 'kilometers' && (
+              {trigger_unit === 'kilometers' && (
                 <div className="flex-1">
                   <Input
                     type="number"
                     min="0"
                     step="1"
                     placeholder="Seuil en kilomètres"
-                    value={form.watch('trigger_kilometers') || ''}
-                    onChange={(e) => form.setValue('trigger_kilometers', parseFloat(e.target.value))}
+                    value={trigger_kilometers || ''}
+                    onChange={(e) => setTrigger_kilometers(parseFloat(e.target.value))}
                   />
                 </div>
               )}

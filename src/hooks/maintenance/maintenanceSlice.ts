@@ -18,6 +18,9 @@ export interface MaintenanceTask {
   actualDuration?: number;
   assignedTo: string;
   notes: string;
+  trigger_unit?: string;
+  trigger_hours?: number;
+  trigger_kilometers?: number;
 }
 
 export interface MaintenanceFormValues {
@@ -31,4 +34,7 @@ export interface MaintenanceFormValues {
   assignedTo: string;
   notes: string;
   partId?: string;
+  trigger_unit?: string;
+  trigger_hours?: number;
+  trigger_kilometers?: number;
 }
