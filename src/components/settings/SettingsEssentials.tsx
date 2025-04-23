@@ -2,6 +2,7 @@
 import React from "react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 const STRIPE_PRICE_ID_PRO_MONTHLY = "price_xxx_month"; // TODO: Remplacer par votre prix mensuel Stripe réel
 const STRIPE_PRICE_ID_PRO_YEARLY = "price_xxx_year";  // TODO: Remplacer par votre prix annuel Stripe réel
@@ -11,7 +12,7 @@ export function SettingsEssentials() {
 
   const handleUpgrade = async (interval: "month" | "year") => {
     const priceId = interval === "month" ? STRIPE_PRICE_ID_PRO_MONTHLY : STRIPE_PRICE_ID_PRO_YEARLY;
-    const { data, error } = await window.supabase.functions.invoke("create-checkout", {
+    const { data, error } = await supabase.functions.invoke("create-checkout", {
       body: { priceId, interval },
     });
     if (data?.url) {
@@ -22,7 +23,7 @@ export function SettingsEssentials() {
   };
 
   const handleManage = async () => {
-    const { data, error } = await window.supabase.functions.invoke("customer-portal", { body: {} });
+    const { data, error } = await supabase.functions.invoke("customer-portal", { body: {} });
     if (data?.url) {
       window.location.href = data.url;
     } else {
@@ -47,7 +48,7 @@ export function SettingsEssentials() {
                 {subscription.status === "active"
                   ? "Actif"
                   : subscription.status === "trialing"
-                  ? "Période d’essai"
+                  ? "Période d'essai"
                   : subscription.status === "past_due"
                   ? "En attente de paiement"
                   : subscription.status === "canceled"
@@ -56,7 +57,7 @@ export function SettingsEssentials() {
               </span>
               {subscription.current_period_end && (
                 <span className="ml-3 text-xs text-muted-foreground">
-                  Jusqu’au : {new Date(subscription.current_period_end).toLocaleDateString()}
+                  Jusqu'au : {new Date(subscription.current_period_end).toLocaleDateString()}
                 </span>
               )}
             </div>
@@ -72,8 +73,8 @@ export function SettingsEssentials() {
                 </Button>
               ) : (
                 <>
-                  <Button onClick={() => handleUpgrade("month")}>Mettre à niveau (29 $/mois)</Button>
-                  <Button variant="outline" onClick={() => handleUpgrade("year")}>Annuel (290 $/an)</Button>
+                  <Button onClick={() => handleUpgrade("month")}>Mettre à niveau (29 $/mois)</Button>
+                  <Button variant="outline" onClick={() => handleUpgrade("year")}>Annuel (290 $/an)</Button>
                 </>
               )}
               <Button variant="ghost" onClick={refresh}>Rafraîchir</Button>
