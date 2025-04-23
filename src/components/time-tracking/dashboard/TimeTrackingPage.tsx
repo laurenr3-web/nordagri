@@ -53,80 +53,93 @@ export default function TimeTrackingPage() {
     setTaskTypeFilter,
   } = useTimeTrackingData();
 
-  // Classe responsive : Exploite toute la largeur sur desktop, reste fluide sur mobile
-  const desktopMaxW =
-    "w-full max-w-screen-2xl mx-auto px-8";
-  const mobileMaxW =
-    "w-full px-2"; // ou px-4 selon ta base
+  // Largeur maximum adaptée mobile/desktop
+  const containerClass = isDesktop
+    ? "w-full max-w-screen-2xl mx-auto px-8"
+    : "w-full max-w-full mx-0 px-2 sm:px-3 overflow-x-hidden";
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
+      <div className="flex min-h-screen w-full bg-background overflow-x-hidden">
+        {/* Sidebar */}
         <Sidebar className="border-r">
           <Navbar />
         </Sidebar>
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 w-full max-w-full overflow-x-hidden">
           <div
             className={
-              isDesktop
-                ? desktopMaxW
-                : mobileMaxW
+              `flex flex-col w-full max-w-full overflow-x-hidden min-h-screen` +
+              ` ${containerClass}`
             }
-            // Plus de className "container" (on laisse toute la largeur sur desktop)
           >
-            <TimeTrackingHeader
-              onNewSession={() => setIsFormOpen(true)}
-            />
-            
-            <TimeTrackingSummary stats={stats} isLoading={isLoading} />
-            
-            {activeTimeEntry && (
-              <ActiveTimeSession
-                session={activeTimeEntry}
-                onPause={handlePauseTimeEntry}
-                onResume={handleResumeTimeEntry}
-                onStop={handleStopTimeEntry}
+            <div className="py-4 sm:py-6 flex flex-col gap-2 sm:gap-4">
+              <TimeTrackingHeader
+                onNewSession={() => setIsFormOpen(true)}
               />
-            )}
-            
-            <TimeTrackingFilters
-              dateRange={dateRange}
-              equipmentFilter={equipmentFilter}
-              taskTypeFilter={taskTypeFilter}
-              equipments={equipments}
-              onDateRangeChange={(range) => {
-                if (range?.from && range?.to) {
-                  setDateRange({ from: range.from, to: range.to });
-                }
-              }}
-              onEquipmentChange={setEquipmentFilter}
-              onTaskTypeChange={setTaskTypeFilter}
-              onReset={() => {
-                setDateRange({
-                  from: startOfWeek(new Date(), { weekStartsOn: 1 }),
-                  to: endOfWeek(new Date(), { weekStartsOn: 1 })
-                });
-                setEquipmentFilter(undefined);
-                setTaskTypeFilter(undefined);
-              }}
-            />
-            
-            <ActiveSessionsTable
-              sessions={activeSessions}
-              onPause={handlePauseTimeEntry}
-              onResume={handleResumeTimeEntry}
-              onStop={handleStopTimeEntry}
-            />
-            
-            <TimeTrackingTabs
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-              entries={entries}
-              isLoading={isLoading}
-              onNewSession={() => setIsFormOpen(true)}
-              onResumeEntry={handleResumeTimeEntry}
-              onDeleteEntry={handleDeleteTimeEntry}
-            />
+
+              {/* Résumé du temps, adaptée responsive */}
+              <div className="w-full">
+                <TimeTrackingSummary stats={stats} isLoading={isLoading} />
+              </div>
+
+              {/* Session active */}
+              {activeTimeEntry && (
+                <ActiveTimeSession
+                  session={activeTimeEntry}
+                  onPause={handlePauseTimeEntry}
+                  onResume={handleResumeTimeEntry}
+                  onStop={handleStopTimeEntry}
+                />
+              )}
+
+              {/* Filtres */}
+              <div className="w-full">
+                <TimeTrackingFilters
+                  dateRange={dateRange}
+                  equipmentFilter={equipmentFilter}
+                  taskTypeFilter={taskTypeFilter}
+                  equipments={equipments}
+                  onDateRangeChange={(range) => {
+                    if (range?.from && range?.to) {
+                      setDateRange({ from: range.from, to: range.to });
+                    }
+                  }}
+                  onEquipmentChange={setEquipmentFilter}
+                  onTaskTypeChange={setTaskTypeFilter}
+                  onReset={() => {
+                    setDateRange({
+                      from: startOfWeek(new Date(), { weekStartsOn: 1 }),
+                      to: endOfWeek(new Date(), { weekStartsOn: 1 })
+                    });
+                    setEquipmentFilter(undefined);
+                    setTaskTypeFilter(undefined);
+                  }}
+                />
+              </div>
+
+              {/* Sessions actives */}
+              <div className="w-full">
+                <ActiveSessionsTable
+                  sessions={activeSessions}
+                  onPause={handlePauseTimeEntry}
+                  onResume={handleResumeTimeEntry}
+                  onStop={handleStopTimeEntry}
+                />
+              </div>
+
+              {/* Onglets */}
+              <div className="w-full">
+                <TimeTrackingTabs
+                  activeTab={activeTab}
+                  onTabChange={setActiveTab}
+                  entries={entries}
+                  isLoading={isLoading}
+                  onNewSession={() => setIsFormOpen(true)}
+                  onResumeEntry={handleResumeTimeEntry}
+                  onDeleteEntry={handleDeleteTimeEntry}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -139,3 +152,4 @@ export default function TimeTrackingPage() {
     </SidebarProvider>
   );
 }
+
