@@ -14,32 +14,32 @@ const MobileMenu = () => {
   const navItems = [
     {
       path: '/dashboard',
-      icon: <PieChart className="h-5 w-5" aria-hidden="true" />,
+      icon: <PieChart className="h-6 w-6" aria-hidden="true" />,
       label: t("mobilemenu.dashboard"),
     },
     {
       path: '/equipment',
-      icon: <Tractor className="h-5 w-5" aria-hidden="true" />,
+      icon: <Tractor className="h-6 w-6" aria-hidden="true" />,
       label: t("mobilemenu.equipment"),
     },
     {
       path: '/maintenance',
-      icon: <Wrench className="h-5 w-5" aria-hidden="true" />,
+      icon: <Wrench className="h-6 w-6" aria-hidden="true" />,
       label: t("mobilemenu.maintenance"),
     },
     {
       path: '/parts',
-      icon: <Folder className="h-5 w-5" aria-hidden="true" />,
+      icon: <Folder className="h-6 w-6" aria-hidden="true" />,
       label: t("mobilemenu.parts"),
     },
     {
       path: '/time-tracking',
-      icon: <Clock className="h-5 w-5" aria-hidden="true" />,
+      icon: <Clock className="h-6 w-6" aria-hidden="true" />,
       label: t("mobilemenu.time"),
     },
     {
       path: '/settings',
-      icon: <Settings className="h-5 w-5" aria-hidden="true" />,
+      icon: <Settings className="h-6 w-6" aria-hidden="true" />,
       label: t("mobilemenu.settings"),
     },
   ];
@@ -50,7 +50,7 @@ const MobileMenu = () => {
 
   return (
     <>
-      <div className="lg:hidden px-2 py-2" aria-label={t("mobilemenu.time")}>
+      <div className="lg:hidden" aria-label={t("mobilemenu.time")}>
         <TimeTracker />
       </div>
       <nav
@@ -64,7 +64,7 @@ const MobileMenu = () => {
               key={item.path}
               to={item.path}
               className={cn(
-                'flex flex-col items-center justify-center px-1 transition-colors min-h-[64px]',
+                'flex flex-col items-center justify-center px-2 transition-colors',
                 isActive(item.path) 
                   ? 'text-primary' 
                   : 'text-muted-foreground hover:text-primary'
@@ -75,7 +75,7 @@ const MobileMenu = () => {
               tabIndex={0}
             >
               {item.icon}
-              <span className="text-[10px] sm:text-xs mt-1 truncate w-full text-center">{item.label}</span>
+              <span className="text-xs mt-1">{item.label}</span>
             </Link>
           ))}
         </div>

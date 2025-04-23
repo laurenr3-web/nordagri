@@ -317,41 +317,6 @@ export type Database = {
           },
         ]
       }
-      farm_settings: {
-        Row: {
-          farm_id: string | null
-          id: string
-          show_fuel_log: boolean | null
-          show_maintenance: boolean | null
-          show_parts: boolean | null
-          show_time_tracking: boolean | null
-        }
-        Insert: {
-          farm_id?: string | null
-          id?: string
-          show_fuel_log?: boolean | null
-          show_maintenance?: boolean | null
-          show_parts?: boolean | null
-          show_time_tracking?: boolean | null
-        }
-        Update: {
-          farm_id?: string | null
-          id?: string
-          show_fuel_log?: boolean | null
-          show_maintenance?: boolean | null
-          show_parts?: boolean | null
-          show_time_tracking?: boolean | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "farm_settings_farm_id_fkey"
-            columns: ["farm_id"]
-            isOneToOne: false
-            referencedRelation: "farms"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       farms: {
         Row: {
           address: string | null
@@ -850,7 +815,6 @@ export type Database = {
           created_at: string
           farm_id: string | null
           first_name: string | null
-          has_seen_onboarding: boolean | null
           id: string
           last_name: string | null
           updated_at: string
@@ -860,7 +824,6 @@ export type Database = {
           created_at?: string
           farm_id?: string | null
           first_name?: string | null
-          has_seen_onboarding?: boolean | null
           id: string
           last_name?: string | null
           updated_at?: string
@@ -870,7 +833,6 @@ export type Database = {
           created_at?: string
           farm_id?: string | null
           first_name?: string | null
-          has_seen_onboarding?: boolean | null
           id?: string
           last_name?: string | null
           updated_at?: string

@@ -8,7 +8,7 @@ interface FormFieldGroupProps {
 
 const FormFieldGroup: React.FC<FormFieldGroupProps> = ({ children, className = '' }) => {
   return (
-    <div className={`grid gap-2 w-full ${className}`}>
+    <div className={`grid gap-2 ${className}`}>
       {children}
     </div>
   );

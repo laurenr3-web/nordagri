@@ -1,19 +1,14 @@
+
 import React from "react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuthContext } from "@/providers/AuthProvider";
-import { useOnboarding } from "@/hooks/useOnboarding";
-import { OnboardingOverlay } from "@/components/onboarding/OnboardingOverlay";
 
 const STRIPE_PRICE_ID_PRO_MONTHLY = "price_xxx_month"; // TODO: Remplacer par votre prix mensuel Stripe réel
 const STRIPE_PRICE_ID_PRO_YEARLY = "price_xxx_year";  // TODO: Remplacer par votre prix annuel Stripe réel
 
 export function SettingsEssentials() {
   const { subscription, loading, refresh } = useSubscription();
-  const { user } = useAuthContext();
-  const { hasSeen, setFlag } = useOnboarding(user?.id);
-  const [showOnboarding, setShowOnboarding] = React.useState(false);
 
   const handleUpgrade = async (interval: "month" | "year") => {
     const priceId = interval === "month" ? STRIPE_PRICE_ID_PRO_MONTHLY : STRIPE_PRICE_ID_PRO_YEARLY;
@@ -35,8 +30,6 @@ export function SettingsEssentials() {
       alert(error?.message || "Erreur lors de l'accès au portail client");
     }
   };
-
-  const triggerOnboarding = () => setShowOnboarding(true);
 
   return (
     <div className="space-y-6">
@@ -90,27 +83,6 @@ export function SettingsEssentials() {
         ) : (
           <div className="p-4 border rounded text-muted-foreground">Aucun abonnement détecté.</div>
         )}
-      </div>
-
-      <div className="mt-10">
-        <h3 className="font-semibold">Onboarding</h3>
-        <p className="text-muted-foreground text-sm">
-          Vous pouvez relancer le tutoriel à tout moment.
-        </p>
-        <button
-          type="button"
-          className="mt-2 px-4 py-2 rounded bg-primary text-white hover:bg-primary/90"
-          onClick={triggerOnboarding}
-        >
-          Relancer le tutoriel
-        </button>
-        <OnboardingOverlay
-          open={showOnboarding}
-          onClose={() => {
-            setShowOnboarding(false);
-            setFlag(true);
-          }}
-        />
       </div>
     </div>
   );

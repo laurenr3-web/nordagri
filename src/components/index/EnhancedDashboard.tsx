@@ -1,4 +1,3 @@
-
 import React from 'react';
 import StatsSection from './StatsSection';
 import EquipmentSection from './EquipmentSection';
@@ -93,16 +92,16 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
         break;
     }
   };
-  return <div className="space-y-6 px-2 sm:px-4 md:px-[38px] overflow-hidden">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <h1 className="text-xl md:text-2xl font-semibold mb-0">Tableau de bord</h1>
-        <SearchBar searchItems={searchItems} className="w-full sm:w-[300px]" />
+  return <div className="space-y-8 px-[38px]">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold mb-0">Tableau de bord</h1>
+        <SearchBar searchItems={searchItems} className="w-[300px]" />
       </div>
 
       <StatsSection onStatClick={handleStatsCardClick} />
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
-        <div className="lg:col-span-2 space-y-6 md:space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
           <EquipmentSection equipment={equipmentData} onViewAllClick={handleEquipmentViewAllClick} onEquipmentClick={handleEquipmentClick} />
 
           <DashboardSection title="Interventions urgentes" subtitle="Interventions critiques en attente" action={<Button variant="outline" size="sm" onClick={() => navigate('/interventions')}>
@@ -116,7 +115,7 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
           </DashboardSection>
         </div>
         
-        <div className="space-y-6 md:space-y-8">
+        <div className="space-y-8">
           <AlertsSection alerts={alertItems} onViewAllClick={handleAlertsViewAllClick} />
 
           <DashboardSection title="Stock faible" subtitle="Pièces à réapprovisionner" action={<Button variant="outline" size="sm" onClick={handleViewParts}>

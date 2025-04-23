@@ -46,7 +46,7 @@ const Equipment = () => {
 
   return (
     <MainLayout>
-      <div className="w-full overflow-x-hidden">
+      <div className="w-full max-w-screen-xl mx-auto px-6 lg:px-12" style={{ overflowX: "hidden" }}>
         <EquipmentPageContent 
           equipment={transformedEquipment} 
           isLoading={isLoading} 

@@ -12,7 +12,7 @@ const Dashboard = () => {
 
   return (
     <MainLayout>
-      <div className="w-full overflow-x-hidden">
+      <div className="w-full max-w-screen-xl mx-auto px-6 lg:px-12" style={{ overflowX: "hidden" }}>
         <ViewManager 
           currentView={currentView}
           currentMonth={currentMonth}
