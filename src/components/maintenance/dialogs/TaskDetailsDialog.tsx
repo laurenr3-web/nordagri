@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Dialog, 
@@ -19,6 +18,7 @@ import { TaskDetailsBadges } from './components/TaskDetailsBadges';
 import { TaskMetadata } from './components/TaskMetadata';
 import { TaskControls } from './components/TaskControls';
 import { DeleteTaskAlert } from './components/DeleteTaskAlert';
+import { Clock } from 'lucide-react';
 
 interface TaskDetailsDialogProps {
   task: MaintenanceTask | null;
@@ -79,6 +79,29 @@ const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
     }
   };
 
+  const renderTriggerThreshold = () => {
+    if (!task) return null;
+    
+    if (task.trigger_unit === 'hours' && task.trigger_hours) {
+      return (
+        <div className="text-sm text-muted-foreground">
+          <Clock className="inline-block w-4 h-4 mr-1" />
+          À effectuer après {task.trigger_hours} h
+        </div>
+      );
+    }
+    
+    if (task.trigger_unit === 'kilometers' && task.trigger_kilometers) {
+      return (
+        <div className="text-sm text-muted-foreground">
+          🚜 À effectuer après {task.trigger_kilometers} km
+        </div>
+      );
+    }
+    
+    return null;
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -94,6 +117,7 @@ const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
             />
             
             <TaskMetadata task={task} />
+            {renderTriggerThreshold()}
             
             <TaskControls 
               task={task}

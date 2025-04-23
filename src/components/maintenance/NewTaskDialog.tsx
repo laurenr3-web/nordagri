@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -218,6 +217,51 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({
                 />
                 <Clock className="ml-2 h-4 w-4 text-muted-foreground" />
               </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Seuil de déclenchement (optionnel)</Label>
+            <div className="flex gap-4">
+              <Select
+                value={form.watch('trigger_unit')}
+                onValueChange={(value) => form.setValue('trigger_unit', value)}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Choisir une unité" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Aucun seuil</SelectItem>
+                  <SelectItem value="hours">Heures moteur</SelectItem>
+                  <SelectItem value="kilometers">Kilomètres</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {form.watch('trigger_unit') === 'hours' && (
+                <div className="flex-1">
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    placeholder="Seuil en heures"
+                    value={form.watch('trigger_hours') || ''}
+                    onChange={(e) => form.setValue('trigger_hours', parseFloat(e.target.value))}
+                  />
+                </div>
+              )}
+
+              {form.watch('trigger_unit') === 'kilometers' && (
+                <div className="flex-1">
+                  <Input
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="Seuil en kilomètres"
+                    value={form.watch('trigger_kilometers') || ''}
+                    onChange={(e) => form.setValue('trigger_kilometers', parseFloat(e.target.value))}
+                  />
+                </div>
+              )}
             </div>
           </div>
 

@@ -1,12 +1,12 @@
-
 import { useState } from 'react';
 import { MaintenanceFormValues } from '@/hooks/maintenance/maintenanceSlice';
 import { useFormFields } from './useFormFields';
 import { useStaffManagement } from './useStaffManagement';
 import { useEquipmentOptions } from './useEquipmentOptions';
+import { toast } from 'sonner';
 
 export const useMaintenanceForm = (
-  onSubmit: (values: MaintenanceFormValues) => void, 
+  onSubmit: (formValues: MaintenanceFormValues) => void, 
   onClose: (open: boolean) => void,
   initialDate?: Date
 ) => {
@@ -18,6 +18,21 @@ export const useMaintenanceForm = (
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Vérifier qu'au moins une date d'échéance ou un seuil est défini
+    const hasDueDate = formFields.dueDate !== null;
+    const hasTriggerThreshold = 
+      (formFields.trigger_unit === 'hours' && formFields.trigger_hours > 0) ||
+      (formFields.trigger_unit === 'kilometers' && formFields.trigger_kilometers > 0);
+    
+    if (!hasDueDate && !hasTriggerThreshold) {
+      toast({
+        title: "Erreur de validation",
+        description: "Veuillez définir une date d'échéance ou un seuil d'usure.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const formData: MaintenanceFormValues = {
       title: formFields.title,
       equipment: equipmentData.equipment,
@@ -28,6 +43,9 @@ export const useMaintenanceForm = (
       engineHours: parseFloat(formFields.engineHours),
       assignedTo: staffManagement.assignedTo,
       notes: formFields.notes,
+      trigger_unit: formFields.trigger_unit,
+      trigger_hours: formFields.trigger_unit === 'hours' ? formFields.trigger_hours : undefined,
+      trigger_kilometers: formFields.trigger_unit === 'kilometers' ? formFields.trigger_kilometers : undefined,
     };
     
     onSubmit(formData);
