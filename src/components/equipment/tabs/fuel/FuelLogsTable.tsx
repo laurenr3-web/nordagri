@@ -25,7 +25,7 @@ export function FuelLogsTable({ logs, onDelete, isDeletingId }: FuelLogsTablePro
 
   return (
     <div className="overflow-x-auto w-full">
-      <Table className="min-w-[800px]">
+      <Table className="min-w-[600px] sm:min-w-[800px]">
         <TableHeader>
           <TableRow>
             <TableHead>Date</TableHead>
@@ -57,6 +57,7 @@ export function FuelLogsTable({ logs, onDelete, isDeletingId }: FuelLogsTablePro
                     size="icon"
                     onClick={() => setAlertOpenId(log.id)}
                     disabled={isDeletingId === log.id}
+                    className="min-h-[44px]"
                   >
                     <Trash2 className="w-4 h-4 text-red-500" />
                   </Button>

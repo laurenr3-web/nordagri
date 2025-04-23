@@ -14,38 +14,31 @@ export default function SettingsTabs() {
       value={activeTab} 
       onValueChange={setActiveTab}
     >
-      <div className="overflow-x-auto w-full mb-8">
-        <TabsList className="flex min-w-[600px] sm:min-w-0 grid grid-cols-2 md:grid-cols-4">
-          <TabsTrigger value="essentials" className="min-w-[120px]">Essentials</TabsTrigger>
-          <TabsTrigger value="security" className="min-w-[120px]">Sécurité</TabsTrigger>
-          <TabsTrigger value="notifications" className="min-w-[120px]">Notifications</TabsTrigger>
-          <TabsTrigger value="interface" className="min-w-[120px]">Interface</TabsTrigger>
+      <div className="overflow-x-auto w-full mb-6 sm:mb-8">
+        <TabsList className="flex min-w-[380px] sm:min-w-0 grid grid-cols-2 sm:grid-cols-4 gap-1">
+          <TabsTrigger value="essentials" className="min-w-[100px]">Essentials</TabsTrigger>
+          <TabsTrigger value="security" className="min-w-[100px]">Sécurité</TabsTrigger>
+          <TabsTrigger value="notifications" className="min-w-[100px]">Notifications</TabsTrigger>
+          <TabsTrigger value="interface" className="min-w-[100px]">Interface</TabsTrigger>
         </TabsList>
       </div>
       
       <TabsContent value="essentials">
         <SettingsEssentials />
       </TabsContent>
-      
       <TabsContent value="security">
         <SettingsSecurity />
       </TabsContent>
-      
       <TabsContent value="notifications">
-        <div className="text-center py-8">
-          <h3 className="text-xl font-medium mb-2">Paramètres de notifications</h3>
-          <p className="text-muted-foreground">
-            Configurez comment et quand vous recevez des notifications.
-          </p>
+        <div className="text-center py-6 sm:py-8 px-2">
+          <h3 className="text-lg sm:text-xl font-medium mb-2">Paramètres de notifications</h3>
+          <p className="text-muted-foreground text-sm">Configurez comment et quand vous recevez des notifications.</p>
         </div>
       </TabsContent>
-      
       <TabsContent value="interface">
-        <div className="text-center py-8">
-          <h3 className="text-xl font-medium mb-2">Paramètres d'interface</h3>
-          <p className="text-muted-foreground">
-            Personnalisez l'apparence et le comportement de l'application.
-          </p>
+        <div className="text-center py-6 sm:py-8 px-2">
+          <h3 className="text-lg sm:text-xl font-medium mb-2">Paramètres d'interface</h3>
+          <p className="text-muted-foreground text-sm">Personnalisez l'apparence et le comportement de l'application.</p>
         </div>
       </TabsContent>
     </Tabs>

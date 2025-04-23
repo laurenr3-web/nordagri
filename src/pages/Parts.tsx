@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParts } from '@/hooks/useParts';
 import MainLayout from '@/ui/layouts/MainLayout';
@@ -16,7 +17,6 @@ const Parts = () => {
     const checkAuth = async () => {
       try {
         const status = await checkAuthStatus();
-        
         if (!status.authenticated) {
           toast({
             title: "Connexion requise",
@@ -42,14 +42,11 @@ const Parts = () => {
   
   return (
     <MainLayout>
-      <div>
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold">Gestion des pièces</h1>
-          <p className="text-muted-foreground mt-1">
-            Gérez votre inventaire de pièces et commandez de nouvelles pièces
-          </p>
+      <div className="px-3 sm:px-6">
+        <div className="mb-4 sm:mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold">Gestion des pièces</h1>
+          <p className="text-muted-foreground mt-1 text-base">Gérez votre inventaire de pièces et commandez de nouvelles pièces</p>
         </div>
-        
         <PartsContainer 
           {...partsHookData}
           setCurrentView={setCurrentView}
