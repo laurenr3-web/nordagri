@@ -8,9 +8,10 @@ import { UseFormReturn } from 'react-hook-form';
 interface TriggerThresholdFieldsProps {
   form: UseFormReturn<any>;
   equipment?: {
-    unite_d_usure: string;
-    valeur_actuelle: number;
-  };
+    unite_d_usure?: string;
+    valeur_actuelle?: number;
+    kilometers?: number;
+  } | null;
 }
 
 export function TriggerThresholdFields({ form, equipment }: TriggerThresholdFieldsProps) {
