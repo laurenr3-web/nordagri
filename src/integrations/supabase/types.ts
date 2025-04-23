@@ -16,6 +16,7 @@ export type Database = {
           farm_id: string | null
           id: number
           image: string | null
+          kilometers: number | null
           last_wear_update: string | null
           location: string | null
           manufacturer: string | null
@@ -38,6 +39,7 @@ export type Database = {
           farm_id?: string | null
           id?: number
           image?: string | null
+          kilometers?: number | null
           last_wear_update?: string | null
           location?: string | null
           manufacturer?: string | null
@@ -60,6 +62,7 @@ export type Database = {
           farm_id?: string | null
           id?: number
           image?: string | null
+          kilometers?: number | null
           last_wear_update?: string | null
           location?: string | null
           manufacturer?: string | null
@@ -574,6 +577,9 @@ export type Database = {
           next_due_date: string
           priority: string
           title: string
+          trigger_hours: number | null
+          trigger_kilometers: number | null
+          trigger_unit: string | null
           type: string
           unit: string
           updated_at: string
@@ -594,6 +600,9 @@ export type Database = {
           next_due_date: string
           priority: string
           title: string
+          trigger_hours?: number | null
+          trigger_kilometers?: number | null
+          trigger_unit?: string | null
           type: string
           unit: string
           updated_at?: string
@@ -614,6 +623,9 @@ export type Database = {
           next_due_date?: string
           priority?: string
           title?: string
+          trigger_hours?: number | null
+          trigger_kilometers?: number | null
+          trigger_unit?: string | null
           type?: string
           unit?: string
           updated_at?: string
@@ -675,6 +687,9 @@ export type Database = {
           priority: string
           status: string
           title: string
+          trigger_hours: number | null
+          trigger_kilometers: number | null
+          trigger_unit: string | null
           type: string
           updated_at: string | null
         }
@@ -693,6 +708,9 @@ export type Database = {
           priority: string
           status: string
           title: string
+          trigger_hours?: number | null
+          trigger_kilometers?: number | null
+          trigger_unit?: string | null
           type: string
           updated_at?: string | null
         }
@@ -711,6 +729,9 @@ export type Database = {
           priority?: string
           status?: string
           title?: string
+          trigger_hours?: number | null
+          trigger_kilometers?: number | null
+          trigger_unit?: string | null
           type?: string
           updated_at?: string | null
         }

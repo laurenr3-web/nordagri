@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -16,6 +15,29 @@ interface MaintenancePlanDialogProps {
   onClose: () => void;
   equipment: { id: number; name: string } | null;
 }
+
+const getTriggerInfo = (plan: MaintenancePlan, equipment?: any) => {
+  if (!plan.trigger_unit || plan.trigger_unit === 'none') return null;
+
+  const currentValue = plan.trigger_unit === 'hours' 
+    ? equipment?.valeur_actuelle || 0
+    : equipment?.kilometers || 0;
+
+  const threshold = plan.trigger_unit === 'hours'
+    ? plan.trigger_hours || 0
+    : plan.trigger_kilometers || 0;
+
+  const remaining = threshold - currentValue;
+  const isOverdue = remaining <= 0;
+
+  return {
+    current: currentValue,
+    threshold,
+    remaining,
+    isOverdue,
+    unit: plan.trigger_unit === 'hours' ? 'h' : 'km'
+  };
+};
 
 export default function MaintenancePlanDialog({ 
   isOpen, 

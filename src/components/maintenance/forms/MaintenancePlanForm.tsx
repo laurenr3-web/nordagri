@@ -15,6 +15,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { MaintenanceFrequency, MaintenancePlan, MaintenanceUnit } from '@/hooks/maintenance/useMaintenancePlanner';
 import { MaintenancePriority, MaintenanceType } from '@/hooks/maintenance/maintenanceSlice';
+import { TriggerThresholdFields } from '../fields/TriggerThresholdFields';
 
 // Schema de validation pour le formulaire de plan de maintenance
 const maintenancePlanSchema = z.object({
@@ -30,6 +31,9 @@ const maintenancePlanSchema = z.object({
   engineHours: z.number().min(0, "Les heures moteur doivent être positives"),
   nextDueDate: z.date(),
   assignedTo: z.string().optional(),
+  trigger_unit: z.enum(['hours', 'kilometers', 'none']).default('none'),
+  trigger_hours: z.number().nullable().optional(),
+  trigger_kilometers: z.number().nullable().optional(),
 });
 
 type MaintenancePlanFormValues = z.infer<typeof maintenancePlanSchema>;
@@ -61,6 +65,9 @@ export default function MaintenancePlanForm({
     engineHours: initialData?.engineHours || 1,
     nextDueDate: initialData?.nextDueDate || new Date(),
     assignedTo: initialData?.assignedTo || '',
+    trigger_unit: initialData?.trigger_unit || 'none',
+    trigger_hours: initialData?.trigger_hours || null,
+    trigger_kilometers: initialData?.trigger_kilometers || null,
   };
 
   // Initialiser le formulaire avec les valeurs par défaut et le schéma de validation
@@ -412,6 +419,12 @@ export default function MaintenancePlanForm({
             )}
           />
 
+        </div>
+
+        
+        <div className="border-t pt-4 mt-4">
+          <h3 className="text-lg font-medium mb-4">Conditions de déclenchement</h3>
+          <TriggerThresholdFields form={form} equipment={equipment} />
         </div>
 
         {/* Boutons d'action */}
