@@ -27,7 +27,6 @@ export const useMaintenanceForm = (
     
     if (!hasDueDate && !hasTriggerThreshold) {
       toast({
-        title: "Erreur de validation",
         description: "Veuillez définir une date d'échéance ou un seuil d'usure.",
         variant: "destructive",
       });
