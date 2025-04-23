@@ -25,7 +25,7 @@ export interface MaintenancePlan {
   lastPerformedDate?: Date;
   assignedTo?: string;
   active: boolean;
-  // Nouvelles propriétés pour les conditions de déclenchement
+  // Propriétés pour les conditions de déclenchement
   trigger_unit?: 'hours' | 'kilometers' | 'none';
   trigger_hours?: number;
   trigger_kilometers?: number;

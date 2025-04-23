@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -13,7 +14,13 @@ import { useMaintenancePlanner, MaintenancePlan } from '@/hooks/maintenance/useM
 interface MaintenancePlanDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  equipment: { id: number; name: string } | null;
+  equipment: { 
+    id: number; 
+    name: string; 
+    unite_d_usure?: string;
+    valeur_actuelle?: number;
+    kilometers?: number;
+  } | null;
 }
 
 const getTriggerInfo = (plan: MaintenancePlan, equipment?: any) => {

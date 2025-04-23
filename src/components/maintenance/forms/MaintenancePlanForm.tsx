@@ -40,7 +40,13 @@ type MaintenancePlanFormValues = z.infer<typeof maintenancePlanSchema>;
 
 interface MaintenancePlanFormProps {
   onSubmit: (data: Omit<MaintenancePlan, 'id' | 'active'>) => void;
-  equipment: { id: number; name: string } | null;
+  equipment: { 
+    id: number; 
+    name: string; 
+    unite_d_usure?: string;
+    valeur_actuelle?: number;
+    kilometers?: number;
+  } | null;
   initialData?: Partial<MaintenancePlan>;
   isSubmitting?: boolean;
 }
@@ -91,7 +97,10 @@ export default function MaintenancePlanForm({
       priority: values.priority,
       engineHours: values.engineHours,
       nextDueDate: values.nextDueDate,
-      assignedTo: values.assignedTo
+      assignedTo: values.assignedTo,
+      trigger_unit: values.trigger_unit,
+      trigger_hours: values.trigger_hours || undefined,
+      trigger_kilometers: values.trigger_kilometers || undefined
     };
     
     onSubmit(maintenancePlan);
