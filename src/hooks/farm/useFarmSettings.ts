@@ -70,25 +70,38 @@ export function useFarmSettings(farmId?: string) {
     }
   }, [farmId]);
 
+  // Fixed function to avoid excessive type inference
   const updateSettings = useCallback(async (partial: Partial<FarmSettings>): Promise<UpdateReturnType> => {
-    if (!farmId || !settings?.id) return { error: new Error('Missing farm ID or settings'), data: null };
+    if (!farmId || !settings?.id) {
+      return {
+        error: new Error('Missing farm ID or settings'),
+        data: null
+      };
+    }
     
     setLoading(true);
     
     try {
-      const { error, data } = await supabase
+      // Explicitly define the response structure
+      const response = await supabase
         .from('farm_settings')
         .update(partial)
         .eq('id', settings.id)
         .select()
         .single();
+        
+      const error = response.error;
+      const data = response.data as FarmSettings | null;
       
       if (!error && data) {
         setSettings(data);
       }
       
       setLoading(false);
-      return { error: error as Error | null, data: data || null };
+      return { 
+        error: error as Error | null, 
+        data: data 
+      };
     } catch (err) {
       setLoading(false);
       return { 
