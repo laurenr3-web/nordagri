@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+// Define explicit types instead of using recursive type inferences
 export interface FarmSettings {
   id?: string;
   farm_id: string;
@@ -11,10 +12,11 @@ export interface FarmSettings {
   show_time_tracking: boolean;
 }
 
-type UpdateReturnType = {
+// Define a simple return type for the update operation
+interface UpdateReturnType {
   error: Error | null;
   data: FarmSettings | null;
-};
+}
 
 export function useFarmSettings(farmId?: string) {
   const [settings, setSettings] = useState<FarmSettings | null>(null);
@@ -86,7 +88,7 @@ export function useFarmSettings(farmId?: string) {
       }
       
       setLoading(false);
-      return { error, data: data || null };
+      return { error: error as Error | null, data: data || null };
     } catch (err) {
       setLoading(false);
       return { 
