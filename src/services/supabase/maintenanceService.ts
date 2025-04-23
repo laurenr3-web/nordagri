@@ -1,7 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { MaintenanceTask, MaintenanceStatus, MaintenanceType, MaintenancePriority } from '@/hooks/maintenance/maintenanceSlice';
-import { MaintenancePlan } from '@/hooks/maintenance/useMaintenancePlanner';
+import { MaintenancePlan, MaintenanceFrequency, MaintenanceUnit } from '@/hooks/maintenance/useMaintenancePlanner';
 
 class MaintenanceService {
   async getTasks(): Promise<MaintenanceTask[]> {
@@ -147,7 +146,6 @@ class MaintenanceService {
     }));
   }
 
-  // Add missing methods for MaintenancePlans functionality
   async getMaintenancePlans(): Promise<MaintenancePlan[]> {
     const { data, error } = await supabase
       .from('maintenance_plans')
@@ -165,9 +163,9 @@ class MaintenanceService {
       description: plan.description || undefined,
       equipmentId: plan.equipment_id,
       equipmentName: plan.equipment_name,
-      frequency: plan.frequency,
+      frequency: plan.frequency as MaintenanceFrequency,
       interval: plan.interval,
-      unit: plan.unit,
+      unit: plan.unit as MaintenanceUnit,
       type: plan.type as MaintenanceType,
       priority: plan.priority as MaintenancePriority,
       engineHours: plan.engine_hours || 0,
@@ -175,7 +173,7 @@ class MaintenanceService {
       lastPerformedDate: plan.last_performed_date ? new Date(plan.last_performed_date) : undefined,
       assignedTo: plan.assigned_to,
       active: plan.active,
-      trigger_unit: plan.trigger_unit,
+      trigger_unit: plan.trigger_unit as 'hours' | 'kilometers' | 'none',
       trigger_hours: plan.trigger_hours,
       trigger_kilometers: plan.trigger_kilometers,
     }));
@@ -199,9 +197,9 @@ class MaintenanceService {
       description: plan.description || undefined,
       equipmentId: plan.equipment_id,
       equipmentName: plan.equipment_name,
-      frequency: plan.frequency,
+      frequency: plan.frequency as MaintenanceFrequency,
       interval: plan.interval,
-      unit: plan.unit,
+      unit: plan.unit as MaintenanceUnit,
       type: plan.type as MaintenanceType,
       priority: plan.priority as MaintenancePriority,
       engineHours: plan.engine_hours || 0,
@@ -209,7 +207,7 @@ class MaintenanceService {
       lastPerformedDate: plan.last_performed_date ? new Date(plan.last_performed_date) : undefined,
       assignedTo: plan.assigned_to,
       active: plan.active,
-      trigger_unit: plan.trigger_unit,
+      trigger_unit: plan.trigger_unit as 'hours' | 'kilometers' | 'none',
       trigger_hours: plan.trigger_hours,
       trigger_kilometers: plan.trigger_kilometers,
     }));
@@ -251,9 +249,9 @@ class MaintenanceService {
       description: data.description || undefined,
       equipmentId: data.equipment_id,
       equipmentName: data.equipment_name,
-      frequency: data.frequency,
+      frequency: data.frequency as MaintenanceFrequency,
       interval: data.interval,
-      unit: data.unit,
+      unit: data.unit as MaintenanceUnit,
       type: data.type as MaintenanceType,
       priority: data.priority as MaintenancePriority,
       engineHours: data.engine_hours || 0,
@@ -261,7 +259,7 @@ class MaintenanceService {
       lastPerformedDate: data.last_performed_date ? new Date(data.last_performed_date) : undefined,
       assignedTo: data.assigned_to,
       active: data.active,
-      trigger_unit: data.trigger_unit,
+      trigger_unit: data.trigger_unit as 'hours' | 'kilometers' | 'none',
       trigger_hours: data.trigger_hours,
       trigger_kilometers: data.trigger_kilometers,
     };
