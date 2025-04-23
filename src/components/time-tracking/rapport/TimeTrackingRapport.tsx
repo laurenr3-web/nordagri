@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Card, 
@@ -176,7 +177,7 @@ const TimeTrackingRapport: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col space-y-6 py-4">
+    <div className="flex flex-col space-y-6 py-4 px-2 sm:px-4 w-full max-w-full overflow-x-hidden">
       {/* Header */}
       <Header isExporting={isExporting} onExport={handleExport} />
       {/* Month Selector */}
@@ -184,7 +185,7 @@ const TimeTrackingRapport: React.FC = () => {
       {/* Hours Summary */}
       <HoursSummary summary={summary} />
       {/* Calendar */}
-      <Card>
+      <Card className="rounded-xl">
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Calendrier d'activité</CardTitle>
           <CardDescription>Vue mensuelle avec total d'heures</CardDescription>
@@ -199,7 +200,7 @@ const TimeTrackingRapport: React.FC = () => {
         </CardContent>
       </Card>
       {/* Task Type Distribution */}
-      <Card>
+      <Card className="rounded-xl">
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Répartition par type de tâche</CardTitle>
         </CardHeader>
@@ -208,7 +209,7 @@ const TimeTrackingRapport: React.FC = () => {
         </CardContent>
       </Card>
       {/* Top Equipment */}
-      <Card>
+      <Card className="rounded-xl">
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Équipements les plus utilisés</CardTitle>
         </CardHeader>

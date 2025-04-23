@@ -14,8 +14,8 @@ interface TimeTrackingStatsProps {
 
 export function TimeTrackingSummary({ stats, isLoading }: TimeTrackingStatsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <Card>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 w-full">
+      <Card className="rounded-xl sm:rounded-lg">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium">Time Today</CardTitle>
         </CardHeader>
@@ -25,7 +25,7 @@ export function TimeTrackingSummary({ stats, isLoading }: TimeTrackingStatsProps
           </div>
         </CardContent>
       </Card>
-      <Card>
+      <Card className="rounded-xl sm:rounded-lg">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium">Time This Week</CardTitle>
         </CardHeader>
@@ -35,7 +35,7 @@ export function TimeTrackingSummary({ stats, isLoading }: TimeTrackingStatsProps
           </div>
         </CardContent>
       </Card>
-      <Card>
+      <Card className="rounded-xl sm:rounded-lg">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium">Time This Month</CardTitle>
         </CardHeader>
@@ -48,3 +48,4 @@ export function TimeTrackingSummary({ stats, isLoading }: TimeTrackingStatsProps
     </div>
   );
 }
+

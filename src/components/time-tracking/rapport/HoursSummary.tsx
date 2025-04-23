@@ -17,7 +17,7 @@ type HoursSummaryProps = {
 };
 
 const HoursSummary: React.FC<HoursSummaryProps> = ({ summary }) => (
-  <div className="grid grid-cols-3 gap-2">
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 w-full">
     <Card className="bg-blue-50">
       <CardContent className="p-3">
         <p className="text-xs text-muted-foreground">Aujourd&apos;hui</p>

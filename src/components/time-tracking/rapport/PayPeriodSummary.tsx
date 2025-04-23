@@ -14,7 +14,7 @@ const PayPeriodSummary: React.FC<Props> = ({ isLoading, monthly, biWeekly }) => 
       <CardTitle className="text-base">Période de paie</CardTitle>
     </CardHeader>
     <CardContent>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <p className="text-sm text-muted-foreground">Mensuelle</p>
           {isLoading ? (

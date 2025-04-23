@@ -32,19 +32,12 @@ function CalendarViewComponent({
     const monthEnd = endOfMonth(month);
     const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
     
-    // Get day of week for the first day of month (0-6, 0 is Sunday)
     const startDay = getDay(monthStart);
-    
-    // Convert Sunday-based index (0-6) to Monday-based index (0-6, where 0 is Monday)
-    // Sunday (0) becomes 6, Monday (1) becomes 0, Tuesday (2) becomes 1, etc.
     const mondayBasedStartDay = startDay === 0 ? 6 : startDay - 1;
-    
-    // Create a lookup map for hours by date
     const hoursMap = new Map();
     dailyHours.forEach(day => {
       hoursMap.set(day.date, day.hours);
     });
-    
     return { monthStart, monthEnd, days, mondayBasedStartDay, hoursMap };
   }, [month, dailyHours]);
   
@@ -52,7 +45,7 @@ function CalendarViewComponent({
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 overflow-x-hidden">
         <div className="grid grid-cols-7 gap-1">
           {weekdays.map(day => (
             <div key={day} className="text-center text-xs font-medium py-1">
@@ -70,8 +63,7 @@ function CalendarViewComponent({
   }
 
   return (
-    <div className="space-y-4">
-      {/* Weekday headers */}
+    <div className="space-y-4 w-full overflow-x-hidden">
       <div className="grid grid-cols-7 gap-1">
         {weekdays.map(day => (
           <div key={day} className="text-center text-xs font-medium py-1">
@@ -79,10 +71,7 @@ function CalendarViewComponent({
           </div>
         ))}
       </div>
-      
-      {/* Calendar grid */}
       <div className="grid grid-cols-7 gap-1">
-        {/* Empty cells for days before the month starts */}
         {Array.from({ length: mondayBasedStartDay }).map((_, index) => (
           <div key={`empty-start-${index}`} className="h-10" />
         ))}
@@ -102,6 +91,7 @@ function CalendarViewComponent({
                 ${hasActivity ? 'bg-green-100 hover:bg-green-200 cursor-pointer' : 'hover:bg-gray-50'}
                 ${isToday(day) ? 'border border-blue-500' : ''}
                 ${isSameMonth(day, month) ? '' : 'text-gray-400'}
+                min-h-[44px]
               `}
               disabled={!hasActivity}
             >
@@ -119,5 +109,4 @@ function CalendarViewComponent({
   );
 }
 
-// Export a memoized version
 export default memo(CalendarViewComponent);
