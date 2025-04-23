@@ -14,14 +14,33 @@ export function useOnboarding(userId?: string) {
       .select('has_seen_onboarding')
       .eq('id', userId)
       .single();
-    if (!error && data) setHasSeen(Boolean(data.has_seen_onboarding));
+    
+    if (error) {
+      console.error('Error fetching onboarding flag:', error);
+      setLoading(false);
+      return;
+    }
+    
+    if (data) {
+      setHasSeen(Boolean(data.has_seen_onboarding));
+    }
     setLoading(false);
   }, [userId]);
 
   const setFlag = useCallback(async (value: boolean) => {
     if (!userId) return;
     setLoading(true);
-    await supabase.from('profiles').update({ has_seen_onboarding: value }).eq('id', userId);
+    const { error } = await supabase
+      .from('profiles')
+      .update({ has_seen_onboarding: value })
+      .eq('id', userId);
+    
+    if (error) {
+      console.error('Error updating onboarding flag:', error);
+      setLoading(false);
+      return;
+    }
+    
     setHasSeen(value);
     setLoading(false);
   }, [userId]);
