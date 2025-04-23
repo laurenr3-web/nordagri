@@ -36,23 +36,28 @@ export function TimeTrackingTabs({
       onValueChange={onTabChange}
       className="mt-6"
     >
-      <div className="flex items-center justify-between mb-4">
-        <TabsList>
-          <TabsTrigger value="list" className="flex items-center gap-1">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+        <TabsList className="w-full sm:w-auto overflow-x-auto">
+          <TabsTrigger value="list" className="flex items-center gap-1 min-w-[80px]">
             <ListFilter className="h-4 w-4" />
             <span>Liste</span>
           </TabsTrigger>
-          <TabsTrigger value="statistics" className="flex items-center gap-1">
+          <TabsTrigger value="statistics" className="flex items-center gap-1 min-w-[80px]">
             <BarChart className="h-4 w-4" />
-            <span>Statistiques</span>
+            <span>Stats</span>
           </TabsTrigger>
-          <TabsTrigger value="rapport" className="flex items-center gap-1">
+          <TabsTrigger value="rapport" className="flex items-center gap-1 min-w-[80px]">
             <PieChart className="h-4 w-4" />
             <span>Rapport</span>
           </TabsTrigger>
         </TabsList>
         
-        <Button size="sm" onClick={onNewSession} disabled={isLoading}>
+        <Button 
+          size="sm" 
+          onClick={onNewSession} 
+          disabled={isLoading}
+          className="w-full sm:w-auto min-h-[44px] sm:min-h-0"
+        >
           Nouvelle session
         </Button>
       </div>
@@ -65,13 +70,18 @@ export function TimeTrackingTabs({
             ))}
           </div>
         ) : entries.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-10">
+          <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
             <p className="text-muted-foreground mb-4">Aucune session de travail enregistrée</p>
-            <Button onClick={onNewSession}>Démarrer une nouvelle session</Button>
+            <Button 
+              onClick={onNewSession}
+              className="min-h-[44px]"
+            >
+              Démarrer une nouvelle session
+            </Button>
           </div>
         ) : (
-          <ScrollArea className="h-[calc(100vh-24rem)]">
-            <div className="space-y-4">
+          <ScrollArea className="h-[calc(100vh-24rem)] overflow-x-hidden">
+            <div className="space-y-4 pr-2">
               {entries.map((entry) => (
                 <TimeEntryCard
                   key={entry.id}
@@ -86,10 +96,10 @@ export function TimeTrackingTabs({
       </TabsContent>
       
       <TabsContent value="statistics">
-        <div className="flex flex-col space-y-4">
+        <div className="flex flex-col space-y-4 p-4 text-center">
           <p className="text-muted-foreground mb-4">Accédez à des analyses détaillées de votre temps de travail</p>
-          <Link to="/time-tracking/statistics">
-            <Button>Voir les statistiques</Button>
+          <Link to="/time-tracking/statistics" className="mx-auto">
+            <Button className="min-h-[44px]">Voir les statistiques</Button>
           </Link>
         </div>
       </TabsContent>

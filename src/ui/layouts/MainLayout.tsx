@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Sidebar, SidebarProvider, SidebarContent } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
@@ -35,8 +36,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               <Navbar />
             </SidebarContent>
           </Sidebar>
-          <div className="flex-1 w-full overflow-x-hidden max-w-screen-xl mx-auto lg:px-12 px-[154px]">
-            <div className="py-6">{children}</div>
+          <div className="flex-1 w-full overflow-x-hidden">
+            <div className="px-3 sm:px-6 md:px-8 lg:px-12 py-6 max-w-screen-xl mx-auto">{children}</div>
           </div>
         </div>
       </SidebarProvider>

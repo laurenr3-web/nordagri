@@ -26,7 +26,7 @@ const NavLink = ({ path, icon, label, isActive }: {
     <Link
       to={path}
       className={cn(
-        "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
+        "flex items-center gap-2 rounded-lg px-3 py-2 transition-all text-sm",
         isActive 
           ? "bg-secondary text-secondary-foreground" 
           : "text-muted-foreground hover:bg-secondary/80 hover:text-secondary-foreground"
@@ -93,14 +93,14 @@ const Navbar = () => {
   ];
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden p-4" role="navigation" aria-label="Barre latérale principale">
-      <Link to="/" className="flex items-center gap-2 px-3 py-4" aria-label="Accueil">
+    <div className="flex h-full w-full flex-col overflow-hidden p-2 md:p-4" role="navigation" aria-label="Barre latérale principale">
+      <Link to="/" className="flex items-center gap-2 px-2 md:px-3 py-3 md:py-4" aria-label="Accueil">
         <img
           src="/placeholder.svg"
           alt="Logo"
           className="h-6 w-6"
         />
-        <span className="text-xl font-semibold">NordAgri</span>
+        <span className="text-lg md:text-xl font-semibold truncate">NordAgri</span>
       </Link>
       <div className="flex-1 overflow-auto py-2">
         <nav className="grid gap-1" role="tablist">
@@ -116,7 +116,7 @@ const Navbar = () => {
         </nav>
       </div>
       {!isMobile && (
-        <div className="mt-auto p-4 border-t">
+        <div className="mt-auto p-3 md:p-4 border-t">
           <TimeTracker className="w-full justify-center rounded-lg p-2" />
         </div>
       )}

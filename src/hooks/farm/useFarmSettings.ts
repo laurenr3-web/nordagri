@@ -11,6 +11,11 @@ export interface FarmSettings {
   show_time_tracking: boolean;
 }
 
+type UpdateReturnType = {
+  error: Error | null;
+  data: FarmSettings | null;
+};
+
 export function useFarmSettings(farmId?: string) {
   const [settings, setSettings] = useState<FarmSettings | null>(null);
   const [loading, setLoading] = useState(false);
@@ -63,7 +68,7 @@ export function useFarmSettings(farmId?: string) {
     }
   }, [farmId]);
 
-  const updateSettings = useCallback(async (partial: Partial<FarmSettings>) => {
+  const updateSettings = useCallback(async (partial: Partial<FarmSettings>): Promise<UpdateReturnType> => {
     if (!farmId || !settings?.id) return { error: new Error('Missing farm ID or settings'), data: null };
     
     setLoading(true);
@@ -81,7 +86,7 @@ export function useFarmSettings(farmId?: string) {
       }
       
       setLoading(false);
-      return { error, data };
+      return { error, data: data || null };
     } catch (err) {
       setLoading(false);
       return { 

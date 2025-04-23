@@ -81,8 +81,8 @@ const TimeEntryDetail = () => {
           <Navbar />
         </Sidebar>
         
-        <div className="flex-1">
-          <div className="p-6">
+        <div className="flex-1 overflow-x-hidden">
+          <div className="p-3 sm:p-6">
             <div className="max-w-5xl mx-auto space-y-6">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div className="flex-1 w-full md:w-auto">
@@ -102,7 +102,7 @@ const TimeEntryDetail = () => {
                 {safeStatus === 'completed' && (
                   <Button 
                     variant="outline" 
-                    className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                    className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100 w-full sm:w-auto min-h-[44px]"
                     onClick={handleStartNewTask}
                   >
                     Commencer une nouvelle tâche
@@ -110,7 +110,7 @@ const TimeEntryDetail = () => {
                 )}
               </div>
 
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <SessionInfo
                   userName={displayName}
                   taskType={entry.task_type}
@@ -121,7 +121,7 @@ const TimeEntryDetail = () => {
                 <CostEstimate cost={estimatedCost} />
               </div>
 
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <SessionNotes
                   notes={entry.notes}
                   onChange={handleNotesChange}
@@ -144,6 +144,7 @@ const TimeEntryDetail = () => {
                   <Button 
                     variant="outline"
                     size="sm"
+                    className="min-h-[44px] sm:min-h-0"
                     onClick={() => navigate(`/interventions/detail/${entry.intervention_id}`)}
                   >
                     Voir l'intervention

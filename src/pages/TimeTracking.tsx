@@ -11,12 +11,12 @@ const TimeTracking = () => {
   const { farmId } = useFarmId();
   const { settings, loading } = useFarmSettings(farmId);
 
-  // Si désactivé côté ferme, masqué :
+  // Si désactivé côté ferme, masqué :
   if (!loading && settings && settings.show_time_tracking === false) {
     return (
       <MainLayout>
-        <div className="max-w-2xl mx-auto py-16 text-center text-muted-foreground">
-          <h2 className="text-2xl font-semibold mb-4">Module désactivé</h2>
+        <div className="max-w-2xl mx-auto py-8 md:py-16 px-4 text-center text-muted-foreground">
+          <h2 className="text-xl md:text-2xl font-semibold mb-4">Module désactivé</h2>
           <p>Le suivi du temps est désactivé pour votre exploitation.<br/>
             Contactez votre administrateur pour le réactiver dans les paramètres.</p>
         </div>

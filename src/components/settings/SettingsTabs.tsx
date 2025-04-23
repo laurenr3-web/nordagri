@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SettingsEssentials } from '@/components/settings/SettingsEssentials';
@@ -18,12 +19,12 @@ export default function SettingsTabs() {
       value={activeTab}
       onValueChange={setActiveTab}
     >
-      <TabsList className="grid grid-cols-2 md:grid-cols-5 mb-8">
-        <TabsTrigger value="essentials">Essentials</TabsTrigger>
-        <TabsTrigger value="security">Sécurité</TabsTrigger>
-        <TabsTrigger value="notifications">Notifications</TabsTrigger>
-        <TabsTrigger value="interface">Interface</TabsTrigger>
-        {isAdmin && <TabsTrigger value="modules">Modules</TabsTrigger>}
+      <TabsList className="grid grid-cols-2 md:grid-cols-5 mb-8 overflow-x-auto max-w-full">
+        <TabsTrigger value="essentials" className="min-w-[100px]">Essentials</TabsTrigger>
+        <TabsTrigger value="security" className="min-w-[100px]">Sécurité</TabsTrigger>
+        <TabsTrigger value="notifications" className="min-w-[100px]">Notifications</TabsTrigger>
+        <TabsTrigger value="interface" className="min-w-[100px]">Interface</TabsTrigger>
+        {isAdmin && <TabsTrigger value="modules" className="min-w-[100px]">Modules</TabsTrigger>}
       </TabsList>
       <TabsContent value="essentials">
         <SettingsEssentials />

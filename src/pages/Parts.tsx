@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParts } from '@/hooks/useParts';
 import MainLayout from '@/ui/layouts/MainLayout';
@@ -42,9 +43,9 @@ const Parts = () => {
   
   return (
     <MainLayout>
-      <div>
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold">Gestion des pièces</h1>
+      <div className="overflow-x-hidden">
+        <div className="mb-6 px-2">
+          <h1 className="text-2xl md:text-3xl font-bold">Gestion des pièces</h1>
           <p className="text-muted-foreground mt-1">
             Gérez votre inventaire de pièces et commandez de nouvelles pièces
           </p>

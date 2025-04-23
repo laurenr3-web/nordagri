@@ -27,7 +27,7 @@ export const ModulesSettingsSection: React.FC<ModulesSettingsSectionProps> = ({ 
           {key: 'show_time_tracking', label: 'Suivi du temps'},
         ].map(mod => (
           <div key={mod.key} className="flex items-center justify-between">
-            <Label htmlFor={mod.key}>{mod.label}</Label>
+            <Label htmlFor={mod.key} className="flex-1">{mod.label}</Label>
             <Switch
               id={mod.key}
               checked={!!settings[mod.key as keyof typeof settings]}

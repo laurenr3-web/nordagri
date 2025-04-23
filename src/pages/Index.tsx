@@ -14,7 +14,7 @@ const Index = () => {
 
   return (
     <MainLayout>
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full overflow-x-hidden">
         <Header 
           currentView={currentView}
           setCurrentView={handleViewChange}
