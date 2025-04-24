@@ -9,10 +9,15 @@ const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID") ?? "";
 const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN") ?? "";
 const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER") ?? "";
+const NOTIFICATIONS_API_KEY = Deno.env.get("NOTIFICATIONS_API_KEY") ?? "";
 
 // Additional validation to ensure all required secrets are present
 if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_PHONE_NUMBER) {
   console.error("Missing Twilio configuration. Please check your environment variables.");
+}
+
+if (!NOTIFICATIONS_API_KEY) {
+  console.error("Missing Notifications API Key. Please configure in Supabase secrets.");
 }
 
 // Initialize clients
