@@ -8,6 +8,8 @@ import { SimpleNotificationSection } from './notifications/SimpleNotificationSec
 import { UserAccessSection } from './security/UserAccessSection';
 import { NotificationSettingsSection } from './notifications/NotificationSettingsSection';
 import { SubscriptionSection } from './subscription/SubscriptionSection';
+import { useSettings } from '@/hooks/useSettings';
+import { Loader2 } from 'lucide-react';
 
 interface SettingsTabsProps {
   activeTab: string;
@@ -15,6 +17,30 @@ interface SettingsTabsProps {
 }
 
 export default function SettingsTabs({ activeTab, setActiveTab }: SettingsTabsProps) {
+  const { 
+    loading, 
+    profile, 
+    notificationSettings, 
+    updateProfile, 
+    updatePassword, 
+    updateNotifications,
+    manageSubscription 
+  } = useSettings();
+
+  // Extract first and last name from full_name
+  const nameParts = profile.full_name.split(' ');
+  const firstName = nameParts[0] || '';
+  const lastName = nameParts.slice(1).join(' ') || '';
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mr-2" />
+        <p>Chargement des paramètres...</p>
+      </div>
+    );
+  }
+
   return (
     <Tabs 
       defaultValue="essentials" 
@@ -33,8 +59,23 @@ export default function SettingsTabs({ activeTab, setActiveTab }: SettingsTabsPr
       
       <TabsContent value="essentials">
         <div className="space-y-8">
-          <ProfileSection />
-          <SimpleNotificationSection />
+          <ProfileSection 
+            firstName={firstName}
+            lastName={lastName}
+            email={profile.email}
+            loading={loading}
+            onUpdateProfile={(firstName, lastName) => {
+              const fullName = `${firstName} ${lastName}`.trim();
+              return updateProfile(fullName, profile.email);
+            }}
+          />
+          <SimpleNotificationSection 
+            emailEnabled={notificationSettings.email_enabled}
+            smsEnabled={notificationSettings.sms_enabled}
+            phoneNumber={notificationSettings.phone_number}
+            onUpdateNotifications={updateNotifications}
+            loading={loading}
+          />
         </div>
       </TabsContent>
       
@@ -43,12 +84,16 @@ export default function SettingsTabs({ activeTab, setActiveTab }: SettingsTabsPr
       </TabsContent>
       
       <TabsContent value="subscription">
-        <SubscriptionSection />
+        <SubscriptionSection 
+          onManageSubscription={manageSubscription}
+        />
       </TabsContent>
       
       <TabsContent value="security">
         <div className="space-y-8">
-          <PasswordSection />
+          <PasswordSection 
+            onUpdatePassword={updatePassword}
+          />
           <NotificationSettingsSection />
           <UserAccessSection />
         </div>
