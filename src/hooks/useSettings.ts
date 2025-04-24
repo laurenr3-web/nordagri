@@ -145,7 +145,7 @@ export function useSettings() {
     const result = await settingsService.updateNotificationSettings(user.id, newSettings);
     
     if (result) {
-      setNotificationSettings(newSettings);
+      setNotificationSettings(newSettings as NotificationSettingsType);
       toast.success('Paramètres de notification mis à jour avec succès');
     }
     

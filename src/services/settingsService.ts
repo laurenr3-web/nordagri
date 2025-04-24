@@ -218,18 +218,44 @@ export const settingsService = {
         updated_at: new Date().toISOString()
       };
       
-      const { error } = await supabase
+      // D'abord vérifier si une entrée existe déjà pour cet utilisateur
+      const { data: existingSettings } = await supabase
         .from('notification_settings')
-        .upsert({
-          user_id: userId,
-          email_notifications: settings.email_enabled,
-          sms_notifications: settings.sms_enabled,
-          push_notifications: false,
-          notification_preferences: notificationPrefs,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' });
+        .select('id')
+        .eq('user_id', userId)
+        .single();
       
-      if (error) throw error;
+      if (existingSettings) {
+        // Update existing record
+        const { error } = await supabase
+          .from('notification_settings')
+          .update({
+            email_notifications: settings.email_enabled,
+            sms_notifications: settings.sms_enabled,
+            push_notifications: false,
+            notification_preferences: notificationPrefs,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', userId);
+        
+        if (error) throw error;
+      } else {
+        // Insert new record
+        const { error } = await supabase
+          .from('notification_settings')
+          .insert({
+            user_id: userId,
+            email_notifications: settings.email_enabled,
+            sms_notifications: settings.sms_enabled,
+            push_notifications: false,
+            notification_preferences: notificationPrefs,
+            updated_at: new Date().toISOString(),
+            stock_low_enabled: true,
+            maintenance_reminder_enabled: true
+          });
+        
+        if (error) throw error;
+      }
       
       return true;
     } catch (error: any) {
