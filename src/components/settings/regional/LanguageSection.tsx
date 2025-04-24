@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Save, Language } from 'lucide-react';
+import { Save, Languages } from 'lucide-react';
 import { useTranslation } from "react-i18next";
 
 interface LanguageSectionProps {
@@ -59,7 +59,7 @@ export function LanguageSection({ currentLanguage, loading, onUpdateLanguage }: 
             <div className="space-y-4">
               <div className="space-y-2">
                 <div className="flex items-center mb-2">
-                  <Language className="h-5 w-5 mr-2 text-primary" />
+                  <Languages className="h-5 w-5 mr-2 text-primary" />
                   <Label htmlFor="language-select" className="text-base">Langue de l'interface</Label>
                 </div>
                 <Select
