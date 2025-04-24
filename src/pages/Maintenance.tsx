@@ -1,6 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { useTasksManager } from '@/hooks/maintenance/useTasksManager';
+import { useMaintenanceRealtime } from '@/hooks/maintenance/useMaintenanceRealtime';
 import { MaintenanceTask, MaintenanceStatus, MaintenancePriority, MaintenanceFormValues } from '@/hooks/maintenance/maintenanceSlice';
 import NewTaskDialog from '@/components/maintenance/NewTaskDialog';
 import MaintenanceHeader from '@/components/maintenance/MaintenanceHeader';
@@ -11,6 +13,8 @@ import MaintenanceDashboard from '@/components/dashboard/MaintenanceDashboard';
 import MaintenanceNotificationsPopover from '@/components/maintenance/notifications/MaintenanceNotificationsPopover';
 import MaintenanceCompletionDialog from '@/components/maintenance/dialogs/MaintenanceCompletionDialog';
 import { useAuthContext } from '@/providers/AuthProvider';
+import { toast } from 'sonner';
+
 const Maintenance = () => {
   const [currentView, setCurrentView] = useState('upcoming');
   const [dashboardView, setDashboardView] = useState('tasks');
@@ -25,14 +29,24 @@ const Maintenance = () => {
     profileData,
     isAuthenticated
   } = useAuthContext();
+  
   const {
     tasks,
     isLoading,
     addTask,
     updateTaskStatus,
     updateTaskPriority,
-    deleteTask
+    deleteTask,
+    refreshTasks
   } = useTasksManager();
+  
+  // Utiliser le hook de mise à jour en temps réel
+  useMaintenanceRealtime(
+    () => refreshTasks(), // Rafraîchir sur insertion
+    () => refreshTasks(), // Rafraîchir sur mise à jour
+    () => refreshTasks()  // Rafraîchir sur suppression
+  );
+  
   const [isNewTaskDialogOpen, setIsNewTaskDialogOpen] = useState(false);
 
   // Handle opening dialog with a preselected date
@@ -42,13 +56,22 @@ const Maintenance = () => {
     }
     setIsNewTaskDialogOpen(open);
   };
+  
   const handleAddTask = async (formData: MaintenanceFormValues): Promise<any> => {
     console.log('Adding task in Maintenance component:', formData);
-    return addTask({
-      ...formData,
-      status: 'scheduled' as MaintenanceStatus
-    });
+    try {
+      const newTask = await addTask({
+        ...formData,
+        status: 'scheduled' as MaintenanceStatus
+      });
+      toast.success('Tâche de maintenance ajoutée avec succès');
+      return newTask;
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout de la tâche:', error);
+      return null;
+    }
   };
+  
   const handleCompleteTask = (taskId: number) => {
     const task = tasks.find(t => t.id === taskId);
     if (task) {
@@ -56,6 +79,7 @@ const Maintenance = () => {
       setIsCompletionDialogOpen(true);
     }
   };
+  
   useEffect(() => {
     console.log('Maintenance component loaded with tasks:', tasks);
     // Log user information
@@ -70,7 +94,9 @@ const Maintenance = () => {
     }
     return user?.email || 'Utilisateur';
   };
-  return <SidebarProvider>
+  
+  return (
+    <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
         <Sidebar className="border-r">
           <Navbar />
@@ -97,7 +123,17 @@ const Maintenance = () => {
                 </div>
                 
                 <TabsContent value="tasks">
-                  <MaintenanceContent tasks={tasks} currentView={currentView} setCurrentView={setCurrentView} currentMonth={currentMonth} setIsNewTaskDialogOpen={setIsNewTaskDialogOpen} updateTaskStatus={(taskId, status: MaintenanceStatus) => updateTaskStatus(taskId, status)} updateTaskPriority={updateTaskPriority} deleteTask={deleteTask} userName={getUserDisplayName()} />
+                  <MaintenanceContent 
+                    tasks={tasks} 
+                    currentView={currentView} 
+                    setCurrentView={setCurrentView} 
+                    currentMonth={currentMonth} 
+                    setIsNewTaskDialogOpen={setIsNewTaskDialogOpen} 
+                    updateTaskStatus={updateTaskStatus} 
+                    updateTaskPriority={updateTaskPriority} 
+                    deleteTask={deleteTask} 
+                    userName={getUserDisplayName()} 
+                  />
                 </TabsContent>
                 
                 <TabsContent value="dashboard">
@@ -109,12 +145,27 @@ const Maintenance = () => {
         </div>
       </div>
       
-      <NewTaskDialog open={isNewTaskDialogOpen} onOpenChange={handleOpenNewTaskDialog} onSubmit={handleAddTask} initialDate={selectedDate} userName={getUserDisplayName()} />
+      <NewTaskDialog 
+        open={isNewTaskDialogOpen} 
+        onOpenChange={handleOpenNewTaskDialog} 
+        onSubmit={handleAddTask} 
+        initialDate={selectedDate} 
+        userName={getUserDisplayName()} 
+      />
       
-      <MaintenanceCompletionDialog isOpen={isCompletionDialogOpen} onClose={() => setIsCompletionDialogOpen(false)} task={selectedTask} onCompleted={() => {
-      setIsCompletionDialogOpen(false);
-      // Rafraîchir la liste des tâches
-    }} userName={getUserDisplayName()} />
-    </SidebarProvider>;
+      <MaintenanceCompletionDialog 
+        isOpen={isCompletionDialogOpen} 
+        onClose={() => setIsCompletionDialogOpen(false)} 
+        task={selectedTask} 
+        onCompleted={() => {
+          setIsCompletionDialogOpen(false);
+          // Rafraîchir la liste des tâches
+          refreshTasks();
+        }} 
+        userName={getUserDisplayName()} 
+      />
+    </SidebarProvider>
+  );
 };
+
 export default Maintenance;

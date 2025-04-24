@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { MaintenanceTask, MaintenancePriority, MaintenanceStatus, MaintenanceType } from './maintenanceSlice';
 import { maintenanceService } from '@/services/supabase/maintenanceService';
@@ -43,76 +44,122 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
     fetchTasks();
   }, [initialTasks]);
 
-  const addTask = (task: Omit<MaintenanceTask, 'id'>) => {
+  const addTask = async (task: Omit<MaintenanceTask, 'id'>) => {
     console.info('Adding task:', task);
     
     try {
-      // Simuler l'envoi des données à l'API
-      console.info('Adding task to Supabase:', task);
+      setIsLoading(true);
       
-      // Générer un ID pour la nouvelle tâche (dans une vraie application, ce serait fait par le serveur)
-      const newTask: MaintenanceTask = {
-        ...task,
-        id: Date.now() // Utiliser un timestamp comme ID temporaire
-      };
+      // Appeler le service pour ajouter la tâche à la base de données
+      const newTask = await maintenanceService.addTask(task);
       
-      // Mettre à jour l'état local
+      console.log('Task added successfully:', newTask);
+      
+      // Mettre à jour l'état local avec la nouvelle tâche
       setTasks(prevTasks => [...prevTasks, newTask]);
       
+      toast.success('Tâche de maintenance créée avec succès');
+      
       return newTask;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding task:', error);
+      toast.error('Impossible d\'ajouter la tâche de maintenance: ' + error.message);
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const updateTaskStatus = (taskId: number, newStatus: MaintenanceStatus) => {
+  const updateTaskStatus = async (taskId: number, newStatus: MaintenanceStatus) => {
     // Mettre à jour le statut d'une tâche
     console.log(`Updating task ${taskId} status to ${newStatus}`);
     
-    setTasks(prevTasks => 
-      prevTasks.map(task => 
-        task.id === taskId 
-          ? { 
-              ...task, 
-              status: newStatus,
-              completedDate: newStatus === 'completed' ? new Date() : task.completedDate
-            } 
-          : task
-      )
-    );
+    try {
+      // Mettre à jour le statut dans la base de données
+      await maintenanceService.updateTaskStatus(taskId, newStatus);
+      
+      // Mettre à jour l'état local
+      setTasks(prevTasks => 
+        prevTasks.map(task => 
+          task.id === taskId 
+            ? { 
+                ...task, 
+                status: newStatus,
+                completedDate: newStatus === 'completed' ? new Date() : task.completedDate
+              } 
+            : task
+        )
+      );
+      
+      toast.success(`Statut mis à jour: ${newStatus}`);
+    } catch (error: any) {
+      console.error('Error updating task status:', error);
+      toast.error('Impossible de mettre à jour le statut: ' + error.message);
+    }
   };
 
-  const updateTaskPriority = (taskId: number, newPriority: MaintenancePriority) => {
+  const updateTaskPriority = async (taskId: number, newPriority: MaintenancePriority) => {
     // Mettre à jour la priorité d'une tâche
     console.log(`Updating task ${taskId} priority to ${newPriority}`);
     
-    setTasks(prevTasks => 
-      prevTasks.map(task => 
-        task.id === taskId 
-          ? { ...task, priority: newPriority } 
-          : task
-      )
-    );
+    try {
+      // Mettre à jour la priorité dans la base de données
+      await maintenanceService.updateTaskPriority(taskId, newPriority);
+      
+      // Mettre à jour l'état local
+      setTasks(prevTasks => 
+        prevTasks.map(task => 
+          task.id === taskId 
+            ? { ...task, priority: newPriority } 
+            : task
+        )
+      );
+      
+      toast.success(`Priorité mise à jour: ${newPriority}`);
+    } catch (error: any) {
+      console.error('Error updating task priority:', error);
+      toast.error('Impossible de mettre à jour la priorité: ' + error.message);
+    }
   };
 
-  const deleteTask = (taskId: number) => {
+  const deleteTask = async (taskId: number) => {
     // Supprimer une tâche
     console.info('Deleting task with ID:', taskId);
     
     try {
+      // Supprimer la tâche dans la base de données
+      await maintenanceService.deleteTask(taskId);
+      
       // Utiliser un setTimeout pour laisser le temps aux dialogues de se fermer
       setTimeout(() => {
         // Mettre à jour l'état local
         setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+        toast.success('Tâche supprimée avec succès');
       }, 200);
       
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting task:', error);
+      toast.error('Impossible de supprimer la tâche: ' + error.message);
       throw error;
     }
   };
+
+  const refreshTasks = useCallback(async () => {
+    console.log('Refreshing maintenance tasks...');
+    setIsLoading(true);
+    
+    try {
+      const refreshedTasks = await maintenanceService.getTasks();
+      setTasks(refreshedTasks);
+      console.log('Tasks refreshed successfully:', refreshedTasks);
+    } catch (error: any) {
+      console.error('Error refreshing tasks:', error);
+      toast.error('Erreur lors du rafraîchissement des tâches');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   return { 
     tasks, 
@@ -122,6 +169,6 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
     updateTaskStatus, 
     updateTaskPriority,
     deleteTask,
-    refreshTasks: () => setIsLoading(true) // Déclenchera un rechargement des données
+    refreshTasks
   };
 }
