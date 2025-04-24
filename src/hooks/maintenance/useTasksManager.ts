@@ -3,11 +3,24 @@ import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { MaintenanceTask, MaintenancePriority, MaintenanceStatus, MaintenanceType } from './maintenanceSlice';
 import { maintenanceService } from '@/services/supabase/maintenanceService';
+import { supabase } from '@/integrations/supabase/client';
 
 export function useTasksManager(initialTasks?: MaintenanceTask[]) {
   const [tasks, setTasks] = useState<MaintenanceTask[]>(initialTasks || []);
   const [isLoading, setIsLoading] = useState(initialTasks ? false : true);
   const [error, setError] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
+
+  // Vérifier l'utilisateur actuel au chargement
+  useEffect(() => {
+    const checkCurrentUser = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData.session?.user?.id;
+      setCurrentUser(userId || null);
+    };
+    
+    checkCurrentUser();
+  }, []);
 
   useEffect(() => {
     if (initialTasks) {
@@ -50,13 +63,21 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
     try {
       setIsLoading(true);
       
+      // Vérifier si l'utilisateur est connecté
+      if (!currentUser) {
+        throw new Error("Vous devez être connecté pour ajouter une tâche");
+      }
+      
       // Make sure we're correctly passing all required fields
       if (!task.title || !task.equipment || !task.type || !task.priority) {
         throw new Error("Informations de tâche incomplètes");
       }
       
       // Call the service to add the task to the database
-      const newTask = await maintenanceService.addTask(task);
+      const newTask = await maintenanceService.addTask({
+        ...task,
+        // S'assurer que owner_id est défini correctement via le service
+      });
       
       console.log('Task added successfully:', newTask);
       
@@ -174,6 +195,7 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
     updateTaskStatus, 
     updateTaskPriority,
     deleteTask,
-    refreshTasks
+    refreshTasks,
+    currentUser
   };
 }

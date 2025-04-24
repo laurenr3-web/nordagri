@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { useTasksManager } from '@/hooks/maintenance/useTasksManager';
@@ -13,6 +14,7 @@ import MaintenanceNotificationsPopover from '@/components/maintenance/notificati
 import MaintenanceCompletionDialog from '@/components/maintenance/dialogs/MaintenanceCompletionDialog';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const Maintenance = () => {
   const [currentView, setCurrentView] = useState('upcoming');
@@ -55,6 +57,18 @@ const Maintenance = () => {
     }
   }, [realtimeError]);
   
+  // Vérifier que l'utilisateur est connecté
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        toast.error('Vous devez être connecté pour gérer les tâches de maintenance');
+      }
+    };
+    
+    checkAuth();
+  }, []);
+  
   const handleOpenNewTaskDialog = (open: boolean) => {
     if (!open) {
       setSelectedDate(undefined);
@@ -64,6 +78,12 @@ const Maintenance = () => {
   
   const handleAddTask = async (formData: MaintenanceFormValues): Promise<any> => {
     console.log('Adding task in Maintenance component:', formData);
+    
+    if (!isAuthenticated) {
+      toast.error('Vous devez être connecté pour ajouter une tâche');
+      return null;
+    }
+    
     try {
       // Make sure we pass all required data
       const newTask = await addTask({

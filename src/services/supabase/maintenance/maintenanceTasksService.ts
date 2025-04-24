@@ -38,6 +38,15 @@ export class MaintenanceTasksService {
   async addTask(task: Omit<MaintenanceTask, 'id'>): Promise<MaintenanceTask> {
     console.log('Adding maintenance task to Supabase:', task);
     
+    // Récupérer l'utilisateur connecté
+    const { data: sessionData } = await supabase.auth.getSession();
+    const currentUserId = sessionData.session?.user?.id;
+    
+    if (!currentUserId) {
+      console.error('No authenticated user found when adding task');
+      throw new Error('You must be logged in to add maintenance tasks');
+    }
+    
     // Prepare the data for insertion into Supabase
     const insertData = {
       title: task.title,
@@ -53,9 +62,10 @@ export class MaintenanceTasksService {
       trigger_unit: task.trigger_unit,
       trigger_hours: task.trigger_hours,
       trigger_kilometers: task.trigger_kilometers,
+      owner_id: currentUserId // Assurer que l'owner_id est défini
     };
     
-    console.log('Prepared data for insertion:', insertData);
+    console.log('Prepared data for insertion with owner_id:', insertData);
 
     const { data, error } = await supabase
       .from('maintenance_tasks')
