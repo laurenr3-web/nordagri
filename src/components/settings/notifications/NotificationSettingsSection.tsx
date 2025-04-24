@@ -6,6 +6,7 @@ import { EmailNotificationsSection } from './sections/EmailNotificationsSection'
 import { SMSNotificationsSection } from './sections/SMSNotificationsSection';
 import { useNotificationSettings } from './hooks/useNotificationSettings';
 import { Bell } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export function NotificationSettingsSection() {
   const {
@@ -14,7 +15,8 @@ export function NotificationSettingsSection() {
     phoneNumber,
     handleToggleEmail,
     handleToggleSms,
-    handlePhoneNumberChange
+    handlePhoneNumberChange,
+    triggerManualNotificationCheck
   } = useNotificationSettings();
 
   return (
@@ -45,6 +47,20 @@ export function NotificationSettingsSection() {
           onPhoneNumberChange={handlePhoneNumberChange}
           loading={loading}
         />
+
+        <div className="pt-4">
+          <Button 
+            variant="outline" 
+            onClick={triggerManualNotificationCheck}
+            disabled={loading}
+          >
+            Tester les notifications
+          </Button>
+          <p className="text-xs text-muted-foreground mt-2">
+            Cliquez pour déclencher manuellement une vérification des notifications.
+            Vous recevrez des alertes seulement s'il y a des conditions qui les déclenchent.
+          </p>
+        </div>
       </div>
     </SettingsSection>
   );

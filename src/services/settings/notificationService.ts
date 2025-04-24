@@ -87,11 +87,38 @@ export const notificationService = {
         
         if (error) throw error;
       }
-      
+
+      toast.success('✅ Notifications mises à jour avec succès');
       return true;
     } catch (error: any) {
       console.error('Erreur lors de la mise à jour des paramètres de notification:', error);
       toast.error(`Erreur: ${error.message || 'Impossible de mettre à jour les paramètres'}`);
+      return false;
+    }
+  },
+
+  async triggerManualAlertCheck(): Promise<boolean> {
+    try {
+      // Récupérer l'API key depuis un stockage sécurisé ou une variable d'environnement
+      // Pour ce cas d'utilisation, on pourrait utiliser un système de jeton temporaire
+      // généré par le backend
+
+      const response = await supabase.functions.invoke('send-alerts', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_NOTIFICATIONS_API_KEY || 'test-api-key'}`
+        }
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      toast.success('✅ Vérification des alertes déclenchée');
+      return true;
+    } catch (error: any) {
+      console.error('Erreur lors de la vérification des alertes:', error);
+      toast.error(`Erreur: ${error.message || 'Impossible de vérifier les alertes'}`);
       return false;
     }
   }

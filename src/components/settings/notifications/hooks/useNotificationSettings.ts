@@ -1,6 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { useSettings } from '@/hooks/useSettings';
+import { toast } from 'sonner';
 
 export const useNotificationSettings = () => {
   const { notificationSettings, updateNotifications, loading } = useSettings();
@@ -9,30 +10,51 @@ export const useNotificationSettings = () => {
   const handleToggleEmail = useCallback((type: string, enabled: boolean) => {
     switch (type) {
       case 'maintenance':
-        updateNotifications({ maintenance_reminder_enabled: enabled });
+        updateNotifications({ maintenance_reminder_enabled: enabled })
+          .then(() => toast.success(`✅ Notifications de maintenance ${enabled ? 'activées' : 'désactivées'}`));
         break;
       case 'inventory':
-        updateNotifications({ stock_low_enabled: enabled });
+        updateNotifications({ stock_low_enabled: enabled })
+          .then(() => toast.success(`✅ Notifications d'inventaire ${enabled ? 'activées' : 'désactivées'}`));
         break;
       case 'security':
-        updateNotifications({ email_enabled: enabled });
+        updateNotifications({ email_enabled: enabled })
+          .then(() => toast.success(`✅ Notifications par email ${enabled ? 'activées' : 'désactivées'}`));
         break;
     }
   }, [updateNotifications]);
 
   const handleToggleSms = useCallback((type: string, enabled: boolean) => {
     switch (type) {
-      case 'security':
-        updateNotifications({ sms_enabled: enabled });
+      case 'maintenance':
+        updateNotifications({ maintenance_reminder_enabled: enabled, sms_enabled: enabled })
+          .then(() => toast.success(`✅ SMS de maintenance ${enabled ? 'activés' : 'désactivés'}`));
         break;
-      // Add other SMS notification types as needed
+      case 'inventory':
+        updateNotifications({ stock_low_enabled: enabled, sms_enabled: enabled })
+          .then(() => toast.success(`✅ SMS d'inventaire ${enabled ? 'activés' : 'désactivés'}`));
+        break;
+      case 'security':
+        updateNotifications({ sms_enabled: enabled })
+          .then(() => toast.success(`✅ Notifications par SMS ${enabled ? 'activées' : 'désactivées'}`));
+        break;
     }
   }, [updateNotifications]);
 
   const handlePhoneNumberChange = useCallback((number: string) => {
     setPhoneNumber(number);
-    updateNotifications({ phone_number: number });
+    updateNotifications({ phone_number: number })
+      .then(() => toast.success('✅ Numéro de téléphone mis à jour'));
   }, [updateNotifications]);
+
+  const triggerManualNotificationCheck = useCallback(async () => {
+    try {
+      const { notificationService } = await import('@/services/settings/notificationService');
+      await notificationService.triggerManualAlertCheck();
+    } catch (error) {
+      console.error("Erreur lors du déclenchement manuel des notifications:", error);
+    }
+  }, []);
 
   return {
     loading,
@@ -40,6 +62,7 @@ export const useNotificationSettings = () => {
     phoneNumber,
     handleToggleEmail,
     handleToggleSms,
-    handlePhoneNumberChange
+    handlePhoneNumberChange,
+    triggerManualNotificationCheck
   };
 };
