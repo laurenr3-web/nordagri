@@ -7,16 +7,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Bell, Save } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuthContext } from '@/providers/AuthProvider';
+import { useSettings } from '@/hooks/useSettings';
 
 /**
  * Composant pour gérer les préférences de notification de l'utilisateur
  */
 export function NotificationSettingsSection() {
   const { user } = useAuthContext();
-  const [loading, setLoading] = useState(false);
+  const { 
+    loading, 
+    notificationSettings, 
+    updateNotifications 
+  } = useSettings();
+  
   const [phoneNumber, setPhoneNumber] = useState('');
   
   // États des notifications
@@ -29,60 +34,30 @@ export function NotificationSettingsSection() {
     sms: {
       maintenanceReminders: false,
       inventoryAlerts: false,
-      securityAlerts: true
+      securityAlerts: false
     }
   });
   
   // Charger les préférences utilisateur
   useEffect(() => {
-    const loadNotificationPreferences = async () => {
-      if (!user?.id) return;
-      
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('notification_settings')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        
-        if (error && error.code !== 'PGRST116') {
-          console.error('Erreur lors du chargement des préférences de notification:', error);
-          return;
-        }
-        
-        if (data) {
-          // Adapter les données du modèle existant à notre structure d'état
-          setNotificationPreferences({
-            email: {
-              maintenanceReminders: data.maintenance_reminder_enabled ?? true,
-              inventoryAlerts: data.stock_low_enabled ?? true,
-              securityAlerts: data.email_notifications ?? true
-            },
-            sms: {
-              maintenanceReminders: data.sms_notifications ?? false,
-              inventoryAlerts: data.sms_notifications ?? false,
-              securityAlerts: data.sms_notifications ?? false
-            }
-          });
-          
-          // Essayer d'extraire le numéro de téléphone des préférences de notifications
-          const preferences = data.notification_preferences;
-          if (preferences && typeof preferences === 'object' && !Array.isArray(preferences)) {
-            // Safe check to make sure preferences is an object and not an array
-            const phoneNumberValue = (preferences as Record<string, any>)['phone_number'];
-            setPhoneNumber(phoneNumberValue || '');
-          }
-        }
-      } catch (error) {
-        console.error('Erreur:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (!notificationSettings) return;
     
-    loadNotificationPreferences();
-  }, [user]);
+    // Adapter les données du modèle existant à notre structure d'état
+    setNotificationPreferences({
+      email: {
+        maintenanceReminders: notificationSettings.maintenance_reminder_enabled ?? true,
+        inventoryAlerts: notificationSettings.stock_low_enabled ?? true,
+        securityAlerts: notificationSettings.email_enabled ?? true
+      },
+      sms: {
+        maintenanceReminders: notificationSettings.sms_enabled ?? false,
+        inventoryAlerts: notificationSettings.sms_enabled ?? false,
+        securityAlerts: notificationSettings.sms_enabled ?? false
+      }
+    });
+    
+    setPhoneNumber(notificationSettings.phone_number || '');
+  }, [notificationSettings]);
   
   const handleToggleChange = (channel: 'email' | 'sms', type: string) => {
     setNotificationPreferences(prev => ({
@@ -100,35 +75,20 @@ export function NotificationSettingsSection() {
       return;
     }
     
-    setLoading(true);
     try {
-      const notificationPrefs = {
-        ...notificationPreferences,
+      // Utiliser la fonction updateNotifications du hook useSettings
+      await updateNotifications({
+        email_enabled: notificationPreferences.email.securityAlerts,
+        sms_enabled: notificationPreferences.sms.securityAlerts,
         phone_number: phoneNumber,
-        updated_at: new Date().toISOString()
-      };
-
-      const { error } = await supabase
-        .from('notification_settings')
-        .upsert({
-          user_id: user.id,
-          maintenance_reminder_enabled: notificationPreferences.email.maintenanceReminders,
-          stock_low_enabled: notificationPreferences.email.inventoryAlerts,
-          email_notifications: notificationPreferences.email.securityAlerts,
-          sms_notifications: notificationPreferences.sms.securityAlerts,
-          push_notifications: false,
-          notification_preferences: notificationPrefs,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' });
-      
-      if (error) throw error;
+        maintenance_reminder_enabled: notificationPreferences.email.maintenanceReminders,
+        stock_low_enabled: notificationPreferences.email.inventoryAlerts
+      });
       
       toast.success('Préférences de notification mises à jour');
     } catch (error) {
       console.error('Erreur lors de la mise à jour des préférences:', error);
       toast.error('Erreur lors de la mise à jour des préférences');
-    } finally {
-      setLoading(false);
     }
   };
   
@@ -219,7 +179,7 @@ export function NotificationSettingsSection() {
                 id="sms-maintenance" 
                 checked={notificationPreferences.sms.maintenanceReminders}
                 onCheckedChange={() => handleToggleChange('sms', 'maintenanceReminders')}
-                disabled={loading}
+                disabled={loading || !phoneNumber}
               />
             </div>
             
@@ -234,7 +194,7 @@ export function NotificationSettingsSection() {
                 id="sms-inventory" 
                 checked={notificationPreferences.sms.inventoryAlerts}
                 onCheckedChange={() => handleToggleChange('sms', 'inventoryAlerts')}
-                disabled={loading}
+                disabled={loading || !phoneNumber}
               />
             </div>
             
@@ -249,7 +209,7 @@ export function NotificationSettingsSection() {
                 id="sms-security" 
                 checked={notificationPreferences.sms.securityAlerts}
                 onCheckedChange={() => handleToggleChange('sms', 'securityAlerts')}
-                disabled={loading}
+                disabled={loading || !phoneNumber}
               />
             </div>
           </div>

@@ -6,6 +6,8 @@ interface NotificationSettings {
   email_enabled: boolean;
   sms_enabled: boolean;
   phone_number?: string;
+  maintenance_reminder_enabled?: boolean;
+  stock_low_enabled?: boolean;
 }
 
 export const notificationService = {
@@ -27,7 +29,9 @@ export const notificationService = {
         return {
           email_enabled: data.email_notifications,
           sms_enabled: data.sms_notifications,
-          phone_number: phoneNumber
+          phone_number: phoneNumber,
+          maintenance_reminder_enabled: data.maintenance_reminder_enabled,
+          stock_low_enabled: data.stock_low_enabled
         };
       }
       
@@ -60,6 +64,8 @@ export const notificationService = {
             sms_notifications: settings.sms_enabled,
             push_notifications: false,
             notification_preferences: notificationPrefs,
+            maintenance_reminder_enabled: settings.maintenance_reminder_enabled,
+            stock_low_enabled: settings.stock_low_enabled,
             updated_at: new Date().toISOString()
           })
           .eq('user_id', userId);
@@ -74,9 +80,9 @@ export const notificationService = {
             sms_notifications: settings.sms_enabled,
             push_notifications: false,
             notification_preferences: notificationPrefs,
-            updated_at: new Date().toISOString(),
-            stock_low_enabled: true,
-            maintenance_reminder_enabled: true
+            maintenance_reminder_enabled: settings.maintenance_reminder_enabled ?? true,
+            stock_low_enabled: settings.stock_low_enabled ?? true,
+            updated_at: new Date().toISOString()
           });
         
         if (error) throw error;

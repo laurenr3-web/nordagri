@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { 
@@ -13,6 +14,8 @@ interface NotificationSettingsType {
   email_enabled: boolean;
   sms_enabled: boolean;
   phone_number: string;
+  maintenance_reminder_enabled?: boolean;
+  stock_low_enabled?: boolean;
 }
 
 export function useSettings() {
@@ -27,7 +30,9 @@ export function useSettings() {
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettingsType>({
     email_enabled: true,
     sms_enabled: false,
-    phone_number: ''
+    phone_number: '',
+    maintenance_reminder_enabled: true,
+    stock_low_enabled: true
   });
 
   // Chargement initial des données
@@ -65,7 +70,9 @@ export function useSettings() {
           setNotificationSettings({
             email_enabled: notificationData.email_enabled,
             sms_enabled: notificationData.sms_enabled,
-            phone_number: notificationData.phone_number || ''
+            phone_number: notificationData.phone_number || '',
+            maintenance_reminder_enabled: notificationData.maintenance_reminder_enabled,
+            stock_low_enabled: notificationData.stock_low_enabled
           });
         }
       } catch (error) {
@@ -138,6 +145,8 @@ export function useSettings() {
     email_enabled?: boolean;
     sms_enabled?: boolean;
     phone_number?: string;
+    maintenance_reminder_enabled?: boolean;
+    stock_low_enabled?: boolean;
   }) => {
     if (!user?.id) return false;
     
