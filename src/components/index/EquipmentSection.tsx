@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { EquipmentCard } from '@/components/dashboard/EquipmentCard';
 import { DashboardSection } from '@/components/dashboard/DashboardSection';
+import { Link } from 'react-router-dom';
 
 interface EquipmentItem {
   id: number;
@@ -31,6 +32,9 @@ const EquipmentSection: React.FC<EquipmentSectionProps> = ({
   onViewAllClick,
   onEquipmentClick
 }) => {
+  // Limit to 3 equipment items
+  const displayedEquipment = equipment.slice(0, 3);
+
   return (
     <DashboardSection 
       title="Equipment Status" 
@@ -42,7 +46,7 @@ const EquipmentSection: React.FC<EquipmentSectionProps> = ({
       }
     >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {equipment.map((item, index) => (
+        {displayedEquipment.map((item, index) => (
           <EquipmentCard 
             key={item.id} 
             name={item.name} 
@@ -59,8 +63,20 @@ const EquipmentSection: React.FC<EquipmentSectionProps> = ({
           />
         ))}
       </div>
+      
+      {equipment.length > 3 && (
+        <div className="mt-4 text-center">
+          <Link 
+            to="/equipment" 
+            className="text-sm text-muted-foreground hover:underline"
+          >
+            View All Equipment →
+          </Link>
+        </div>
+      )}
     </DashboardSection>
   );
 };
 
 export default EquipmentSection;
+
