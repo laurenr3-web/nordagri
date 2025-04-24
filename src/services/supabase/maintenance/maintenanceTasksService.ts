@@ -4,6 +4,7 @@ import { MaintenanceTask, MaintenanceStatus, MaintenanceType, MaintenancePriorit
 
 export class MaintenanceTasksService {
   async getTasks(): Promise<MaintenanceTask[]> {
+    console.log('Fetching all maintenance tasks from Supabase');
     const { data, error } = await supabase
       .from('maintenance_tasks')
       .select('*')
@@ -35,30 +36,43 @@ export class MaintenanceTasksService {
   }
 
   async addTask(task: Omit<MaintenanceTask, 'id'>): Promise<MaintenanceTask> {
+    console.log('Adding maintenance task to Supabase:', task);
+    
+    // Prepare the data for insertion into Supabase
+    const insertData = {
+      title: task.title,
+      equipment: task.equipment,
+      equipment_id: task.equipmentId,
+      type: task.type,
+      status: task.status || 'scheduled',
+      priority: task.priority,
+      due_date: task.dueDate.toISOString(),
+      estimated_duration: task.engineHours,
+      assigned_to: task.assignedTo,
+      notes: task.notes,
+      trigger_unit: task.trigger_unit,
+      trigger_hours: task.trigger_hours,
+      trigger_kilometers: task.trigger_kilometers,
+    };
+    
+    console.log('Prepared data for insertion:', insertData);
+
     const { data, error } = await supabase
       .from('maintenance_tasks')
-      .insert({
-        title: task.title,
-        equipment: task.equipment,
-        equipment_id: task.equipmentId,
-        type: task.type,
-        status: task.status || 'scheduled',
-        priority: task.priority,
-        due_date: task.dueDate.toISOString(),
-        estimated_duration: task.engineHours,
-        assigned_to: task.assignedTo,
-        notes: task.notes,
-        trigger_unit: task.trigger_unit,
-        trigger_hours: task.trigger_hours,
-        trigger_kilometers: task.trigger_kilometers,
-      })
+      .insert(insertData)
       .select()
       .single();
 
     if (error) {
       console.error('Error adding task:', error);
-      throw new Error('Failed to add maintenance task');
+      throw new Error('Failed to add maintenance task: ' + error.message);
     }
+
+    if (!data) {
+      throw new Error('No data returned after task creation');
+    }
+
+    console.log('Task added successfully, returned data:', data);
 
     return {
       id: data.id,
@@ -69,7 +83,9 @@ export class MaintenanceTasksService {
       status: data.status as MaintenanceStatus,
       priority: data.priority as MaintenancePriority,
       dueDate: new Date(data.due_date),
+      completedDate: data.completed_date ? new Date(data.completed_date) : undefined,
       engineHours: data.estimated_duration || 0,
+      actualDuration: data.actual_duration,
       assignedTo: data.assigned_to || '',
       notes: data.notes || '',
       trigger_unit: data.trigger_unit,

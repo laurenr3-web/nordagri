@@ -50,12 +50,17 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
     try {
       setIsLoading(true);
       
-      // Appeler le service pour ajouter la tâche à la base de données
+      // Make sure we're correctly passing all required fields
+      if (!task.title || !task.equipment || !task.type || !task.priority) {
+        throw new Error("Informations de tâche incomplètes");
+      }
+      
+      // Call the service to add the task to the database
       const newTask = await maintenanceService.addTask(task);
       
       console.log('Task added successfully:', newTask);
       
-      // Mettre à jour l'état local avec la nouvelle tâche
+      // Update local state with the new task
       setTasks(prevTasks => [...prevTasks, newTask]);
       
       toast.success('Tâche de maintenance créée avec succès');

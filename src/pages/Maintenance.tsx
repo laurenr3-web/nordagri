@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { useTasksManager } from '@/hooks/maintenance/useTasksManager';
@@ -22,6 +21,7 @@ const Maintenance = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTask, setSelectedTask] = useState<MaintenanceTask | null>(null);
   const [isCompletionDialogOpen, setIsCompletionDialogOpen] = useState(false);
+  const [isNewTaskDialogOpen, setIsNewTaskDialogOpen] = useState(false);
 
   // Get user information from the auth context
   const {
@@ -40,16 +40,21 @@ const Maintenance = () => {
     refreshTasks
   } = useTasksManager();
   
-  // Utiliser le hook de mise à jour en temps réel
-  useMaintenanceRealtime(
-    () => refreshTasks(), // Rafraîchir sur insertion
-    () => refreshTasks(), // Rafraîchir sur mise à jour
-    () => refreshTasks()  // Rafraîchir sur suppression
+  // Use the realtime hook with refreshTasks as callback
+  const { isSubscribed, error: realtimeError } = useMaintenanceRealtime(
+    () => refreshTasks(), // Refresh on insert
+    () => refreshTasks(), // Refresh on update
+    () => refreshTasks()  // Refresh on delete
   );
-  
-  const [isNewTaskDialogOpen, setIsNewTaskDialogOpen] = useState(false);
 
-  // Handle opening dialog with a preselected date
+  // Show error toast if we have subscription issues
+  useEffect(() => {
+    if (realtimeError) {
+      console.error('Realtime subscription error:', realtimeError);
+      toast.error('Erreur de connexion en temps réel. Les modifications peuvent ne pas être visibles immédiatement.');
+    }
+  }, [realtimeError]);
+  
   const handleOpenNewTaskDialog = (open: boolean) => {
     if (!open) {
       setSelectedDate(undefined);
@@ -60,14 +65,17 @@ const Maintenance = () => {
   const handleAddTask = async (formData: MaintenanceFormValues): Promise<any> => {
     console.log('Adding task in Maintenance component:', formData);
     try {
+      // Make sure we pass all required data
       const newTask = await addTask({
         ...formData,
         status: 'scheduled' as MaintenanceStatus
       });
+      console.log('Task added successfully:', newTask);
       toast.success('Tâche de maintenance ajoutée avec succès');
       return newTask;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur lors de l\'ajout de la tâche:', error);
+      toast.error('Échec de l\'ajout de la tâche: ' + (error.message || 'Erreur inconnue'));
       return null;
     }
   };
@@ -159,7 +167,7 @@ const Maintenance = () => {
         task={selectedTask} 
         onCompleted={() => {
           setIsCompletionDialogOpen(false);
-          // Rafraîchir la liste des tâches
+          // Refresh the task list
           refreshTasks();
         }} 
         userName={getUserDisplayName()} 
