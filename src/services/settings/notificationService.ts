@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -98,18 +99,23 @@ export const notificationService = {
 
   async triggerManualAlertCheck(): Promise<boolean> {
     try {
+      // Récupérer la clé API depuis les variables d'environnement
+      const apiKey = import.meta.env.VITE_NOTIFICATIONS_API_KEY;
+      
       const response = await supabase.functions.invoke('send-alerts', {
         method: 'POST',
+        body: { manual: true },
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_NOTIFICATIONS_API_KEY || 'notif_api_key_CHANGE_ME'}`
+          'Authorization': `Bearer ${apiKey || 'notif_api_key_CHANGE_ME'}`
         }
       });
 
       if (response.error) {
-        throw new Error(response.error.message);
+        console.error("Erreur lors de la vérification des alertes:", response.error);
+        throw new Error(response.error.message || "Erreur lors de l'appel à l'Edge Function");
       }
 
-      toast.success('✅ Vérification des alertes déclenchée');
+      toast.success('✅ Vérification des alertes déclenchée avec succès');
       return true;
     } catch (error: any) {
       console.error('Erreur lors de la vérification des alertes:', error);
