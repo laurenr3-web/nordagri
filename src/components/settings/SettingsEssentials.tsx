@@ -30,17 +30,28 @@ export function SettingsEssentials() {
       // Récupérer le profil utilisateur
       const { data, error } = await supabase
         .from('profiles')
-        .select('first_name, last_name, language')
+        .select('first_name, last_name')
         .eq('id', user.id)
         .single();
         
       if (error) throw error;
       
+      // Récupérer les préférences régionales
+      const { data: regionData, error: regionError } = await supabase
+        .from('regional_preferences')
+        .select('language')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (regionError && regionError.code !== 'PGRST116') {
+        throw regionError;
+      }
+      
       setUserData({
         firstName: data.first_name || '',
         lastName: data.last_name || '',
         email: user.email || '',
-        language: data.language || 'fr'
+        language: regionData?.language || 'fr'
       });
     } catch (error) {
       console.error('Erreur lors du chargement des données utilisateur:', error);
@@ -90,13 +101,14 @@ export function SettingsEssentials() {
     try {
       setLoading(true);
       
+      // Utiliser upsert pour créer ou mettre à jour les préférences régionales
       const { error } = await supabase
-        .from('profiles')
-        .update({
+        .from('regional_preferences')
+        .upsert({
+          user_id: user.id,
           language,
           updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
+        }, { onConflict: 'user_id' });
         
       if (error) throw error;
       

@@ -49,7 +49,7 @@ export function FarmSettingsSection() {
         // Récupérer les données de la ferme
         const { data: farmData, error: farmError } = await supabase
           .from('farms')
-          .select('name, settings')
+          .select('name')
           .eq('id', profileData.farm_id)
           .single();
         
@@ -57,16 +57,24 @@ export function FarmSettingsSection() {
         
         if (farmData) {
           setFarmName(farmData.name || '');
+        }
+        
+        // Récupérer les paramètres des modules depuis la table farm_settings
+        const { data: settingsData, error: settingsError } = await supabase
+          .from('farm_settings')
+          .select('*')
+          .eq('farm_id', profileData.farm_id)
+          .maybeSingle();
           
-          // Initialiser les toggles de module si disponibles
-          if (farmData.settings && farmData.settings.modules) {
-            setModuleToggles({
-              maintenance: farmData.settings.modules.maintenance ?? true,
-              fuel: farmData.settings.modules.fuel ?? true,
-              parts: farmData.settings.modules.parts ?? true,
-              performance: farmData.settings.modules.performance ?? false
-            });
-          }
+        if (settingsError && settingsError.code !== 'PGRST116') throw settingsError;
+        
+        if (settingsData) {
+          setModuleToggles({
+            maintenance: settingsData.show_maintenance ?? true,
+            fuel: settingsData.show_fuel_log ?? true,
+            parts: settingsData.show_parts ?? true,
+            performance: settingsData.show_time_tracking ?? false
+          });
         }
       } catch (error) {
         console.error('Erreur lors du chargement des données de la ferme:', error);
@@ -87,18 +95,29 @@ export function FarmSettingsSection() {
     
     setLoading(true);
     try {
-      const { error } = await supabase
+      // Mettre à jour le nom de la ferme
+      const { error: farmError } = await supabase
         .from('farms')
         .update({
           name: farmName,
-          settings: {
-            modules: moduleToggles
-          },
           updated_at: new Date().toISOString()
         })
         .eq('id', farmId);
       
-      if (error) throw error;
+      if (farmError) throw farmError;
+      
+      // Mettre à jour les paramètres des modules
+      const { error: settingsError } = await supabase
+        .from('farm_settings')
+        .upsert({
+          farm_id: farmId,
+          show_maintenance: moduleToggles.maintenance,
+          show_fuel_log: moduleToggles.fuel,
+          show_parts: moduleToggles.parts,
+          show_time_tracking: moduleToggles.performance
+        }, { onConflict: 'farm_id' });
+      
+      if (settingsError) throw settingsError;
       
       toast.success('Paramètres de la ferme mis à jour');
     } catch (error) {

@@ -1,131 +1,102 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { SettingsSection } from '../SettingsSection';
-import { toast } from 'sonner';
-import { supabase } from "@/integrations/supabase/client";
-import ProfileDisplay from './ProfileDisplay';
-import ProfileEditDialog from './ProfileEditDialog';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Save, User } from 'lucide-react';
 
-export const ProfileSection = () => {
-  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
-  const [profileName, setProfileName] = useState('');
-  const [profileEmail, setProfileEmail] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+interface ProfileSectionProps {
+  firstName: string;
+  lastName: string;
+  email: string;
+  loading: boolean;
+  onUpdateProfile: (firstName: string, lastName: string) => Promise<boolean>;
+}
 
-  useEffect(() => {
-    const getSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      
-      if (data?.session) {
-        setUser(data.session.user);
-        setProfileEmail(data.session.user.email || '');
-        fetchProfile(data.session.user.id);
-      } else {
-        setLoading(false);
-      }
-    };
-
-    getSession();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session) {
-          setUser(session.user);
-          setProfileEmail(session.user.email || '');
-          fetchProfile(session.user.id);
-        } else {
-          setProfileName('');
-          setProfileEmail('');
-          setLoading(false);
-        }
-      }
-    );
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
-
-  const fetchProfile = async (userId: string) => {
+export function ProfileSection({ firstName, lastName, email, loading, onUpdateProfile }: ProfileSectionProps) {
+  const [editedFirstName, setEditedFirstName] = useState(firstName);
+  const [editedLastName, setEditedLastName] = useState(lastName);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // Mettre à jour les valeurs des états lorsque les props changent
+  React.useEffect(() => {
+    setEditedFirstName(firstName);
+    setEditedLastName(lastName);
+  }, [firstName, lastName]);
+  
+  const handleSaveProfile = async () => {
+    setIsSaving(true);
     try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('first_name, last_name')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      if (data) {
-        const fullName = [data.first_name, data.last_name].filter(Boolean).join(' ');
-        setProfileName(fullName || 'New User');
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      toast.error('Failed to load profile data');
+      await onUpdateProfile(editedFirstName, editedLastName);
     } finally {
-      setLoading(false);
+      setIsSaving(false);
     }
   };
-
-  // Handle profile update
-  const handleProfileUpdate = async () => {
-    if (!user) return;
-    
-    try {
-      setLoading(true);
-      
-      // Split the full name into first and last name
-      const nameParts = profileName.trim().split(' ');
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
-      
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          first_name: firstName,
-          last_name: lastName,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', user.id);
-
-      if (error) throw error;
-      
-      toast.success('Profile updated successfully');
-      setProfileDialogOpen(false);
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      toast.error('Failed to update profile');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  
+  const hasChanges = editedFirstName !== firstName || editedLastName !== lastName;
+  
   return (
-    <SettingsSection 
-      title="Profile & Account" 
-      description="Manage your personal information and account settings"
+    <SettingsSection
+      title="Profil"
+      description="Gérez vos informations personnelles"
     >
-      <ProfileDisplay 
-        loading={loading}
-        name={profileName}
-        email={profileEmail}
-        onEdit={() => setProfileDialogOpen(true)}
-      />
-      <ProfileEditDialog 
-        open={profileDialogOpen}
-        onOpenChange={setProfileDialogOpen}
-        name={profileName}
-        setName={setProfileName}
-        email={profileEmail}
-        loading={loading}
-        onSave={handleProfileUpdate}
-      />
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-start gap-4 mb-6">
+            <div className="bg-secondary h-16 w-16 rounded-full flex items-center justify-center">
+              <User className="h-8 w-8 text-secondary-foreground" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-medium">
+                {firstName ? `${firstName} ${lastName}` : 'Utilisateur'}
+              </h3>
+              <p className="text-sm text-muted-foreground">{email}</p>
+            </div>
+          </div>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">Prénom</Label>
+                <Input 
+                  id="firstName" 
+                  value={editedFirstName} 
+                  onChange={(e) => setEditedFirstName(e.target.value)} 
+                  disabled={loading}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Nom</Label>
+                <Input 
+                  id="lastName" 
+                  value={editedLastName} 
+                  onChange={(e) => setEditedLastName(e.target.value)} 
+                  disabled={loading}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" value={email} disabled />
+              <p className="text-xs text-muted-foreground">
+                Votre email est lié à votre compte et ne peut pas être modifié ici
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex justify-end">
+            <Button 
+              onClick={handleSaveProfile} 
+              disabled={loading || isSaving || !hasChanges}
+            >
+              <Save className="mr-2 h-4 w-4" />
+              Enregistrer les modifications
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </SettingsSection>
   );
-};
-
+}

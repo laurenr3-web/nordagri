@@ -41,10 +41,10 @@ export function NotificationSettingsSection() {
       setLoading(true);
       try {
         const { data, error } = await supabase
-          .from('notification_preferences')
+          .from('notification_settings')
           .select('*')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
         
         if (error && error.code !== 'PGRST116') {
           console.error('Erreur lors du chargement des préférences de notification:', error);
@@ -52,20 +52,26 @@ export function NotificationSettingsSection() {
         }
         
         if (data) {
+          // Adapter les données du modèle existant à notre structure d'état
           setNotificationPreferences({
             email: {
-              maintenanceReminders: data.email_maintenance ?? true,
-              inventoryAlerts: data.email_inventory ?? true,
-              securityAlerts: data.email_security ?? true
+              maintenanceReminders: data.maintenance_reminder_enabled ?? true,
+              inventoryAlerts: data.stock_low_enabled ?? true,
+              securityAlerts: data.email_notifications ?? true
             },
             sms: {
-              maintenanceReminders: data.sms_maintenance ?? false,
-              inventoryAlerts: data.sms_inventory ?? false,
-              securityAlerts: data.sms_security ?? true
+              maintenanceReminders: data.sms_notifications ?? false,
+              inventoryAlerts: data.sms_notifications ?? false,
+              securityAlerts: data.sms_notifications ?? false
             }
           });
           
-          setPhoneNumber(data.phone_number || '');
+          // Essayer d'extraire le numéro de téléphone des préférences de notifications
+          const preferences = data.notification_preferences;
+          if (preferences && typeof preferences === 'object') {
+            const phoneNumber = preferences.phone_number || '';
+            setPhoneNumber(phoneNumber);
+          }
         }
       } catch (error) {
         console.error('Erreur:', error);
@@ -96,16 +102,19 @@ export function NotificationSettingsSection() {
     setLoading(true);
     try {
       const { error } = await supabase
-        .from('notification_preferences')
+        .from('notification_settings')
         .upsert({
           user_id: user.id,
-          email_maintenance: notificationPreferences.email.maintenanceReminders,
-          email_inventory: notificationPreferences.email.inventoryAlerts,
-          email_security: notificationPreferences.email.securityAlerts,
-          sms_maintenance: notificationPreferences.sms.maintenanceReminders,
-          sms_inventory: notificationPreferences.sms.inventoryAlerts,
-          sms_security: notificationPreferences.sms.securityAlerts,
-          phone_number: phoneNumber,
+          maintenance_reminder_enabled: notificationPreferences.email.maintenanceReminders,
+          stock_low_enabled: notificationPreferences.email.inventoryAlerts,
+          email_notifications: notificationPreferences.email.securityAlerts,
+          sms_notifications: notificationPreferences.sms.securityAlerts,
+          push_notifications: false,
+          notification_preferences: {
+            ...notificationPreferences,
+            phone_number: phoneNumber,
+            updated_at: new Date().toISOString()
+          },
           updated_at: new Date().toISOString()
         }, { onConflict: 'user_id' });
       
