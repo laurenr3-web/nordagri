@@ -1,25 +1,20 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { SettingsEssentials } from '@/components/settings/SettingsEssentials';
-import { SettingsSecurity } from '@/components/settings/SettingsSecurity';
-import { FarmSettingsSection } from '@/components/settings/farm/FarmSettingsSection';
-import { SubscriptionSection } from '@/components/settings/subscription/SubscriptionSection';
-import { UserAccessSection } from '@/components/settings/security/UserAccessSection';
-import { NotificationSettingsSection } from '@/components/settings/notifications/NotificationSettingsSection';
-import { useSettings } from '@/hooks/useSettings';
+import { ProfileSection } from './profile/ProfileSection';
+import { FarmSettingsSection } from './farm/FarmSettingsSection';
+import { PasswordSection } from './security/PasswordSection';
+import { SimpleNotificationSection } from './notifications/SimpleNotificationSection';
+import { UserAccessSection } from './security/UserAccessSection';
+import { NotificationSettingsSection } from './notifications/NotificationSettingsSection';
+import { SubscriptionSection } from './subscription/SubscriptionSection';
 
 interface SettingsTabsProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
 }
 
-/**
- * Composant d'onglets pour organiser les différentes sections des paramètres
- */
 export default function SettingsTabs({ activeTab, setActiveTab }: SettingsTabsProps) {
-  const { manageSubscription } = useSettings();
-  
   return (
     <Tabs 
       defaultValue="essentials" 
@@ -37,7 +32,10 @@ export default function SettingsTabs({ activeTab, setActiveTab }: SettingsTabsPr
       </div>
       
       <TabsContent value="essentials">
-        <SettingsEssentials />
+        <div className="space-y-8">
+          <ProfileSection />
+          <SimpleNotificationSection />
+        </div>
       </TabsContent>
       
       <TabsContent value="farm">
@@ -45,12 +43,12 @@ export default function SettingsTabs({ activeTab, setActiveTab }: SettingsTabsPr
       </TabsContent>
       
       <TabsContent value="subscription">
-        <SubscriptionSection onManageSubscription={manageSubscription} />
+        <SubscriptionSection />
       </TabsContent>
       
       <TabsContent value="security">
         <div className="space-y-8">
-          <SettingsSecurity />
+          <PasswordSection />
           <NotificationSettingsSection />
           <UserAccessSection />
         </div>

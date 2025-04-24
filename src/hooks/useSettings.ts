@@ -1,7 +1,11 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthContext } from '@/providers/AuthProvider';
-import { settingsService } from '@/services/settingsService';
+import { 
+  profileService, 
+  farmModulesService, 
+  notificationService, 
+  subscriptionService 
+} from '@/services/settings';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -50,13 +54,13 @@ export function useSettings() {
           
           // Charger les modules si on a un farm_id
           if (profileData.farm_id) {
-            const modules = await settingsService.getFarmModules(profileData.farm_id);
+            const modules = await farmModulesService.getFarmModules(profileData.farm_id);
             setEnabledModules(modules);
           }
         }
         
         // Récupérer les paramètres de notification
-        const notificationData = await settingsService.getNotificationSettings(user.id);
+        const notificationData = await notificationService.getNotificationSettings(user.id);
         if (notificationData) {
           setNotificationSettings({
             email_enabled: notificationData.email_enabled,
@@ -78,7 +82,7 @@ export function useSettings() {
   const updateProfile = useCallback(async (fullName: string, email: string) => {
     if (!user?.id) return false;
     
-    const result = await settingsService.updateProfile(user.id, {
+    const result = await profileService.updateProfile(user.id, {
       full_name: fullName,
       email: email !== user.email ? email : undefined // Mettre à jour l'email seulement si modifié
     });
@@ -93,7 +97,7 @@ export function useSettings() {
 
   // Mettre à jour le mot de passe
   const updatePassword = useCallback(async (password: string) => {
-    const result = await settingsService.updatePassword(password);
+    const result = await profileService.updatePassword(password);
     
     if (result) {
       toast.success('Mot de passe mis à jour avec succès');
@@ -106,7 +110,7 @@ export function useSettings() {
   const updateModules = useCallback(async (modules: string[]) => {
     if (!farmId) return false;
     
-    const result = await settingsService.updateFarmModules(farmId, modules);
+    const result = await farmModulesService.updateFarmModules(farmId, modules);
     
     if (result) {
       setEnabledModules(modules);
@@ -142,7 +146,7 @@ export function useSettings() {
       ...settings
     };
     
-    const result = await settingsService.updateNotificationSettings(user.id, newSettings);
+    const result = await notificationService.updateNotificationSettings(user.id, newSettings);
     
     if (result) {
       setNotificationSettings(newSettings as NotificationSettingsType);
@@ -154,7 +158,7 @@ export function useSettings() {
 
   // Créer une session Stripe pour gérer l'abonnement
   const manageSubscription = useCallback(async () => {
-    const url = await settingsService.createStripePortalSession();
+    const url = await subscriptionService.createStripePortalSession();
     
     if (url) {
       window.location.href = url;
