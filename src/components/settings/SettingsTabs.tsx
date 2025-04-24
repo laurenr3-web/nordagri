@@ -7,6 +7,7 @@ import { FarmSettingsSection } from '@/components/settings/farm/FarmSettingsSect
 import { SubscriptionSection } from '@/components/settings/subscription/SubscriptionSection';
 import { UserAccessSection } from '@/components/settings/security/UserAccessSection';
 import { NotificationSettingsSection } from '@/components/settings/notifications/NotificationSettingsSection';
+import { useSettings } from '@/hooks/useSettings';
 
 interface SettingsTabsProps {
   activeTab: string;
@@ -17,6 +18,8 @@ interface SettingsTabsProps {
  * Composant d'onglets pour organiser les différentes sections des paramètres
  */
 export default function SettingsTabs({ activeTab, setActiveTab }: SettingsTabsProps) {
+  const { manageSubscription } = useSettings();
+  
   return (
     <Tabs 
       defaultValue="essentials" 
@@ -42,7 +45,7 @@ export default function SettingsTabs({ activeTab, setActiveTab }: SettingsTabsPr
       </TabsContent>
       
       <TabsContent value="subscription">
-        <SubscriptionSection />
+        <SubscriptionSection onManageSubscription={manageSubscription} />
       </TabsContent>
       
       <TabsContent value="security">

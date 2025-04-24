@@ -6,14 +6,20 @@ interface SettingsSectionProps {
   title: string;
   description?: string;
   children: React.ReactNode;
+  icon?: React.ReactNode;
 }
 
-export const SettingsSection = ({ title, description, children }: SettingsSectionProps) => {
+export const SettingsSection = ({ title, description, children, icon }: SettingsSectionProps) => {
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        {description && <CardDescription>{description}</CardDescription>}
+        <div className="flex items-center gap-2">
+          {icon && <span className="text-muted-foreground">{icon}</span>}
+          <div>
+            <CardTitle>{title}</CardTitle>
+            {description && <CardDescription>{description}</CardDescription>}
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         {children}

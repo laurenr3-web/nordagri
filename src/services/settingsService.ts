@@ -13,10 +13,6 @@ interface NotificationSettings {
   phone_number?: string;
 }
 
-interface FarmModules {
-  enabled_modules: string[];
-}
-
 /**
  * Service pour gérer les opérations liées aux paramètres utilisateur
  */
@@ -82,18 +78,47 @@ export const settingsService = {
    */
   async getFarmModules(farmId: string): Promise<string[]> {
     try {
-      const { data, error } = await supabase
+      // D'abord, vérifions si la ferme utilise la table farm_settings
+      const { data: farmSettingsData, error: farmSettingsError } = await supabase
+        .from('farm_settings')
+        .select('*')
+        .eq('farm_id', farmId)
+        .single();
+      
+      if (!farmSettingsError && farmSettingsData) {
+        // Créer un tableau basé sur les modules activés dans farm_settings
+        const modules: string[] = [];
+        if (farmSettingsData.show_maintenance) modules.push('maintenance');
+        if (farmSettingsData.show_parts) modules.push('parts');
+        if (farmSettingsData.show_time_tracking) modules.push('time-tracking');
+        if (farmSettingsData.show_fuel_log) modules.push('fuel');
+        
+        return modules;
+      }
+      
+      // Essayons un autre endpoint pour la ferme
+      const { data: farmData, error: farmError } = await supabase
         .from('farms')
-        .select('enabled_modules')
+        .select('api_equipment_enabled, api_time_entries_enabled, api_fuel_logs_enabled, api_inventory_sync_enabled')
         .eq('id', farmId)
         .single();
       
-      if (error) throw error;
+      if (!farmError && farmData) {
+        // Créer un tableau basé sur les API activées
+        const modules: string[] = [];
+        if (farmData.api_equipment_enabled) modules.push('maintenance');
+        if (farmData.api_inventory_sync_enabled) modules.push('parts');
+        if (farmData.api_time_entries_enabled) modules.push('time-tracking');
+        if (farmData.api_fuel_logs_enabled) modules.push('fuel');
+        
+        return modules;
+      }
       
-      return data?.enabled_modules || [];
+      return ['maintenance', 'parts', 'time-tracking', 'fuel']; // valeurs par défaut si rien n'est trouvé
+      
     } catch (error) {
       console.error('Erreur lors de la récupération des modules:', error);
-      return [];
+      return ['maintenance', 'parts', 'time-tracking', 'fuel']; // valeurs par défaut en cas d'erreur
     }
   },
   
@@ -104,12 +129,40 @@ export const settingsService = {
    */
   async updateFarmModules(farmId: string, modules: string[]): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('farms')
-        .update({ enabled_modules: modules })
-        .eq('id', farmId);
+      // D'abord vérifier si nous avons farm_settings
+      const { data: farmSettingsData } = await supabase
+        .from('farm_settings')
+        .select('*')
+        .eq('farm_id', farmId)
+        .single();
       
-      if (error) throw error;
+      if (farmSettingsData) {
+        // Mettre à jour farm_settings
+        const { error } = await supabase
+          .from('farm_settings')
+          .update({
+            show_maintenance: modules.includes('maintenance'),
+            show_parts: modules.includes('parts'),
+            show_time_tracking: modules.includes('time-tracking'),
+            show_fuel_log: modules.includes('fuel')
+          })
+          .eq('farm_id', farmId);
+        
+        if (error) throw error;
+      } else {
+        // Créer une nouvelle entrée farm_settings
+        const { error } = await supabase
+          .from('farm_settings')
+          .insert({
+            farm_id: farmId,
+            show_maintenance: modules.includes('maintenance'),
+            show_parts: modules.includes('parts'),
+            show_time_tracking: modules.includes('time-tracking'),
+            show_fuel_log: modules.includes('fuel')
+          });
+        
+        if (error) throw error;
+      }
       
       return true;
     } catch (error: any) {
@@ -134,10 +187,14 @@ export const settingsService = {
       if (error && error.code !== 'PGRST116') throw error;
       
       if (data) {
+        const phoneNumber = data.notification_preferences && 
+          typeof data.notification_preferences === 'object' ? 
+          (data.notification_preferences as any).phone_number || '' : '';
+          
         return {
           email_enabled: data.email_notifications,
           sms_enabled: data.sms_notifications,
-          phone_number: data.notification_preferences?.phone_number || ''
+          phone_number: phoneNumber
         };
       }
       

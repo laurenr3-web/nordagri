@@ -5,6 +5,12 @@ import { settingsService } from '@/services/settingsService';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+interface NotificationSettingsType {
+  email_enabled: boolean;
+  sms_enabled: boolean;
+  phone_number: string;
+}
+
 export function useSettings() {
   const { user } = useAuthContext();
   const [loading, setLoading] = useState(true);
@@ -14,7 +20,7 @@ export function useSettings() {
   }>({ full_name: '', email: '' });
   const [farmId, setFarmId] = useState<string | null>(null);
   const [enabledModules, setEnabledModules] = useState<string[]>([]);
-  const [notificationSettings, setNotificationSettings] = useState({
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettingsType>({
     email_enabled: true,
     sms_enabled: false,
     phone_number: ''
@@ -52,7 +58,11 @@ export function useSettings() {
         // Récupérer les paramètres de notification
         const notificationData = await settingsService.getNotificationSettings(user.id);
         if (notificationData) {
-          setNotificationSettings(notificationData);
+          setNotificationSettings({
+            email_enabled: notificationData.email_enabled,
+            sms_enabled: notificationData.sms_enabled,
+            phone_number: notificationData.phone_number || ''
+          });
         }
       } catch (error) {
         console.error('Erreur lors du chargement des paramètres:', error);
