@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -99,14 +98,10 @@ export const notificationService = {
 
   async triggerManualAlertCheck(): Promise<boolean> {
     try {
-      // Récupérer l'API key depuis un stockage sécurisé ou une variable d'environnement
-      // Pour ce cas d'utilisation, on pourrait utiliser un système de jeton temporaire
-      // généré par le backend
-
       const response = await supabase.functions.invoke('send-alerts', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_NOTIFICATIONS_API_KEY || 'test-api-key'}`
+          'Authorization': `Bearer ${import.meta.env.VITE_NOTIFICATIONS_API_KEY || 'notif_api_key_CHANGE_ME'}`
         }
       });
 

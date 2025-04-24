@@ -11,7 +11,7 @@ select cron.schedule(
   select
     net.http_post(
       url:='https://cagmgtmeljxykyngxxmj.supabase.co/functions/v1/send-alerts',
-      headers:='{"Content-Type": "application/json", "Authorization": "Bearer NOTIFICATIONS_API_KEY"}'::jsonb,
+      headers:='{"Content-Type": "application/json", "Authorization": "Bearer notif_api_key_CHANGE_ME"}'::jsonb,
       body:='{}'::jsonb
     ) as request_id;
   $$
