@@ -68,9 +68,10 @@ export function NotificationSettingsSection() {
           
           // Essayer d'extraire le numéro de téléphone des préférences de notifications
           const preferences = data.notification_preferences;
-          if (preferences && typeof preferences === 'object') {
-            const phoneNumber = preferences.phone_number || '';
-            setPhoneNumber(phoneNumber);
+          if (preferences && typeof preferences === 'object' && !Array.isArray(preferences)) {
+            // Safe check to make sure preferences is an object and not an array
+            const phoneNumberValue = (preferences as Record<string, any>)['phone_number'];
+            setPhoneNumber(phoneNumberValue || '');
           }
         }
       } catch (error) {
@@ -101,6 +102,12 @@ export function NotificationSettingsSection() {
     
     setLoading(true);
     try {
+      const notificationPrefs = {
+        ...notificationPreferences,
+        phone_number: phoneNumber,
+        updated_at: new Date().toISOString()
+      };
+
       const { error } = await supabase
         .from('notification_settings')
         .upsert({
@@ -110,11 +117,7 @@ export function NotificationSettingsSection() {
           email_notifications: notificationPreferences.email.securityAlerts,
           sms_notifications: notificationPreferences.sms.securityAlerts,
           push_notifications: false,
-          notification_preferences: {
-            ...notificationPreferences,
-            phone_number: phoneNumber,
-            updated_at: new Date().toISOString()
-          },
+          notification_preferences: notificationPrefs,
           updated_at: new Date().toISOString()
         }, { onConflict: 'user_id' });
       

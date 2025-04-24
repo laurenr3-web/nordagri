@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { SettingsSection } from '../SettingsSection';
 import { Badge } from '@/components/ui/badge';
@@ -41,14 +40,26 @@ export function UserAccessSection() {
     const fetchTeamMembers = async () => {
       setLoading(true);
       try {
+        // Instead of using profiles, we'll get team members from the team_members table
         const { data, error } = await supabase
-          .from('profiles')
-          .select('id, email, first_name, last_name, role, status, created_at')
+          .from('team_members')
+          .select('id, name, email, role, created_at')
           .order('created_at', { ascending: false });
         
         if (error) throw error;
         
-        setTeamMembers(data || []);
+        // Transform the data to match the TeamMember interface
+        const formattedMembers: TeamMember[] = (data || []).map(member => ({
+          id: member.id,
+          email: member.email || '',
+          first_name: member.name.split(' ')[0] || '',
+          last_name: member.name.split(' ')[1] || '',
+          role: member.role,
+          status: 'active', // Default status for team members
+          created_at: member.created_at
+        }));
+        
+        setTeamMembers(formattedMembers);
       } catch (error) {
         console.error('Erreur lors du chargement des membres de l\'équipe:', error);
         toast.error('Impossible de charger les membres de l\'équipe');
