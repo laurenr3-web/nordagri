@@ -40,7 +40,7 @@ const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
   } = useMaintenanceContent(tasks, setCurrentView, userName);
 
   return (
-    <div className="w-full">
+    <div className="w-full max-w-7xl mx-auto overflow-hidden">
       <div className="p-4 space-y-4">
         <MaintenanceFilters 
           currentView={currentView}
@@ -56,7 +56,7 @@ const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
 
         <div className="mt-4 space-y-4">
           {currentView === 'calendar' ? (
-            <div className="overflow-hidden rounded-lg">
+            <div className="rounded-lg overflow-hidden">
               <CalendarView 
                 tasks={getCurrentTasks(currentView)}
                 currentMonth={currentMonth}
@@ -69,20 +69,20 @@ const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
               <div className="p-4 border-b">
                 <div className="flex items-center gap-2">
                   <CalendarIcon className="h-5 w-5 text-muted-foreground" />
-                  <h2 className="text-lg font-semibold">
+                  <h2 className="text-lg font-semibold truncate">
                     {currentView === 'today' ? 'Tâches du jour' : 
                      currentView === 'overdue' ? 'Tâches en retard' :
                      currentView === 'completed' ? 'Tâches terminées' : 'Tâches à venir'}
                   </h2>
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-sm text-muted-foreground mt-1 break-words">
                   {currentView === 'today' ? format(new Date(), 'd MMMM yyyy', { locale: fr }) :
                    currentView === 'overdue' ? "Tâches dont l'échéance est dépassée" :
                    currentView === 'completed' ? "Historique des tâches terminées" : "Tâches planifiées à venir"}
                 </p>
               </div>
 
-              <ScrollArea className="h-[calc(100vh-300px)] sm:h-auto">
+              <ScrollArea className="relative">
                 <div className="p-4">
                   <MaintenanceTable 
                     tasks={getCurrentTasks(currentView)}

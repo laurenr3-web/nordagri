@@ -124,13 +124,13 @@ const Maintenance = () => {
   
   return (
     <MainLayout>
-      <div className="min-h-screen w-full bg-background">
+      <div className="min-h-screen w-full bg-background overflow-hidden">
         <div className="flex justify-between items-center p-3 sm:p-4 border-b">
-          <div className="text-sm text-muted-foreground truncate">
+          <div className="text-sm text-muted-foreground truncate max-w-[200px] sm:max-w-none">
             {isAuthenticated ? (
               <span className="flex items-center gap-1">
                 Connecté en tant que : 
-                <span className="font-medium truncate max-w-[200px]">{getUserDisplayName()}</span>
+                <span className="font-medium truncate">{getUserDisplayName()}</span>
               </span>
             ) : (
               <span>Non connecté</span>
@@ -140,20 +140,20 @@ const Maintenance = () => {
         </div>
         
         <div className="p-3 sm:p-6">
-          <div className="max-w-7xl mx-auto space-y-6">
+          <div className="mx-auto space-y-6">
             <div className="flex flex-col gap-4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
+                <div className="space-y-1">
                   <h1 className="text-2xl sm:text-3xl font-bold">Maintenance</h1>
-                  <p className="text-muted-foreground mt-1">Gérez vos tâches de maintenance et suivez leur progression</p>
+                  <p className="text-muted-foreground">
+                    Gérez vos tâches de maintenance et suivez leur progression
+                  </p>
                 </div>
-                <div className="w-full sm:w-auto">
-                  <MaintenanceHeader 
-                    setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
-                    userName={getUserDisplayName()}
-                    className="w-full sm:w-auto"
-                  />
-                </div>
+                <MaintenanceHeader 
+                  setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
+                  userName={getUserDisplayName()}
+                  className="w-full sm:w-auto"
+                />
               </div>
               
               <div className="grid grid-cols-1 gap-4">

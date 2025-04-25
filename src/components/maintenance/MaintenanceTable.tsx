@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { format, isPast, isToday } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -121,130 +120,204 @@ export const MaintenanceTable: React.FC<MaintenanceTableProps> = ({
         </div>
       ) : (
         <div className="rounded-md border overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Équipement</TableHead>
-                <TableHead>Tâche</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Date d'échéance</TableHead>
-                <TableHead>Priorité</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead>Assigné à</TableHead>
-                <TableHead className="w-[50px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tasks.map((task) => (
-                <TableRow 
-                  key={task.id} 
-                  className={`cursor-pointer hover:bg-muted/50 ${
-                    task.id === highlightedTaskId ? 'bg-primary/10 border-l-4 border-primary' : ''
-                  }`}
-                  ref={task.id === highlightedTaskId ? highlightedRowRef : null}
-                >
-                  <TableCell 
-                    onClick={() => {
-                      setSelectedTask(task);
-                      setIsTaskDetailsOpen(true);
-                    }}
-                    className="font-medium"
-                  >
-                    {task.equipment}
-                  </TableCell>
-                  <TableCell 
-                    onClick={() => {
-                      setSelectedTask(task);
-                      setIsTaskDetailsOpen(true);
-                    }}
-                  >
-                    {task.title}
-                  </TableCell>
-                  <TableCell 
-                    onClick={() => {
-                      setSelectedTask(task);
-                      setIsTaskDetailsOpen(true);
-                    }}
-                  >
-                    {task.type === 'preventive' ? 'Préventive' : 
-                     task.type === 'corrective' ? 'Corrective' : 
-                     task.type === 'condition-based' ? 'Conditionnelle' : task.type}
-                  </TableCell>
-                  <TableCell 
-                    onClick={() => {
-                      setSelectedTask(task);
-                      setIsTaskDetailsOpen(true);
-                    }}
-                  >
-                    {format(task.dueDate, 'dd MMM yyyy', { locale: fr })}
-                  </TableCell>
-                  <TableCell 
-                    onClick={() => {
-                      setSelectedTask(task);
-                      setIsTaskDetailsOpen(true);
-                    }}
-                  >
-                    {getPriorityBadge(task.priority)}
-                  </TableCell>
-                  <TableCell 
-                    onClick={() => {
-                      setSelectedTask(task);
-                      setIsTaskDetailsOpen(true);
-                    }}
-                  >
-                    {getStatusBadge(task.dueDate, task.status)}
-                  </TableCell>
-                  <TableCell 
-                    onClick={() => {
-                      setSelectedTask(task);
-                      setIsTaskDetailsOpen(true);
-                    }}
-                  >
-                    {task.assignedTo || 'Non assigné'}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0 focus-visible:ring-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setSelectedTask(task);
-                            setIsTaskDetailsOpen(true);
-                          }}
-                        >
-                          Voir les détails
-                        </DropdownMenuItem>
-                        {task.status !== 'completed' && (
-                          <DropdownMenuItem
-                            onClick={() => updateTaskStatus(task.id, 'completed')}
-                          >
-                            Marquer comme terminée
-                          </DropdownMenuItem>
-                        )}
-                        {task.status === 'scheduled' && (
-                          <DropdownMenuItem
-                            onClick={() => updateTaskStatus(task.id, 'in-progress')}
-                          >
-                            Démarrer la tâche
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem
-                          onClick={() => deleteTask(task.id)}
-                          className="text-red-600"
-                        >
-                          Supprimer
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[150px] min-w-[150px]">Équipement</TableHead>
+                  <TableHead className="min-w-[200px]">Tâche</TableHead>
+                  <TableHead className="w-[100px]">Type</TableHead>
+                  <TableHead className="w-[120px]">Date</TableHead>
+                  <TableHead className="w-[100px]">Priorité</TableHead>
+                  <TableHead className="w-[100px]">Statut</TableHead>
+                  <TableHead className="w-[120px]">Assigné à</TableHead>
+                  <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {tasks.map((task) => (
+                  <TableRow 
+                    key={task.id} 
+                    className={`cursor-pointer hover:bg-muted/50 ${
+                      task.id === highlightedTaskId ? 'bg-primary/10 border-l-4 border-primary' : ''
+                    }`}
+                    ref={task.id === highlightedTaskId ? highlightedRowRef : null}
+                  >
+                    <TableCell 
+                      onClick={() => {
+                        setSelectedTask(task);
+                        setIsTaskDetailsOpen(true);
+                      }}
+                      className="font-medium"
+                    >
+                      {task.equipment}
+                    </TableCell>
+                    <TableCell 
+                      onClick={() => {
+                        setSelectedTask(task);
+                        setIsTaskDetailsOpen(true);
+                      }}
+                    >
+                      {task.title}
+                    </TableCell>
+                    <TableCell 
+                      onClick={() => {
+                        setSelectedTask(task);
+                        setIsTaskDetailsOpen(true);
+                      }}
+                    >
+                      {task.type === 'preventive' ? 'Préventive' : 
+                       task.type === 'corrective' ? 'Corrective' : 
+                       task.type === 'condition-based' ? 'Conditionnelle' : task.type}
+                    </TableCell>
+                    <TableCell 
+                      onClick={() => {
+                        setSelectedTask(task);
+                        setIsTaskDetailsOpen(true);
+                      }}
+                    >
+                      {format(task.dueDate, 'dd MMM yyyy', { locale: fr })}
+                    </TableCell>
+                    <TableCell 
+                      onClick={() => {
+                        setSelectedTask(task);
+                        setIsTaskDetailsOpen(true);
+                      }}
+                    >
+                      {getPriorityBadge(task.priority)}
+                    </TableCell>
+                    <TableCell 
+                      onClick={() => {
+                        setSelectedTask(task);
+                        setIsTaskDetailsOpen(true);
+                      }}
+                    >
+                      {getStatusBadge(task.dueDate, task.status)}
+                    </TableCell>
+                    <TableCell 
+                      onClick={() => {
+                        setSelectedTask(task);
+                        setIsTaskDetailsOpen(true);
+                      }}
+                    >
+                      {task.assignedTo || 'Non assigné'}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0 focus-visible:ring-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedTask(task);
+                              setIsTaskDetailsOpen(true);
+                            }}
+                          >
+                            Voir les détails
+                          </DropdownMenuItem>
+                          {task.status !== 'completed' && (
+                            <DropdownMenuItem
+                              onClick={() => updateTaskStatus(task.id, 'completed')}
+                            >
+                              Marquer comme terminée
+                            </DropdownMenuItem>
+                          )}
+                          {task.status === 'scheduled' && (
+                            <DropdownMenuItem
+                              onClick={() => updateTaskStatus(task.id, 'in-progress')}
+                            >
+                              Démarrer la tâche
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem
+                            onClick={() => deleteTask(task.id)}
+                            className="text-red-600"
+                          >
+                            Supprimer
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Vue mobile */}
+          <div className="md:hidden divide-y">
+            {tasks.map((task) => (
+              <div 
+                key={task.id}
+                className={`p-4 space-y-3 ${
+                  task.id === highlightedTaskId ? 'bg-primary/10 border-l-4 border-primary' : ''
+                }`}
+                ref={task.id === highlightedTaskId ? highlightedRowRef : null}
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-medium truncate">{task.equipment}</h3>
+                    <p className="text-sm text-muted-foreground mt-1">{task.title}</p>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setSelectedTask(task);
+                          setIsTaskDetailsOpen(true);
+                        }}
+                      >
+                        Voir les détails
+                      </DropdownMenuItem>
+                      {task.status !== 'completed' && (
+                        <DropdownMenuItem
+                          onClick={() => updateTaskStatus(task.id, 'completed')}
+                        >
+                          Marquer comme terminée
+                        </DropdownMenuItem>
+                      )}
+                      {task.status === 'scheduled' && (
+                        <DropdownMenuItem
+                          onClick={() => updateTaskStatus(task.id, 'in-progress')}
+                        >
+                          Démarrer la tâche
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem
+                        onClick={() => deleteTask(task.id)}
+                        className="text-red-600"
+                      >
+                        Supprimer
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="outline">
+                    {format(task.dueDate, 'dd MMM yyyy', { locale: fr })}
+                  </Badge>
+                  {getPriorityBadge(task.priority)}
+                  {getStatusBadge(task.dueDate, task.status)}
+                </div>
+
+                <div className="text-sm text-muted-foreground">
+                  <p>Type: {task.type === 'preventive' ? 'Préventive' : 
+                          task.type === 'corrective' ? 'Corrective' : 
+                          task.type === 'condition-based' ? 'Conditionnelle' : task.type}</p>
+                  <p>Assigné à: {task.assignedTo || 'Non assigné'}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
       
