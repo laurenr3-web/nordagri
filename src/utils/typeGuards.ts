@@ -13,6 +13,45 @@ export function ensureNumberId(id: string | number): number {
 }
 
 /**
+ * Vérifie si une valeur est numérique
+ * 
+ * @param value La valeur à vérifier
+ * @returns true si la valeur est numérique, false sinon
+ */
+export function isNumeric(value: any): boolean {
+  if (value === null || value === undefined) {
+    return false;
+  }
+  if (typeof value === 'number') {
+    return true;
+  }
+  if (typeof value === 'string') {
+    return !isNaN(parseFloat(value)) && isFinite(Number(value));
+  }
+  return false;
+}
+
+/**
+ * Valide et normalise le statut d'un équipement
+ * 
+ * @param status Le statut à valider
+ * @returns Le statut validé ou 'operational' par défaut
+ */
+export function validateEquipmentStatus(status?: string): 'operational' | 'maintenance' | 'repair' | 'inactive' {
+  if (!status) {
+    return 'operational';
+  }
+
+  const validStatuses = ['operational', 'maintenance', 'repair', 'inactive'];
+  
+  if (validStatuses.includes(status)) {
+    return status as 'operational' | 'maintenance' | 'repair' | 'inactive';
+  }
+  
+  return 'operational'; // Valeur par défaut
+}
+
+/**
  * Vérifie si une valeur est un tableau
  * 
  * @param value La valeur à vérifier
