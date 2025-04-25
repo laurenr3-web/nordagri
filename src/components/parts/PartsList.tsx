@@ -2,9 +2,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, Loader2, Trash2 } from 'lucide-react';
+import { AlertCircle, Loader2, Trash2, Box } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Part } from '@/types/Part';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 interface PartsListProps {
   parts: Part[];
@@ -53,6 +55,12 @@ const PartsList: React.FC<PartsListProps> = ({
     }
   };
 
+  const getStockStatusColor = (part: Part) => {
+    if (part.stock <= 0) return 'text-destructive';
+    if (part.stock <= part.reorderPoint) return 'text-yellow-500';
+    return 'text-green-500';
+  };
+
   const allSelected = parts.length > 0 && selectedParts.length === parts.length;
   const someSelected = selectedParts.length > 0 && selectedParts.length < parts.length;
 
@@ -79,7 +87,8 @@ const PartsList: React.FC<PartsListProps> = ({
         </div>
       )}
       
-      <div className="overflow-x-auto">
+      {/* Table header - Hidden on mobile */}
+      <div className="hidden md:block">
         <table className="w-full">
           <thead>
             <tr className="bg-secondary/50">
@@ -103,14 +112,13 @@ const PartsList: React.FC<PartsListProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y">
+            {/* Desktop view */}
             {parts.map((part) => (
-              <tr key={part.id} className="hover:bg-secondary/30">
+              <tr key={part.id} className="hover:bg-secondary/30 hidden md:table-row">
                 <td className="p-3">
                   <Checkbox
-                    checked={selectedParts.includes(part.id as number)}
-                    onCheckedChange={(checked) => 
-                      handleSelectPart(part.id as number, !!checked)
-                    }
+                    checked={selectedParts.includes(part.id)}
+                    onCheckedChange={(checked) => handleSelectPart(part.id, !!checked)}
                     aria-label={`Sélectionner ${part.name}`}
                   />
                 </td>
@@ -124,7 +132,6 @@ const PartsList: React.FC<PartsListProps> = ({
                       alt={part.name}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        // Set a default image if the part image fails to load
                         const target = e.target as HTMLImageElement;
                         target.src = 'https://placehold.co/100x100/png?text=No+Image';
                       }}
@@ -134,9 +141,9 @@ const PartsList: React.FC<PartsListProps> = ({
                 <td className="p-3 font-medium">{part.name}</td>
                 <td className="p-3">{part.partNumber}</td>
                 <td className="p-3">{part.manufacturer}</td>
-                <td className="p-3">${part.price.toFixed(2)}</td>
+                <td className="p-3">{part.price.toFixed(2)}€</td>
                 <td className="p-3">
-                  <span className={part.stock <= part.reorderPoint ? 'text-destructive font-medium' : ''}>
+                  <span className={getStockStatusColor(part)}>
                     {part.stock} {part.stock <= part.reorderPoint && (
                       <AlertCircle size={14} className="inline ml-1" />
                     )}
@@ -150,18 +157,16 @@ const PartsList: React.FC<PartsListProps> = ({
                       size="sm" 
                       className="h-8 px-2" 
                       onClick={() => openPartDetails(part)}
-                      aria-label="Voir les détails de la pièce"
                     >
-                      Details
+                      Détails
                     </Button>
                     <Button 
                       variant="default" 
                       size="sm" 
                       className="h-8 px-2" 
                       onClick={() => openOrderDialog(part)}
-                      aria-label="Commander cette pièce"
                     >
-                      Order
+                      Commander
                     </Button>
                   </div>
                 </td>
@@ -169,6 +174,69 @@ const PartsList: React.FC<PartsListProps> = ({
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile view */}
+      <div className="md:hidden divide-y">
+        {parts.map((part) => (
+          <div key={part.id} className="p-3 space-y-3">
+            <div className="flex items-start gap-3">
+              <Checkbox
+                checked={selectedParts.includes(part.id)}
+                onCheckedChange={(checked) => handleSelectPart(part.id, !!checked)}
+                aria-label={`Sélectionner ${part.name}`}
+              />
+              <div 
+                className="h-14 w-14 rounded-md overflow-hidden flex-shrink-0" 
+                onClick={() => openPartDetails(part)}
+              >
+                <img 
+                  src={part.image} 
+                  alt={part.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = 'https://placehold.co/100x100/png?text=No+Image';
+                  }}
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-medium text-sm line-clamp-1">{part.name}</h3>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <Box className="h-3 w-3" />
+                    <span className="text-xs truncate">{part.partNumber}</span>
+                  </Badge>
+                  <span className="text-xs text-muted-foreground truncate">{part.manufacturer}</span>
+                </div>
+                <div className="flex items-center gap-3 mt-2">
+                  <span className={cn("text-sm font-medium flex items-center gap-1", getStockStatusColor(part))}>
+                    {part.stock} {part.stock <= part.reorderPoint && <AlertCircle size={14} />}
+                  </span>
+                  <span className="text-sm font-medium">{part.price.toFixed(2)}€</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-8 px-2 flex-1" 
+                onClick={() => openPartDetails(part)}
+              >
+                Détails
+              </Button>
+              <Button 
+                variant="default" 
+                size="sm" 
+                className="h-8 px-2 flex-1" 
+                onClick={() => openOrderDialog(part)}
+              >
+                Commander
+              </Button>
+            </div>
+          </div>
+        ))}
       </div>
     </BlurContainer>
   );
