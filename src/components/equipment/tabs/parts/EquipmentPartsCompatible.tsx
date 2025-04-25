@@ -30,6 +30,9 @@ const EquipmentPartsCompatible: React.FC<EquipmentPartsCompatibleProps> = ({ equ
         // Convertir l'ID en chaîne pour la comparaison dans le tableau compatibility
         const equipmentIdString = equipmentId.toString();
         
+        // Log the query we're about to make to help with debugging
+        console.log(`Fetching parts compatible with equipment ID: ${equipmentIdString}`);
+        
         const { data, error } = await supabase
           .from('parts_inventory')
           .select('*')
@@ -40,6 +43,8 @@ const EquipmentPartsCompatible: React.FC<EquipmentPartsCompatibleProps> = ({ equ
           setError('Impossible de charger les pièces compatibles');
           return;
         }
+        
+        console.log('Parts data received:', data);
         
         if (data) {
           // Convertir les données en format Part
@@ -58,6 +63,9 @@ const EquipmentPartsCompatible: React.FC<EquipmentPartsCompatibleProps> = ({ equ
           }));
           
           setCompatibleParts(parts);
+        } else {
+          // Ensure we set an empty array when no data is returned
+          setCompatibleParts([]);
         }
       } catch (err) {
         console.error('Unexpected error fetching compatible parts:', err);
@@ -80,7 +88,7 @@ const EquipmentPartsCompatible: React.FC<EquipmentPartsCompatibleProps> = ({ equ
       <CardHeader>
         <CardTitle className="text-lg font-medium flex items-center justify-between">
           Pièces compatibles
-          {compatibleParts.length > 0 && (
+          {!loading && !error && compatibleParts && compatibleParts.length > 0 && (
             <Badge variant="secondary" className="ml-2">
               {compatibleParts.length}
             </Badge>
@@ -101,19 +109,7 @@ const EquipmentPartsCompatible: React.FC<EquipmentPartsCompatibleProps> = ({ equ
             <AlertCircle className="h-6 w-6 text-destructive" />
             <span className="ml-2 text-destructive">{error}</span>
           </div>
-        ) : compatibleParts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <Search className="h-8 w-8 text-muted-foreground mb-2" />
-            <p className="text-muted-foreground">Aucune pièce compatible n'a été associée à cet équipement.</p>
-            <Button 
-              variant="link" 
-              className="mt-2" 
-              onClick={() => navigate('/parts')}
-            >
-              Gérer les pièces
-            </Button>
-          </div>
-        ) : (
+        ) : compatibleParts && compatibleParts.length > 0 ? (
           <div className="space-y-2">
             {compatibleParts.map((part) => (
               <div
@@ -123,7 +119,7 @@ const EquipmentPartsCompatible: React.FC<EquipmentPartsCompatibleProps> = ({ equ
                 <div className="flex items-center space-x-3">
                   <div className="h-10 w-10 flex-shrink-0 rounded overflow-hidden">
                     <img
-                      src={part.image}
+                      src={part.image || 'https://placehold.co/100x100/png'}
                       alt={part.name}
                       className="h-full w-full object-cover"
                       onError={(e) => {
@@ -161,6 +157,18 @@ const EquipmentPartsCompatible: React.FC<EquipmentPartsCompatibleProps> = ({ equ
                 </div>
               </div>
             ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <Search className="h-8 w-8 text-muted-foreground mb-2" />
+            <p className="text-muted-foreground">Aucune pièce compatible n'a été associée à cet équipement.</p>
+            <Button 
+              variant="link" 
+              className="mt-2" 
+              onClick={() => navigate('/parts')}
+            >
+              Gérer les pièces
+            </Button>
           </div>
         )}
       </CardContent>
