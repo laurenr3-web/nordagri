@@ -47,14 +47,14 @@ const EquipmentPartsCompatible: React.FC<EquipmentPartsCompatibleProps> = ({ equ
         console.log('Parts data received:', data);
         
         if (data) {
-          // Convertir les données en format Part
+          // Ensure compatibility arrays are always valid arrays
           const parts: Part[] = data.map(part => ({
             id: part.id,
             name: part.name,
             partNumber: part.part_number || '',
             category: part.category || '',
             manufacturer: part.supplier || '',
-            compatibility: part.compatible_with || [],
+            compatibility: Array.isArray(part.compatible_with) ? part.compatible_with : [],
             stock: part.quantity || 0,
             price: part.unit_price || 0,
             location: part.location || '',

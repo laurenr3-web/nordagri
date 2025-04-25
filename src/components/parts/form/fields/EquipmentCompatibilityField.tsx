@@ -45,7 +45,7 @@ const EquipmentCompatibilityField: React.FC<EquipmentCompatibilityFieldProps> = 
 
         if (data) {
           console.log("Fetched equipment data:", data);
-          setEquipmentOptions(data);
+          setEquipmentOptions(data || []);
         }
       } catch (err) {
         console.error('Unexpected error fetching equipment:', err);
@@ -69,7 +69,7 @@ const EquipmentCompatibilityField: React.FC<EquipmentCompatibilityFieldProps> = 
         currentValues.includes(equipment.id.toString())
       );
       console.log("Selected equipment:", selected);
-      setSelectedEquipment(selected);
+      setSelectedEquipment(selected || []);
     }
   }, [equipmentOptions, form]);
 
@@ -191,7 +191,7 @@ const EquipmentCompatibilityField: React.FC<EquipmentCompatibilityFieldProps> = 
                   </PopoverContent>
                 </Popover>
 
-                {selectedEquipment.length > 0 && (
+                {selectedEquipment && selectedEquipment.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-1">
                     {selectedEquipment.map((equipment) => (
                       <Badge key={equipment.id} variant="secondary" className="flex items-center gap-1">
