@@ -15,6 +15,7 @@ interface MaintenanceFiltersProps {
   setSearchQuery: (query: string) => void;
   filterOptions: { label: string; value: string }[];
   userName?: string;
+  className?: string;
 }
 
 export const MaintenanceFilters: React.FC<MaintenanceFiltersProps> = ({
@@ -25,10 +26,11 @@ export const MaintenanceFilters: React.FC<MaintenanceFiltersProps> = ({
   searchQuery,
   setSearchQuery,
   filterOptions,
-  userName = 'Utilisateur'
+  userName = 'Utilisateur',
+  className
 }) => {
   return (
-    <div className="space-y-4">
+    <div className={`space-y-4 ${className}`}>
       <div className="flex flex-col sm:flex-row gap-2 sm:items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">Maintenance</h1>

@@ -94,7 +94,7 @@ export function Combobox({
           />
           <CommandEmpty>{emptyMessage}</CommandEmpty>
           {filteredOptions && filteredOptions.length > 0 && (
-            <CommandGroup className="max-h-60 overflow-y-auto">
+            <CommandGroup>
               {filteredOptions.map((option) => (
                 <CommandItem
                   key={option.value}
