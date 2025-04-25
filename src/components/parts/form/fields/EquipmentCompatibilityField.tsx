@@ -59,7 +59,7 @@ const EquipmentCompatibilityField: React.FC<EquipmentCompatibilityFieldProps> = 
 
   // Update selected equipment based on form value (on load)
   useEffect(() => {
-    const currentValues = form.getValues('compatibleEquipment');
+    const currentValues = form.getValues('compatibleEquipment') || [];
     
     console.log("Form values for compatibleEquipment:", currentValues);
     console.log("Available equipment options:", equipmentOptions);
