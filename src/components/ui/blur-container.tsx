@@ -18,14 +18,12 @@ export function BlurContainer({
   raised = false,
   ...props
 }: BlurContainerProps) {
-  // Calculate blur intensity
   const blurValue = {
     light: "backdrop-blur-sm",
     medium: "backdrop-blur-md",
     heavy: "backdrop-blur-lg",
   }[intensity];
   
-  // Calculate background opacity based on intensity
   const bgOpacity = {
     light: "bg-white/30 dark:bg-black/20",
     medium: "bg-white/50 dark:bg-black/30",
@@ -33,19 +31,20 @@ export function BlurContainer({
   }[intensity];
   
   const glassStyles = cn(
-    "relative rounded-xl border",
+    "relative rounded-xl border w-full",
     bgOpacity,
     blurValue,
     glassFill ? "border-white/20 dark:border-white/10" : "border-transparent",
     raised ? "shadow-elevated" : "shadow-glass"
   );
   
-  const neoStyles = "neo";
+  const neoStyles = cn("neo w-full");
 
   return (
     <div
       className={cn(
         neoMorphic ? neoStyles : glassStyles,
+        "flex flex-col",
         className
       )}
       {...props}
