@@ -15,6 +15,7 @@ export async function getPartsForEquipment(equipmentId: number | string): Promis
   try {
     // Convert string id to number if needed
     const numericId = ensureNumberId(equipmentId);
+    const equipmentIdStr = equipmentId.toString();
     
     // Récupérer d'abord les détails de l'équipement pour connaître son type et modèle
     const { data: equipment, error: equipmentError } = await supabase
@@ -29,24 +30,50 @@ export async function getPartsForEquipment(equipmentId: number | string): Promis
     }
     
     // Récupérer les pièces compatibles avec cet équipement
-    // Cette requête utilise une logique pour trouver des pièces basée sur la compatibilité
+    // Cette requête utilise deux approches :
+    // 1. Vérifier si l'ID de l'équipement est directement dans le tableau compatible_with
+    // 2. Vérifier si le type ou modèle de l'équipement est mentionné dans le tableau
     const { data, error } = await supabase
       .from('parts_inventory')
       .select('*')
-      .or(
-        // Vérifie si l'équipement est dans le tableau compatible_with
-        equipment.model ? 
-        `compatible_with.cs.{${equipment.model}},compatible_with.cs.{${equipment.type}}` : 
-        `compatible_with.cs.{${equipment.type}}`
-      );
+      .filter('compatible_with', 'cs', `{${equipmentIdStr}}`)
+      .order('name', { ascending: true });
     
     if (error) {
       console.error('Erreur lors de la récupération des pièces compatibles:', error);
       throw error;
     }
     
+    // Chercher également les pièces compatibles par type/modèle si disponibles
+    let textResults: any[] = [];
+    if (equipment.type || equipment.model) {
+      const searchTerms = [
+        equipment.type,
+        equipment.model,
+        `${equipment.manufacturer} ${equipment.model}`
+      ].filter(Boolean);
+
+      // Créer une requête pour chaque terme de recherche
+      for (const term of searchTerms) {
+        const { data: textData, error: textError } = await supabase
+          .from('parts_inventory')
+          .select('*')
+          .or(`compatible_with.cs.{${term}}`);
+
+        if (!textError && textData) {
+          textResults = [...textResults, ...textData];
+        }
+      }
+    }
+    
+    // Combinaison des résultats et suppression des doublons
+    const combinedResults = [...(data || []), ...textResults];
+    const uniqueResults = combinedResults.filter((part, index, self) =>
+      index === self.findIndex((p) => p.id === part.id)
+    );
+    
     // Convertir la réponse de la base de données en objets Part
-    return (data || []).map(part => ({
+    return uniqueResults.map(part => ({
       id: part.id,
       name: part.name,
       partNumber: part.part_number || '',

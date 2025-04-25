@@ -1,54 +1,33 @@
 
 /**
- * Assure qu'un ID est converti en nombre
+ * Fonction pour garantir qu'un ID est de type numérique
  * 
  * @param id L'ID qui peut être une chaîne ou un nombre
- * @returns L'ID converti en nombre
+ * @returns L'ID converti en nombre si nécessaire
  */
-export function ensureNumberId(id: number | string): number {
+export function ensureNumberId(id: string | number): number {
   if (typeof id === 'string') {
-    const parsed = parseInt(id, 10);
-    if (isNaN(parsed)) {
-      throw new Error(`Invalid ID format: ${id}`);
-    }
-    return parsed;
+    return parseInt(id, 10);
   }
   return id;
 }
 
 /**
- * Vérifie si une valeur est numérique
+ * Vérifie si une valeur est un tableau
  * 
  * @param value La valeur à vérifier
- * @returns true si la valeur est numérique, false sinon
+ * @returns true si la valeur est un tableau, false sinon
  */
-export function isNumeric(value: unknown): boolean {
-  if (value === null || value === undefined) {
-    return false;
-  }
-  if (typeof value === 'number') {
-    return !isNaN(value);
-  }
-  if (typeof value === 'string') {
-    return !isNaN(Number(value)) && value.trim() !== '';
-  }
-  return false;
+export function isArray<T>(value: any): value is Array<T> {
+  return Array.isArray(value);
 }
 
 /**
- * Valide le statut d'un équipement et retourne une valeur par défaut si invalide
+ * Vérifie si une valeur est définie (non undefined ni null)
  * 
- * @param status Le statut à valider
- * @returns Le statut validé ou 'operational' par défaut
+ * @param value La valeur à vérifier
+ * @returns true si la valeur est définie, false sinon
  */
-export function validateEquipmentStatus(status?: string): 'operational' | 'maintenance' | 'repair' | 'inactive' {
-  if (!status) {
-    return 'operational';
-  }
-  
-  const validStatuses = ['operational', 'maintenance', 'repair', 'inactive'];
-  
-  return validStatuses.includes(status) 
-    ? status as 'operational' | 'maintenance' | 'repair' | 'inactive' 
-    : 'operational';
+export function isDefined<T>(value: T | undefined | null): value is T {
+  return value !== undefined && value !== null;
 }
