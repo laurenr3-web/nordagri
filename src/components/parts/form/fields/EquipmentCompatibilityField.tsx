@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form';
 import { UseFormReturn } from 'react-hook-form';
@@ -57,24 +56,25 @@ const EquipmentCompatibilityField: React.FC<EquipmentCompatibilityFieldProps> = 
     fetchEquipment();
   }, []);
 
-  // Update selected equipment based on form value (on load)
+  // Sécurisation de la mise à jour des équipements sélectionnés
   useEffect(() => {
-    const currentValues = form.getValues('compatibleEquipment') || [];
+    const currentValues = form.getValues('compatibleEquipment');
+    const safeCurrentValues = Array.isArray(currentValues) ? currentValues : [];
     
-    console.log("Form values for compatibleEquipment:", currentValues);
+    console.log("Form values for compatibleEquipment:", safeCurrentValues);
     console.log("Available equipment options:", equipmentOptions);
     
-    if (Array.isArray(currentValues) && currentValues.length > 0 && equipmentOptions.length > 0) {
+    if (safeCurrentValues.length > 0 && equipmentOptions.length > 0) {
       const selected = equipmentOptions.filter(equipment => 
-        currentValues.includes(equipment.id.toString())
+        safeCurrentValues.includes(equipment.id.toString())
       );
       console.log("Selected equipment:", selected);
       setSelectedEquipment(selected || []);
     }
   }, [equipmentOptions, form]);
 
+  // Sécurisation de la sélection d'équipement
   const handleSelect = (value: string) => {
-    // Ensure we're working with arrays
     const currentValues = Array.isArray(form.getValues('compatibleEquipment')) 
       ? [...form.getValues('compatibleEquipment')] 
       : [];
@@ -82,7 +82,6 @@ const EquipmentCompatibilityField: React.FC<EquipmentCompatibilityFieldProps> = 
     console.log("Current compatibleEquipment values:", currentValues);
     console.log("Selected value:", value);
     
-    // Toggle selection
     if (currentValues.includes(value)) {
       const updatedValues = currentValues.filter(v => v !== value);
       form.setValue('compatibleEquipment', updatedValues);
@@ -98,10 +97,9 @@ const EquipmentCompatibilityField: React.FC<EquipmentCompatibilityFieldProps> = 
         console.log("Added value, new values:", updatedValues);
       }
     }
-
-    // Don't close the popover on select
   };
 
+  // Sécurisation de la suppression d'équipement
   const removeEquipment = (equipmentId: string | number) => {
     const currentValues = Array.isArray(form.getValues('compatibleEquipment')) 
       ? [...form.getValues('compatibleEquipment')] 
