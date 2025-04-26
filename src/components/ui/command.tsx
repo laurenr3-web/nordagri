@@ -89,7 +89,7 @@ const CommandGroup = React.forwardRef<
   if (!children) return null;
   
   // Safely convert children to array and check if it's empty
-  const childrenArray = React.Children.toArray(children).filter(Boolean);
+  const childrenArray = React.Children.toArray(children);
   
   // Don't render the group if it has no valid children
   if (childrenArray.length === 0) return null;
@@ -104,7 +104,7 @@ const CommandGroup = React.forwardRef<
       )}
       {...props}
     >
-      {childrenArray}
+      {children}
     </CommandPrimitive.Group>
   );
 })
