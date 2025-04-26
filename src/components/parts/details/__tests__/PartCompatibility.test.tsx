@@ -28,7 +28,6 @@ describe('PartCompatibility Component', () => {
   });
   
   it('handles type errors gracefully', () => {
-    // Simulate a situation where compatibility has wrong type
     // @ts-ignore - Intentionally passing wrong type for testing
     render(<PartCompatibility compatibility={'Invalid data type'} />);
     

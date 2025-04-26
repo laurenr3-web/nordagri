@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { assertIsArray } from '@/utils/typeAssertions';
 
 interface PartCompatibilityProps {
   compatibility: string[] | undefined;
@@ -10,17 +9,7 @@ interface PartCompatibilityProps {
 const PartCompatibility: React.FC<PartCompatibilityProps> = ({ compatibility }) => {
   // Ensure compatibility is always an array with enhanced type safety
   const safeCompatibility = React.useMemo(() => {
-    try {
-      // If undefined or null, return empty array
-      if (!compatibility) return [];
-      
-      // Use type assertion to ensure we're dealing with an array
-      return assertIsArray<string>(compatibility);
-    } catch (error) {
-      // If assertion fails, log error and return empty array
-      console.error("Type error in compatibility data:", error);
-      return [];
-    }
+    return Array.isArray(compatibility) ? compatibility : [];
   }, [compatibility]);
   
   return (
