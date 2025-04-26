@@ -85,14 +85,13 @@ const CommandGroup = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Group>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>
 >(({ className, children, ...props }, ref) => {
-  // Make sure we have valid children before rendering the group
+  // Handling null or undefined children safely with explicit type narrowing
   if (children === undefined || children === null) return null;
   
-  // Safely convert children to array and check if it's empty
-  // Using Array.isArray to safely handle the case when children might not be iterable
-  const childrenArray = React.Children.toArray(children || []);
+  // Use a type-safe approach to validate children
+  const childrenArray = React.Children.toArray(children);
   
-  // Don't render the group if it has no valid children
+  // Don't render groups with no children to prevent Array.from(undefined) errors
   if (childrenArray.length === 0) return null;
   
   // Render the group with valid children

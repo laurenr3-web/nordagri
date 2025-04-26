@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form';
 import { UseFormReturn } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,6 +10,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { CheckIcon, ChevronsUpDown } from 'lucide-react';
+import { isEquipmentIdArray, safeStringArray } from '@/utils/equipmentTypeGuards';
 
 interface EquipmentCompatibilityFieldProps {
   form: UseFormReturn<any>;
@@ -27,7 +28,7 @@ const EquipmentCompatibilityField: React.FC<EquipmentCompatibilityFieldProps> = 
   const [open, setOpen] = useState(false);
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment[]>([]);
 
-  // Fetch equipment options from Supabase
+  // Fetch equipment options from Supabase with better error handling
   useEffect(() => {
     const fetchEquipment = async () => {
       setLoading(true);
@@ -57,33 +58,28 @@ const EquipmentCompatibilityField: React.FC<EquipmentCompatibilityFieldProps> = 
     fetchEquipment();
   }, []);
 
-  // Sécurisation de la mise à jour des équipements sélectionnés
+  // Sécurisation de la mise à jour des équipements sélectionnés avec useMemo
+  const currentFormValues = useMemo(() => {
+    const values = form.getValues('compatibleEquipment');
+    return Array.isArray(values) ? values : [];
+  }, [form]);
+
+  // Update selectedEquipment when form values or equipment options change
   useEffect(() => {
-    const currentValues = form.getValues('compatibleEquipment');
-    // Ensure currentValues is always an array
-    const safeCurrentValues = Array.isArray(currentValues) ? currentValues : [];
-    
-    console.log("Form values for compatibleEquipment:", safeCurrentValues);
-    console.log("Available equipment options:", equipmentOptions);
-    
-    if (safeCurrentValues.length > 0 && equipmentOptions.length > 0) {
+    if (currentFormValues.length > 0 && equipmentOptions.length > 0) {
       const selected = equipmentOptions.filter(equipment => 
-        safeCurrentValues.includes(equipment.id.toString())
+        currentFormValues.includes(equipment.id.toString())
       );
       console.log("Selected equipment:", selected);
       setSelectedEquipment(selected || []);
     } else {
-      // Reset to empty array if no values or options
       setSelectedEquipment([]);
     }
-  }, [equipmentOptions, form]);
+  }, [equipmentOptions, currentFormValues, form]);
 
-  // Sécurisation de la sélection d'équipement
-  const handleSelect = (value: string) => {
-    // Always ensure we're working with an array
-    const currentValues = Array.isArray(form.getValues('compatibleEquipment')) 
-      ? [...form.getValues('compatibleEquipment')] 
-      : [];
+  // Sécurisation de la sélection d'équipement avec useCallback
+  const handleSelect = useCallback((value: string) => {
+    const currentValues = safeStringArray(form.getValues('compatibleEquipment')) || [];
     
     console.log("Current compatibleEquipment values:", currentValues);
     console.log("Selected value:", value);
@@ -103,36 +99,36 @@ const EquipmentCompatibilityField: React.FC<EquipmentCompatibilityFieldProps> = 
         console.log("Added value, new values:", updatedValues);
       }
     }
-  };
+  }, [form, equipmentOptions]);
 
-  // Sécurisation de la suppression d'équipement
-  const removeEquipment = (equipmentId: string | number) => {
-    const currentValues = Array.isArray(form.getValues('compatibleEquipment')) 
-      ? [...form.getValues('compatibleEquipment')] 
-      : [];
+  // Sécurisation de la suppression d'équipement avec useCallback
+  const removeEquipment = useCallback((equipmentId: string | number) => {
+    const currentValues = safeStringArray(form.getValues('compatibleEquipment')) || [];
     
-    const updatedValues = currentValues.filter(id => id.toString() !== equipmentId.toString());
+    const updatedValues = currentValues.filter(id => id !== equipmentId.toString());
     
     console.log("Removing equipment:", equipmentId);
     console.log("Updated values after removal:", updatedValues);
     
     form.setValue('compatibleEquipment', updatedValues);
-    setSelectedEquipment(prev => prev.filter(equipment => equipment.id !== equipmentId));
-  };
+    setSelectedEquipment(prev => prev.filter(equipment => equipment.id.toString() !== equipmentId.toString()));
+  }, [form]);
 
-  // Get current form values safely
-  const safeFormValues = () => {
+  // Get current form values safely with useMemo
+  const safeFormValues = useMemo(() => {
     const values = form.getValues('compatibleEquipment');
     return Array.isArray(values) ? values : [];
-  };
+  }, [form]);
 
   return (
     <FormField
       control={form.control}
       name="compatibleEquipment"
       render={({ field }) => {
-        // Ensure field.value is always an array
-        const safeValue = Array.isArray(field.value) ? field.value : [];
+        // Ensure field.value is always an array with useMemo
+        const safeValue = useMemo(() => {
+          return Array.isArray(field.value) ? field.value : [];
+        }, [field.value]);
         
         return (
           <FormItem className="flex flex-col">
@@ -168,7 +164,7 @@ const EquipmentCompatibilityField: React.FC<EquipmentCompatibilityFieldProps> = 
                               const isSelected = safeValue.includes(equipment.id.toString());
                               return (
                                 <CommandItem
-                                  key={equipment.id}
+                                  key={equipment.id.toString()}
                                   value={equipment.id.toString()}
                                   onSelect={handleSelect}
                                   className="flex items-center"
@@ -208,7 +204,7 @@ const EquipmentCompatibilityField: React.FC<EquipmentCompatibilityFieldProps> = 
                 {selectedEquipment && selectedEquipment.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-1">
                     {selectedEquipment.map((equipment) => (
-                      <Badge key={equipment.id} variant="secondary" className="flex items-center gap-1">
+                      <Badge key={equipment.id.toString()} variant="secondary" className="flex items-center gap-1">
                         {equipment.name}
                         <button
                           type="button"
