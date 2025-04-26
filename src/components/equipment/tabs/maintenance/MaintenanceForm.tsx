@@ -86,11 +86,11 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
     // Simulation de récupération des pièces compatibles avec cet équipement
     const mockParts: Part[] = [
       {
-        id: 1, // Converti en number au lieu de string "P001"
+        id: 1,
         name: "Filtre à huile",
         partNumber: "FH-JD-8R-001",
         category: "Filtres",
-        compatibility: ["John Deere 8R 410"],
+        compatibility: [1, 2, 3], // Changed to numbers
         manufacturer: "John Deere",
         price: 35.50,
         stock: 12,
@@ -99,11 +99,11 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
         image: "/placeholder.svg",
       },
       {
-        id: 2, // Converti en number au lieu de string "P002"
+        id: 2,
         name: "Kit courroie distribution",
         partNumber: "KCD-JD-8R-002",
         category: "Transmission",
-        compatibility: ["John Deere 8R 410"],
+        compatibility: [1, 2, 3], // Changed to numbers
         manufacturer: "John Deere",
         price: 145.99,
         stock: 3,
@@ -112,11 +112,11 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
         image: "/placeholder.svg",
       },
       {
-        id: 3, // Converti en number au lieu de string "P003"
+        id: 3,
         name: "Filtre à carburant",
         partNumber: "FC-JD-8R-003",
         category: "Filtres",
-        compatibility: ["John Deere 8R 410"],
+        compatibility: [1, 2, 3], // Changed to numbers
         manufacturer: "John Deere",
         price: 29.75,
         stock: 8,

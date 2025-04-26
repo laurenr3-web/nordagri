@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Part } from '@/types/Part';
+import { Part } from '@/types/Part';  // Use the updated Part type
 import PartsHeader from './PartsHeader';
 import PartsGrid from './PartsGrid';
 import PartsList from './PartsList';
@@ -12,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { deleteMultipleParts } from '@/services/supabase/parts';
 
+// Update interface to match the Part type with number[] compatibility
 interface PartsContainerProps {
   parts: Part[];
   filteredParts: Part[];
