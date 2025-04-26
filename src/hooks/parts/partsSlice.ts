@@ -20,12 +20,14 @@ export const usePartsSlice = (initialParts: Part[]) => {
   };
 
   const handleAddPart = (formData: PartFormValues) => {
-    const newPart = {
+    const newPart: Part = {
       id: parts.length + 1,
       name: formData.name,
       partNumber: formData.partNumber,
       category: formData.category,
-      compatibility: formData.compatibility.split(',').map(item => item.trim()),
+      compatibility: formData.compatibility
+        ? formData.compatibility.split(',').map(item => parseInt(item.trim(), 10) || 0)
+        : [],
       manufacturer: formData.manufacturer,
       price: parseFloat(formData.price),
       stock: parseInt(formData.stock),
