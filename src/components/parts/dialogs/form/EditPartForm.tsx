@@ -22,7 +22,6 @@ import { partFormSchema } from '@/components/parts/form/partFormTypes';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { useUpdatePart } from '@/hooks/parts/useUpdatePart';
-import EquipmentCompatibilityField from '@/components/parts/form/fields/EquipmentCompatibilityField';
 
 interface EditPartFormProps {
   part: Part;
@@ -30,14 +29,6 @@ interface EditPartFormProps {
   onCancel: () => void;
   onMainDialogClose?: () => void;
 }
-
-// Extended schema with equipment compatibility
-const editPartFormSchema = partFormSchema.extend({
-  compatibleEquipment: z.array(z.string()).optional(),
-});
-
-// Type for the extended form values
-type EditPartFormValues = z.infer<typeof editPartFormSchema>;
 
 const EditPartForm: React.FC<EditPartFormProps> = ({ 
   part, 
@@ -48,16 +39,9 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const updatePartMutation = useUpdatePart();
   
-  // Extract equipment IDs from compatibility array if they exist
-  const compatibleEquipmentIds = part.compatibility
-    ? part.compatibility
-        .filter(item => item && typeof item === 'string' && item.match(/^[0-9]+$/))
-        .map(item => item)
-    : [];
-
-  // Initialize the form with part values and equipment IDs
-  const form = useForm<EditPartFormValues>({
-    resolver: zodResolver(editPartFormSchema),
+  // Initialiser le formulaire avec les valeurs de la pièce existante
+  const form = useForm<z.infer<typeof partFormSchema>>({
+    resolver: zodResolver(partFormSchema),
     defaultValues: {
       name: part.name,
       partNumber: part.partNumber || part.reference || '',
@@ -67,18 +51,16 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
       stock: part.stock?.toString() || '0',
       reorderPoint: part.reorderPoint?.toString() || '5',
       location: part.location || '',
-      compatibility: Array.isArray(part.compatibility) 
-        ? part.compatibility
-            .filter(item => !item.match(/^[0-9]+$/)) // Filter out numeric IDs
-            .join(', ') 
-        : '',
-      compatibleEquipment: compatibleEquipmentIds,
+      compatibility: Array.isArray(part.compatibility) ? part.compatibility.join(', ') : 
+                     Array.isArray(part.compatibleWith) ? part.compatibleWith.join(', ') : '',
       image: part.image || 'https://placehold.co/100x100/png'
     },
   });
 
+  console.log('Form initialized with values:', form.getValues());
+
   // Gérer la soumission du formulaire
-  const handleSubmit = async (values: EditPartFormValues) => {
+  const handleSubmit = async (values: z.infer<typeof partFormSchema>) => {
     console.log('Form submitted with values:', values);
     setSubmissionError(null); // Reset previous error
     
@@ -89,15 +71,9 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
       const reorderPoint = parseInt(values.reorderPoint) || 5;
       
       // Convertir la chaîne de compatibilité en tableau
-      const textualCompatibility = values.compatibility
+      const compatibility = values.compatibility
         ? values.compatibility.split(',').map(item => item.trim()).filter(Boolean)
         : [];
-      
-      // Combiner les compatibilités textuelles et les IDs d'équipements
-      const combinedCompatibility = [
-        ...textualCompatibility,
-        ...(values.compatibleEquipment || [])
-      ];
       
       // Validation locale des données avant envoi
       if (!values.name.trim()) {
@@ -106,21 +82,21 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
       }
       
       const updatedPart: Part = {
-        ...part,
+        ...part, // Conserver l'ID et autres propriétés inchangées
         name: values.name,
         partNumber: values.partNumber,
-        reference: values.partNumber,
+        reference: values.partNumber, // Pour assurer la compatibilité avec le composant de détail
         category: values.category,
         manufacturer: values.manufacturer,
         price: price,
         stock: stock,
-        quantity: stock,
+        quantity: stock, // Pour assurer la compatibilité avec le composant de détail
         reorderPoint: reorderPoint,
-        minimumStock: reorderPoint,
+        minimumStock: reorderPoint, // Pour assurer la compatibilité avec le composant de détail
         location: values.location,
-        compatibility: combinedCompatibility,
-        compatibleWith: combinedCompatibility,
-        image: values.image || part.image
+        compatibility: compatibility,
+        compatibleWith: compatibility, // Pour assurer la compatibilité avec le composant de détail
+        image: values.image || part.image // Conserver l'image existante si aucune nouvelle n'est fournie
       };
       
       console.log('Sending updated part to parent:', updatedPart);
@@ -171,10 +147,6 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
           <div className="space-y-6">
             <BasicInfoFields form={form} />
             <InventoryFields form={form} />
-
-            {/* Nouveau champ pour la compatibilité avec les équipements */}
-            <EquipmentCompatibilityField form={form} />
-            
             <CompatibilityField form={form} />
           </div>
           <ImageField form={form} />

@@ -25,16 +25,16 @@ export interface ComboboxOption {
 }
 
 interface ComboboxProps {
-  options: ComboboxOption[] | undefined;
-  placeholder?: string;
-  emptyMessage?: string;
-  onSelect: (value: string) => void;
-  className?: string;
-  defaultValue?: string;
+  options: ComboboxOption[]
+  placeholder?: string
+  emptyMessage?: string
+  onSelect: (value: string) => void
+  className?: string
+  defaultValue?: string
 }
 
 export function Combobox({
-  options,
+  options = [], // Set default empty array to prevent undefined
   placeholder = "Sélectionner une option...",
   emptyMessage = "Aucun résultat trouvé",
   onSelect,
@@ -45,7 +45,7 @@ export function Combobox({
   const [value, setValue] = React.useState(defaultValue || "")
   const [searchTerm, setSearchTerm] = React.useState("")
 
-  // Always ensure options is an array
+  // Make sure options is always an array, even if undefined is passed
   const safeOptions = Array.isArray(options) ? options : [];
   
   // Filter options based on search term
@@ -93,8 +93,8 @@ export function Combobox({
             onValueChange={setSearchTerm}
           />
           <CommandEmpty>{emptyMessage}</CommandEmpty>
-          {filteredOptions && filteredOptions.length > 0 && (
-            <CommandGroup>
+          {filteredOptions && filteredOptions.length > 0 ? (
+            <CommandGroup className="max-h-60 overflow-y-auto">
               {filteredOptions.map((option) => (
                 <CommandItem
                   key={option.value}
@@ -111,7 +111,7 @@ export function Combobox({
                 </CommandItem>
               ))}
             </CommandGroup>
-          )}
+          ) : null}
         </Command>
       </PopoverContent>
     </Popover>

@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import MainLayout from '@/ui/layouts/MainLayout';
+import Navbar from '@/components/layout/Navbar';
 import { useTasksManager } from '@/hooks/maintenance/useTasksManager';
 import { useMaintenanceRealtime } from '@/hooks/maintenance/useMaintenanceRealtime';
 import { MaintenanceTask, MaintenanceStatus, MaintenancePriority, MaintenanceFormValues } from '@/hooks/maintenance/maintenanceSlice';
@@ -123,69 +124,55 @@ const Maintenance = () => {
   };
   
   return (
-    <MainLayout>
-      <div className="min-h-screen w-full bg-background overflow-hidden">
-        <div className="flex justify-between items-center p-3 sm:p-4 border-b">
-          <div className="text-sm text-muted-foreground truncate max-w-[200px] sm:max-w-none">
-            {isAuthenticated ? (
-              <span className="flex items-center gap-1">
-                Connecté en tant que : 
-                <span className="font-medium truncate">{getUserDisplayName()}</span>
-              </span>
-            ) : (
-              <span>Non connecté</span>
-            )}
-          </div>
-          <MaintenanceNotificationsPopover />
-        </div>
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full bg-background">
+        <Sidebar className="border-r">
+          <Navbar />
+        </Sidebar>
         
-        <div className="p-3 sm:p-6">
-          <div className="mx-auto space-y-6">
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div className="space-y-1">
-                  <h1 className="text-2xl sm:text-3xl font-bold">Maintenance</h1>
-                  <p className="text-muted-foreground">
-                    Gérez vos tâches de maintenance et suivez leur progression
-                  </p>
+        <div className="flex-1 w-full">
+          <div className="flex justify-between items-center p-4 border-b">
+            <div className="text-sm text-muted-foreground">
+              {isAuthenticated ? <span>Connecté en tant que : <span className="font-medium">{getUserDisplayName()}</span></span> : <span>Non connecté</span>}
+            </div>
+            <MaintenanceNotificationsPopover />
+          </div>
+          
+          <div className="pt-6 pb-16 px-4 sm:px-6 md:px-8">
+            <div className="max-w-7xl mx-auto">
+              <Tabs defaultValue="tasks" value={dashboardView} onValueChange={setDashboardView} className="px-[120px]">
+                <div className="flex justify-between items-center mb-6">
+                  <TabsList>
+                    <TabsTrigger value="tasks">Tâches</TabsTrigger>
+                    <TabsTrigger value="dashboard">Tableau de bord</TabsTrigger>
+                  </TabsList>
+                  
+                  <MaintenanceHeader setIsNewTaskDialogOpen={setIsNewTaskDialogOpen} userName={getUserDisplayName()} />
                 </div>
-                <MaintenanceHeader 
-                  setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
-                  userName={getUserDisplayName()}
-                  className="w-full sm:w-auto"
-                />
-              </div>
-              
-              <div className="grid grid-cols-1 gap-4">
-                <div className="overflow-hidden rounded-lg border bg-card">
+                
+                <TabsContent value="tasks">
                   <MaintenanceContent 
                     tasks={tasks} 
-                    currentView={currentView}
-                    setCurrentView={setCurrentView}
-                    currentMonth={currentMonth}
-                    setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
-                    updateTaskStatus={updateTaskStatus}
-                    updateTaskPriority={updateTaskPriority}
-                    deleteTask={deleteTask}
-                    userName={getUserDisplayName()}
+                    currentView={currentView} 
+                    setCurrentView={setCurrentView} 
+                    currentMonth={currentMonth} 
+                    setIsNewTaskDialogOpen={setIsNewTaskDialogOpen} 
+                    updateTaskStatus={updateTaskStatus} 
+                    updateTaskPriority={updateTaskPriority} 
+                    deleteTask={deleteTask} 
+                    userName={getUserDisplayName()} 
                   />
-                </div>
-
-                {dashboardView === 'dashboard' && (
-                  <div className="overflow-hidden rounded-lg border bg-card">
-                    <MaintenanceDashboard 
-                      tasks={tasks} 
-                      userName={getUserDisplayName()} 
-                    />
-                  </div>
-                )}
-              </div>
+                </TabsContent>
+                
+                <TabsContent value="dashboard">
+                  <MaintenanceDashboard tasks={tasks} userName={getUserDisplayName()} />
+                </TabsContent>
+              </Tabs>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Dialogs */}
+      
       <NewTaskDialog 
         open={isNewTaskDialogOpen} 
         onOpenChange={handleOpenNewTaskDialog} 
@@ -200,11 +187,12 @@ const Maintenance = () => {
         task={selectedTask} 
         onCompleted={() => {
           setIsCompletionDialogOpen(false);
+          // Refresh the task list
           refreshTasks();
         }} 
         userName={getUserDisplayName()} 
       />
-    </MainLayout>
+    </SidebarProvider>
   );
 };
 

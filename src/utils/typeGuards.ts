@@ -1,13 +1,17 @@
 
 /**
- * Fonction pour garantir qu'un ID est de type numérique
+ * Assure qu'un ID est converti en nombre
  * 
  * @param id L'ID qui peut être une chaîne ou un nombre
- * @returns L'ID converti en nombre si nécessaire
+ * @returns L'ID converti en nombre
  */
-export function ensureNumberId(id: string | number): number {
+export function ensureNumberId(id: number | string): number {
   if (typeof id === 'string') {
-    return parseInt(id, 10);
+    const parsed = parseInt(id, 10);
+    if (isNaN(parsed)) {
+      throw new Error(`Invalid ID format: ${id}`);
+    }
+    return parsed;
   }
   return id;
 }
@@ -18,21 +22,21 @@ export function ensureNumberId(id: string | number): number {
  * @param value La valeur à vérifier
  * @returns true si la valeur est numérique, false sinon
  */
-export function isNumeric(value: any): boolean {
+export function isNumeric(value: unknown): boolean {
   if (value === null || value === undefined) {
     return false;
   }
   if (typeof value === 'number') {
-    return true;
+    return !isNaN(value);
   }
   if (typeof value === 'string') {
-    return !isNaN(parseFloat(value)) && isFinite(Number(value));
+    return !isNaN(Number(value)) && value.trim() !== '';
   }
   return false;
 }
 
 /**
- * Valide et normalise le statut d'un équipement
+ * Valide le statut d'un équipement et retourne une valeur par défaut si invalide
  * 
  * @param status Le statut à valider
  * @returns Le statut validé ou 'operational' par défaut
@@ -41,32 +45,10 @@ export function validateEquipmentStatus(status?: string): 'operational' | 'maint
   if (!status) {
     return 'operational';
   }
-
+  
   const validStatuses = ['operational', 'maintenance', 'repair', 'inactive'];
   
-  if (validStatuses.includes(status)) {
-    return status as 'operational' | 'maintenance' | 'repair' | 'inactive';
-  }
-  
-  return 'operational'; // Valeur par défaut
-}
-
-/**
- * Vérifie si une valeur est un tableau
- * 
- * @param value La valeur à vérifier
- * @returns true si la valeur est un tableau, false sinon
- */
-export function isArray<T>(value: any): value is Array<T> {
-  return Array.isArray(value);
-}
-
-/**
- * Vérifie si une valeur est définie (non undefined ni null)
- * 
- * @param value La valeur à vérifier
- * @returns true si la valeur est définie, false sinon
- */
-export function isDefined<T>(value: T | undefined | null): value is T {
-  return value !== undefined && value !== null;
+  return validStatuses.includes(status) 
+    ? status as 'operational' | 'maintenance' | 'repair' | 'inactive' 
+    : 'operational';
 }

@@ -85,16 +85,15 @@ const CommandGroup = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Group>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>
 >(({ className, children, ...props }, ref) => {
-  // Handling null or undefined children safely with explicit type narrowing
-  if (children === undefined || children === null) return null;
+  // Early return if children is nullish to prevent rendering empty group
+  if (!children) return null;
   
-  // Use a type-safe approach to validate children
+  // Make sure we have an array of children that we can safely check
   const childrenArray = React.Children.toArray(children);
   
-  // Don't render groups with no children to prevent Array.from(undefined) errors
+  // Only render the group if there are valid children
   if (childrenArray.length === 0) return null;
   
-  // Render the group with valid children
   return (
     <CommandPrimitive.Group
       ref={ref}
@@ -104,7 +103,7 @@ const CommandGroup = React.forwardRef<
       )}
       {...props}
     >
-      {children}
+      {childrenArray}
     </CommandPrimitive.Group>
   );
 })
