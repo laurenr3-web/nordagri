@@ -7,17 +7,17 @@ interface PartCompatibilityProps {
 }
 
 const PartCompatibility: React.FC<PartCompatibilityProps> = ({ compatibility }) => {
-  // Transformation sécurisée de la liste de compatibilité
+  // Ensure compatibility is always an array
   const safeCompatibility = React.useMemo(() => {
+    // If undefined or null, return empty array
     if (!compatibility) return [];
     
-    // If compatibility is already an array, use it directly
+    // If already an array, use it directly
     if (Array.isArray(compatibility)) {
       return compatibility;
     }
     
-    // TypeScript needs explicit type narrowing here since it's unsure about the type
-    // We shouldn't reach this case given the type definition, but handling it anyway
+    // This shouldn't happen based on the type definition, but handle just in case
     return [];
   }, [compatibility]);
   

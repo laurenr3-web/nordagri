@@ -60,6 +60,7 @@ const EquipmentCompatibilityField: React.FC<EquipmentCompatibilityFieldProps> = 
   // Sécurisation de la mise à jour des équipements sélectionnés
   useEffect(() => {
     const currentValues = form.getValues('compatibleEquipment');
+    // Ensure currentValues is always an array
     const safeCurrentValues = Array.isArray(currentValues) ? currentValues : [];
     
     console.log("Form values for compatibleEquipment:", safeCurrentValues);
@@ -71,11 +72,15 @@ const EquipmentCompatibilityField: React.FC<EquipmentCompatibilityFieldProps> = 
       );
       console.log("Selected equipment:", selected);
       setSelectedEquipment(selected || []);
+    } else {
+      // Reset to empty array if no values or options
+      setSelectedEquipment([]);
     }
   }, [equipmentOptions, form]);
 
   // Sécurisation de la sélection d'équipement
   const handleSelect = (value: string) => {
+    // Always ensure we're working with an array
     const currentValues = Array.isArray(form.getValues('compatibleEquipment')) 
       ? [...form.getValues('compatibleEquipment')] 
       : [];
@@ -158,7 +163,7 @@ const EquipmentCompatibilityField: React.FC<EquipmentCompatibilityFieldProps> = 
                         <CommandGroup className="max-h-64 overflow-auto">
                           {loading ? (
                             <div className="p-2 text-center text-sm text-muted-foreground">Chargement...</div>
-                          ) : (
+                          ) : equipmentOptions.length > 0 ? (
                             equipmentOptions.map((equipment) => {
                               const isSelected = safeValue.includes(equipment.id.toString());
                               return (
@@ -185,6 +190,10 @@ const EquipmentCompatibilityField: React.FC<EquipmentCompatibilityFieldProps> = 
                                 </CommandItem>
                               );
                             })
+                          ) : (
+                            <div className="p-2 text-center text-sm text-muted-foreground">
+                              Aucun équipement disponible
+                            </div>
                           )}
                         </CommandGroup>
                       ) : (
