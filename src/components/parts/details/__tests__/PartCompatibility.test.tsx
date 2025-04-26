@@ -1,25 +1,23 @@
 
-/**
- * @jest-environment jsdom
- */
-import React from 'react';
+import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import PartCompatibility from '../PartCompatibility';
+import React from 'react';
 
 describe('PartCompatibility Component', () => {
-  test('renders empty state when compatibility is undefined', () => {
+  it('renders empty state when compatibility is undefined', () => {
     render(<PartCompatibility compatibility={undefined} />);
     
     expect(screen.getByText('Aucune information de compatibilité disponible')).toBeInTheDocument();
   });
   
-  test('renders empty state when compatibility is an empty array', () => {
+  it('renders empty state when compatibility is an empty array', () => {
     render(<PartCompatibility compatibility={[]} />);
     
     expect(screen.getByText('Aucune information de compatibilité disponible')).toBeInTheDocument();
   });
   
-  test('renders badges for each compatibility item', () => {
+  it('renders badges for each compatibility item', () => {
     const compatibilityItems = ['John Deere 6920', 'New Holland T7.210', 'Case IH Magnum'];
     render(<PartCompatibility compatibility={compatibilityItems} />);
     
@@ -28,7 +26,7 @@ describe('PartCompatibility Component', () => {
     });
   });
   
-  test('handles type errors gracefully', () => {
+  it('handles type errors gracefully', () => {
     // Simulate a situation where compatibility has wrong type
     // @ts-ignore - Intentionally passing wrong type for testing
     render(<PartCompatibility compatibility={'Invalid data type'} />);
@@ -37,3 +35,4 @@ describe('PartCompatibility Component', () => {
     expect(screen.getByText('Aucune information de compatibilité disponible')).toBeInTheDocument();
   });
 });
+
