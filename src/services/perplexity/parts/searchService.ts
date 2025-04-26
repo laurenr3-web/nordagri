@@ -1,71 +1,70 @@
 
 import { Part } from '@/types/Part';
+import { partsApi } from './api';
+import { partsParser } from './parser';
+import { SearchConfig, PartSearchResult } from './types';
 
-export async function searchParts(query: string): Promise<Part[]> {
-  try {
-    // Simulated search delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Return mock results for demonstration
-    const results: Part[] = [
-      {
-        id: 101,
-        name: "Premium Air Filter",
-        partNumber: "PAF-1001",
-        category: "filters",
-        compatibility: ['1', '2', '3'], // Changed to strings
-        manufacturer: "FilterMaster",
-        price: 45.99,
-        stock: 8,
-        location: "Warehouse C",
-        reorderPoint: 3,
-        image: "https://images.unsplash.com/photo-1642742381109-81e94659e783?q=80&w=500&auto=format&fit=crop",
-        description: "High-performance air filter for agricultural equipment",
-        reference: "PAF-1001",
-        compatibleWith: ['1', '2', '3'], // Changed to strings
-        purchasePrice: 35.00,
-        quantity: 8,
-        minimumStock: 3,
-        estimatedPrice: 45.99,
-        inStock: true,
-        isFromSearch: true,
-        imageUrl: "https://images.unsplash.com/photo-1642742381109-81e94659e783?q=80&w=500&auto=format&fit=crop"
-      },
-      {
-        id: 102,
-        name: "Heavy Duty Hydraulic Oil Filter",
-        partNumber: "HOF-HD-2002",
-        category: "filters",
-        compatibility: ['3', '4', '5'], // Changed to strings
-        manufacturer: "HydroTech",
-        price: 65.75,
-        stock: 5,
-        location: "Warehouse A",
-        reorderPoint: 2,
-        image: "https://images.unsplash.com/photo-1495086682705-5ead063c0e73?q=80&w=500&auto=format&fit=crop",
-        description: "Industrial-grade hydraulic oil filter for heavy machinery",
-        reference: "HOF-HD-2002",
-        compatibleWith: ['3', '4', '5'], // Changed to strings
-        purchasePrice: 50.00,
-        quantity: 5,
-        minimumStock: 2,
-        estimatedPrice: 65.75,
-        inStock: true,
-        isFromSearch: true,
-        imageUrl: "https://images.unsplash.com/photo-1495086682705-5ead063c0e73?q=80&w=500&auto=format&fit=crop"
-      },
-    ];
-    
-    // Filter results based on query
-    return results.filter(part => 
-      part.name.toLowerCase().includes(query.toLowerCase()) || 
-      part.partNumber.toLowerCase().includes(query.toLowerCase()) ||
-      part.category.toLowerCase().includes(query.toLowerCase()) ||
-      part.manufacturer.toLowerCase().includes(query.toLowerCase())
-    );
-    
-  } catch (error) {
-    console.error("Error searching parts:", error);
-    return [];
+/**
+ * Service for searching parts using Perplexity API
+ */
+export const partsSearchService = {
+  /**
+   * Search for parts by description or reference
+   */
+  async searchParts(query: string): Promise<Part[]> {
+    try {
+      console.log('Démarrage de la recherche pour:', query);
+      
+      const messages = [
+        {
+          role: "system",
+          content: "Vous êtes un assistant spécialisé dans les pièces détachées agricoles. Retournez les informations au format JSON."
+        },
+        {
+          role: "user",
+          content: `Recherchez des informations sur la pièce agricole suivante: ${query}. Incluez la référence, le nom, la description, la compatibilité et si possible le prix estimé.`
+        }
+      ];
+      
+      const content = await partsApi.executeQuery(messages);
+      
+      // Parse the JSON response
+      const parsedData = partsParser.parseJsonResponse(content);
+      const normalizedData = partsParser.normalizeSearchResponse(parsedData, content);
+      
+      // Transform to application format
+      return this.transformSearchResults(normalizedData.results);
+      
+    } catch (error) {
+      console.error("Erreur lors de la recherche de pièces:", error);
+      return [];
+    }
+  },
+
+  /**
+   * Transform search results to application Part format
+   */
+  transformSearchResults(results: PartSearchResult[]): Part[] {
+    return results.map((item: PartSearchResult, index: number) => ({
+      // Générer un ID numérique au lieu d'une chaîne
+      id: Date.now() + index, // Utiliser un timestamp + index comme ID numérique unique
+      name: item.name || "Sans nom",
+      partNumber: item.reference || item.partNumber || "N/A",
+      category: item.category || "Non catégorisé",
+      compatibility: item.compatibleWith || [],
+      manufacturer: item.manufacturer || "Inconnu",
+      price: 0,
+      stock: 0,
+      location: "",
+      reorderPoint: 0,
+      image: item.imageUrl || "",
+      description: item.description || "",
+      reference: item.reference || item.partNumber || "N/A",
+      compatibleWith: item.compatibleWith || [],
+      estimatedPrice: item.estimatedPrice || item.price || null,
+      inStock: false,
+      isFromSearch: true,
+      imageUrl: item.imageUrl || null
+    }));
   }
-}
+};

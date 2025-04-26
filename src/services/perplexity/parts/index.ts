@@ -1,13 +1,15 @@
 
-import { searchParts } from './searchService';
-// import { comparePartPrices } from './priceService'; // Uncomment if this exists
+import { partsSearchService } from './searchService';
+import { partsPriceService } from './priceService';
 
-// Re-export the functions directly
-export * from './searchService';
-// export * from './priceService'; // Uncomment if this exists
+// Re-export the types
+export * from './types';
 
 // Create a consolidated service object
 export const perplexityPartsService = {
-  searchParts,
-  // comparePartPrices // Uncomment if this exists
+  searchParts: partsSearchService.searchParts,
+  comparePartPrices: partsPriceService.comparePartPrices
 };
+
+// Export individual services
+export { partsSearchService, partsPriceService };

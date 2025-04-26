@@ -1,4 +1,3 @@
-
 import { Part } from '@/types/Part';
 import { assertIsString, assertIsNumber, assertIsArray, assertIsObject } from '@/utils/typeAssertions';
 
@@ -11,7 +10,7 @@ export interface LocalPart {
   description?: string;
   category: string;
   manufacturer: string;
-  compatibleWith?: string[];
+  compatibleWith?: string[] | string;
   compatibility: string[];
   inStock?: boolean;
   quantity?: number;
@@ -47,18 +46,6 @@ export const convertToLocalPart = (part: unknown): LocalPart => {
     safeId = 0; // Valeur par défaut si ni string ni number
   }
   
-  // Ensure compatibility is string[]
-  let safeCompatibility = [];
-  if (Array.isArray(typedPart.compatibility)) {
-    safeCompatibility = typedPart.compatibility.map(id => id.toString());
-  }
-  
-  // Ensure compatibleWith is string[]
-  let safeCompatibleWith = [];
-  if (Array.isArray(typedPart.compatibleWith)) {
-    safeCompatibleWith = typedPart.compatibleWith.map(id => id.toString());
-  }
-  
   return {
     id: safeId,
     name: assertIsString(typedPart.name ?? ''),
@@ -67,8 +54,8 @@ export const convertToLocalPart = (part: unknown): LocalPart => {
     description: typedPart.description as string | undefined ?? '',
     category: assertIsString(typedPart.category ?? ''),
     manufacturer: assertIsString(typedPart.manufacturer ?? ''),
-    compatibleWith: safeCompatibleWith,
-    compatibility: safeCompatibility,
+    compatibleWith: Array.isArray(typedPart.compatibleWith) ? typedPart.compatibleWith : [],
+    compatibility: Array.isArray(typedPart.compatibility) ? typedPart.compatibility : [],
     inStock: !!typedPart.inStock,
     quantity: typeof typedPart.quantity === 'number' ? typedPart.quantity : undefined,
     minimumStock: typeof typedPart.minimumStock === 'number' ? typedPart.minimumStock : undefined,
@@ -94,25 +81,13 @@ export const convertToPart = (localPart: unknown): Part => {
   const rawId = typedPart.id;
   const id = typeof rawId === 'string' ? parseInt(rawId, 10) : (typeof rawId === 'number' ? rawId : 0);
   
-  // Ensure compatibility is string[]
-  let safeCompatibility = [];
-  if (Array.isArray(typedPart.compatibility)) {
-    safeCompatibility = typedPart.compatibility.map(id => id.toString());
-  }
-  
-  // Ensure compatibleWith is string[]
-  let safeCompatibleWith = [];
-  if (Array.isArray(typedPart.compatibleWith)) {
-    safeCompatibleWith = typedPart.compatibleWith.map(id => id.toString());
-  }
-  
   // Conversion explicite vers le type Part
   return {
     id: isNaN(id) ? 0 : id, // Assure que l'id est toujours un number valide
     name: assertIsString(typedPart.name ?? ''),
     partNumber: assertIsString(typedPart.partNumber ?? ''),
     category: assertIsString(typedPart.category ?? ''),
-    compatibility: safeCompatibility,
+    compatibility: assertIsArray<string>(Array.isArray(typedPart.compatibility) ? typedPart.compatibility : []),
     manufacturer: assertIsString(typedPart.manufacturer ?? ''),
     price: assertIsNumber(Number(typedPart.price ?? 0)),
     stock: assertIsNumber(Number(typedPart.stock ?? 0)),
@@ -121,7 +96,7 @@ export const convertToPart = (localPart: unknown): Part => {
     image: assertIsString(typedPart.image ?? ''),
     description: typedPart.description as string | undefined,
     reference: typedPart.reference as string | undefined,
-    compatibleWith: safeCompatibleWith,
+    compatibleWith: Array.isArray(typedPart.compatibleWith) ? typedPart.compatibleWith : [],
     estimatedPrice: typeof typedPart.estimatedPrice === 'number' ? typedPart.estimatedPrice : undefined,
     inStock: !!typedPart.inStock,
     isFromSearch: !!typedPart.isFromSearch,

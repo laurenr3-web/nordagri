@@ -5,18 +5,13 @@ import { Part } from '@/types/Part';
 export async function updatePart(part: Part): Promise<Part> {
   const numericPartId = typeof part.id === 'string' ? parseInt(part.id, 10) : part.id;
 
-  // S'assurer que compatibility est un tableau valide
-  const compatibility = Array.isArray(part.compatibility) 
-    ? part.compatibility.filter(id => id !== null && id !== undefined)
-    : [];
-
   // Map our Part interface to the database structure
   const dbPart = {
     name: part.name,
     part_number: part.partNumber,
     category: part.category,
     supplier: part.manufacturer,
-    compatible_with: compatibility,
+    compatible_with: part.compatibility,
     quantity: part.stock,
     unit_price: part.price,
     location: part.location,

@@ -7,7 +7,7 @@ export const partsData: Part[] = [
     name: 'Air Filter',
     partNumber: 'AF-JD-4290',
     category: 'filters',
-    compatibility: ['1', '2'], // Changed to strings
+    compatibility: ['John Deere 8R 410', 'John Deere 7R Series'],
     manufacturer: 'John Deere',
     price: 89.99,
     stock: 15,
@@ -20,7 +20,7 @@ export const partsData: Part[] = [
     name: 'Hydraulic Oil Filter',
     partNumber: 'HOF-3842',
     category: 'filters',
-    compatibility: ['3', '4'], // Changed to strings
+    compatibility: ['Case IH Axial-Flow', 'Case IH Magnum'],
     manufacturer: 'Case IH',
     price: 44.50,
     stock: 8,
@@ -33,7 +33,7 @@ export const partsData: Part[] = [
     name: 'Transmission Belt',
     partNumber: 'TB-NH-4502',
     category: 'drive',
-    compatibility: ['5', '6'], // Changed to strings
+    compatibility: ['New Holland T6.180', 'New Holland T7 Series'],
     manufacturer: 'New Holland',
     price: 76.25,
     stock: 3,
@@ -46,7 +46,7 @@ export const partsData: Part[] = [
     name: 'Fuel Injector',
     partNumber: 'FI-KB-922',
     category: 'engine',
-    compatibility: ['7', '8'], // Changed to strings
+    compatibility: ['Kubota M7-172', 'Kubota M5 Series'],
     manufacturer: 'Kubota',
     price: 165.75,
     stock: 6,
@@ -59,7 +59,7 @@ export const partsData: Part[] = [
     name: 'Brake Pads',
     partNumber: 'BP-FT-331',
     category: 'brake',
-    compatibility: ['9', '10'], // Changed to strings
+    compatibility: ['Fendt 942 Vario', 'Fendt 900 Series'],
     manufacturer: 'Fendt',
     price: 94.99,
     stock: 10,
@@ -72,7 +72,7 @@ export const partsData: Part[] = [
     name: 'Radiator Cap',
     partNumber: 'RC-JD-118',
     category: 'cooling',
-    compatibility: ['1', '11'], // Changed to strings
+    compatibility: ['John Deere 8R 410', 'John Deere 6 Series'],
     manufacturer: 'John Deere',
     price: 25.50,
     stock: 22,
@@ -85,7 +85,7 @@ export const partsData: Part[] = [
     name: 'Hydraulic Cylinder',
     partNumber: 'HC-MF-752',
     category: 'hydraulic',
-    compatibility: ['12', '13'], // Changed to strings
+    compatibility: ['Massey Ferguson 8S.245', 'Massey Ferguson 7S Series'],
     manufacturer: 'Massey Ferguson',
     price: 289.99,
     stock: 2,
@@ -98,7 +98,7 @@ export const partsData: Part[] = [
     name: 'Battery',
     partNumber: 'BAT-12-800',
     category: 'electrical',
-    compatibility: ['1', '2', '3', '4'], // Changed to strings
+    compatibility: ['All Tractors'],
     manufacturer: 'Universal',
     price: 159.75,
     stock: 4,

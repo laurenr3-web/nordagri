@@ -3,86 +3,104 @@ import { supabase } from '@/integrations/supabase/client';
 import { Part } from '@/types/Part';
 
 /**
- * Add a new part to the database
- * @param part Part data (without ID)
- * @returns The newly created part with ID
+ * Adds a new part to the inventory
+ * 
+ * @param part The part data to add (without ID)
+ * @returns Promise resolving to the added part with its ID
  */
 export async function addPart(part: Omit<Part, 'id'>): Promise<Part> {
-  try {
-    console.log('Adding part to database:', part);
-    
-    // Extract user_id from auth session
-    const { data: sessionData } = await supabase.auth.getSession();
-    const userId = sessionData?.session?.user?.id;
-    
-    if (!userId) {
-      throw new Error("User not authenticated");
-    }
-    
-    // Ensure compatibility is string[] for database storage
-    const compatibilityAsStrings = Array.isArray(part.compatibility) 
-      ? part.compatibility.map(id => id.toString()) 
-      : [];
-    
-    // Prepare part data for Supabase
-    const partData = {
-      name: part.name,
-      part_number: part.partNumber || part.reference || '',
-      category: part.category,
-      supplier: part.manufacturer,
-      compatible_with: compatibilityAsStrings, // Convert to string[] for Supabase
-      quantity: part.stock || part.quantity || 0,
-      unit_price: part.price || 0,
-      location: part.location || '',
-      reorder_threshold: part.reorderPoint || part.minimumStock || 5,
-      image_url: part.image || part.imageUrl || 'https://placehold.co/100x100/png',
-      owner_id: userId
-    };
-    
-    // Insert part into database
-    const { data, error } = await supabase
-      .from('parts_inventory')
-      .insert(partData)
-      .select()
-      .single();
-    
-    if (error) {
-      console.error('Error adding part:', error);
-      throw new Error(error.message);
-    }
-    
-    if (!data) {
-      throw new Error("No data returned from insert operation");
-    }
-    
-    // Convert the Supabase data back to our Part format
-    // compatible_with comes from database as string[]
-    
-    // Create and return a properly typed Part object
-    const newPart: Part = {
-      id: data.id,
-      name: data.name,
-      partNumber: data.part_number,
-      reference: data.part_number,
-      category: data.category,
-      manufacturer: data.supplier,
-      compatibility: data.compatible_with || [], // Already string[] from database
-      compatibleWith: data.compatible_with || [], // For compatibility
-      stock: data.quantity,
-      quantity: data.quantity,
-      price: data.unit_price,
-      location: data.location,
-      reorderPoint: data.reorder_threshold,
-      minimumStock: data.reorder_threshold,
-      image: data.image_url,
-      imageUrl: data.image_url
-    };
-    
-    console.log('Part added successfully:', newPart);
-    return newPart;
-    
-  } catch (error: any) {
-    console.error('Error in addPart service:', error);
-    throw new Error(`Failed to add part: ${error.message}`);
+  console.log('➕ Adding new part:', part);
+  
+  // Get the current user ID from the session
+  const { data: sessionData } = await supabase.auth.getSession();
+  const userId = sessionData.session?.user.id;
+  
+  if (!userId) {
+    throw new Error("Vous devez être connecté pour ajouter une pièce");
   }
+  
+  // First check if a part with the same name already exists for this user
+  const { data: existingNameCheck, error: nameCheckError } = await supabase
+    .from('parts_inventory')
+    .select('id, name')
+    .eq('owner_id', userId)
+    .eq('name', part.name)
+    .limit(1);
+  
+  if (nameCheckError) {
+    console.error('Error checking for existing part name:', nameCheckError);
+  } else if (existingNameCheck && existingNameCheck.length > 0) {
+    console.warn('A part with this name already exists:', existingNameCheck[0]);
+    throw new Error(`Une pièce avec le nom "${part.name}" existe déjà.`);
+  }
+  
+  // Then check if a part with the same part number exists
+  if (part.partNumber) {
+    const { data: existingParts, error: checkError } = await supabase
+      .from('parts_inventory')
+      .select('id, name')
+      .eq('owner_id', userId)
+      .eq('part_number', part.partNumber)
+      .limit(1);
+    
+    if (checkError) {
+      console.error('Error checking for existing part number:', checkError);
+    } else if (existingParts && existingParts.length > 0) {
+      console.warn('A part with this part number already exists:', existingParts[0]);
+      throw new Error(`Une pièce avec le numéro "${part.partNumber}" existe déjà.`);
+    }
+  }
+  
+  // Prepare data for insertion
+  const partData = {
+    name: part.name,
+    part_number: part.partNumber,
+    category: part.category,
+    supplier: part.manufacturer,
+    compatible_with: part.compatibility,
+    quantity: part.stock,
+    unit_price: part.price,
+    location: part.location,
+    reorder_threshold: part.reorderPoint,
+    image_url: part.image,
+    owner_id: userId // Explicitly set the owner_id to the current user
+  };
+  
+  // Insert the part
+  const { data, error } = await supabase
+    .from('parts_inventory')
+    .insert(partData)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error adding part:', error);
+    // Provide more user-friendly error messages
+    if (error.code === '23505') {
+      throw new Error("Une pièce avec ces informations existe déjà");
+    } else if (error.code === '23502') {
+      throw new Error("Des informations requises sont manquantes");
+    } else {
+      throw error;
+    }
+  }
+  
+  if (!data) {
+    throw new Error('No data returned from insert operation');
+  }
+  
+  // Convert the database record to a Part object
+  return {
+    id: data.id,
+    name: data.name,
+    partNumber: data.part_number || '',
+    category: data.category || '',
+    manufacturer: data.supplier || '',
+    compatibility: data.compatible_with || [],
+    stock: data.quantity,
+    price: data.unit_price !== null ? data.unit_price : 0,
+    location: data.location || '',
+    reorderPoint: data.reorder_threshold || 5,
+    image: data.image_url || 'https://placehold.co/100x100/png'
+  };
 }

@@ -64,12 +64,8 @@ export function NewPartForm({ onSuccess, onCancel }: NewPartFormProps) {
         reference: values.partNumber, // Pour la rétrocompatibilité
         category: values.category || 'Général',
         manufacturer: values.manufacturer || '',
-        compatibility: values.compatibility 
-          ? values.compatibility.split(',').map(item => parseInt(item.trim(), 10) || 0) 
-          : [],
-        compatibleWith: values.compatibility 
-          ? values.compatibility.split(',').map(item => parseInt(item.trim(), 10) || 0)
-          : [],
+        compatibility: values.compatibility ? values.compatibility.split(',').map(item => item.trim()) : [],
+        compatibleWith: values.compatibility ? values.compatibility.split(',').map(item => item.trim()) : [],
         stock: values.stock,
         quantity: values.stock, // Pour la rétrocompatibilité
         price: values.price || 0,

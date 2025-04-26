@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,7 +22,6 @@ import { partFormSchema } from '@/components/parts/form/partFormTypes';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { useUpdatePart } from '@/hooks/parts/useUpdatePart';
-import { useValidateCompatibility } from '@/hooks/parts/useValidateCompatibility';
 
 interface EditPartFormProps {
   part: Part;
@@ -38,7 +38,6 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
 }) => {
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const updatePartMutation = useUpdatePart();
-  const { validateEquipmentIds } = useValidateCompatibility();
   
   // Initialiser le formulaire avec les valeurs de la pièce existante
   const form = useForm<z.infer<typeof partFormSchema>>({
@@ -52,12 +51,8 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
       stock: part.stock?.toString() || '0',
       reorderPoint: part.reorderPoint?.toString() || '5',
       location: part.location || '',
-      compatibility: '',
-      compatibilityIds: Array.isArray(part.compatibility) 
-        ? part.compatibility
-            .filter(item => typeof item === 'number')
-            .map(item => Number(item))
-        : [],
+      compatibility: Array.isArray(part.compatibility) ? part.compatibility.join(', ') : 
+                     Array.isArray(part.compatibleWith) ? part.compatibleWith.join(', ') : '',
       image: part.image || 'https://placehold.co/100x100/png'
     },
   });
@@ -75,14 +70,10 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
       const stock = parseInt(values.stock) || 0;
       const reorderPoint = parseInt(values.reorderPoint) || 5;
       
-      // Valider les IDs d'équipements avant d'enregistrer
-      const equipmentIds = values.compatibilityIds || [];
-      const isValid = await validateEquipmentIds(equipmentIds);
-      
-      if (!isValid) {
-        setSubmissionError("Certains équipements sélectionnés n'existent plus. Veuillez vérifier votre sélection.");
-        return;
-      }
+      // Convertir la chaîne de compatibilité en tableau
+      const compatibility = values.compatibility
+        ? values.compatibility.split(',').map(item => item.trim()).filter(Boolean)
+        : [];
       
       // Validation locale des données avant envoi
       if (!values.name.trim()) {
@@ -103,8 +94,8 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
         reorderPoint: reorderPoint,
         minimumStock: reorderPoint, // Pour assurer la compatibilité avec le composant de détail
         location: values.location,
-        compatibility: values.compatibilityIds, // Utiliser les IDs des équipements compatibles
-        compatibleWith: values.compatibilityIds, // Pour assurer la compatibilité avec le composant de détail
+        compatibility: compatibility,
+        compatibleWith: compatibility, // Pour assurer la compatibilité avec le composant de détail
         image: values.image || part.image // Conserver l'image existante si aucune nouvelle n'est fournie
       };
       
