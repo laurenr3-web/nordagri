@@ -1,6 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import 'vitest-dom/extend-expect';
 import PartCompatibility from '../PartCompatibility';
 import React from 'react';
 
@@ -35,4 +36,3 @@ describe('PartCompatibility Component', () => {
     expect(screen.getByText('Aucune information de compatibilité disponible')).toBeInTheDocument();
   });
 });
-
