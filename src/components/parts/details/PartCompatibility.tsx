@@ -10,9 +10,15 @@ const PartCompatibility: React.FC<PartCompatibilityProps> = ({ compatibility }) 
   // Transformation sécurisée de la liste de compatibilité
   const safeCompatibility = React.useMemo(() => {
     if (!compatibility) return [];
-    return Array.isArray(compatibility) 
-      ? compatibility 
-      : compatibility.split(',').map(s => s.trim()).filter(Boolean);
+    
+    // If compatibility is already an array, use it directly
+    if (Array.isArray(compatibility)) {
+      return compatibility;
+    }
+    
+    // TypeScript needs explicit type narrowing here since it's unsure about the type
+    // We shouldn't reach this case given the type definition, but handling it anyway
+    return [];
   }, [compatibility]);
   
   return (
