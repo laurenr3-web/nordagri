@@ -4,7 +4,7 @@ export interface Part {
   name: string;
   partNumber: string;
   category: string;
-  compatibility: string[];
+  compatibility: number[];  // Changed from string[] to number[]
   manufacturer: string;
   price: number;
   stock: number;
@@ -15,7 +15,7 @@ export interface Part {
   // Champs pour la rétrocompatibilité
   description?: string;
   reference?: string;
-  compatibleWith?: string[];
+  compatibleWith?: number[];  // Changed from string[] to number[]
   purchasePrice?: number;
   quantity?: number;
   minimumStock?: number;

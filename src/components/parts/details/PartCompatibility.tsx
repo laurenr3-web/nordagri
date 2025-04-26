@@ -9,8 +9,10 @@ interface PartCompatibilityProps {
 }
 
 const PartCompatibility: React.FC<PartCompatibilityProps> = ({ compatibility }) => {
-  // Assurer que compatibility est toujours un tableau
-  const safeCompatibility = Array.isArray(compatibility) ? compatibility : [];
+  // Assurer que compatibility est toujours un tableau de nombres
+  const safeCompatibility = Array.isArray(compatibility) 
+    ? compatibility.filter(id => id !== null && id !== undefined).map(id => Number(id))
+    : [];
   
   // Charger la liste des équipements
   const { data: equipment, isLoading, error } = useEquipmentList();

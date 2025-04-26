@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -89,6 +88,11 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
     setIsDeleteDialogOpen(true);
   };
 
+  // Ensure compatibility is always an array of numbers
+  const safeCompatibility = Array.isArray(part.compatibility) 
+    ? part.compatibility.map(id => typeof id === 'string' ? parseInt(id, 10) : id)
+    : [];
+
   return (
     <div className="space-y-6">
       {onBack && (
@@ -130,7 +134,7 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
         <PartInventoryInfo part={part} />
       </div>
 
-      <PartCompatibility compatibility={part.compatibility} />
+      <PartCompatibility compatibility={safeCompatibility} />
 
       <PartReorderInfo part={part} />
 

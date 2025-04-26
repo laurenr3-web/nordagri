@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,6 +21,7 @@ import { partFormSchema } from '@/components/parts/form/partFormTypes';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { useUpdatePart } from '@/hooks/parts/useUpdatePart';
+import { useValidateCompatibility } from '@/hooks/parts/useValidateCompatibility';
 
 interface EditPartFormProps {
   part: Part;
@@ -156,7 +156,7 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
           <div className="space-y-6">
             <BasicInfoFields form={form} />
             <InventoryFields form={form} />
-            <EquipmentCompatibilityField form={form} />
+            <CompatibilityField form={form} />
           </div>
           <ImageField form={form} />
         </div>

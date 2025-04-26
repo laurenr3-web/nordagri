@@ -1,6 +1,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom'; // Add this import for toBeInTheDocument
 import PartCompatibility from '../PartCompatibility';
 import { useEquipmentList } from '@/hooks/equipment/useEquipmentList';
 
