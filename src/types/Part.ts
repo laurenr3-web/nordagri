@@ -4,7 +4,7 @@ export interface Part {
   name: string;
   partNumber: string;
   category: string;
-  compatibility: number[];  // Define as number[] consistently
+  compatibility: string[];  // Changed to string[] to match Supabase
   manufacturer: string;
   price: number;
   stock: number;
@@ -15,7 +15,7 @@ export interface Part {
   // Champs pour la rétrocompatibilité
   description?: string;
   reference?: string;
-  compatibleWith?: number[];  // Define as number[] consistently
+  compatibleWith?: string[];  // Changed to string[] to match Supabase
   purchasePrice?: number;
   quantity?: number;
   minimumStock?: number;

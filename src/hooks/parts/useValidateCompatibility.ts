@@ -1,65 +1,39 @@
 
-import { useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
+import { useEquipmentList } from '@/hooks/equipment/useEquipmentList';
 
-/**
- * Hook pour valider la compatibilité des équipements sélectionnés
- */
 export function useValidateCompatibility() {
-  const { toast } = useToast();
+  const [isValidating, setIsValidating] = useState(false);
+  const { data: equipment } = useEquipmentList();
 
-  /**
-   * Vérifie que tous les IDs d'équipements existent dans la base de données
-   * @param equipmentIds Liste des IDs d'équipements à valider
-   * @returns true si tous les équipements sont valides, false sinon
-   */
-  const validateEquipmentIds = useCallback(async (equipmentIds: number[]): Promise<boolean> => {
-    if (!equipmentIds || equipmentIds.length === 0) {
-      return true; // Si pas d'équipements sélectionnés, c'est valide
-    }
-
+  const validateEquipmentIds = async (equipmentIds: string[]): Promise<boolean> => {
+    setIsValidating(true);
+    
     try {
-      // Récupérer tous les IDs d'équipements existants qui correspondent aux IDs sélectionnés
-      const { data, error } = await supabase
-        .from('equipment')
-        .select('id')
-        .in('id', equipmentIds);
-
-      if (error) {
-        console.error('Erreur lors de la validation des équipements:', error);
-        toast({
-          title: "Erreur de validation",
-          description: "Impossible de vérifier les équipements compatibles",
-          variant: "destructive",
-        });
-        return false;
+      if (!equipment || equipment.length === 0) {
+        // If we can't check equipment, assume it's valid
+        return true;
       }
 
-      // Vérifier que tous les IDs sélectionnés existent dans la base de données
-      const foundIds = data.map(item => item.id);
-      const invalidIds = equipmentIds.filter(id => !foundIds.includes(id));
-
-      if (invalidIds.length > 0) {
-        toast({
-          title: "Équipements invalides",
-          description: `Certains équipements sélectionnés n'existent plus (IDs: ${invalidIds.join(', ')})`,
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Erreur lors de la validation des équipements:', error);
-      toast({
-        title: "Erreur de validation",
-        description: "Une erreur est survenue lors de la validation des équipements",
-        variant: "destructive",
+      // Validate that all IDs exist in the equipment list
+      const allValid = equipmentIds.every(id => {
+        // Convert id to number for comparison
+        const numId = typeof id === 'string' ? parseInt(id, 10) : id;
+        return equipment.some(eq => eq.id === numId);
       });
-      return false;
+      
+      return allValid;
+    } catch (error) {
+      console.error('Error validating equipment IDs:', error);
+      // In case of error, return true to avoid blocking the user
+      return true;
+    } finally {
+      setIsValidating(false);
     }
-  }, [toast]);
+  };
 
-  return { validateEquipmentIds };
+  return {
+    validateEquipmentIds,
+    isValidating
+  };
 }

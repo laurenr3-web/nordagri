@@ -5,13 +5,13 @@ import { useEquipmentList } from '@/hooks/equipment/useEquipmentList';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface PartCompatibilityProps {
-  compatibility: number[];
+  compatibility: string[];
 }
 
 const PartCompatibility: React.FC<PartCompatibilityProps> = ({ compatibility }) => {
-  // Assurer que compatibility est toujours un tableau de nombres
+  // Assurer que compatibility est toujours un tableau de chaînes
   const safeCompatibility = Array.isArray(compatibility) 
-    ? compatibility.filter(id => id !== null && id !== undefined).map(id => Number(id))
+    ? compatibility.filter(id => id !== null && id !== undefined)
     : [];
   
   // Charger la liste des équipements
@@ -23,7 +23,7 @@ const PartCompatibility: React.FC<PartCompatibilityProps> = ({ compatibility }) 
     
     return safeCompatibility
       .map(equipmentId => {
-        const found = equipment.find(eq => eq.id === equipmentId);
+        const found = equipment.find(eq => eq.id === Number(equipmentId));
         return found ? {
           id: found.id,
           name: found.name,
@@ -66,7 +66,7 @@ const PartCompatibility: React.FC<PartCompatibilityProps> = ({ compatibility }) 
       <div className="flex flex-wrap gap-2">
         {compatibleEquipment.length > 0 ? (
           compatibleEquipment.map((eq) => (
-            <Badge key={eq.id} variant="secondary" className="px-2 py-1">
+            <Badge key={eq.id} variant="secondary" className="px-2 py-1" role="status">
               {eq.name}
               {eq.model && <span className="ml-1 text-xs opacity-70">({eq.model})</span>}
             </Badge>

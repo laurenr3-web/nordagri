@@ -7,7 +7,7 @@ export const partsData: Part[] = [
     name: 'Air Filter',
     partNumber: 'AF-JD-4290',
     category: 'filters',
-    compatibility: [1, 2], // Changed from strings to numbers
+    compatibility: ['1', '2'], // Changed to strings
     manufacturer: 'John Deere',
     price: 89.99,
     stock: 15,
@@ -20,7 +20,7 @@ export const partsData: Part[] = [
     name: 'Hydraulic Oil Filter',
     partNumber: 'HOF-3842',
     category: 'filters',
-    compatibility: [3, 4], // Changed from strings to numbers
+    compatibility: ['3', '4'], // Changed to strings
     manufacturer: 'Case IH',
     price: 44.50,
     stock: 8,
@@ -33,7 +33,7 @@ export const partsData: Part[] = [
     name: 'Transmission Belt',
     partNumber: 'TB-NH-4502',
     category: 'drive',
-    compatibility: [5, 6], // Changed from strings to numbers
+    compatibility: ['5', '6'], // Changed to strings
     manufacturer: 'New Holland',
     price: 76.25,
     stock: 3,
@@ -46,7 +46,7 @@ export const partsData: Part[] = [
     name: 'Fuel Injector',
     partNumber: 'FI-KB-922',
     category: 'engine',
-    compatibility: [7, 8], // Changed from strings to numbers
+    compatibility: ['7', '8'], // Changed to strings
     manufacturer: 'Kubota',
     price: 165.75,
     stock: 6,
@@ -59,7 +59,7 @@ export const partsData: Part[] = [
     name: 'Brake Pads',
     partNumber: 'BP-FT-331',
     category: 'brake',
-    compatibility: [9, 10], // Changed from strings to numbers
+    compatibility: ['9', '10'], // Changed to strings
     manufacturer: 'Fendt',
     price: 94.99,
     stock: 10,
@@ -72,7 +72,7 @@ export const partsData: Part[] = [
     name: 'Radiator Cap',
     partNumber: 'RC-JD-118',
     category: 'cooling',
-    compatibility: [1, 11], // Changed from strings to numbers
+    compatibility: ['1', '11'], // Changed to strings
     manufacturer: 'John Deere',
     price: 25.50,
     stock: 22,
@@ -85,7 +85,7 @@ export const partsData: Part[] = [
     name: 'Hydraulic Cylinder',
     partNumber: 'HC-MF-752',
     category: 'hydraulic',
-    compatibility: [12, 13], // Changed from strings to numbers
+    compatibility: ['12', '13'], // Changed to strings
     manufacturer: 'Massey Ferguson',
     price: 289.99,
     stock: 2,
@@ -98,7 +98,7 @@ export const partsData: Part[] = [
     name: 'Battery',
     partNumber: 'BAT-12-800',
     category: 'electrical',
-    compatibility: [1, 2, 3, 4], // Changed from strings to numbers - for universal parts
+    compatibility: ['1', '2', '3', '4'], // Changed to strings
     manufacturer: 'Universal',
     price: 159.75,
     stock: 4,

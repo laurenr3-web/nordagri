@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -56,7 +57,7 @@ export function useDataInitialization() {
           part_number: "AF-JD-4290",
           category: "Filters",
           supplier: "John Deere",
-          compatible_with: ["1", "2"], // Convert to strings for Supabase
+          compatible_with: ["1", "2"], // Using strings for Supabase
           quantity: 15,
           unit_price: 89.99,
           location: "Warehouse A",
@@ -67,7 +68,7 @@ export function useDataInitialization() {
           part_number: "HOF-3842",
           category: "Filters",
           supplier: "Case IH",
-          compatible_with: ["3", "4"], // Convert to strings for Supabase
+          compatible_with: ["3", "4"], // Using strings for Supabase
           quantity: 8,
           unit_price: 44.50,
           location: "Warehouse A",
@@ -78,7 +79,7 @@ export function useDataInitialization() {
           part_number: "TB-NH-4502",
           category: "Drive",
           supplier: "New Holland",
-          compatible_with: ["5", "6"], // Convert to strings for Supabase
+          compatible_with: ["5", "6"], // Using strings for Supabase
           quantity: 3,
           unit_price: 76.25,
           location: "Warehouse B",

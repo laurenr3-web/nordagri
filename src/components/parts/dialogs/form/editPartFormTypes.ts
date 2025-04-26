@@ -25,6 +25,7 @@ export const partFormSchema = z.object({
     message: "Le point de réapprovisionnement doit être un nombre valide",
   }),
   compatibility: z.string().optional(),
+  compatibilityIds: z.array(z.string()), // Changed to string[] to match Supabase
   image: z.string().url({
     message: "Veuillez fournir une URL valide pour l'image",
   }).optional().or(z.literal('')),

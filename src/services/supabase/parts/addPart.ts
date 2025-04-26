@@ -19,8 +19,10 @@ export async function addPart(part: Omit<Part, 'id'>): Promise<Part> {
       throw new Error("User not authenticated");
     }
     
-    // Convert number[] to string[] for compatibility with Supabase
-    const compatibilityAsStrings = part.compatibility.map(id => id.toString());
+    // Ensure compatibility is string[] for database storage
+    const compatibilityAsStrings = Array.isArray(part.compatibility) 
+      ? part.compatibility.map(id => id.toString()) 
+      : [];
     
     // Prepare part data for Supabase
     const partData = {
@@ -54,10 +56,7 @@ export async function addPart(part: Omit<Part, 'id'>): Promise<Part> {
     }
     
     // Convert the Supabase data back to our Part format
-    // Convert compatible_with from string[] back to number[] for frontend
-    const compatibilityAsNumbers = data.compatible_with ? 
-      data.compatible_with.map(id => parseInt(id, 10)) : 
-      [];
+    // compatible_with comes from database as string[]
     
     // Create and return a properly typed Part object
     const newPart: Part = {
@@ -67,8 +66,8 @@ export async function addPart(part: Omit<Part, 'id'>): Promise<Part> {
       reference: data.part_number,
       category: data.category,
       manufacturer: data.supplier,
-      compatibility: compatibilityAsNumbers, // Convert back to number[]
-      compatibleWith: compatibilityAsNumbers, // For compatibility
+      compatibility: data.compatible_with || [], // Already string[] from database
+      compatibleWith: data.compatible_with || [], // For compatibility
       stock: data.quantity,
       quantity: data.quantity,
       price: data.unit_price,

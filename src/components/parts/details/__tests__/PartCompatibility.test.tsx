@@ -1,5 +1,5 @@
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import PartCompatibility from '../PartCompatibility';
@@ -52,7 +52,7 @@ describe('PartCompatibility Component', () => {
       error: null
     });
 
-    render(<PartCompatibility compatibility={[1, 2]} />);
+    render(<PartCompatibility compatibility={['1', '2']} />);
     expect(screen.getByText('Tracteur Fendt')).toBeInTheDocument();
     expect(screen.getByText('Moissonneuse Case')).toBeInTheDocument();
   });
@@ -65,7 +65,7 @@ describe('PartCompatibility Component', () => {
       error: null
     });
 
-    render(<PartCompatibility compatibility={[1, 2]} />);
+    render(<PartCompatibility compatibility={['1', '2']} />);
     // Check that skeletons are present (can't easily test exact content)
     expect(screen.getAllByRole('status')).toHaveLength(3);
   });
@@ -78,7 +78,7 @@ describe('PartCompatibility Component', () => {
       error: new Error('Erreur de chargement')
     });
 
-    render(<PartCompatibility compatibility={[1, 2]} />);
+    render(<PartCompatibility compatibility={['1', '2']} />);
     expect(screen.getByText('Erreur lors du chargement des équipements compatibles')).toBeInTheDocument();
   });
 
@@ -94,7 +94,7 @@ describe('PartCompatibility Component', () => {
     });
 
     // Search for IDs 1 and 2, but only 1 exists
-    render(<PartCompatibility compatibility={[1, 2]} />);
+    render(<PartCompatibility compatibility={['1', '2']} />);
     expect(screen.getByText('Tracteur Fendt')).toBeInTheDocument();
     // Check that there is only one badge
     expect(screen.getAllByRole('status')).toHaveLength(1);

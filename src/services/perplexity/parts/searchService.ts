@@ -13,7 +13,7 @@ export async function searchParts(query: string): Promise<Part[]> {
         name: "Premium Air Filter",
         partNumber: "PAF-1001",
         category: "filters",
-        compatibility: [1, 2, 3], // Changed to numbers
+        compatibility: ['1', '2', '3'], // Changed to strings
         manufacturer: "FilterMaster",
         price: 45.99,
         stock: 8,
@@ -22,7 +22,7 @@ export async function searchParts(query: string): Promise<Part[]> {
         image: "https://images.unsplash.com/photo-1642742381109-81e94659e783?q=80&w=500&auto=format&fit=crop",
         description: "High-performance air filter for agricultural equipment",
         reference: "PAF-1001",
-        compatibleWith: [1, 2, 3], // Changed to numbers
+        compatibleWith: ['1', '2', '3'], // Changed to strings
         purchasePrice: 35.00,
         quantity: 8,
         minimumStock: 3,
@@ -36,7 +36,7 @@ export async function searchParts(query: string): Promise<Part[]> {
         name: "Heavy Duty Hydraulic Oil Filter",
         partNumber: "HOF-HD-2002",
         category: "filters",
-        compatibility: [3, 4, 5], // Changed to numbers
+        compatibility: ['3', '4', '5'], // Changed to strings
         manufacturer: "HydroTech",
         price: 65.75,
         stock: 5,
@@ -45,7 +45,7 @@ export async function searchParts(query: string): Promise<Part[]> {
         image: "https://images.unsplash.com/photo-1495086682705-5ead063c0e73?q=80&w=500&auto=format&fit=crop",
         description: "Industrial-grade hydraulic oil filter for heavy machinery",
         reference: "HOF-HD-2002",
-        compatibleWith: [3, 4, 5], // Changed to numbers
+        compatibleWith: ['3', '4', '5'], // Changed to strings
         purchasePrice: 50.00,
         quantity: 5,
         minimumStock: 2,

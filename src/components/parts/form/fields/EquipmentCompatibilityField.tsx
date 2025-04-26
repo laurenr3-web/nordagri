@@ -36,7 +36,7 @@ interface CompatibilityFieldProps {
 
 const EquipmentCompatibilityField: React.FC<CompatibilityFieldProps> = ({ form }) => {
   const [open, setOpen] = useState(false);
-  const [selectedEquipment, setSelectedEquipment] = useState<number[]>([]);
+  const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
   const { data: equipment, isLoading, error } = useEquipmentList();
 
   // Convertir les équipements en options pour la sélection
@@ -50,16 +50,17 @@ const EquipmentCompatibilityField: React.FC<CompatibilityFieldProps> = ({ form }
 
   // Mettre à jour le formulaire lorsque la sélection change
   const handleEquipmentToggle = (equipmentId: number) => {
-    const updatedSelection = selectedEquipment.includes(equipmentId)
-      ? selectedEquipment.filter(id => id !== equipmentId)
-      : [...selectedEquipment, equipmentId];
+    const strId = equipmentId.toString();
+    const updatedSelection = selectedEquipment.includes(strId)
+      ? selectedEquipment.filter(id => id !== strId)
+      : [...selectedEquipment, strId];
     
     setSelectedEquipment(updatedSelection);
     form.setValue('compatibilityIds', updatedSelection, { shouldValidate: true });
   };
 
   // Fonction pour retirer un équipement sélectionné
-  const removeEquipment = (equipmentId: number) => {
+  const removeEquipment = (equipmentId: string) => {
     const updatedSelection = selectedEquipment.filter(id => id !== equipmentId);
     setSelectedEquipment(updatedSelection);
     form.setValue('compatibilityIds', updatedSelection, { shouldValidate: true });
@@ -67,14 +68,20 @@ const EquipmentCompatibilityField: React.FC<CompatibilityFieldProps> = ({ form }
 
   // Obtenir les noms des équipements sélectionnés
   const getSelectedEquipmentNames = () => {
-    return equipmentOptions
-      .filter(eq => selectedEquipment.includes(eq.id))
-      .map(eq => ({
-        id: eq.id,
-        name: eq.name,
-        model: eq.model,
-        manufacturer: eq.manufacturer
-      }));
+    if (!equipment) return [];
+    
+    return selectedEquipment
+      .map(strId => {
+        const numId = parseInt(strId, 10);
+        const eq = equipmentOptions.find(eq => eq.id === numId);
+        return eq ? {
+          id: eq.id,
+          name: eq.name,
+          model: eq.model,
+          manufacturer: eq.manufacturer
+        } : null;
+      })
+      .filter((eq): eq is { id: number; name: string; model?: string; manufacturer?: string } => eq !== null);
   };
 
   return (
@@ -113,32 +120,34 @@ const EquipmentCompatibilityField: React.FC<CompatibilityFieldProps> = ({ form }
                     <CommandInput placeholder="Rechercher un équipement..." />
                     <CommandEmpty>Aucun équipement trouvé.</CommandEmpty>
                     <ScrollArea className="h-72">
-                      <CommandGroup>
-                        {equipmentOptions.map((eq) => (
-                          <CommandItem
-                            key={eq.id}
-                            value={`${eq.id}-${eq.name}`}
-                            onSelect={() => {
-                              handleEquipmentToggle(eq.id);
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                selectedEquipment.includes(eq.id) ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                            <div className="flex flex-col">
-                              <span>{eq.name}</span>
-                              {(eq.model || eq.manufacturer) && (
-                                <span className="text-xs text-muted-foreground">
-                                  {[eq.manufacturer, eq.model].filter(Boolean).join(' - ')}
-                                </span>
-                              )}
-                            </div>
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
+                      {equipmentOptions && equipmentOptions.length > 0 && (
+                        <CommandGroup>
+                          {equipmentOptions.map((eq) => (
+                            <CommandItem
+                              key={eq.id}
+                              value={`${eq.id}-${eq.name}`}
+                              onSelect={() => {
+                                handleEquipmentToggle(eq.id);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  selectedEquipment.includes(eq.id.toString()) ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              <div className="flex flex-col">
+                                <span>{eq.name}</span>
+                                {(eq.model || eq.manufacturer) && (
+                                  <span className="text-xs text-muted-foreground">
+                                    {[eq.manufacturer, eq.model].filter(Boolean).join(' - ')}
+                                  </span>
+                                )}
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      )}
                     </ScrollArea>
                   </Command>
                 )}
@@ -155,7 +164,7 @@ const EquipmentCompatibilityField: React.FC<CompatibilityFieldProps> = ({ form }
                     variant="ghost"
                     size="sm"
                     className="h-4 w-4 p-0 ml-1"
-                    onClick={() => removeEquipment(eq.id)}
+                    onClick={() => removeEquipment(eq.id.toString())}
                   >
                     <X className="h-3 w-3" />
                     <span className="sr-only">Supprimer {eq.name}</span>
