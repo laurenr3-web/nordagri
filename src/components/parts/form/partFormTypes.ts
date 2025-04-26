@@ -11,6 +11,7 @@ export const partFormSchema = z.object({
   reorderPoint: z.string().optional(),
   location: z.string().optional(),
   compatibility: z.string().optional(),
+  compatibilityIds: z.array(z.number()).default([]),
   image: z.string().optional()
 });
 

@@ -29,15 +29,14 @@ export async function getPartsForEquipment(equipmentId: number | string): Promis
     }
     
     // Récupérer les pièces compatibles avec cet équipement
-    // Cette requête utilise une logique pour trouver des pièces basée sur la compatibilité
+    // Cette requête utilise deux approches:
+    // 1. Vérifier si l'ID de l'équipement est directement dans le tableau compatible_with
+    // 2. Ou vérifier si le type/modèle de l'équipement est dans compatible_with (pour les anciennes données)
     const { data, error } = await supabase
       .from('parts_inventory')
       .select('*')
       .or(
-        // Vérifie si l'équipement est dans le tableau compatible_with
-        equipment.model ? 
-        `compatible_with.cs.{${equipment.model}},compatible_with.cs.{${equipment.type}}` : 
-        `compatible_with.cs.{${equipment.type}}`
+        `compatible_with.cs.{${numericId}},compatible_with.cs.{${equipment.model}},compatible_with.cs.{${equipment.type}}`
       );
     
     if (error) {

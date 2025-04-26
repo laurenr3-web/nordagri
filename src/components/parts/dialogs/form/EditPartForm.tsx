@@ -38,6 +38,7 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
 }) => {
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const updatePartMutation = useUpdatePart();
+  const { validateEquipmentIds } = useValidateCompatibility();
   
   // Initialiser le formulaire avec les valeurs de la pièce existante
   const form = useForm<z.infer<typeof partFormSchema>>({
@@ -51,8 +52,12 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
       stock: part.stock?.toString() || '0',
       reorderPoint: part.reorderPoint?.toString() || '5',
       location: part.location || '',
-      compatibility: Array.isArray(part.compatibility) ? part.compatibility.join(', ') : 
-                     Array.isArray(part.compatibleWith) ? part.compatibleWith.join(', ') : '',
+      compatibility: '',
+      compatibilityIds: Array.isArray(part.compatibility) 
+        ? part.compatibility
+            .filter(item => typeof item === 'number')
+            .map(item => Number(item))
+        : [],
       image: part.image || 'https://placehold.co/100x100/png'
     },
   });
@@ -70,10 +75,14 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
       const stock = parseInt(values.stock) || 0;
       const reorderPoint = parseInt(values.reorderPoint) || 5;
       
-      // Convertir la chaîne de compatibilité en tableau
-      const compatibility = values.compatibility
-        ? values.compatibility.split(',').map(item => item.trim()).filter(Boolean)
-        : [];
+      // Valider les IDs d'équipements avant d'enregistrer
+      const equipmentIds = values.compatibilityIds || [];
+      const isValid = await validateEquipmentIds(equipmentIds);
+      
+      if (!isValid) {
+        setSubmissionError("Certains équipements sélectionnés n'existent plus. Veuillez vérifier votre sélection.");
+        return;
+      }
       
       // Validation locale des données avant envoi
       if (!values.name.trim()) {
@@ -94,8 +103,8 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
         reorderPoint: reorderPoint,
         minimumStock: reorderPoint, // Pour assurer la compatibilité avec le composant de détail
         location: values.location,
-        compatibility: compatibility,
-        compatibleWith: compatibility, // Pour assurer la compatibilité avec le composant de détail
+        compatibility: values.compatibilityIds, // Utiliser les IDs des équipements compatibles
+        compatibleWith: values.compatibilityIds, // Pour assurer la compatibilité avec le composant de détail
         image: values.image || part.image // Conserver l'image existante si aucune nouvelle n'est fournie
       };
       
@@ -147,7 +156,7 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
           <div className="space-y-6">
             <BasicInfoFields form={form} />
             <InventoryFields form={form} />
-            <CompatibilityField form={form} />
+            <EquipmentCompatibilityField form={form} />
           </div>
           <ImageField form={form} />
         </div>
