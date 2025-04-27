@@ -10,7 +10,7 @@ export const partFormSchema = z.object({
   stock: z.string().optional(),
   reorderPoint: z.string().optional(),
   location: z.string().optional(),
-  compatibility: z.string().optional(),
+  compatibility: z.array(z.number()).default([]), // Tableau de nombres (IDs d'équipements)
   image: z.string().optional()
 });
 

@@ -7,11 +7,12 @@ import { toast } from 'sonner';
 import { PartFormValues, AddPartFormProps } from './form/partFormTypes';
 import BasicInfoFields from './form/fields/BasicInfoFields';
 import InventoryFields from './form/fields/InventoryFields';
-import CompatibilityField from './form/fields/CompatibilityField';
+import CompatibilityMultiSelectField from './form/fields/CompatibilityMultiSelectField';
 import ImageField from './form/fields/ImageField';
 import AddCategoryDialog from './form/AddCategoryDialog';
 import { useCreatePart } from '@/hooks/parts';
 import { Part } from '@/types/Part';
+import { useCompatibilityValidation } from '@/hooks/parts/useCompatibilityValidation';
 
 export function AddPartForm({ onSuccess, onCancel }: AddPartFormProps) {
   const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
@@ -21,6 +22,7 @@ export function AddPartForm({ onSuccess, onCancel }: AddPartFormProps) {
   const [isAddManufacturerDialogOpen, setIsAddManufacturerDialogOpen] = useState(false);
   const [isAddLocationDialogOpen, setIsAddLocationDialogOpen] = useState(false);
   const createPartMutation = useCreatePart();
+  const { validateCompatibility } = useCompatibilityValidation();
   
   const form = useForm<PartFormValues>({
     defaultValues: {
@@ -32,7 +34,7 @@ export function AddPartForm({ onSuccess, onCancel }: AddPartFormProps) {
       stock: '',
       reorderPoint: '',
       location: 'Warehouse A',
-      compatibility: '',
+      compatibility: [],
       image: ''
     }
   });
@@ -61,7 +63,7 @@ export function AddPartForm({ onSuccess, onCancel }: AddPartFormProps) {
     }
   };
 
-  function onSubmit(data: PartFormValues) {
+  async function onSubmit(data: PartFormValues) {
     // Prevent multiple submissions
     if (isSubmitting) {
       console.log('Submission already in progress, ignoring duplicate attempt');
@@ -71,13 +73,22 @@ export function AddPartForm({ onSuccess, onCancel }: AddPartFormProps) {
     try {
       setIsSubmitting(true);
       
+      // Validation des équipements compatibles
+      const compatibility = data.compatibility || [];
+      const isValidCompatibility = await validateCompatibility(compatibility);
+      
+      if (!isValidCompatibility) {
+        setIsSubmitting(false);
+        return;
+      }
+      
       // Convert form values to Part format (without id) for the API
       const partData: Omit<Part, 'id'> = {
         name: data.name,
         partNumber: data.partNumber,
         category: data.category,
         manufacturer: data.manufacturer,
-        compatibility: data.compatibility ? data.compatibility.split(',').map(item => item.trim()) : [],
+        compatibility: compatibility, // Utilisation directe du tableau d'IDs
         stock: parseInt(data.stock) || 0,
         price: parseFloat(data.price) || 0,
         reorderPoint: parseInt(data.reorderPoint) || 5,
@@ -121,7 +132,7 @@ export function AddPartForm({ onSuccess, onCancel }: AddPartFormProps) {
             <ImageField form={form} />
           </div>
 
-          <CompatibilityField form={form} />
+          <CompatibilityMultiSelectField form={form} />
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={onCancel}>

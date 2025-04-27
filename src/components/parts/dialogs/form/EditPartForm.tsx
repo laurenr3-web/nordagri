@@ -15,13 +15,14 @@ import {
 import { Part } from '@/types/Part';
 import BasicInfoFields from '@/components/parts/form/fields/BasicInfoFields';
 import InventoryFields from '@/components/parts/form/fields/InventoryFields';
-import CompatibilityField from '@/components/parts/form/fields/CompatibilityField';
+import CompatibilityMultiSelectField from '@/components/parts/form/fields/CompatibilityMultiSelectField';
 import FormActions from '@/components/parts/form/FormActions';
 import ImageField from '@/components/parts/form/fields/ImageField';
 import { partFormSchema } from '@/components/parts/form/partFormTypes';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { useUpdatePart } from '@/hooks/parts/useUpdatePart';
+import { useCompatibilityValidation } from '@/hooks/parts/useCompatibilityValidation';
 
 interface EditPartFormProps {
   part: Part;
@@ -38,6 +39,11 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
 }) => {
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const updatePartMutation = useUpdatePart();
+  const { validateCompatibility, cleanInvalidIds } = useCompatibilityValidation({
+    onValidationError: () => {
+      setSubmissionError("Certains équipements sélectionnés n'existent plus. Veuillez les supprimer.");
+    }
+  });
   
   // Initialiser le formulaire avec les valeurs de la pièce existante
   const form = useForm<z.infer<typeof partFormSchema>>({
@@ -51,8 +57,7 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
       stock: part.stock?.toString() || '0',
       reorderPoint: part.reorderPoint?.toString() || '5',
       location: part.location || '',
-      compatibility: Array.isArray(part.compatibility) ? part.compatibility.join(', ') : 
-                     Array.isArray(part.compatibleWith) ? part.compatibleWith.join(', ') : '',
+      compatibility: Array.isArray(part.compatibility) ? part.compatibility : [],
       image: part.image || 'https://placehold.co/100x100/png'
     },
   });
@@ -70,10 +75,15 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
       const stock = parseInt(values.stock) || 0;
       const reorderPoint = parseInt(values.reorderPoint) || 5;
       
-      // Convertir la chaîne de compatibilité en tableau
-      const compatibility = values.compatibility
-        ? values.compatibility.split(',').map(item => item.trim()).filter(Boolean)
-        : [];
+      // Validation des équipements compatibles
+      const compatibility = values.compatibility || [];
+      const isValidCompatibility = await validateCompatibility(compatibility);
+      
+      if (!isValidCompatibility) {
+        // On ne bloque pas complètement la soumission, mais on nettoie les IDs invalides
+        const cleanedCompatibility = cleanInvalidIds(compatibility);
+        values.compatibility = cleanedCompatibility;
+      }
       
       // Validation locale des données avant envoi
       if (!values.name.trim()) {
@@ -94,8 +104,8 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
         reorderPoint: reorderPoint,
         minimumStock: reorderPoint, // Pour assurer la compatibilité avec le composant de détail
         location: values.location,
-        compatibility: compatibility,
-        compatibleWith: compatibility, // Pour assurer la compatibilité avec le composant de détail
+        compatibility: values.compatibility,
+        compatibleWith: [], // Pour assurer la compatibilité avec le composant de détail
         image: values.image || part.image // Conserver l'image existante si aucune nouvelle n'est fournie
       };
       
@@ -147,7 +157,7 @@ const EditPartForm: React.FC<EditPartFormProps> = ({
           <div className="space-y-6">
             <BasicInfoFields form={form} />
             <InventoryFields form={form} />
-            <CompatibilityField form={form} />
+            <CompatibilityMultiSelectField form={form} isEditMode={true} />
           </div>
           <ImageField form={form} />
         </div>
