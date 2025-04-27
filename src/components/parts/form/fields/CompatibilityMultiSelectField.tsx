@@ -5,7 +5,7 @@ import { UseFormReturn } from 'react-hook-form';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { PartFormValues } from '../partFormTypes';
 import { useEquipments, useValidateCompatibility } from '@/hooks/equipment/useEquipments';
-import { Alert, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 
