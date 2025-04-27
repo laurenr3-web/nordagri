@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -25,9 +26,11 @@ interface MaintenanceFormProps {
   onSubmit: (data: MaintenanceFormValues) => void;
   defaultValues?: Partial<MaintenanceFormValues>;
   isLoading?: boolean;
+  equipment?: any; // Add equipment prop
+  onCancel?: () => void; // Add onCancel prop
 }
 
-export function MaintenanceForm({ onSubmit, defaultValues, isLoading }: MaintenanceFormProps) {
+export function MaintenanceForm({ onSubmit, defaultValues, isLoading, equipment, onCancel }: MaintenanceFormProps) {
   // Initialiser le formulaire avec React Hook Form
   const form = useForm<MaintenanceFormValues>({
     resolver: zodResolver(maintenanceFormSchema),
@@ -105,7 +108,7 @@ export function MaintenanceForm({ onSubmit, defaultValues, isLoading }: Maintena
                 <Input 
                   type="number" 
                   {...field} 
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  onChange={(e) => field.onChange(Number(e.target.value) || 0)}
                   value={field.value || 0}
                 />
               </FormControl>
@@ -125,7 +128,7 @@ export function MaintenanceForm({ onSubmit, defaultValues, isLoading }: Maintena
                 <Input 
                   type="number" 
                   {...field} 
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  onChange={(e) => field.onChange(Number(e.target.value) || 0)}
                   value={field.value || 0}
                 />
               </FormControl>
@@ -145,7 +148,7 @@ export function MaintenanceForm({ onSubmit, defaultValues, isLoading }: Maintena
                 <Input 
                   type="number" 
                   {...field} 
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  onChange={(e) => field.onChange(Number(e.target.value) || 0)}
                   value={field.value || 0}
                 />
               </FormControl>
@@ -154,9 +157,16 @@ export function MaintenanceForm({ onSubmit, defaultValues, isLoading }: Maintena
           )}
         />
 
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Enregistrement...' : 'Enregistrer'}
-        </Button>
+        <div className="flex justify-between">
+          {onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Annuler
+            </Button>
+          )}
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? 'Enregistrement...' : 'Enregistrer'}
+          </Button>
+        </div>
       </form>
     </Form>
   );

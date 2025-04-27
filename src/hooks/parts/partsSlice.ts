@@ -22,13 +22,19 @@ export const usePartsSlice = (initialParts: Part[]) => {
 
   const handleAddPart = (formData: PartFormValues) => {
     // Convertir la compatibilité en tableau de nombres
+    let compatibilityArray: number[] = [];
+    
     // Si la compatibilité est déjà un tableau de nombres, on le garde tel quel
-    // Sinon, si c'est une chaîne, on la convertit en tableau
-    const compatibilityArray = Array.isArray(formData.compatibility)
-      ? formData.compatibility // Déjà un tableau de nombres
-      : typeof formData.compatibility === 'string'
-        ? formData.compatibility.split(',').map(item => parseInt(item.trim())).filter(id => !isNaN(id))
-        : []; // Fallback à un tableau vide
+    if (Array.isArray(formData.compatibility)) {
+      compatibilityArray = formData.compatibility as number[];
+    } 
+    // Si c'est une chaîne, on la convertit en tableau de nombres
+    else if (typeof formData.compatibility === 'string') {
+      compatibilityArray = formData.compatibility
+        .split(',')
+        .map(item => parseInt(item.trim()))
+        .filter(id => !isNaN(id));
+    }
 
     const newPart = {
       id: parts.length + 1,

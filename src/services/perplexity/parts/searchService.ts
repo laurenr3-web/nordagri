@@ -45,26 +45,40 @@ export const partsSearchService = {
    * Transform search results to application Part format
    */
   transformSearchResults(results: PartSearchResult[]): Part[] {
-    return results.map((item: PartSearchResult, index: number) => ({
-      // Générer un ID numérique au lieu d'une chaîne
-      id: Date.now() + index, // Utiliser un timestamp + index comme ID numérique unique
-      name: item.name || "Sans nom",
-      partNumber: item.reference || item.partNumber || "N/A",
-      category: item.category || "Non catégorisé",
-      compatibility: item.compatibleWith || [],
-      manufacturer: item.manufacturer || "Inconnu",
-      price: 0,
-      stock: 0,
-      location: "",
-      reorderPoint: 0,
-      image: item.imageUrl || "",
-      description: item.description || "",
-      reference: item.reference || item.partNumber || "N/A",
-      compatibleWith: item.compatibleWith || [],
-      estimatedPrice: item.estimatedPrice || item.price || null,
-      inStock: false,
-      isFromSearch: true,
-      imageUrl: item.imageUrl || null
-    }));
+    return results.map((item: PartSearchResult, index: number) => {
+      // Convert string IDs to numbers if they're provided as strings
+      let compatibilityArray: number[] = [];
+      
+      if (Array.isArray(item.compatibleWith)) {
+        compatibilityArray = item.compatibleWith
+          .map(entry => {
+            // Try to extract numeric IDs from strings like "Model 123" -> 123
+            const matches = /\d+/.exec(entry);
+            return matches ? parseInt(matches[0]) : 0;
+          })
+          .filter(id => id > 0); // Filter out any zeros or invalid conversions
+      }
+      
+      return {
+        id: Date.now() + index, // Utiliser un timestamp + index comme ID numérique unique
+        name: item.name || "Sans nom",
+        partNumber: item.reference || item.partNumber || "N/A",
+        category: item.category || "Non catégorisé",
+        compatibility: compatibilityArray, // Convert strings to numbers
+        manufacturer: item.manufacturer || "Inconnu",
+        price: 0,
+        stock: 0,
+        location: "",
+        reorderPoint: 0,
+        image: item.imageUrl || "",
+        description: item.description || "",
+        reference: item.reference || item.partNumber || "N/A",
+        compatibleWith: item.compatibleWith || [],
+        estimatedPrice: item.estimatedPrice || item.price || null,
+        inStock: false,
+        isFromSearch: true,
+        imageUrl: item.imageUrl || null
+      };
+    });
   }
 };

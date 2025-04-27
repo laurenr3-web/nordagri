@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -57,6 +58,11 @@ export function NewPartForm({ onSuccess, onCancel }: NewPartFormProps) {
   const onSubmit = async (values: PartFormValues) => {
     console.log("Soumission du formulaire avec:", values);
     try {
+      // Convertir la chaîne de compatibilité en tableau de nombres
+      const compatibilityArray = values.compatibility 
+        ? values.compatibility.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id))
+        : [];
+      
       // Transformez les valeurs pour correspondre à l'interface Part
       const partData: Omit<Part, 'id'> = {
         name: values.name,
@@ -64,7 +70,7 @@ export function NewPartForm({ onSuccess, onCancel }: NewPartFormProps) {
         reference: values.partNumber, // Pour la rétrocompatibilité
         category: values.category || 'Général',
         manufacturer: values.manufacturer || '',
-        compatibility: values.compatibility ? values.compatibility.split(',').map(item => item.trim()) : [],
+        compatibility: compatibilityArray, // Tableau d'IDs numériques
         compatibleWith: values.compatibility ? values.compatibility.split(',').map(item => item.trim()) : [],
         stock: values.stock,
         quantity: values.stock, // Pour la rétrocompatibilité
@@ -168,9 +174,9 @@ export function NewPartForm({ onSuccess, onCancel }: NewPartFormProps) {
             name="compatibility"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Compatibilité</FormLabel>
+                <FormLabel>Compatibilité (IDs numériques)</FormLabel>
                 <FormControl>
-                  <Input placeholder="Modèles compatibles (séparés par des virgules)" {...field} />
+                  <Input placeholder="IDs des équipements séparés par des virgules (1, 2, 3)" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
