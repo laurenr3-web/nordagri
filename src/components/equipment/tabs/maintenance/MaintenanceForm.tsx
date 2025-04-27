@@ -1,315 +1,112 @@
-
-import React, { useState, useEffect } from 'react';
-import { z } from 'zod';
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
-} from '@/components/ui/form';
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { Calendar as CalendarIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { toast } from 'sonner';
-import { MaintenanceTask, MaintenancePriority, MaintenanceType } from '@/hooks/maintenance/maintenanceSlice';
-import { Part } from '@/types/Part';
-import { equipmentService } from '@/services/supabase/equipmentService';
 
+// Définir le schéma de validation
 const maintenanceFormSchema = z.object({
-  title: z.string().min(3, 'Le titre doit contenir au moins 3 caractères'),
-  type: z.enum(['preventive', 'corrective', 'condition-based']),
-  priority: z.enum(['low', 'medium', 'high', 'critical']),
-  dueDate: z.date({
-    required_error: "Veuillez sélectionner une date",
-  }),
-  engineHours: z.coerce.number().min(0, 'Les heures moteur doivent être un nombre positif'),
-  notes: z.string().optional(),
-  partId: z.string().optional(),
+  title: z.string().min(1, "Le titre est requis"),
+  description: z.string().optional(),
+  type: z.string().min(1, "Le type est requis"),
+  date: z.date().optional(),
+  cost: z.number().min(0).optional(), // S'assurer que c'est un nombre
+  hours: z.number().min(0).optional(), // S'assurer que c'est un nombre
+  technician: z.string().optional(),
+  nextDue: z.number().min(0).optional(), // S'assurer que c'est un nombre
 });
 
 type MaintenanceFormValues = z.infer<typeof maintenanceFormSchema>;
 
 interface MaintenanceFormProps {
-  equipment: any;
-  onSubmit: (values: MaintenanceFormValues) => void;
-  onCancel: () => void;
-  isSubmitting?: boolean;
+  onSubmit: (data: MaintenanceFormValues) => void;
+  defaultValues?: Partial<MaintenanceFormValues>;
+  isLoading?: boolean;
 }
 
-const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
-  equipment,
-  onSubmit,
-  onCancel,
-  isSubmitting = false,
-}) => {
-  const [parts, setParts] = useState<Part[]>([]);
-  const [equipmentList, setEquipmentList] = useState<Array<{ id: number; name: string }>>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    // Fetch actual equipment list from the database
-    const fetchEquipment = async () => {
-      setIsLoading(true);
-      try {
-        const data = await equipmentService.getEquipment();
-        setEquipmentList(data.map(item => ({
-          id: item.id,
-          name: item.name
-        })));
-      } catch (error) {
-        console.error('Error fetching equipment:', error);
-        toast.error("Erreur lors du chargement des équipements");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchEquipment();
-
-    // Simulation de récupération des pièces compatibles avec cet équipement
-    const mockParts: Part[] = [
-      {
-        id: 1, // Converti en number au lieu de string "P001"
-        name: "Filtre à huile",
-        partNumber: "FH-JD-8R-001",
-        category: "Filtres",
-        compatibility: ["John Deere 8R 410"],
-        manufacturer: "John Deere",
-        price: 35.50,
-        stock: 12,
-        location: "Rayon A3",
-        reorderPoint: 5,
-        image: "/placeholder.svg",
-      },
-      {
-        id: 2, // Converti en number au lieu de string "P002"
-        name: "Kit courroie distribution",
-        partNumber: "KCD-JD-8R-002",
-        category: "Transmission",
-        compatibility: ["John Deere 8R 410"],
-        manufacturer: "John Deere",
-        price: 145.99,
-        stock: 3,
-        location: "Rayon B2",
-        reorderPoint: 2,
-        image: "/placeholder.svg",
-      },
-      {
-        id: 3, // Converti en number au lieu de string "P003"
-        name: "Filtre à carburant",
-        partNumber: "FC-JD-8R-003",
-        category: "Filtres",
-        compatibility: ["John Deere 8R 410"],
-        manufacturer: "John Deere",
-        price: 29.75,
-        stock: 8,
-        location: "Rayon A3",
-        reorderPoint: 4,
-        image: "/placeholder.svg",
-      },
-    ];
-
-    setParts(mockParts);
-  }, []);
-
+export function MaintenanceForm({ onSubmit, defaultValues, isLoading }: MaintenanceFormProps) {
+  // Initialiser le formulaire avec React Hook Form
   const form = useForm<MaintenanceFormValues>({
     resolver: zodResolver(maintenanceFormSchema),
-    defaultValues: {
+    defaultValues: defaultValues || {
       title: '',
-      type: 'preventive',
-      priority: 'medium',
-      dueDate: new Date(),
-      engineHours: equipment?.current_hours || 0,
-      notes: '',
-      partId: '',
-    },
+      description: '',
+      type: 'regular',
+      cost: 0,
+      hours: 0,
+      nextDue: 0
+    }
   });
 
-  const handleSubmit = (values: MaintenanceFormValues) => {
-    try {
-      onSubmit(values);
-    } catch (error) {
-      console.error('Erreur lors de la soumission du formulaire:', error);
-      toast.error("Échec de la création de maintenance");
-    }
+  // Gérer la soumission du formulaire
+  const handleSubmit = (data: MaintenanceFormValues) => {
+    onSubmit(data);
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        {/* Titre */}
         <FormField
           control={form.control}
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Titre de la maintenance</FormLabel>
+              <FormLabel>Titre</FormLabel>
               <FormControl>
-                <Input placeholder="Ex: Changement de filtres" {...field} />
+                <Input {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Type de maintenance</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner un type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="preventive">Préventive</SelectItem>
-                    <SelectItem value="corrective">Corrective</SelectItem>
-                    <SelectItem value="condition-based">Conditionnelle</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="priority"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Priorité</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner une priorité" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="low">Basse</SelectItem>
-                    <SelectItem value="medium">Moyenne</SelectItem>
-                    <SelectItem value="high">Haute</SelectItem>
-                    <SelectItem value="critical">Critique</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="dueDate"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Date prévue</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "dd/MM/yyyy", { locale: fr })
-                        ) : (
-                          <span>Sélectionner une date</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      disabled={(date) => date < new Date()}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="engineHours"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Heures moteur</FormLabel>
-                <FormControl>
-                  <Input type="number" min="0" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
+        {/* Description */}
         <FormField
           control={form.control}
-          name="partId"
+          name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Pièce concernée</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner une pièce (optionnel)" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="none">Aucune pièce spécifique</SelectItem>
-                  {parts.map((part) => (
-                    <SelectItem key={part.id} value={part.id.toString()}>
-                      {part.name} - {part.partNumber}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
+        {/* Type */}
         <FormField
           control={form.control}
-          name="notes"
+          name="type"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Notes</FormLabel>
+              <FormLabel>Type</FormLabel>
               <FormControl>
-                <Textarea 
-                  placeholder="Détails supplémentaires sur la maintenance à effectuer..." 
-                  className="min-h-[100px]" 
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Coût */}
+        <FormField
+          control={form.control}
+          name="cost"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Coût</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
                   {...field} 
+                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  value={field.value || 0}
                 />
               </FormControl>
               <FormMessage />
@@ -317,22 +114,52 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
           )}
         />
 
-        <div className="flex justify-end space-x-2 pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            disabled={isSubmitting}
-          >
-            Annuler
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Création...' : 'Créer la maintenance'}
-          </Button>
-        </div>
+        {/* Heures de fonctionnement */}
+        <FormField
+          control={form.control}
+          name="hours"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Heures de fonctionnement</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  {...field} 
+                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  value={field.value || 0}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Prochaine maintenance */}
+        <FormField
+          control={form.control}
+          name="nextDue"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Prochaine maintenance (heures)</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  {...field} 
+                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  value={field.value || 0}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Enregistrement...' : 'Enregistrer'}
+        </Button>
       </form>
     </Form>
   );
-};
+}
 
 export default MaintenanceForm;

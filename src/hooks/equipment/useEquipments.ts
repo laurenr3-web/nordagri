@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Equipment } from '@/services/supabase/equipment/types';
@@ -61,7 +62,7 @@ export function useEquipments() {
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 60 * 60 * 1000, // 1 heure
+    gcTime: 60 * 60 * 1000, // 1 heure (remplace cacheTime qui est déprécié)
   });
 }
 
@@ -104,5 +105,6 @@ export function useValidateCompatibility() {
       }
     },
     staleTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 60 * 60 * 1000, // Remplace cacheTime
   });
 }

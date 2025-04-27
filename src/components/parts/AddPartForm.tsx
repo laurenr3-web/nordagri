@@ -34,7 +34,7 @@ export function AddPartForm({ onSuccess, onCancel }: AddPartFormProps) {
       stock: '',
       reorderPoint: '',
       location: 'Warehouse A',
-      compatibility: [],
+      compatibility: [], // Tableau vide de nombres
       image: ''
     }
   });
@@ -87,13 +87,14 @@ export function AddPartForm({ onSuccess, onCancel }: AddPartFormProps) {
         name: data.name,
         partNumber: data.partNumber,
         category: data.category,
-        manufacturer: data.manufacturer,
-        compatibility: compatibility, // Utilisation directe du tableau d'IDs
-        stock: parseInt(data.stock) || 0,
-        price: parseFloat(data.price) || 0,
-        reorderPoint: parseInt(data.reorderPoint) || 5,
-        location: data.location,
-        image: data.image
+        manufacturer: data.manufacturer || '',
+        compatibility: compatibility, // Tableau d'IDs numériques
+        compatibleWith: [], // Initialiser comme tableau vide pour rétrocompatibilité
+        stock: parseInt(data.stock || '0'),
+        price: parseFloat(data.price || '0'),
+        reorderPoint: parseInt(data.reorderPoint || '5'),
+        location: data.location || '',
+        image: data.image || ''
       };
       
       // Use the mutation hook to save the part

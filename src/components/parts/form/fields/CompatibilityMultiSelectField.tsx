@@ -18,7 +18,7 @@ const CompatibilityMultiSelectField: React.FC<CompatibilityMultiSelectFieldProps
   form, 
   isEditMode = false 
 }) => {
-  const { data: equipmentOptions, isLoading, error } = useEquipments();
+  const { data: equipmentOptions = [], isLoading, error } = useEquipments();
   const { data: validEquipmentIds } = useValidateCompatibility();
   const { toast } = useToast();
   

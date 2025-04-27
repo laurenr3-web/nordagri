@@ -4,7 +4,7 @@ export interface Part {
   name: string;
   partNumber: string;
   category: string;
-  compatibility: number[]; // Tableau d'IDs d'équipements
+  compatibility: number[]; // Explicitly defined as number[] - IDs of equipment
   manufacturer: string;
   price: number;
   stock: number;

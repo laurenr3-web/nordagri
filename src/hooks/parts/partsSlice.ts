@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Part } from '@/types/Part';
 import { PartFormValues } from '@/components/parts/form/partFormTypes';
@@ -20,18 +21,28 @@ export const usePartsSlice = (initialParts: Part[]) => {
   };
 
   const handleAddPart = (formData: PartFormValues) => {
+    // Convertir la compatibilité en tableau de nombres
+    // Si la compatibilité est déjà un tableau de nombres, on le garde tel quel
+    // Sinon, si c'est une chaîne, on la convertit en tableau
+    const compatibilityArray = Array.isArray(formData.compatibility)
+      ? formData.compatibility // Déjà un tableau de nombres
+      : typeof formData.compatibility === 'string'
+        ? formData.compatibility.split(',').map(item => parseInt(item.trim())).filter(id => !isNaN(id))
+        : []; // Fallback à un tableau vide
+
     const newPart = {
       id: parts.length + 1,
       name: formData.name,
       partNumber: formData.partNumber,
       category: formData.category,
-      compatibility: formData.compatibility.split(',').map(item => item.trim()),
-      manufacturer: formData.manufacturer,
-      price: parseFloat(formData.price),
-      stock: parseInt(formData.stock),
-      location: formData.location,
-      reorderPoint: parseInt(formData.reorderPoint),
-      image: formData.image
+      compatibility: compatibilityArray, // Tableau d'IDs numériques
+      compatibleWith: [], // Pour rétrocompatibilité
+      manufacturer: formData.manufacturer || '',
+      price: parseFloat(formData.price || '0'),
+      stock: parseInt(formData.stock || '0'),
+      location: formData.location || '',
+      reorderPoint: parseInt(formData.reorderPoint || '5'),
+      image: formData.image || ''
     };
     
     // If this is a new category, add it to our custom categories
