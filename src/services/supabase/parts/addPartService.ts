@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Part } from '@/types/Part';
+import { compatibilityToStrings } from '@/utils/compatibilityConverter';
 
 export async function addPart(part: Omit<Part, 'id'>): Promise<Part> {
   try {
@@ -12,10 +13,8 @@ export async function addPart(part: Omit<Part, 'id'>): Promise<Part> {
       throw new Error("Vous devez être connecté pour ajouter une pièce");
     }
     
-    // S'assurer que compatibility est un tableau de nombres
-    const compatibility = Array.isArray(part.compatibility) 
-      ? part.compatibility 
-      : [];
+    // Convert compatibility from number[] to string[] for database
+    const compatibleWithAsString = compatibilityToStrings(part.compatibility);
 
     // Map to database structure
     const dbPart = {
@@ -23,7 +22,7 @@ export async function addPart(part: Omit<Part, 'id'>): Promise<Part> {
       part_number: part.partNumber,
       category: part.category,
       supplier: part.manufacturer,
-      compatible_with: compatibility, // Tableau d'IDs numériques
+      compatible_with: compatibleWithAsString, // Convert to string[] for storage
       quantity: part.stock,
       unit_price: part.price,
       location: part.location,
@@ -41,14 +40,16 @@ export async function addPart(part: Omit<Part, 'id'>): Promise<Part> {
     if (error) throw error;
     if (!data) throw new Error("La pièce a été ajoutée mais aucune donnée n'a été retournée");
     
-    // Map back to Part interface
+    // Map back to Part interface with compatibility as number[]
     return {
       id: data.id,
       name: data.name,
       partNumber: data.part_number || '',
       category: data.category || '',
       manufacturer: data.supplier || '',
-      compatibility: Array.isArray(data.compatible_with) ? data.compatible_with : [],
+      compatibility: Array.isArray(data.compatible_with) 
+        ? data.compatible_with.map(id => parseInt(id, 10)).filter(id => !isNaN(id))
+        : [],
       stock: data.quantity,
       price: data.unit_price || 0,
       location: data.location || '',

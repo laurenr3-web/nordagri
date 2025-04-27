@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Part } from '@/types/Part';
+import { compatibilityToStrings } from '@/utils/compatibilityConverter';
 
 /**
  * Adds a new part to the inventory
@@ -51,13 +52,16 @@ export async function addPart(part: Omit<Part, 'id'>): Promise<Part> {
     }
   }
   
+  // Convert compatibility from number[] to string[] for Supabase
+  const compatibleWithAsString = compatibilityToStrings(part.compatibility);
+  
   // Prepare data for insertion
   const partData = {
     name: part.name,
     part_number: part.partNumber,
     category: part.category,
     supplier: part.manufacturer,
-    compatible_with: part.compatibility,
+    compatible_with: compatibleWithAsString, // Convert to string[] for the database
     quantity: part.stock,
     unit_price: part.price,
     location: part.location,
@@ -89,18 +93,30 @@ export async function addPart(part: Omit<Part, 'id'>): Promise<Part> {
     throw new Error('No data returned from insert operation');
   }
   
-  // Convert the database record to a Part object
+  // Convert the database record to a Part object with converted compatibility back to number[]
   return {
     id: data.id,
     name: data.name,
     partNumber: data.part_number || '',
     category: data.category || '',
     manufacturer: data.supplier || '',
-    compatibility: data.compatible_with || [],
+    compatibility: data.compatible_with 
+      ? compatibilityToNumbers(data.compatible_with) 
+      : [],
     stock: data.quantity,
     price: data.unit_price !== null ? data.unit_price : 0,
     location: data.location || '',
     reorderPoint: data.reorder_threshold || 5,
     image: data.image_url || 'https://placehold.co/100x100/png'
   };
+}
+
+// Helper function to convert compatibility
+function compatibilityToNumbers(compatibility: string[] | number[]): number[] {
+  if (!compatibility) return [];
+  if (typeof compatibility[0] === 'number') return compatibility as number[];
+  
+  return (compatibility as string[])
+    .map(id => parseInt(id, 10))
+    .filter(id => !isNaN(id));
 }

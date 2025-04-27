@@ -1,8 +1,8 @@
-
 import { useState } from 'react';
 import { Part } from '@/types/Part';
 import { PartFormValues } from '@/components/parts/form/partFormTypes';
 import { useToast } from '@/hooks/use-toast';
+import { parseCompatibilityString } from '@/utils/compatibilityConverter';
 
 export const usePartsSlice = (initialParts: Part[]) => {
   const { toast } = useToast();
@@ -21,20 +21,8 @@ export const usePartsSlice = (initialParts: Part[]) => {
   };
 
   const handleAddPart = (formData: PartFormValues) => {
-    // Convertir la compatibilité en tableau de nombres
-    let compatibilityArray: number[] = [];
-    
-    // Si la compatibilité est déjà un tableau de nombres, on le garde tel quel
-    if (Array.isArray(formData.compatibility)) {
-      compatibilityArray = formData.compatibility as number[];
-    } 
-    // Si c'est une chaîne, on la convertit en tableau de nombres
-    else if (typeof formData.compatibility === 'string') {
-      compatibilityArray = formData.compatibility
-        .split(',')
-        .map(item => parseInt(item.trim()))
-        .filter(id => !isNaN(id));
-    }
+    // Convert compatibility to number array using our utility
+    const compatibilityArray = parseCompatibilityString(formData.compatibility);
 
     const newPart = {
       id: parts.length + 1,

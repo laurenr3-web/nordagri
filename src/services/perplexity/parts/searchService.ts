@@ -3,6 +3,7 @@ import { Part } from '@/types/Part';
 import { partsApi } from './api';
 import { partsParser } from './parser';
 import { SearchConfig, PartSearchResult } from './types';
+import { compatibilityToNumbers } from '@/utils/compatibilityConverter';
 
 /**
  * Service for searching parts using Perplexity API

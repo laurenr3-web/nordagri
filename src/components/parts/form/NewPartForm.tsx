@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreatePart } from '@/hooks/parts';
 import { Part } from '@/types/Part';
+import { parseCompatibilityString } from '@/utils/compatibilityConverter';
 
 // Schéma de validation Zod pour les pièces
 const partSchema = z.object({
@@ -59,9 +59,7 @@ export function NewPartForm({ onSuccess, onCancel }: NewPartFormProps) {
     console.log("Soumission du formulaire avec:", values);
     try {
       // Convertir la chaîne de compatibilité en tableau de nombres
-      const compatibilityArray = values.compatibility 
-        ? values.compatibility.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id))
-        : [];
+      const compatibilityArray = parseCompatibilityString(values.compatibility);
       
       // Transformez les valeurs pour correspondre à l'interface Part
       const partData: Omit<Part, 'id'> = {
@@ -70,7 +68,7 @@ export function NewPartForm({ onSuccess, onCancel }: NewPartFormProps) {
         reference: values.partNumber, // Pour la rétrocompatibilité
         category: values.category || 'Général',
         manufacturer: values.manufacturer || '',
-        compatibility: compatibilityArray, // Tableau d'IDs numériques
+        compatibility: compatibilityArray, // Utiliser notre utilitaire pour la conversion
         compatibleWith: values.compatibility ? values.compatibility.split(',').map(item => item.trim()) : [],
         stock: values.stock,
         quantity: values.stock, // Pour la rétrocompatibilité
