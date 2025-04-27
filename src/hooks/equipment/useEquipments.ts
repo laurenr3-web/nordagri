@@ -1,9 +1,8 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Equipment } from '@/services/supabase/equipment/types';
 import { cacheEquipments, getCachedEquipments } from '@/services/cache/equipmentCacheService';
-import { useNetworkState } from '@/hooks/parts/useCompatibilityValidation';
+import { useNetworkState } from '@/hooks/useNetworkState';
 
 export interface EquipmentOption {
   id: number;
@@ -40,8 +39,8 @@ export function useEquipments() {
         const formattedEquipments = equipments.map((equipment: any) => ({
           id: equipment.id,
           name: equipment.name,
-          value: equipment.id.toString(), // ID en tant que string pour la compatibilité avec les UI components
-          label: equipment.name // Libellé à afficher
+          value: equipment.id.toString(),
+          label: equipment.name
         }));
         
         // Mettre en cache les données pour une utilisation hors ligne
@@ -61,8 +60,8 @@ export function useEquipments() {
         return [];
       }
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes de cache
-    cacheTime: 60 * 60 * 1000, // 1 heure de cache
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 60 * 60 * 1000, // 1 heure
   });
 }
 
