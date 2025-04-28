@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Part } from '@/types/Part';
 import PartsHeader from './PartsHeader';
@@ -13,7 +12,6 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { deleteMultipleParts } from '@/services/supabase/parts';
 import { convertToPart } from '@/utils/partTypeConverters';
-
 interface PartsContainerProps {
   parts: Part[];
   filteredParts: Part[];
@@ -43,7 +41,6 @@ interface PartsContainerProps {
   setIsAddPartDialogOpen: (open: boolean) => void;
   refetch?: () => void;
 }
-
 const PartsContainer: React.FC<PartsContainerProps> = ({
   parts,
   filteredParts,
@@ -76,18 +73,15 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
     toast
   } = useToast();
   const [isDeletingMultiple, setIsDeletingMultiple] = useState(false);
-
   const handleDeleteMultiple = async (partIds: (string | number)[]) => {
     if (!confirm(`Êtes-vous sûr de vouloir supprimer ${partIds.length} pièce(s) ?`)) {
       return;
     }
-
     try {
       setIsDeletingMultiple(true);
 
       // Delete all selected parts using the bulk delete function which now handles both string and number IDs
       await deleteMultipleParts(partIds);
-
       toast({
         title: "Suppression réussie",
         description: `${partIds.length} pièce(s) ont été supprimées avec succès`
@@ -115,14 +109,12 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
       // Ensure compatibility is a string array for the UI components
       const convertedPart = {
         ...part,
-        compatibility: Array.isArray(part.compatibility) 
-          ? part.compatibility.map(id => id.toString()) 
-          : []
+        compatibility: Array.isArray(part.compatibility) ? part.compatibility.map(id => id.toString()) : []
       };
       return convertedPart;
     });
   };
-  
+
   // Convert parts for grid and list views
   const partsForUI = convertPartsForUI(parts);
   const filteredPartsForUI = convertPartsForUI(filteredParts);
@@ -132,11 +124,8 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
     // Ensure compatibility is converted back to number[]
     const preparedPart = {
       ...part,
-      compatibility: Array.isArray(part.compatibility)
-        ? part.compatibility.map(id => typeof id === 'string' ? Number(id) : id)
-        : []
+      compatibility: Array.isArray(part.compatibility) ? part.compatibility.map(id => typeof id === 'string' ? Number(id) : id) : []
     };
-    
     handleUpdatePart(convertToPart(preparedPart));
   };
 
@@ -145,21 +134,16 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
     // Convert the part to the expected type with number[] compatibility
     const convertedPart = {
       ...part,
-      compatibility: Array.isArray(part.compatibility)
-        ? part.compatibility.map(id => typeof id === 'string' ? Number(id) : id)
-        : []
+      compatibility: Array.isArray(part.compatibility) ? part.compatibility.map(id => typeof id === 'string' ? Number(id) : id) : []
     };
-    
     openPartDetails(convertToPart(convertedPart));
   };
-
   if (isLoading) {
     return <div className="flex flex-col items-center justify-center min-h-[400px] bg-background/80">
         <Loader2 className="h-8 w-8 animate-spin opacity-70" />
         <p className="mt-2 text-sm text-muted-foreground">Chargement des pièces...</p>
       </div>;
   }
-
   if (isError) {
     return <Alert variant="destructive" className="my-4">
         <AlertCircle className="h-4 w-4" />
@@ -172,75 +156,32 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
         </AlertDescription>
       </Alert>;
   }
+  return <div className="space-y-4">
+      <Card className="p-4 sm:p-6 px-[24px]">
+        <PartsHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} currentView={currentView} setCurrentView={setCurrentView} onOpenFilterDialog={() => setIsFilterDialogOpen(true)} onOpenSortDialog={() => setIsSortDialogOpen(true)} filterCount={filterCount} />
 
-  return (
-    <div className="space-y-4">
-      <Card className="p-4 sm:p-6">
-        <PartsHeader 
-          searchTerm={searchTerm} 
-          setSearchTerm={setSearchTerm} 
-          currentView={currentView} 
-          setCurrentView={setCurrentView}
-          onOpenFilterDialog={() => setIsFilterDialogOpen(true)}
-          onOpenSortDialog={() => setIsSortDialogOpen(true)}
-          filterCount={filterCount}
-        />
-
-        {filteredPartsForUI.length > 0 ? (
-          currentView === 'grid' ? (
-            <div className="mt-6">
-              <PartsGrid 
-                parts={filteredPartsForUI}
-                openPartDetails={handleOpenPartDetails}
-                openOrderDialog={() => {}}
-              />
-            </div>
-          ) : (
-            <PartsList
-              parts={filteredPartsForUI}
-              openPartDetails={handleOpenPartDetails}
-              openOrderDialog={() => {}}
-              onDeleteSelected={handleDeleteMultiple}
-              isDeleting={isDeletingMultiple}
-            />
-          )
-        ) : partsForUI.length > 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 px-4">
+        {filteredPartsForUI.length > 0 ? currentView === 'grid' ? <div className="mt-6">
+              <PartsGrid parts={filteredPartsForUI} openPartDetails={handleOpenPartDetails} openOrderDialog={() => {}} />
+            </div> : <PartsList parts={filteredPartsForUI} openPartDetails={handleOpenPartDetails} openOrderDialog={() => {}} onDeleteSelected={handleDeleteMultiple} isDeleting={isDeletingMultiple} /> : partsForUI.length > 0 ? <div className="flex flex-col items-center justify-center py-12 px-4">
             <p className="mb-4 text-center text-muted-foreground">
               Aucune pièce ne correspond à vos critères de recherche ou filtres.
             </p>
             <Button variant="outline" onClick={clearFilters}>
               Réinitialiser les filtres
             </Button>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-12 px-4">
+          </div> : <div className="flex flex-col items-center justify-center py-12 px-4">
             <p className="mb-4 text-center text-muted-foreground">
               Aucune pièce enregistrée. Ajoutez votre première pièce.
             </p>
             <Button variant="default" onClick={() => setIsAddPartDialogOpen(true)}>
               Ajouter une pièce
             </Button>
-          </div>
-        )}
+          </div>}
       </Card>
 
-      <FilterSortDialogs
-        isFilterDialogOpen={isFilterDialogOpen}
-        setIsFilterDialogOpen={setIsFilterDialogOpen}
-        isSortDialogOpen={isSortDialogOpen}
-        setIsSortDialogOpen={setIsSortDialogOpen}
-      />
+      <FilterSortDialogs isFilterDialogOpen={isFilterDialogOpen} setIsFilterDialogOpen={setIsFilterDialogOpen} isSortDialogOpen={isSortDialogOpen} setIsSortDialogOpen={setIsSortDialogOpen} />
 
-      <PartDetailsDialog
-        isOpen={isPartDetailsDialogOpen}
-        onOpenChange={setIsPartDetailsDialogOpen}
-        selectedPart={selectedPart}
-        onEdit={handlePartUpdate}
-        onDelete={handleDeletePart}
-      />
-    </div>
-  );
+      <PartDetailsDialog isOpen={isPartDetailsDialogOpen} onOpenChange={setIsPartDetailsDialogOpen} selectedPart={selectedPart} onEdit={handlePartUpdate} onDelete={handleDeletePart} />
+    </div>;
 };
-
 export default PartsContainer;
