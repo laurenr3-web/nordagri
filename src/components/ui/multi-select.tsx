@@ -140,26 +140,42 @@ export function MultiSelect({
                     <CommandItem
                       key={option.value}
                       value={option.value}
-                      onSelect={(currentValue) => {
-                        console.log("Item selected:", currentValue, "matching option:", option.value);
+                      onSelect={() => {
+                        // Appel direct de handleSelect sans passer par currentValue
                         handleSelect(option.value);
                       }}
                       className="flex items-center gap-2 cursor-pointer"
                     >
+                      {/* Wrapper div cliquable sur toute la surface */}
                       <div 
                         className={cn(
                           "flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
                           isSelected ? "bg-primary text-primary-foreground" : "opacity-50"
                         )}
+                        onMouseDown={(e) => {
+                          // Empêche la fermeture du menu et la perte de focus
+                          e.preventDefault();
+                        }}
                         onClick={(e) => {
-                          // This helps ensure the click registers properly
+                          // Empêche les conflits d'événements avec cmdk
                           e.stopPropagation();
+                          e.preventDefault();
                           handleSelect(option.value);
                         }}
                       >
                         {isSelected && <Check className="h-3 w-3" />}
                       </div>
-                      <span>{option.label}</span>
+                      {/* Label de l'option aussi cliquable */}
+                      <span 
+                        className="flex-grow cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          handleSelect(option.value);
+                        }}
+                      >
+                        {option.label}
+                      </span>
                     </CommandItem>
                   );
                 })}
