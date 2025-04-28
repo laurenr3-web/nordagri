@@ -61,3 +61,17 @@ export function numberArrayToString(compatibilityArray: number[]): string {
   if (!Array.isArray(compatibilityArray)) return '';
   return compatibilityArray.join(', ');
 }
+
+/**
+ * Convertit un tableau de nombres en tableau de chaînes (pour la base de données)
+ * @param compatibilityArray Tableau de nombres ou undefined/null
+ * @returns Tableau de chaînes pour la base de données
+ */
+export function compatibilityToStrings(compatibilityArray: number[] | undefined | null): string[] {
+  if (!compatibilityArray || !Array.isArray(compatibilityArray)) return [];
+  
+  // Convertir chaque nombre en chaîne, en ignorant les valeurs non numériques
+  return compatibilityArray
+    .filter(id => typeof id === 'number' && !isNaN(id))
+    .map(id => id.toString());
+}
