@@ -109,14 +109,35 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
     }
   };
 
-  // Create properly typed versions of the arrays
-  // Using type assertion to enforce the right type and then explicit typing for the result
-  const typedParts = parts.map(part => convertToPart(part as any));
-  const typedFilteredParts = filteredParts.map(part => convertToPart(part as any));
+  // Convert compatibility from number[] to string[] for PartsGrid
+  const convertPartsForUI = (parts: Part[]): any[] => {
+    return parts.map(part => {
+      // Ensure compatibility is a string array for the UI components
+      const convertedPart = {
+        ...part,
+        compatibility: Array.isArray(part.compatibility) 
+          ? part.compatibility.map(id => id.toString()) 
+          : []
+      };
+      return convertedPart;
+    });
+  };
   
+  // Convert parts for grid and list views
+  const partsForUI = convertPartsForUI(parts);
+  const filteredPartsForUI = convertPartsForUI(filteredParts);
+
   // Create a typed wrapper for handleUpdatePart that ensures conversion to the right type
-  const typedHandleUpdatePart = (part: unknown) => {
-    handleUpdatePart(convertToPart(part));
+  const handlePartUpdate = (part: any) => {
+    // Ensure compatibility is converted back to number[]
+    const preparedPart = {
+      ...part,
+      compatibility: Array.isArray(part.compatibility)
+        ? part.compatibility.map(id => typeof id === 'string' ? Number(id) : id)
+        : []
+    };
+    
+    handleUpdatePart(convertToPart(preparedPart));
   };
 
   if (isLoading) {
@@ -152,25 +173,25 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
           filterCount={filterCount}
         />
 
-        {typedFilteredParts.length > 0 ? (
+        {filteredPartsForUI.length > 0 ? (
           currentView === 'grid' ? (
             <div className="mt-6">
               <PartsGrid 
-                parts={typedFilteredParts}
+                parts={filteredPartsForUI}
                 openPartDetails={openPartDetails}
                 openOrderDialog={() => {}}
               />
             </div>
           ) : (
             <PartsList
-              parts={typedFilteredParts}
+              parts={filteredPartsForUI}
               openPartDetails={openPartDetails}
               openOrderDialog={() => {}}
               onDeleteSelected={handleDeleteMultiple}
               isDeleting={isDeletingMultiple}
             />
           )
-        ) : typedParts.length > 0 ? (
+        ) : partsForUI.length > 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-4">
             <p className="mb-4 text-center text-muted-foreground">
               Aucune pièce ne correspond à vos critères de recherche ou filtres.
@@ -202,7 +223,7 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
         isOpen={isPartDetailsDialogOpen}
         onOpenChange={setIsPartDetailsDialogOpen}
         selectedPart={selectedPart}
-        onEdit={typedHandleUpdatePart}
+        onEdit={handlePartUpdate}
         onDelete={handleDeletePart}
       />
     </div>
