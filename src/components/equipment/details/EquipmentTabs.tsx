@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Menu } from 'lucide-react';
 
+// Accept any equipment type (both Equipment and EquipmentItem)
 interface EquipmentTabsProps {
   equipment: any;
   forceDesktopTabs?: boolean;
