@@ -1,3 +1,4 @@
+
 import * as React from "react";
 import { X, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -32,10 +33,10 @@ export function MultiSelect({
   const [open, setOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
 
-  // S'assurer que options est toujours un tableau, même si undefined est passé
+  // Ensure options is always an array, even if undefined is passed
   const safeOptions = options || [];
 
-  // Filtrer les options en fonction de la recherche
+  // Filter options based on search query
   const filteredOptions = React.useMemo(() => {
     if (!searchQuery) return safeOptions;
     
@@ -44,7 +45,7 @@ export function MultiSelect({
     );
   }, [searchQuery, safeOptions]);
 
-  // Récupérer tous les libellés d'options sélectionnées
+  // Get all labels for selected options
   const selectedLabels = React.useMemo(() => 
     selected
       .map(value => safeOptions.find(option => option.value === value))
@@ -53,12 +54,12 @@ export function MultiSelect({
     [selected, safeOptions]
   );
 
-  // Gérer la suppression d'un élément sélectionné
+  // Handle removing a selected item
   const handleRemove = (selectedValue: string) => {
     onChange(selected.filter(value => value !== selectedValue));
   };
 
-  // Gérer la sélection/déselection d'une option
+  // Handle selecting/deselecting an option
   const handleSelect = (value: string) => {
     if (selected.includes(value)) {
       onChange(selected.filter(item => item !== value));
@@ -132,9 +133,6 @@ export function MultiSelect({
           </div>
           {filteredOptions && filteredOptions.length > 0 ? (
             <CommandList>
-              {filteredOptions.length === 0 && (
-                <CommandEmpty>{emptyMessage}</CommandEmpty>
-              )}
               <CommandGroup>
                 {filteredOptions.map(option => {
                   const isSelected = selected.includes(option.value);

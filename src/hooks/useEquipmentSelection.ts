@@ -6,20 +6,23 @@ import { PartFormValues } from '@/components/parts/form/partFormTypes';
 export function useEquipmentSelection(form: UseFormReturn<PartFormValues>) {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
-  // Synchroniser avec les valeurs du formulaire au chargement
+  // Initialize with form values when component mounts
   useEffect(() => {
     const currentCompatibility = form.getValues('compatibility') || [];
-    setSelectedIds(currentCompatibility);
+    setSelectedIds(Array.isArray(currentCompatibility) ? currentCompatibility : []);
   }, [form]);
 
   const handleSelectionChange = (newSelection: string[]) => {
-    // Convertir les string[] en number[]
-    const numericIds = newSelection.map(id => parseInt(id, 10)).filter(id => !isNaN(id));
+    console.log('New selection received:', newSelection);
     
-    // Mettre à jour l'état local
+    // Convert string[] to number[]
+    const numericIds = newSelection.map(id => parseInt(id, 10)).filter(id => !isNaN(id));
+    console.log('Converted to numeric IDs:', numericIds);
+    
+    // Update local state
     setSelectedIds(numericIds);
     
-    // Mettre à jour le formulaire
+    // Update form value
     form.setValue('compatibility', numericIds, {
       shouldValidate: true,
       shouldDirty: true,
@@ -27,6 +30,7 @@ export function useEquipmentSelection(form: UseFormReturn<PartFormValues>) {
   };
 
   const clearSelection = () => {
+    console.log('Clearing selection');
     setSelectedIds([]);
     form.setValue('compatibility', [], {
       shouldValidate: true,

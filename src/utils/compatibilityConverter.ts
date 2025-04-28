@@ -1,8 +1,7 @@
-
 /**
- * Convertit une chaîne de compatibilité en tableau de nombres
- * @param compatibilityString Chaîne au format "1, 2, 3" ou similaire
- * @returns Tableau d'IDs numériques
+ * Converts a compatibility string to an array of numbers
+ * @param compatibilityString String in the format "1, 2, 3" or similar
+ * @returns Array of numeric IDs
  */
 export function parseCompatibilityString(compatibilityString: string | undefined | null): number[] {
   if (!compatibilityString) return [];
@@ -16,46 +15,46 @@ export function parseCompatibilityString(compatibilityString: string | undefined
 }
 
 /**
- * S'assure que la compatibilité est sous forme de tableau de nombres
- * @param compatibility Compatibilité sous une forme quelconque
- * @returns Tableau normalisé de nombres
+ * Ensures that compatibility is in the form of an array of numbers
+ * @param compatibility Compatibility in any form
+ * @returns Normalized array of numbers
  */
 export function compatibilityToNumbers(compatibility: any): number[] {
-  // Si c'est undefined ou null
+  // If undefined or null
   if (!compatibility) return [];
   
-  // Si c'est déjà un tableau
+  // If already an array
   if (Array.isArray(compatibility)) {
     return compatibility
       .map(id => {
-        // Si l'élément est une chaîne, essayer de le convertir en nombre
+        // If the element is a string, try to convert to number
         if (typeof id === 'string') {
           const num = Number(id);
           return isNaN(num) ? null : num;
         }
-        // Si c'est déjà un nombre, le garder
+        // If already a number, keep it
         else if (typeof id === 'number') {
           return id;
         }
-        // Sinon, ignorer cet élément
+        // Otherwise, ignore this element
         return null;
       })
       .filter((id): id is number => id !== null);
   }
   
-  // Si c'est une chaîne, la traiter comme une liste séparée par des virgules
+  // If it's a string, treat as comma-separated list
   if (typeof compatibility === 'string') {
     return parseCompatibilityString(compatibility);
   }
   
-  // Par défaut, retourner un tableau vide
+  // Default return empty array
   return [];
 }
 
 /**
- * Convertit un tableau de nombres en chaîne formatée
- * @param compatibilityArray Tableau de nombres
- * @returns Chaîne formatée "1, 2, 3"
+ * Converts an array of numbers to a formatted string
+ * @param compatibilityArray Array of numbers
+ * @returns Formatted string "1, 2, 3"
  */
 export function numberArrayToString(compatibilityArray: number[]): string {
   if (!Array.isArray(compatibilityArray)) return '';
@@ -63,14 +62,14 @@ export function numberArrayToString(compatibilityArray: number[]): string {
 }
 
 /**
- * Convertit un tableau de nombres en tableau de chaînes (pour la base de données)
- * @param compatibilityArray Tableau de nombres ou undefined/null
- * @returns Tableau de chaînes pour la base de données
+ * Converts an array of numbers to an array of strings (for database)
+ * @param compatibilityArray Array of numbers or undefined/null
+ * @returns Array of strings for database
  */
 export function compatibilityToStrings(compatibilityArray: number[] | undefined | null): string[] {
   if (!compatibilityArray || !Array.isArray(compatibilityArray)) return [];
   
-  // Convertir chaque nombre en chaîne, en ignorant les valeurs non numériques
+  // Convert each number to string, ignoring non-numeric values
   return compatibilityArray
     .filter(id => typeof id === 'number' && !isNaN(id))
     .map(id => id.toString());

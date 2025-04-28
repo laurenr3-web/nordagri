@@ -1,95 +1,52 @@
 
-import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { useNetworkState } from '@/hooks/useNetworkState';
+import { useValidateCompatibility } from "@/hooks/equipment/useEquipments";
+import { toast } from "sonner";
 
-interface UseCompatibilityValidationOptions {
-  onValidationError?: (invalidIds: number[]) => void;
+interface CompatibilityValidationOptions {
+  onValidationError?: () => void;
 }
 
-export function useCompatibilityValidation({
-  onValidationError
-}: UseCompatibilityValidationOptions = {}) {
-  const [invalidIds, setInvalidIds] = useState<number[]>([]);
-  const [isValidating, setIsValidating] = useState(false);
-  const { toast } = useToast();
-  const isOnline = useNetworkState();
-
-  // Fonction pour valider les IDs des équipements
-  const validateCompatibility = useCallback(async (equipmentIds: number[]): Promise<boolean> => {
-    // Si aucun ID à valider, c'est valide
-    if (!equipmentIds || equipmentIds.length === 0) {
+export function useCompatibilityValidation(options?: CompatibilityValidationOptions) {
+  const { data: validEquipmentIds } = useValidateCompatibility();
+  
+  const validateCompatibility = async (compatibilityIds: number[]): Promise<boolean> => {
+    if (!compatibilityIds || compatibilityIds.length === 0) {
+      return true; // Empty array is valid
+    }
+    
+    // If we don't have validation data yet, assume valid
+    if (!validEquipmentIds) {
+      console.log('No validation data available, skipping validation');
       return true;
     }
-
-    // Si l'utilisateur est hors-ligne, on considère que c'est valide
-    // et on le synchronisera plus tard
-    if (!isOnline) {
-      toast({
-        title: "Mode hors-ligne",
-        description: "La validation des équipements sera effectuée lors de la connexion.",
-      });
-      return true;
-    }
-
-    try {
-      setIsValidating(true);
+    
+    // Find any IDs that aren't in our valid set
+    const invalidIds = compatibilityIds.filter(id => !validEquipmentIds.has(id));
+    
+    if (invalidIds.length > 0) {
+      console.error('Invalid equipment IDs detected:', invalidIds);
+      toast.error(`Certains équipements sélectionnés (${invalidIds.join(', ')}) n'existent pas ou ne sont plus disponibles.`);
       
-      // Récupérer tous les IDs valides depuis Supabase
-      const { data, error } = await supabase
-        .from('equipment')
-        .select('id')
-        .in('id', equipmentIds);
-      
-      if (error) throw error;
-      
-      // Vérifier les IDs qui sont manquants
-      const validIds = new Set(data.map((item: any) => item.id));
-      const invalidEquipmentIds = equipmentIds.filter(id => !validIds.has(id));
-      
-      setInvalidIds(invalidEquipmentIds);
-      
-      if (invalidEquipmentIds.length > 0) {
-        toast({
-          variant: "destructive",
-          title: "Équipements incompatibles",
-          description: `${invalidEquipmentIds.length} équipement(s) sélectionné(s) n'existe(nt) plus.`,
-        });
-        
-        if (onValidationError) {
-          onValidationError(invalidEquipmentIds);
-        }
-        
-        return false;
+      if (options?.onValidationError) {
+        options.onValidationError();
       }
       
-      return true;
-    } catch (error) {
-      console.error("Erreur lors de la validation des équipements compatibles:", error);
-      
-      toast({
-        variant: "destructive",
-        title: "Erreur de validation",
-        description: "Impossible de vérifier les équipements. Veuillez réessayer.",
-      });
-      
       return false;
-    } finally {
-      setIsValidating(false);
     }
-  }, [isOnline, toast, onValidationError]);
-
-  // Fonction de nettoyage des IDs invalides
-  const cleanInvalidIds = useCallback((equipmentIds: number[]): number[] => {
-    if (!invalidIds.length) return equipmentIds;
-    return equipmentIds.filter(id => !invalidIds.includes(id));
-  }, [invalidIds]);
-
+    
+    return true;
+  };
+  
+  const cleanInvalidIds = (compatibilityIds: number[]): number[] => {
+    if (!validEquipmentIds || !compatibilityIds) {
+      return compatibilityIds || [];
+    }
+    
+    return compatibilityIds.filter(id => validEquipmentIds.has(id));
+  };
+  
   return {
     validateCompatibility,
-    cleanInvalidIds,
-    isValidating,
-    invalidIds
+    cleanInvalidIds
   };
 }

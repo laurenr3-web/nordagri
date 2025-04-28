@@ -8,8 +8,8 @@ import { useNetworkState } from '@/hooks/useNetworkState';
 export interface EquipmentOption {
   id: number;
   name: string;
-  value: string; // ID en tant que string pour la compatibilité avec les composants UI
-  label: string; // Nom de l'équipement
+  value: string; // ID as string for UI component compatibility
+  label: string; // Equipment name
 }
 
 export function useEquipments() {
@@ -19,16 +19,16 @@ export function useEquipments() {
     queryKey: ['equipments'],
     queryFn: async (): Promise<EquipmentOption[]> => {
       try {
-        // Si l'utilisateur est hors ligne, essayer d'utiliser le cache
+        // If user is offline, try to use cached data
         if (!isOnline) {
           const cachedData = getCachedEquipments();
           if (cachedData) {
-            console.log('Utilisation des données en cache pour les équipements');
+            console.log('Using cached equipment data');
             return cachedData;
           }
         }
 
-        // Récupérer les données depuis Supabase
+        // Fetch data from Supabase
         const { data: equipments, error } = await supabase
           .from('equipment')
           .select('id, name')
@@ -38,7 +38,7 @@ export function useEquipments() {
         
         console.log('Raw equipment data:', equipments);
         
-        // Conversion des équipements au format attendu par le composant MultiSelect
+        // Convert equipment to the format expected by the MultiSelect component
         const formattedEquipments = equipments.map((equipment: any) => ({
           id: equipment.id,
           name: equipment.name,
@@ -48,17 +48,17 @@ export function useEquipments() {
         
         console.log('Formatted equipment options:', formattedEquipments);
         
-        // Mettre en cache les données pour une utilisation hors ligne
+        // Cache data for offline use
         cacheEquipments(formattedEquipments);
         
         return formattedEquipments;
       } catch (error) {
-        console.error('Erreur lors du chargement des équipements:', error);
+        console.error('Error loading equipment:', error);
         
-        // En cas d'erreur, essayer d'utiliser le cache
+        // On error, try to use cached data
         const cachedData = getCachedEquipments();
         if (cachedData) {
-          console.log('Utilisation des données en cache après erreur');
+          console.log('Using cached data after error');
           return cachedData;
         }
         
@@ -66,11 +66,11 @@ export function useEquipments() {
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 60 * 60 * 1000, // 1 heure (remplace cacheTime qui est déprécié)
+    gcTime: 60 * 60 * 1000, // 1 hour (replaces cacheTime which is deprecated)
   });
 }
 
-// Validation des équipements compatibles
+// Validation for compatible equipment
 export function useValidateCompatibility() {
   const isOnline = useNetworkState();
 
@@ -78,11 +78,11 @@ export function useValidateCompatibility() {
     queryKey: ['equipments-validation'],
     queryFn: async (): Promise<Set<number>> => {
       try {
-        // Si l'utilisateur est hors ligne, essayer d'utiliser le cache
+        // If user is offline, try to use cached data
         if (!isOnline) {
           const cachedData = getCachedEquipments();
           if (cachedData) {
-            console.log('Utilisation des données en cache pour la validation');
+            console.log('Using cached data for validation');
             return new Set(cachedData.map(eq => parseInt(eq.value)));
           }
         }
@@ -95,18 +95,18 @@ export function useValidateCompatibility() {
         
         console.log('Equipment IDs for validation:', equipments);
         
-        // Créer un Set pour une recherche rapide O(1)
+        // Create a Set for O(1) lookup
         const validIds = new Set(equipments.map((eq: any) => eq.id));
         console.log('Valid equipment IDs set:', Array.from(validIds));
         
         return validIds;
       } catch (error) {
-        console.error('Erreur lors de la validation des équipements:', error);
+        console.error('Error validating equipment:', error);
         
-        // En cas d'erreur, essayer d'utiliser le cache pour la validation
+        // On error, try to use cached data for validation
         const cachedData = getCachedEquipments();
         if (cachedData) {
-          console.log('Utilisation des données en cache pour la validation après erreur');
+          console.log('Using cached data for validation after error');
           return new Set(cachedData.map(eq => parseInt(eq.value)));
         }
         
@@ -114,6 +114,6 @@ export function useValidateCompatibility() {
       }
     },
     staleTime: 10 * 60 * 1000, // 10 minutes
-    gcTime: 60 * 60 * 1000, // Remplace cacheTime
+    gcTime: 60 * 60 * 1000, // Replaces cacheTime
   });
 }
