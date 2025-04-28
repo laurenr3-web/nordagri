@@ -26,8 +26,9 @@ const InterventionsHeader: React.FC<InterventionsHeaderProps> = ({
   currentView,
   setCurrentView
 }) => {
-  return <header className="border-b">
-      <div className="container py-4 px-[114px]">
+  return (
+    <header className="border-b">
+      <div className="container py-4 px-4 md:px-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Interventions</h1>
@@ -98,7 +99,8 @@ const InterventionsHeader: React.FC<InterventionsHeaderProps> = ({
             </DropdownMenu>
           </div>
           
-          {setCurrentView && <Tabs value={currentView || 'scheduled'} className="w-full sm:w-auto" onValueChange={setCurrentView}>
+          {setCurrentView && 
+            <Tabs value={currentView || 'scheduled'} className="w-full sm:w-auto" onValueChange={setCurrentView}>
               <TabsList className="bg-muted/60 p-0 rounded-md">
                 <div className="flex">
                   <TabsTrigger value="scheduled" className="px-4 py-2 text-sm rounded-md">
@@ -118,10 +120,12 @@ const InterventionsHeader: React.FC<InterventionsHeaderProps> = ({
                   </TabsTrigger>
                 </div>
               </TabsList>
-            </Tabs>}
+            </Tabs>
+          }
         </div>
       </div>
-    </header>;
+    </header>
+  );
 };
 
 export default InterventionsHeader;

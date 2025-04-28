@@ -1,13 +1,8 @@
-import React, { useState } from 'react';
-import InterventionsList from '@/components/interventions/InterventionsList';
-import { Intervention, InterventionFormValues } from '@/types/Intervention';
-import { useInterventionsData } from '@/hooks/interventions/useInterventionsData';
-import { useEquipmentOptions } from '@/hooks/equipment/useEquipmentOptions';
-import NewInterventionDialog from './NewInterventionDialog';
-import InterventionReportDialog from './dialogs/InterventionReportDialog';
-import CalendarView from './views/CalendarView';
-import FieldTrackingView from './views/FieldTrackingView';
-import FieldObservationsView from './views/FieldObservationsView';
+
+import React from 'react';
+import { BlurContainer } from '@/components/ui/blur-container';
+import InterventionsList from './InterventionsList';
+import { Intervention } from '@/types/Intervention';
 
 interface InterventionsContainerProps {
   filteredInterventions: Intervention[];
@@ -34,109 +29,19 @@ const InterventionsContainer: React.FC<InterventionsContainerProps> = ({
   onSearchChange,
   onPriorityChange
 }) => {
-  // Utiliser le hook pour gérer les interactions avec les interventions
-  const {
-    updateInterventionStatus,
-    assignTechnician,
-    submitInterventionReport
-  } = useInterventionsData();
-
-  // Utiliser le hook pour récupérer les équipements réels
-  const {
-    data: realEquipments = [],
-    isLoading: isLoadingEquipments
-  } = useEquipmentOptions();
-
-  // États pour les dialogs
-  const [isNewInterventionOpen, setIsNewInterventionOpen] = useState(false);
-  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
-  const [selectedIntervention, setSelectedIntervention] = useState<Intervention | null>(null);
-
-  // Gérer la sélection d'une intervention pour le rapport
-  const handleCompleteIntervention = (intervention: Intervention) => {
-    setSelectedIntervention(intervention);
-    setIsReportDialogOpen(true);
-  };
-
-  // Lorsqu'on ouvre le formulaire de création depuis le calendrier
-  const handleCreateFromCalendar = (date?: Date) => {
-    // TODO: Pré-remplir le formulaire avec la date sélectionnée
-    setIsNewInterventionOpen(true);
-  };
-
-  // Contenu à afficher selon la vue actuelle
-  const renderContent = () => {
-    switch (currentView) {
-      case 'calendar':
-        return <CalendarView interventions={filteredInterventions} onViewDetails={onViewDetails} onCreateIntervention={handleCreateFromCalendar} />;
-      case 'field-tracking':
-        return <FieldTrackingView interventions={filteredInterventions} onViewDetails={onViewDetails} onUpdateStatus={updateInterventionStatus} onAssignTechnician={assignTechnician} />;
-      case 'observations':
-        return <FieldObservationsView />;
-      default:
-        return (
-          <InterventionsList 
-            filteredInterventions={filteredInterventions} 
-            currentView={currentView} 
-            setCurrentView={setCurrentView} 
-            onClearSearch={onClearSearch} 
-            onViewDetails={onViewDetails} 
-            onStartWork={onStartWork}
-            searchQuery={searchQuery}
-            selectedPriority={selectedPriority}
-            onSearchChange={onSearchChange}
-            onPriorityChange={onPriorityChange}
-          />
-        );
-    }
-  };
-
   return (
-    <div className="container mx-auto py-4">
-      {renderContent()}
-      
-      {/* Dialog de création d'intervention */}
-      <NewInterventionDialog 
-        open={isNewInterventionOpen} 
-        onOpenChange={setIsNewInterventionOpen} 
-        onCreate={async values => {
-          console.log('Creating intervention:', values);
-          setIsNewInterventionOpen(false);
-          // Return a resolved promise to satisfy the type
-          return Promise.resolve();
-        }} 
-        equipments={realEquipments} 
-        isLoadingEquipment={isLoadingEquipments} 
-      />
-      
-      {/* Dialog de rapport d'intervention */}
-      <InterventionReportDialog 
-        open={isReportDialogOpen} 
-        onOpenChange={setIsReportDialogOpen} 
-        intervention={selectedIntervention} 
-        onSubmit={submitInterventionReport} 
-        availableParts={[
-          {
-            id: 1,
-            name: 'Filtre à huile',
-            quantity: 10
-          }, 
-          {
-            id: 2,
-            name: 'Courroie',
-            quantity: 5
-          }, 
-          {
-            id: 3,
-            name: 'Filtre à air',
-            quantity: 8
-          }, 
-          {
-            id: 4,
-            name: 'Bougie d\'allumage',
-            quantity: 12
-          }
-        ]} 
+    <div className="container py-4 px-4 md:px-6">
+      <InterventionsList 
+        filteredInterventions={filteredInterventions}
+        currentView={currentView}
+        setCurrentView={setCurrentView}
+        onClearSearch={onClearSearch}
+        onViewDetails={onViewDetails}
+        onStartWork={onStartWork}
+        searchQuery={searchQuery}
+        selectedPriority={selectedPriority}
+        onSearchChange={onSearchChange}
+        onPriorityChange={onPriorityChange}
       />
     </div>
   );

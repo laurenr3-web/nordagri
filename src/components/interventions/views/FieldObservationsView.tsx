@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ObservationForm } from '@/components/observations/ObservationForm';
@@ -82,9 +83,12 @@ const FieldObservationsView: React.FC = () => {
     return true;
   });
 
+  // Ajouter un console.log pour déboguer
+  console.log('Observations:', observations);
+
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
+    <div className="w-full px-4 py-4">
+      <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">Observations terrain</h2>
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogTrigger asChild>
@@ -102,8 +106,8 @@ const FieldObservationsView: React.FC = () => {
         </Dialog>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="mb-4 w-full">
           <TabsTrigger value="all" className="flex items-center">
             <Eye className="mr-1 h-4 w-4" />
             Toutes
@@ -116,7 +120,7 @@ const FieldObservationsView: React.FC = () => {
           <TabsTrigger value="normal">Normal</TabsTrigger>
         </TabsList>
 
-        <TabsContent value={activeTab}>
+        <TabsContent value={activeTab} className="w-full">
           {isLoading ? (
             <div className="text-center py-12">Chargement des observations...</div>
           ) : filteredObservations.length === 0 ? (
