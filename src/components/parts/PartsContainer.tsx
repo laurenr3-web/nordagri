@@ -109,9 +109,9 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
     }
   };
 
-  // Ensure parts have the correct type
-  const typedParts = parts.map(part => convertToPart(part));
-  const typedFilteredParts = filteredParts.map(part => convertToPart(part));
+  // Ensure all parts are properly converted to the correct type before rendering
+  const convertedParts = parts.map(part => convertToPart(part));
+  const convertedFilteredParts = filteredParts.map(part => convertToPart(part));
   
   // Create a typed wrapper for handleUpdatePart
   const typedHandleUpdatePart = (part: any) => {
@@ -151,25 +151,25 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
           filterCount={filterCount}
         />
 
-        {typedFilteredParts.length > 0 ? (
+        {convertedFilteredParts.length > 0 ? (
           currentView === 'grid' ? (
             <div className="mt-6">
               <PartsGrid 
-                parts={typedFilteredParts} 
+                parts={convertedFilteredParts}
                 openPartDetails={openPartDetails}
                 openOrderDialog={() => {}}
               />
             </div>
           ) : (
             <PartsList
-              parts={typedFilteredParts}
+              parts={convertedFilteredParts}
               openPartDetails={openPartDetails}
               openOrderDialog={() => {}}
               onDeleteSelected={handleDeleteMultiple}
               isDeleting={isDeletingMultiple}
             />
           )
-        ) : typedParts.length > 0 ? (
+        ) : convertedParts.length > 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-4">
             <p className="mb-4 text-center text-muted-foreground">
               Aucune pièce ne correspond à vos critères de recherche ou filtres.
