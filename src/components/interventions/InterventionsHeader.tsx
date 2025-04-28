@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Calendar, List, MapPin, FileText, Plus, Filter } from 'lucide-react';
+import { Calendar, List, MapPin, FileText, Plus, Filter, Eye } from 'lucide-react';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -111,6 +111,10 @@ const InterventionsHeader: React.FC<InterventionsHeaderProps> = ({
                   <MapPin className="h-4 w-4 mr-2" />
                   Suivi terrain
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setCurrentView && setCurrentView('observations')}>
+                  <Eye className="h-4 w-4 mr-2" />
+                  Observations
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setCurrentView && setCurrentView('requests')}>
                   <FileText className="h-4 w-4 mr-2" />
                   Demandes
@@ -135,6 +139,9 @@ const InterventionsHeader: React.FC<InterventionsHeaderProps> = ({
                   </TabsTrigger>
                   <TabsTrigger value="field-tracking" className="px-4 py-2 text-sm rounded-md">
                     Suivi
+                  </TabsTrigger>
+                  <TabsTrigger value="observations" className="px-4 py-2 text-sm rounded-md">
+                    Observations
                   </TabsTrigger>
                   <TabsTrigger value="requests" className="px-4 py-2 text-sm rounded-md">
                     Demandes

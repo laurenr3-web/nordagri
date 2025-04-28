@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Intervention } from '@/types/Intervention';
 import InterventionCard from './InterventionCard';
-import { CalendarCheck, Clock, CheckCircle2, Wrench, AlertTriangle, History, FileText } from 'lucide-react';
+import { CalendarCheck, Clock, CheckCircle2, Wrench, AlertTriangle, History, FileText, Eye } from 'lucide-react';
 import InterventionsNavigation from './InterventionsNavigation';
 import FieldTrackingView from './views/FieldTrackingView';
 import RequestsManagementView from './views/RequestsManagementView';
 import EquipmentHistoryView from './views/EquipmentHistoryView';
+import FieldObservationsView from './views/FieldObservationsView';
 
 interface InterventionsListProps {
   filteredInterventions: Intervention[];
@@ -18,6 +19,10 @@ interface InterventionsListProps {
   onClearSearch: () => void;
   onViewDetails: (intervention: Intervention) => void;
   onStartWork: (intervention: Intervention) => void;
+  searchQuery: string;
+  selectedPriority: string | null;
+  onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onPriorityChange: (priority: string | null) => void;
 }
 
 const InterventionsList: React.FC<InterventionsListProps> = ({
@@ -26,7 +31,11 @@ const InterventionsList: React.FC<InterventionsListProps> = ({
   setCurrentView,
   onClearSearch,
   onViewDetails,
-  onStartWork
+  onStartWork,
+  searchQuery,
+  selectedPriority,
+  onSearchChange,
+  onPriorityChange
 }) => {
   const getEmptyStateMessage = () => {
     switch (currentView) {
@@ -86,6 +95,10 @@ const InterventionsList: React.FC<InterventionsListProps> = ({
           <TabsTrigger value="requests" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
             <FileText size={16} />
             <span>Demandes</span>
+          </TabsTrigger>
+          <TabsTrigger value="observations" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
+            <Eye size={16} />
+            <span>Observations</span>
           </TabsTrigger>
           <TabsTrigger value="history" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
             <History size={16} />
@@ -156,6 +169,10 @@ const InterventionsList: React.FC<InterventionsListProps> = ({
         
         <TabsContent value="requests" className="mt-2 space-y-4">
           <RequestsManagementView interventions={filteredInterventions} onViewDetails={onViewDetails} />
+        </TabsContent>
+        
+        <TabsContent value="observations" className="mt-2 space-y-4">
+          <FieldObservationsView />
         </TabsContent>
         
         <TabsContent value="history" className="mt-2 space-y-4">
