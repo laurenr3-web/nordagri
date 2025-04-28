@@ -36,6 +36,17 @@ export const useFieldObservations = () => {
       }
 
       try {
+        // Récupérer la session active pour s'assurer que l'utilisateur est bien authentifié
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !sessionData.session) {
+          console.error('Erreur de session:', sessionError);
+          toast.error('Votre session a expiré. Veuillez vous reconnecter.');
+          throw new Error('Session expired or invalid');
+        }
+
+        const userData = sessionData.session.user;
+        
         // Créer une nouvelle intervention à partir de l'observation
         const { data, error } = await supabase
           .from('interventions')
@@ -47,12 +58,13 @@ export const useFieldObservations = () => {
             observation_type: values.observation_type,
             urgency_level: values.urgency_level,
             photos: values.photos || [],
-            observer_id: user.id,
+            observer_id: userData.id,
             status: 'pending',
             priority: values.urgency_level === 'urgent' ? 'high' : (values.urgency_level === 'surveiller' ? 'medium' : 'low'),
             date: new Date().toISOString(),
             technician: 'À assigner',
-            title: `Observation: ${values.equipment} - ${values.observation_type}`
+            title: `Observation: ${values.equipment} - ${values.observation_type}`,
+            owner_id: userData.id // Ajouter explicitement owner_id qui est probablement requis par RLS
           })
           .select();
 
