@@ -139,7 +139,11 @@ export function MultiSelect({
                   return (
                     <CommandItem
                       key={option.value}
-                      onSelect={() => handleSelect(option.value)}
+                      value={option.value}
+                      onSelect={() => {
+                        handleSelect(option.value);
+                        // Ne pas fermer le menu pour permettre des sélections multiples
+                      }}
                       className="cursor-pointer"
                     >
                       <div className={cn("mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
