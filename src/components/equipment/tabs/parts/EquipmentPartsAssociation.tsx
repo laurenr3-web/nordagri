@@ -17,6 +17,7 @@ const EquipmentPartsAssociation: React.FC<EquipmentPartsAssociationProps> = ({
   parts = []
 }) => {
   const equipmentId = typeof equipment.id === 'string' ? parseInt(equipment.id, 10) : equipment.id;
+  const equipmentName = equipment.name || `Équipement #${equipmentId}`;
   
   return (
     <div className="space-y-4">
@@ -25,8 +26,8 @@ const EquipmentPartsAssociation: React.FC<EquipmentPartsAssociationProps> = ({
           <h3 className="text-lg font-semibold">Pièces associées</h3>
           <p className="text-sm text-muted-foreground">
             {parts.length 
-              ? `${parts.length} pièce(s) compatible(s) avec cet équipement`
-              : `Aucune pièce compatible avec cet équipement (ID: ${equipmentId})`}
+              ? `${parts.length} pièce(s) compatible(s) avec ${equipmentName}`
+              : `Aucune pièce compatible avec cet équipement: ${equipmentName}`}
           </p>
         </div>
         <Button onClick={onAddPart} size="sm">

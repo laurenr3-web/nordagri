@@ -34,13 +34,14 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = ({ equipment }) => {
     : equipment.id;
 
   console.log('Equipment ID for compatibility check:', equipmentId);
+  console.log('Equipment name:', equipment.name);
   console.log('All parts loaded:', allParts?.length || 0);
 
   // Filter parts to only show those compatible with this equipment
   const compatibleParts = React.useMemo(() => {
     if (!allParts || allParts.length === 0) return [];
     
-    console.log('Filtering parts for equipment ID:', equipmentId);
+    console.log('Filtering parts for equipment ID:', equipmentId, 'name:', equipment.name);
     
     return allParts.filter(part => {
       // Make sure compatibility is an array
@@ -51,11 +52,11 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = ({ equipment }) => {
       // Check if this equipment's ID is in the compatibility list
       const isCompatible = compatibility.includes(equipmentId);
       if (isCompatible) {
-        console.log(`Part ${part.name} is compatible with equipment ${equipmentId}`);
+        console.log(`Part ${part.name} is compatible with equipment ${equipment.name} (ID: ${equipmentId})`);
       }
       return isCompatible;
     });
-  }, [allParts, equipmentId]);
+  }, [allParts, equipmentId, equipment.name]);
 
   console.log('Compatible parts found:', compatibleParts.length);
 
@@ -118,6 +119,7 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = ({ equipment }) => {
         <EquipmentPartsAssociation 
           equipment={equipment}
           onAddPart={handleAddPart}
+          parts={compatibleParts}
         />
 
         {/* Afficher l'alerte de stock bas si nécessaire */}
