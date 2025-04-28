@@ -1,11 +1,13 @@
+
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import EquipmentParts from '../tabs/EquipmentParts';
 import { Equipment } from '@/services/supabase/equipmentService';
+import { EquipmentItem } from '@/components/equipment/hooks/useEquipmentFilters';
 import EquipmentCompatibleParts from '../tabs/EquipmentCompatibleParts';
 
 interface EquipmentTabsProps {
-  equipment: Equipment;
+  equipment: Equipment | EquipmentItem;
   forceDesktopTabs?: boolean;
 }
 

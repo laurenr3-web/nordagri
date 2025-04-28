@@ -6,21 +6,27 @@ import { Wrench, Package2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Equipment } from '@/services/supabase/equipmentService';
+import { EquipmentItem } from '@/components/equipment/hooks/useEquipmentFilters';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface EquipmentCompatiblePartsProps {
-  equipment: Equipment;
+  equipment: Equipment | EquipmentItem;
 }
 
 const EquipmentCompatibleParts: React.FC<EquipmentCompatiblePartsProps> = ({ equipment }) => {
+  // Extract the equipment ID properly regardless of the type
+  const equipmentId = typeof equipment.id === 'string' 
+    ? parseInt(equipment.id, 10) 
+    : equipment.id;
+
   // Charger toutes les pièces compatibles avec cet équipement
   const { data: compatibleParts, isLoading } = useQuery({
-    queryKey: ['equipment-parts', equipment.id],
+    queryKey: ['equipment-parts', equipmentId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('parts_inventory')
         .select('id, name, part_number, quantity, unit_price, category')
-        .contains('compatible_with', [equipment.id]);
+        .contains('compatible_with', [equipmentId]);
         
       if (error) throw error;
       return data || [];
