@@ -7,6 +7,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Part } from '@/types/Part';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 
 interface PartsListProps {
   parts: Part[];
@@ -14,6 +16,12 @@ interface PartsListProps {
   openOrderDialog: (part: Part) => void;
   onDeleteSelected?: (partIds: (string | number)[]) => Promise<void>;
   isDeleting?: boolean;
+}
+
+// Interface pour les informations des équipements
+interface EquipmentInfo {
+  id: number;
+  name: string;
 }
 
 const PartsList: React.FC<PartsListProps> = ({ 
@@ -25,6 +33,47 @@ const PartsList: React.FC<PartsListProps> = ({
 }) => {
   const [selectedParts, setSelectedParts] = useState<(string | number)[]>([]);
   const allCheckboxRef = useRef<HTMLButtonElement>(null);
+  
+  // Extraire tous les IDs d'équipements uniques des pièces
+  const allEquipmentIds = React.useMemo(() => {
+    const ids = new Set<number>();
+    parts.forEach(part => {
+      if (Array.isArray(part.compatibility)) {
+        part.compatibility.forEach(id => {
+          if (typeof id === 'number') ids.add(id);
+        });
+      }
+    });
+    return Array.from(ids);
+  }, [parts]);
+  
+  // Récupérer les noms des équipements depuis leurs IDs
+  const { data: equipmentInfo, isLoading: isLoadingEquipment } = useQuery({
+    queryKey: ['equipment-names', allEquipmentIds],
+    queryFn: async (): Promise<Map<number, string>> => {
+      if (!allEquipmentIds.length) return new Map();
+      
+      try {
+        const { data, error } = await supabase
+          .from('equipment')
+          .select('id, name')
+          .in('id', allEquipmentIds);
+        
+        if (error) throw error;
+        
+        // Créer une Map pour chercher rapidement les noms par ID
+        const equipmentMap = new Map<number, string>();
+        (data || []).forEach(item => {
+          equipmentMap.set(item.id, item.name || `Équipement #${item.id}`);
+        });
+        return equipmentMap;
+      } catch (err) {
+        console.error('Erreur lors du chargement des noms d\'équipement:', err);
+        return new Map();
+      }
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
   // Handle indeterminate checkbox state
   useEffect(() => {
@@ -59,6 +108,32 @@ const PartsList: React.FC<PartsListProps> = ({
     if (part.stock <= 0) return 'text-destructive';
     if (part.stock <= part.reorderPoint) return 'text-yellow-500';
     return 'text-green-500';
+  };
+
+  // Fonction pour afficher les équipements compatibles
+  const renderCompatibleEquipment = (part: Part) => {
+    const compatibility = Array.isArray(part.compatibility) ? part.compatibility : [];
+    
+    if (compatibility.length === 0) {
+      return <span className="text-xs text-muted-foreground">Aucun</span>;
+    }
+    
+    if (isLoadingEquipment || !equipmentInfo) {
+      return <span className="text-xs text-muted-foreground">Chargement...</span>;
+    }
+    
+    return (
+      <div className="flex flex-wrap gap-1">
+        {compatibility.map(id => {
+          const equipmentName = equipmentInfo.get(Number(id)) || `Équipement non trouvé (ID: ${id})`;
+          return (
+            <Badge key={id} variant="secondary" className="text-xs">
+              {equipmentName}
+            </Badge>
+          );
+        })}
+      </div>
+    );
   };
 
   const allSelected = parts.length > 0 && selectedParts.length === parts.length;
@@ -107,7 +182,7 @@ const PartsList: React.FC<PartsListProps> = ({
               <th className="text-left p-3 font-medium">Fabricant</th>
               <th className="text-left p-3 font-medium">Prix</th>
               <th className="text-left p-3 font-medium">Stock</th>
-              <th className="text-left p-3 font-medium">Emplacement</th>
+              <th className="text-left p-3 font-medium">Compatible avec</th>
               <th className="text-left p-3 font-medium">Actions</th>
             </tr>
           </thead>
@@ -149,7 +224,9 @@ const PartsList: React.FC<PartsListProps> = ({
                     )}
                   </span>
                 </td>
-                <td className="p-3">{part.location}</td>
+                <td className="p-3 max-w-[200px]">
+                  {renderCompatibleEquipment(part)}
+                </td>
                 <td className="p-3">
                   <div className="flex gap-1">
                     <Button 
@@ -214,6 +291,10 @@ const PartsList: React.FC<PartsListProps> = ({
                     {part.stock} {part.stock <= part.reorderPoint && <AlertCircle size={14} />}
                   </span>
                   <span className="text-sm font-medium">{part.price.toFixed(2)}€</span>
+                </div>
+                <div className="mt-2">
+                  <span className="text-xs text-muted-foreground mr-1">Compatible avec:</span>
+                  {renderCompatibleEquipment(part)}
                 </div>
               </div>
             </div>
