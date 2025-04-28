@@ -140,6 +140,19 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
     handleUpdatePart(convertToPart(preparedPart));
   };
 
+  // Wrapper for openPartDetails that handles type conversion
+  const handleOpenPartDetails = (part: any) => {
+    // Convert the part to the expected type with number[] compatibility
+    const convertedPart = {
+      ...part,
+      compatibility: Array.isArray(part.compatibility)
+        ? part.compatibility.map(id => typeof id === 'string' ? Number(id) : id)
+        : []
+    };
+    
+    openPartDetails(convertToPart(convertedPart));
+  };
+
   if (isLoading) {
     return <div className="flex flex-col items-center justify-center min-h-[400px] bg-background/80">
         <Loader2 className="h-8 w-8 animate-spin opacity-70" />
@@ -178,14 +191,14 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
             <div className="mt-6">
               <PartsGrid 
                 parts={filteredPartsForUI}
-                openPartDetails={openPartDetails}
+                openPartDetails={handleOpenPartDetails}
                 openOrderDialog={() => {}}
               />
             </div>
           ) : (
             <PartsList
               parts={filteredPartsForUI}
-              openPartDetails={openPartDetails}
+              openPartDetails={handleOpenPartDetails}
               openOrderDialog={() => {}}
               onDeleteSelected={handleDeleteMultiple}
               isDeleting={isDeletingMultiple}
