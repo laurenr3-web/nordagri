@@ -12,3 +12,6 @@ verify_jwt = true
 
 [functions.send-alerts]
 verify_jwt = false
+
+[functions.ensure-storage]
+verify_jwt = true
