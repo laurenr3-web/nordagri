@@ -15,7 +15,11 @@ import { AlertCircle } from 'lucide-react';
 import { observationFormSchema, ObservationFormValues } from './form/validationSchema';
 import { useEquipmentOptions } from '@/hooks/equipment/useEquipmentOptions';
 
-export const ObservationForm = () => {
+interface ObservationFormProps {
+  onSuccess?: () => void;
+}
+
+export const ObservationForm = ({ onSuccess }: ObservationFormProps) => {
   const { createObservation } = useFieldObservations();
   const { data: equipments = [] } = useEquipmentOptions();
 
@@ -36,8 +40,12 @@ export const ObservationForm = () => {
   useEffect(() => {
     if (createObservation.isSuccess) {
       form.reset();
+      // Appeler le callback onSuccess si défini
+      if (onSuccess) {
+        onSuccess();
+      }
     }
-  }, [createObservation.isSuccess, form]);
+  }, [createObservation.isSuccess, form, onSuccess]);
 
   const handleSubmit = async (values: ObservationFormValues) => {
     if (!values.equipment_id) {
