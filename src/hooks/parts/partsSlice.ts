@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Part } from '@/types/Part';
 import { PartFormValues } from '@/components/parts/form/partFormTypes';
 import { useToast } from '@/hooks/use-toast';
-import { parseCompatibilityString } from '@/utils/compatibilityConverter';
+import { parseCompatibilityString, compatibilityToNumbers } from '@/utils/compatibilityConverter';
 
 export const usePartsSlice = (initialParts: Part[]) => {
   const { toast } = useToast();
@@ -27,9 +27,7 @@ export const usePartsSlice = (initialParts: Part[]) => {
     
     if (Array.isArray(formData.compatibility)) {
       // If already an array, ensure all items are numbers
-      compatibilityArray = formData.compatibility
-        .map(item => typeof item === 'string' ? parseInt(item, 10) : item)
-        .filter(item => !isNaN(item as number)) as number[];
+      compatibilityArray = compatibilityToNumbers(formData.compatibility);
     } else if (typeof formData.compatibility === 'string') {
       // If string, parse it as comma-separated values
       compatibilityArray = parseCompatibilityString(formData.compatibility);

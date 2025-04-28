@@ -4,6 +4,7 @@ import { Part } from '@/types/Part';
 import { getParts } from '@/services/supabase/parts';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { compatibilityToNumbers } from '@/utils/compatibilityConverter';
 
 export function usePartsData() {
   const { toast } = useToast();
@@ -29,10 +30,16 @@ export function usePartsData() {
         
         console.log('🔄 Appel du service getParts...');
         
-        const partsData = await getParts();
+        let partsData = await getParts();
         
         console.log('📦 Données de pièces reçues:', partsData);
         console.log(`📊 Nombre de pièces récupérées: ${partsData.length}`);
+        
+        // Standardize compatibility to always be number[]
+        partsData = partsData.map(part => ({
+          ...part,
+          compatibility: compatibilityToNumbers(part.compatibility)
+        }));
         
         // Vérifier si des données ont été retournées
         if (partsData.length === 0) {

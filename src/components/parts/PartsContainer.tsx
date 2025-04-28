@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Part } from '@/types/Part';
 import PartsHeader from './PartsHeader';
@@ -11,8 +12,6 @@ import PartDetailsDialog from './dialogs/PartDetailsDialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { deleteMultipleParts } from '@/services/supabase/parts';
-
-// Explicitly import the convertToPart function to ensure correct typing
 import { convertToPart } from '@/utils/partTypeConverters';
 
 interface PartsContainerProps {
@@ -110,11 +109,12 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
     }
   };
 
-  // Use explicit typing for converted parts arrays
-  const convertedParts: Part[] = parts.map(part => convertToPart(part as any));
-  const convertedFilteredParts: Part[] = filteredParts.map(part => convertToPart(part as any));
+  // Create properly typed versions of the arrays
+  // Using type assertion to enforce the right type and then explicit typing for the result
+  const typedParts = parts.map(part => convertToPart(part as any));
+  const typedFilteredParts = filteredParts.map(part => convertToPart(part as any));
   
-  // Create a typed wrapper for handleUpdatePart that ensures conversion
+  // Create a typed wrapper for handleUpdatePart that ensures conversion to the right type
   const typedHandleUpdatePart = (part: unknown) => {
     handleUpdatePart(convertToPart(part));
   };
@@ -152,25 +152,25 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
           filterCount={filterCount}
         />
 
-        {convertedFilteredParts.length > 0 ? (
+        {typedFilteredParts.length > 0 ? (
           currentView === 'grid' ? (
             <div className="mt-6">
               <PartsGrid 
-                parts={convertedFilteredParts}
+                parts={typedFilteredParts}
                 openPartDetails={openPartDetails}
                 openOrderDialog={() => {}}
               />
             </div>
           ) : (
             <PartsList
-              parts={convertedFilteredParts}
+              parts={typedFilteredParts}
               openPartDetails={openPartDetails}
               openOrderDialog={() => {}}
               onDeleteSelected={handleDeleteMultiple}
               isDeleting={isDeletingMultiple}
             />
           )
-        ) : convertedParts.length > 0 ? (
+        ) : typedParts.length > 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-4">
             <p className="mb-4 text-center text-muted-foreground">
               Aucune pièce ne correspond à vos critères de recherche ou filtres.

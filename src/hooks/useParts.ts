@@ -8,6 +8,12 @@ import { usePartsCategories } from './parts/usePartsCategories';
 import { usePartsActions } from './parts/usePartsActions';
 import { useCreatePart, useUpdatePart, useDeletePart } from './usePartsMutations';
 import { usePartsRealtime } from './parts/usePartsRealtime';
+import { convertToPart } from '@/utils/partTypeConverters';
+
+// Define a more strictly typed version of Part for internal use
+export interface SafePart extends Omit<Part, 'compatibility'> {
+  compatibility: number[]; // Always number[]
+}
 
 // Main hook that composes all parts-related functionality
 export const useParts = () => {
@@ -17,10 +23,15 @@ export const useParts = () => {
   const orderParts = useOrderParts();
   const partsDialogs = usePartsDialogs();
   
-  // Get the parts data from the query result
-  const data = partsQuery.data || [];
+  // Get the parts data from the query result and convert to SafePart
+  const data: SafePart[] = (partsQuery.data || []).map(part => ({
+    ...part,
+    compatibility: Array.isArray(part.compatibility) 
+      ? part.compatibility.map(id => Number(id)) 
+      : []
+  }));
   
-  const partsCategories = usePartsCategories(data);
+  const partsCategories = usePartsCategories(data as Part[]);
   const partsActions = usePartsActions(partsDialogs, orderParts);
   
   // Get mutation hooks
@@ -32,7 +43,7 @@ export const useParts = () => {
   const realtimeStatus = usePartsRealtime();
   
   // Apply filters to get filtered parts
-  const filteredParts = partsFilter.filterParts(data);
+  const filteredParts = partsFilter.filterParts(data as Part[]);
   
   // Part mutation handlers
   const handleAddPart = (part: Omit<Part, 'id'>) => {
@@ -40,7 +51,14 @@ export const useParts = () => {
   };
   
   const handleUpdatePart = (part: Part) => {
-    return updatePartMutation.mutate(part);
+    // Ensure compatibility is number[]
+    const safePart = {
+      ...part,
+      compatibility: Array.isArray(part.compatibility) 
+        ? part.compatibility.map(id => Number(id)) 
+        : []
+    };
+    return updatePartMutation.mutate(safePart);
   };
   
   const handleDeletePart = (partId: number | string) => {
@@ -58,7 +76,7 @@ export const useParts = () => {
   
   return {
     // Parts data
-    parts: data,
+    parts: data as unknown as Part[],
     isLoading: partsQuery.isLoading,
     isError: partsQuery.isError,
     error: partsQuery.error,
@@ -79,7 +97,7 @@ export const useParts = () => {
     manufacturers: partsCategories.manufacturers,
     
     // Filtered parts
-    filteredParts,
+    filteredParts: filteredParts as unknown as Part[],
     filterCount: partsFilter.getFilterCount(),
     clearFilters: partsFilter.resetFilters,
     
