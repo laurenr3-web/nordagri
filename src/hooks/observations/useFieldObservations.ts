@@ -45,7 +45,8 @@ export const useFieldObservations = () => {
           status: 'pending',
           priority: values.urgency_level === 'urgent' ? 'high' : 'medium',
           date: new Date().toISOString(),
-          technician: 'À assigner'
+          technician: 'À assigner',
+          title: `Observation: ${values.equipment} - ${values.observation_type}` // Added required title field
         });
 
       if (error) {

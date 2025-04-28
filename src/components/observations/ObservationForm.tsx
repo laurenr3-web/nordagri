@@ -14,6 +14,7 @@ import { Card } from '@/components/ui/card';
 import { useEquipmentOptions } from '@/hooks/equipment/useEquipmentOptions';
 import { useFieldObservations } from '@/hooks/observations/useFieldObservations';
 import { ObservationType, UrgencyLevel, FieldObservationFormValues } from '@/types/FieldObservation';
+import { toast } from 'sonner';
 
 export const ObservationForm = () => {
   const { createObservation } = useFieldObservations();
