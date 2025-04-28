@@ -13,7 +13,7 @@ export interface LocalPart {
   category: string;
   manufacturer: string;
   compatibleWith?: string[] | string;
-  compatibility: number[]; // Changed to number[]
+  compatibility: number[]; // Standardized to number[]
   inStock?: boolean;
   quantity?: number;
   minimumStock?: number;
@@ -48,12 +48,13 @@ export const convertToLocalPart = (part: unknown): LocalPart => {
     safeId = 0; // Default value if neither string nor number
   }
   
-  // Convert compatibility to number[]
+  // Ensure compatibility is always converted to number[]
   let compatibilityValue = typedPart.compatibility;
   let compatibility: number[] = [];
   
   if (compatibilityValue !== undefined) {
-    compatibility = compatibilityToNumbers(compatibilityValue as string[] | number[]);
+    // Use our utility to convert any type to number[]
+    compatibility = compatibilityToNumbers(compatibilityValue as any);
   }
   
   return {
@@ -91,12 +92,13 @@ export const convertToPart = (localPart: unknown): Part => {
   const rawId = typedPart.id;
   const id = typeof rawId === 'string' ? parseInt(rawId, 10) : (typeof rawId === 'number' ? rawId : 0);
   
-  // Ensure compatibility is number[]
+  // Ensure compatibility is always number[]
   let compatibilityValue = typedPart.compatibility;
   let compatibility: number[] = [];
   
   if (compatibilityValue !== undefined) {
-    compatibility = compatibilityToNumbers(compatibilityValue as string[] | number[]);
+    // Use our utility to convert any type to number[]
+    compatibility = compatibilityToNumbers(compatibilityValue as any);
   }
   
   // Explicit conversion to Part type
@@ -105,7 +107,7 @@ export const convertToPart = (localPart: unknown): Part => {
     name: assertIsString(typedPart.name ?? ''),
     partNumber: assertIsString(typedPart.partNumber ?? ''),
     category: assertIsString(typedPart.category ?? ''),
-    compatibility: compatibility,
+    compatibility: compatibility, // Always number[]
     manufacturer: assertIsString(typedPart.manufacturer ?? ''),
     price: assertIsNumber(Number(typedPart.price ?? 0)),
     stock: assertIsNumber(Number(typedPart.stock ?? 0)),

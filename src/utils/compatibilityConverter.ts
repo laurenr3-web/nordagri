@@ -7,7 +7,7 @@
 /**
  * Converts string[] to number[]
  */
-export function compatibilityToNumbers(compatibility: string[] | number[] | undefined): number[] {
+export function compatibilityToNumbers(compatibility: string[] | number[] | any): number[] {
   if (!compatibility) return [];
   
   // If already number[], return as is
@@ -17,7 +17,7 @@ export function compatibilityToNumbers(compatibility: string[] | number[] | unde
   
   // Convert string[] to number[]
   if (Array.isArray(compatibility)) {
-    return (compatibility as string[])
+    return (compatibility as any[])
       .map(id => typeof id === 'string' ? parseInt(id, 10) : id)
       .filter(id => !isNaN(Number(id))) as number[];
   }

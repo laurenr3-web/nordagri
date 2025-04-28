@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Part } from '@/types/Part';
 import PartsHeader from './PartsHeader';
@@ -110,9 +109,8 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
   };
 
   // Ensure all parts are properly converted to the correct type before rendering
-  // We use a type assertion to ensure TypeScript recognizes the output as Part[]
-  const convertedParts = parts.map(part => convertToPart(part)) as Part[];
-  const convertedFilteredParts = filteredParts.map(part => convertToPart(part)) as Part[];
+  const convertedParts = parts.map(part => convertToPart(part));
+  const convertedFilteredParts = filteredParts.map(part => convertToPart(part));
   
   // Create a typed wrapper for handleUpdatePart that ensures conversion
   const typedHandleUpdatePart = (part: unknown) => {
