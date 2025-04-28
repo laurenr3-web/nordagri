@@ -1,5 +1,7 @@
+
 import { Part } from '@/types/Part';
 import { assertIsString, assertIsNumber, assertIsArray, assertIsObject } from '@/utils/typeAssertions';
+import { compatibilityToNumbers } from '@/utils/compatibilityConverter';
 
 // Définition locale du type LocalPart pour éviter les conflits d'importation
 export interface LocalPart {
@@ -11,7 +13,7 @@ export interface LocalPart {
   category: string;
   manufacturer: string;
   compatibleWith?: string[] | string;
-  compatibility: string[];
+  compatibility: number[]; // Changed to number[]
   inStock?: boolean;
   quantity?: number;
   minimumStock?: number;
@@ -46,6 +48,12 @@ export const convertToLocalPart = (part: unknown): LocalPart => {
     safeId = 0; // Valeur par défaut si ni string ni number
   }
   
+  // Convert compatibility to number[]
+  let compatibility: number[] = [];
+  if (Array.isArray(typedPart.compatibility)) {
+    compatibility = compatibilityToNumbers(typedPart.compatibility);
+  }
+  
   return {
     id: safeId,
     name: assertIsString(typedPart.name ?? ''),
@@ -55,7 +63,7 @@ export const convertToLocalPart = (part: unknown): LocalPart => {
     category: assertIsString(typedPart.category ?? ''),
     manufacturer: assertIsString(typedPart.manufacturer ?? ''),
     compatibleWith: Array.isArray(typedPart.compatibleWith) ? typedPart.compatibleWith : [],
-    compatibility: Array.isArray(typedPart.compatibility) ? typedPart.compatibility : [],
+    compatibility: compatibility,
     inStock: !!typedPart.inStock,
     quantity: typeof typedPart.quantity === 'number' ? typedPart.quantity : undefined,
     minimumStock: typeof typedPart.minimumStock === 'number' ? typedPart.minimumStock : undefined,
@@ -81,13 +89,19 @@ export const convertToPart = (localPart: unknown): Part => {
   const rawId = typedPart.id;
   const id = typeof rawId === 'string' ? parseInt(rawId, 10) : (typeof rawId === 'number' ? rawId : 0);
   
+  // Ensure compatibility is number[]
+  let compatibility: number[] = [];
+  if (Array.isArray(typedPart.compatibility)) {
+    compatibility = compatibilityToNumbers(typedPart.compatibility);
+  }
+  
   // Conversion explicite vers le type Part
   return {
     id: isNaN(id) ? 0 : id, // Assure que l'id est toujours un number valide
     name: assertIsString(typedPart.name ?? ''),
     partNumber: assertIsString(typedPart.partNumber ?? ''),
     category: assertIsString(typedPart.category ?? ''),
-    compatibility: assertIsArray<string>(Array.isArray(typedPart.compatibility) ? typedPart.compatibility : []),
+    compatibility: compatibility,
     manufacturer: assertIsString(typedPart.manufacturer ?? ''),
     price: assertIsNumber(Number(typedPart.price ?? 0)),
     stock: assertIsNumber(Number(typedPart.stock ?? 0)),

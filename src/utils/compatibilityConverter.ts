@@ -52,6 +52,6 @@ export function parseCompatibilityString(compatibilityString: string | number[] 
   // Parse string to number[]
   return compatibilityString
     .split(',')
-    .map(item => parseInt(item.trim()))
+    .map(item => parseInt(item.trim(), 10))
     .filter(id => !isNaN(id));
 }

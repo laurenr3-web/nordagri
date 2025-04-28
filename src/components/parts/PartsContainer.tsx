@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Part } from '@/types/Part';
 import PartsHeader from './PartsHeader';
@@ -11,6 +12,7 @@ import PartDetailsDialog from './dialogs/PartDetailsDialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { deleteMultipleParts } from '@/services/supabase/parts';
+import { convertToPart } from '@/utils/partTypeConverters';
 
 interface PartsContainerProps {
   parts: Part[];
@@ -107,6 +109,15 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
     }
   };
 
+  // Ensure parts have the correct type
+  const typedParts = parts.map(part => convertToPart(part));
+  const typedFilteredParts = filteredParts.map(part => convertToPart(part));
+  
+  // Create a typed wrapper for handleUpdatePart
+  const typedHandleUpdatePart = (part: any) => {
+    handleUpdatePart(convertToPart(part));
+  };
+
   if (isLoading) {
     return <div className="flex flex-col items-center justify-center min-h-[400px] bg-background/80">
         <Loader2 className="h-8 w-8 animate-spin opacity-70" />
@@ -140,25 +151,25 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
           filterCount={filterCount}
         />
 
-        {filteredParts.length > 0 ? (
+        {typedFilteredParts.length > 0 ? (
           currentView === 'grid' ? (
             <div className="mt-6">
               <PartsGrid 
-                parts={filteredParts} 
+                parts={typedFilteredParts} 
                 openPartDetails={openPartDetails}
                 openOrderDialog={() => {}}
               />
             </div>
           ) : (
             <PartsList
-              parts={filteredParts}
+              parts={typedFilteredParts}
               openPartDetails={openPartDetails}
               openOrderDialog={() => {}}
               onDeleteSelected={handleDeleteMultiple}
               isDeleting={isDeletingMultiple}
             />
           )
-        ) : parts.length > 0 ? (
+        ) : typedParts.length > 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-4">
             <p className="mb-4 text-center text-muted-foreground">
               Aucune pièce ne correspond à vos critères de recherche ou filtres.
@@ -190,7 +201,7 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
         isOpen={isPartDetailsDialogOpen}
         onOpenChange={setIsPartDetailsDialogOpen}
         selectedPart={selectedPart}
-        onEdit={handleUpdatePart}
+        onEdit={typedHandleUpdatePart}
         onDelete={handleDeletePart}
       />
     </div>

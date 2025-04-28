@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Part } from '@/types/Part';
 import { ensureNumberId } from '@/utils/typeGuards';
+import { compatibilityToNumbers } from '@/utils/compatibilityConverter';
 
 /**
  * Récupère les pièces compatibles avec un équipement spécifique
@@ -53,7 +54,7 @@ export async function getPartsForEquipment(equipmentId: number | string): Promis
       reference: part.part_number || '',
       category: part.category || '',
       manufacturer: part.supplier || '',
-      compatibility: part.compatible_with || [],
+      compatibility: compatibilityToNumbers(part.compatible_with || []),
       compatibleWith: part.compatible_with || [],
       stock: part.quantity,
       quantity: part.quantity,
