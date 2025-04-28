@@ -1,10 +1,12 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Calendar, List, MapPin, FileText, Plus, Filter, Eye } from 'lucide-react';
+import { Calendar, List, MapPin, FileText, Plus, Filter, Eye, Search } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ModeToggle } from '../ui/mode-toggle';
+
 interface InterventionsHeaderProps {
   onNewIntervention: () => void;
   searchQuery: string;
@@ -14,6 +16,7 @@ interface InterventionsHeaderProps {
   currentView?: string;
   setCurrentView?: (view: string) => void;
 }
+
 const InterventionsHeader: React.FC<InterventionsHeaderProps> = ({
   onNewIntervention,
   searchQuery,
@@ -121,13 +124,4 @@ const InterventionsHeader: React.FC<InterventionsHeaderProps> = ({
     </header>;
 };
 
-// Composant Search icon (pour éviter d'importer lucide-react)
-const Search = ({
-  className
-}: {
-  className?: string;
-}) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <circle cx="11" cy="11" r="8" />
-    <path d="m21 21-4.3-4.3" />
-  </svg>;
 export default InterventionsHeader;
