@@ -3,9 +3,9 @@ import { Part } from '@/types/Part';
 import { assertIsString, assertIsNumber, assertIsArray, assertIsObject } from '@/utils/typeAssertions';
 import { compatibilityToNumbers } from '@/utils/compatibilityConverter';
 
-// Définition locale du type LocalPart pour éviter les conflits d'importation
+// Local type definition to avoid import conflicts
 export interface LocalPart {
-  id: number; // Changé de string | number à number uniquement
+  id: number;
   name: string;
   reference?: string;
   partNumber: string;
@@ -29,23 +29,23 @@ export interface LocalPart {
   image: string;
 }
 
-// Fonction pour convertir Part vers LocalPart avec assertions de type
+// Convert Part to LocalPart with type assertions
 export const convertToLocalPart = (part: unknown): LocalPart => {
-  // S'assurer que part est bien un objet
+  // Ensure part is an object
   const typedPart = assertIsObject(part);
   
-  // Pour l'ID, on doit spécifiquement s'assurer que c'est un number
+  // For ID, specifically ensure it's a number
   const id = typedPart.id;
   let safeId: number;
   if (typeof id === 'string') {
     safeId = parseInt(id, 10);
     if (isNaN(safeId)) {
-      safeId = 0; // Fallback à 0 si parse échoue
+      safeId = 0; // Fallback to 0 if parse fails
     }
   } else if (typeof id === 'number') {
     safeId = id;
   } else {
-    safeId = 0; // Valeur par défaut si ni string ni number
+    safeId = 0; // Default value if neither string nor number
   }
   
   // Convert compatibility to number[]
@@ -82,12 +82,12 @@ export const convertToLocalPart = (part: unknown): LocalPart => {
   };
 };
 
-// Fonction pour convertir LocalPart vers Part avec assertions de type
+// Convert LocalPart to Part with type assertions
 export const convertToPart = (localPart: unknown): Part => {
-  // S'assurer que localPart est bien un objet
+  // Ensure localPart is an object
   const typedPart = assertIsObject(localPart);
   
-  // Conversion de l'ID avec vérification de type
+  // Convert ID with type checking
   const rawId = typedPart.id;
   const id = typeof rawId === 'string' ? parseInt(rawId, 10) : (typeof rawId === 'number' ? rawId : 0);
   
@@ -99,9 +99,9 @@ export const convertToPart = (localPart: unknown): Part => {
     compatibility = compatibilityToNumbers(compatibilityValue as string[] | number[]);
   }
   
-  // Conversion explicite vers le type Part
+  // Explicit conversion to Part type
   return {
-    id: isNaN(id) ? 0 : id, // Assure que l'id est toujours un number valide
+    id: isNaN(id) ? 0 : id, // Ensure id is always a valid number
     name: assertIsString(typedPart.name ?? ''),
     partNumber: assertIsString(typedPart.partNumber ?? ''),
     category: assertIsString(typedPart.category ?? ''),

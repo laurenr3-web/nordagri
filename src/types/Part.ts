@@ -4,7 +4,7 @@ export interface Part {
   name: string;
   partNumber: string;
   category: string;
-  compatibility: number[]; // IDs of equipment
+  compatibility: number[]; // Standardizing to number[]
   manufacturer: string;
   price: number;
   stock: number;
