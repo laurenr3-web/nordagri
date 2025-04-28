@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,6 +9,7 @@ import FieldTrackingView from './views/FieldTrackingView';
 import RequestsManagementView from './views/RequestsManagementView';
 import EquipmentHistoryView from './views/EquipmentHistoryView';
 import FieldObservationsView from './views/FieldObservationsView';
+
 interface InterventionsListProps {
   filteredInterventions: Intervention[];
   currentView: string;
@@ -20,6 +22,7 @@ interface InterventionsListProps {
   onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onPriorityChange: (priority: string | null) => void;
 }
+
 const InterventionsList: React.FC<InterventionsListProps> = ({
   filteredInterventions,
   currentView,
@@ -46,6 +49,8 @@ const InterventionsList: React.FC<InterventionsListProps> = ({
         return 'Aucune demande d\'intervention.';
       case 'history':
         return 'Aucun historique d\'intervention.';
+      case 'observations':
+        return 'Aucune observation terrain trouvée.';
       default:
         return 'Aucune intervention trouvée correspondant à vos critères de recherche.';
     }
@@ -61,77 +66,85 @@ const InterventionsList: React.FC<InterventionsListProps> = ({
   const scheduledCount = filteredInterventions.filter(item => item.status === 'scheduled').length;
   const inProgressCount = filteredInterventions.filter(item => item.status === 'in-progress').length;
   const completedCount = filteredInterventions.filter(item => item.status === 'completed').length;
-  return <Tabs value={currentView} defaultValue="scheduled" onValueChange={setCurrentView} className="w-full px-[95px]">
-      <TabsList className="mb-6 bg-background border overflow-x-auto whitespace-nowrap w-full">
-        <TabsTrigger value="scheduled" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
-          <CalendarCheck size={16} />
-          <span>Planifiées ({scheduledCount})</span>
-        </TabsTrigger>
-        <TabsTrigger value="in-progress" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
-          <Clock size={16} />
-          <span>En cours ({inProgressCount})</span>
-        </TabsTrigger>
-        <TabsTrigger value="completed" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
-          <CheckCircle2 size={16} />
-          <span>Terminées ({completedCount})</span>
-        </TabsTrigger>
-        <TabsTrigger value="field-tracking" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
-          <Wrench size={16} />
-          <span>Suivi Terrain</span>
-        </TabsTrigger>
-        <TabsTrigger value="requests" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
-          <FileText size={16} />
-          <span>Demandes</span>
-        </TabsTrigger>
-        <TabsTrigger value="observations" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
-          <Eye size={16} />
-          <span>Observations</span>
-        </TabsTrigger>
-        <TabsTrigger value="history" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
-          <History size={16} />
-          <span>Historique</span>
-        </TabsTrigger>
-      </TabsList>
 
-      <TabsContent value="scheduled" className="mt-2 w-full">
-        {getFilteredInterventions('scheduled').length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {getFilteredInterventions('scheduled').map(intervention => <InterventionCard key={intervention.id} intervention={intervention} onViewDetails={onViewDetails} onStartWork={onStartWork} />)}
-          </div> : <BlurContainer className="p-8 text-center">
-            <p className="text-muted-foreground">{getEmptyStateMessage()}</p>
-          </BlurContainer>}
-      </TabsContent>
-      
-      <TabsContent value="in-progress" className="mt-2 w-full">
-        {getFilteredInterventions('in-progress').length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {getFilteredInterventions('in-progress').map(intervention => <InterventionCard key={intervention.id} intervention={intervention} onViewDetails={onViewDetails} onStartWork={onStartWork} />)}
-          </div> : <BlurContainer className="p-8 text-center">
-            <p className="text-muted-foreground">{getEmptyStateMessage()}</p>
-          </BlurContainer>}
-      </TabsContent>
-      
-      <TabsContent value="completed" className="mt-2 w-full">
-        {getFilteredInterventions('completed').length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {getFilteredInterventions('completed').map(intervention => <InterventionCard key={intervention.id} intervention={intervention} onViewDetails={onViewDetails} onStartWork={onStartWork} />)}
-          </div> : <BlurContainer className="p-8 text-center">
-            <p className="text-muted-foreground">{getEmptyStateMessage()}</p>
-          </BlurContainer>}
-      </TabsContent>
-      
-      <TabsContent value="field-tracking" className="mt-2 w-full">
-        <FieldTrackingView interventions={filteredInterventions} onViewDetails={onViewDetails} />
-      </TabsContent>
-      
-      <TabsContent value="requests" className="mt-2 w-full">
-        <RequestsManagementView interventions={filteredInterventions} onViewDetails={onViewDetails} />
-      </TabsContent>
-      
-      <TabsContent value="observations" className="mt-2 w-full">
-        <FieldObservationsView />
-      </TabsContent>
-      
-      <TabsContent value="history" className="mt-2 w-full">
-        <EquipmentHistoryView interventions={filteredInterventions} onViewDetails={onViewDetails} />
-      </TabsContent>
-    </Tabs>;
+  return (
+    <div className="w-full">
+      <Tabs value={currentView} defaultValue="scheduled" onValueChange={setCurrentView} className="w-full">
+        <TabsList className="mb-6 bg-background border overflow-x-auto whitespace-nowrap w-full">
+          <TabsTrigger value="scheduled" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
+            <CalendarCheck size={16} />
+            <span>Planifiées ({scheduledCount})</span>
+          </TabsTrigger>
+          <TabsTrigger value="in-progress" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
+            <Clock size={16} />
+            <span>En cours ({inProgressCount})</span>
+          </TabsTrigger>
+          <TabsTrigger value="completed" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
+            <CheckCircle2 size={16} />
+            <span>Terminées ({completedCount})</span>
+          </TabsTrigger>
+          <TabsTrigger value="field-tracking" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
+            <Wrench size={16} />
+            <span>Suivi Terrain</span>
+          </TabsTrigger>
+          <TabsTrigger value="requests" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
+            <FileText size={16} />
+            <span>Demandes</span>
+          </TabsTrigger>
+          <TabsTrigger value="observations" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
+            <Eye size={16} />
+            <span>Observations</span>
+          </TabsTrigger>
+          <TabsTrigger value="history" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
+            <History size={16} />
+            <span>Historique</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <div className="px-4">
+          <TabsContent value="scheduled" className="mt-2 w-full">
+            {getFilteredInterventions('scheduled').length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {getFilteredInterventions('scheduled').map(intervention => <InterventionCard key={intervention.id} intervention={intervention} onViewDetails={onViewDetails} onStartWork={onStartWork} />)}
+              </div> : <BlurContainer className="p-8 text-center">
+                <p className="text-muted-foreground">{getEmptyStateMessage()}</p>
+              </BlurContainer>}
+          </TabsContent>
+          
+          <TabsContent value="in-progress" className="mt-2 w-full">
+            {getFilteredInterventions('in-progress').length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {getFilteredInterventions('in-progress').map(intervention => <InterventionCard key={intervention.id} intervention={intervention} onViewDetails={onViewDetails} onStartWork={onStartWork} />)}
+              </div> : <BlurContainer className="p-8 text-center">
+                <p className="text-muted-foreground">{getEmptyStateMessage()}</p>
+              </BlurContainer>}
+          </TabsContent>
+          
+          <TabsContent value="completed" className="mt-2 w-full">
+            {getFilteredInterventions('completed').length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {getFilteredInterventions('completed').map(intervention => <InterventionCard key={intervention.id} intervention={intervention} onViewDetails={onViewDetails} onStartWork={onStartWork} />)}
+              </div> : <BlurContainer className="p-8 text-center">
+                <p className="text-muted-foreground">{getEmptyStateMessage()}</p>
+              </BlurContainer>}
+          </TabsContent>
+          
+          <TabsContent value="field-tracking" className="mt-2 w-full">
+            <FieldTrackingView interventions={filteredInterventions} onViewDetails={onViewDetails} />
+          </TabsContent>
+          
+          <TabsContent value="requests" className="mt-2 w-full">
+            <RequestsManagementView interventions={filteredInterventions} onViewDetails={onViewDetails} />
+          </TabsContent>
+          
+          <TabsContent value="observations" className="mt-2 w-full">
+            <FieldObservationsView />
+          </TabsContent>
+          
+          <TabsContent value="history" className="mt-2 w-full">
+            <EquipmentHistoryView interventions={filteredInterventions} onViewDetails={onViewDetails} />
+          </TabsContent>
+        </div>
+      </Tabs>
+    </div>
+  );
 };
+
 export default InterventionsList;

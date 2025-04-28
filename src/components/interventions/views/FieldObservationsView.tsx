@@ -75,6 +75,9 @@ const FieldObservationsView: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');
   const { observations, isLoading } = useFieldObservations();
 
+  // Pour tester - afficher les observations dans la console
+  console.log('Observations:', observations);
+
   const filteredObservations = observations.filter(observation => {
     if (activeTab === 'all') return true;
     if (activeTab === 'urgent') return observation.urgency_level === 'urgent';
@@ -83,11 +86,8 @@ const FieldObservationsView: React.FC = () => {
     return true;
   });
 
-  // Ajouter un console.log pour déboguer
-  console.log('Observations:', observations);
-
   return (
-    <div className="w-full px-4 py-4">
+    <div className="w-full">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">Observations terrain</h2>
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
@@ -101,7 +101,7 @@ const FieldObservationsView: React.FC = () => {
             <DialogHeader>
               <DialogTitle>Nouvelle observation terrain</DialogTitle>
             </DialogHeader>
-            <ObservationForm />
+            <ObservationForm onSuccess={() => setIsFormOpen(false)} />
           </DialogContent>
         </Dialog>
       </div>

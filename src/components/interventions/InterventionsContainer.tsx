@@ -30,7 +30,7 @@ const InterventionsContainer: React.FC<InterventionsContainerProps> = ({
   onPriorityChange
 }) => {
   return (
-    <div className="container py-4 px-4 md:px-6">
+    <div className="container py-4">
       <InterventionsList 
         filteredInterventions={filteredInterventions}
         currentView={currentView}
