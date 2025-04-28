@@ -78,7 +78,7 @@ const PartsGrid: React.FC<PartsGridProps> = ({ parts, openPartDetails, openOrder
                 <h3 className="font-bold text-lg line-clamp-1">{part.name}</h3>
                 <Badge 
                   variant="success" 
-                  className="ml-2 shrink-0 bg-green-100 text-green-800 border-0"
+                  className="ml-2 shrink-0"
                 >
                   {part.price.toFixed(2)}€
                 </Badge>
@@ -98,10 +98,6 @@ const PartsGrid: React.FC<PartsGridProps> = ({ parts, openPartDetails, openOrder
                   <p className="text-xs text-gray-500 mb-1">Stock:</p>
                   <Badge 
                     variant={part.stock <= part.reorderPoint ? "destructive" : "success"}
-                    className={part.stock <= part.reorderPoint 
-                      ? "bg-red-100 text-red-800 border-0" 
-                      : "bg-green-100 text-green-800 border-0"
-                    }
                   >
                     {part.stock} unités
                   </Badge>
@@ -140,7 +136,7 @@ const PartsGrid: React.FC<PartsGridProps> = ({ parts, openPartDetails, openOrder
                 </Button>
                 <Button 
                   variant="default"
-                  className="flex-1 bg-green-500 hover:bg-green-600 text-white"
+                  className="flex-1 bg-agri-primary hover:bg-agri-dark text-white"
                   onClick={() => openOrderDialog(part)}
                 >
                   Commander
