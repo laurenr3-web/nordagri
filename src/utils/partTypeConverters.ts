@@ -49,7 +49,12 @@ export const convertToLocalPart = (part: unknown): LocalPart => {
   }
   
   // Convert compatibility to number[]
-  let compatibility = compatibilityToNumbers(typedPart.compatibility);
+  let compatibilityValue = typedPart.compatibility;
+  let compatibility: number[] = [];
+  
+  if (compatibilityValue !== undefined) {
+    compatibility = compatibilityToNumbers(compatibilityValue as string[] | number[]);
+  }
   
   return {
     id: safeId,
@@ -87,7 +92,12 @@ export const convertToPart = (localPart: unknown): Part => {
   const id = typeof rawId === 'string' ? parseInt(rawId, 10) : (typeof rawId === 'number' ? rawId : 0);
   
   // Ensure compatibility is number[]
-  let compatibility = compatibilityToNumbers(typedPart.compatibility);
+  let compatibilityValue = typedPart.compatibility;
+  let compatibility: number[] = [];
+  
+  if (compatibilityValue !== undefined) {
+    compatibility = compatibilityToNumbers(compatibilityValue as string[] | number[]);
+  }
   
   // Conversion explicite vers le type Part
   return {

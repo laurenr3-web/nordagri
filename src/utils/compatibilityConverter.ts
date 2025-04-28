@@ -11,14 +11,18 @@ export function compatibilityToNumbers(compatibility: string[] | number[] | unde
   if (!compatibility) return [];
   
   // If already number[], return as is
-  if (compatibility.length > 0 && typeof compatibility[0] === 'number') {
+  if (Array.isArray(compatibility) && compatibility.length > 0 && typeof compatibility[0] === 'number') {
     return compatibility as number[];
   }
   
   // Convert string[] to number[]
-  return (compatibility as string[])
-    .map(id => parseInt(id, 10))
-    .filter(id => !isNaN(id));
+  if (Array.isArray(compatibility)) {
+    return (compatibility as string[])
+      .map(id => typeof id === 'string' ? parseInt(id, 10) : id)
+      .filter(id => !isNaN(Number(id))) as number[];
+  }
+  
+  return [];
 }
 
 /**
@@ -28,12 +32,16 @@ export function compatibilityToStrings(compatibility: number[] | string[] | unde
   if (!compatibility) return [];
   
   // If already string[], return as is
-  if (compatibility.length > 0 && typeof compatibility[0] === 'string') {
+  if (Array.isArray(compatibility) && compatibility.length > 0 && typeof compatibility[0] === 'string') {
     return compatibility as string[];
   }
   
   // Convert number[] to string[]
-  return (compatibility as number[]).map(id => id.toString());
+  if (Array.isArray(compatibility)) {
+    return (compatibility as number[]).map(id => id.toString());
+  }
+  
+  return [];
 }
 
 /**

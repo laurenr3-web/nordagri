@@ -110,11 +110,12 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
   };
 
   // Ensure all parts are properly converted to the correct type before rendering
-  const convertedParts = parts.map(part => convertToPart(part));
-  const convertedFilteredParts = filteredParts.map(part => convertToPart(part));
+  // We need to properly type the arrays here to avoid TypeScript errors
+  const convertedParts: Part[] = parts.map(part => convertToPart(part));
+  const convertedFilteredParts: Part[] = filteredParts.map(part => convertToPart(part));
   
   // Create a typed wrapper for handleUpdatePart
-  const typedHandleUpdatePart = (part: any) => {
+  const typedHandleUpdatePart = (part: unknown) => {
     handleUpdatePart(convertToPart(part));
   };
 
