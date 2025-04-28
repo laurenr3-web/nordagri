@@ -3,7 +3,7 @@ import React from 'react';
 import { BlurContainer } from '@/components/ui/blur-container';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Image as ImageIcon, Box } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 interface Part {
@@ -40,25 +40,32 @@ const PartsGrid: React.FC<PartsGridProps> = ({ parts, openPartDetails, openOrder
         {displayedParts.map((part, index) => (
           <BlurContainer 
             key={part.id} 
-            className="w-full overflow-hidden animate-scale-in"
+            className="w-full overflow-hidden rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 animate-scale-in"
             style={{ animationDelay: `${index * 0.1}s` } as React.CSSProperties}
           >
             <div 
               className="aspect-square relative overflow-hidden cursor-pointer"
               onClick={() => openPartDetails(part)}  
             >
-              <img 
-                src={part.image} 
-                alt={part.name}
-                className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = 'https://placehold.co/400x400/png?text=No+Image';
-                }}
-              />
+              {part.image ? (
+                <img 
+                  src={part.image} 
+                  alt={part.name}
+                  className="w-full h-48 object-cover transition-transform duration-500 hover:scale-105"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = 'https://placehold.co/400x400/f5f5f5/a3a3a3?text=Image+manquante';
+                  }}
+                />
+              ) : (
+                <div className="w-full h-48 bg-gray-100 flex flex-col items-center justify-center text-gray-400">
+                  <ImageIcon size={48} />
+                  <span className="mt-2 text-sm">Image manquante</span>
+                </div>
+              )}
               {part.stock <= part.reorderPoint && (
                 <div className="absolute top-2 right-2">
-                  <Badge variant="destructive" className="flex items-center gap-1">
+                  <Badge variant="destructive" className="flex items-center gap-1 shadow-sm">
                     <AlertCircle size={12} />
                     <span>Stock bas</span>
                   </Badge>
@@ -67,62 +74,74 @@ const PartsGrid: React.FC<PartsGridProps> = ({ parts, openPartDetails, openOrder
             </div>
             
             <div className="p-4">
-              <div className="mb-2">
-                <h3 className="font-medium line-clamp-1">{part.name}</h3>
-                <p className="text-sm text-muted-foreground line-clamp-1">{part.partNumber}</p>
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="font-bold text-lg line-clamp-1">{part.name}</h3>
+                <Badge 
+                  variant="success" 
+                  className="ml-2 shrink-0 bg-green-100 text-green-800 border-0"
+                >
+                  {part.price.toFixed(2)}€
+                </Badge>
               </div>
               
-              <div className="grid grid-cols-2 gap-2 mt-4 text-sm">
+              <div className="flex items-center mb-3">
+                <Box className="h-4 w-4 mr-1 text-gray-500" />
+                <span className="text-sm text-gray-500 line-clamp-1">{part.partNumber}</span>
+              </div>
+              
+              <p className="text-sm text-gray-500 mb-3 line-clamp-1">
+                Fabricant: <span className="font-medium">{part.manufacturer}</span>
+              </p>
+              
+              <div className="flex justify-between items-center mb-4">
                 <div>
-                  <p className="text-muted-foreground text-xs">Fabricant</p>
-                  <p className="font-medium line-clamp-1">{part.manufacturer}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-xs">Prix</p>
-                  <p className="font-medium">{part.price.toFixed(2)}€</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-xs">Stock</p>
-                  <p className={`font-medium ${part.stock <= part.reorderPoint ? 'text-destructive' : ''}`}>
+                  <p className="text-xs text-gray-500 mb-1">Stock:</p>
+                  <Badge 
+                    variant={part.stock <= part.reorderPoint ? "destructive" : "success"}
+                    className={part.stock <= part.reorderPoint 
+                      ? "bg-red-100 text-red-800 border-0" 
+                      : "bg-green-100 text-green-800 border-0"
+                    }
+                  >
                     {part.stock} unités
-                  </p>
+                  </Badge>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-xs">Emplacement</p>
-                  <p className="font-medium line-clamp-1">{part.location}</p>
+                  <p className="text-xs text-gray-500 mb-1">Emplacement:</p>
+                  <span className="text-sm font-medium">{part.location}</span>
                 </div>
               </div>
               
-              <div className="mt-4">
-                <p className="text-xs text-muted-foreground mb-1">Compatible avec :</p>
-                <div className="flex flex-wrap gap-1">
-                  {part.compatibility.slice(0, 2).map((equipment, i) => (
-                    <span key={i} className="text-xs bg-secondary/10 py-1 px-2 rounded-md line-clamp-1 max-w-[100px]">
-                      {equipment}
-                    </span>
-                  ))}
-                  {part.compatibility.length > 2 && (
-                    <span className="text-xs bg-secondary/10 py-1 px-2 rounded-md">
-                      +{part.compatibility.length - 2}
-                    </span>
-                  )}
+              {part.compatibility && part.compatibility.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-xs text-gray-500 mb-1">Compatible avec:</p>
+                  <div className="flex flex-wrap gap-1">
+                    {part.compatibility.slice(0, 2).map((equipment, i) => (
+                      <span key={i} className="text-xs bg-gray-100 py-1 px-2 rounded-md line-clamp-1">
+                        {equipment}
+                      </span>
+                    ))}
+                    {part.compatibility.length > 2 && (
+                      <span className="text-xs bg-gray-100 py-1 px-2 rounded-md">
+                        +{part.compatibility.length - 2}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
               
-              <div className="mt-4 pt-4 border-t border-border flex justify-between">
+              <div className="flex gap-2 pt-3 border-t border-gray-100">
                 <Button 
                   variant="outline" 
-                  size="sm" 
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 border-0"
                   onClick={() => openPartDetails(part)}
-                  className="w-[48%]"
                 >
                   Détails
                 </Button>
                 <Button 
-                  variant="default" 
-                  size="sm" 
+                  variant="default"
+                  className="flex-1 bg-green-500 hover:bg-green-600 text-white"
                   onClick={() => openOrderDialog(part)}
-                  className="w-[48%]"
                 >
                   Commander
                 </Button>
@@ -137,6 +156,7 @@ const PartsGrid: React.FC<PartsGridProps> = ({ parts, openPartDetails, openOrder
           <Button
             variant="outline"
             onClick={() => setDisplayLimit(prev => prev + initialLimit)}
+            className="border-gray-300 hover:bg-gray-100"
           >
             Afficher plus de pièces
           </Button>
