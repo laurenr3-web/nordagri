@@ -14,6 +14,7 @@ import EquipmentPartsAssociation from './parts/EquipmentPartsAssociation';
 import AddPartDialog from '@/components/parts/dialogs/AddPartDialog';
 import { useParts } from '@/hooks/useParts';
 import { Part } from '@/types/Part';
+import { toast } from 'sonner';
 
 interface EquipmentPartsProps {
   equipment: Equipment | any; // Accept both Equipment and EquipmentItem types
@@ -32,18 +33,31 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = ({ equipment }) => {
     ? parseInt(equipment.id, 10) 
     : equipment.id;
 
+  console.log('Equipment ID for compatibility check:', equipmentId);
+  console.log('All parts loaded:', allParts?.length || 0);
+
   // Filter parts to only show those compatible with this equipment
   const compatibleParts = React.useMemo(() => {
     if (!allParts || allParts.length === 0) return [];
+    
+    console.log('Filtering parts for equipment ID:', equipmentId);
     
     return allParts.filter(part => {
       // Make sure compatibility is an array
       const compatibility = Array.isArray(part.compatibility) ? part.compatibility : [];
       
+      console.log(`Part ${part.id} (${part.name}) compatibility:`, compatibility);
+      
       // Check if this equipment's ID is in the compatibility list
-      return compatibility.includes(equipmentId);
+      const isCompatible = compatibility.includes(equipmentId);
+      if (isCompatible) {
+        console.log(`Part ${part.name} is compatible with equipment ${equipmentId}`);
+      }
+      return isCompatible;
     });
   }, [allParts, equipmentId]);
+
+  console.log('Compatible parts found:', compatibleParts.length);
 
   // Further filter parts based on search term
   const filteredParts = React.useMemo(() => {
@@ -70,6 +84,7 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = ({ equipment }) => {
     // Close dialog
     setIsEditDialogOpen(false);
     setSelectedPart(null);
+    toast.success(`La pièce ${updatedPart.name} a été mise à jour`);
   };
 
   const handleDeletePart = async (partId: number | string) => {
@@ -78,6 +93,7 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = ({ equipment }) => {
     }
     
     // Refresh will happen through React Query invalidation
+    toast.success("La pièce a été supprimée");
   };
 
   if (isLoading) {
@@ -137,6 +153,7 @@ const EquipmentParts: React.FC<EquipmentPartsProps> = ({ equipment }) => {
           onOpenChange={setIsAddPartDialogOpen}
           onSuccess={(newPart) => {
             console.log("Nouvelle pièce ajoutée:", newPart);
+            toast.success(`La pièce ${newPart.name} a été ajoutée`);
             setIsAddPartDialogOpen(false);
           }}
         />

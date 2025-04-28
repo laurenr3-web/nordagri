@@ -1,76 +1,53 @@
-/**
- * Converts a compatibility string to an array of numbers
- * @param compatibilityString String in the format "1, 2, 3" or similar
- * @returns Array of numeric IDs
- */
-export function parseCompatibilityString(compatibilityString: string | undefined | null): number[] {
-  if (!compatibilityString) return [];
-  
-  return compatibilityString
-    .split(',')
-    .map(id => id.trim())
-    .filter(id => id.length > 0)
-    .map(id => parseInt(id, 10))
-    .filter(id => !isNaN(id));
-}
 
 /**
- * Ensures that compatibility is in the form of an array of numbers
- * @param compatibility Compatibility in any form
- * @returns Normalized array of numbers
+ * Convertit les valeurs de compatibilité en tableau de nombres
+ * Cette fonction gère différents formats de compatibilité et les normalise
  */
 export function compatibilityToNumbers(compatibility: any): number[] {
-  // If undefined or null
-  if (!compatibility) return [];
-  
-  // If already an array
+  // Si c'est déjà un tableau
   if (Array.isArray(compatibility)) {
-    return compatibility
-      .map(id => {
-        // If the element is a string, try to convert to number
-        if (typeof id === 'string') {
-          const num = Number(id);
-          return isNaN(num) ? null : num;
-        }
-        // If already a number, keep it
-        else if (typeof id === 'number') {
-          return id;
-        }
-        // Otherwise, ignore this element
-        return null;
-      })
-      .filter((id): id is number => id !== null);
+    return compatibility.map(id => {
+      // Si c'est une chaîne qui peut être convertie en nombre
+      if (typeof id === 'string' && !isNaN(Number(id))) {
+        return Number(id);
+      }
+      // Si c'est déjà un nombre
+      else if (typeof id === 'number') {
+        return id;
+      }
+      // Pour tout autre format, on le garde tel quel (cela pourrait générer des erreurs plus tard)
+      else {
+        console.warn('Format de compatibilité non pris en charge:', id);
+        return 0; // Valeur par défaut
+      }
+    }).filter(id => id > 0); // Filtrer les valeurs invalides
   }
   
-  // If it's a string, treat as comma-separated list
+  // Si c'est null ou undefined
+  if (compatibility == null) {
+    return [];
+  }
+  
+  // Si c'est un objet (comme PostgreSQL JSONB)
+  if (typeof compatibility === 'object') {
+    try {
+      return Object.values(compatibility).map(Number).filter(id => !isNaN(id));
+    } catch (error) {
+      console.error('Erreur lors de la conversion de la compatibilité:', error);
+      return [];
+    }
+  }
+  
+  // Si c'est une chaîne (comme une liste séparée par des virgules)
   if (typeof compatibility === 'string') {
-    return parseCompatibilityString(compatibility);
+    try {
+      return compatibility.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+    } catch (error) {
+      console.error('Erreur lors de la conversion de la compatibilité:', error);
+      return [];
+    }
   }
   
-  // Default return empty array
+  // Par défaut, renvoyer un tableau vide
   return [];
-}
-
-/**
- * Converts an array of numbers to a formatted string
- * @param compatibilityArray Array of numbers
- * @returns Formatted string "1, 2, 3"
- */
-export function numberArrayToString(compatibilityArray: number[]): string {
-  if (!Array.isArray(compatibilityArray)) return '';
-  return compatibilityArray.join(', ');
-}
-
-/**
- * Converts an array of numbers to an array of strings (for database)
- * @param compatibilityArray Array of numbers or undefined/null
- * @returns Array of strings for database
- */
-export function compatibilityToStrings(compatibilityArray: number[] | undefined | null): string[] {
-  if (!compatibilityArray || !Array.isArray(compatibilityArray)) return [];
-  
-  // Convert each number to string, ignoring non-numeric values
-  return compatibilityArray
-    .filter(id => typeof id === 'number' && !isNaN(id))
-    .map(id => id.toString());
 }

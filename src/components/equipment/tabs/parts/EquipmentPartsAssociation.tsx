@@ -2,19 +2,21 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { useEquipmentParts } from '@/hooks/equipment/useEquipmentParts';
 import { Equipment } from '@/services/supabase/equipmentService';
+import { Part } from '@/types/Part';
 
 interface EquipmentPartsAssociationProps {
-  equipment: Equipment;
+  equipment: Equipment | any;
   onAddPart: () => void;
+  parts?: Part[];
 }
 
 const EquipmentPartsAssociation: React.FC<EquipmentPartsAssociationProps> = ({
   equipment,
-  onAddPart
+  onAddPart,
+  parts = []
 }) => {
-  const { parts, loading } = useEquipmentParts(equipment);
+  const equipmentId = typeof equipment.id === 'string' ? parseInt(equipment.id, 10) : equipment.id;
   
   return (
     <div className="space-y-4">
@@ -22,9 +24,9 @@ const EquipmentPartsAssociation: React.FC<EquipmentPartsAssociationProps> = ({
         <div>
           <h3 className="text-lg font-semibold">Pièces associées</h3>
           <p className="text-sm text-muted-foreground">
-            {loading 
-              ? 'Chargement des pièces...' 
-              : `${parts.length} pièce(s) compatible(s) avec cet équipement`}
+            {parts.length 
+              ? `${parts.length} pièce(s) compatible(s) avec cet équipement`
+              : `Aucune pièce compatible avec cet équipement (ID: ${equipmentId})`}
           </p>
         </div>
         <Button onClick={onAddPart} size="sm">
