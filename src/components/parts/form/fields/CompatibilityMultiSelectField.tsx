@@ -25,6 +25,9 @@ const CompatibilityMultiSelectField: React.FC<CompatibilityMultiSelectFieldProps
   // Conversion de number[] à string[] pour le MultiSelect
   const selectedEquipmentIds = useMemo(() => {
     const compatibilityValue = form.getValues('compatibility') || [];
+    
+    console.log('Current compatibility value:', compatibilityValue);
+    
     return Array.isArray(compatibilityValue) 
       ? compatibilityValue.map(id => id.toString())
       : [];
@@ -53,10 +56,18 @@ const CompatibilityMultiSelectField: React.FC<CompatibilityMultiSelectFieldProps
 
   // Gérer le changement de sélection
   const handleSelectionChange = (selected: string[]) => {
+    console.log('New selection (strings):', selected);
+    
     // Convertir les string[] en number[]
     const numericValues = selected.map(id => Number(id)).filter(id => !Number.isNaN(id));
+    
+    console.log('Converted to numbers:', numericValues);
+    
     form.setValue('compatibility', numericValues);
   };
+
+  console.log('Equipment options:', equipmentOptions);
+  console.log('Selected IDs:', selectedEquipmentIds);
 
   return (
     <FormField

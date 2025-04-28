@@ -1,69 +1,48 @@
 
 import { EquipmentOption } from '@/hooks/equipment/useEquipments';
 
-// Clé de cache pour les équipements
-const EQUIPMENT_CACHE_KEY = 'nordagri_equipment_cache';
-const EQUIPMENT_CACHE_TIMESTAMP_KEY = 'nordagri_equipment_cache_timestamp';
-const CACHE_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 heures
+// Clé pour stocker les données dans le localStorage
+const EQUIPMENT_CACHE_KEY = 'equipment_cache';
 
 /**
- * Enregistre les équipements dans le cache local
+ * Mettre en cache les équipements pour une utilisation hors ligne
+ * @param equipments Liste des équipements à mettre en cache
  */
 export function cacheEquipments(equipments: EquipmentOption[]): void {
   try {
     localStorage.setItem(EQUIPMENT_CACHE_KEY, JSON.stringify(equipments));
-    localStorage.setItem(EQUIPMENT_CACHE_TIMESTAMP_KEY, Date.now().toString());
+    console.log('Équipements mis en cache:', equipments.length);
   } catch (error) {
     console.error('Erreur lors de la mise en cache des équipements:', error);
   }
 }
 
 /**
- * Récupère les équipements depuis le cache local
+ * Récupérer les équipements mis en cache
+ * @returns Liste des équipements ou null si aucun cache n'est disponible
  */
 export function getCachedEquipments(): EquipmentOption[] | null {
   try {
     const cachedData = localStorage.getItem(EQUIPMENT_CACHE_KEY);
-    const timestamp = localStorage.getItem(EQUIPMENT_CACHE_TIMESTAMP_KEY);
+    if (!cachedData) return null;
     
-    if (!cachedData || !timestamp) return null;
-    
-    // Vérifier si le cache a expiré
-    const cacheTime = parseInt(timestamp);
-    if (Date.now() - cacheTime > CACHE_EXPIRY_MS) {
-      // Le cache a expiré, on le supprime
-      localStorage.removeItem(EQUIPMENT_CACHE_KEY);
-      localStorage.removeItem(EQUIPMENT_CACHE_TIMESTAMP_KEY);
-      return null;
-    }
-    
-    return JSON.parse(cachedData);
+    const parsedData = JSON.parse(cachedData) as EquipmentOption[];
+    console.log('Équipements récupérés du cache:', parsedData.length);
+    return parsedData;
   } catch (error) {
-    console.error('Erreur lors de la récupération du cache des équipements:', error);
+    console.error('Erreur lors de la récupération des équipements en cache:', error);
     return null;
   }
 }
 
 /**
- * Vérifie si un équipement existe dans le cache local
+ * Vider le cache des équipements
  */
-export function equipmentExistsInCache(equipmentId: number): boolean {
+export function clearEquipmentCache(): void {
   try {
-    const cachedEquipments = getCachedEquipments();
-    if (!cachedEquipments) return false;
-    
-    return cachedEquipments.some(eq => parseInt(eq.value) === equipmentId);
+    localStorage.removeItem(EQUIPMENT_CACHE_KEY);
+    console.log('Cache des équipements vidé');
   } catch (error) {
-    console.error('Erreur lors de la vérification du cache des équipements:', error);
-    return false;
+    console.error('Erreur lors du vidage du cache des équipements:', error);
   }
-}
-
-/**
- * Met à jour le hook useEquipments pour utiliser le cache en cas de besoin
- */
-export function updateUseEquipmentHook() {
-  // Cette fonction sera appelée pour mettre à jour le hook useEquipments
-  // avec les données du cache local si nécessaire
-  // (Cette fonction est un placeholder pour une implémentation future)
 }

@@ -68,6 +68,8 @@ export function MultiSelect({
     }
   };
 
+  console.log('MultiSelect rendering with:', { options: safeOptions, selected, filteredOptions });
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>

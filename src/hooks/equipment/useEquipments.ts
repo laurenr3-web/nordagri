@@ -36,6 +36,8 @@ export function useEquipments() {
 
         if (error) throw error;
         
+        console.log('Raw equipment data:', equipments);
+        
         // Conversion des équipements au format attendu par le composant MultiSelect
         const formattedEquipments = equipments.map((equipment: any) => ({
           id: equipment.id,
@@ -43,6 +45,8 @@ export function useEquipments() {
           value: equipment.id.toString(),
           label: equipment.name
         }));
+        
+        console.log('Formatted equipment options:', formattedEquipments);
         
         // Mettre en cache les données pour une utilisation hors ligne
         cacheEquipments(formattedEquipments);
@@ -89,8 +93,13 @@ export function useValidateCompatibility() {
 
         if (error) throw error;
         
+        console.log('Equipment IDs for validation:', equipments);
+        
         // Créer un Set pour une recherche rapide O(1)
-        return new Set(equipments.map((eq: any) => eq.id));
+        const validIds = new Set(equipments.map((eq: any) => eq.id));
+        console.log('Valid equipment IDs set:', Array.from(validIds));
+        
+        return validIds;
       } catch (error) {
         console.error('Erreur lors de la validation des équipements:', error);
         
