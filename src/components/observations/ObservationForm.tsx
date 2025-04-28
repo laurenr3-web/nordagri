@@ -105,20 +105,30 @@ export const ObservationForm = () => {
     const equipment = equipments.find(e => e.id === selectedEquipment);
     if (!equipment) return;
 
-    const values: FieldObservationFormValues = {
-      equipment_id: selectedEquipment,
-      equipment: equipment.name,
-      observation_type: formData.observation_type as ObservationType,
-      urgency_level: formData.urgency_level as UrgencyLevel,
-      photos: formData.photos || [],
-      location: formData.location,
-      description: formData.description
-    };
+    try {
+      const values: FieldObservationFormValues = {
+        equipment_id: selectedEquipment,
+        equipment: equipment.name,
+        observation_type: formData.observation_type as ObservationType,
+        urgency_level: formData.urgency_level as UrgencyLevel,
+        photos: formData.photos || [],
+        location: formData.location,
+        description: formData.description
+      };
 
-    await createObservation.mutateAsync(values);
-    
-    // Nettoyer les URL des prévisualisations
-    previewImages.forEach(img => URL.revokeObjectURL(img.preview));
+      await createObservation.mutateAsync(values);
+      
+      // Nettoyer les URL des prévisualisations
+      previewImages.forEach(img => URL.revokeObjectURL(img.preview));
+      
+      // Réinitialiser le formulaire
+      setSelectedEquipment(null);
+      setFormData({ photos: [] });
+      setPreviewImages([]);
+    } catch (error) {
+      console.error("Erreur lors de la création de l'observation:", error);
+      toast.error("Une erreur s'est produite lors de la création de l'observation");
+    }
   };
 
   return (

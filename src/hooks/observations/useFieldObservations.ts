@@ -19,6 +19,7 @@ export const useFieldObservations = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
+        console.error('Erreur lors du chargement des observations:', error);
         toast.error('Erreur lors du chargement des observations');
         throw error;
       }
@@ -29,36 +30,51 @@ export const useFieldObservations = () => {
 
   const createObservation = useMutation({
     mutationFn: async (values: FieldObservationFormValues) => {
-      if (!user?.id) throw new Error('User not authenticated');
-
-      const { data, error } = await supabase
-        .from('interventions')
-        .insert({
-          equipment_id: values.equipment_id,
-          equipment: values.equipment,
-          location: values.location,
-          description: values.description,
-          observation_type: values.observation_type,
-          urgency_level: values.urgency_level,
-          photos: values.photos,
-          observer_id: user.id,
-          status: 'pending',
-          priority: values.urgency_level === 'urgent' ? 'high' : 'medium',
-          date: new Date().toISOString(),
-          technician: 'À assigner',
-          title: `Observation: ${values.equipment} - ${values.observation_type}`
-        });
-
-      if (error) {
-        toast.error('Erreur lors de la création de l\'observation');
-        throw error;
+      if (!user?.id) {
+        toast.error('Vous devez être connecté pour créer une observation');
+        throw new Error('User not authenticated');
       }
 
-      return data;
+      try {
+        // Créer une nouvelle intervention à partir de l'observation
+        const { data, error } = await supabase
+          .from('interventions')
+          .insert({
+            equipment_id: values.equipment_id,
+            equipment: values.equipment,
+            location: values.location || 'Non spécifiée',
+            description: values.description || '',
+            observation_type: values.observation_type,
+            urgency_level: values.urgency_level,
+            photos: values.photos || [],
+            observer_id: user.id,
+            status: 'pending',
+            priority: values.urgency_level === 'urgent' ? 'high' : (values.urgency_level === 'surveiller' ? 'medium' : 'low'),
+            date: new Date().toISOString(),
+            technician: 'À assigner',
+            title: `Observation: ${values.equipment} - ${values.observation_type}`
+          })
+          .select();
+
+        if (error) {
+          console.error('Erreur de création de l\'observation:', error);
+          throw error;
+        }
+
+        return data;
+      } catch (error) {
+        console.error('Erreur lors de la création de l\'observation:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['field-observations'] });
+      queryClient.invalidateQueries({ queryKey: ['interventions'] });
       toast.success('Observation enregistrée avec succès');
+    },
+    onError: (error) => {
+      console.error('Erreur mutation:', error);
+      toast.error('Erreur lors de la création de l\'observation');
     }
   });
 
