@@ -11,6 +11,8 @@ import PartDetailsDialog from './dialogs/PartDetailsDialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { deleteMultipleParts } from '@/services/supabase/parts';
+
+// Explicitly import the convertToPart function to ensure correct typing
 import { convertToPart } from '@/utils/partTypeConverters';
 
 interface PartsContainerProps {
@@ -108,9 +110,9 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
     }
   };
 
-  // Ensure all parts are properly converted to the correct type before rendering
-  const convertedParts = parts.map(part => convertToPart(part));
-  const convertedFilteredParts = filteredParts.map(part => convertToPart(part));
+  // Use explicit typing for converted parts arrays
+  const convertedParts: Part[] = parts.map(part => convertToPart(part as any));
+  const convertedFilteredParts: Part[] = filteredParts.map(part => convertToPart(part as any));
   
   // Create a typed wrapper for handleUpdatePart that ensures conversion
   const typedHandleUpdatePart = (part: unknown) => {
