@@ -4,6 +4,7 @@ import { ListChecks } from 'lucide-react';
 import { BaseSectionCard } from './BaseSectionCard';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface CompatibleEquipmentSectionProps {
   partNumber: string;
@@ -46,20 +47,20 @@ export const CompatibleEquipmentSection: React.FC<CompatibleEquipmentSectionProp
   
   // Pour les équipements non trouvés, gérer le fallback
   const getEquipmentDisplay = () => {
-    if (isLoading || !equipmentInfo) return null;
+    if (isLoading) return <Skeleton className="h-20 w-full" />;
     
-    if (equipmentInfo.length === 0 && equipmentIds.length > 0) {
+    if (!equipmentInfo || equipmentInfo.length === 0 && equipmentIds.length > 0) {
       // Aucun équipement trouvé mais des IDs étaient présents
       return (
         <ul className="list-disc pl-5 space-y-1">
           {equipmentIds.map(id => (
-            <li key={id}>ID #{id} (équipement non trouvé)</li>
+            <li key={id}>Équipement non trouvé (ID: {id})</li>
           ))}
         </ul>
       );
     }
     
-    if (equipmentInfo.length > 0) {
+    if (equipmentInfo && equipmentInfo.length > 0) {
       // Map pour accéder rapidement aux équipements trouvés
       const equipmentMap = new Map(equipmentInfo.map(e => [e.id, e.name]));
       
@@ -69,7 +70,7 @@ export const CompatibleEquipmentSection: React.FC<CompatibleEquipmentSectionProp
             <li key={id}>
               {equipmentMap.has(id) 
                 ? equipmentMap.get(id) 
-                : `ID #${id} (non trouvé)`}
+                : `Équipement non trouvé (ID: ${id})`}
             </li>
           ))}
         </ul>

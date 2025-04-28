@@ -73,12 +73,12 @@ const PartCompatibility: React.FC<PartCompatibilityProps> = ({ compatibility }) 
             <span className="text-sm text-destructive">Erreur de chargement des compatibilités</span>
           ) : null}
           
-          {/* Afficher les IDs des équipements supprimés */}
+          {/* Afficher les équipements supprimés */}
           {missingEquipmentIds.length > 0 && (
             <>
               {missingEquipmentIds.map((id) => (
                 <Badge key={id} variant="outline" className="px-2 py-1 border-destructive text-destructive">
-                  ID #{id} (supprimé)
+                  Équipement supprimé (ID: {id})
                 </Badge>
               ))}
             </>
