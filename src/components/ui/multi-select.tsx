@@ -60,13 +60,13 @@ export function MultiSelect({
   };
 
   // Handle selecting/deselecting an option
-  const handleSelect = (value: string) => {
+  const handleSelect = React.useCallback((value: string) => {
     if (selected.includes(value)) {
       onChange(selected.filter(item => item !== value));
     } else {
       onChange([...selected, value]);
     }
-  };
+  }, [onChange, selected]);
 
   console.log('MultiSelect rendering with:', { options: safeOptions, selected, filteredOptions });
 
@@ -140,18 +140,26 @@ export function MultiSelect({
                     <CommandItem
                       key={option.value}
                       value={option.value}
-                      onSelect={() => {
+                      onSelect={(currentValue) => {
+                        console.log("Item selected:", currentValue, "matching option:", option.value);
                         handleSelect(option.value);
-                        // Ne pas fermer le menu pour permettre des sélections multiples
                       }}
-                      className="cursor-pointer"
+                      className="flex items-center gap-2 cursor-pointer"
                     >
-                      <div className={cn("mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                        isSelected ? "bg-primary text-primary-foreground" : "opacity-50"
-                      )}>
+                      <div 
+                        className={cn(
+                          "flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                          isSelected ? "bg-primary text-primary-foreground" : "opacity-50"
+                        )}
+                        onClick={(e) => {
+                          // This helps ensure the click registers properly
+                          e.stopPropagation();
+                          handleSelect(option.value);
+                        }}
+                      >
                         {isSelected && <Check className="h-3 w-3" />}
                       </div>
-                      {option.label}
+                      <span>{option.label}</span>
                     </CommandItem>
                   );
                 })}
