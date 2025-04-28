@@ -12,9 +12,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 interface CompatibilityMultiSelectFieldProps {
   form: UseFormReturn<PartFormValues>;
+  isEditMode?: boolean;
 }
 
-const CompatibilityMultiSelectField: React.FC<CompatibilityMultiSelectFieldProps> = ({ form }) => {
+const CompatibilityMultiSelectField: React.FC<CompatibilityMultiSelectFieldProps> = ({ form, isEditMode = false }) => {
   const { data: equipmentOptions = [], isLoading } = useEquipments();
   const { selectedIds, handleSelectionChange, clearSelection } = useEquipmentSelection(form);
 
