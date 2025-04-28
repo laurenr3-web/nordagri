@@ -1,29 +1,55 @@
 
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { UseFormReturn } from 'react-hook-form';
+import { ObservationFormValues } from './ObservationFormTypes';
 
 interface LocationInputProps {
-  value?: string;
-  onChange: (value: string) => void;
+  form: UseFormReturn<ObservationFormValues>;
 }
 
-export const LocationInput = ({ value, onChange }: LocationInputProps) => (
-  <Input
-    placeholder="Localisation (optionnel)"
-    value={value || ''}
-    onChange={(e) => onChange(e.target.value)}
+export const LocationInput = ({ form }: LocationInputProps) => (
+  <FormField
+    control={form.control}
+    name="location"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>Localisation</FormLabel>
+        <FormControl>
+          <Input 
+            placeholder="Localisation (optionnel)" 
+            {...field}
+            value={field.value || ''}
+          />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    )}
   />
 );
 
 interface DescriptionTextareaProps {
-  value?: string;
-  onChange: (value: string) => void;
+  form: UseFormReturn<ObservationFormValues>;
 }
 
-export const DescriptionTextarea = ({ value, onChange }: DescriptionTextareaProps) => (
-  <Textarea
-    placeholder="Description détaillée (optionnel)"
-    value={value || ''}
-    onChange={(e) => onChange(e.target.value)}
+export const DescriptionTextarea = ({ form }: DescriptionTextareaProps) => (
+  <FormField
+    control={form.control}
+    name="description"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>Description</FormLabel>
+        <FormControl>
+          <Textarea
+            placeholder="Description détaillée (optionnel)"
+            className="min-h-[100px]"
+            {...field}
+            value={field.value || ''}
+          />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    )}
   />
 );

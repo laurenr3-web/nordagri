@@ -4,27 +4,33 @@ import { supabase } from '@/integrations/supabase/client';
 import { FieldObservation, FieldObservationFormValues } from '@/types/FieldObservation';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { assertIsDefined } from '@/utils/typeAssertions';
 
 export const useFieldObservations = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  const { data: observations = [], isLoading } = useQuery({
+  const { data: observations = [], isLoading, error } = useQuery({
     queryKey: ['field-observations'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('interventions')
-        .select('*')
-        .not('observation_type', 'is', null)
-        .order('created_at', { ascending: false });
+      try {
+        const { data, error } = await supabase
+          .from('interventions')
+          .select('*')
+          .not('observation_type', 'is', null)
+          .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Erreur lors du chargement des observations:', error);
-        toast.error('Erreur lors du chargement des observations');
-        throw error;
+        if (error) {
+          console.error('Erreur lors du chargement des observations:', error);
+          toast.error('Erreur lors du chargement des observations');
+          throw error;
+        }
+
+        return data as FieldObservation[];
+      } catch (err) {
+        console.error('Exception lors du chargement des observations:', err);
+        throw err;
       }
-
-      return data as FieldObservation[];
     }
   });
 
@@ -45,7 +51,7 @@ export const useFieldObservations = () => {
           throw new Error('Session expired or invalid');
         }
 
-        const userData = sessionData.session.user;
+        const userData = assertIsDefined(sessionData.session.user, 'Session user');
         
         // Créer une nouvelle intervention à partir de l'observation
         const { data, error } = await supabase
@@ -84,15 +90,26 @@ export const useFieldObservations = () => {
       queryClient.invalidateQueries({ queryKey: ['interventions'] });
       toast.success('Observation enregistrée avec succès');
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Erreur mutation:', error);
-      toast.error('Erreur lors de la création de l\'observation');
+      
+      // Message d'erreur plus détaillé en fonction du type d'erreur
+      if (error.message.includes('Session expired')) {
+        toast.error('Votre session a expiré. Veuillez vous reconnecter.');
+      } else if (error.message.includes('violates row-level security policy')) {
+        toast.error("Vous n'avez pas les permissions nécessaires pour créer une observation.");
+      } else if (error.message.includes('not-authorized')) {
+        toast.error("Vous n'êtes pas autorisé à effectuer cette action.");
+      } else {
+        toast.error('Erreur lors de la création de l\'observation. Veuillez réessayer.');
+      }
     }
   });
 
   return {
     observations,
     isLoading,
+    error,
     createObservation
   };
 };

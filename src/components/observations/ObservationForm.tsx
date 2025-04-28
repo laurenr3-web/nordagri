@@ -1,122 +1,105 @@
 
-import { useState } from 'react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Form } from '@/components/ui/form';
 import { useFieldObservations } from '@/hooks/observations/useFieldObservations';
-import { FieldObservationFormValues } from '@/types/FieldObservation';
 import { toast } from 'sonner';
-import { ObservationFormData } from './form/ObservationFormTypes';
 import { PhotosUploader } from './form/PhotosUploader';
 import { EquipmentSelect, ObservationTypeSelect, UrgencyLevelSelect } from './form/SelectFields';
 import { LocationInput, DescriptionTextarea } from './form/TextFields';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
+import { observationFormSchema, ObservationFormValues } from './form/validationSchema';
+import { useEquipmentOptions } from '@/hooks/equipment/useEquipmentOptions';
 
 export const ObservationForm = () => {
   const { createObservation } = useFieldObservations();
-  
-  const [selectedEquipment, setSelectedEquipment] = useState<number | null>(null);
-  const [formData, setFormData] = useState<ObservationFormData>({
-    photos: []
-  });
+  const { data: equipments = [] } = useEquipmentOptions();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedEquipment || !formData.observation_type || !formData.urgency_level) {
-      toast.error('Veuillez remplir tous les champs obligatoires');
-      return;
+  // Initialiser le formulaire avec react-hook-form et zod
+  const form = useForm<ObservationFormValues>({
+    resolver: zodResolver(observationFormSchema),
+    defaultValues: {
+      equipment_id: null,
+      observation_type: undefined,
+      urgency_level: undefined,
+      location: '',
+      description: '',
+      photos: []
     }
+  });
+  
+  // Réinitialiser le formulaire après une soumission réussie
+  useEffect(() => {
+    if (createObservation.isSuccess) {
+      form.reset();
+    }
+  }, [createObservation.isSuccess, form]);
 
-    const equipment = await getEquipmentName(selectedEquipment);
-    if (!equipment) {
-      toast.error("Erreur: impossible de trouver l'équipement sélectionné");
+  const handleSubmit = async (values: ObservationFormValues) => {
+    if (!values.equipment_id) {
+      toast.error('Veuillez sélectionner un équipement');
       return;
     }
 
     try {
-      const values: FieldObservationFormValues = {
-        equipment_id: selectedEquipment,
-        equipment: equipment,
-        observation_type: formData.observation_type!,
-        urgency_level: formData.urgency_level!,
-        photos: formData.photos || [],
-        location: formData.location,
-        description: formData.description
-      };
+      const equipment = equipments.find(eq => eq.id === values.equipment_id);
+      if (!equipment) {
+        toast.error("Erreur: impossible de trouver l'équipement sélectionné");
+        return;
+      }
 
-      await createObservation.mutateAsync(values);
+      // Préparer les valeurs pour la création de l'observation
+      await createObservation.mutateAsync({
+        equipment_id: values.equipment_id,
+        equipment: equipment.name,
+        observation_type: values.observation_type!,
+        urgency_level: values.urgency_level!,
+        photos: values.photos || [],
+        location: values.location || 'Non spécifiée',
+        description: values.description || ''
+      });
       
-      // Réinitialiser le formulaire
-      resetForm();
     } catch (error) {
       console.error("Erreur lors de la création de l'observation:", error);
-      toast.error("Une erreur s'est produite lors de la création de l'observation");
+      // L'erreur sera traitée par le hook useFieldObservations via onError
     }
-  };
-
-  // Récupérer le nom de l'équipement à partir de l'ID
-  const getEquipmentName = async (equipmentId: number): Promise<string> => {
-    try {
-      const { data: equipments } = useEquipmentOptions.getState();
-      const equipment = equipments?.find(e => e.id === equipmentId);
-      return equipment?.name || '';
-    } catch (error) {
-      console.error("Erreur lors de la récupération du nom de l'équipement:", error);
-      return '';
-    }
-  };
-  
-  // Mettre à jour les données du formulaire
-  const updateFormData = (partialData: Partial<ObservationFormData>) => {
-    setFormData(prev => ({ ...prev, ...partialData }));
-  };
-  
-  // Réinitialiser le formulaire
-  const resetForm = () => {
-    setSelectedEquipment(null);
-    setFormData({ photos: [] });
-    // Note: PhotosUploader gère sa propre réinitialisation interne
   };
 
   return (
     <Card className="p-4">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <EquipmentSelect
-          selectedEquipment={selectedEquipment}
-          onEquipmentChange={setSelectedEquipment}
-        />
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          {createObservation.error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Erreur</AlertTitle>
+              <AlertDescription>
+                Une erreur s'est produite lors de la création de l'observation. 
+                Veuillez réessayer ou contacter le support.
+              </AlertDescription>
+            </Alert>
+          )}
 
-        <ObservationTypeSelect
-          value={formData.observation_type}
-          onChange={(value) => updateFormData({ observation_type: value })}
-        />
+          <EquipmentSelect form={form} />
+          <ObservationTypeSelect form={form} />
+          <UrgencyLevelSelect form={form} />
+          <LocationInput form={form} />
+          <DescriptionTextarea form={form} />
+          <PhotosUploader form={form} />
 
-        <UrgencyLevelSelect
-          value={formData.urgency_level}
-          onChange={(value) => updateFormData({ urgency_level: value })}
-        />
-
-        <LocationInput
-          value={formData.location}
-          onChange={(value) => updateFormData({ location: value })}
-        />
-
-        <DescriptionTextarea
-          value={formData.description}
-          onChange={(value) => updateFormData({ description: value })}
-        />
-        
-        <PhotosUploader
-          photos={formData.photos || []}
-          onPhotosChange={(photos) => updateFormData({ photos })}
-        />
-
-        <Button 
-          type="submit" 
-          className="w-full"
-          disabled={createObservation.isPending}
-        >
-          {createObservation.isPending ? 'Enregistrement...' : 'Enregistrer l\'observation'}
-        </Button>
-      </form>
+          <Button 
+            type="submit" 
+            className="w-full"
+            disabled={createObservation.isPending || !form.formState.isValid}
+          >
+            {createObservation.isPending ? 'Enregistrement...' : 'Enregistrer l\'observation'}
+          </Button>
+        </form>
+      </Form>
     </Card>
   );
 };
