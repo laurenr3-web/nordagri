@@ -494,8 +494,11 @@ export type Database = {
           id: number
           location: string
           notes: string | null
+          observation_type: string | null
+          observer_id: string | null
           owner_id: string | null
           parts_used: Json | null
+          photos: string[] | null
           priority: string
           scheduled_duration: number | null
           status: string
@@ -503,6 +506,7 @@ export type Database = {
           technician: string
           title: string
           updated_at: string | null
+          urgency_level: string | null
         }
         Insert: {
           active_since?: string | null
@@ -517,8 +521,11 @@ export type Database = {
           id?: never
           location: string
           notes?: string | null
+          observation_type?: string | null
+          observer_id?: string | null
           owner_id?: string | null
           parts_used?: Json | null
+          photos?: string[] | null
           priority: string
           scheduled_duration?: number | null
           status: string
@@ -526,6 +533,7 @@ export type Database = {
           technician: string
           title: string
           updated_at?: string | null
+          urgency_level?: string | null
         }
         Update: {
           active_since?: string | null
@@ -540,8 +548,11 @@ export type Database = {
           id?: never
           location?: string
           notes?: string | null
+          observation_type?: string | null
+          observer_id?: string | null
           owner_id?: string | null
           parts_used?: Json | null
+          photos?: string[] | null
           priority?: string
           scheduled_duration?: number | null
           status?: string
@@ -549,6 +560,7 @@ export type Database = {
           technician?: string
           title?: string
           updated_at?: string | null
+          urgency_level?: string | null
         }
         Relationships: [
           {
