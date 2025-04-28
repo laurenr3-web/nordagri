@@ -8,6 +8,7 @@ import NewInterventionDialog from './NewInterventionDialog';
 import InterventionReportDialog from './dialogs/InterventionReportDialog';
 import CalendarView from './views/CalendarView';
 import FieldTrackingView from './views/FieldTrackingView';
+import FieldObservationsView from './views/FieldObservationsView';
 
 interface InterventionsContainerProps {
   filteredInterventions: Intervention[];
@@ -71,6 +72,8 @@ const InterventionsContainer: React.FC<InterventionsContainerProps> = ({
         return <CalendarView interventions={filteredInterventions} onViewDetails={onViewDetails} onCreateIntervention={handleCreateFromCalendar} />;
       case 'field-tracking':
         return <FieldTrackingView interventions={filteredInterventions} onViewDetails={onViewDetails} onUpdateStatus={updateInterventionStatus} onAssignTechnician={assignTechnician} />;
+      case 'observations':
+        return <FieldObservationsView />;
       default:
         return (
           <InterventionsList 
