@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import InterventionsList from '@/components/interventions/InterventionsList';
 import { Intervention, InterventionFormValues } from '@/types/Intervention';
@@ -93,7 +92,7 @@ const InterventionsContainer: React.FC<InterventionsContainerProps> = ({
   };
 
   return (
-    <div className="container mx-auto py-6 px-[83px]">
+    <div className="container mx-auto py-4">
       {renderContent()}
       
       {/* Dialog de création d'intervention */}

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/ui/layouts/MainLayout';
 import InterventionsHeader from '@/components/interventions/InterventionsHeader';
