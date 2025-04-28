@@ -22,7 +22,6 @@ const PartCompatibility: React.FC<PartCompatibilityProps> = ({ compatibility }) 
   const { data: equipmentInfo, isLoading, error } = useQuery({
     queryKey: ['equipment-compatibility', safeCompatibility],
     queryFn: async (): Promise<EquipmentInfo[]> => {
-      // Si aucune compatibilité, retourner un tableau vide
       if (!safeCompatibility.length) return [];
       
       try {
@@ -38,7 +37,6 @@ const PartCompatibility: React.FC<PartCompatibilityProps> = ({ compatibility }) 
         return [];
       }
     },
-    // Désactiver la requête si la liste est vide
     enabled: safeCompatibility.length > 0,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
