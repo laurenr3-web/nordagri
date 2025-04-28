@@ -51,3 +51,54 @@ export function compatibilityToNumbers(compatibility: any): number[] {
   // Par défaut, renvoyer un tableau vide
   return [];
 }
+
+/**
+ * Convertit un tableau de nombres en chaîne formatée pour la base de données
+ * Cette fonction prend un tableau de nombres et le convertit en format attendu par la BDD
+ */
+export function compatibilityToStrings(compatibility: number[] | any): string[] {
+  // Si compatibility est undefined ou null, renvoyer un tableau vide
+  if (compatibility == null) {
+    return [];
+  }
+  
+  // Si c'est déjà un tableau, convertir chaque élément en chaîne
+  if (Array.isArray(compatibility)) {
+    return compatibility.map(id => String(id));
+  }
+  
+  // Si c'est une chaîne unique, la diviser et la convertir en tableau de chaînes
+  if (typeof compatibility === 'string') {
+    return compatibility.split(',').map(id => id.trim()).filter(Boolean);
+  }
+  
+  // Si c'est un nombre unique, le convertir en chaîne dans un tableau
+  if (typeof compatibility === 'number') {
+    return [String(compatibility)];
+  }
+  
+  // Pour tout autre type, renvoyer un tableau vide
+  console.warn('Format de compatibilité inattendu lors de la conversion en chaînes:', compatibility);
+  return [];
+}
+
+/**
+ * Parse une chaîne de compatibilité (format "1, 2, 3") en tableau de nombres
+ * Utile pour les formulaires où la compatibilité est entrée comme texte
+ */
+export function parseCompatibilityString(compatibilityStr: string): number[] {
+  if (!compatibilityStr) {
+    return [];
+  }
+  
+  // Diviser la chaîne par des virgules, supprimer les espaces, convertir en nombres
+  return compatibilityStr
+    .split(',')
+    .map(item => {
+      const trimmed = item.trim();
+      const num = parseInt(trimmed, 10);
+      return isNaN(num) ? 0 : num;
+    })
+    .filter(num => num > 0); // Filtrer les valeurs invalides ou zéro
+}
+
