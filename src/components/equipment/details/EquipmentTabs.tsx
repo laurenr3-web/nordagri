@@ -1,161 +1,26 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { EquipmentOverview } from './EquipmentOverview';
-import EquipmentMaintenanceStatus from './EquipmentMaintenanceStatus';
-import EquipmentParts from '@/components/equipment/tabs/EquipmentParts';
-import EquipmentTimeTracking from '@/components/equipment/tabs/EquipmentTimeTracking';
-import EquipmentPerformance from '@/components/equipment/tabs/EquipmentPerformance';
-import EquipmentMaintenanceHistory from '@/components/equipment/tabs/EquipmentMaintenanceHistory';
-import EquipmentQRCode from '@/components/equipment/tabs/EquipmentQRCode';
-import EquipmentFuelLogs from '@/components/equipment/tabs/fuel/EquipmentFuelLogs';
-import { useIsMobile } from '@/hooks/use-mobile';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
-import { Menu } from 'lucide-react';
+import EquipmentParts from '../tabs/EquipmentParts';
+import { Equipment } from '@/services/supabase/equipmentService';
+import EquipmentCompatibleParts from '../tabs/EquipmentCompatibleParts';
 
 interface EquipmentTabsProps {
-  equipment: any;
+  equipment: Equipment;
   forceDesktopTabs?: boolean;
 }
 
-const moreTabs = [
-  {
-    value: "parts",
-    label: "Pièces"
-  },
-  {
-    value: "fuel",
-    label: "Carburant"
-  },
-  {
-    value: "performance",
-    label: "Performance"
-  },
-  {
-    value: "timeTracking",
-    label: "Temps"
-  },
-  {
-    value: "qrcode",
-    label: "QR Code"
-  }
-];
+export default function EquipmentTabs({ equipment, forceDesktopTabs }: EquipmentTabsProps) {
+  const defaultTab = 'parts';
 
-const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment, forceDesktopTabs }) => {
-  const isMobile = useIsMobile();
-  const [tabValue, setTabValue] = useState("overview");
-
-  const handleTabChange = (newValue: string) => {
-    setTabValue(newValue);
-  };
-
-  const showDropdownMenu = !forceDesktopTabs && isMobile;
-  
   return (
-    <Tabs value={tabValue} onValueChange={handleTabChange} className="w-full">
-      <div className="w-full overflow-x-auto pb-2">
-        <TabsList 
-          className={
-            isMobile && !forceDesktopTabs
-              ? "w-full flex gap-2 whitespace-nowrap items-center"
-              : "w-full flex gap-1 md:gap-2 whitespace-nowrap items-center bg-muted p-1 rounded-md flex-wrap"
-          }
-        >
-          <TabsTrigger 
-            value="overview" 
-            className={isMobile && !forceDesktopTabs ? "py-1 px-2 text-sm" : "py-1 px-3 text-sm md:py-2 md:px-4 md:text-base"}
-          >
-            Aperçu
-          </TabsTrigger>
-          <TabsTrigger 
-            value="maintenance" 
-            className={isMobile && !forceDesktopTabs ? "py-1 px-2 text-sm" : "py-1 px-3 text-sm md:py-2 md:px-4 md:text-base"}
-          >
-            Maintenance
-          </TabsTrigger>
-          <TabsTrigger 
-            value="history" 
-            className={isMobile && !forceDesktopTabs ? "py-1 px-2 text-sm" : "py-1 px-3 text-sm md:py-2 md:px-4 md:text-base"}
-          >
-            Historique
-          </TabsTrigger>
-          
-          {showDropdownMenu ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  aria-label="Plus d'onglets"
-                  className="ml-1 px-2 py-1 rounded hover:bg-muted/80 focus:bg-muted bg-background border border-input flex items-center"
-                  type="button"
-                  tabIndex={0}
-                >
-                  <Menu className="h-4 w-4" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" sideOffset={4} className="z-50 min-w-[7rem]">
-                {moreTabs.map(tab => (
-                  <DropdownMenuItem
-                    key={tab.value}
-                    onSelect={() => handleTabChange(tab.value)}
-                    className={[
-                      "cursor-pointer",
-                      tabValue === tab.value ? "bg-muted font-semibold" : ""
-                    ].join(" ")}
-                  >
-                    {tab.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <>
-              {moreTabs.map(tab => (
-                <TabsTrigger
-                  key={tab.value}
-                  value={tab.value}
-                  className="py-1 px-3 text-sm md:py-2 md:px-4 md:text-base"
-                >
-                  {tab.label}
-                </TabsTrigger>
-              ))}
-            </>
-          )}
-        </TabsList>
-      </div>
+    <Tabs defaultValue={defaultTab} className="w-full">
+      <TabsList className="w-full justify-start overflow-x-auto">
+        <TabsTrigger value="parts">Pièces</TabsTrigger>
+      </TabsList>
 
-      <div className="mt-2">
-        <TabsContent value="overview">
-          <EquipmentOverview equipment={equipment} />
-        </TabsContent>
-        <TabsContent value="maintenance">
-          <EquipmentMaintenanceStatus equipment={equipment} />
-        </TabsContent>
-        <TabsContent value="history">
-          <EquipmentMaintenanceHistory equipment={equipment} />
-        </TabsContent>
-        <TabsContent value="parts">
-          <EquipmentParts equipment={equipment} />
-        </TabsContent>
-        <TabsContent value="fuel">
-          <EquipmentFuelLogs equipment={equipment} />
-        </TabsContent>
-        <TabsContent value="performance">
-          <EquipmentPerformance equipment={equipment} />
-        </TabsContent>
-        <TabsContent value="timeTracking">
-          <EquipmentTimeTracking equipment={equipment} />
-        </TabsContent>
-        <TabsContent value="qrcode">
-          <EquipmentQRCode equipment={equipment} />
-        </TabsContent>
-      </div>
+      <TabsContent value="parts" className="space-y-4">
+        <EquipmentCompatibleParts equipment={equipment} />
+      </TabsContent>
     </Tabs>
   );
-};
-
-export default EquipmentTabs;
+}
