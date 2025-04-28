@@ -15,7 +15,10 @@ interface CompatibilityMultiSelectFieldProps {
   isEditMode?: boolean;
 }
 
-const CompatibilityMultiSelectField: React.FC<CompatibilityMultiSelectFieldProps> = ({ form, isEditMode = false }) => {
+const CompatibilityMultiSelectField: React.FC<CompatibilityMultiSelectFieldProps> = ({ 
+  form, 
+  isEditMode = false 
+}) => {
   const { data: equipmentOptions = [], isLoading } = useEquipments();
   const { selectedIds, handleSelectionChange, clearSelection } = useEquipmentSelection(form);
 
@@ -54,7 +57,7 @@ const CompatibilityMultiSelectField: React.FC<CompatibilityMultiSelectFieldProps
             />
           </FormControl>
           <FormDescription>
-            {selectedIds.length > 0
+            {selectedIds.length > 0 
               ? `${selectedIds.length} équipement${selectedIds.length > 1 ? 's' : ''} compatible${selectedIds.length > 1 ? 's' : ''} sélectionné${selectedIds.length > 1 ? 's' : ''}`
               : "Aucun équipement compatible sélectionné"
             }
