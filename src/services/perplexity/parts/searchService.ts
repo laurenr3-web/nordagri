@@ -51,9 +51,9 @@ export const partsSearchService = {
       let compatibilityArray: number[] = [];
       
       if (Array.isArray(item.compatibleWith)) {
+        // Try to extract numeric IDs from strings like "Model 123" -> 123
         compatibilityArray = item.compatibleWith
           .map(entry => {
-            // Try to extract numeric IDs from strings like "Model 123" -> 123
             const matches = /\d+/.exec(entry);
             return matches ? parseInt(matches[0]) : 0;
           })

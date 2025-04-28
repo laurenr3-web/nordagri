@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Part } from '@/types/Part';
-import { compatibilityToStrings } from '@/utils/compatibilityConverter';
+import { compatibilityToStrings, compatibilityToNumbers } from '@/utils/compatibilityConverter';
 
 /**
  * Adds a new part to the inventory
@@ -109,14 +109,4 @@ export async function addPart(part: Omit<Part, 'id'>): Promise<Part> {
     reorderPoint: data.reorder_threshold || 5,
     image: data.image_url || 'https://placehold.co/100x100/png'
   };
-}
-
-// Helper function to convert compatibility
-function compatibilityToNumbers(compatibility: string[] | number[]): number[] {
-  if (!compatibility) return [];
-  if (typeof compatibility[0] === 'number') return compatibility as number[];
-  
-  return (compatibility as string[])
-    .map(id => parseInt(id, 10))
-    .filter(id => !isNaN(id));
 }

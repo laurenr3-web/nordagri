@@ -22,15 +22,29 @@ export const usePartsSlice = (initialParts: Part[]) => {
 
   const handleAddPart = (formData: PartFormValues) => {
     // Convert compatibility to number array using our utility
-    const compatibilityArray = parseCompatibilityString(formData.compatibility);
+    const compatibilityValue = formData.compatibility;
+    let compatibilityArray: number[] = [];
+    
+    if (Array.isArray(compatibilityValue)) {
+      // If already an array, ensure all items are numbers
+      compatibilityArray = compatibilityValue
+        .map(item => typeof item === 'string' ? parseInt(item, 10) : item)
+        .filter(item => !isNaN(item)) as number[];
+    } else if (typeof compatibilityValue === 'string') {
+      // If string, parse it as comma-separated values
+      compatibilityArray = compatibilityValue
+        .split(',')
+        .map(item => parseInt(item.trim(), 10))
+        .filter(item => !isNaN(item));
+    }
 
     const newPart = {
       id: parts.length + 1,
       name: formData.name,
       partNumber: formData.partNumber,
       category: formData.category,
-      compatibility: compatibilityArray, // Tableau d'IDs numériques
-      compatibleWith: [], // Pour rétrocompatibilité
+      compatibility: compatibilityArray,
+      compatibleWith: [], // For backwards compatibility
       manufacturer: formData.manufacturer || '',
       price: parseFloat(formData.price || '0'),
       stock: parseInt(formData.stock || '0'),
@@ -49,49 +63,7 @@ export const usePartsSlice = (initialParts: Part[]) => {
     return newPart;
   };
 
-  const handleEditPart = (updatedPart: Part) => {
-    setParts(parts.map(part => 
-      part.id === updatedPart.id ? updatedPart : part
-    ));
-    
-    // If this is a new category, add it to our custom categories
-    const categories = getCategories();
-    if (!categories.includes(updatedPart.category)) {
-      setCustomCategories([...customCategories, updatedPart.category]);
-    }
-    
-    toast({
-      title: "Pièce mise à jour",
-      description: `Les informations de "${updatedPart.name}" ont été mises à jour avec succès`,
-    });
-  };
-  
-  const handleDeletePart = (partId: number) => {
-    const partToDelete = parts.find(part => part.id === partId);
-    setParts(parts.filter(part => part.id !== partId));
-    
-    if (partToDelete) {
-      toast({
-        title: "Pièce supprimée",
-        description: `La pièce "${partToDelete.name}" a été supprimée avec succès`,
-      });
-    }
-  };
-
-  const addNewCategory = (newCategory: string) => {
-    if (newCategory.trim() !== '') {
-      const category = newCategory.trim();
-      setCustomCategories([...customCategories, category]);
-      
-      toast({
-        title: "Category added",
-        description: `Category "${category}" added successfully`,
-      });
-      
-      return category;
-    }
-    return null;
-  };
+  // ... keep existing code for handleEditPart, handleDeletePart, addNewCategory
 
   return {
     parts,
@@ -102,8 +74,44 @@ export const usePartsSlice = (initialParts: Part[]) => {
     getCategories,
     getManufacturers,
     handleAddPart,
-    handleEditPart,
-    handleDeletePart,
-    addNewCategory,
+    handleEditPart: (part: Part) => {
+      setParts(parts.map(p => p.id === part.id ? part : p));
+      
+      // If this is a new category, add it
+      const categories = getCategories();
+      if (!categories.includes(part.category)) {
+        setCustomCategories([...customCategories, part.category]);
+      }
+      
+      toast({
+        title: "Pièce mise à jour",
+        description: `Les informations de "${part.name}" ont été mises à jour avec succès`,
+      });
+    },
+    handleDeletePart: (partId: number) => {
+      const partToDelete = parts.find(part => part.id === partId);
+      setParts(parts.filter(part => part.id !== partId));
+      
+      if (partToDelete) {
+        toast({
+          title: "Pièce supprimée",
+          description: `La pièce "${partToDelete.name}" a été supprimée avec succès`,
+        });
+      }
+    },
+    addNewCategory: (newCategory: string) => {
+      if (newCategory.trim() !== '') {
+        const category = newCategory.trim();
+        setCustomCategories([...customCategories, category]);
+        
+        toast({
+          title: "Category added",
+          description: `Category "${category}" added successfully`,
+        });
+        
+        return category;
+      }
+      return null;
+    },
   };
 };

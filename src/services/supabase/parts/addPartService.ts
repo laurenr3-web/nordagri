@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Part } from '@/types/Part';
-import { compatibilityToStrings } from '@/utils/compatibilityConverter';
+import { compatibilityToStrings, compatibilityToNumbers } from '@/utils/compatibilityConverter';
 
 export async function addPart(part: Omit<Part, 'id'>): Promise<Part> {
   try {
@@ -47,9 +47,7 @@ export async function addPart(part: Omit<Part, 'id'>): Promise<Part> {
       partNumber: data.part_number || '',
       category: data.category || '',
       manufacturer: data.supplier || '',
-      compatibility: Array.isArray(data.compatible_with) 
-        ? data.compatible_with.map(id => parseInt(id, 10)).filter(id => !isNaN(id))
-        : [],
+      compatibility: compatibilityToNumbers(data.compatible_with),
       stock: data.quantity,
       price: data.unit_price || 0,
       location: data.location || '',

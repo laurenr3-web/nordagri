@@ -12,7 +12,7 @@ export interface Part {
   reorderPoint: number;
   image: string;
   
-  // Champs pour la rétrocompatibilité
+  // Fields for backwards compatibility
   description?: string;
   reference?: string;
   compatibleWith?: string[];
