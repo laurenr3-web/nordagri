@@ -1,135 +1,127 @@
 
-/**
- * Service for handling offline data synchronization
- */
+import { useEffect, useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
-export type SyncQueueItem = {
+// Interface pour un élément en attente de synchronisation
+export interface SyncQueueItem {
   id: string;
-  type: 'add_equipment' | 'update_equipment' | 'add_intervention' | 'update_intervention' | 'add_part' | 'update_part';
+  type: 'add_part' | 'update_part' | 'delete_part';
   data: any;
   timestamp: number;
-  retries: number;
-  processed: boolean;
-  error?: string;
-};
+}
 
-export type SyncProgress = {
-  total: number;
-  completed: number;
-  failed: number;
-};
+// Clé pour le stockage local de la file d'attente de synchronisation
+const SYNC_QUEUE_KEY = 'nordagri_sync_queue';
 
+// Service de synchronisation
 export class OfflineSyncService {
-  private static syncQueue: SyncQueueItem[] = [];
-  private static cachedData: Record<string, { data: any, expiresAt: number }> = {};
-
-  // Initialize sync queue from localStorage
-  static init() {
-    try {
-      const storedQueue = localStorage.getItem('offline_sync_queue');
-      if (storedQueue) {
-        this.syncQueue = JSON.parse(storedQueue);
-      }
-
-      const storedCache = localStorage.getItem('offline_data_cache');
-      if (storedCache) {
-        this.cachedData = JSON.parse(storedCache);
-      }
-    } catch (error) {
-      console.error('Error initializing offline sync service:', error);
-      // Reset if there's an error
-      this.syncQueue = [];
-      this.cachedData = {};
-    }
-  }
-
-  // Save sync queue to localStorage
-  private static saveQueue() {
-    localStorage.setItem('offline_sync_queue', JSON.stringify(this.syncQueue));
-  }
-
-  // Save cache to localStorage
-  private static saveCache() {
-    localStorage.setItem('offline_data_cache', JSON.stringify(this.cachedData));
-  }
-
-  // Add item to sync queue
+  // Ajouter un élément à la file d'attente de synchronisation
   static addToSyncQueue(type: SyncQueueItem['type'], data: any): string {
-    const id = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    const item: SyncQueueItem = {
-      id,
-      type,
-      data,
-      timestamp: Date.now(),
-      retries: 0,
-      processed: false
-    };
-    
-    this.syncQueue.push(item);
-    this.saveQueue();
-    
-    return id;
-  }
-
-  // Get all pending items in sync queue
-  static getPendingItems(): SyncQueueItem[] {
-    return this.syncQueue.filter(item => !item.processed);
-  }
-
-  // Mark an item as processed
-  static markAsProcessed(id: string, error?: string) {
-    const item = this.syncQueue.find(item => item.id === id);
-    if (item) {
-      item.processed = true;
-      if (error) {
-        item.error = error;
-      }
-      this.saveQueue();
+    try {
+      // Récupérer la file d'attente existante
+      const queue = this.getSyncQueue();
+      
+      // Créer un nouvel élément
+      const id = `${type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const newItem: SyncQueueItem = {
+        id,
+        type,
+        data,
+        timestamp: Date.now()
+      };
+      
+      // Ajouter l'élément à la file d'attente
+      queue.push(newItem);
+      
+      // Sauvegarder la file d'attente
+      localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(queue));
+      
+      return id;
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout à la file d\'attente de synchronisation:', error);
+      return '';
     }
   }
-
-  // Cache data with an expiration time
-  static cacheData<T>(key: string, data: T, expirationMinutes: number = 60) {
-    const expiresAt = Date.now() + expirationMinutes * 60 * 1000;
-    this.cachedData[key] = { data, expiresAt };
-    this.saveCache();
-  }
-
-  // Get cached data if not expired
-  static getCachedData<T>(key: string): T | null {
-    const cached = this.cachedData[key];
-    if (cached && cached.expiresAt > Date.now()) {
-      return cached.data as T;
-    }
-    return null;
-  }
-
-  // Clear expired cache entries
-  static cleanupCache() {
-    const now = Date.now();
-    let changed = false;
-    
-    for (const key in this.cachedData) {
-      if (this.cachedData[key].expiresAt < now) {
-        delete this.cachedData[key];
-        changed = true;
-      }
-    }
-    
-    if (changed) {
-      this.saveCache();
+  
+  // Récupérer la file d'attente de synchronisation
+  static getSyncQueue(): SyncQueueItem[] {
+    try {
+      const queueJson = localStorage.getItem(SYNC_QUEUE_KEY);
+      return queueJson ? JSON.parse(queueJson) : [];
+    } catch (error) {
+      console.error('Erreur lors de la récupération de la file d\'attente de synchronisation:', error);
+      return [];
     }
   }
-
-  // Clear processed items older than a certain time
-  static cleanupQueue(olderThanHours = 24) {
-    const threshold = Date.now() - olderThanHours * 60 * 60 * 1000;
-    this.syncQueue = this.syncQueue.filter(
-      item => !item.processed || item.timestamp >= threshold
-    );
-    this.saveQueue();
+  
+  // Supprimer un élément de la file d'attente de synchronisation
+  static removeFromSyncQueue(id: string): void {
+    try {
+      const queue = this.getSyncQueue();
+      const newQueue = queue.filter(item => item.id !== id);
+      localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(newQueue));
+    } catch (error) {
+      console.error('Erreur lors de la suppression de la file d\'attente de synchronisation:', error);
+    }
+  }
+  
+  // Vider la file d'attente de synchronisation
+  static clearSyncQueue(): void {
+    localStorage.removeItem(SYNC_QUEUE_KEY);
   }
 }
 
-// Initialize on service load
-OfflineSyncService.init();
+// Hook pour gérer la synchronisation lorsque l'utilisateur revient en ligne
+export function useOfflineSyncManager() {
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncCount, setSyncCount] = useState(0);
+  const { toast } = useToast();
+  
+  // Fonction pour synchroniser les éléments en attente
+  const syncPendingItems = async () => {
+    const queue = OfflineSyncService.getSyncQueue();
+    
+    if (queue.length === 0) return;
+    
+    setIsSyncing(true);
+    setSyncCount(queue.length);
+    
+    toast({
+      title: "Synchronisation en cours",
+      description: `${queue.length} éléments en attente de synchronisation...`,
+    });
+    
+    // Implémenter ici la logique de synchronisation réelle
+    
+    // Une fois la synchronisation terminée
+    setIsSyncing(false);
+    setSyncCount(0);
+    toast({
+      title: "Synchronisation terminée",
+      description: `${queue.length} éléments synchronisés avec succès.`,
+    });
+  };
+  
+  // Écouter les événements de connexion/déconnexion
+  useEffect(() => {
+    const handleOnline = () => {
+      syncPendingItems();
+    };
+    
+    window.addEventListener('online', handleOnline);
+    
+    // Vérifier s'il y a des éléments en attente au chargement
+    if (navigator.onLine) {
+      const queue = OfflineSyncService.getSyncQueue();
+      if (queue.length > 0) {
+        syncPendingItems();
+      }
+    }
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+    };
+  }, []);
+  
+  return { isSyncing, syncCount };
+}

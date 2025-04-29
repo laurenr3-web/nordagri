@@ -2,36 +2,33 @@
 export interface Intervention {
   id: number;
   title: string;
-  description?: string;
-  status: 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
-  priority: 'high' | 'medium' | 'low';
-  date: Date | string;
-  time?: string;
-  duration?: number;
-  scheduledDuration: number;
   equipment: string;
   equipmentId: number;
   location: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+  status: 'scheduled' | 'in-progress' | 'completed' | 'canceled';
+  priority: 'high' | 'medium' | 'low';
+  date: Date;
+  duration?: number;
+  scheduledDuration?: number;
   technician: string;
-  observations?: string;
-  notes?: string;
-  partsUsed?: Array<{
-    partId: number;
-    name: string;
-    quantity: number;
-  }>;
+  description: string;
+  partsUsed: Array<{ id: number; name: string; quantity: number; }>;
+  notes: string;
 }
 
 export interface InterventionFormValues {
   title: string;
-  description?: string;
-  status: 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
-  priority: 'high' | 'medium' | 'low';
-  date: Date | string;
-  time?: string;
-  scheduledDuration: number;
+  equipment: string;
   equipmentId: number;
   location: string;
+  priority: 'high' | 'medium' | 'low';
+  date: Date;
+  scheduledDuration: number;
   technician: string;
-  notes?: string;
+  description: string;
+  notes: string;
 }

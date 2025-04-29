@@ -61,11 +61,6 @@ const FieldTrackingView: React.FC<FieldTrackingViewProps> = ({
     }
   };
 
-  // Format date for display
-  const formatDisplayDate = (date: Date | string) => {
-    return format(new Date(date), 'dd MMMM yyyy HH:mm', { locale: fr });
-  };
-
   return (
     <>
       <Card>
@@ -115,7 +110,7 @@ const FieldTrackingView: React.FC<FieldTrackingViewProps> = ({
                           <div className="flex items-center">
                             <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
                             <span className="text-sm">
-                              {formatDisplayDate(intervention.date)}
+                              {format(intervention.date, 'dd MMMM yyyy HH:mm', { locale: fr })}
                             </span>
                           </div>
                           
@@ -201,7 +196,7 @@ const FieldTrackingView: React.FC<FieldTrackingViewProps> = ({
                           <div className="flex items-center">
                             <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
                             <span className="text-sm">
-                              {formatDisplayDate(intervention.date)}
+                              {format(intervention.date, 'dd MMMM yyyy HH:mm', { locale: fr })}
                             </span>
                           </div>
                           
@@ -239,7 +234,7 @@ const FieldTrackingView: React.FC<FieldTrackingViewProps> = ({
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => onUpdateStatus(intervention.id, 'cancelled')}
+                            onClick={() => onUpdateStatus(intervention.id, 'canceled')}
                           >
                             <XCircle className="h-4 w-4 mr-2" />
                             Annuler
@@ -285,7 +280,7 @@ const FieldTrackingView: React.FC<FieldTrackingViewProps> = ({
                           <div className="flex items-center">
                             <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
                             <span className="text-sm">
-                              {format(new Date(intervention.date), 'dd MMMM yyyy', { locale: fr })}
+                              {format(intervention.date, 'dd MMMM yyyy', { locale: fr })}
                             </span>
                           </div>
                           
