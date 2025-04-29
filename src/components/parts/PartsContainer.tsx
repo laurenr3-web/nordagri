@@ -157,7 +157,7 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
       </Alert>;
   }
   return <div className="space-y-4">
-      <Card className="p-4 sm:p-6 px-[24px]">
+      <Card className="p-4 sm:p-6 px-[80px]">
         <PartsHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} currentView={currentView} setCurrentView={setCurrentView} onOpenFilterDialog={() => setIsFilterDialogOpen(true)} onOpenSortDialog={() => setIsSortDialogOpen(true)} filterCount={filterCount} />
 
         {filteredPartsForUI.length > 0 ? currentView === 'grid' ? <div className="mt-6">
