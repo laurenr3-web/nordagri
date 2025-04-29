@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +5,6 @@ import { Calendar, List, MapPin, FileText, Plus, Filter, Eye, Search } from 'luc
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ModeToggle } from '../ui/mode-toggle';
-
 interface InterventionsHeaderProps {
   onNewIntervention: () => void;
   searchQuery: string;
@@ -16,7 +14,6 @@ interface InterventionsHeaderProps {
   currentView?: string;
   setCurrentView?: (view: string) => void;
 }
-
 const InterventionsHeader: React.FC<InterventionsHeaderProps> = ({
   onNewIntervention,
   searchQuery,
@@ -26,9 +23,8 @@ const InterventionsHeader: React.FC<InterventionsHeaderProps> = ({
   currentView,
   setCurrentView
 }) => {
-  return (
-    <header className="border-b">
-      <div className="container py-4 px-4 md:px-6">
+  return <header className="border-b">
+      <div className="container py-4 md:px-6 px-[99px]">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Interventions</h1>
@@ -99,8 +95,7 @@ const InterventionsHeader: React.FC<InterventionsHeaderProps> = ({
             </DropdownMenu>
           </div>
           
-          {setCurrentView && 
-            <Tabs value={currentView || 'scheduled'} className="w-full sm:w-auto" onValueChange={setCurrentView}>
+          {setCurrentView && <Tabs value={currentView || 'scheduled'} className="w-full sm:w-auto" onValueChange={setCurrentView}>
               <TabsList className="bg-muted/60 p-0 rounded-md">
                 <div className="flex">
                   <TabsTrigger value="scheduled" className="px-4 py-2 text-sm rounded-md">
@@ -120,12 +115,9 @@ const InterventionsHeader: React.FC<InterventionsHeaderProps> = ({
                   </TabsTrigger>
                 </div>
               </TabsList>
-            </Tabs>
-          }
+            </Tabs>}
         </div>
       </div>
-    </header>
-  );
+    </header>;
 };
-
 export default InterventionsHeader;
