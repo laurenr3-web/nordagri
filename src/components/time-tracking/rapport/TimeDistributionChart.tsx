@@ -39,15 +39,24 @@ const normalizeAndGroupTaskTypes = (data: TaskTypeDistribution[]): TaskTypeDistr
     .sort((a, b) => b.hours - a.hours);
 };
 
-// Couleurs pour les barres
+// Palette de couleurs pastel pour les barres
 const COLORS = [
-  '#9b87f5', // Primary Purple
-  '#8B5CF6', // Vivid Purple
-  '#0EA5E9', // Ocean Blue
-  '#D946EF', // Magenta Pink
-  '#F97316', // Bright Orange
-  '#7E69AB', // Secondary Purple
-  '#6E59A5', // Tertiary Purple
+  '#93c5fd', // blue-300
+  '#86efac', // green-300
+  '#fcd34d', // yellow-300
+  '#c4b5fd', // purple-300
+  '#fdba74', // orange-300
+  '#f9a8d4', // pink-300
+  '#a5b4fc', // indigo-300
+  '#67e8f9', // cyan-300
+  '#d8b4fe', // violet-300
+  '#fda4af', // rose-300
+  '#a7f3d0', // emerald-300
+  '#bae6fd', // sky-300
+  '#d9f99d', // lime-300
+  '#fed7aa', // amber-300
+  '#e9d5ff', // fuchsia-300
+  '#cbd5e1', // slate-300
 ];
 
 export const TimeDistributionChart: React.FC<TimeDistributionChartProps> = ({ 
@@ -110,7 +119,8 @@ export const TimeDistributionChart: React.FC<TimeDistributionChartProps> = ({
             {chartData.map((entry, index) => (
               <Cell 
                 key={`cell-${index}`} 
-                fill={entry.color || COLORS[index % COLORS.length]} 
+                fill={COLORS[index % COLORS.length]}
+                className="hover:opacity-80 transition-opacity"
               />
             ))}
             <LabelList 
