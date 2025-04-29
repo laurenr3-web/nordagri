@@ -22,6 +22,7 @@ export function useInterventionForm({ onCreate, onClose, equipments }: UseInterv
       equipmentId: 0,
       location: "",
       priority: "medium",
+      status: "scheduled", // Add default status
       date: new Date(),
       scheduledDuration: 1,
       technician: "",

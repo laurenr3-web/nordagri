@@ -72,7 +72,7 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
   }
 
   // Helper function to format date
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date | string) => {
     return new Date(date).toLocaleDateString('fr-FR', {
       month: 'long',
       day: 'numeric',
@@ -104,7 +104,7 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
             <span>Terminée</span>
           </Badge>
         );
-      case 'canceled':
+      case 'cancelled':
         return (
           <Badge variant="outline" className="bg-red-100 text-red-800 flex items-center gap-1">
             <X size={12} />
@@ -142,7 +142,7 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
     }
   };
 
-  const handleStatusChange = (status: 'scheduled' | 'in-progress' | 'completed' | 'canceled') => {
+  const handleStatusChange = (status: 'scheduled' | 'in-progress' | 'completed' | 'cancelled') => {
     if (intervention) {
       const updatedIntervention = {
         ...intervention,
@@ -224,7 +224,7 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
               <p className="text-sm text-muted-foreground mb-1">Pièces utilisées</p>
               <div className="bg-secondary/50 p-3 rounded-md">
                 {intervention.partsUsed.map((part) => (
-                  <div key={part.id} className="flex justify-between text-sm mb-1 last:mb-0">
+                  <div key={part.partId} className="flex justify-between text-sm mb-1 last:mb-0">
                     <span>{part.name}</span>
                     <span className="font-medium">Qté: {part.quantity}</span>
                   </div>
@@ -241,7 +241,7 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
           )}
           
           {/* Status controls */}
-          {intervention.status !== 'completed' && intervention.status !== 'canceled' && (
+          {intervention.status !== 'completed' && intervention.status !== 'cancelled' && (
             <div className="grid grid-cols-1 mt-6">
               <div>
                 <p className="text-sm text-muted-foreground mb-2">Mettre à jour le statut</p>
@@ -275,7 +275,7 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
                     variant="outline" 
                     size="sm" 
                     className="gap-1"
-                    onClick={() => handleStatusChange('canceled')}
+                    onClick={() => handleStatusChange('cancelled')}
                   >
                     <X size={14} />
                     <span>Annuler</span>

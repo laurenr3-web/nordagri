@@ -18,6 +18,9 @@ export const interventionFormSchema = z.object({
   priority: z.enum(["low", "medium", "high"], {
     required_error: "Veuillez sélectionner une priorité",
   }),
+  status: z.enum(["scheduled", "in-progress", "completed", "cancelled"], {
+    required_error: "Le statut est requis",
+  }).default("scheduled"),
   date: z.date({
     required_error: "La date est requise",
   }),

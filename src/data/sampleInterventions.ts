@@ -9,7 +9,6 @@ export const sampleInterventions: Intervention[] = [
     equipment: 'Tracteur John Deere',
     equipmentId: 123,
     location: 'Champ principal',
-    coordinates: { lat: 48.8566, lng: 2.3522 },
     technician: 'Jean Dupont',
     date: new Date(2024, 5, 20),
     scheduledDuration: 8,
@@ -17,7 +16,7 @@ export const sampleInterventions: Intervention[] = [
     status: 'scheduled',
     description: 'Réparation complète du moteur suite à une surchauffe.',
     notes: 'Vérifier le système de refroidissement.',
-    partsUsed: [{ id: 1, name: 'Bougie', quantity: 4 }]
+    partsUsed: [{ partId: 1, name: 'Bougie', quantity: 4 }]
   },
   {
     id: 2,
@@ -25,7 +24,6 @@ export const sampleInterventions: Intervention[] = [
     equipment: 'Moissonneuse-batteuse Claas',
     equipmentId: 456,
     location: 'Hangar principal',
-    coordinates: { lat: 48.8566, lng: 2.3522 },
     technician: 'Sophie Martin',
     date: new Date(2024, 5, 22),
     scheduledDuration: 4,
@@ -33,7 +31,7 @@ export const sampleInterventions: Intervention[] = [
     status: 'in-progress',
     description: 'Vérification et remplacement des filtres et huiles.',
     notes: 'Graisser tous les points de friction.',
-    partsUsed: [{ id: 2, name: 'Filtre à huile', quantity: 1 }]
+    partsUsed: [{ partId: 2, name: 'Filtre à huile', quantity: 1 }]
   },
   {
     id: 3,
@@ -41,7 +39,6 @@ export const sampleInterventions: Intervention[] = [
     equipment: 'Remorque agricole',
     equipmentId: 789,
     location: 'Atelier',
-    coordinates: { lat: 48.8566, lng: 2.3522 },
     technician: 'Pierre Leclerc',
     date: new Date(2024, 5, 25),
     scheduledDuration: 2,
@@ -49,7 +46,7 @@ export const sampleInterventions: Intervention[] = [
     status: 'completed',
     description: 'Remplacement des pneus usés par des neufs.',
     notes: 'Serrer les écrous de roue correctement.',
-    partsUsed: [{ id: 3, name: 'Pneu', quantity: 2 }],
+    partsUsed: [{ partId: 3, name: 'Pneu', quantity: 2 }],
     duration: 2
   },
   {
@@ -58,7 +55,6 @@ export const sampleInterventions: Intervention[] = [
     equipment: 'Tracteur New Holland',
     equipmentId: 101,
     location: 'Champ secondaire',
-    coordinates: { lat: 48.8566, lng: 2.3522 },
     technician: 'Jean Dupont',
     date: new Date(2024, 5, 28),
     scheduledDuration: 6,
@@ -66,7 +62,7 @@ export const sampleInterventions: Intervention[] = [
     status: 'scheduled',
     description: 'Diagnostic et réparation du système électrique.',
     notes: 'Vérifier le câblage et les fusibles.',
-    partsUsed: [{ id: 4, name: 'Fusible 10A', quantity: 5 }]
+    partsUsed: [{ partId: 4, name: 'Fusible 10A', quantity: 5 }]
   },
   {
     id: 5,
@@ -74,7 +70,6 @@ export const sampleInterventions: Intervention[] = [
     equipment: 'Ensileuse automotrice',
     equipmentId: 112,
     location: 'Hangar secondaire',
-    coordinates: { lat: 48.8566, lng: 2.3522 },
     technician: 'Sophie Martin',
     date: new Date(2024, 6, 1),
     scheduledDuration: 8,
@@ -82,86 +77,6 @@ export const sampleInterventions: Intervention[] = [
     status: 'scheduled',
     description: 'Révision complète du système hydraulique.',
     notes: 'Remplacer l\'huile hydraulique et vérifier les joints.',
-    partsUsed: [{ id: 5, name: 'Huile hydraulique', quantity: 20 }]
-  },
-  {
-    id: 6,
-    title: 'Contrôle des freins',
-    equipment: 'Tracteur John Deere',
-    equipmentId: 123,
-    location: 'Atelier',
-    coordinates: { lat: 48.8566, lng: 2.3522 },
-    technician: 'Pierre Leclerc',
-    date: new Date(2024, 6, 3),
-    scheduledDuration: 3,
-    priority: 'medium',
-    status: 'scheduled',
-    description: 'Vérification et réglage des freins.',
-    notes: 'Nettoyer les tambours de frein.',
-    partsUsed: [{ id: 6, name: 'Plaquettes de frein', quantity: 4 }]
-  },
-  {
-    id: 7,
-    title: 'Entretien de la climatisation',
-    equipment: 'Moissonneuse-batteuse Claas',
-    equipmentId: 456,
-    location: 'Hangar principal',
-    coordinates: { lat: 48.8566, lng: 2.3522 },
-    technician: 'Jean Dupont',
-    date: new Date(2024, 6, 5),
-    scheduledDuration: 4,
-    priority: 'low',
-    status: 'scheduled',
-    description: 'Recharge et entretien du système de climatisation.',
-    notes: 'Vérifier les fuites de réfrigérant.',
-    partsUsed: []
-  },
-  {
-    id: 8,
-    title: 'Réparation du système de direction',
-    equipment: 'Remorque agricole',
-    equipmentId: 789,
-    location: 'Champ principal',
-    coordinates: { lat: 48.8566, lng: 2.3522 },
-    technician: 'Sophie Martin',
-    date: new Date(2024, 6, 8),
-    scheduledDuration: 5,
-    priority: 'medium',
-    status: 'scheduled',
-    description: 'Réparation du système de direction assistée.',
-    notes: 'Vérifier la pompe de direction assistée.',
-    partsUsed: [{ id: 7, name: 'Liquide de direction assistée', quantity: 1 }]
-  },
-  {
-    id: 9,
-    title: 'Remplacement de la courroie',
-    equipment: 'Tracteur New Holland',
-    equipmentId: 101,
-    location: 'Atelier',
-    coordinates: { lat: 48.8566, lng: 2.3522 },
-    technician: 'Pierre Leclerc',
-    date: new Date(2024, 6, 10),
-    scheduledDuration: 2,
-    priority: 'low',
-    status: 'scheduled',
-    description: 'Remplacement de la courroie d\'entraînement.',
-    notes: 'Tendre la courroie correctement.',
-    partsUsed: [{ id: 8, name: 'Courroie', quantity: 1 }]
-  },
-  {
-    id: 10,
-    title: 'Inspection générale',
-    equipment: 'Ensileuse automotrice',
-    equipmentId: 112,
-    location: 'Hangar secondaire',
-    coordinates: { lat: 48.8566, lng: 2.3522 },
-    technician: 'Jean Dupont',
-    date: new Date(2024, 6, 12),
-    scheduledDuration: 7,
-    priority: 'medium',
-    status: 'scheduled',
-    description: 'Inspection générale de l\'équipement.',
-    notes: 'Vérifier tous les points de contrôle.',
-    partsUsed: []
+    partsUsed: [{ partId: 5, name: 'Huile hydraulique', quantity: 20 }]
   }
 ];

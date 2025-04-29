@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Intervention, InterventionFormValues } from '@/types/Intervention';
 
@@ -20,27 +21,17 @@ export const interventionService = {
       equipment: item.equipment,
       equipmentId: item.equipment_id,
       location: item.location,
-      coordinates: item.coordinates ? 
-        (typeof item.coordinates === 'object' && item.coordinates !== null ? 
-          { 
-            lat: typeof item.coordinates === 'object' && 'lat' in item.coordinates ? 
-              Number(item.coordinates.lat) || 0 : 0, 
-            lng: typeof item.coordinates === 'object' && 'lng' in item.coordinates ? 
-              Number(item.coordinates.lng) || 0 : 0 
-          } : 
-          { lat: 0, lng: 0 }
-        ) : { lat: 0, lng: 0 },
       status: (item.status as Intervention['status']) || 'scheduled',
       priority: (item.priority as Intervention['priority']) || 'medium',
       date: new Date(item.date),
       duration: item.duration || undefined,
-      scheduledDuration: item.scheduled_duration || undefined,
+      scheduledDuration: item.scheduled_duration || 0,
       technician: item.technician,
       description: item.description || '',
       partsUsed: item.parts_used ? 
         (Array.isArray(item.parts_used) ? 
           item.parts_used.map((p: any) => ({
-            id: p.id || 0,
+            partId: p.partId || 0,
             name: p.name || '',
             quantity: p.quantity || 0
           })) : []
@@ -70,24 +61,16 @@ export const interventionService = {
       equipment: data.equipment,
       equipmentId: data.equipment_id,
       location: data.location,
-      coordinates: data.coordinates && typeof data.coordinates === 'object' ? 
-        { 
-          lat: typeof data.coordinates === 'object' && 'lat' in data.coordinates ? 
-            Number(data.coordinates.lat) || 0 : 0, 
-          lng: typeof data.coordinates === 'object' && 'lng' in data.coordinates ? 
-            Number(data.coordinates.lng) || 0 : 0 
-        } : 
-        { lat: 0, lng: 0 },
       status: (data.status as Intervention['status']) || 'scheduled',
       priority: (data.priority as Intervention['priority']) || 'medium',
       date: new Date(data.date),
       duration: data.duration || undefined,
-      scheduledDuration: data.scheduled_duration || undefined,
+      scheduledDuration: data.scheduled_duration || 0,
       technician: data.technician,
       description: data.description || '',
       partsUsed: Array.isArray(data.parts_used) ? 
         data.parts_used.map((p: any) => ({
-          id: p.id || 0,
+          partId: p.partId || 0,
           name: p.name || '',
           quantity: p.quantity || 0
         })) : [],
@@ -109,10 +92,9 @@ export const interventionService = {
       equipment: intervention.equipment,
       equipment_id: intervention.equipmentId,
       location: intervention.location,
-      coordinates: { lat: 34.052235, lng: -118.243683 }, // Default coordinates
-      status: 'scheduled',
+      status: intervention.status || 'scheduled',
       priority: intervention.priority,
-      date: intervention.date.toISOString(),
+      date: intervention.date instanceof Date ? intervention.date.toISOString() : intervention.date,
       scheduled_duration: intervention.scheduledDuration,
       technician: intervention.technician,
       description: intervention.description,
@@ -138,24 +120,16 @@ export const interventionService = {
       equipment: data.equipment,
       equipmentId: data.equipment_id,
       location: data.location,
-      coordinates: data.coordinates && typeof data.coordinates === 'object' ? 
-        { 
-          lat: typeof data.coordinates === 'object' && 'lat' in data.coordinates ? 
-            Number(data.coordinates.lat) || 0 : 0, 
-          lng: typeof data.coordinates === 'object' && 'lng' in data.coordinates ? 
-            Number(data.coordinates.lng) || 0 : 0 
-        } : 
-        { lat: 0, lng: 0 },
-      status: (data.status as Intervention['status']) || 'scheduled',
-      priority: (data.priority as Intervention['priority']) || 'medium',
+      status: (data.status as Intervention['status']),
+      priority: (data.priority as Intervention['priority']),
       date: new Date(data.date),
       duration: data.duration || undefined,
-      scheduledDuration: data.scheduled_duration || undefined,
+      scheduledDuration: data.scheduled_duration || 0,
       technician: data.technician,
       description: data.description || '',
       partsUsed: Array.isArray(data.parts_used) ? 
         data.parts_used.map((p: any) => ({
-          id: p.id || 0,
+          partId: p.partId || 0,
           name: p.name || '',
           quantity: p.quantity || 0
         })) : [],
@@ -170,10 +144,9 @@ export const interventionService = {
       equipment: intervention.equipment,
       equipment_id: intervention.equipmentId,
       location: intervention.location,
-      coordinates: intervention.coordinates,
       status: intervention.status,
       priority: intervention.priority,
-      date: intervention.date.toISOString(),
+      date: intervention.date instanceof Date ? intervention.date.toISOString() : intervention.date,
       duration: intervention.duration,
       scheduled_duration: intervention.scheduledDuration,
       technician: intervention.technician,
@@ -201,24 +174,16 @@ export const interventionService = {
       equipment: data.equipment,
       equipmentId: data.equipment_id,
       location: data.location,
-      coordinates: data.coordinates && typeof data.coordinates === 'object' ? 
-        { 
-          lat: typeof data.coordinates === 'object' && 'lat' in data.coordinates ? 
-            Number(data.coordinates.lat) || 0 : 0, 
-          lng: typeof data.coordinates === 'object' && 'lng' in data.coordinates ? 
-            Number(data.coordinates.lng) || 0 : 0 
-        } : 
-        { lat: 0, lng: 0 },
-      status: (data.status as Intervention['status']) || 'scheduled',
-      priority: (data.priority as Intervention['priority']) || 'medium',
+      status: (data.status as Intervention['status']),
+      priority: (data.priority as Intervention['priority']),
       date: new Date(data.date),
       duration: data.duration || undefined,
-      scheduledDuration: data.scheduled_duration || undefined,
+      scheduledDuration: data.scheduled_duration || 0,
       technician: data.technician,
       description: data.description || '',
       partsUsed: Array.isArray(data.parts_used) ? 
         data.parts_used.map((p: any) => ({
-          id: p.id || 0,
+          partId: p.partId || 0,
           name: p.name || '',
           quantity: p.quantity || 0
         })) : [],

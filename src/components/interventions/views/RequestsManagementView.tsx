@@ -38,6 +38,7 @@ const RequestsManagementView: React.FC<RequestsManagementViewProps> = ({
         equipmentId: values.equipmentId,
         location: values.location,
         priority: values.priority,
+        status: 'scheduled' as 'scheduled', // Add default status
         date: values.date,
         scheduledDuration: values.scheduledDuration,
         technician: values.technician,
@@ -70,7 +71,7 @@ const RequestsManagementView: React.FC<RequestsManagementViewProps> = ({
 
   const handleRejectRequest = async (intervention: Intervention) => {
     try {
-      await interventionService.updateInterventionStatus(intervention.id, 'canceled');
+      await interventionService.updateInterventionStatus(intervention.id, 'cancelled');
       toast.success('Demande rejetée');
       refetch(); // Refresh interventions list
     } catch (error) {
