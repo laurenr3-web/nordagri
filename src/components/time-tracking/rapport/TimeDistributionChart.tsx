@@ -39,24 +39,24 @@ const normalizeAndGroupTaskTypes = (data: TaskTypeDistribution[]): TaskTypeDistr
     .sort((a, b) => b.hours - a.hours);
 };
 
-// Palette de couleurs à fort contraste pour les barres
+// Palette de couleurs avec contraste maximal pour les barres
 const COLORS = [
-  '#3B82F6', // blue-500 (bleu vif)
-  '#10B981', // emerald-500 (vert émeraude)
-  '#F59E0B', // amber-500 (ambre)
-  '#8B5CF6', // violet-500 (violet vif)
-  '#EC4899', // pink-500 (rose vif)
-  '#F97316', // orange-500 (orange vif)
-  '#06B6D4', // cyan-500 (cyan vif)
-  '#EF4444', // red-500 (rouge vif)
-  '#14B8A6', // teal-500 (sarcelle)
-  '#6366F1', // indigo-500 (indigo vif)
-  '#D946EF', // fuchsia-500 (fuchsia)
-  '#0EA5E9', // sky-500 (bleu ciel)
-  '#84CC16', // lime-500 (citron vert)
-  '#0891B2', // cyan-600 (cyan foncé)
+  '#2563EB', // blue-600 (bleu foncé)
+  '#059669', // emerald-600 (vert émeraude foncé)
+  '#DC2626', // red-600 (rouge vif)
+  '#7C3AED', // violet-600 (violet intense)
+  '#D97706', // amber-600 (ambre foncé)
+  '#DB2777', // pink-600 (rose foncé)
+  '#0284C7', // sky-600 (bleu ciel foncé)
   '#9333EA', // purple-600 (violet foncé)
-  '#4F46E5', // indigo-600 (indigo foncé)
+  '#EA580C', // orange-600 (orange foncé)
+  '#0D9488', // teal-600 (sarcelle foncé)
+  '#4338CA', // indigo-600 (indigo foncé)
+  '#C026D3', // fuchsia-600 (fuchsia foncé)
+  '#65A30D', // lime-600 (citron vert foncé)
+  '#0369A1', // sky-700 (bleu ciel très foncé)
+  '#6D28D9', // purple-700 (violet très foncé)
+  '#1D4ED8', // blue-700 (bleu très foncé)
 ];
 
 export const TimeDistributionChart: React.FC<TimeDistributionChartProps> = ({ 
