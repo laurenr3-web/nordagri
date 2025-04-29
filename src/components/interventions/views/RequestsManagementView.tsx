@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Intervention } from '@/types/Intervention';
+import { Intervention, InterventionFormValues } from '@/types/Intervention';
 import { useQuery } from '@tanstack/react-query';
 import { interventionService } from '@/services/supabase/interventionService';
 import { toast } from 'sonner';
@@ -32,7 +32,7 @@ const RequestsManagementView: React.FC<RequestsManagementViewProps> = ({
   const handleCreateRequest = async (values: any) => {
     try {
       // Ensure all required fields are present and properly typed
-      const interventionData = {
+      const interventionData: InterventionFormValues = {
         title: values.title,
         equipment: values.equipment,
         equipmentId: values.equipmentId,
@@ -42,7 +42,7 @@ const RequestsManagementView: React.FC<RequestsManagementViewProps> = ({
         scheduledDuration: values.scheduledDuration,
         technician: values.technician,
         description: values.description,
-        notes: values.notes,
+        notes: values.notes
       };
       
       await interventionService.addIntervention(interventionData);

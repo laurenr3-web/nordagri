@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Intervention, InterventionFormValues } from '@/types/Intervention';
 
@@ -21,8 +22,12 @@ export const interventionService = {
       equipmentId: item.equipment_id,
       location: item.location,
       coordinates: { 
-        lat: item.coordinates?.lat || 0, 
-        lng: item.coordinates?.lng || 0 
+        lat: typeof item.coordinates === 'object' && item.coordinates !== null && 'lat' in item.coordinates 
+          ? Number(item.coordinates.lat) || 0 
+          : 0, 
+        lng: typeof item.coordinates === 'object' && item.coordinates !== null && 'lng' in item.coordinates 
+          ? Number(item.coordinates.lng) || 0 
+          : 0 
       },
       status: (item.status as Intervention['status']) || 'scheduled',
       priority: (item.priority as Intervention['priority']) || 'medium',

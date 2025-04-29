@@ -75,14 +75,15 @@ const InterventionsDialogs: React.FC<InterventionsDialogsProps> = ({
       {/* Dialog pour voir les détails d'une intervention */}
       {selectedIntervention && selectedInterventionId && (
         <InterventionDetailsDialog
-          interventionId={selectedInterventionId}
-          open={interventionDetailsOpen}
-          onOpenChange={onCloseInterventionDetails}
+          intervention={selectedIntervention}
+          isOpen={interventionDetailsOpen}
+          onClose={onCloseInterventionDetails}
           onStartWork={() => {
             if (selectedIntervention) {
               onStartWork(selectedIntervention);
             }
           }}
+          handleInterventionUpdate={() => {}}
         />
       )}
     </>

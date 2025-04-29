@@ -17,7 +17,7 @@ export const sampleInterventions: Intervention[] = [
     status: 'scheduled',
     description: 'Réparation complète du moteur suite à une surchauffe.',
     notes: 'Vérifier le système de refroidissement.',
-    partsUsed: [{ id: 1, name: 'Bougie', quantity: 4 }]
+    partsUsed: [{ partId: 1, name: 'Bougie', quantity: 4 }]
   },
   {
     id: 2,
@@ -33,7 +33,7 @@ export const sampleInterventions: Intervention[] = [
     status: 'in-progress',
     description: 'Vérification et remplacement des filtres et huiles.',
     notes: 'Graisser tous les points de friction.',
-    partsUsed: [{ id: 2, name: 'Filtre à huile', quantity: 1 }]
+    partsUsed: [{ partId: 2, name: 'Filtre à huile', quantity: 1 }]
   },
   {
     id: 3,
@@ -49,7 +49,7 @@ export const sampleInterventions: Intervention[] = [
     status: 'completed',
     description: 'Remplacement des pneus usés par des neufs.',
     notes: 'Serrer les écrous de roue correctement.',
-    partsUsed: [{ id: 3, name: 'Pneu', quantity: 2 }],
+    partsUsed: [{ partId: 3, name: 'Pneu', quantity: 2 }],
     duration: 2
   },
   {
@@ -66,7 +66,7 @@ export const sampleInterventions: Intervention[] = [
     status: 'scheduled',
     description: 'Diagnostic et réparation du système électrique.',
     notes: 'Vérifier le câblage et les fusibles.',
-    partsUsed: [{ id: 4, name: 'Fusible 10A', quantity: 5 }]
+    partsUsed: [{ partId: 4, name: 'Fusible 10A', quantity: 5 }]
   },
   {
     id: 5,
@@ -82,7 +82,7 @@ export const sampleInterventions: Intervention[] = [
     status: 'scheduled',
     description: 'Révision complète du système hydraulique.',
     notes: 'Remplacer l\'huile hydraulique et vérifier les joints.',
-    partsUsed: [{ id: 5, name: 'Huile hydraulique', quantity: 20 }]
+    partsUsed: [{ partId: 5, name: 'Huile hydraulique', quantity: 20 }]
   },
   {
     id: 6,
@@ -98,7 +98,7 @@ export const sampleInterventions: Intervention[] = [
     status: 'scheduled',
     description: 'Vérification et réglage des freins.',
     notes: 'Nettoyer les tambours de frein.',
-    partsUsed: [{ id: 6, name: 'Plaquettes de frein', quantity: 4 }]
+    partsUsed: [{ partId: 6, name: 'Plaquettes de frein', quantity: 4 }]
   },
   {
     id: 7,
@@ -130,7 +130,7 @@ export const sampleInterventions: Intervention[] = [
     status: 'scheduled',
     description: 'Réparation du système de direction assistée.',
     notes: 'Vérifier la pompe de direction assistée.',
-    partsUsed: [{ id: 7, name: 'Liquide de direction assistée', quantity: 1 }]
+    partsUsed: [{ partId: 7, name: 'Liquide de direction assistée', quantity: 1 }]
   },
   {
     id: 9,
@@ -146,7 +146,7 @@ export const sampleInterventions: Intervention[] = [
     status: 'scheduled',
     description: 'Remplacement de la courroie d\'entraînement.',
     notes: 'Tendre la courroie correctement.',
-    partsUsed: [{ id: 8, name: 'Courroie', quantity: 1 }]
+    partsUsed: [{ partId: 8, name: 'Courroie', quantity: 1 }]
   },
   {
     id: 10,

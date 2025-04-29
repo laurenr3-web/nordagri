@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -130,6 +131,7 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
   };
 
   const handleDateChange = (date: Date) => {
+    setDate(date);
     if (intervention && date) {
       const updatedIntervention = {
         ...intervention,
@@ -235,7 +237,7 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
                 <Calendar
                   mode="single"
                   selected={date}
-                  onSelect={handleDateChange}
+                  onSelect={(value) => value && handleDateChange(value)}
                   disabled={(date) =>
                     date > new Date()
                   }
