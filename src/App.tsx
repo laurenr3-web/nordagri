@@ -1,27 +1,21 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from 'sonner';
 import { OfflineProvider } from '@/providers/OfflineProvider';
-import IndexPage from '@/components/index/IndexPage';
-import EquipmentPage from '@/components/equipment/EquipmentPage';
-import EquipmentDetailPage from '@/components/equipment/EquipmentDetailPage';
-import PartsPage from '@/components/parts/PartsPage';
-import PartDetailPage from '@/components/parts/PartDetailPage';
-import InterventionsPage from '@/components/interventions/InterventionsPage';
-import InterventionDetailPage from '@/components/interventions/InterventionDetailPage';
-import MaintenancePage from '@/components/maintenance/MaintenancePage';
-import MaintenanceDetailPage from '@/components/maintenance/MaintenanceDetailPage';
-import TimeTrackingPage from '@/components/time-tracking/TimeTrackingPage';
-import TimeTrackingDetailPage from '@/components/time-tracking/TimeTrackingDetailPage';
-import TeamPage from '@/components/team/TeamPage';
-import SettingsPage from '@/components/settings/SettingsPage';
-import NotFoundPage from '@/components/NotFoundPage';
 import AppLayout from '@/components/layout/AppLayout';
-import LoginPage from '@/components/auth/LoginPage';
-import RegisterPage from '@/components/auth/RegisterPage';
-import { AuthProvider } from '@/providers/AuthProvider';
-import { RequireAuth } from '@/components/auth/RequireAuth';
+import NotFound from '@/pages/NotFound';
+import Dashboard from '@/pages/Dashboard';
+import Equipment from '@/pages/Equipment';
+import EquipmentDetail from '@/pages/EquipmentDetail';
+import Parts from '@/pages/Parts';
+import Settings from '@/pages/Settings';
+import TimeTracking from '@/pages/TimeTracking';
+import TimeTrackingStatistics from '@/pages/TimeTrackingStatistics';
+import Auth from '@/pages/Auth';
+import Interventions from '@/pages/Interventions';
+import ScanRedirect from '@/pages/ScanRedirect';
 
 function App() {
   return (
@@ -31,29 +25,25 @@ function App() {
           <div className="min-h-screen bg-background flex flex-col">
             {/* Main content */}
             <Routes>
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/login" element={<Auth />} />
+              <Route path="/register" element={<Auth />} />
               
-              <Route path="/" element={<RequireAuth><AppLayout><IndexPage /></AppLayout></RequireAuth>} />
-              <Route path="/equipment" element={<RequireAuth><AppLayout><EquipmentPage /></AppLayout></RequireAuth>} />
-              <Route path="/equipment/:id" element={<RequireAuth><AppLayout><EquipmentDetailPage /></AppLayout></RequireAuth>} />
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/equipment" element={<Equipment />} />
+              <Route path="/equipment/:id" element={<EquipmentDetail />} />
               
-              <Route path="/parts" element={<RequireAuth><AppLayout><PartsPage /></AppLayout></RequireAuth>} />
-              <Route path="/parts/:id" element={<RequireAuth><AppLayout><PartDetailPage /></AppLayout></RequireAuth>} />
+              <Route path="/parts" element={<Parts />} />
               
-              <Route path="/interventions" element={<RequireAuth><AppLayout><InterventionsPage /></AppLayout></RequireAuth>} />
-              <Route path="/interventions/:id" element={<RequireAuth><AppLayout><InterventionDetailPage /></AppLayout></RequireAuth>} />
+              <Route path="/interventions" element={<Interventions />} />
               
-              <Route path="/maintenance" element={<RequireAuth><AppLayout><MaintenancePage /></AppLayout></RequireAuth>} />
-              <Route path="/maintenance/:id" element={<RequireAuth><AppLayout><MaintenanceDetailPage /></AppLayout></RequireAuth>} />
+              <Route path="/settings" element={<Settings />} />
               
-              <Route path="/time-tracking" element={<RequireAuth><AppLayout><TimeTrackingPage /></AppLayout></RequireAuth>} />
-              <Route path="/time-tracking/detail/:id" element={<RequireAuth><AppLayout><TimeTrackingDetailPage /></AppLayout></RequireAuth>} />
+              <Route path="/time-tracking" element={<TimeTracking />} />
+              <Route path="/time-tracking/statistics" element={<TimeTrackingStatistics />} />
               
-              <Route path="/team" element={<RequireAuth><AppLayout><TeamPage /></AppLayout></RequireAuth>} />
-              <Route path="/settings" element={<RequireAuth><AppLayout><SettingsPage /></AppLayout></RequireAuth>} />
+              <Route path="/scan/:id" element={<ScanRedirect />} />
               
-              <Route path="*" element={<AppLayout><NotFoundPage /></AppLayout>} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
             
             {/* Toaster for notifications */}

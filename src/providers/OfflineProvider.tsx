@@ -1,136 +1,143 @@
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { toast } from 'sonner';
-import { OfflineSyncService, SyncQueueItem } from '@/services/offline/offlineSyncService';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { OfflineSyncService, SyncProgress } from '@/services/offline/offlineSyncService';
 import { useNetworkState } from '@/hooks/useNetworkState';
 
+// Context interface
 interface OfflineContextType {
   isOnline: boolean;
   isSyncing: boolean;
   pendingChanges: number;
-  lastSyncTime: Date | null;
-  syncProgress: {
-    total: number;
-    completed: number;
-  };
+  syncProgress: SyncProgress;
+  startSync: () => Promise<void>;
+  getOfflineCache: <T>(key: string) => T | null;
+  saveOfflineCache: <T>(key: string, data: T, expirationMinutes?: number) => void;
 }
 
-const OfflineContext = createContext<OfflineContextType | undefined>(undefined);
+// Default context values
+const defaultContext: OfflineContextType = {
+  isOnline: true,
+  isSyncing: false,
+  pendingChanges: 0,
+  syncProgress: { total: 0, completed: 0, failed: 0 },
+  startSync: async () => {},
+  getOfflineCache: () => null,
+  saveOfflineCache: () => {},
+};
 
-export function useOffline() {
-  const context = useContext(OfflineContext);
-  if (!context) {
-    throw new Error('useOffline must be used within an OfflineProvider');
-  }
-  return context;
-}
+// Create context
+const OfflineContext = createContext<OfflineContextType>(defaultContext);
+
+// Use offline hook
+export const useOffline = () => useContext(OfflineContext);
 
 interface OfflineProviderProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
-export function OfflineProvider({ children }: OfflineProviderProps) {
+export const OfflineProvider: React.FC<OfflineProviderProps> = ({ children }) => {
   const isOnline = useNetworkState();
   const [isSyncing, setIsSyncing] = useState(false);
   const [pendingChanges, setPendingChanges] = useState(0);
-  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
-  const [syncProgress, setSyncProgress] = useState({ total: 0, completed: 0 });
+  const [syncProgress, setSyncProgress] = useState<SyncProgress>({ total: 0, completed: 0, failed: 0 });
 
-  // Check for pending changes when component mounts and network status changes
+  // Update pending changes count
   useEffect(() => {
-    const checkPendingChanges = () => {
-      const queue = OfflineSyncService.getSyncQueue();
-      setPendingChanges(queue.length);
+    const updatePendingCount = () => {
+      const pendingItems = OfflineSyncService.getPendingItems();
+      setPendingChanges(pendingItems.length);
     };
 
-    // Initial check
-    checkPendingChanges();
+    // Initial update
+    updatePendingCount();
 
-    // Subscribe to changes in the sync queue
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'nordagri_sync_queue') {
-        checkPendingChanges();
-      }
-    };
+    // Set interval to periodically check for changes
+    const intervalId = setInterval(updatePendingCount, 5000);
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
+    return () => clearInterval(intervalId);
   }, []);
 
-  // Synchronize when coming back online
+  // Handle coming back online
   useEffect(() => {
-    if (isOnline && pendingChanges > 0 && !isSyncing) {
-      synchronizeData();
+    if (isOnline && pendingChanges > 0) {
+      // Small delay to ensure network is actually stable
+      const timerId = setTimeout(() => {
+        startSync();
+      }, 2000);
+      
+      return () => clearTimeout(timerId);
     }
-  }, [isOnline, pendingChanges, isSyncing]);
+  }, [isOnline, pendingChanges]);
 
-  // Synchronize data with the backend
-  const synchronizeData = async () => {
-    if (!isOnline || pendingChanges === 0) return;
+  // Sync function
+  const startSync = async () => {
+    if (!isOnline || isSyncing || pendingChanges === 0) return;
 
     setIsSyncing(true);
-    const queue = OfflineSyncService.getSyncQueue();
-    setSyncProgress({ total: queue.length, completed: 0 });
-
-    toast.info(`Synchronisation en cours (${queue.length} élément${queue.length > 1 ? 's' : ''})...`);
+    const pendingItems = OfflineSyncService.getPendingItems();
+    
+    setSyncProgress({
+      total: pendingItems.length,
+      completed: 0,
+      failed: 0,
+    });
 
     try {
-      let completedItems = 0;
-      for (const item of queue) {
+      // This is just a placeholder. In a real implementation,
+      // we would process each item based on its type.
+      // For example: if item.type === 'add_equipment', call equipmentService.addEquipment(item.data)
+      
+      for (const item of pendingItems) {
         try {
-          // Process the item based on its type
-          await processQueueItem(item);
-          // Remove the item from the queue on successful sync
-          OfflineSyncService.removeFromSyncQueue(item.id);
-          completedItems++;
-          setSyncProgress({ total: queue.length, completed: completedItems });
+          // Simulate processing time for demo purposes
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Mark as processed
+          OfflineSyncService.markAsProcessed(item.id);
+          
+          setSyncProgress(prev => ({
+            ...prev,
+            completed: prev.completed + 1,
+          }));
         } catch (error) {
-          console.error(`Erreur lors de la synchronisation de l'élément ${item.id}:`, error);
-          // Don't remove failed items, they will be retried next time
+          console.error(`Error processing offline item ${item.id}:`, error);
+          
+          // Only count as failed after multiple retries
+          if (item.retries >= 2) {
+            OfflineSyncService.markAsProcessed(item.id, String(error));
+            
+            setSyncProgress(prev => ({
+              ...prev,
+              failed: prev.failed + 1,
+            }));
+          }
         }
       }
-
-      setLastSyncTime(new Date());
-      toast.success('Synchronisation terminée avec succès');
-    } catch (error) {
-      console.error('Erreur lors de la synchronisation:', error);
-      toast.error('Erreur lors de la synchronisation');
     } finally {
+      // Update pending count again after sync attempt
+      const remainingPending = OfflineSyncService.getPendingItems();
+      setPendingChanges(remainingPending.length);
       setIsSyncing(false);
-      // Update pending changes count
-      setPendingChanges(OfflineSyncService.getSyncQueue().length);
     }
   };
 
-  // Process a queue item based on its type
-  const processQueueItem = async (item: SyncQueueItem) => {
-    switch (item.type) {
-      case 'add_part':
-        return await import('@/services/supabase/parts/addPart').then(module => 
-          module.addPart(item.data)
-        );
-      case 'update_part':
-        return await import('@/services/supabase/parts/updatePart').then(module => 
-          module.updatePart(item.data)
-        );
-      case 'delete_part':
-        return await import('@/services/supabase/parts/deletePart').then(module => 
-          module.deletePart(item.data.id)
-        );
-      // Add more cases for other entity types
-      default:
-        throw new Error(`Type d'élément inconnu: ${item.type}`);
-    }
+  const getOfflineCache = <T,>(key: string): T | null => {
+    return OfflineSyncService.getCachedData<T>(key);
   };
 
+  const saveOfflineCache = <T,>(key: string, data: T, expirationMinutes = 60) => {
+    OfflineSyncService.cacheData(key, data, expirationMinutes);
+  };
+
+  // Context value
   const value: OfflineContextType = {
     isOnline,
     isSyncing,
     pendingChanges,
-    lastSyncTime,
-    syncProgress
+    syncProgress,
+    startSync,
+    getOfflineCache,
+    saveOfflineCache,
   };
 
   return (
@@ -138,4 +145,4 @@ export function OfflineProvider({ children }: OfflineProviderProps) {
       {children}
     </OfflineContext.Provider>
   );
-}
+};

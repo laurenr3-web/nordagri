@@ -3,6 +3,7 @@ import { useQueryWithOfflineSupport } from '../useQueryWithOfflineSupport';
 import { useMutationWithOfflineSupport } from '../useMutationWithOfflineSupport';
 import { Equipment } from '@/types/Equipment';
 import { supabase } from '@/integrations/supabase/client';
+import { OfflineSyncService } from '@/services/offline/offlineSyncService';
 
 export function useEquipmentsWithOffline() {
   // Get all equipment with offline support
@@ -41,7 +42,7 @@ export function useEquipmentsWithOffline() {
       return data;
     },
     offlineOptions: {
-      type: 'add_part', // Reusing the part type for now as we'd need to extend the types
+      type: 'add_equipment',
       onOfflineSuccess: () => {
         // Optionally update local UI immediately
         refetch();
