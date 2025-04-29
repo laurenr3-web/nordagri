@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { useTasksManager } from '@/hooks/maintenance/useTasksManager';
 import { useMaintenanceRealtime } from '@/hooks/maintenance/useMaintenanceRealtime';
-import { MaintenanceTask, MaintenanceFormValues } from '@/hooks/maintenance/maintenanceSlice';
+import { MaintenanceTask, MaintenanceFormValues, MaintenanceStatus } from '@/hooks/maintenance/maintenanceSlice';
 import NewTaskDialog from '@/components/maintenance/NewTaskDialog';
 import MaintenanceHeader from '@/components/maintenance/MaintenanceHeader';
 import MaintenanceContent from '@/components/maintenance/MaintenanceContent';
