@@ -1,111 +1,67 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/components/theme-provider';
-import { Toaster } from '@/components/ui/sonner';
-import { RealtimeCacheProvider } from '@/providers/RealtimeCacheProvider';
+import { Toaster } from 'sonner';
+import { OfflineProvider } from '@/providers/OfflineProvider';
+import IndexPage from '@/components/index/IndexPage';
+import EquipmentPage from '@/components/equipment/EquipmentPage';
+import EquipmentDetailPage from '@/components/equipment/EquipmentDetailPage';
+import PartsPage from '@/components/parts/PartsPage';
+import PartDetailPage from '@/components/parts/PartDetailPage';
+import InterventionsPage from '@/components/interventions/InterventionsPage';
+import InterventionDetailPage from '@/components/interventions/InterventionDetailPage';
+import MaintenancePage from '@/components/maintenance/MaintenancePage';
+import MaintenanceDetailPage from '@/components/maintenance/MaintenanceDetailPage';
+import TimeTrackingPage from '@/components/time-tracking/TimeTrackingPage';
+import TimeTrackingDetailPage from '@/components/time-tracking/TimeTrackingDetailPage';
+import TeamPage from '@/components/team/TeamPage';
+import SettingsPage from '@/components/settings/SettingsPage';
+import NotFoundPage from '@/components/NotFoundPage';
+import AppLayout from '@/components/layout/AppLayout';
+import LoginPage from '@/components/auth/LoginPage';
+import RegisterPage from '@/components/auth/RegisterPage';
 import { AuthProvider } from '@/providers/AuthProvider';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import MobileMenu from '@/components/layout/MobileMenu';
-import '@/i18n'; // i18n setup
-import { I18nextProvider } from "react-i18next";
-import i18n from "@/i18n";
-
-// Pages
-import Index from '@/pages/Index';
-import Equipment from '@/pages/Equipment';
-import EquipmentDetail from '@/pages/EquipmentDetail';
-import Maintenance from '@/pages/Maintenance';
-import Parts from '@/pages/Parts';
-import Interventions from '@/pages/Interventions';
-import Dashboard from '@/pages/Dashboard';
-import Settings from '@/pages/Settings';
-import NotFound from '@/pages/NotFound';
-import Auth from '@/pages/Auth';
-import ScanRedirect from '@/pages/ScanRedirect';
-import TimeTracking from '@/pages/TimeTracking';
-import TimeEntryDetail from '@/pages/TimeEntryDetail';
-import TimeTrackingStatistics from '@/pages/TimeTrackingStatistics';
-import Footer from "@/components/layout/Footer";
-import LegalPage from "@/pages/Legal";
-import Pricing from "@/pages/Pricing";
-
-const queryClient = new QueryClient();
+import { RequireAuth } from '@/components/auth/RequireAuth';
 
 function App() {
   return (
-    <I18nextProvider i18n={i18n}>
-      <ThemeProvider defaultTheme="light" storageKey="agri-erp-theme">
-        <QueryClientProvider client={queryClient}>
-          <RealtimeCacheProvider>
-            <Router>
-              <AuthProvider>
-                <Routes>
-                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/dashboard" element={
-                    <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/equipment" element={
-                    <ProtectedRoute>
-                      <Equipment />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/equipment/:id" element={
-                    <ProtectedRoute>
-                      <EquipmentDetail />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/maintenance" element={
-                    <ProtectedRoute>
-                      <Maintenance />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/parts" element={
-                    <ProtectedRoute>
-                      <Parts />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/interventions" element={
-                    <ProtectedRoute>
-                      <Interventions />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/settings" element={
-                    <ProtectedRoute>
-                      <Settings />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/time-tracking" element={
-                    <ProtectedRoute>
-                      <TimeTracking />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/time-tracking/detail/:id" element={
-                    <ProtectedRoute>
-                      <TimeEntryDetail />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/time-tracking/statistics" element={
-                    <ProtectedRoute>
-                      <TimeTrackingStatistics />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/scan/:id" element={<ScanRedirect />} />
-                  <Route path="*" element={<NotFound />} />
-                  <Route path="/legal" element={<LegalPage />} />
-                  <Route path="/pricing" element={<Pricing />} />
-                </Routes>
-                <MobileMenu />
-                <Toaster />
-                <Footer />
-              </AuthProvider>
-            </Router>
-          </RealtimeCacheProvider>
-        </QueryClientProvider>
-      </ThemeProvider>
-    </I18nextProvider>
+    <ThemeProvider defaultTheme="system" storageKey="nordagri-theme">
+      <OfflineProvider>
+        <Router>
+          <div className="min-h-screen bg-background flex flex-col">
+            {/* Main content */}
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              
+              <Route path="/" element={<RequireAuth><AppLayout><IndexPage /></AppLayout></RequireAuth>} />
+              <Route path="/equipment" element={<RequireAuth><AppLayout><EquipmentPage /></AppLayout></RequireAuth>} />
+              <Route path="/equipment/:id" element={<RequireAuth><AppLayout><EquipmentDetailPage /></AppLayout></RequireAuth>} />
+              
+              <Route path="/parts" element={<RequireAuth><AppLayout><PartsPage /></AppLayout></RequireAuth>} />
+              <Route path="/parts/:id" element={<RequireAuth><AppLayout><PartDetailPage /></AppLayout></RequireAuth>} />
+              
+              <Route path="/interventions" element={<RequireAuth><AppLayout><InterventionsPage /></AppLayout></RequireAuth>} />
+              <Route path="/interventions/:id" element={<RequireAuth><AppLayout><InterventionDetailPage /></AppLayout></RequireAuth>} />
+              
+              <Route path="/maintenance" element={<RequireAuth><AppLayout><MaintenancePage /></AppLayout></RequireAuth>} />
+              <Route path="/maintenance/:id" element={<RequireAuth><AppLayout><MaintenanceDetailPage /></AppLayout></RequireAuth>} />
+              
+              <Route path="/time-tracking" element={<RequireAuth><AppLayout><TimeTrackingPage /></AppLayout></RequireAuth>} />
+              <Route path="/time-tracking/detail/:id" element={<RequireAuth><AppLayout><TimeTrackingDetailPage /></AppLayout></RequireAuth>} />
+              
+              <Route path="/team" element={<RequireAuth><AppLayout><TeamPage /></AppLayout></RequireAuth>} />
+              <Route path="/settings" element={<RequireAuth><AppLayout><SettingsPage /></AppLayout></RequireAuth>} />
+              
+              <Route path="*" element={<AppLayout><NotFoundPage /></AppLayout>} />
+            </Routes>
+            
+            {/* Toaster for notifications */}
+            <Toaster position="top-right" expand={false} richColors />
+          </div>
+        </Router>
+      </OfflineProvider>
+    </ThemeProvider>
   );
 }
 
