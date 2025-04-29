@@ -1,295 +1,321 @@
-
-import React from 'react';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
+import React, { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
-  DialogClose
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { Clock, CheckCircle2, X, MapPin, User, CalendarCheck, Wrench } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { cn } from "@/components/interventions/utils/interventionUtils";
+import { format } from 'date-fns';
+import { CalendarIcon, CheckCircle2, Clock, X } from 'lucide-react';
 import { Intervention } from '@/types/Intervention';
-import { useInterventionDetail } from '@/hooks/interventions/useInterventionDetail';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
 
 interface InterventionDetailsDialogProps {
-  interventionId: number | string;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onStartWork?: () => void;
+  isOpen: boolean;
+  onClose: () => void;
+  intervention: Intervention | undefined;
+  handleInterventionUpdate: (intervention: Intervention) => void;
+  onStartWork: (intervention: Intervention) => void;
 }
 
 const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
-  interventionId,
-  open,
-  onOpenChange,
+  isOpen,
+  onClose,
+  intervention,
+  handleInterventionUpdate,
   onStartWork
 }) => {
-  const { toast } = useToast();
+  const [title, setTitle] = useState('');
+  const [equipment, setEquipment] = useState('');
+  const [location, setLocation] = useState('');
+  const [technician, setTechnician] = useState('');
+  const [description, setDescription] = useState('');
+  const [notes, setNotes] = useState('');
+  const [date, setDate] = useState<Date | undefined>(undefined);
+  const [priority, setPriority] = useState<Intervention['priority']>('medium');
+  const [status, setStatus] = useState<Intervention['status']>('scheduled');
   
-  // Use the hook to fetch intervention details
-  const {
-    intervention,
-    loading,
-    error,
-    handleInterventionUpdate
-  } = useInterventionDetail(interventionId);
-  
-  if (loading) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[600px]">
-          <div className="text-center p-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
-            <p className="mt-4 text-muted-foreground">Chargement des détails de l'intervention...</p>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-  
-  if (error || !intervention) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Erreur</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <p className="text-red-500">Impossible de charger les détails de l'intervention.</p>
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Fermer</Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  // Helper function to format date
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('fr-FR', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-  
-  // Helper function for status badge
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'scheduled':
-        return (
-          <Badge variant="outline" className="bg-secondary flex items-center gap-1 text-muted-foreground">
-            <CalendarCheck size={12} />
-            <span>Planifiée</span>
-          </Badge>
-        );
-      case 'in-progress':
-        return (
-          <Badge className="bg-harvest-100 text-harvest-800 flex items-center gap-1">
-            <Clock size={12} />
-            <span>En cours</span>
-          </Badge>
-        );
-      case 'completed':
-        return (
-          <Badge className="bg-agri-100 text-agri-800 flex items-center gap-1">
-            <CheckCircle2 size={12} />
-            <span>Terminée</span>
-          </Badge>
-        );
-      case 'canceled':
-        return (
-          <Badge variant="outline" className="bg-red-100 text-red-800 flex items-center gap-1">
-            <X size={12} />
-            <span>Annulée</span>
-          </Badge>
-        );
-      default:
-        return (
-          <Badge variant="outline" className="bg-secondary text-muted-foreground">
-            {status}
-          </Badge>
-        );
+  useEffect(() => {
+    if (intervention) {
+      setTitle(intervention.title);
+      setEquipment(intervention.equipment);
+      setLocation(intervention.location);
+      setTechnician(intervention.technician);
+      setDescription(intervention.description);
+      setNotes(intervention.notes || '');
+      setDate(intervention.date ? new Date(intervention.date) : undefined);
+      setPriority(intervention.priority);
+      setStatus(intervention.status);
     }
-  };
+  }, [intervention]);
   
-  // Helper function for priority badge
-  const getPriorityBadge = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return (
-          <Badge className="bg-red-100 text-red-800">Élevée</Badge>
-        );
-      case 'medium':
-        return (
-          <Badge className="bg-harvest-100 text-harvest-800">Moyenne</Badge>
-        );
-      case 'low':
-        return (
-          <Badge className="bg-agri-100 text-agri-800">Basse</Badge>
-        );
-      default:
-        return (
-          <Badge variant="outline">{priority}</Badge>
-        );
-    }
-  };
-
-  const handleStatusChange = (status: 'scheduled' | 'in-progress' | 'completed' | 'canceled') => {
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value);
     if (intervention) {
       const updatedIntervention = {
         ...intervention,
-        status
+        title: e.target.value
+      };
+      handleInterventionUpdate(updatedIntervention);
+    }
+  };
+  
+  const handleEquipmentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEquipment(e.target.value);
+    if (intervention) {
+      const updatedIntervention = {
+        ...intervention,
+        equipment: e.target.value
+      };
+      handleInterventionUpdate(updatedIntervention);
+    }
+  };
+  
+  const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocation(e.target.value);
+    if (intervention) {
+      const updatedIntervention = {
+        ...intervention,
+        location: e.target.value
+      };
+      handleInterventionUpdate(updatedIntervention);
+    }
+  };
+  
+  const handleTechnicianChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTechnician(e.target.value);
+    if (intervention) {
+      const updatedIntervention = {
+        ...intervention,
+        technician: e.target.value
+      };
+      handleInterventionUpdate(updatedIntervention);
+    }
+  };
+  
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setDescription(e.target.value);
+    if (intervention) {
+      const updatedIntervention = {
+        ...intervention,
+        description: e.target.value
+      };
+      handleInterventionUpdate(updatedIntervention);
+    }
+  };
+  
+  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setNotes(e.target.value);
+    if (intervention) {
+      const updatedIntervention = {
+        ...intervention,
+        notes: e.target.value
       };
       handleInterventionUpdate(updatedIntervention);
     }
   };
 
+  const handleDateChange = (date: Date) => {
+    if (intervention && date) {
+      const updatedIntervention = {
+        ...intervention,
+        date: date // It will be properly converted when sent to the API
+      };
+      handleInterventionUpdate(updatedIntervention);
+    }
+  }
+  
+  const handlePriorityChange = (value: Intervention['priority']) => {
+    setPriority(value);
+    if (intervention) {
+      const updatedIntervention = {
+        ...intervention,
+        priority: value
+      };
+      handleInterventionUpdate(updatedIntervention);
+    }
+  };
+  
+  const handleStatusChange = (value: Intervention['status']) => {
+    setStatus(value);
+    if (intervention) {
+      const updatedIntervention = {
+        ...intervention,
+        status: value
+      };
+      handleInterventionUpdate(updatedIntervention);
+    }
+  };
+  
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="text-xl">{intervention.title}</DialogTitle>
+          <DialogTitle>Détails de l'intervention</DialogTitle>
+          <DialogDescription>
+            Mettre à jour les informations de l'intervention.
+          </DialogDescription>
         </DialogHeader>
         
-        <div className="py-4">
-          <div className="flex flex-wrap justify-between items-start gap-2 mb-4">
-            <div className="flex flex-wrap gap-2">
-              {getStatusBadge(intervention.status)}
-              {getPriorityBadge(intervention.priority)}
-            </div>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="title" className="text-right">
+              Titre
+            </Label>
+            <Input type="text" id="title" value={title} onChange={handleTitleChange} className="col-span-3" />
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-            <div className="flex gap-2 items-start">
-              <Wrench className="h-5 w-5 text-muted-foreground mt-0.5" />
-              <div>
-                <p className="text-sm text-muted-foreground">Équipement</p>
-                <p className="font-medium">{intervention.equipment} (ID: {intervention.equipmentId})</p>
-              </div>
-            </div>
-            
-            <div className="flex gap-2 items-start">
-              <User className="h-5 w-5 text-muted-foreground mt-0.5" />
-              <div>
-                <p className="text-sm text-muted-foreground">Technicien</p>
-                <p className="font-medium">{intervention.technician}</p>
-              </div>
-            </div>
-            
-            <div className="flex gap-2 items-start">
-              <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
-              <div>
-                <p className="text-sm text-muted-foreground">Localisation</p>
-                <p className="font-medium">{intervention.location}</p>
-              </div>
-            </div>
-            
-            <div className="flex gap-2 items-start">
-              <CalendarCheck className="h-5 w-5 text-muted-foreground mt-0.5" />
-              <div>
-                <p className="text-sm text-muted-foreground">Date</p>
-                <p className="font-medium">{formatDate(intervention.date)}</p>
-              </div>
-            </div>
-            
-            <div className="flex gap-2 items-start">
-              <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
-              <div>
-                <p className="text-sm text-muted-foreground">Durée</p>
-                <p className="font-medium">
-                  {intervention.status === 'completed' && intervention.duration ? 
-                    `${intervention.duration} hrs (Réelle)` : 
-                    `${intervention.scheduledDuration} hrs (Planifiée)`
-                  }
-                </p>
-              </div>
-            </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="equipment" className="text-right">
+              Équipement
+            </Label>
+            <Input type="text" id="equipment" value={equipment} onChange={handleEquipmentChange} className="col-span-3" />
           </div>
           
-          <div className="mb-4">
-            <p className="text-sm text-muted-foreground mb-1">Description</p>
-            <p className="bg-secondary/50 p-3 rounded-md">{intervention.description}</p>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="location" className="text-right">
+              Lieu
+            </Label>
+            <Input type="text" id="location" value={location} onChange={handleLocationChange} className="col-span-3" />
           </div>
           
-          {intervention.partsUsed && intervention.partsUsed.length > 0 && (
-            <div className="mb-4">
-              <p className="text-sm text-muted-foreground mb-1">Pièces utilisées</p>
-              <div className="bg-secondary/50 p-3 rounded-md">
-                {intervention.partsUsed.map((part) => (
-                  <div key={part.id} className="flex justify-between text-sm mb-1 last:mb-0">
-                    <span>{part.name}</span>
-                    <span className="font-medium">Qté: {part.quantity}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="technician" className="text-right">
+              Technicien
+            </Label>
+            <Input type="text" id="technician" value={technician} onChange={handleTechnicianChange} className="col-span-3" />
+          </div>
           
-          {intervention.notes && (
-            <div className="mb-4">
-              <p className="text-sm text-muted-foreground mb-1">Notes</p>
-              <p className="bg-secondary/50 p-3 rounded-md">{intervention.notes}</p>
-            </div>
-          )}
+          <div className="grid grid-cols-4 items-start gap-4">
+            <Label htmlFor="description" className="text-right mt-2">
+              Description
+            </Label>
+            <Textarea id="description" value={description} onChange={handleDescriptionChange} className="col-span-3" />
+          </div>
           
-          {/* Status controls */}
-          {intervention.status !== 'completed' && intervention.status !== 'canceled' && (
-            <div className="grid grid-cols-1 mt-6">
-              <div>
-                <p className="text-sm text-muted-foreground mb-2">Mettre à jour le statut</p>
-                <div className="flex flex-wrap gap-2">
-                  {intervention.status !== 'in-progress' && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="gap-1"
-                      onClick={() => {
-                        handleStatusChange('in-progress');
-                        if (onStartWork) onStartWork();
-                      }}
-                    >
-                      <Clock size={14} />
-                      <span>Démarrer</span>
-                    </Button>
+          <div className="grid grid-cols-4 items-start gap-4">
+            <Label htmlFor="notes" className="text-right mt-2">
+              Notes
+            </Label>
+            <Textarea id="notes" value={notes} onChange={handleNotesChange} className="col-span-3" />
+          </div>
+          
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="date" className="text-right">
+              Date
+            </Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "col-span-3 justify-start text-left font-normal",
+                    !date && "text-muted-foreground"
                   )}
-                  
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="gap-1"
-                    onClick={() => handleStatusChange('completed')}
-                  >
-                    <CheckCircle2 size={14} />
-                    <span>Marquer comme terminée</span>
-                  </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="gap-1"
-                    onClick={() => handleStatusChange('canceled')}
-                  >
-                    <X size={14} />
-                    <span>Annuler</span>
-                  </Button>
-                </div>
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date ? format(date, "PPP") : <span>Choisir une date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={handleDateChange}
+                  disabled={(date) =>
+                    date > new Date()
+                  }
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="priority" className="text-right">
+              Priorité
+            </Label>
+            <Select value={priority} onValueChange={handlePriorityChange}>
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Priorité" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="high">Haute</SelectItem>
+                <SelectItem value="medium">Moyenne</SelectItem>
+                <SelectItem value="low">Basse</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="status" className="text-right">
+              Statut
+            </Label>
+            <Select value={status} onValueChange={handleStatusChange}>
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Statut" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="scheduled">Planifié</SelectItem>
+                <SelectItem value="in-progress">En cours</SelectItem>
+                <SelectItem value="completed">Terminé</SelectItem>
+                <SelectItem value="canceled">Annulé</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {intervention && intervention.partsUsed && intervention.partsUsed.length > 0 && (
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">Pièces utilisées</Label>
+              <div className="col-span-3">
+                <ul className="list-none pl-0">
+                  {intervention.partsUsed.map((part) => (
+                    <li key={part.partId} className="flex items-center justify-between border-b py-2 text-sm">
+                      <span>{part.name}</span>
+                      <span>{part.quantity}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           )}
         </div>
         
         <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline">Fermer</Button>
-          </DialogClose>
+          <Button type="button" variant="secondary" onClick={onClose}>
+            Fermer
+          </Button>
+          {intervention && intervention.status === 'scheduled' && (
+            <Button type="button" onClick={() => {
+              if (intervention) {
+                onStartWork(intervention);
+                onClose();
+              } else {
+                toast.error("Impossible de démarrer l'intervention");
+              }
+            }}>
+              Démarrer
+            </Button>
+          )}
+          {intervention && intervention.status === 'in-progress' && (
+            <Button type="button" variant="outline">
+              Terminer
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -6,7 +6,7 @@ import { useNetworkState } from './useNetworkState';
 export function useQueryWithOfflineSupport<TQueryFnData = unknown, TError = unknown, TData = TQueryFnData>(
   queryKey: any[],
   queryFn: () => Promise<TQueryFnData>,
-  options?: UseQueryOptions<TQueryFnData, TError, TData>,
+  options?: Omit<UseQueryOptions<TQueryFnData, TError, TData, any[]>, 'queryKey' | 'queryFn'>,
   cacheKey?: string
 ): UseQueryResult<TData, TError> & { isOfflineData: boolean } {
   const isOnline = useNetworkState();
@@ -14,15 +14,9 @@ export function useQueryWithOfflineSupport<TQueryFnData = unknown, TError = unkn
   const cacheKeyToUse = cacheKey || `offline_cache_${queryKey.join('_')}`;
   
   // Initialize with merged options
-  const queryOptions: UseQueryOptions<TQueryFnData, TError, TData> = {
-    ...options,
-    enabled: options?.enabled !== false && (isOnline || options?.staleTime === Infinity),
-    staleTime: isOnline ? options?.staleTime : Infinity,
-  };
-  
-  const result = useQuery<TQueryFnData, TError, TData>(
+  const queryOptions: UseQueryOptions<TQueryFnData, TError, TData, any[]> = {
     queryKey,
-    async () => {
+    queryFn: async () => {
       try {
         // If online, execute the query and cache the result
         if (isOnline) {
@@ -44,8 +38,10 @@ export function useQueryWithOfflineSupport<TQueryFnData = unknown, TError = unkn
         throw error;
       }
     },
-    queryOptions
-  );
+    ...options,
+    enabled: options?.enabled !== false && (isOnline || options?.staleTime === Infinity),
+    staleTime: isOnline ? options?.staleTime : Infinity,
+  };
   
   // Load cached data when offline
   useEffect(() => {
@@ -57,6 +53,8 @@ export function useQueryWithOfflineSupport<TQueryFnData = unknown, TError = unkn
       }
     }
   }, [isOnline, cacheKeyToUse, options?.enabled]);
+
+  const result = useQuery<TQueryFnData, TError, TData>(queryOptions);
 
   return {
     ...result,

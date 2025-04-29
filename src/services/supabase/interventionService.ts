@@ -20,16 +20,10 @@ export const interventionService = {
       equipment: item.equipment,
       equipmentId: item.equipment_id,
       location: item.location,
-      coordinates: item.coordinates ? 
-        (typeof item.coordinates === 'object' && item.coordinates !== null ? 
-          { 
-            lat: typeof item.coordinates === 'object' && 'lat' in item.coordinates ? 
-              Number(item.coordinates.lat) || 0 : 0, 
-            lng: typeof item.coordinates === 'object' && 'lng' in item.coordinates ? 
-              Number(item.coordinates.lng) || 0 : 0 
-          } : 
-          { lat: 0, lng: 0 }
-        ) : { lat: 0, lng: 0 },
+      coordinates: { 
+        lat: item.coordinates?.lat || 0, 
+        lng: item.coordinates?.lng || 0 
+      },
       status: (item.status as Intervention['status']) || 'scheduled',
       priority: (item.priority as Intervention['priority']) || 'medium',
       date: new Date(item.date),
@@ -173,7 +167,7 @@ export const interventionService = {
       coordinates: intervention.coordinates,
       status: intervention.status,
       priority: intervention.priority,
-      date: intervention.date.toISOString(),
+      date: typeof intervention.date === 'string' ? intervention.date : intervention.date.toISOString(),
       duration: intervention.duration,
       scheduled_duration: intervention.scheduledDuration,
       technician: intervention.technician,

@@ -1,3 +1,4 @@
+
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -17,6 +18,20 @@ export function getStatusBadgeClass(status: string): string {
       return 'bg-red-50 text-red-700 dark:bg-red-700 dark:text-red-50';
     default:
       return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-100';
+  }
+}
+
+// Add the missing getPriorityBadgeClass function
+export function getPriorityBadgeClass(priority: string): string {
+  switch (priority) {
+    case 'high':
+      return 'bg-red-50 text-red-700 border-red-300 dark:bg-red-900 dark:text-red-50';
+    case 'medium':
+      return 'bg-orange-50 text-orange-700 border-orange-300 dark:bg-orange-900 dark:text-orange-50';
+    case 'low':
+      return 'bg-green-50 text-green-700 border-green-300 dark:bg-green-900 dark:text-green-50';
+    default:
+      return 'bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-100';
   }
 }
 
