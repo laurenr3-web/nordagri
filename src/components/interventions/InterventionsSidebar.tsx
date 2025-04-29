@@ -1,249 +1,128 @@
-
-import React from 'react';
-import { BlurContainer } from '@/components/ui/blur-container';
-import { Wrench, Clock, CheckCircle2, AlertTriangle, Plus, BarChart3, History } from 'lucide-react';
-import { Intervention } from '@/types/Intervention';
-import { formatDate } from './utils/interventionUtils';
+import React, { useState, useEffect } from 'react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import { Calendar } from "lucide-react"
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { formatDate } from './utils/interventionUtils';
+import { Intervention } from '@/types/Intervention';
 
 interface InterventionsSidebarProps {
   interventions: Intervention[];
-  onViewDetails: (intervention: Intervention) => void;
-  searchQuery?: string;
-  selectedPriority?: string | null;
-  onSearchChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onPriorityChange?: (priority: string | null) => void;
-  onClearSearch?: () => void;
+  selectedIntervention: Intervention | null;
+  onSelectIntervention: (intervention: Intervention) => void;
 }
 
-const InterventionsSidebar: React.FC<InterventionsSidebarProps> = ({ 
-  interventions = [], 
-  onViewDetails,
-  searchQuery = '',
-  selectedPriority = null,
-  onSearchChange,
-  onPriorityChange,
-  onClearSearch
+const InterventionsSidebar: React.FC<InterventionsSidebarProps> = ({
+  interventions,
+  selectedIntervention,
+  onSelectIntervention,
 }) => {
-  // Calculate statistics
-  const stats = {
-    total: interventions.length,
-    scheduled: interventions.filter(i => i.status === 'scheduled').length,
-    inProgress: interventions.filter(i => i.status === 'in-progress').length,
-    completed: interventions.filter(i => i.status === 'completed').length,
-    canceled: interventions.filter(i => i.status === 'canceled').length
-  };
-  
-  // Calculate percentages for progress bars
-  const getPercentage = (value: number) => {
-    return stats.total > 0 ? Math.round((value / stats.total) * 100) : 0;
+  const [filter, setFilter] = useState('all');
+  const [filteredInterventions, setFilteredInterventions] = useState<Intervention[]>([]);
+
+  useEffect(() => {
+    setFilteredInterventions(sortAndFilterInterventions(interventions, filter));
+  }, [interventions, filter]);
+
+  // Update the filtering functions to handle string or Date types correctly
+  const sortAndFilterInterventions = (interventions: Intervention[], filter: string) => {
+    return interventions
+      .filter((intervention) => {
+        switch (filter) {
+          case 'all':
+            return true;
+          case 'in-progress':
+            return intervention.status === 'in-progress';
+          case 'scheduled':
+            return intervention.status === 'scheduled';
+          case 'completed':
+            return intervention.status === 'completed';
+          case 'canceled':
+            return intervention.status === 'canceled';
+          default:
+            return true;
+        }
+      })
+      .sort((a, b) => {
+        // Convert dates to timestamps for comparison
+        const dateA = typeof a.date === 'string' ? new Date(a.date).getTime() : a.date.getTime();
+        const dateB = typeof b.date === 'string' ? new Date(b.date).getTime() : b.date.getTime();
+        return dateB - dateA;
+      });
   };
 
-  // Group interventions by equipment
-  const equipmentStats = interventions.reduce((acc, intervention) => {
-    acc[intervention.equipment] = (acc[intervention.equipment] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-  
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Search section if search props are provided */}
-      {onSearchChange && (
-        <Card className="border-blue-100 bg-gradient-to-br from-blue-50 to-white">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xl font-semibold flex items-center gap-2">
-              Recherche
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <Input
-                placeholder="Rechercher une intervention..."
-                value={searchQuery}
-                onChange={onSearchChange}
-                className="w-full"
-              />
-              
-              <div className="flex flex-wrap gap-2">
-                {['high', 'medium', 'low'].map((priority) => (
-                  <Badge
-                    key={priority}
-                    className={`cursor-pointer ${
-                      selectedPriority === priority
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                    }`}
-                    onClick={() => onPriorityChange?.(selectedPriority === priority ? null : priority)}
-                  >
-                    {priority === 'high' ? 'Haute' : priority === 'medium' ? 'Moyenne' : 'Basse'}
-                  </Badge>
-                ))}
-                
-                {(searchQuery || selectedPriority) && (
-                  <Badge 
-                    variant="outline" 
-                    className="cursor-pointer hover:bg-muted"
-                    onClick={onClearSearch}
-                  >
-                    Effacer
-                  </Badge>
-                )}
-              </div>
+    <div className="w-full py-4">
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="filters">
+          <AccordionTrigger>Filtres</AccordionTrigger>
+          <AccordionContent>
+            <div className="grid gap-2 mt-2">
+              <Button
+                variant={filter === 'all' ? 'secondary' : 'outline'}
+                onClick={() => setFilter('all')}
+              >
+                Toutes
+              </Button>
+              <Button
+                variant={filter === 'in-progress' ? 'secondary' : 'outline'}
+                onClick={() => setFilter('in-progress')}
+              >
+                En cours
+              </Button>
+              <Button
+                variant={filter === 'scheduled' ? 'secondary' : 'outline'}
+                onClick={() => setFilter('scheduled')}
+              >
+                Planifiées
+              </Button>
+              <Button
+                variant={filter === 'completed' ? 'secondary' : 'outline'}
+                onClick={() => setFilter('completed')}
+              >
+                Terminées
+              </Button>
+              <Button
+                variant={filter === 'canceled' ? 'secondary' : 'outline'}
+                onClick={() => setFilter('canceled')}
+              >
+                Annulées
+              </Button>
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      <Card className="border-agri-100 bg-gradient-to-br from-agri-50 to-white">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-xl font-semibold flex items-center gap-2">
-            <Clock className="h-5 w-5 text-agri-600" />
-            À venir
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {interventions
-              .filter(intervention => intervention.status === 'scheduled')
-              .sort((a, b) => a.date.getTime() - b.date.getTime())
-              .slice(0, 3)
-              .map((intervention) => (
-                <div 
-                  key={intervention.id} 
-                  className="flex items-start gap-3 pb-3 border-b last:border-0 cursor-pointer hover:bg-white/80 p-2 rounded-md transition-colors"
-                  onClick={() => onViewDetails(intervention)}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Voir les détails de l'intervention ${intervention.title}`}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      onViewDetails(intervention);
-                    }
-                  }}
+          </AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="interventions">
+          <AccordionTrigger>Interventions</AccordionTrigger>
+          <AccordionContent className="py-2">
+            <div className="grid gap-2">
+              {filteredInterventions.map((intervention) => (
+                <Button
+                  key={intervention.id}
+                  variant={selectedIntervention?.id === intervention.id ? 'secondary' : 'ghost'}
+                  className={cn(
+                    "justify-start text-left",
+                    selectedIntervention?.id === intervention.id ? 'font-semibold' : 'font-normal'
+                  )}
+                  onClick={() => onSelectIntervention(intervention)}
                 >
-                  <div className={`h-10 w-10 rounded-full flex items-center justify-center shadow-sm
-                    ${intervention.priority === 'high' ? 'bg-red-50 text-red-600' : 
-                      intervention.priority === 'medium' ? 'bg-harvest-50 text-harvest-600' : 
-                      'bg-agri-50 text-agri-600'}`}>
-                    <Wrench size={18} />
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center">
+                      <Calendar className="mr-2 h-4 w-4" />
+                      <span>{intervention.title}</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">{formatDate(intervention.date)}</span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium truncate">{intervention.title}</h4>
-                    <p className="text-sm text-muted-foreground mb-1 truncate">{intervention.equipment}</p>
-                    <p className="text-xs px-2 py-1 bg-background rounded-full inline-block">
-                      {formatDate(intervention.date)}
-                    </p>
-                  </div>
-                </div>
-              ))
-            }
-            
-            {interventions.filter(i => i.status === 'scheduled').length === 0 && (
-              <p className="text-sm text-muted-foreground py-2 text-center">Aucune intervention planifiée.</p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-      
-      <Card className="border-blue-100 bg-gradient-to-br from-blue-50 to-white">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-xl font-semibold flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-blue-600" />
-            Statistiques
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between py-1 border-b pb-2">
-              <span className="text-muted-foreground">Total</span>
-              <span className="font-medium text-lg">{stats.total}</span>
-            </div>
-            
-            <div className="space-y-4 pt-2">
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="flex items-center text-muted-foreground">
-                    <div className="w-2 h-2 rounded-full bg-agri-500 mr-2"></div>
-                    <span className="truncate">Planifiées</span>
-                  </span>
-                  <span className="font-medium">{stats.scheduled}</span>
-                </div>
-                <Progress value={getPercentage(stats.scheduled)} className="h-2 bg-muted" indicatorClassName="bg-agri-500" />
-              </div>
-              
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="flex items-center text-muted-foreground">
-                    <div className="w-2 h-2 rounded-full bg-harvest-500 mr-2"></div>
-                    <span className="truncate">En cours</span>
-                  </span>
-                  <span className="font-medium">{stats.inProgress}</span>
-                </div>
-                <Progress value={getPercentage(stats.inProgress)} className="h-2 bg-muted" indicatorClassName="bg-harvest-500" />
-              </div>
-              
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="flex items-center text-muted-foreground">
-                    <div className="w-2 h-2 rounded-full bg-blue-500 mr-2"></div>
-                    <span className="truncate">Terminées</span>
-                  </span>
-                  <span className="font-medium">{stats.completed}</span>
-                </div>
-                <Progress value={getPercentage(stats.completed)} className="h-2 bg-muted" indicatorClassName="bg-blue-500" />
-              </div>
-              
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="flex items-center text-muted-foreground">
-                    <div className="w-2 h-2 rounded-full bg-red-400 mr-2"></div>
-                    <span className="truncate">Annulées</span>
-                  </span>
-                  <span className="font-medium">{stats.canceled}</span>
-                </div>
-                <Progress value={getPercentage(stats.canceled)} className="h-2 bg-muted" indicatorClassName="bg-red-400" />
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <Card className="border-soil-100 bg-gradient-to-br from-soil-50 to-white">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-xl font-semibold flex items-center gap-2">
-            <History className="h-5 w-5 text-soil-600" />
-            Équipements
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3 max-h-[250px] overflow-y-auto scrollbar-thin pr-1">
-            {Object.entries(equipmentStats)
-              .sort((a, b) => b[1] - a[1])
-              .map(([equipment, count], index) => (
-                <div key={equipment} className="flex items-center justify-between py-1 border-b border-muted/50 last:border-0">
-                  <span className="flex items-center max-w-[75%] text-muted-foreground">
-                    <div className={`w-2 h-2 rounded-full mr-2 ${
-                      index % 4 === 0 ? 'bg-agri-500' : 
-                      index % 4 === 1 ? 'bg-harvest-500' : 
-                      index % 4 === 2 ? 'bg-soil-500' :
-                      'bg-blue-500'
-                    }`}></div>
-                    <span className="truncate" title={equipment}>{equipment}</span>
-                  </span>
-                  <span className="font-medium">{count}</span>
-                </div>
+                </Button>
               ))}
-              
-            {Object.keys(equipmentStats).length === 0 && (
-              <p className="text-sm text-muted-foreground py-2 text-center">Aucun équipement avec des interventions.</p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 };

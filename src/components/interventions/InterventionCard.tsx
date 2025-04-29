@@ -8,6 +8,7 @@ import { Intervention } from '@/types/Intervention';
 import StatusBadge from './StatusBadge';
 import PriorityBadge from './PriorityBadge';
 import { formatDate } from './utils/interventionUtils';
+import { useOfflineStatus } from '@/providers/OfflineProvider';
 
 interface InterventionCardProps {
   intervention: Intervention;
@@ -20,7 +21,10 @@ const InterventionCard: React.FC<InterventionCardProps> = ({
   onViewDetails, 
   onStartWork 
 }) => {
-  // Déterminer la couleur de fond basée sur la priorité
+  const { isOnline } = useOfflineStatus();
+  const isPendingSync = intervention.id < 0; // If ID is negative, it's a pending sync item
+
+  // Determine background color based on priority
   const getPriorityClass = () => {
     switch(intervention.priority) {
       case 'high':
@@ -33,10 +37,17 @@ const InterventionCard: React.FC<InterventionCardProps> = ({
   };
 
   return (
-    <Card className={`w-full overflow-hidden transition-all hover:shadow-md animate-fade-in ${getPriorityClass()}`}>
+    <Card className={`w-full overflow-hidden transition-all hover:shadow-md animate-fade-in ${getPriorityClass()} ${isPendingSync ? 'bg-orange-50' : ''}`}>
       <CardContent className="p-4 sm:p-5">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-0 mb-4">
-          <h3 className="font-semibold text-base sm:text-lg leading-tight">{intervention.title}</h3>
+          <h3 className="font-semibold text-base sm:text-lg leading-tight">
+            {intervention.title}
+            {isPendingSync && (
+              <span className="ml-2 text-orange-500 text-xs font-normal">
+                🕓 En attente de synchronisation
+              </span>
+            )}
+          </h3>
           <div className="flex flex-wrap gap-2 sm:ml-2 sm:flex-shrink-0">
             <StatusBadge status={intervention.status} />
             <PriorityBadge priority={intervention.priority} />
@@ -94,6 +105,7 @@ const InterventionCard: React.FC<InterventionCardProps> = ({
             size="sm"
             className="w-full sm:w-auto gap-1"
             onClick={() => onStartWork(intervention)}
+            disabled={isPendingSync || !isOnline}
           >
             <Wrench size={16} />
             <span>Démarrer</span>

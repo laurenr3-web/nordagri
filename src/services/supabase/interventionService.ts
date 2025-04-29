@@ -40,7 +40,7 @@ export const interventionService = {
       partsUsed: item.parts_used ? 
         (Array.isArray(item.parts_used) ? 
           item.parts_used.map((p: any) => ({
-            id: p.id || 0,
+            partId: p.partId || 0,
             name: p.name || '',
             quantity: p.quantity || 0
           })) : []
@@ -87,7 +87,7 @@ export const interventionService = {
       description: data.description || '',
       partsUsed: Array.isArray(data.parts_used) ? 
         data.parts_used.map((p: any) => ({
-          id: p.id || 0,
+          partId: p.partId || 0,
           name: p.name || '',
           quantity: p.quantity || 0
         })) : [],
@@ -95,7 +95,7 @@ export const interventionService = {
     };
   },
   
-  // Ajouter une intervention
+  // Add an intervention
   async addIntervention(intervention: InterventionFormValues): Promise<Intervention> {
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     
@@ -116,7 +116,7 @@ export const interventionService = {
       scheduled_duration: intervention.scheduledDuration,
       technician: intervention.technician,
       description: intervention.description,
-      notes: intervention.notes,
+      notes: intervention.notes || "",
       parts_used: [],
       owner_id: sessionData.session?.user.id
     };
@@ -155,7 +155,7 @@ export const interventionService = {
       description: data.description || '',
       partsUsed: Array.isArray(data.parts_used) ? 
         data.parts_used.map((p: any) => ({
-          id: p.id || 0,
+          partId: p.partId || 0,
           name: p.name || '',
           quantity: p.quantity || 0
         })) : [],
@@ -218,7 +218,7 @@ export const interventionService = {
       description: data.description || '',
       partsUsed: Array.isArray(data.parts_used) ? 
         data.parts_used.map((p: any) => ({
-          id: p.id || 0,
+          partId: p.partId || 0,
           name: p.name || '',
           quantity: p.quantity || 0
         })) : [],

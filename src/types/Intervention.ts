@@ -11,13 +11,13 @@ export interface Intervention {
   };
   status: 'scheduled' | 'in-progress' | 'completed' | 'canceled';
   priority: 'high' | 'medium' | 'low';
-  date: Date;
+  date: string | Date;
   duration?: number;
   scheduledDuration?: number;
   technician: string;
   description: string;
-  partsUsed: Array<{ id: number; name: string; quantity: number; }>;
-  notes: string;
+  partsUsed: Array<{ partId: number; name: string; quantity: number; }>;
+  notes?: string;
 }
 
 export interface InterventionFormValues {
@@ -30,5 +30,5 @@ export interface InterventionFormValues {
   scheduledDuration: number;
   technician: string;
   description: string;
-  notes: string;
+  notes?: string;
 }

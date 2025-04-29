@@ -2,22 +2,22 @@
 import { useState, useEffect } from 'react';
 
 /**
- * Hook pour déterminer si l'utilisateur est en ligne ou hors ligne
- * @returns boolean - true si l'utilisateur est en ligne, false sinon
+ * Hook to determine if the user is currently online or offline
+ * @returns boolean - true if user is online, false otherwise
  */
 export function useNetworkState(): boolean {
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
 
   useEffect(() => {
-    // Fonctions de gestionnaire d'événements pour mettre à jour l'état
+    // Event handlers to update state
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
-    // Ajouter des écouteurs d'événements
+    // Add event listeners
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Nettoyer les écouteurs d'événements à la destruction du composant
+    // Clean up listeners on component destruction
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
