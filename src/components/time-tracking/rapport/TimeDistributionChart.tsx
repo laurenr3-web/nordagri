@@ -211,8 +211,8 @@ export const TimeDistributionChart: React.FC<TimeDistributionChartProps> = ({
                 tick={{ 
                   fontSize: 12,
                   width: 100,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis"
+                  // Remove the invalid textOverflow property
+                  overflow: "hidden"
                 }}
                 className="text-xs md:text-sm"
               />
