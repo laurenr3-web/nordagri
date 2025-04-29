@@ -17,7 +17,7 @@ const TimeTrackingStatisticsPage = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const { data: timeBreakdownData, isLoading: isLoadingBreakdown } = useTimeBreakdown();
   const { distribution, isLoading: isLoadingDistribution } = useTaskTypeDistribution(selectedMonth);
-  const { summary, employeeStats, equipmentStats, isLoading } = useTimeStatistics(timeRange);
+  const { employeeStats, equipmentStats, hoursSummary, isLoading } = useTimeStatistics();
 
   const handleTimeRangeChange = (range: TimeRange) => {
     setTimeRange(range);
@@ -39,7 +39,7 @@ const TimeTrackingStatisticsPage = () => {
       />
       
       <HoursSummaryCards 
-        summary={summary} 
+        summary={hoursSummary} 
         isLoading={isLoading} 
       />
       
