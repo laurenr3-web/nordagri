@@ -180,10 +180,17 @@ const TimeTrackingRapport: React.FC = () => {
     <div className="flex flex-col space-y-6 py-4 px-2 sm:px-4 w-full max-w-full overflow-x-hidden">
       {/* Header */}
       <Header isExporting={isExporting} onExport={handleExport} />
+      
       {/* Month Selector */}
-      <MonthSelector currentMonth={currentMonth} onPrevious={handlePreviousMonth} onNext={handleNextMonth} />
+      <MonthSelector 
+        currentMonth={currentMonth} 
+        onPrevious={handlePreviousMonth} 
+        onNext={handleNextMonth}
+      />
+      
       {/* Hours Summary */}
       <HoursSummary summary={summary} />
+      
       {/* Calendar */}
       <Card className="rounded-xl">
         <CardHeader className="pb-2">
@@ -199,6 +206,7 @@ const TimeTrackingRapport: React.FC = () => {
           />
         </CardContent>
       </Card>
+      
       {/* Task Type Distribution */}
       <Card className="rounded-xl">
         <CardHeader className="pb-2">
@@ -208,6 +216,7 @@ const TimeTrackingRapport: React.FC = () => {
           <TimeDistributionChart data={distribution} isLoading={isDistributionLoading} />
         </CardContent>
       </Card>
+      
       {/* Top Equipment */}
       <Card className="rounded-xl">
         <CardHeader className="pb-2">
@@ -217,12 +226,14 @@ const TimeTrackingRapport: React.FC = () => {
           <TopEquipmentList data={equipment} isLoading={isEquipmentLoading} />
         </CardContent>
       </Card>
+      
       {/* Pay Period Summary */}
       <PayPeriodSummary 
         isLoading={isLoadingPayPeriod}
         monthly={payPeriodStats.monthly}
         biWeekly={payPeriodStats.biWeekly}
       />
+      
       {/* Modal for day details */}
       {selectedDate && (
         <ReportModal 
