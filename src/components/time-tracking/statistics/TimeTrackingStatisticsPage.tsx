@@ -1,74 +1,86 @@
 
-import React from 'react';
-import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
-import Navbar from '@/components/layout/Navbar';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { StatisticsHeader } from './StatisticsHeader';
-import { EmployeeWorkHoursChart } from './EmployeeWorkHoursChart';
-import { EquipmentUsageChart } from './EquipmentUsageChart';
-import { HoursSummaryCards } from './HoursSummaryCards';
-import { useTimeStatistics } from '@/hooks/time-tracking/useTimeStatistics';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import StatisticsHeader from './StatisticsHeader';
+import HoursSummaryCards from './HoursSummaryCards';
+import EquipmentUsageChart from './EquipmentUsageChart';
+import EmployeeWorkHoursChart from './EmployeeWorkHoursChart';
+import { TimeBreakdownChart } from '../TimeBreakdownChart';
+import { useTimeBreakdown } from '@/hooks/time-tracking/useTimeBreakdown';
+import { addMonths, subMonths } from 'date-fns';
+import { TimeDistributionChart } from '../rapport/TimeDistributionChart';
+import { useTaskTypeDistribution } from '@/hooks/time-tracking/useTaskTypeDistribution';
+import { ChartContainer } from '@/components/ui/chart';
 
-const TimeTrackingStatisticsPage: React.FC = () => {
-  const { 
-    employeeStats,
-    equipmentStats,
-    hoursSummary,
-    isLoading, 
-    timeRange,
-    setTimeRange
-  } = useTimeStatistics();
+const TimeTrackingStatisticsPage = () => {
+  const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const { data: timeBreakdownData, isLoading: isLoadingBreakdown } = useTimeBreakdown();
+  const { distribution, isLoading: isLoadingDistribution } = useTaskTypeDistribution(selectedMonth);
+
+  const handlePreviousMonth = () => {
+    setSelectedMonth(prevMonth => subMonths(prevMonth, 1));
+  };
+
+  const handleNextMonth = () => {
+    setSelectedMonth(prevMonth => addMonths(prevMonth, 1));
+  };
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
-        <Sidebar className="border-r">
-          <Navbar />
-        </Sidebar>
-        
-        <div className="flex-1 overflow-y-auto">
-          <div className="container py-6">
-            <div className="mb-6">
-              <Link to="/time-tracking">
-                <Button variant="ghost" size="sm" className="mb-4">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Retour au suivi du temps
-                </Button>
-              </Link>
-              
-              <StatisticsHeader 
-                timeRange={timeRange}
-                onTimeRangeChange={setTimeRange}
-              />
-            </div>
-            
-            <HoursSummaryCards 
-              summary={hoursSummary} 
-              isLoading={isLoading} 
+    <div className="space-y-8">
+      <StatisticsHeader 
+        selectedMonth={selectedMonth} 
+        onPreviousMonth={handlePreviousMonth} 
+        onNextMonth={handleNextMonth} 
+      />
+      
+      <HoursSummaryCards selectedMonth={selectedMonth} />
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="md:col-span-1">
+          <CardHeader>
+            <CardTitle>Répartition du temps par type de tâche</CardTitle>
+          </CardHeader>
+          <CardContent className="px-2 sm:px-6">
+            <TimeBreakdownChart 
+              data={timeBreakdownData} 
+              isLoading={isLoadingBreakdown} 
             />
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-              <Card className="p-6">
-                <EmployeeWorkHoursChart 
-                  data={employeeStats} 
-                  isLoading={isLoading} 
-                />
-              </Card>
-              
-              <Card className="p-6">
-                <EquipmentUsageChart 
-                  data={equipmentStats} 
-                  isLoading={isLoading} 
-                />
-              </Card>
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="md:col-span-1">
+          <CardHeader>
+            <CardTitle>Utilisation des équipements</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EquipmentUsageChart month={selectedMonth} />
+          </CardContent>
+        </Card>
       </div>
-    </SidebarProvider>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="md:col-span-1">
+          <CardHeader>
+            <CardTitle>Temps de travail par technicien</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EmployeeWorkHoursChart month={selectedMonth} />
+          </CardContent>
+        </Card>
+        
+        <Card className="md:col-span-1">
+          <CardHeader>
+            <CardTitle>Distribution par type de tâche</CardTitle>
+          </CardHeader>
+          <CardContent className="px-2 sm:px-6">
+            <TimeDistributionChart 
+              data={distribution} 
+              isLoading={isLoadingDistribution} 
+            />
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 };
 

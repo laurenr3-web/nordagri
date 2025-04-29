@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, LabelList } from 'recharts';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -175,6 +176,10 @@ export const TimeDistributionChart: React.FC<TimeDistributionChartProps> = ({
     percentage: (task.hours / totalHours) * 100
   }));
 
+  // Calculer la hauteur dynamique en fonction du nombre d'éléments
+  // Minimum 300px, mais au moins 40px par élément
+  const chartHeight = Math.max(300, chartData.length * 50);
+
   return (
     <div className="relative">
       {/* Bouton d'aide avec la légende des couleurs */}
@@ -182,56 +187,72 @@ export const TimeDistributionChart: React.FC<TimeDistributionChartProps> = ({
         <ColorLegendHelp />
       </div>
       
-      <div className="h-[400px] max-h-[500px] overflow-y-auto pr-2">
-        <ResponsiveContainer width="100%" height={Math.max(chartData.length * 40, 300)}>
-          <BarChart
-            layout="vertical"
-            data={chartData}
-            margin={{ top: 5, right: 50, left: 20, bottom: 5 }}
-          >
-            <XAxis type="number" hide />
-            <YAxis 
-              type="category" 
-              dataKey="type" 
-              width={150}
-              tick={{ fontSize: 12 }}
-            />
-            <RechartsTooltip 
-              formatter={(value: number, name: string) => [
-                `${value.toFixed(1)} heures (${(value / totalHours * 100).toFixed(1)}%)`,
-                'Temps passé'
-              ]}
-              contentStyle={{ 
-                backgroundColor: 'var(--background)', 
-                borderColor: 'var(--border)',
-                borderRadius: '0.5rem',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                padding: '0.75rem'
-              }}
-            />
-            <Bar dataKey="hours" radius={[4, 4, 4, 4]} barSize={30}>
-              {chartData.map((entry, index) => (
-                <Cell 
-                  key={`cell-${index}`} 
-                  fill={getTaskTypeColor(entry.type)}
-                  className="hover:opacity-80 transition-opacity"
-                />
-              ))}
-              <LabelList 
-                dataKey="hours" 
-                position="right" 
-                formatter={(value: number) => `${value.toFixed(1)}h (${(value / totalHours * 100).toFixed(1)}%)`}
-                style={{ 
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  textAnchor: 'start',
-                  fill: 'var(--foreground)',
+      {/* Conteneur principal avec hauteur maximale et défilement adaptatif */}
+      <div className="max-h-[60vh] md:max-h-[500px] overflow-y-auto pr-2 py-2">
+        <div 
+          className="w-full" 
+          style={{ 
+            height: chartHeight, 
+            minHeight: '300px',
+            minWidth: '100%'
+          }}
+        >
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              layout="vertical"
+              data={chartData}
+              margin={{ top: 8, right: 60, left: 20, bottom: 8 }}
+            >
+              <XAxis type="number" hide />
+              <YAxis 
+                type="category" 
+                dataKey="type" 
+                width={120}
+                tick={{ 
+                  fontSize: 12,
+                  width: 100,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis"
                 }}
-                offset={10}
+                className="text-xs md:text-sm"
               />
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+              <RechartsTooltip 
+                formatter={(value: number, name: string) => [
+                  `${value.toFixed(1)} heures (${(value / totalHours * 100).toFixed(1)}%)`,
+                  'Temps passé'
+                ]}
+                contentStyle={{ 
+                  backgroundColor: 'var(--background)', 
+                  borderColor: 'var(--border)',
+                  borderRadius: '0.5rem',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                  padding: '0.75rem'
+                }}
+              />
+              <Bar dataKey="hours" radius={[4, 4, 4, 4]} barSize={30}>
+                {chartData.map((entry, index) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={getTaskTypeColor(entry.type)}
+                    className="hover:opacity-80 transition-opacity"
+                  />
+                ))}
+                <LabelList 
+                  dataKey="hours" 
+                  position="right" 
+                  formatter={(value: number) => `${value.toFixed(1)}h (${(value / totalHours * 100).toFixed(1)}%)`}
+                  style={{ 
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    textAnchor: 'start',
+                    fill: 'var(--foreground)',
+                  }}
+                  offset={10}
+                />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   );
