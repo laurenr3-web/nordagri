@@ -11,7 +11,7 @@ export const LayoutWrapper: React.FC<LayoutWrapperProps> = ({
   className = "" 
 }) => {
   return (
-    <main className={`max-w-[1200px] mx-auto px-4 sm:px-6 pt-6 pb-16 ${className}`}>
+    <main className={`max-w-[1200px] mx-auto px-6 py-6 ${className}`}>
       {children}
     </main>
   );

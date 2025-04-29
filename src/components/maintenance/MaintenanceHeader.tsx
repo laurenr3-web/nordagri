@@ -1,7 +1,5 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
 
 interface MaintenanceHeaderProps {
   setIsNewTaskDialogOpen: (open: boolean) => void;
@@ -9,17 +7,10 @@ interface MaintenanceHeaderProps {
 }
 
 const MaintenanceHeader: React.FC<MaintenanceHeaderProps> = ({ 
-  setIsNewTaskDialogOpen,
   userName = 'Utilisateur'
 }) => {
-  return (
-    <div className="flex space-x-2">
-      <Button onClick={() => setIsNewTaskDialogOpen(true)}>
-        <Plus className="h-4 w-4 mr-2" />
-        <span>Nouvelle tâche</span>
-      </Button>
-    </div>
-  );
+  // Ce composant n'affiche plus le bouton, car il est maintenant dans PageHeader
+  return null;
 };
 
 export default MaintenanceHeader;

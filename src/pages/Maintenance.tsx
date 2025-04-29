@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import MainLayout from '@/ui/layouts/MainLayout';
 import { useTasksManager } from '@/hooks/maintenance/useTasksManager';
 import { useMaintenanceRealtime } from '@/hooks/maintenance/useMaintenanceRealtime';
 import { MaintenanceTask, MaintenanceFormValues, MaintenanceStatus } from '@/hooks/maintenance/maintenanceSlice';
 import NewTaskDialog from '@/components/maintenance/NewTaskDialog';
 import MaintenanceHeader from '@/components/maintenance/MaintenanceHeader';
 import MaintenanceContent from '@/components/maintenance/MaintenanceContent';
-import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import Navbar from '@/components/layout/Navbar';
 import MaintenanceDashboard from '@/components/dashboard/MaintenanceDashboard';
 import MaintenanceNotificationsPopover from '@/components/maintenance/notifications/MaintenanceNotificationsPopover';
 import MaintenanceCompletionDialog from '@/components/maintenance/dialogs/MaintenanceCompletionDialog';
@@ -16,6 +15,8 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { LayoutWrapper } from '@/components/layout/LayoutWrapper';
 import { PageHeader } from '@/components/layout/PageHeader';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 const Maintenance = () => {
   const [currentView, setCurrentView] = useState('upcoming');
@@ -125,77 +126,71 @@ const Maintenance = () => {
   };
   
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
-        <Sidebar className="border-r">
-          <Navbar />
-        </Sidebar>
-        
-        <div className="flex-1 w-full">
-          <div className="flex justify-between items-center p-4 border-b">
-            <div className="text-sm text-muted-foreground">
-              {isAuthenticated ? <span>Connecté en tant que : <span className="font-medium">{getUserDisplayName()}</span></span> : <span>Non connecté</span>}
-            </div>
-            <MaintenanceNotificationsPopover />
-          </div>
-          
-          <LayoutWrapper>
-            <PageHeader 
-              title="Maintenance" 
-              description="Suivez et planifiez l'entretien de vos équipements"
-            />
-            <Tabs defaultValue="tasks" value={dashboardView} onValueChange={setDashboardView}>
-              <div className="flex justify-between items-center mb-6 flex-wrap gap-y-3">
-                <TabsList>
-                  <TabsTrigger value="tasks">Tâches</TabsTrigger>
-                  <TabsTrigger value="dashboard">Tableau de bord</TabsTrigger>
-                </TabsList>
-                
-                <MaintenanceHeader setIsNewTaskDialogOpen={setIsNewTaskDialogOpen} userName={getUserDisplayName()} />
-              </div>
-              
-              <TabsContent value="tasks">
-                <MaintenanceContent 
-                  tasks={tasks} 
-                  currentView={currentView} 
-                  setCurrentView={setCurrentView} 
-                  currentMonth={currentMonth} 
-                  setIsNewTaskDialogOpen={setIsNewTaskDialogOpen} 
-                  updateTaskStatus={updateTaskStatus} 
-                  updateTaskPriority={updateTaskPriority} 
-                  deleteTask={deleteTask} 
-                  userName={getUserDisplayName()} 
-                />
-              </TabsContent>
-              
-              <TabsContent value="dashboard">
-                <MaintenanceDashboard tasks={tasks} userName={getUserDisplayName()} />
-              </TabsContent>
-            </Tabs>
-          </LayoutWrapper>
-        </div>
+    <MainLayout>
+      <div className="flex items-center justify-end p-4 border-b">
+        <MaintenanceNotificationsPopover />
       </div>
       
-      <NewTaskDialog 
-        open={isNewTaskDialogOpen} 
-        onOpenChange={handleOpenNewTaskDialog} 
-        onSubmit={handleAddTask} 
-        initialDate={selectedDate} 
-        userName={getUserDisplayName()} 
-      />
+      <LayoutWrapper>
+        <PageHeader 
+          title="Maintenance" 
+          description="Suivez et planifiez l'entretien de vos équipements"
+          action={
+            <Button onClick={() => setIsNewTaskDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              <span>Nouvelle tâche</span>
+            </Button>
+          }
+        />
+        
+        <Tabs defaultValue="tasks" value={dashboardView} onValueChange={setDashboardView}>
+          <div className="flex justify-between items-center mb-6 flex-wrap gap-y-3">
+            <TabsList>
+              <TabsTrigger value="tasks">Tâches</TabsTrigger>
+              <TabsTrigger value="dashboard">Tableau de bord</TabsTrigger>
+            </TabsList>
+          </div>
+          
+          <TabsContent value="tasks">
+            <MaintenanceContent 
+              tasks={tasks} 
+              currentView={currentView} 
+              setCurrentView={setCurrentView} 
+              currentMonth={currentMonth} 
+              setIsNewTaskDialogOpen={setIsNewTaskDialogOpen} 
+              updateTaskStatus={updateTaskStatus} 
+              updateTaskPriority={updateTaskPriority} 
+              deleteTask={deleteTask} 
+              userName={getUserDisplayName()} 
+            />
+          </TabsContent>
+          
+          <TabsContent value="dashboard">
+            <MaintenanceDashboard tasks={tasks} userName={getUserDisplayName()} />
+          </TabsContent>
+        </Tabs>
       
-      <MaintenanceCompletionDialog 
-        isOpen={isCompletionDialogOpen} 
-        onClose={() => setIsCompletionDialogOpen(false)} 
-        task={selectedTask} 
-        onCompleted={() => {
-          setIsCompletionDialogOpen(false);
-          // Refresh the task list
-          refreshTasks();
-        }} 
-        userName={getUserDisplayName()} 
-      />
-    </SidebarProvider>
+        <NewTaskDialog 
+          open={isNewTaskDialogOpen} 
+          onOpenChange={handleOpenNewTaskDialog} 
+          onSubmit={handleAddTask} 
+          initialDate={selectedDate} 
+          userName={getUserDisplayName()} 
+        />
+        
+        <MaintenanceCompletionDialog 
+          isOpen={isCompletionDialogOpen} 
+          onClose={() => setIsCompletionDialogOpen(false)} 
+          task={selectedTask} 
+          onCompleted={() => {
+            setIsCompletionDialogOpen(false);
+            // Refresh the task list
+            refreshTasks();
+          }} 
+          userName={getUserDisplayName()} 
+        />
+      </LayoutWrapper>
+    </MainLayout>
   );
 };
 
