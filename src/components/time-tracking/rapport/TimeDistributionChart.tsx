@@ -41,24 +41,48 @@ const normalizeAndGroupTaskTypes = (data: TaskTypeDistribution[]): TaskTypeDistr
 
 // Fonction pour déterminer la couleur d'une tâche selon son type
 const getTaskTypeColor = (taskType: string): string => {
+  // Convertir en minuscules et supprimer les espaces
   const normalizedType = taskType.toLowerCase().trim();
   
-  switch (normalizedType) {
-    case 'entretien':
-    case 'maintenance': 
-      return '#93c5fd'; // blue-300
-    case 'opération':
-    case 'operation': 
-      return '#86efac'; // green-300
-    case 'réparation':
-    case 'reparation':
-    case 'repair': 
-      return '#fca5a5'; // red-300
-    case 'inspection': 
-      return '#fcd34d'; // yellow-300
-    default: 
-      return '#d1d5db'; // gray-300
+  // Mapping de types de tâches vers des couleurs avec plus de précision
+  if (normalizedType.includes('entretien') || normalizedType.includes('maintenance')) {
+    return '#60a5fa'; // blue-400 pour plus de contraste
   }
+  
+  if (normalizedType.includes('opération') || normalizedType.includes('operation')) {
+    return '#34d399'; // green-400 pour plus de contraste
+  }
+  
+  if (normalizedType.includes('réparation') || normalizedType.includes('reparation') || 
+      normalizedType.includes('repair')) {
+    return '#f87171'; // red-400 pour plus de contraste
+  }
+  
+  if (normalizedType.includes('inspection')) {
+    return '#fbbf24'; // yellow-400 pour plus de contraste
+  }
+  
+  // Types spécifiques pour l'agriculture
+  if (normalizedType.includes('traite') || normalizedType.includes('milk')) {
+    return '#818cf8'; // indigo-400
+  }
+  
+  if (normalizedType.includes('fds') || normalizedType.includes('préparation')) {
+    return '#c084fc'; // purple-400
+  }
+  
+  if (normalizedType.includes('étable') || normalizedType.includes('etable') || 
+      normalizedType.includes('stable')) {
+    return '#fb923c'; // orange-400
+  }
+  
+  if (normalizedType.includes('écurer') || normalizedType.includes('ecurer') || 
+      normalizedType.includes('clean')) {
+    return '#38bdf8'; // sky-400
+  }
+  
+  // Couleur par défaut
+  return '#94a3b8'; // slate-400 pour plus de contraste que le gray-300
 };
 
 export const TimeDistributionChart: React.FC<TimeDistributionChartProps> = ({ 
