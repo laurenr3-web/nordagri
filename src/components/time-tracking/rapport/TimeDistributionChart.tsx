@@ -39,25 +39,27 @@ const normalizeAndGroupTaskTypes = (data: TaskTypeDistribution[]): TaskTypeDistr
     .sort((a, b) => b.hours - a.hours);
 };
 
-// Palette de couleurs pastel pour les barres
-const COLORS = [
-  '#93c5fd', // blue-300
-  '#86efac', // green-300
-  '#fcd34d', // yellow-300
-  '#c4b5fd', // purple-300
-  '#fdba74', // orange-300
-  '#f9a8d4', // pink-300
-  '#a5b4fc', // indigo-300
-  '#67e8f9', // cyan-300
-  '#d8b4fe', // violet-300
-  '#fda4af', // rose-300
-  '#a7f3d0', // emerald-300
-  '#bae6fd', // sky-300
-  '#d9f99d', // lime-300
-  '#fed7aa', // amber-300
-  '#e9d5ff', // fuchsia-300
-  '#cbd5e1', // slate-300
-];
+// Fonction pour déterminer la couleur d'une tâche selon son type
+const getTaskTypeColor = (taskType: string): string => {
+  const normalizedType = taskType.toLowerCase().trim();
+  
+  switch (normalizedType) {
+    case 'entretien':
+    case 'maintenance': 
+      return '#93c5fd'; // blue-300
+    case 'opération':
+    case 'operation': 
+      return '#86efac'; // green-300
+    case 'réparation':
+    case 'reparation':
+    case 'repair': 
+      return '#fca5a5'; // red-300
+    case 'inspection': 
+      return '#fcd34d'; // yellow-300
+    default: 
+      return '#d1d5db'; // gray-300
+  }
+};
 
 export const TimeDistributionChart: React.FC<TimeDistributionChartProps> = ({ 
   data,
@@ -119,7 +121,7 @@ export const TimeDistributionChart: React.FC<TimeDistributionChartProps> = ({
             {chartData.map((entry, index) => (
               <Cell 
                 key={`cell-${index}`} 
-                fill={COLORS[index % COLORS.length]}
+                fill={getTaskTypeColor(entry.type)}
                 className="hover:opacity-80 transition-opacity"
               />
             ))}
