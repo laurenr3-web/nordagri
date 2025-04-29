@@ -18,15 +18,15 @@ const InterventionHistoryCard: React.FC<InterventionHistoryCardProps> = ({
   return (
     <div 
       key={intervention.id}
-      className="p-4 border rounded-md hover:bg-accent/10 transition-colors cursor-pointer"
+      className="p-4 border rounded-md hover:bg-accent/10 transition-colors cursor-pointer w-full"
       onClick={() => onViewDetails(intervention)}
     >
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
+      <div className="flex flex-col gap-2 mb-2">
         <div className="flex flex-col">
-          <h4 className="font-medium">{intervention.title}</h4>
+          <h4 className="font-medium break-words">{intervention.title}</h4>
           <span className="text-sm text-muted-foreground">{intervention.equipment}</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <PriorityBadge priority={intervention.priority} />
           <StatusBadge status={intervention.status} />
         </div>
@@ -39,11 +39,11 @@ const InterventionHistoryCard: React.FC<InterventionHistoryCardProps> = ({
         </div>
         <div className="flex items-center gap-2 text-sm">
           <span className="font-medium">Technicien:</span>
-          <span>{intervention.technician}</span>
+          <span className="break-words">{intervention.technician}</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
           <span className="font-medium">Lieu:</span>
-          <span>{intervention.location}</span>
+          <span className="break-words">{intervention.location}</span>
         </div>
       </div>
       

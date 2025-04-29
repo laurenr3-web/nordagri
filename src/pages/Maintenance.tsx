@@ -138,10 +138,10 @@ const Maintenance = () => {
             <MaintenanceNotificationsPopover />
           </div>
           
-          <div className="pt-6 pb-16 px-4 sm:px-6 md:px-8">
+          <div className="pt-6 pb-16 px-4 sm:px-6 md:px-8 overflow-x-hidden">
             <div className="max-w-7xl mx-auto">
-              <Tabs defaultValue="tasks" value={dashboardView} onValueChange={setDashboardView} className="px-[120px]">
-                <div className="flex justify-between items-center mb-6">
+              <Tabs defaultValue="tasks" value={dashboardView} onValueChange={setDashboardView} className="sm:px-[120px]">
+                <div className="flex justify-between items-center mb-6 flex-wrap gap-y-3">
                   <TabsList>
                     <TabsTrigger value="tasks">Tâches</TabsTrigger>
                     <TabsTrigger value="dashboard">Tableau de bord</TabsTrigger>

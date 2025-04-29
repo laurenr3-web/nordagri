@@ -27,11 +27,11 @@ export const PartsMobileView: React.FC<PartsMobileViewProps> = ({
   animatingOut = []
 }) => {
   return (
-    <div className="md:hidden divide-y">
+    <div className="md:hidden divide-y w-full overflow-x-hidden">
       {parts.map((part) => (
         <div 
           key={part.id} 
-          className={`p-3 space-y-3 transition-all duration-300 ${
+          className={`p-4 space-y-3 transition-all duration-300 ${
             animatingOut.includes(part.id) ? 'opacity-0 h-0 overflow-hidden p-0' : 'opacity-100'
           }`}
         >
@@ -40,9 +40,10 @@ export const PartsMobileView: React.FC<PartsMobileViewProps> = ({
               checked={selectedParts.includes(part.id)}
               onCheckedChange={(checked) => onSelectPart(part.id, !!checked)}
               aria-label={`Sélectionner ${part.name}`}
+              className="mt-1"
             />
             <div 
-              className="h-14 w-14 rounded-md overflow-hidden flex-shrink-0" 
+              className="h-16 w-16 rounded-md overflow-hidden flex-shrink-0" 
               onClick={() => openPartDetails(part)}
             >
               <img 
@@ -56,13 +57,13 @@ export const PartsMobileView: React.FC<PartsMobileViewProps> = ({
               />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-medium text-sm line-clamp-1">{part.name}</h3>
-              <div className="flex items-center gap-2 mt-1">
+              <h3 className="font-medium text-sm break-words">{part.name}</h3>
+              <div className="flex flex-wrap items-center gap-2 mt-1">
                 <Badge variant="secondary" className="flex items-center gap-1">
                   <Box className="h-3 w-3" />
-                  <span className="text-xs truncate">{part.partNumber}</span>
+                  <span className="text-xs">{part.partNumber}</span>
                 </Badge>
-                <span className="text-xs text-muted-foreground truncate">{part.manufacturer}</span>
+                <span className="text-xs text-muted-foreground">{part.manufacturer}</span>
               </div>
               <div className="flex items-center gap-3 mt-2">
                 <span className={`text-sm font-medium flex items-center gap-1 ${getStockStatusColor(part)}`}>

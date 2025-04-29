@@ -1,83 +1,97 @@
 
 import React from 'react';
-import { ChevronRight, User } from 'lucide-react';
-import { MaintenanceTask } from '@/hooks/maintenance/maintenanceSlice';
-import { BlurContainer } from '@/components/ui/blur-container';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { formatDate, getStatusBadge, getPriorityBadge } from './MaintenanceUtils';
+import { MaintenanceTask } from '@/hooks/maintenance/maintenanceSlice';
+import { Calendar, Clock, Info } from 'lucide-react';
+import { formatDate } from './MaintenanceUtils';
 
-/**
- * Affiche un résumé visuel d'une tâche de maintenance.
- * @param task Données de tâche
- * @param onViewDetails Callback pour ouvrir les détails
- */
 interface TaskCardProps {
   task: MaintenanceTask;
   onViewDetails: (task: MaintenanceTask) => void;
 }
 
 const TaskCard: React.FC<TaskCardProps> = ({ task, onViewDetails }) => {
+  const getPriorityColor = () => {
+    switch (task.priority) {
+      case 'critical':
+        return 'bg-red-50 border-l-4 border-l-red-500';
+      case 'high':
+        return 'bg-orange-50 border-l-4 border-l-orange-500';
+      case 'medium':
+        return 'bg-yellow-50 border-l-4 border-l-yellow-500';
+      default:
+        return 'bg-green-50 border-l-4 border-l-green-500';
+    }
+  };
+  
+  const getStatusBadge = () => {
+    switch (task.status) {
+      case 'scheduled':
+        return <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">Planifiée</span>;
+      case 'in-progress':
+        return <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">En cours</span>;
+      case 'completed':
+        return <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">Terminée</span>;
+      case 'pending-parts':
+        return <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs">En attente</span>;
+      case 'cancelled':
+        return <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">Annulée</span>;
+      default:
+        return <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">{task.status}</span>;
+    }
+  };
+
   return (
-    <BlurContainer 
-      key={task.id}
-      className="mb-4 animate-fade-in overflow-hidden"
+    <Card 
+      className={`w-full mb-4 p-4 shadow-md ${getPriorityColor()}`}
+      onClick={() => onViewDetails(task)}
     >
-      <div className="p-4">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-4">
-          <div>
-            <h3 className="font-semibold text-base mb-1">{task.title}</h3>
-            <p className="text-muted-foreground text-xs">{task.equipment}</p>
-          </div>
-          <div className="flex flex-wrap gap-1">
-            {getStatusBadge(task.status)}
-            {getPriorityBadge(task.priority)}
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">Due Date</p>
-            <p className="font-medium">{formatDate(task.dueDate)}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">Engine Hours</p>
-            <p className="font-medium">
-              {task.status === 'completed' && task.actualDuration ? 
-                `${task.actualDuration} hrs (Actual)` : 
-                `${task.engineHours} hrs`
-              }
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">Assigned To</p>
-            <div className="flex items-center gap-1">
-              <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center">
-                <User size={14} className="text-primary" />
-              </div>
-              <p className="font-medium text-xs">{task.assignedTo}</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="space-y-2">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <h3 className="font-medium text-base sm:text-lg">{task.title}</h3>
+            <div className="flex flex-wrap gap-2">
+              {getStatusBadge()}
+              <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs capitalize">
+                {task.type}
+              </span>
             </div>
           </div>
-        </div>
-        
-        {task.notes && (
-          <div className="mb-4">
-            <p className="text-xs text-muted-foreground mb-1">Notes</p>
-            <p className="text-xs bg-muted p-2 rounded-md">{task.notes}</p>
+          
+          <p className="text-sm text-muted-foreground line-clamp-2">{task.equipment}</p>
+          
+          <div className="flex flex-col sm:flex-row gap-x-4 gap-y-2 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              {formatDate(task.dueDate)}
+            </span>
+            {task.engineHours && (
+              <span className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                {task.engineHours} h
+              </span>
+            )}
+            {task.assignedTo && (
+              <span>Assigné à: {task.assignedTo}</span>
+            )}
           </div>
-        )}
-        
-        <div className="flex justify-end">
-          <Button 
-            variant="outline" 
-            className="gap-1 px-4 py-1 text-sm"
-            onClick={() => onViewDetails(task)}
-          >
-            <span>Détails</span>
-            <ChevronRight size={16} />
-          </Button>
         </div>
+        
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full sm:w-auto mt-2 sm:mt-0"
+          onClick={(e) => {
+            e.stopPropagation();
+            onViewDetails(task);
+          }}
+        >
+          <Info className="h-4 w-4 mr-1" />
+          Détails
+        </Button>
       </div>
-    </BlurContainer>
+    </Card>
   );
 };
 

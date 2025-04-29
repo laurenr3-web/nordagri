@@ -33,11 +33,11 @@ const InterventionCard: React.FC<InterventionCardProps> = ({
   };
 
   return (
-    <Card className={`overflow-hidden transition-all hover:shadow-md animate-fade-in ${getPriorityClass()}`}>
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between mb-4">
-          <h3 className="font-semibold text-lg leading-tight truncate">{intervention.title}</h3>
-          <div className="flex flex-shrink-0 gap-2 ml-2">
+    <Card className={`w-full overflow-hidden transition-all hover:shadow-md animate-fade-in ${getPriorityClass()}`}>
+      <CardContent className="p-4 sm:p-5">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-0 mb-4">
+          <h3 className="font-semibold text-base sm:text-lg leading-tight">{intervention.title}</h3>
+          <div className="flex flex-wrap gap-2 sm:ml-2 sm:flex-shrink-0">
             <StatusBadge status={intervention.status} />
             <PriorityBadge priority={intervention.priority} />
           </div>
@@ -46,24 +46,24 @@ const InterventionCard: React.FC<InterventionCardProps> = ({
         <div className="flex flex-col gap-3 text-sm">
           <div className="p-2 bg-background rounded-md">
             <div className="flex items-center gap-2">
-              <Wrench size={16} className="text-agri-600" />
-              <span className="font-medium truncate">{intervention.equipment}</span>
+              <Wrench size={16} className="text-agri-600 flex-shrink-0" />
+              <span className="font-medium break-words">{intervention.equipment}</span>
             </div>
           </div>
           
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="flex items-center gap-2 text-muted-foreground">
               <MapPin size={14} className="flex-shrink-0" />
-              <span className="truncate">{intervention.location}</span>
+              <span className="break-words">{intervention.location}</span>
             </div>
             
             <div className="flex items-center gap-2 text-muted-foreground">
               <User size={14} className="flex-shrink-0" />
-              <span className="font-medium truncate">{intervention.technician}</span>
+              <span className="font-medium break-words">{intervention.technician}</span>
             </div>
           </div>
           
-          <div className="grid grid-cols-2 gap-3 mt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
             <div className="flex items-center gap-2 text-muted-foreground">
               <CalendarCheck size={14} className="flex-shrink-0" />
               <span>{formatDate(intervention.date)}</span>
@@ -82,17 +82,17 @@ const InterventionCard: React.FC<InterventionCardProps> = ({
         
         {intervention.description && (
           <div className="mt-4 text-sm">
-            <p className="line-clamp-2 text-muted-foreground bg-muted/30 p-2 rounded-md italic">{intervention.description}</p>
+            <p className="text-muted-foreground bg-muted/30 p-2 rounded-md italic line-clamp-3 sm:line-clamp-2">{intervention.description}</p>
           </div>
         )}
       </CardContent>
       
-      <CardFooter className="px-5 py-3 bg-background border-t flex justify-end gap-2">
+      <CardFooter className="px-4 py-3 sm:px-5 bg-background border-t flex flex-col sm:flex-row sm:justify-end gap-2">
         {intervention.status === 'scheduled' && (
           <Button 
             variant="outline" 
             size="sm"
-            className="gap-1"
+            className="w-full sm:w-auto gap-1"
             onClick={() => onStartWork(intervention)}
           >
             <Wrench size={16} />
@@ -101,6 +101,7 @@ const InterventionCard: React.FC<InterventionCardProps> = ({
         )}
         <Button 
           size="sm"
+          className="w-full sm:w-auto"
           onClick={() => onViewDetails(intervention)}
         >
           Détails

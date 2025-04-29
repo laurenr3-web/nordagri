@@ -4,6 +4,7 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { MaintenanceTask, MaintenanceType } from '@/hooks/maintenance/maintenanceSlice';
 import { formatDate, getStatusBadge, getPriorityBadge } from '../MaintenanceUtils';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface MaintenanceByTypeProps {
   tasks: MaintenanceTask[];
@@ -31,34 +32,38 @@ const MaintenanceByType: React.FC<MaintenanceByTypeProps> = ({ tasks, onViewDeta
             <CardTitle className="capitalize text-lg">{type} Maintenance</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Task</TableHead>
-                  <TableHead>Equipment</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Priority</TableHead>
-                  <TableHead>Assigned To</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tasksByType[type].map((task) => (
-                  <TableRow 
-                    key={task.id} 
-                    className="cursor-pointer hover:bg-muted"
-                    onClick={() => onViewDetails(task)}
-                  >
-                    <TableCell className="font-medium">{task.title}</TableCell>
-                    <TableCell>{task.equipment}</TableCell>
-                    <TableCell>{formatDate(task.dueDate)}</TableCell>
-                    <TableCell>{getStatusBadge(task.status)}</TableCell>
-                    <TableCell>{getPriorityBadge(task.priority)}</TableCell>
-                    <TableCell>{task.assignedTo}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <ScrollArea className="w-full overflow-auto">
+              <div className="min-w-[600px]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Task</TableHead>
+                      <TableHead>Equipment</TableHead>
+                      <TableHead>Due Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Priority</TableHead>
+                      <TableHead>Assigned To</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {tasksByType[type].map((task) => (
+                      <TableRow 
+                        key={task.id} 
+                        className="cursor-pointer hover:bg-muted"
+                        onClick={() => onViewDetails(task)}
+                      >
+                        <TableCell className="font-medium">{task.title}</TableCell>
+                        <TableCell>{task.equipment}</TableCell>
+                        <TableCell>{formatDate(task.dueDate)}</TableCell>
+                        <TableCell>{getStatusBadge(task.status)}</TableCell>
+                        <TableCell>{getPriorityBadge(task.priority)}</TableCell>
+                        <TableCell>{task.assignedTo}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </ScrollArea>
           </CardContent>
         </Card>
       ))}
