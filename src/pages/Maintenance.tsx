@@ -1,20 +1,22 @@
 
 import React, { useState, useEffect } from 'react';
-import Navbar from '@/components/layout/Navbar';
 import { useTasksManager } from '@/hooks/maintenance/useTasksManager';
 import { useMaintenanceRealtime } from '@/hooks/maintenance/useMaintenanceRealtime';
-import { MaintenanceTask, MaintenanceStatus, MaintenancePriority, MaintenanceFormValues } from '@/hooks/maintenance/maintenanceSlice';
+import { MaintenanceTask, MaintenanceFormValues } from '@/hooks/maintenance/maintenanceSlice';
 import NewTaskDialog from '@/components/maintenance/NewTaskDialog';
 import MaintenanceHeader from '@/components/maintenance/MaintenanceHeader';
 import MaintenanceContent from '@/components/maintenance/MaintenanceContent';
 import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Navbar from '@/components/layout/Navbar';
 import MaintenanceDashboard from '@/components/dashboard/MaintenanceDashboard';
 import MaintenanceNotificationsPopover from '@/components/maintenance/notifications/MaintenanceNotificationsPopover';
 import MaintenanceCompletionDialog from '@/components/maintenance/dialogs/MaintenanceCompletionDialog';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { LayoutWrapper } from '@/components/layout/LayoutWrapper';
+import { PageHeader } from '@/components/layout/PageHeader';
 
 const Maintenance = () => {
   const [currentView, setCurrentView] = useState('upcoming');
@@ -138,38 +140,40 @@ const Maintenance = () => {
             <MaintenanceNotificationsPopover />
           </div>
           
-          <div className="pt-6 pb-16 px-4 sm:px-6 md:px-8 overflow-x-hidden">
-            <div className="max-w-7xl mx-auto">
-              <Tabs defaultValue="tasks" value={dashboardView} onValueChange={setDashboardView} className="sm:px-[120px]">
-                <div className="flex justify-between items-center mb-6 flex-wrap gap-y-3">
-                  <TabsList>
-                    <TabsTrigger value="tasks">Tâches</TabsTrigger>
-                    <TabsTrigger value="dashboard">Tableau de bord</TabsTrigger>
-                  </TabsList>
-                  
-                  <MaintenanceHeader setIsNewTaskDialogOpen={setIsNewTaskDialogOpen} userName={getUserDisplayName()} />
-                </div>
+          <LayoutWrapper>
+            <PageHeader 
+              title="Maintenance" 
+              description="Suivez et planifiez l'entretien de vos équipements"
+            />
+            <Tabs defaultValue="tasks" value={dashboardView} onValueChange={setDashboardView}>
+              <div className="flex justify-between items-center mb-6 flex-wrap gap-y-3">
+                <TabsList>
+                  <TabsTrigger value="tasks">Tâches</TabsTrigger>
+                  <TabsTrigger value="dashboard">Tableau de bord</TabsTrigger>
+                </TabsList>
                 
-                <TabsContent value="tasks">
-                  <MaintenanceContent 
-                    tasks={tasks} 
-                    currentView={currentView} 
-                    setCurrentView={setCurrentView} 
-                    currentMonth={currentMonth} 
-                    setIsNewTaskDialogOpen={setIsNewTaskDialogOpen} 
-                    updateTaskStatus={updateTaskStatus} 
-                    updateTaskPriority={updateTaskPriority} 
-                    deleteTask={deleteTask} 
-                    userName={getUserDisplayName()} 
-                  />
-                </TabsContent>
-                
-                <TabsContent value="dashboard">
-                  <MaintenanceDashboard tasks={tasks} userName={getUserDisplayName()} />
-                </TabsContent>
-              </Tabs>
-            </div>
-          </div>
+                <MaintenanceHeader setIsNewTaskDialogOpen={setIsNewTaskDialogOpen} userName={getUserDisplayName()} />
+              </div>
+              
+              <TabsContent value="tasks">
+                <MaintenanceContent 
+                  tasks={tasks} 
+                  currentView={currentView} 
+                  setCurrentView={setCurrentView} 
+                  currentMonth={currentMonth} 
+                  setIsNewTaskDialogOpen={setIsNewTaskDialogOpen} 
+                  updateTaskStatus={updateTaskStatus} 
+                  updateTaskPriority={updateTaskPriority} 
+                  deleteTask={deleteTask} 
+                  userName={getUserDisplayName()} 
+                />
+              </TabsContent>
+              
+              <TabsContent value="dashboard">
+                <MaintenanceDashboard tasks={tasks} userName={getUserDisplayName()} />
+              </TabsContent>
+            </Tabs>
+          </LayoutWrapper>
         </div>
       </div>
       

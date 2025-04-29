@@ -6,6 +6,10 @@ import PartsContainer from '@/components/parts/PartsContainer';
 import { useToast } from '@/hooks/use-toast';
 import { checkAuthStatus } from '@/utils/authUtils';
 import { PartsView } from '@/hooks/parts/usePartsFilter';
+import { LayoutWrapper } from "@/components/layout/LayoutWrapper";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 const Parts = () => {
   const { toast } = useToast();
@@ -42,17 +46,22 @@ const Parts = () => {
   
   return (
     <MainLayout>
-      <div className="px-3 sm:px-6">
-        <div className="mb-4 sm:mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold">Gestion des pièces</h1>
-          <p className="text-muted-foreground mt-1 text-base">Gérez votre inventaire de pièces et commandez de nouvelles pièces</p>
-        </div>
+      <LayoutWrapper>
+        <PageHeader 
+          title="Gestion des pièces"
+          description="Gérez votre inventaire de pièces et commandez de nouvelles pièces"
+          action={
+            <Button size="sm">
+              <Plus className="h-4 w-4 mr-1" /> Ajouter une pièce
+            </Button>
+          }
+        />
         <PartsContainer 
           {...partsHookData}
           setCurrentView={setCurrentView}
           refetch={partsHookData.isError ? () => partsHookData.refetch() : undefined}
         />
-      </div>
+      </LayoutWrapper>
     </MainLayout>
   );
 };

@@ -18,8 +18,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             <Navbar />
           </SidebarContent>
         </Sidebar>
-        <div className="flex-1 w-full max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-4 sm:py-6">{children}</div>
+        <div className="flex-1 w-full overflow-x-hidden">
+          {children}
         </div>
       </div>
     </SidebarProvider>

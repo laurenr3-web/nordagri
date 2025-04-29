@@ -6,11 +6,14 @@ import InterventionsContainer from '@/components/interventions/InterventionsCont
 import { useInterventionsState } from '@/hooks/interventions/useInterventionsState';
 import { useInterventionsHandlers } from '@/hooks/interventions/useInterventionsHandlers';
 import { useInterventionsData } from '@/hooks/interventions/useInterventionsData';
-import InterventionDetailsDialog from '@/components/interventions/InterventionDetailsDialog';
 import InterventionsDialogs from '@/components/interventions/InterventionsDialogs';
 import { useQueryClient } from '@tanstack/react-query';
 import { InterventionFormValues } from '@/types/Intervention';
 import { toast } from 'sonner';
+import { LayoutWrapper } from '@/components/layout/LayoutWrapper';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 const InterventionsPage = () => {
   const queryClient = useQueryClient();
@@ -79,9 +82,11 @@ const InterventionsPage = () => {
   if (isLoading) {
     return (
       <MainLayout>
-        <div className="flex-1 flex items-center justify-center">
-          <p>Chargement des interventions...</p>
-        </div>
+        <LayoutWrapper>
+          <div className="flex-1 flex items-center justify-center">
+            <p>Chargement des interventions...</p>
+          </div>
+        </LayoutWrapper>
       </MainLayout>
     );
   }
@@ -95,15 +100,18 @@ const InterventionsPage = () => {
 
   return (
     <MainLayout>
-      <div className="flex-1">
-        <InterventionsHeader 
-          onNewIntervention={handleOpenNewInterventionDialog} 
-          searchQuery={searchQuery}
-          onSearchChange={(query) => handleSearchChange({ target: { value: query } } as React.ChangeEvent<HTMLInputElement>)}
-          selectedPriority={selectedPriority}
-          onPriorityChange={handlePriorityChange}
-          currentView={currentView}
-          setCurrentView={setCurrentView}
+      <LayoutWrapper>
+        <PageHeader 
+          title="Interventions"
+          description="Planifiez et suivez les interventions sur vos équipements"
+          action={
+            <Button 
+              onClick={handleOpenNewInterventionDialog}
+              size="sm"
+            >
+              <Plus className="h-4 w-4 mr-1" /> Nouvelle intervention
+            </Button>
+          }
         />
 
         <InterventionsContainer
@@ -134,7 +142,7 @@ const InterventionsPage = () => {
           interventions={interventions}
           filteredInterventions={filteredInterventions}
         />
-      </div>
+      </LayoutWrapper>
     </MainLayout>
   );
 };

@@ -6,6 +6,8 @@ import EquipmentPageContent from '@/components/equipment/page/EquipmentPageConte
 import { useEquipmentData } from '@/hooks/equipment/useEquipmentData';
 import { EquipmentItem } from '@/components/equipment/hooks/useEquipmentFilters';
 import type { Equipment } from '@/services/supabase/equipmentService';
+import { LayoutWrapper } from "@/components/layout/LayoutWrapper";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const Equipment = () => {
   const { t } = useTranslation();
@@ -46,12 +48,16 @@ const Equipment = () => {
 
   return (
     <MainLayout>
-      <div className="w-full max-w-screen-xl mx-auto px-6 lg:px-12" style={{ overflowX: "hidden" }}>
+      <LayoutWrapper>
+        <PageHeader 
+          title="Équipements" 
+          description="Gérez votre parc matériel et son état"
+        />
         <EquipmentPageContent 
           equipment={transformedEquipment} 
           isLoading={isLoading} 
         />
-      </div>
+      </LayoutWrapper>
     </MainLayout>
   );
 };

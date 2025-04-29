@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import MainLayout from '@/ui/layouts/MainLayout';
 import SettingsTabs from '@/components/settings/SettingsTabs';
@@ -10,6 +9,8 @@ import { PasswordSection } from '@/components/settings/security/PasswordSection'
 import { SimpleNotificationSection } from '@/components/settings/notifications/SimpleNotificationSection';
 import { ModulesSection } from '@/components/settings/farm/ModulesSection';
 import { SubscriptionSection } from '@/components/settings/subscription/SubscriptionSection';
+import { LayoutWrapper } from '@/components/layout/LayoutWrapper';
+import { PageHeader } from '@/components/layout/PageHeader';
 
 /**
  * Page des paramètres de l'application
@@ -34,10 +35,12 @@ const Settings = () => {
   if (authLoading) {
     return (
       <MainLayout>
-        <div className="flex items-center justify-center h-[80vh]">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <span className="ml-2 text-lg">Chargement des paramètres...</span>
-        </div>
+        <LayoutWrapper>
+          <div className="flex items-center justify-center h-[80vh]">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <span className="ml-2 text-lg">Chargement des paramètres...</span>
+          </div>
+        </LayoutWrapper>
       </MainLayout>
     );
   }
@@ -46,7 +49,7 @@ const Settings = () => {
   if (!isAuthenticated) {
     return (
       <MainLayout>
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 py-8">
+        <LayoutWrapper>
           <div className="text-center p-8 bg-muted/30 rounded-lg border border-muted">
             <h2 className="text-xl font-semibold mb-4">Accès restreint</h2>
             <p className="mb-4">Veuillez vous connecter pour accéder aux paramètres de votre compte.</p>
@@ -54,7 +57,7 @@ const Settings = () => {
               Se connecter
             </a>
           </div>
-        </div>
+        </LayoutWrapper>
       </MainLayout>
     );
   }
@@ -112,8 +115,9 @@ const Settings = () => {
 
   return (
     <MainLayout>
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6">
-        <h1 className="text-2xl font-semibold mb-4 mt-2 sm:mb-6 text-center sm:text-left">Paramètres</h1>
+      <LayoutWrapper>
+        <PageHeader title="Paramètres" />
+        
         <SettingsTabs activeTab={activeTab} setActiveTab={setActiveTab} />
         <div className="mt-6">
           {loading && activeTab !== 'subscription' ? (
@@ -125,7 +129,7 @@ const Settings = () => {
             renderActiveTabContent()
           )}
         </div>
-      </div>
+      </LayoutWrapper>
     </MainLayout>
   );
 };
