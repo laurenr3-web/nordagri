@@ -14,6 +14,7 @@ interface PartsListProps {
   openOrderDialog: (part: Part) => void;
   onDeleteSelected?: (partIds: (string | number)[]) => Promise<void>;
   isDeleting?: boolean;
+  animatingOut?: (string | number)[];
 }
 
 const PartsList: React.FC<PartsListProps> = ({ 
@@ -21,10 +22,10 @@ const PartsList: React.FC<PartsListProps> = ({
   openPartDetails, 
   openOrderDialog,
   onDeleteSelected,
-  isDeleting = false
+  isDeleting = false,
+  animatingOut = []
 }) => {
   const [selectedParts, setSelectedParts] = useState<(string | number)[]>([]);
-  const [animatingOut, setAnimatingOut] = useState<(string | number)[]>([]);
   const allCheckboxRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -50,7 +51,7 @@ const PartsList: React.FC<PartsListProps> = ({
   const handleDeleteSelected = async () => {
     if (onDeleteSelected && selectedParts.length > 0) {
       // Add all selected parts to animating out state
-      setAnimatingOut(prev => [...prev, ...selectedParts]);
+      // We don't need to update the local animatingOut state here since it comes from props now
       
       try {
         await onDeleteSelected(selectedParts);
@@ -58,8 +59,6 @@ const PartsList: React.FC<PartsListProps> = ({
         setSelectedParts([]);
       } catch (error) {
         console.error('Error deleting parts:', error);
-        // Remove failed parts from animating state
-        setAnimatingOut([]);
       }
     }
   };
