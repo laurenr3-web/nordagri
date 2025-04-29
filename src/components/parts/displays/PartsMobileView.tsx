@@ -14,6 +14,7 @@ interface PartsMobileViewProps {
   openPartDetails: (part: Part) => void;
   openOrderDialog: (part: Part) => void;
   getStockStatusColor: (part: Part) => string;
+  animatingOut?: (string | number)[];
 }
 
 export const PartsMobileView: React.FC<PartsMobileViewProps> = ({
@@ -23,11 +24,17 @@ export const PartsMobileView: React.FC<PartsMobileViewProps> = ({
   openPartDetails,
   openOrderDialog,
   getStockStatusColor,
+  animatingOut = []
 }) => {
   return (
     <div className="md:hidden divide-y">
       {parts.map((part) => (
-        <div key={part.id} className="p-3 space-y-3">
+        <div 
+          key={part.id} 
+          className={`p-3 space-y-3 transition-all duration-300 ${
+            animatingOut.includes(part.id) ? 'opacity-0 h-0 overflow-hidden p-0' : 'opacity-100'
+          }`}
+        >
           <div className="flex items-start gap-3">
             <Checkbox
               checked={selectedParts.includes(part.id)}

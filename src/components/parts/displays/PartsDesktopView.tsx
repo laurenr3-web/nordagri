@@ -13,6 +13,7 @@ interface PartsDesktopViewProps {
   openPartDetails: (part: Part) => void;
   openOrderDialog: (part: Part) => void;
   getStockStatusColor: (part: Part) => string;
+  animatingOut?: (string | number)[];
 }
 
 export const PartsDesktopView: React.FC<PartsDesktopViewProps> = ({
@@ -22,6 +23,7 @@ export const PartsDesktopView: React.FC<PartsDesktopViewProps> = ({
   openPartDetails,
   openOrderDialog,
   getStockStatusColor,
+  animatingOut = []
 }) => {
   return (
     <div className="hidden md:block">
@@ -43,7 +45,12 @@ export const PartsDesktopView: React.FC<PartsDesktopViewProps> = ({
         </thead>
         <tbody className="divide-y">
           {parts.map((part) => (
-            <tr key={part.id} className="hover:bg-secondary/30">
+            <tr 
+              key={part.id} 
+              className={`hover:bg-secondary/30 transition-all duration-300 ${
+                animatingOut.includes(part.id) ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100'
+              }`}
+            >
               <td className="p-3">
                 <Checkbox
                   checked={selectedParts.includes(part.id)}

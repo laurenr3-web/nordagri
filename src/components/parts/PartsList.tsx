@@ -24,6 +24,7 @@ const PartsList: React.FC<PartsListProps> = ({
   isDeleting = false
 }) => {
   const [selectedParts, setSelectedParts] = useState<(string | number)[]>([]);
+  const [animatingOut, setAnimatingOut] = useState<(string | number)[]>([]);
   const allCheckboxRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -48,8 +49,18 @@ const PartsList: React.FC<PartsListProps> = ({
 
   const handleDeleteSelected = async () => {
     if (onDeleteSelected && selectedParts.length > 0) {
-      await onDeleteSelected(selectedParts);
-      setSelectedParts([]); // Reset selection after deletion
+      // Add all selected parts to animating out state
+      setAnimatingOut(prev => [...prev, ...selectedParts]);
+      
+      try {
+        await onDeleteSelected(selectedParts);
+        // Reset selection after successful deletion
+        setSelectedParts([]);
+      } catch (error) {
+        console.error('Error deleting parts:', error);
+        // Remove failed parts from animating state
+        setAnimatingOut([]);
+      }
     }
   };
 
@@ -61,6 +72,9 @@ const PartsList: React.FC<PartsListProps> = ({
 
   const allSelected = parts.length > 0 && selectedParts.length === parts.length;
   const someSelected = selectedParts.length > 0 && selectedParts.length < parts.length;
+  
+  // Filter out parts that are being animated for deletion
+  const visibleParts = parts.filter(part => !animatingOut.includes(part.id));
 
   return (
     <BlurContainer className="overflow-hidden rounded-lg animate-fade-in">
@@ -86,21 +100,23 @@ const PartsList: React.FC<PartsListProps> = ({
       )}
 
       <PartsDesktopView 
-        parts={parts}
+        parts={visibleParts}
         selectedParts={selectedParts}
         onSelectPart={handleSelectPart}
         openPartDetails={openPartDetails}
         openOrderDialog={openOrderDialog}
         getStockStatusColor={getStockStatusColor}
+        animatingOut={animatingOut}
       />
 
       <PartsMobileView 
-        parts={parts}
+        parts={visibleParts}
         selectedParts={selectedParts}
         onSelectPart={handleSelectPart}
         openPartDetails={openPartDetails}
         openOrderDialog={openOrderDialog}
         getStockStatusColor={getStockStatusColor}
+        animatingOut={animatingOut}
       />
     </BlurContainer>
   );

@@ -2,7 +2,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deletePart } from '@/services/supabase/parts';
 import { useToast } from '@/hooks/use-toast';
-import { ensureNumberId } from '@/utils/typeGuards';
 
 export function useDeletePart() {
   const queryClient = useQueryClient();
@@ -25,11 +24,6 @@ export function useDeletePart() {
         title: "Pièce supprimée",
         description: `La pièce a été supprimée avec succès.`,
       });
-      
-      // Force a page refresh to ensure UI is updated
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
     },
     onError: (error: any) => {
       console.error('Error in deletePart mutation:', error);

@@ -30,6 +30,7 @@ const EquipmentPartsTable: React.FC<EquipmentPartsTableProps> = ({
   const { toast } = useToast();
   const deletePartMutation = useDeletePart();
   const [deletingPart, setDeletingPart] = React.useState<{id: number | string, name: string} | null>(null);
+  const [animatingRows, setAnimatingRows] = React.useState<(number | string)[]>([]);
 
   const openDeleteDialog = (partId: number | string, partName: string) => {
     setDeletingPart({ id: partId, name: partName });
@@ -39,6 +40,9 @@ const EquipmentPartsTable: React.FC<EquipmentPartsTableProps> = ({
     if (!deletingPart) return;
     
     try {
+      // Add the part ID to animating rows first
+      setAnimatingRows(prev => [...prev, deletingPart.id]);
+
       if (onDeletePart) {
         await onDeletePart(deletingPart.id);
         toast({
@@ -48,11 +52,6 @@ const EquipmentPartsTable: React.FC<EquipmentPartsTableProps> = ({
       } else {
         await deletePartMutation.mutateAsync(deletingPart.id);
       }
-      
-      // Refresh page after deletion to ensure UI is updated
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
     } catch (error) {
       console.error("Erreur lors de la suppression:", error);
       toast({
@@ -60,6 +59,8 @@ const EquipmentPartsTable: React.FC<EquipmentPartsTableProps> = ({
         description: error instanceof Error ? error.message : "Erreur lors de la suppression de la pièce",
         variant: "destructive",
       });
+      // Remove from animating list if error
+      setAnimatingRows(prev => prev.filter(id => id !== deletingPart.id));
     } finally {
       setDeletingPart(null);
     }
@@ -77,6 +78,9 @@ const EquipmentPartsTable: React.FC<EquipmentPartsTableProps> = ({
     );
   }
 
+  // Filter out parts that are being animated out
+  const visibleParts = parts.filter(part => !animatingRows.includes(part.id));
+
   return (
     <div className="overflow-x-auto w-full">
       <Table className="min-w-[900px]">
@@ -93,8 +97,11 @@ const EquipmentPartsTable: React.FC<EquipmentPartsTableProps> = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {parts.map((part) => (
-            <TableRow key={part.id}>
+          {visibleParts.map((part) => (
+            <TableRow 
+              key={part.id}
+              className="transition-opacity duration-300"
+            >
               <TableCell>
                 <div className="h-10 w-10 rounded-md overflow-hidden">
                   <img 
