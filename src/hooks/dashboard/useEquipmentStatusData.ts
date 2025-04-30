@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthContext } from '@/providers/AuthProvider';
-import { format, isBefore, isAfter, differenceInDays } from 'date-fns';
+import { format, isBefore, isAfter, differenceInDays, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { EquipmentItem } from './types/equipmentTypes';
 
@@ -34,7 +34,7 @@ export function useEquipmentStatusData() {
           throw equipmentError;
         }
 
-        console.log('Equipment data fetched:', equipment?.length || 0);
+        console.log('Equipment data fetched:', equipment?.length || 0, equipment);
         
         if (!equipment || equipment.length === 0) {
           setEquipmentData([]);
@@ -42,18 +42,35 @@ export function useEquipmentStatusData() {
           return;
         }
         
+        // Get equipment IDs for the query
+        const equipmentIds = equipment.map(eq => eq.id);
+        
         // Fetch upcoming maintenance tasks for each equipment
         const { data: maintenanceTasks, error: maintenanceError } = await supabase
           .from('maintenance_tasks')
-          .select('id, title, equipment_id, type, due_date, priority')
+          .select('id, title, equipment_id, type, due_date, priority, status')
+          .in('equipment_id', equipmentIds)
           .in('status', ['scheduled', 'pending-parts'])
           .order('due_date', { ascending: true });
         
         if (maintenanceError) {
-          throw maintenanceError;
+          console.error('Error fetching maintenance tasks:', maintenanceError);
         }
 
-        console.log('Maintenance tasks fetched:', maintenanceTasks?.length || 0);
+        console.log('Maintenance tasks fetched:', maintenanceTasks?.length || 0, maintenanceTasks);
+        
+        // Fetch maintenance plans for service intervals
+        const { data: maintenancePlans, error: plansError } = await supabase
+          .from('maintenance_plans')
+          .select('id, equipment_id, interval, frequency, trigger_hours')
+          .in('equipment_id', equipmentIds)
+          .eq('active', true);
+          
+        if (plansError) {
+          console.error('Error fetching maintenance plans:', plansError);
+        }
+
+        console.log('Maintenance plans fetched:', maintenancePlans?.length || 0, maintenancePlans);
         
         // Transform equipment data with maintenance information
         const enhancedEquipment = equipment.map(item => {
@@ -62,11 +79,16 @@ export function useEquipmentStatusData() {
             ?.filter(task => task.equipment_id === item.id)
             .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())[0];
           
+          // Get service interval from maintenance plans
+          const servicePlan = maintenancePlans
+            ?.filter(plan => plan.equipment_id === item.id)
+            .sort((a, b) => (a.trigger_hours || 0) - (b.trigger_hours || 0))[0];
+          
           // Determine maintenance status
           let maintenanceStatus = 'À jour';
           const currentDate = new Date();
           
-          if (upcomingMaintenance) {
+          if (upcomingMaintenance?.due_date) {
             const dueDate = new Date(upcomingMaintenance.due_date);
             const daysDiff = differenceInDays(dueDate, currentDate);
             
@@ -75,16 +97,18 @@ export function useEquipmentStatusData() {
             } else if (daysDiff <= 30) {
               if (daysDiff === 1) {
                 maintenanceStatus = 'Maintenance demain';
-              } else {
+              } else if (daysDiff < 7) {
                 maintenanceStatus = `Maintenance dans ${daysDiff} jours`;
+              } else {
+                const weeks = Math.floor(daysDiff / 7);
+                maintenanceStatus = `Maintenance dans ${weeks} semaine${weeks > 1 ? 's' : ''}`;
               }
             }
           }
 
-          // Get default service threshold based on equipment type
-          // This could be improved by storing thresholds in the database
-          const serviceThreshold = 500; // Default hours before service
+          // Calculate service hours and threshold
           const currentHours = item.valeur_actuelle || 0;
+          const serviceThreshold = servicePlan?.trigger_hours || 500; // Default if not defined
           
           return {
             id: item.id,
@@ -103,7 +127,7 @@ export function useEquipmentStatusData() {
           };
         });
         
-        console.log('Enhanced equipment data prepared:', enhancedEquipment.length);
+        console.log('Enhanced equipment data prepared:', enhancedEquipment);
         setEquipmentData(enhancedEquipment);
       } catch (err) {
         console.error('Error fetching equipment status data:', err);

@@ -43,16 +43,18 @@ export const EquipmentCard: React.FC<EquipmentCardProps> = ({
   
   // Determine if maintenance is overdue
   const isOverdue = nextService?.due.includes('retard');
-  const isUpcoming = nextService?.due.includes('jours') || nextService?.due.includes('demain');
+  const isUpcoming = nextService?.due.includes('jours') || nextService?.due.includes('demain') || nextService?.due.includes('semaine');
 
   // Select progress bar color based on usage
   const progressColor = usagePercentage > 90 ? 'bg-orange-500' : 'bg-emerald-500';
 
   return (
     <Card 
-      className={`bg-white rounded-xl overflow-hidden hover:shadow-md transition-shadow duration-300 equipment-card ${className}`}
+      className={`bg-white rounded-xl overflow-hidden hover:shadow-md transition-shadow duration-300 equipment-card animate-fadeIn ${className}`}
       style={{
         ...style,
+        opacity: 1, // Ensure cards are visible
+        animation: 'fadeIn 0.5s forwards',
       }}
       onClick={onClick}
     >

@@ -28,7 +28,7 @@ const EquipmentSection: React.FC<EquipmentSectionProps> = ({
   const displayedEquipment = equipmentData?.slice(0, 3) || [];
 
   // For debugging
-  console.log('Equipment data available:', equipmentData?.length || 0);
+  console.log('EquipmentSection - Equipment data available:', equipmentData?.length || 0, equipmentData);
 
   return (
     <DashboardSection 

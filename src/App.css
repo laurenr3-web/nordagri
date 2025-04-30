@@ -8,3 +8,7 @@
   opacity: 0;
   animation: fadeIn 0.5s forwards;
 }
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s forwards;
+}
