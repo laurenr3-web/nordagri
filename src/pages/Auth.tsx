@@ -28,6 +28,14 @@ const Auth = () => {
       const refreshToken = params.get('refresh_token');
       const type = params.get('type');
       
+      // Log parameters for debugging
+      console.log('Auth check parameters:', { 
+        hasHash: !!location.hash, 
+        type, 
+        hasAccessToken: !!accessToken, 
+        hasRefreshToken: !!refreshToken 
+      });
+      
       if (accessToken && refreshToken && type === 'recovery') {
         // Handle password reset flow
         try {
@@ -71,6 +79,8 @@ const Auth = () => {
         } finally {
           setVerifyingEmail(false);
         }
+      } else {
+        setLoading(false);
       }
     };
     

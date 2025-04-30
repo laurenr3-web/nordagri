@@ -42,7 +42,8 @@ export function useAuthListener(
         }, 0);
         
         // Rediriger l'utilisateur si spécifié et sur la page d'auth
-        if (location.pathname === '/auth') {
+        // Ne pas rediriger si nous sommes sur la page d'authentification avec un hash (confirmation d'email)
+        if (location.pathname === '/auth' && !location.hash) {
           const params = new URLSearchParams(location.search);
           const returnPath = params.get('returnTo') || redirectTo || '/dashboard';
           console.log(`Redirecting after ${event} to ${returnPath}`);
