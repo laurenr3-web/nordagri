@@ -61,17 +61,23 @@ export function useSessionCheck(
         }
         
         // Ne pas rediriger si nous sommes sur la page d'authentification avec un hash (confirmation d'email)
-        if (location.pathname === '/auth' && location.hash) {
-          console.log('Sur la page de confirmation email, pas de redirection automatique');
+        // ou avec des paramètres spécifiques dans l'URL
+        const isAuthWithVerification = location.pathname === '/auth' && 
+                                      (location.hash || 
+                                       location.search.includes('reset=true') || 
+                                       location.search.includes('verification=true'));
+        
+        if (isAuthWithVerification) {
+          console.log('Sur la page de confirmation email ou réinitialisation, pas de redirection automatique');
         } 
         // Gérer les redirections uniquement si nous ne sommes pas en train de vérifier un email
         else if (requireAuth && !currentSession) {
           // Stocker l'URL actuelle pour rediriger l'utilisateur après connexion
           const currentPath = location.pathname === '/auth' ? '/dashboard' : location.pathname + location.search;
           navigate(`/auth?returnTo=${encodeURIComponent(currentPath)}`, { replace: true });
-        } else if (currentSession && location.pathname === '/auth' && !location.hash) {
+        } else if (currentSession && location.pathname === '/auth' && !location.hash && !location.search.includes('reset=true')) {
           // Rediriger depuis la page d'auth vers la destination spécifiée
-          // Seulement si nous ne sommes pas sur une confirmation d'email
+          // Seulement si nous ne sommes pas sur une confirmation d'email ou réinitialisation
           const returnPath = new URLSearchParams(location.search).get('returnTo') || '/dashboard';
           navigate(returnPath, { replace: true });
         } else if (currentSession && location.pathname === '/') {

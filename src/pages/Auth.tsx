@@ -20,66 +20,91 @@ const Auth = () => {
     return searchParams.get('returnTo') || '/dashboard';
   };
 
-  // Check if the user is coming from a verification email
+  // Check if the user is coming from a verification email and handle auth parameters
   useEffect(() => {
     const checkEmailVerification = async () => {
-      // Vérifier si nous avons des paramètres dans le hash (confirmation email ou reset password)
-      const hashParams = new URLSearchParams(location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
-      const refreshToken = hashParams.get('refresh_token');
-      const type = hashParams.get('type');
-      
-      // Log parameters for debugging
-      console.log('Auth check parameters:', { 
-        hasHash: !!location.hash, 
-        type, 
-        hasAccessToken: !!accessToken, 
-        hasRefreshToken: !!refreshToken 
-      });
-      
-      if (accessToken) {
-        try {
+      try {
+        // Vérifier si nous avons un hash (qui peut contenir access_token, etc.)
+        if (location.hash) {
           setVerifyingEmail(true);
           
-          // Définir la session avec les tokens
-          const { data, error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken || '',
+          // Extraire les paramètres du hash
+          const hashParams = new URLSearchParams(location.hash.substring(1));
+          const accessToken = hashParams.get('access_token');
+          const refreshToken = hashParams.get('refresh_token');
+          const type = hashParams.get('type');
+          const error = hashParams.get('error');
+          const errorCode = hashParams.get('error_code');
+          const errorDescription = hashParams.get('error_description');
+
+          // Log pour débogage
+          console.log('Auth parameters:', { 
+            hasHash: !!location.hash, 
+            type, 
+            hasAccessToken: !!accessToken,
+            hasRefreshToken: !!refreshToken,
+            error,
+            errorCode,
+            errorDescription
           });
           
+          // Gérer les erreurs dans les paramètres
           if (error) {
-            toast.error("Erreur lors de la vérification de votre session: " + error.message);
-            console.error('Session verification error:', error);
-          } else {
-            if (type === 'recovery') {
-              // Redirection vers la page de changement de mot de passe
-              toast.success("Vous pouvez maintenant définir votre nouveau mot de passe");
-              navigate('/settings?tab=security');
-            } else if (type === 'signup') {
-              // L'utilisateur a vérifié son email et est maintenant connecté
-              toast.success("Email vérifié avec succès! Vous êtes maintenant connecté.");
-              navigate('/dashboard');
+            if (errorCode === 'otp_expired') {
+              toast.error("Le lien de vérification a expiré. Veuillez demander un nouveau lien.");
             } else {
-              // Autre type de confirmation, rediriger vers le dashboard
-              navigate('/dashboard');
+              toast.error(`Erreur: ${errorDescription || error}`);
             }
+            setLoading(false);
+            setVerifyingEmail(false);
+            return;
           }
-        } catch (error: any) {
-          console.error('Email verification error:', error);
-          toast.error("Erreur lors de la vérification: " + error.message);
-        } finally {
-          setVerifyingEmail(false);
+          
+          // Si nous avons un token valide, configurer la session
+          if (accessToken) {
+            const { data, error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken || '',
+            });
+            
+            if (error) {
+              toast.error("Erreur lors de la vérification de votre session: " + error.message);
+              console.error('Session verification error:', error);
+              setVerifyingEmail(false);
+              setLoading(false);
+              return;
+            }
+            
+            if (data.session) {
+              if (type === 'recovery') {
+                // Redirection vers la page de changement de mot de passe
+                toast.success("Vous pouvez maintenant définir votre nouveau mot de passe");
+                navigate('/settings?tab=security');
+              } else if (type === 'signup' || type === 'magiclink') {
+                // L'utilisateur a vérifié son email et est maintenant connecté
+                toast.success("Email vérifié avec succès! Vous êtes maintenant connecté.");
+                navigate('/dashboard');
+              } else {
+                // Autre type de confirmation, rediriger vers le dashboard
+                navigate('/dashboard');
+              }
+            }
+          } else {
+            setLoading(false);
+          }
+        } else {
+          setLoading(false);
         }
-      } else {
+      } catch (error: any) {
+        console.error('Email verification error:', error);
+        toast.error("Erreur lors de la vérification: " + error.message);
         setLoading(false);
+      } finally {
+        setVerifyingEmail(false);
       }
     };
     
-    if (location.hash) {
-      checkEmailVerification();
-    } else {
-      setLoading(false);
-    }
+    checkEmailVerification();
   }, [location, navigate]);
 
   useEffect(() => {

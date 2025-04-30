@@ -19,8 +19,10 @@ export const useAuthHandlers = (onSuccess?: () => void) => {
     setLoading(true);
     
     try {
+      const redirectUrl = new URL('/auth', window.location.origin).toString();
+
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth?reset=true`,
+        redirectTo: redirectUrl,
       });
       
       if (error) throw error;
@@ -72,6 +74,10 @@ export const useAuthHandlers = (onSuccess?: () => void) => {
     lastName: string
   ) => {
     try {
+      // Construct an absolute URL for redirection
+      const redirectUrl = new URL('/auth', window.location.origin).toString();
+      console.log("URL de redirection pour inscription:", redirectUrl);
+      
       // First register the user
       const { error: signUpError } = await supabase.auth.signUp({
         email,
@@ -81,9 +87,8 @@ export const useAuthHandlers = (onSuccess?: () => void) => {
             first_name: firstName,
             last_name: lastName,
           },
-          // Utilisez l'URL complète de l'application pour la redirection
-          // Assurez-vous d'utiliser l'URL de votre application, pas l'URL Supabase
-          emailRedirectTo: `${window.location.origin}/auth`,
+          // Utilisez l'URL complète absolue pour la redirection
+          emailRedirectTo: redirectUrl,
         }
       });
       
