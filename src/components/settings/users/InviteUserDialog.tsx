@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { DialogWrapper } from '@/components/ui/dialog-wrapper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +12,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 
 const inviteUserSchema = z.object({
   email: z.string().email("L'email n'est pas valide"),
-  role: z.enum(['administrator', 'employee'])
+  role: z.enum(['viewer', 'editor', 'admin'])
 });
 
 type InviteUserFormData = z.infer<typeof inviteUserSchema>;
@@ -27,13 +27,13 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
   const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<InviteUserFormData>({
     resolver: zodResolver(inviteUserSchema),
     defaultValues: {
-      role: 'employee'
+      role: 'viewer'
     }
   });
 
   const onSubmit = async (data: InviteUserFormData) => {
     const success = await inviteUser({
-      email: data.email,  // Explicitly pass email and role
+      email: data.email,
       role: data.role
     });
     if (success) {
@@ -45,7 +45,7 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
   return (
     <DialogWrapper
       title="Inviter un utilisateur"
-      description="Envoyer une invitation à un nouvel utilisateur"
+      description="Envoyer une invitation à un nouvel utilisateur pour rejoindre votre ferme"
       open={open}
       onOpenChange={onOpenChange}
     >
@@ -66,15 +66,16 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
         <div className="space-y-2">
           <Label htmlFor="role">Rôle</Label>
           <Select 
-            onValueChange={(value: 'administrator' | 'employee') => setValue('role', value)}
-            defaultValue="employee"
+            onValueChange={(value: 'viewer' | 'editor' | 'admin') => setValue('role', value)}
+            defaultValue="viewer"
           >
             <SelectTrigger>
               <SelectValue placeholder="Sélectionner un rôle" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="administrator">Administrateur</SelectItem>
-              <SelectItem value="employee">Employé</SelectItem>
+              <SelectItem value="viewer">Lecteur</SelectItem>
+              <SelectItem value="editor">Éditeur</SelectItem>
+              <SelectItem value="admin">Administrateur</SelectItem>
             </SelectContent>
           </Select>
           {errors.role && (

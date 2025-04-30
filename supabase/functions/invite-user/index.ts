@@ -25,6 +25,14 @@ serve(async (req) => {
       );
     }
 
+    // Vérifier que le rôle est valide
+    if (!["viewer", "editor", "admin"].includes(role)) {
+      return new Response(
+        JSON.stringify({ error: "Rôle invalide. Les rôles autorisés sont: viewer, editor, admin" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
+    }
+
     // Récupérer les clés d'API depuis les variables d'environnement
     const supabaseUrl = Deno.env.get("SUPABASE_URL") as string;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") as string;
@@ -52,6 +60,28 @@ serve(async (req) => {
     // Créer un client admin pour accéder aux fonctions d'administration
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
     
+    // Vérifier si l'utilisateur a les droits pour inviter (owner ou admin)
+    const { data: userRoleData, error: userRoleError } = await supabase
+      .from('farm_members')
+      .select('role')
+      .eq('farm_id', farmId)
+      .eq('user_id', user.id)
+      .single();
+      
+    if (userRoleError || !userRoleData) {
+      return new Response(
+        JSON.stringify({ error: "Vous n'avez pas accès à cette ferme ou les droits nécessaires" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+      );
+    }
+    
+    if (!["owner", "admin"].includes(userRoleData.role)) {
+      return new Response(
+        JSON.stringify({ error: "Seuls les administrateurs et propriétaires peuvent inviter des utilisateurs" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+      );
+    }
+    
     // Vérifier si l'utilisateur existe déjà
     const { data: existingUsers, error: userQueryError } = await supabaseAdmin.auth.admin.listUsers();
     
@@ -63,41 +93,97 @@ serve(async (req) => {
     }
     
     const existingUser = existingUsers?.users.find(u => u.email === email);
+    let userId = existingUser?.id;
     
-    if (!existingUser) {
-      return new Response(
-        JSON.stringify({ error: "Utilisateur non trouvé. L'utilisateur doit créer un compte avant d'être invité." }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
-      );
+    // Si l'utilisateur existe, vérifier s'il est déjà membre de cette ferme
+    if (userId) {
+      const { data: existingMember, error: memberError } = await supabase
+        .from('farm_members')
+        .select('*')
+        .eq('farm_id', farmId)
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      if (memberError) {
+        return new Response(
+          JSON.stringify({ error: "Erreur lors de la vérification des membres existants" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+        );
+      }
+      
+      if (existingMember) {
+        return new Response(
+          JSON.stringify({ error: "Cet utilisateur est déjà membre de cette ferme" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+        );
+      }
     }
     
-    // Utiliser la fonction RPC pour ajouter l'utilisateur à la ferme
-    const { data: rpcResult, error: rpcError } = await supabase.rpc(
-      "invite_user_to_farm",
-      {
+    // Créer une invitation dans la table invitations
+    const { data: invitation, error: invitationError } = await supabase
+      .from('invitations')
+      .insert({
         email: email,
         farm_id: farmId,
         role: role,
-      }
-    );
+        invited_by: user.id,
+        status: 'pending'
+      })
+      .select()
+      .single();
     
-    if (rpcError) {
+    if (invitationError) {
+      // Vérifier si l'erreur est due à une invitation déjà existante
+      if (invitationError.message.includes('duplicate key value violates unique constraint')) {
+        return new Response(
+          JSON.stringify({ error: "Une invitation a déjà été envoyée à cet email pour cette ferme" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+        );
+      }
+      
       return new Response(
-        JSON.stringify({ error: rpcError.message }),
+        JSON.stringify({ error: "Erreur lors de la création de l'invitation: " + invitationError.message }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
       );
     }
     
-    // Vérifier le résultat de l'invitation
-    if (!rpcResult.success) {
-      return new Response(
-        JSON.stringify({ error: rpcResult.message }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-      );
+    // Si l'utilisateur existe déjà, on peut directement l'ajouter à la ferme
+    if (existingUser) {
+      // Ajouter l'utilisateur à la ferme
+      const { error: addMemberError } = await supabase
+        .from('farm_members')
+        .insert({
+          user_id: existingUser.id,
+          farm_id: farmId,
+          role: role,
+          created_by: user.id
+        });
+      
+      if (addMemberError) {
+        return new Response(
+          JSON.stringify({ error: "Erreur lors de l'ajout de l'utilisateur à la ferme: " + addMemberError.message }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+        );
+      }
+      
+      // Mettre à jour le statut de l'invitation
+      await supabase
+        .from('invitations')
+        .update({ status: 'accepted' })
+        .eq('id', invitation.id);
     }
-
+    
+    // TODO: Envoyer un email d'invitation si nécessaire (à implémenter avec un service d'email)
+    
     return new Response(
-      JSON.stringify({ success: true, message: "Invitation envoyée avec succès" }),
+      JSON.stringify({ 
+        success: true, 
+        message: "Invitation envoyée avec succès",
+        data: {
+          invitation_id: invitation.id,
+          user_exists: !!existingUser
+        }
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
   } catch (error) {

@@ -30,3 +30,6 @@ enabled = true
 
 [functions.invite-user]
 verify_jwt = true
+
+[functions.notifications]
+verify_jwt = true

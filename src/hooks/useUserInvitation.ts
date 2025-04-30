@@ -2,60 +2,48 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useFarmId } from './useFarmId';
 
 interface InviteUserProps {
-  email: string;  // Make email explicitly required
-  role: 'administrator' | 'employee';
+  email: string;
+  role: 'viewer' | 'editor' | 'admin'; // Roles mis à jour
 }
 
 export function useUserInvitation() {
   const [isLoading, setIsLoading] = useState(false);
+  const { farmId } = useFarmId();
 
   const inviteUser = async ({ email, role }: InviteUserProps) => {
     if (!email) {
       toast.error("L'email est requis");
       return false;
     }
+    
+    if (!farmId) {
+      toast.error("Aucune ferme associée à votre compte");
+      return false;
+    }
 
     setIsLoading(true);
     try {
-      // 1. Vérifier si l'utilisateur a un farm_id
-      const { data: creatorProfile, error: profileError } = await supabase
-        .from('profiles')
-        .select('farm_id')
-        .eq('id', (await supabase.auth.getUser()).data.user?.id)
-        .single();
-
-      if (profileError || !creatorProfile.farm_id) {
-        throw new Error("Impossible de récupérer la ferme de l'utilisateur actuel");
-      }
-
-      // 2. Créer l'utilisateur via Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email,
-        email_confirm: true,
+      // Utiliser la fonction Edge pour inviter l'utilisateur
+      const { data, error } = await supabase.functions.invoke('invite-user', {
+        body: { 
+          email,
+          role,
+          farmId 
+        }
       });
 
-      if (authError) {
-        if (authError.message.includes('already exists')) {
-          throw new Error("Cet email est déjà utilisé");
-        }
-        throw authError;
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      if (!data?.success) {
+        throw new Error(data?.message || "Une erreur est survenue lors de l'invitation");
       }
 
-      // 3. Assigner le rôle à l'utilisateur
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: authData.user.id,
-          role: role,
-        });
-
-      if (roleError) {
-        throw roleError;
-      }
-
-      toast.success("L'utilisateur a été invité avec succès");
+      toast.success(`Invitation envoyée à ${email}`);
       return true;
     } catch (error: any) {
       toast.error(error.message || "Une erreur est survenue lors de l'invitation");
