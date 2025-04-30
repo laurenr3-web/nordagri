@@ -14,10 +14,14 @@ export function useEquipmentStatusData() {
 
   useEffect(() => {
     async function fetchEquipmentWithMaintenance() {
-      if (!user?.id) return;
+      if (!user?.id) {
+        setLoading(false);
+        return;
+      }
       
       try {
         setLoading(true);
+        console.log('Fetching equipment data for user:', user.id);
         
         // Fetch equipment data
         const { data: equipment, error: equipmentError } = await supabase
@@ -26,7 +30,17 @@ export function useEquipmentStatusData() {
           .eq('owner_id', user.id)
           .order('name');
         
-        if (equipmentError) throw equipmentError;
+        if (equipmentError) {
+          throw equipmentError;
+        }
+
+        console.log('Equipment data fetched:', equipment?.length || 0);
+        
+        if (!equipment || equipment.length === 0) {
+          setEquipmentData([]);
+          setLoading(false);
+          return;
+        }
         
         // Fetch upcoming maintenance tasks for each equipment
         const { data: maintenanceTasks, error: maintenanceError } = await supabase
@@ -35,13 +49,17 @@ export function useEquipmentStatusData() {
           .in('status', ['scheduled', 'pending-parts'])
           .order('due_date', { ascending: true });
         
-        if (maintenanceError) throw maintenanceError;
+        if (maintenanceError) {
+          throw maintenanceError;
+        }
+
+        console.log('Maintenance tasks fetched:', maintenanceTasks?.length || 0);
         
         // Transform equipment data with maintenance information
         const enhancedEquipment = equipment.map(item => {
           // Get upcoming maintenance for this equipment
           const upcomingMaintenance = maintenanceTasks
-            .filter(task => task.equipment_id === item.id)
+            ?.filter(task => task.equipment_id === item.id)
             .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())[0];
           
           // Determine maintenance status
@@ -85,6 +103,7 @@ export function useEquipmentStatusData() {
           };
         });
         
+        console.log('Enhanced equipment data prepared:', enhancedEquipment.length);
         setEquipmentData(enhancedEquipment);
       } catch (err) {
         console.error('Error fetching equipment status data:', err);

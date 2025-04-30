@@ -50,32 +50,40 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
 }) => {
   const navigate = useNavigate();
 
+  // Log the equipment data for debugging
+  console.log('EnhancedDashboard received equipmentData:', equipmentData?.length || 0);
+
   // Generate search items from all available data
-  const searchItems = [...equipmentData.map(item => ({
-    id: item.id,
-    title: item.name,
-    subtitle: item.type,
-    type: 'equipment' as const,
-    url: `/equipment/${item.id}`
-  })), ...urgentInterventions.map(item => ({
-    id: item.id,
-    title: item.title,
-    subtitle: item.equipment,
-    type: 'intervention' as const,
-    url: `/interventions?id=${item.id}`
-  })), ...stockAlerts.map(item => ({
-    id: item.id,
-    title: item.name,
-    subtitle: `Stock: ${item.currentStock}/${item.reorderPoint}`,
-    type: 'part' as const,
-    url: `/parts?id=${item.id}`
-  })), ...upcomingTasks.map(item => ({
-    id: item.id,
-    title: item.title,
-    subtitle: item.description,
-    type: 'task' as const,
-    url: `/maintenance?taskId=${item.id}`
-  }))];
+  const searchItems = [
+    ...(equipmentData || []).map(item => ({
+      id: item.id,
+      title: item.name,
+      subtitle: item.type,
+      type: 'equipment' as const,
+      url: `/equipment/${item.id}`
+    })), 
+    ...(urgentInterventions || []).map(item => ({
+      id: item.id,
+      title: item.title,
+      subtitle: item.equipment,
+      type: 'intervention' as const,
+      url: `/interventions?id=${item.id}`
+    })), 
+    ...(stockAlerts || []).map(item => ({
+      id: item.id,
+      title: item.name,
+      subtitle: `Stock: ${item.currentStock}/${item.reorderPoint}`,
+      type: 'part' as const,
+      url: `/parts?id=${item.id}`
+    })), 
+    ...(upcomingTasks || []).map(item => ({
+      id: item.id,
+      title: item.title,
+      subtitle: item.description,
+      type: 'task' as const,
+      url: `/maintenance?taskId=${item.id}`
+    }))
+  ];
 
   const handleViewIntervention = (id: number) => {
     navigate(`/interventions?id=${id}`);
@@ -99,7 +107,8 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
     }
   };
 
-  return <div className="space-y-8 px-[38px]">
+  return (
+    <div className="space-y-8 px-[38px]">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold mb-0">Tableau de bord</h1>
         <SearchBar searchItems={searchItems} className="w-[300px]" />
@@ -138,7 +147,8 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
           <TasksSection tasks={upcomingTasks} onAddClick={handleTasksAddClick} />
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
 
 export default EnhancedDashboard;

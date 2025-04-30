@@ -22,10 +22,13 @@ const EquipmentSection: React.FC<EquipmentSectionProps> = ({
   const { equipmentData: hookEquipmentData, loading, error } = useEquipmentStatusData();
   
   // Use prop data if provided, otherwise use data from the hook
-  const equipmentData = propEquipmentData || hookEquipmentData;
+  const equipmentData = propEquipmentData || hookEquipmentData || [];
   
   // Limit to 3 equipment items
-  const displayedEquipment = equipmentData.slice(0, 3);
+  const displayedEquipment = equipmentData?.slice(0, 3) || [];
+
+  // For debugging
+  console.log('Equipment data available:', equipmentData?.length || 0);
 
   return (
     <DashboardSection 
@@ -63,7 +66,7 @@ const EquipmentSection: React.FC<EquipmentSectionProps> = ({
               key={item.id} 
               name={item.name} 
               type={item.type} 
-              image={item.image} 
+              image={item.image || 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=500&auto=format&fit=crop'} 
               status={item.status} 
               usage={item.usage} 
               nextService={item.nextService} 
@@ -75,9 +78,14 @@ const EquipmentSection: React.FC<EquipmentSectionProps> = ({
           ))}
         </div>
       ) : (
-        <p className="text-center py-8 text-muted-foreground">
-          Aucun équipement trouvé. Ajoutez votre premier équipement pour commencer.
-        </p>
+        <div className="bg-gray-50 border border-dashed border-gray-200 rounded-lg p-8 text-center">
+          <p className="text-center py-8 text-muted-foreground">
+            Aucun équipement trouvé. Ajoutez votre premier équipement pour commencer.
+          </p>
+          <Button variant="outline" onClick={onViewAllClick}>
+            Ajouter un équipement
+          </Button>
+        </div>
       )}
       
       {equipmentData.length > 3 && (

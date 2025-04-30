@@ -50,11 +50,9 @@ export const EquipmentCard: React.FC<EquipmentCardProps> = ({
 
   return (
     <Card 
-      className={`bg-white rounded-xl overflow-hidden hover:shadow-md transition-shadow duration-300 ${className}`}
+      className={`bg-white rounded-xl overflow-hidden hover:shadow-md transition-shadow duration-300 equipment-card ${className}`}
       style={{
         ...style,
-        opacity: 0,
-        animation: 'fadeIn 0.5s forwards',
       }}
       onClick={onClick}
     >
@@ -63,6 +61,10 @@ export const EquipmentCard: React.FC<EquipmentCardProps> = ({
           src={image} 
           alt={name} 
           className="w-full h-32 object-cover"
+          onError={(e) => {
+            // Fallback image if the provided one fails to load
+            e.currentTarget.src = "https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=500&auto=format&fit=crop";
+          }}
         />
         <div className="absolute top-2 right-2">
           <Badge 
