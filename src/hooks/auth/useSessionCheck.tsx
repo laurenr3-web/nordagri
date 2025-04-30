@@ -60,17 +60,19 @@ export function useSessionCheck(
           }, 0);
         }
         
-        // Ne pas rediriger si nous sommes sur la page d'authentification avec un hash (confirmation d'email)
-        // ou avec des paramètres spécifiques dans l'URL
-        const isAuthWithVerification = location.pathname === '/auth' && 
-                                      (location.hash || 
-                                       location.search.includes('reset=true') || 
-                                       location.search.includes('verification=true'));
+        // Ne pas rediriger si nous sommes sur une page spéciale d'authentification
+        const isSpecialAuthPath = 
+          location.pathname === '/auth/callback' || 
+          location.pathname.startsWith('/confirm') || 
+          (location.pathname === '/auth' && 
+           (location.hash || 
+            location.search.includes('reset=true') || 
+            location.search.includes('verification=true')));
         
-        if (isAuthWithVerification) {
-          console.log('Sur la page de confirmation email ou réinitialisation, pas de redirection automatique');
+        if (isSpecialAuthPath) {
+          console.log('Sur une page spéciale d\'authentification, pas de redirection automatique');
         } 
-        // Gérer les redirections uniquement si nous ne sommes pas en train de vérifier un email
+        // Gérer les redirections uniquement si nous ne sommes pas sur une page spéciale
         else if (requireAuth && !currentSession) {
           // Stocker l'URL actuelle pour rediriger l'utilisateur après connexion
           const currentPath = location.pathname === '/auth' ? '/dashboard' : location.pathname + location.search;

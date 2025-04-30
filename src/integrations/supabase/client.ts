@@ -10,10 +10,17 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   console.error('Supabase environment variables are not set');
 }
 
-// Instancier le client Supabase
+// Instancier le client Supabase avec configuration explicite pour la persistance de session
 export const supabase = createClient<Database>(
   SUPABASE_URL as string, 
-  SUPABASE_ANON_KEY as string
+  SUPABASE_ANON_KEY as string,
+  {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      storage: localStorage
+    }
+  }
 );
 
 // Vérifier que la connexion à Supabase fonctionne

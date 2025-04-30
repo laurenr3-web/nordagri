@@ -11,7 +11,6 @@ const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(true);
-  const [verifyingEmail, setVerifyingEmail] = useState(false);
   const { isAuthenticated } = useAuthContext();
   
   // Get return path from query params or default to dashboard
@@ -20,108 +19,31 @@ const Auth = () => {
     return searchParams.get('returnTo') || '/dashboard';
   };
 
-  // Check if the user is coming from a verification email and handle auth parameters
+  // Si l'authentification nécessite une redirection vers la page de callback, 
+  // on la laisse se faire gérer par cette page et on ne fait rien ici
   useEffect(() => {
-    const checkEmailVerification = async () => {
-      try {
-        // Vérifier si nous avons un hash (qui peut contenir access_token, etc.)
-        if (location.hash) {
-          setVerifyingEmail(true);
-          
-          // Extraire les paramètres du hash
-          const hashParams = new URLSearchParams(location.hash.substring(1));
-          const accessToken = hashParams.get('access_token');
-          const refreshToken = hashParams.get('refresh_token');
-          const type = hashParams.get('type');
-          const error = hashParams.get('error');
-          const errorCode = hashParams.get('error_code');
-          const errorDescription = hashParams.get('error_description');
-
-          // Log pour débogage
-          console.log('Auth parameters:', { 
-            hasHash: !!location.hash, 
-            type, 
-            hasAccessToken: !!accessToken,
-            hasRefreshToken: !!refreshToken,
-            error,
-            errorCode,
-            errorDescription
-          });
-          
-          // Gérer les erreurs dans les paramètres
-          if (error) {
-            if (errorCode === 'otp_expired') {
-              toast.error("Le lien de vérification a expiré. Veuillez demander un nouveau lien.");
-            } else {
-              toast.error(`Erreur: ${errorDescription || error}`);
-            }
-            setLoading(false);
-            setVerifyingEmail(false);
-            return;
-          }
-          
-          // Si nous avons un token valide, configurer la session
-          if (accessToken) {
-            const { data, error } = await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken || '',
-            });
-            
-            if (error) {
-              toast.error("Erreur lors de la vérification de votre session: " + error.message);
-              console.error('Session verification error:', error);
-              setVerifyingEmail(false);
-              setLoading(false);
-              return;
-            }
-            
-            if (data.session) {
-              if (type === 'recovery') {
-                // Redirection vers la page de changement de mot de passe
-                toast.success("Vous pouvez maintenant définir votre nouveau mot de passe");
-                navigate('/settings?tab=security');
-              } else if (type === 'signup' || type === 'magiclink') {
-                // L'utilisateur a vérifié son email et est maintenant connecté
-                toast.success("Email vérifié avec succès! Vous êtes maintenant connecté.");
-                navigate('/dashboard');
-              } else {
-                // Autre type de confirmation, rediriger vers le dashboard
-                navigate('/dashboard');
-              }
-            }
-          } else {
-            setLoading(false);
-          }
-        } else {
-          setLoading(false);
-        }
-      } catch (error: any) {
-        console.error('Email verification error:', error);
-        toast.error("Erreur lors de la vérification: " + error.message);
-        setLoading(false);
-      } finally {
-        setVerifyingEmail(false);
-      }
-    };
-    
-    checkEmailVerification();
-  }, [location, navigate]);
-
-  useEffect(() => {
-    // If user is already authenticated, redirect to return path or dashboard
-    // But don't redirect if we're in the process of verifying email
-    if (isAuthenticated && !verifyingEmail && !location.hash) {
+    // Vérifier si l'utilisateur est déjà authentifié
+    if (isAuthenticated) {
       const returnPath = getReturnPath();
       navigate(returnPath, { replace: true });
     }
-  }, [isAuthenticated, navigate, verifyingEmail, location.hash]);
+    
+    // Si nous avons un hash (confirmation d'email, reset mot de passe)
+    // et que nous ne sommes pas sur /auth/callback, on redirige
+    if (location.hash && location.pathname === '/auth') {
+      navigate('/auth/callback' + location.hash, { replace: true });
+      return;
+    }
+    
+    setLoading(false);
+  }, [isAuthenticated, navigate, location.hash, location.pathname]);
 
-  if (loading || verifyingEmail) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen flex-col gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
         <p className="text-lg">
-          {verifyingEmail ? 'Vérification de votre email...' : 'Chargement...'}
+          Chargement...
         </p>
       </div>
     );

@@ -41,14 +41,17 @@ export function useAuthListener(
           });
         }, 0);
         
-        // Ne pas rediriger si nous sommes sur la page d'authentification avec un hash ou paramètres spéciaux
-        const isAuthWithVerification = location.pathname === '/auth' && 
-                                      (location.hash || 
-                                       location.search.includes('reset=true') || 
-                                       location.search.includes('verification=true'));
+        // Ne pas rediriger si nous sommes sur une page spéciale d'authentification
+        const isSpecialAuthPath = 
+          location.pathname === '/auth/callback' || 
+          location.pathname.startsWith('/confirm') || 
+          (location.pathname === '/auth' && 
+           (location.hash || 
+            location.search.includes('reset=true') || 
+            location.search.includes('verification=true')));
         
-        // Rediriger l'utilisateur si spécifié et sur la page d'auth
-        if (location.pathname === '/auth' && !isAuthWithVerification) {
+        // Rediriger l'utilisateur si spécifié et sur la page d'auth (et pas sur une page spéciale)
+        if (location.pathname === '/auth' && !isSpecialAuthPath) {
           const params = new URLSearchParams(location.search);
           const returnPath = params.get('returnTo') || redirectTo || '/dashboard';
           console.log(`Redirecting after ${event} to ${returnPath}`);

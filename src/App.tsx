@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -21,6 +22,7 @@ import Dashboard from '@/pages/Dashboard';
 import Settings from '@/pages/Settings';
 import NotFound from '@/pages/NotFound';
 import Auth from '@/pages/Auth';
+import AuthCallback from '@/pages/Auth/Callback'; // Import de la nouvelle page de callback
 import ScanRedirect from '@/pages/ScanRedirect';
 import TimeTracking from '@/pages/TimeTracking';
 import TimeEntryDetail from '@/pages/TimeEntryDetail';
@@ -42,6 +44,7 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Navigate to="/dashboard" replace />} />
                   <Route path="/auth" element={<Auth />} />
+                  <Route path="/auth/callback" element={<AuthCallback />} />
                   <Route path="/dashboard" element={
                     <ProtectedRoute>
                       <Dashboard />

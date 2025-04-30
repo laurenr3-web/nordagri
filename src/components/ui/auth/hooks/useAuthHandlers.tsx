@@ -8,6 +8,12 @@ export const useAuthHandlers = (onSuccess?: () => void) => {
   const [loginAttempts, setLoginAttempts] = useState(0);
   const [resetSent, setResetSent] = useState(false);
   
+  // Fonction pour obtenir l'URL de base de l'application
+  const getBaseUrl = () => {
+    // En production, utiliser l'URL actuelle
+    return window.location.origin;
+  };
+  
   const handlePasswordReset = async (e: React.FormEvent, email: string, emailRegex: RegExp, setFormErrors: (errors: any) => void) => {
     e.preventDefault();
     
@@ -19,7 +25,7 @@ export const useAuthHandlers = (onSuccess?: () => void) => {
     setLoading(true);
     
     try {
-      const redirectUrl = new URL('/auth', window.location.origin).toString();
+      const redirectUrl = `${getBaseUrl()}/auth/callback`;
 
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: redirectUrl,
@@ -75,7 +81,7 @@ export const useAuthHandlers = (onSuccess?: () => void) => {
   ) => {
     try {
       // Construct an absolute URL for redirection
-      const redirectUrl = new URL('/auth', window.location.origin).toString();
+      const redirectUrl = `${getBaseUrl()}/auth/callback`;
       console.log("URL de redirection pour inscription:", redirectUrl);
       
       // First register the user
