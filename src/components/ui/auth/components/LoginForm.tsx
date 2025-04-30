@@ -37,7 +37,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
         <Input 
           id="email" 
           type="email" 
-          placeholder="Enter your email"
+          placeholder="Entrez votre email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={loading}
@@ -49,13 +49,14 @@ const LoginForm: React.FC<LoginFormProps> = ({
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">Mot de passe</Label>
         <PasswordInput
           id="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           disabled={loading}
           required
+          placeholder="Entrez votre mot de passe"
         />
         {formErrors.password && (
           <p className="text-sm text-destructive">{formErrors.password}</p>
@@ -69,7 +70,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
           className="p-0 h-auto text-sm"
           onClick={onForgotPassword}
         >
-          Forgot password?
+          Mot de passe oublié ?
         </Button>
       </div>
       

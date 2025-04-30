@@ -7,6 +7,8 @@ import { useAuthForm } from './hooks/useAuthForm';
 import LoginForm from './components/LoginForm';
 import SignupForm from './components/SignupForm';
 import ResetPasswordForm from './components/ResetPasswordForm';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 interface AuthFormProps {
   onSuccess?: () => void;
@@ -25,6 +27,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
     loginAttempts,
     resetSent,
     formErrors,
+    generalError,
     
     setFirstName,
     setLastName,
@@ -56,21 +59,28 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle className="text-xl text-center">Welcome to OptiTractor</CardTitle>
+        <CardTitle className="text-xl text-center">Bienvenue sur OptiTractor</CardTitle>
         <CardDescription className="text-center">
           {authMode === 'login' 
-            ? 'Sign in to your account to continue' 
-            : 'Create a new account to get started'}
+            ? 'Connectez-vous à votre compte' 
+            : 'Créez un nouveau compte pour commencer'}
         </CardDescription>
       </CardHeader>
       <Tabs value={authMode} onValueChange={(value) => setAuthMode(value as 'login' | 'signup')}>
         <TabsList className="grid grid-cols-2 w-full">
-          <TabsTrigger value="login">Login</TabsTrigger>
-          <TabsTrigger value="signup">Sign Up</TabsTrigger>
+          <TabsTrigger value="login">Connexion</TabsTrigger>
+          <TabsTrigger value="signup">Inscription</TabsTrigger>
         </TabsList>
       </Tabs>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4 pt-6">
+          {generalError && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{generalError}</AlertDescription>
+            </Alert>
+          )}
+          
           {authMode === 'login' ? (
             <LoginForm
               email={email}
@@ -108,15 +118,15 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
             disabled={loading || (authMode === 'login' && loginAttempts >= 5)}
           >
             {loading 
-              ? 'Please wait...' 
+              ? 'Veuillez patienter...' 
               : authMode === 'login' 
-                ? 'Sign In' 
-                : 'Create Account'}
+                ? 'Se connecter' 
+                : 'Créer un compte'}
           </Button>
           
           {authMode === 'signup' && (
             <p className="text-xs text-center text-muted-foreground mt-2">
-              By creating an account, you agree to our Terms of Service and Privacy Policy.
+              En créant un compte, vous acceptez nos Conditions d'utilisation et notre Politique de confidentialité.
             </p>
           )}
         </CardFooter>

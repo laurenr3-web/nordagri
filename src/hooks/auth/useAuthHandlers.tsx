@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { fetchUserProfile } from './useProfileData';
 
 /**
  * Hook providing authentication handlers (signOut)
@@ -30,7 +29,8 @@ export function useAuthHandlers() {
         description: 'Vous avez été déconnecté avec succès',
       });
       
-      // La redirection sera gérée par l'effet useEffect qui surveille la session
+      // Redirection vers la page d'authentification
+      navigate('/auth', { replace: true });
     } catch (error: any) {
       console.error('Erreur lors de la déconnexion:', error);
       toast({

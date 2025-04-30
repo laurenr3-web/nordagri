@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { Loader2 } from 'lucide-react';
@@ -16,6 +16,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, loading } = useAuthContext();
   const location = useLocation();
 
+  // Logging pour debug
+  useEffect(() => {
+    console.log(`ProtectedRoute - isAuthenticated: ${isAuthenticated}, loading: ${loading}, path: ${location.pathname}`);
+  }, [isAuthenticated, loading, location.pathname]);
+
   // Afficher un indicateur de chargement pendant la vérification
   if (loading) {
     return (
@@ -29,6 +34,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   // Rediriger vers la page d'authentification si non authentifié
   if (!isAuthenticated) {
     const returnPath = location.pathname + location.search;
+    console.log(`Redirection vers /auth - utilisateur non authentifié, returnPath: ${returnPath}`);
     return <Navigate to={`/auth?returnTo=${encodeURIComponent(returnPath)}`} replace />;
   }
 

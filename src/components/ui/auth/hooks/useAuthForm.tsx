@@ -15,23 +15,31 @@ export const useAuthForm = (onSuccess?: () => void) => {
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [loginAttempts, setLoginAttempts] = useState(0);
   const [resetSent, setResetSent] = useState(false);
+  const [generalError, setGeneralError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<{
     email?: string;
     password?: string;
     confirmPassword?: string;
+    firstName?: string;
+    lastName?: string;
   }>({});
 
   // Email validation regex
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+  // Clear general error when changing auth mode
+  useEffect(() => {
+    setGeneralError(null);
+  }, [authMode]);
+
   // Check for password reset or verification params in URL
   useEffect(() => {
     const url = new URL(window.location.href);
     if (url.searchParams.get('reset') === 'true') {
-      toast.info('Please check your email to reset your password');
+      toast.info('Veuillez vérifier votre email pour réinitialiser votre mot de passe');
     }
     if (url.searchParams.get('verification') === 'true') {
-      toast.info('Please check your email to verify your account');
+      toast.info('Veuillez vérifier votre email pour confirmer votre compte');
     }
   }, []);
 
@@ -41,33 +49,45 @@ export const useAuthForm = (onSuccess?: () => void) => {
       email?: string;
       password?: string;
       confirmPassword?: string;
+      firstName?: string;
+      lastName?: string;
     } = {};
     let isValid = true;
 
     // Email validation
     if (!email) {
-      errors.email = "Email is required";
+      errors.email = "L'email est requis";
       isValid = false;
     } else if (!emailRegex.test(email)) {
-      errors.email = "Please enter a valid email address";
+      errors.email = "Veuillez entrer une adresse email valide";
       isValid = false;
     }
 
     // Password validation for signup and login
     if (authMode !== 'reset') {
       if (!password) {
-        errors.password = "Password is required";
+        errors.password = "Le mot de passe est requis";
         isValid = false;
       } else if (authMode === 'signup' && password.length < 8) {
-        errors.password = "Password must be at least 8 characters";
+        errors.password = "Le mot de passe doit contenir au moins 8 caractères";
         isValid = false;
       }
     }
 
     // Confirm password validation for signup
     if (authMode === 'signup') {
+      if (!firstName) {
+        errors.firstName = "Le prénom est requis";
+        isValid = false;
+      }
+      
+      if (!lastName) {
+        errors.lastName = "Le nom est requis";
+        isValid = false;
+      }
+
       if (password !== confirmPassword) {
-        errors.confirmPassword = "Passwords do not match";
+        errors.confirmPassword = "Les mots de passe ne correspondent pas";
         isValid = false;
       }
     }
@@ -78,9 +98,10 @@ export const useAuthForm = (onSuccess?: () => void) => {
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
+    setGeneralError(null);
     
     if (!email || !emailRegex.test(email)) {
-      setFormErrors({ email: "Please enter a valid email address" });
+      setFormErrors({ email: "Veuillez entrer une adresse email valide" });
       return;
     }
     
@@ -94,50 +115,62 @@ export const useAuthForm = (onSuccess?: () => void) => {
       if (error) throw error;
       
       setResetSent(true);
-      toast.success('Password reset instructions sent to your email');
+      toast.success('Instructions de réinitialisation envoyées à votre email');
     } catch (error: any) {
-      console.error('Password reset error:', error);
-      toast.error(error.message || 'Failed to send reset email');
+      console.error('Erreur de réinitialisation:', error);
+      setGeneralError(error.message || "Impossible d'envoyer l'email de réinitialisation");
     } finally {
       setLoading(false);
     }
   };
 
   const handleLogin = async () => {
+    setGeneralError(null);
+    
     if (loginAttempts >= 5) {
-      toast.error('Too many login attempts. Please try again later.');
+      setGeneralError('Trop de tentatives de connexion. Veuillez réessayer plus tard.');
       return;
     }
     
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       
       if (error) {
         setLoginAttempts(prev => prev + 1);
-        throw error;
+        if (error.message.includes('Invalid login credentials')) {
+          setGeneralError('Email ou mot de passe incorrect');
+        } else {
+          setGeneralError(error.message);
+        }
+        return;
+      }
+      
+      if (!data.session) {
+        throw new Error('Session non créée');
       }
       
       // Log successful login
       const timestamp = new Date().toISOString();
-      const userIp = "client-side"; // In a real app, you'd get this from your server
-      console.log(`Login success: ${timestamp}, IP: ${userIp}`);
+      console.log(`Connexion réussie: ${timestamp}`);
       
-      toast.success('Signed in successfully');
+      toast.success('Connexion réussie');
       setLoginAttempts(0);
       onSuccess?.();
     } catch (error: any) {
-      console.error('Authentication error:', error);
-      toast.error(error.message || 'Authentication failed');
+      console.error('Erreur d\'authentification:', error);
+      setGeneralError(error.message || 'Échec de l\'authentification');
     }
   };
 
   const handleSignup = async () => {
+    setGeneralError(null);
+    
     try {
       // First register the user
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -149,13 +182,27 @@ export const useAuthForm = (onSuccess?: () => void) => {
         }
       });
       
-      if (signUpError) throw signUpError;
+      if (signUpError) {
+        if (signUpError.message.includes('User already registered')) {
+          setGeneralError('Un compte avec cet email existe déjà');
+        } else {
+          setGeneralError(signUpError.message);
+        }
+        return;
+      }
       
-      toast.success('Account created! Please check your email to verify your account.');
-      onSuccess?.();
+      if (data.user && data.session) {
+        // If email confirmation is disabled, user can log in immediately
+        toast.success('Compte créé avec succès!');
+        onSuccess?.();
+      } else {
+        // If email confirmation is required
+        toast.success('Compte créé! Veuillez vérifier votre email pour confirmer votre compte.');
+        setAuthMode('login');
+      }
     } catch (error: any) {
-      console.error('Signup error:', error);
-      toast.error(error.message || 'Registration failed');
+      console.error('Erreur d\'inscription:', error);
+      setGeneralError(error.message || 'L\'inscription a échoué');
     }
   };
 
@@ -190,6 +237,7 @@ export const useAuthForm = (onSuccess?: () => void) => {
     loginAttempts,
     resetSent,
     formErrors,
+    generalError,
     
     // Setters
     setFirstName,

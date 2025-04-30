@@ -1,6 +1,5 @@
 
 import React, { useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import PasswordInput from './PasswordInput';
@@ -24,6 +23,8 @@ interface SignupFormProps {
     email?: string;
     password?: string;
     confirmPassword?: string;
+    firstName?: string;
+    lastName?: string;
   };
 }
 
@@ -70,24 +71,32 @@ const SignupForm: React.FC<SignupFormProps> = ({
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="firstName">First Name</Label>
+          <Label htmlFor="firstName">Prénom</Label>
           <Input 
             id="firstName" 
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
             disabled={loading}
+            placeholder="Votre prénom"
             required
           />
+          {formErrors.firstName && (
+            <p className="text-sm text-destructive">{formErrors.firstName}</p>
+          )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="lastName">Last Name</Label>
+          <Label htmlFor="lastName">Nom</Label>
           <Input 
             id="lastName" 
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
             disabled={loading}
+            placeholder="Votre nom"
             required
           />
+          {formErrors.lastName && (
+            <p className="text-sm text-destructive">{formErrors.lastName}</p>
+          )}
         </div>
       </div>
       
@@ -96,7 +105,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
         <Input 
           id="signup-email" 
           type="email" 
-          placeholder="Enter your email"
+          placeholder="Entrez votre email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={loading}
@@ -108,12 +117,13 @@ const SignupForm: React.FC<SignupFormProps> = ({
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="signup-password">Password</Label>
+        <Label htmlFor="signup-password">Mot de passe</Label>
         <PasswordInput
           id="signup-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           disabled={loading}
+          placeholder="Créez un mot de passe sécurisé"
           required
         />
         {formErrors.password && (
@@ -127,11 +137,10 @@ const SignupForm: React.FC<SignupFormProps> = ({
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Confirm Password</Label>
-        <Input 
+        <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
+        <PasswordInput 
           id="confirmPassword" 
-          type="password"
-          placeholder="Confirm your password"
+          placeholder="Confirmez votre mot de passe"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           disabled={loading}

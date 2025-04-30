@@ -8,8 +8,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Settings, LogOut } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Settings, LogOut, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuthContext } from "@/providers/AuthProvider";
@@ -34,15 +34,14 @@ export const UserMenu = () => {
 
   const handleLogout = async () => {
     try {
-      // Log the logout attempt
-      console.log(`Logout attempt: ${new Date().toISOString()}`);
+      console.log(`Tentative de déconnexion: ${new Date().toISOString()}`);
       
       await signOut();
       
       toast.success('Déconnexion réussie');
       navigate('/auth');
     } catch (error: any) {
-      console.error('Logout error:', error);
+      console.error('Erreur de déconnexion:', error);
       toast.error(error.message || 'Déconnexion échouée');
     }
   };
@@ -51,7 +50,7 @@ export const UserMenu = () => {
     return (
       <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full" disabled>
         <Avatar className="h-8 w-8">
-          <AvatarFallback>...</AvatarFallback>
+          <AvatarFallback className="bg-primary/10">...</AvatarFallback>
         </Avatar>
       </Button>
     );
@@ -72,20 +71,38 @@ export const UserMenu = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          <Avatar className="h-8 w-8">
-            <AvatarFallback>{getInitials()}</AvatarFallback>
+        <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+          <Avatar className="h-9 w-9">
+            {profileData?.avatar_url ? (
+              <AvatarImage src={profileData.avatar_url} alt={displayName || 'Utilisateur'} />
+            ) : null}
+            <AvatarFallback className="bg-primary/10 text-primary font-medium">
+              {getInitials()}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel>{displayName}</DropdownMenuLabel>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none">{displayName || 'Utilisateur'}</p>
+            <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+          </div>
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => navigate('/settings?tab=profile')}>
+          <User className="mr-2 h-4 w-4" />
+          <span>Mon Profil</span>
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate('/settings')}>
           <Settings className="mr-2 h-4 w-4" />
           <span>Paramètres</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleLogout}>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem 
+          onClick={handleLogout}
+          className="text-red-600 focus:text-red-600 focus:bg-red-50"
+        >
           <LogOut className="mr-2 h-4 w-4" />
           <span>Déconnexion</span>
         </DropdownMenuItem>
