@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useFarmId } from './useFarmId';
+import { assertIsDefined, assertIsString } from '@/utils/typeAssertions';
 
 // Define proper types for the invitation process
 export type UserRole = 'viewer' | 'editor' | 'admin';
@@ -21,30 +22,51 @@ export interface InviteUserResponse {
   };
 }
 
+/**
+ * Hook to handle user invitation process
+ * Provides functionality to invite users to a farm with specific roles
+ */
 export function useUserInvitation() {
   const [isLoading, setIsLoading] = useState(false);
   const { farmId } = useFarmId();
 
+  /**
+   * Invites a user to join the current farm with a specified role
+   * @param params Object containing email and role for the invitation
+   * @returns Promise resolving to success status
+   */
   const inviteUser = async ({ email, role }: InviteUserParams): Promise<boolean> => {
-    // Input validation
-    if (!email) {
-      toast.error("L'email est requis");
-      return false;
-    }
-    
-    if (!farmId) {
-      toast.error("Aucune ferme associée à votre compte");
-      return false;
-    }
-
-    setIsLoading(true);
     try {
+      // Input validation
+      if (!email) {
+        toast.error("L'email est requis");
+        return false;
+      }
+      
+      // Validate email format using a simple regex
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        toast.error("Format d'email invalide");
+        return false;
+      }
+      
+      // Validate role is one of the allowed values
+      if (!['viewer', 'editor', 'admin'].includes(role)) {
+        toast.error("Rôle invalide");
+        return false;
+      }
+      
+      // Ensure farmId is available
+      const validFarmId = assertIsDefined(farmId, "Farm ID");
+      
+      setIsLoading(true);
+      
       // Call the Edge function to invite the user
       const { data, error } = await supabase.functions.invoke<InviteUserResponse>('invite-user', {
         body: { 
-          email,
+          email: assertIsString(email),
           role,
-          farmId 
+          farmId: validFarmId
         }
       });
 
@@ -70,6 +92,7 @@ export function useUserInvitation() {
         ? error.message 
         : "Une erreur inattendue est survenue lors de l'invitation";
       
+      console.error('Invitation error:', error);
       toast.error(errorMessage);
       return false;
     } finally {
