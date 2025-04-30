@@ -1,47 +1,23 @@
 
 import React, { useState, useEffect } from 'react';
 import { SettingsSection } from '../SettingsSection';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { User, UserPlus, UserCheck, Clock, AlertTriangle, Check } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useFarmId } from '@/hooks/useFarmId';
+import { TeamMembersList } from './components/TeamMembersList';
+import { PendingInvitationsList } from './components/PendingInvitationsList';
+import { RoleDescriptions } from './components/RoleDescriptions';
+import { InviteUserDialog } from '../users/InviteUserDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { useFarmId } from '@/hooks/useFarmId';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { InviteUserDialog } from '../users/InviteUserDialog';
-
-interface TeamMember {
-  id: string;
-  user_id?: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  role: string;
-  status: string;
-  created_at: string;
-}
-
-interface Invitation {
-  id: string;
-  email: string;
-  role: string;
-  status: string;
-  created_at: string;
-  expires_at: string;
-}
 
 /**
  * Composant pour afficher et gérer les accès utilisateurs et techniciens
  */
 export function UserAccessSection() {
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [teamMembers, setTeamMembers] = useState<any[]>([]);
+  const [invitations, setInvitations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const { farmId, isLoading: farmIdLoading } = useFarmId();
@@ -76,16 +52,16 @@ export function UserAccessSection() {
       // Récupérer les profils des utilisateurs pour avoir leurs noms
       // S'assurer d'avoir un tableau d'IDs valides
       const userIds = membersData
-        ?.map(member => {
-          // Vérifier si user existe et a un id
-          return member.user && typeof member.user === 'object' ? (member.user as any)?.id : null;
-        })
+        ?.filter(member => member.user && typeof member.user === 'object')
+        .map(member => (member.user as any)?.id)
         .filter(Boolean) || [];
       
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name')
-        .in('id', userIds.length > 0 ? userIds : ['00000000-0000-0000-0000-000000000000']); // Fallback id si le tableau est vide
+      const { data: profilesData, error: profilesError } = userIds.length > 0 
+        ? await supabase
+            .from('profiles')
+            .select('id, first_name, last_name')
+            .in('id', userIds)
+        : { data: [], error: null };
       
       if (profilesError) throw profilesError;
       
@@ -161,41 +137,6 @@ export function UserAccessSection() {
     toast.info("Fonctionnalité de renvoi en cours de développement");
   };
   
-  const getRoleBadgeColor = (role: string) => {
-    switch (role) {
-      case 'owner': return 'bg-red-500';
-      case 'admin': return 'bg-blue-500';
-      case 'editor': return 'bg-green-500';
-      case 'viewer': return 'bg-gray-500';
-      default: return 'bg-gray-500';
-    }
-  };
-  
-  const getFormattedRole = (role: string) => {
-    switch (role) {
-      case 'owner': return 'Propriétaire';
-      case 'admin': return 'Administrateur';
-      case 'editor': return 'Éditeur';
-      case 'viewer': return 'Lecteur';
-      default: return role;
-    }
-  };
-  
-  const getStatusBadgeColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'cancelled': return 'bg-gray-100 text-gray-800';
-      case 'expired': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  // Vérifier si la date d'expiration est dépassée
-  const isInvitationExpired = (expirationDate: string) => {
-    return new Date(expirationDate) < new Date();
-  };
-  
   return (
     <SettingsSection 
       title="Gestion des accès" 
@@ -203,7 +144,9 @@ export function UserAccessSection() {
     >
       <div className="space-y-6">
         {farmIdLoading ? (
-          <Skeleton className="h-12 w-full" />
+          <div className="flex items-center justify-center h-12 w-full">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+          </div>
         ) : !farmId ? (
           <Alert variant="destructive" className="mb-4">
             <AlertTriangle className="h-4 w-4 mr-2" />
@@ -214,158 +157,22 @@ export function UserAccessSection() {
         ) : (
           <>
             {/* Section des membres de l'équipe */}
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium">Membres de l'équipe</h3>
-                <Button size="sm" onClick={() => setInviteDialogOpen(true)}>
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Inviter un membre
-                </Button>
-              </div>
-              
-              {loading ? (
-                <div className="space-y-2">
-                  <Skeleton className="h-12 w-full" />
-                  <Skeleton className="h-12 w-full" />
-                  <Skeleton className="h-12 w-full" />
-                </div>
-              ) : teamMembers.length > 0 ? (
-                <div className="border rounded-md">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Utilisateur</TableHead>
-                        <TableHead>Rôle</TableHead>
-                        <TableHead className="text-right">Ajouté le</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {teamMembers.map((member) => (
-                        <TableRow key={member.id}>
-                          <TableCell>
-                            <div className="flex items-center space-x-2">
-                              <div className="bg-muted rounded-full h-8 w-8 flex items-center justify-center">
-                                <User className="h-4 w-4 text-muted-foreground" />
-                              </div>
-                              <div>
-                                {member.first_name || member.last_name ? (
-                                  <div className="font-medium">
-                                    {member.first_name} {member.last_name}
-                                  </div>
-                                ) : null}
-                                <div className="text-sm text-muted-foreground">{member.email}</div>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={getRoleBadgeColor(member.role)}>
-                              {getFormattedRole(member.role)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex items-center justify-end">
-                              <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
-                              <span className="text-muted-foreground text-sm">
-                                {new Date(member.created_at).toLocaleDateString('fr-FR')}
-                              </span>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <div className="text-center p-8 border border-dashed rounded-lg">
-                  <User className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                  <h3 className="text-lg font-medium">Aucun membre d'équipe</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Vous n'avez pas encore ajouté de membres à votre équipe.
-                  </p>
-                  <Button onClick={() => setInviteDialogOpen(true)}>
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Inviter un membre
-                  </Button>
-                </div>
-              )}
-            </div>
+            <TeamMembersList 
+              loading={loading}
+              teamMembers={teamMembers}
+              onInviteClick={() => setInviteDialogOpen(true)} 
+            />
             
             {/* Section des invitations en attente */}
             {invitations.length > 0 && (
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Invitations en attente</h3>
-                <div className="border rounded-md">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Rôle</TableHead>
-                        <TableHead>Statut</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {invitations.map((invitation) => {
-                        const expired = isInvitationExpired(invitation.expires_at);
-                        const status = expired ? 'expired' : invitation.status;
-                        
-                        return (
-                          <TableRow key={invitation.id}>
-                            <TableCell>{invitation.email}</TableCell>
-                            <TableCell>
-                              <Badge className={getRoleBadgeColor(invitation.role)}>
-                                {getFormattedRole(invitation.role)}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className={getStatusBadgeColor(status)}>
-                                {status === 'pending' ? 'En attente' : 
-                                 status === 'cancelled' ? 'Annulée' : 
-                                 status === 'expired' ? 'Expirée' : status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex justify-end space-x-2">
-                                {status === 'pending' && !expired && (
-                                  <>
-                                    <Button 
-                                      size="sm" 
-                                      variant="outline"
-                                      onClick={() => handleResendInvitation(invitation.id)}
-                                    >
-                                      Renvoyer
-                                    </Button>
-                                    <Button 
-                                      size="sm" 
-                                      variant="ghost" 
-                                      className="text-red-500 hover:text-red-700"
-                                      onClick={() => handleCancelInvitation(invitation.id)}
-                                    >
-                                      Annuler
-                                    </Button>
-                                  </>
-                                )}
-                                {(status === 'cancelled' || expired) && (
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline"
-                                    onClick={() => handleResendInvitation(invitation.id)}
-                                  >
-                                    Réinviter
-                                  </Button>
-                                )}
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
+              <PendingInvitationsList 
+                invitations={invitations}
+                onCancel={handleCancelInvitation}
+                onResend={handleResendInvitation}
+              />
             )}
 
-            {/* Utiliser le nouveau composant InviteUserDialog */}
+            {/* Dialog pour inviter un utilisateur */}
             <InviteUserDialog 
               open={inviteDialogOpen} 
               onOpenChange={setInviteDialogOpen} 
@@ -374,21 +181,7 @@ export function UserAccessSection() {
         )}
         
         {/* Description des rôles */}
-        <div className="text-sm text-muted-foreground pt-6 border-t mt-6">
-          <h4 className="font-medium text-foreground mb-2">Description des rôles</h4>
-          <p>
-            <strong>Propriétaire :</strong> Créateur de la ferme, accès complet à toutes les fonctionnalités
-          </p>
-          <p>
-            <strong>Administrateur :</strong> Peut gérer les utilisateurs et accéder à tous les paramètres
-          </p>
-          <p>
-            <strong>Éditeur :</strong> Peut gérer les équipements, les tâches et les données
-          </p>
-          <p>
-            <strong>Lecteur :</strong> Peut consulter les données sans pouvoir les modifier
-          </p>
-        </div>
+        <RoleDescriptions />
       </div>
     </SettingsSection>
   );
