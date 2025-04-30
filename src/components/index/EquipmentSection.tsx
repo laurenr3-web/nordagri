@@ -6,17 +6,23 @@ import { DashboardSection } from '@/components/dashboard/DashboardSection';
 import { Link } from 'react-router-dom';
 import { useEquipmentStatusData } from '@/hooks/dashboard/useEquipmentStatusData';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EquipmentItem } from '@/hooks/dashboard/types/equipmentTypes';
 
 interface EquipmentSectionProps {
   onViewAllClick: () => void;
   onEquipmentClick: (id: number) => void;
+  equipmentData?: EquipmentItem[]; // Optional prop to override data from hook
 }
 
 const EquipmentSection: React.FC<EquipmentSectionProps> = ({ 
   onViewAllClick,
-  onEquipmentClick
+  onEquipmentClick,
+  equipmentData: propEquipmentData
 }) => {
-  const { equipmentData, loading, error } = useEquipmentStatusData();
+  const { equipmentData: hookEquipmentData, loading, error } = useEquipmentStatusData();
+  
+  // Use prop data if provided, otherwise use data from the hook
+  const equipmentData = propEquipmentData || hookEquipmentData;
   
   // Limit to 3 equipment items
   const displayedEquipment = equipmentData.slice(0, 3);
@@ -31,7 +37,7 @@ const EquipmentSection: React.FC<EquipmentSectionProps> = ({
         </Button>
       }
     >
-      {loading ? (
+      {loading && !propEquipmentData ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map(index => (
             <div key={index} className="border rounded-xl overflow-hidden">

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import StatsSection from './StatsSection';
 import EquipmentSection from './EquipmentSection';
@@ -11,6 +12,7 @@ import { WeeklyCalendar } from '@/components/dashboard/WeeklyCalendar';
 import { SearchBar } from '@/components/dashboard/SearchBar';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+
 interface EnhancedDashboardProps {
   statsData: any[];
   equipmentData: any[];
@@ -28,6 +30,7 @@ interface EnhancedDashboardProps {
   handleTasksAddClick: () => void;
   handleEquipmentClick: (id: number) => void;
 }
+
 const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
   statsData,
   equipmentData,
@@ -73,12 +76,15 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
     type: 'task' as const,
     url: `/maintenance?taskId=${item.id}`
   }))];
+
   const handleViewIntervention = (id: number) => {
     navigate(`/interventions?id=${id}`);
   };
+
   const handleViewParts = () => {
     navigate('/parts');
   };
+
   const handleViewCalendarEvent = (id: string | number, type: string) => {
     switch (type) {
       case 'maintenance':
@@ -92,6 +98,7 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
         break;
     }
   };
+
   return <div className="space-y-8 px-[38px]">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold mb-0">Tableau de bord</h1>
@@ -102,7 +109,11 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          <EquipmentSection equipment={equipmentData} onViewAllClick={handleEquipmentViewAllClick} onEquipmentClick={handleEquipmentClick} />
+          <EquipmentSection 
+            equipmentData={equipmentData} 
+            onViewAllClick={handleEquipmentViewAllClick} 
+            onEquipmentClick={handleEquipmentClick} 
+          />
 
           <DashboardSection title="Interventions urgentes" subtitle="Interventions critiques en attente" action={<Button variant="outline" size="sm" onClick={() => navigate('/interventions')}>
                 Toutes les interventions
@@ -129,4 +140,5 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
       </div>
     </div>;
 };
+
 export default EnhancedDashboard;
