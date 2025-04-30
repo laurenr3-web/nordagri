@@ -1,114 +1,121 @@
 
-import React, { memo } from 'react';
+import React from 'react';
+import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle, AlertTriangle, Clock } from 'lucide-react';
+
+interface EquipmentUsage {
+  hours: number;
+  target: number;
+}
+
+interface NextService {
+  type: string;
+  due: string;
+}
 
 interface EquipmentCardProps {
   name: string;
   type: string;
   image: string;
-  status: 'operational' | 'maintenance' | 'repair';
-  usage: {
-    hours: number;
-    target: number;
-  };
-  nextService: {
-    type: string;
-    due: string;
-  };
+  status: 'operational' | 'maintenance' | 'repair' | 'inactive';
+  usage?: EquipmentUsage;
+  nextService?: NextService;
+  onClick?: () => void;
   className?: string;
   style?: React.CSSProperties;
-  onClick?: () => void;
 }
 
-function EquipmentCardComponent({ 
+export const EquipmentCard: React.FC<EquipmentCardProps> = ({ 
   name, 
   type, 
   image, 
   status, 
   usage, 
-  nextService, 
-  className, 
-  style, 
-  onClick 
-}: EquipmentCardProps) {
-  const getStatusClass = (status: 'operational' | 'maintenance' | 'repair') => {
-    switch (status) {
-      case 'operational':
-        return 'status-operational';
-      case 'maintenance':
-        return 'status-maintenance';
-      case 'repair':
-        return 'status-repair';
-    }
-  };
+  nextService,
+  onClick,
+  className = "",
+  style 
+}) => {
+  // Calculate usage percentage for progress bar
+  const usagePercentage = usage ? Math.min(Math.round((usage.hours / usage.target) * 100), 100) : 0;
+  
+  // Determine if maintenance is overdue
+  const isOverdue = nextService?.due.includes('retard');
+  const isUpcoming = nextService?.due.includes('jours') || nextService?.due.includes('demain');
+
+  // Select progress bar color based on usage
+  const progressColor = usagePercentage > 90 ? 'bg-orange-500' : 'bg-emerald-500';
 
   return (
-    <div 
-      className={cn(
-        "overflow-hidden animate-scale-in bg-white rounded-xl border border-border shadow-card card-hover", 
-        className,
-        onClick ? "cursor-pointer" : ""
-      )}
-      style={style}
+    <Card 
+      className={`bg-white rounded-xl overflow-hidden hover:shadow-md transition-shadow duration-300 ${className}`}
+      style={{
+        ...style,
+        opacity: 0,
+        animation: 'fadeIn 0.5s forwards',
+      }}
       onClick={onClick}
     >
-      <div className="relative h-40 bg-muted">
+      <div className="relative">
         <img 
           src={image} 
           alt={name} 
-          className="w-full h-full object-contain p-2" 
-          onError={(e) => {
-            e.currentTarget.src = '/placeholder.svg';
-            e.currentTarget.classList.add('bg-muted-foreground/10');
-          }}
+          className="w-full h-32 object-cover"
         />
-        <div className="absolute top-3 right-3">
-          <div className={cn(
-            "px-2.5 py-1 rounded-full text-xs font-medium",
-            getStatusClass(status)
-          )}>
-            {status === 'operational' ? 'Operational' : 
-             status === 'maintenance' ? 'Maintenance' : 
-             'Repair Needed'}
-          </div>
+        <div className="absolute top-2 right-2">
+          <Badge 
+            className={`${
+              status === 'operational' ? 'bg-green-100 text-green-800' :
+              status === 'maintenance' ? 'bg-blue-100 text-blue-800' :
+              status === 'repair' ? 'bg-red-100 text-red-800' :
+              'bg-gray-100 text-gray-800'
+            } rounded-md`}
+          >
+            {status === 'operational' && 'Opérationnel'}
+            {status === 'maintenance' && 'Maintenance'}
+            {status === 'repair' && 'Réparation'}
+            {status === 'inactive' && 'Inactif'}
+          </Badge>
         </div>
       </div>
       
       <div className="p-4">
-        <h3 className="font-medium mb-1 text-lg">{name}</h3>
-        <p className="text-sm text-muted-foreground mb-4">{type}</p>
+        <h3 className="font-medium text-lg mb-1 truncate">{name}</h3>
+        <p className="text-muted-foreground text-sm mb-4">{type}</p>
         
-        <div className="space-y-4">
-          <div>
+        {usage && (
+          <div className="mb-3">
             <div className="flex justify-between text-sm mb-1.5">
-              <span>Usage</span>
-              <span className="font-medium">{usage.hours} / {usage.target} hrs</span>
+              <span>Utilisation</span>
+              <span>{usage.hours} / {usage.target} hrs</span>
             </div>
             <Progress 
-              value={(usage.hours / usage.target) * 100} 
-              className="h-2"
-              indicatorClassName={cn(
-                (usage.hours / usage.target) > 0.8 ? "bg-alert-red" : 
-                (usage.hours / usage.target) > 0.6 ? "bg-alert-orange" : 
-                "bg-agri-primary"
-              )}
+              value={usagePercentage} 
+              className="h-2 rounded-full bg-gray-100" 
+              indicatorClassName={progressColor}
             />
           </div>
-          
-          <div className="text-sm">
-            <p className="text-muted-foreground mb-1">Next Service:</p>
-            <p className="font-medium">{nextService.type}</p>
-            <p className={cn(
-              nextService.due.includes('Overdue') ? "text-alert-red font-medium" : 
-              nextService.due.includes('days') ? "text-alert-orange" : "text-muted-foreground"
-            )}>{nextService.due}</p>
+        )}
+        
+        {nextService && (
+          <div className="flex items-center gap-1.5 text-sm mt-3">
+            {isOverdue ? (
+              <AlertTriangle size={16} className="text-red-500" />
+            ) : isUpcoming ? (
+              <Clock size={16} className="text-orange-500" /> 
+            ) : (
+              <CheckCircle size={16} className="text-green-500" />
+            )}
+            <span className={`
+              ${isOverdue ? 'text-red-600' : isUpcoming ? 'text-orange-600' : 'text-green-600'}
+            `}>
+              {nextService.due}
+            </span>
           </div>
-        </div>
+        )}
       </div>
-    </div>
+    </Card>
   );
-}
-
-// Export a memoized version for better performance
-export const EquipmentCard = memo(EquipmentCardComponent);
+};

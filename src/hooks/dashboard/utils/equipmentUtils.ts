@@ -1,74 +1,72 @@
 
-import { EquipmentItem, RawEquipmentData } from '../types/equipmentTypes';
-import { validateEquipmentStatus } from '@/utils/typeGuards';
-import { assertIsString, assertIsObject, assertType } from '@/utils/typeAssertions';
+import { RawEquipmentData, EquipmentItem } from '../types/equipmentTypes';
+import { differenceInDays, format } from 'date-fns';
 
 /**
- * Format due date to a user-friendly string
+ * Format date for equipment maintenance date displays
  */
-export const formatDueDate = (dueDate: Date): string => {
+export function formatDueDate(date: Date): string {
   const now = new Date();
-  const diffTime = dueDate.getTime() - now.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  if (diffDays < 0) {
-    return 'Overdue';
-  } else if (diffDays === 0) {
-    return 'Today';
-  } else if (diffDays === 1) {
-    return 'Tomorrow';
-  } else if (diffDays <= 7) {
-    return `In ${diffDays} days`;
-  } else if (diffDays <= 30) {
-    return `In ${Math.ceil(diffDays / 7)} weeks`;
+  const days = differenceInDays(date, now);
+  
+  if (days < 0) {
+    return 'En retard';
+  } else if (days === 0) {
+    return "Aujourd'hui";
+  } else if (days === 1) {
+    return 'Demain';
+  } else if (days <= 30) {
+    return `Dans ${days} jours`;
   } else {
-    return `In ${Math.ceil(diffDays / 30)} months`;
+    return 'À jour';
   }
-};
+}
 
 /**
- * Transform raw equipment data to our interface format
+ * Transform raw equipment data into the format needed for display
  */
-export const transformEquipmentData = (
+export function transformEquipmentData(
   equipmentItems: RawEquipmentData[], 
   maintenanceMap: Map<string, { type: string; due: string }>,
   simpleDueMap: Map<string, string>
-): EquipmentItem[] => {
+): EquipmentItem[] {
   return equipmentItems.map(item => {
-    // Validation de l'objet item
-    assertIsObject(item);
+    // Get equipment ID as string
+    const equipmentId = item.id.toString();
     
-    // Default image based on equipment type
-    let defaultImage = 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=500&auto=format&fit=crop';
+    // Get maintenance info for this equipment
+    const nextService = maintenanceMap.get(equipmentId) || 
+      { type: 'Maintenance régulière', due: 'À jour' };
     
-    // Validation du type d'équipement
-    const itemType = assertType<string | undefined>(
-      item.type, 
-      (v): v is string | undefined => typeof v === 'string' || v === undefined,
-      "Equipment type must be a string or undefined"
-    );
-    
-    if (itemType?.toLowerCase().includes('combine') || itemType?.toLowerCase().includes('harvester')) {
-      defaultImage = 'https://images.unsplash.com/photo-1599033329459-cc8c31c7eb6c?q=80&w=500&auto=format&fit=crop';
-    }
-
-    const itemId = assertIsString(item.id.toString());
+    // Get usage data with defaults
+    const usageHours = item.usage_hours || 0;
+    const usageTarget = item.usage_target || 500;
     
     return {
       id: item.id,
-      name: item.name || `${item.model || 'Unknown'} Equipment`,
-      type: itemType || 'Unknown',
+      name: item.name || `Equipment #${item.id}`,
+      type: item.type || 'Unknown',
       status: validateEquipmentStatus(item.status),
-      image: item.image || defaultImage,
+      image: item.image || 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=500&auto=format&fit=crop',
       usage: {
-        hours: item.usage_hours || 0,
-        target: item.usage_target || 500
+        hours: usageHours,
+        target: usageTarget
       },
-      nextService: maintenanceMap.get(itemId) || {
-        type: 'Regular Maintenance',
-        due: 'Not scheduled'
-      },
-      nextMaintenance: simpleDueMap.get(itemId) || null
+      nextService: nextService,
+      nextMaintenance: simpleDueMap.get(equipmentId) || null
     };
   });
-};
+}
+
+/**
+ * Validate that equipment status is one of the allowed values
+ */
+export function validateEquipmentStatus(status: string | undefined): 'operational' | 'maintenance' | 'repair' | 'inactive' {
+  const validStatuses = ['operational', 'maintenance', 'repair', 'inactive'];
+  
+  if (status && validStatuses.includes(status)) {
+    return status as 'operational' | 'maintenance' | 'repair' | 'inactive';
+  }
+  
+  return 'operational'; // Default fallback
+}
