@@ -4,16 +4,29 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useFarmId } from './useFarmId';
 
-interface InviteUserProps {
+// Define proper types for the invitation process
+export type UserRole = 'viewer' | 'editor' | 'admin';
+
+export interface InviteUserParams {
   email: string;
-  role: 'viewer' | 'editor' | 'admin'; // Roles mis à jour
+  role: UserRole;
+}
+
+export interface InviteUserResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    invitation_id: string;
+    user_exists: boolean;
+  };
 }
 
 export function useUserInvitation() {
   const [isLoading, setIsLoading] = useState(false);
   const { farmId } = useFarmId();
 
-  const inviteUser = async ({ email, role }: InviteUserProps) => {
+  const inviteUser = async ({ email, role }: InviteUserParams): Promise<boolean> => {
+    // Input validation
     if (!email) {
       toast.error("L'email est requis");
       return false;
@@ -26,8 +39,8 @@ export function useUserInvitation() {
 
     setIsLoading(true);
     try {
-      // Utiliser la fonction Edge pour inviter l'utilisateur
-      const { data, error } = await supabase.functions.invoke('invite-user', {
+      // Call the Edge function to invite the user
+      const { data, error } = await supabase.functions.invoke<InviteUserResponse>('invite-user', {
         body: { 
           email,
           role,
@@ -35,18 +48,29 @@ export function useUserInvitation() {
         }
       });
 
+      // Handle Supabase errors (network, auth, etc.)
       if (error) {
-        throw new Error(error.message);
+        console.error('Supabase function error:', error);
+        throw new Error(error.message || "Erreur lors de l'appel à la fonction d'invitation");
       }
       
+      // Handle function-level errors (validation, business logic, etc.)
       if (!data?.success) {
-        throw new Error(data?.message || "Une erreur est survenue lors de l'invitation");
+        const errorMessage = data?.message || "Une erreur est survenue lors de l'invitation";
+        console.error('Invitation failed:', errorMessage);
+        throw new Error(errorMessage);
       }
 
+      // Success case
       toast.success(`Invitation envoyée à ${email}`);
       return true;
-    } catch (error: any) {
-      toast.error(error.message || "Une erreur est survenue lors de l'invitation");
+    } catch (error: unknown) {
+      // Type narrowing for proper error handling
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "Une erreur inattendue est survenue lors de l'invitation";
+      
+      toast.error(errorMessage);
       return false;
     } finally {
       setIsLoading(false);
