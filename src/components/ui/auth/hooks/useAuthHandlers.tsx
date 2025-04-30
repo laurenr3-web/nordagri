@@ -82,6 +82,7 @@ export const useAuthHandlers = (onSuccess?: () => void) => {
             last_name: lastName,
           },
           // Utilisez l'URL complète de l'application pour la redirection
+          // Assurez-vous d'utiliser l'URL de votre application, pas l'URL Supabase
           emailRedirectTo: `${window.location.origin}/auth`,
         }
       });

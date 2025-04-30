@@ -60,19 +60,19 @@ export function useSessionCheck(
           }, 0);
         }
         
-        // Gérer les redirections
-        const returnPath = new URLSearchParams(location.search).get('returnTo') || '/dashboard';
-        
         // Ne pas rediriger si nous sommes sur la page d'authentification avec un hash (confirmation d'email)
         if (location.pathname === '/auth' && location.hash) {
           console.log('Sur la page de confirmation email, pas de redirection automatique');
-        } else if (requireAuth && !currentSession) {
+        } 
+        // Gérer les redirections uniquement si nous ne sommes pas en train de vérifier un email
+        else if (requireAuth && !currentSession) {
           // Stocker l'URL actuelle pour rediriger l'utilisateur après connexion
           const currentPath = location.pathname === '/auth' ? '/dashboard' : location.pathname + location.search;
           navigate(`/auth?returnTo=${encodeURIComponent(currentPath)}`, { replace: true });
         } else if (currentSession && location.pathname === '/auth' && !location.hash) {
           // Rediriger depuis la page d'auth vers la destination spécifiée
           // Seulement si nous ne sommes pas sur une confirmation d'email
+          const returnPath = new URLSearchParams(location.search).get('returnTo') || '/dashboard';
           navigate(returnPath, { replace: true });
         } else if (currentSession && location.pathname === '/') {
           // Rediriger depuis la racine vers le dashboard

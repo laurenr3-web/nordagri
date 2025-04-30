@@ -23,10 +23,11 @@ const Auth = () => {
   // Check if the user is coming from a verification email
   useEffect(() => {
     const checkEmailVerification = async () => {
-      const params = new URLSearchParams(location.hash.substring(1));
-      const accessToken = params.get('access_token');
-      const refreshToken = params.get('refresh_token');
-      const type = params.get('type');
+      // Vérifier si nous avons des paramètres dans le hash (confirmation email ou reset password)
+      const hashParams = new URLSearchParams(location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      const type = hashParams.get('type');
       
       // Log parameters for debugging
       console.log('Auth check parameters:', { 
@@ -36,46 +37,36 @@ const Auth = () => {
         hasRefreshToken: !!refreshToken 
       });
       
-      if (accessToken && refreshToken && type === 'recovery') {
-        // Handle password reset flow
+      if (accessToken) {
         try {
           setVerifyingEmail(true);
-          const { error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
           
-          if (error) {
-            toast.error("Erreur lors de la récupération de votre session: " + error.message);
-          } else {
-            toast.success("Vous pouvez maintenant définir votre nouveau mot de passe");
-            navigate('/settings?tab=security');
-          }
-        } catch (error: any) {
-          console.error('Password recovery error:', error);
-          toast.error("Erreur lors de la récupération de mot de passe: " + error.message);
-        } finally {
-          setVerifyingEmail(false);
-        }
-      } else if (accessToken && type === 'signup') {
-        setVerifyingEmail(true);
-        // Handle email verification for signup
-        try {
-          const { error } = await supabase.auth.setSession({
+          // Définir la session avec les tokens
+          const { data, error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken || '',
           });
           
           if (error) {
-            toast.error("Erreur lors de la vérification de votre email: " + error.message);
+            toast.error("Erreur lors de la vérification de votre session: " + error.message);
+            console.error('Session verification error:', error);
           } else {
-            // User has verified their email and is now logged in
-            toast.success("Email vérifié avec succès! Vous êtes maintenant connecté.");
-            navigate('/dashboard');
+            if (type === 'recovery') {
+              // Redirection vers la page de changement de mot de passe
+              toast.success("Vous pouvez maintenant définir votre nouveau mot de passe");
+              navigate('/settings?tab=security');
+            } else if (type === 'signup') {
+              // L'utilisateur a vérifié son email et est maintenant connecté
+              toast.success("Email vérifié avec succès! Vous êtes maintenant connecté.");
+              navigate('/dashboard');
+            } else {
+              // Autre type de confirmation, rediriger vers le dashboard
+              navigate('/dashboard');
+            }
           }
         } catch (error: any) {
           console.error('Email verification error:', error);
-          toast.error("Erreur lors de la vérification de l'email: " + error.message);
+          toast.error("Erreur lors de la vérification: " + error.message);
         } finally {
           setVerifyingEmail(false);
         }
@@ -93,11 +84,12 @@ const Auth = () => {
 
   useEffect(() => {
     // If user is already authenticated, redirect to return path or dashboard
-    if (isAuthenticated && !verifyingEmail) {
+    // But don't redirect if we're in the process of verifying email
+    if (isAuthenticated && !verifyingEmail && !location.hash) {
       const returnPath = getReturnPath();
       navigate(returnPath, { replace: true });
     }
-  }, [isAuthenticated, navigate, verifyingEmail]);
+  }, [isAuthenticated, navigate, verifyingEmail, location.hash]);
 
   if (loading || verifyingEmail) {
     return (
