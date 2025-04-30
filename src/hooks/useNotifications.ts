@@ -25,31 +25,38 @@ export function useNotifications() {
     tableName: 'notifications',
     eventTypes: ['INSERT', 'UPDATE', 'DELETE'],
     onInsert: (payload) => {
-      if (payload.new) {
-        setNotifications(prev => [payload.new as Notification, ...prev]);
+      // Type guard to ensure payload.new is a Notification
+      if (payload.new && typeof payload.new === 'object' && 'id' in payload.new) {
+        const newNotification = payload.new as Notification;
+        setNotifications(prev => [newNotification, ...prev]);
         setUnreadCount(count => count + 1);
       }
     },
     onUpdate: (payload) => {
-      if (payload.new) {
+      // Type guard for payload.new and payload.old
+      if (payload.new && typeof payload.new === 'object' && 'id' in payload.new) {
+        const updatedNotification = payload.new as Notification;
         setNotifications(prev => 
           prev.map(notification => 
-            notification.id === payload.new.id ? payload.new as Notification : notification
+            notification.id === updatedNotification.id ? updatedNotification : notification
           )
         );
         // Update unread count if notification was marked as read
-        if (payload.old?.read_at === null && payload.new.read_at !== null) {
+        if (payload.old && typeof payload.old === 'object' && 'read_at' in payload.old && 
+            payload.old.read_at === null && updatedNotification.read_at !== null) {
           setUnreadCount(count => Math.max(0, count - 1));
         }
       }
     },
     onDelete: (payload) => {
-      if (payload.old) {
+      // Type guard for payload.old
+      if (payload.old && typeof payload.old === 'object' && 'id' in payload.old) {
+        const deletedNotification = payload.old as Notification;
         setNotifications(prev => 
-          prev.filter(notification => notification.id !== payload.old.id)
+          prev.filter(notification => notification.id !== deletedNotification.id)
         );
         // Update unread count if an unread notification was deleted
-        if (payload.old.read_at === null) {
+        if (deletedNotification.read_at === null) {
           setUnreadCount(count => Math.max(0, count - 1));
         }
       }
