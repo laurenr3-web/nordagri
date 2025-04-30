@@ -90,15 +90,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           // Increment login attempts
           setLoginAttempts(prev => prev + 1);
           
-          // Check if user exists to provide more specific error message
-          const { data: userExists } = await supabase.auth.admin
-            .getUserByEmail(email)
-            .catch(() => ({ data: null }));
-            
-          if (userExists) {
-            setErrorMessage('Mot de passe incorrect.');
-          } else {
-            setErrorMessage('Aucun compte trouvé avec cette adresse.');
+          // Utilisation plus simple pour vérifier si l'utilisateur existe
+          if (email) {
+            // Nous ne pouvons pas facilement vérifier si l'utilisateur existe côté client
+            // Donc nous pouvons utiliser un message générique pour le moment
+            setErrorMessage('Identifiants incorrects. Veuillez vérifier votre email et mot de passe.');
           }
         } else {
           // Generic error message

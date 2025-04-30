@@ -11,6 +11,7 @@ interface PasswordInputProps {
   placeholder?: string;
   disabled?: boolean;
   required?: boolean;
+  className?: string; // Ajout de la propriété className
 }
 
 const PasswordInput: React.FC<PasswordInputProps> = ({
@@ -19,7 +20,8 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
   onChange,
   placeholder = "Enter your password",
   disabled = false,
-  required = false
+  required = false,
+  className // Utilisation de la propriété className
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   
@@ -33,6 +35,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
         onChange={onChange}
         disabled={disabled}
         required={required}
+        className={className} // Transmission de la classe à l'Input
       />
       <Button
         type="button"
