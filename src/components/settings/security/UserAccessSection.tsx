@@ -14,9 +14,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { useFarmId } from '@/hooks/useFarmId';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { InviteUserDialog } from '../users/InviteUserDialog';
 
 interface TeamMember {
   id: string;
+  user_id?: string;
   email: string;
   first_name: string;
   last_name: string;
@@ -42,11 +44,6 @@ export function UserAccessSection() {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
-  
-  // État du formulaire d'invitation
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState('viewer');
-  const [inviteLoading, setInviteLoading] = useState(false);
   const { farmId, isLoading: farmIdLoading } = useFarmId();
 
   // Charger les membres de l'équipe et les invitations
@@ -66,6 +63,7 @@ export function UserAccessSection() {
           id,
           role,
           created_at,
+          user_id,
           user:user_id (
             id,
             email
@@ -76,12 +74,18 @@ export function UserAccessSection() {
       if (membersError) throw membersError;
       
       // Récupérer les profils des utilisateurs pour avoir leurs noms
-      const userIds = membersData?.map(member => member.user?.id).filter(Boolean) || [];
+      // S'assurer d'avoir un tableau d'IDs valides
+      const userIds = membersData
+        ?.map(member => {
+          // Vérifier si user existe et a un id
+          return member.user && typeof member.user === 'object' ? (member.user as any)?.id : null;
+        })
+        .filter(Boolean) || [];
       
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, first_name, last_name')
-        .in('id', userIds);
+        .in('id', userIds.length > 0 ? userIds : ['00000000-0000-0000-0000-000000000000']); // Fallback id si le tableau est vide
       
       if (profilesError) throw profilesError;
       
@@ -94,14 +98,15 @@ export function UserAccessSection() {
       
       if (invitesError) throw invitesError;
       
-      // Formater les données des membres
+      // Formater les données des membres avec vérification de type
       const formattedMembers = membersData?.map(member => {
-        const profile = profilesData?.find(p => p.id === member.user?.id);
+        const user = member.user && typeof member.user === 'object' ? member.user : null;
+        const profile = user ? profilesData?.find(p => p.id === (user as any).id) : null;
         
         return {
           id: member.id,
-          user_id: member.user?.id,
-          email: member.user?.email || '',
+          user_id: user ? (user as any).id : '',
+          email: user ? (user as any).email || '' : '',
           first_name: profile?.first_name || '',
           last_name: profile?.last_name || '',
           role: member.role,
@@ -130,50 +135,6 @@ export function UserAccessSection() {
     }
   };
 
-  const handleInviteMember = async () => {
-    if (!inviteEmail) {
-      toast.error("L'adresse email est requise");
-      return;
-    }
-    
-    if (!farmId) {
-      toast.error("ID de ferme non disponible");
-      return;
-    }
-    
-    setInviteLoading(true);
-    try {
-      const { error } = await supabase.functions.invoke('invite-user', {
-        body: { 
-          email: inviteEmail, 
-          role: inviteRole,
-          farmId: farmId
-        }
-      });
-      
-      if (error) throw error;
-      
-      toast.success(`Invitation envoyée à ${inviteEmail}`);
-      setInviteDialogOpen(false);
-      setInviteEmail('');
-      setInviteRole('viewer');
-      
-      // Actualiser la liste des membres et invitations
-      fetchTeamData(farmId);
-    } catch (error: any) {
-      console.error('Erreur lors de l\'envoi de l\'invitation:', error);
-      toast.error(error.message || 'Impossible d\'envoyer l\'invitation');
-    } finally {
-      setInviteLoading(false);
-    }
-  };
-
-  const handleResendInvitation = async (invitationId: string) => {
-    // Pour l'instant, cette fonction simule simplement un renvoi
-    // À terme, on pourrait implémenter une fonction pour recréer une invitation ou prolonger la date d'expiration
-    toast.info("Fonctionnalité de renvoi en cours de développement");
-  };
-  
   const handleCancelInvitation = async (invitationId: string) => {
     try {
       const { error } = await supabase
@@ -193,6 +154,11 @@ export function UserAccessSection() {
       console.error('Erreur lors de l\'annulation de l\'invitation:', error);
       toast.error('Impossible d\'annuler l\'invitation');
     }
+  };
+
+  const handleResendInvitation = async (invitationId: string) => {
+    // Pour l'instant, cette fonction simule simplement un renvoi
+    toast.info("Fonctionnalité de renvoi en cours de développement");
   };
   
   const getRoleBadgeColor = (role: string) => {
@@ -399,51 +365,11 @@ export function UserAccessSection() {
               </div>
             )}
 
-            {/* Dialogue d'invitation */}
-            <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Inviter un nouveau membre</DialogTitle>
-                  <DialogDescription>
-                    Envoyez une invitation par email pour ajouter un nouveau membre à votre équipe.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="email">Adresse email</Label>
-                    <Input
-                      id="email"
-                      placeholder="nom@exemple.fr"
-                      value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                      disabled={inviteLoading}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="role">Rôle</Label>
-                    <Select value={inviteRole} onValueChange={setInviteRole} disabled={inviteLoading}>
-                      <SelectTrigger id="role">
-                        <SelectValue placeholder="Sélectionnez un rôle" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="viewer">Lecteur</SelectItem>
-                        <SelectItem value="editor">Éditeur</SelectItem>
-                        <SelectItem value="admin">Administrateur</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setInviteDialogOpen(false)} disabled={inviteLoading}>
-                    Annuler
-                  </Button>
-                  <Button onClick={handleInviteMember} disabled={inviteLoading || !inviteEmail}>
-                    <UserCheck className="h-4 w-4 mr-2" />
-                    Envoyer l'invitation
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            {/* Utiliser le nouveau composant InviteUserDialog */}
+            <InviteUserDialog 
+              open={inviteDialogOpen} 
+              onOpenChange={setInviteDialogOpen} 
+            />
           </>
         )}
         
