@@ -320,6 +320,41 @@ export type Database = {
           },
         ]
       }
+      farm_members: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          farm_id: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          farm_id: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          farm_id?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "farm_members_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       farm_settings: {
         Row: {
           farm_id: string | null
@@ -1308,12 +1343,32 @@ export type Database = {
           average_days_between_maintenance: number
         }[]
       }
+      get_user_farm_role: {
+        Args: { farm_id_param: string; user_id_param?: string }
+        Returns: string
+      }
       get_user_role: {
         Args: { p_user_id: string }
         Returns: string
       }
+      has_farm_role: {
+        Args: {
+          farm_id_param: string
+          required_role: string
+          user_id_param?: string
+        }
+        Returns: boolean
+      }
+      invite_user_to_farm: {
+        Args: { email: string; farm_id: string; role?: string }
+        Returns: Json
+      }
       is_equipment_in_user_farm: {
         Args: { equipment_id_param: number }
+        Returns: boolean
+      }
+      is_farm_member: {
+        Args: { farm_id_param: string; user_id_param?: string }
         Returns: boolean
       }
     }
