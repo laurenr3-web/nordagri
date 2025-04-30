@@ -60,7 +60,7 @@ export function useAuthListener(
       } else if (requireAuth && !session && event === 'SIGNED_OUT') {
         // L'utilisateur s'est déconnecté et cette route nécessite une authentification
         console.log('User signed out, redirecting to auth page');
-        const returnPath = location.pathname + location.search;
+        const returnPath = location.pathname === '/auth' ? '/dashboard' : location.pathname + location.search;
         navigate(`/auth?returnTo=${encodeURIComponent(returnPath)}`, { replace: true });
       }
     });

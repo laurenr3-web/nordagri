@@ -24,7 +24,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
     loading,
     authMode,
     passwordStrength,
-    loginAttempts,
     resetSent,
     formErrors,
     generalError,
@@ -72,27 +71,18 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
           <TabsTrigger value="signup">Inscription</TabsTrigger>
         </TabsList>
       </Tabs>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4 pt-6">
-          {generalError && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{generalError}</AlertDescription>
-            </Alert>
-          )}
-          
-          {authMode === 'login' ? (
-            <LoginForm
-              email={email}
-              setEmail={setEmail}
-              password={password}
-              setPassword={setPassword}
-              loading={loading}
-              loginAttempts={loginAttempts}
-              formErrors={formErrors}
-              onForgotPassword={() => setAuthMode('reset')}
-            />
-          ) : (
+      <CardContent className="space-y-4 pt-6">
+        {generalError && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{generalError}</AlertDescription>
+          </Alert>
+        )}
+        
+        {authMode === 'login' ? (
+          <LoginForm onSuccess={onSuccess} />
+        ) : (
+          <form onSubmit={handleSubmit}>
             <SignupForm
               firstName={firstName}
               setFirstName={setFirstName}
@@ -109,28 +99,25 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
               loading={loading}
               formErrors={formErrors}
             />
-          )}
-        </CardContent>
-        <CardFooter className="flex flex-col space-y-2">
-          <Button 
-            type="submit" 
-            className="w-full" 
-            disabled={loading || (authMode === 'login' && loginAttempts >= 5)}
-          >
-            {loading 
-              ? 'Veuillez patienter...' 
-              : authMode === 'login' 
-                ? 'Se connecter' 
-                : 'Créer un compte'}
-          </Button>
-          
-          {authMode === 'signup' && (
-            <p className="text-xs text-center text-muted-foreground mt-2">
-              En créant un compte, vous acceptez nos Conditions d'utilisation et notre Politique de confidentialité.
-            </p>
-          )}
-        </CardFooter>
-      </form>
+            
+            <CardFooter className="flex flex-col space-y-2 px-0 pt-4">
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={loading}
+              >
+                {loading 
+                  ? 'Veuillez patienter...'
+                  : 'Créer un compte'}
+              </Button>
+              
+              <p className="text-xs text-center text-muted-foreground mt-2">
+                En créant un compte, vous acceptez nos Conditions d'utilisation et notre Politique de confidentialité.
+              </p>
+            </CardFooter>
+          </form>
+        )}
+      </CardContent>
     </Card>
   );
 };

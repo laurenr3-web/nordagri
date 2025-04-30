@@ -1,37 +1,152 @@
 
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 import PasswordInput from './PasswordInput';
 import LoginWarning from './LoginWarning';
 
 interface LoginFormProps {
-  email: string;
-  setEmail: (email: string) => void;
-  password: string;
-  setPassword: (password: string) => void;
-  loading: boolean;
-  loginAttempts: number;
-  formErrors: {
-    email?: string;
-    password?: string;
-  };
-  onForgotPassword: () => void;
+  onSuccess?: () => void;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({
-  email,
-  setEmail,
-  password,
-  setPassword,
-  loading,
-  loginAttempts,
-  formErrors,
-  onForgotPassword
-}) => {
+const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
+  const navigate = useNavigate();
+  
+  // Form state
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [loginAttempts, setLoginAttempts] = useState(0);
+
+  // Form validation
+  const [formErrors, setFormErrors] = useState<{
+    email?: string;
+    password?: string;
+  }>({});
+
+  const validateForm = () => {
+    const errors: {
+      email?: string;
+      password?: string;
+    } = {};
+    let isValid = true;
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+      errors.email = "L'email est requis";
+      isValid = false;
+    } else if (!emailRegex.test(email)) {
+      errors.email = "Veuillez entrer une adresse email valide";
+      isValid = false;
+    }
+
+    // Password validation
+    if (!password) {
+      errors.password = "Le mot de passe est requis";
+      isValid = false;
+    }
+
+    setFormErrors(errors);
+    return isValid;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Reset previous error
+    setErrorMessage(null);
+    
+    // Validate form
+    if (!validateForm()) return;
+    
+    // Check login attempts
+    if (loginAttempts >= 5) {
+      setErrorMessage('Trop de tentatives de connexion. Veuillez réessayer plus tard.');
+      return;
+    }
+    
+    setLoading(true);
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) {
+        // Parse error message to provide specific feedback
+        if (error.message.includes('Email not confirmed')) {
+          setErrorMessage('Veuillez confirmer votre adresse courriel avant de vous connecter.');
+        } else if (error.message.includes('Invalid login')) {
+          // Increment login attempts
+          setLoginAttempts(prev => prev + 1);
+          
+          // Check if user exists to provide more specific error message
+          const { data: userExists } = await supabase.auth.admin
+            .getUserByEmail(email)
+            .catch(() => ({ data: null }));
+            
+          if (userExists) {
+            setErrorMessage('Mot de passe incorrect.');
+          } else {
+            setErrorMessage('Aucun compte trouvé avec cette adresse.');
+          }
+        } else {
+          // Generic error message
+          setErrorMessage(error.message || 'Une erreur est survenue lors de la connexion.');
+        }
+        return;
+      }
+      
+      if (!data.session) {
+        throw new Error('Session non créée');
+      }
+      
+      // Log successful login
+      console.log('Connexion réussie:', new Date().toISOString());
+      
+      // Reset login attempts
+      setLoginAttempts(0);
+      
+      // Show success message
+      toast.success('Connexion réussie');
+      
+      // Callback or redirect
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
+    } catch (error: any) {
+      console.error('Erreur d\'authentification:', error);
+      setErrorMessage('Une erreur inattendue est survenue. Veuillez réessayer.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = () => {
+    navigate('/auth?mode=reset');
+  };
+
   return (
-    <div className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {errorMessage && (
+        <Alert variant="destructive" className="animate-in fade-in-50">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{errorMessage}</AlertDescription>
+        </Alert>
+      )}
+      
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input 
@@ -39,8 +154,18 @@ const LoginForm: React.FC<LoginFormProps> = ({
           type="email" 
           placeholder="Entrez votre email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            // Clear error when typing
+            if (formErrors.email) {
+              setFormErrors(prev => ({ ...prev, email: undefined }));
+            }
+            if (errorMessage) {
+              setErrorMessage(null);
+            }
+          }}
           disabled={loading}
+          className={formErrors.email ? "border-destructive" : ""}
           required
         />
         {formErrors.email && (
@@ -53,8 +178,18 @@ const LoginForm: React.FC<LoginFormProps> = ({
         <PasswordInput
           id="password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            // Clear error when typing
+            if (formErrors.password) {
+              setFormErrors(prev => ({ ...prev, password: undefined }));
+            }
+            if (errorMessage) {
+              setErrorMessage(null);
+            }
+          }}
           disabled={loading}
+          className={formErrors.password ? "border-destructive" : ""}
           required
           placeholder="Entrez votre mot de passe"
         />
@@ -68,14 +203,30 @@ const LoginForm: React.FC<LoginFormProps> = ({
           type="button" 
           variant="link" 
           className="p-0 h-auto text-sm"
-          onClick={onForgotPassword}
+          onClick={handleForgotPassword}
+          disabled={loading}
         >
           Mot de passe oublié ?
         </Button>
       </div>
       
       <LoginWarning loginAttempts={loginAttempts} />
-    </div>
+      
+      <Button 
+        type="submit" 
+        className="w-full" 
+        disabled={loading || loginAttempts >= 5}
+      >
+        {loading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Connexion en cours...
+          </>
+        ) : (
+          'Se connecter'
+        )}
+      </Button>
+    </form>
   );
 };
 
