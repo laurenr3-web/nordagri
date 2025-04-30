@@ -77,27 +77,23 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     setLoading(true);
     
     try {
+      // Tenter de se connecter
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       
       if (error) {
-        // Parse error message to provide specific feedback
+        // Incrémenter le compteur de tentatives
+        setLoginAttempts(prev => prev + 1);
+        
+        // Analyser le message d'erreur pour afficher un message plus précis
         if (error.message.includes('Email not confirmed')) {
-          setErrorMessage('Veuillez confirmer votre adresse courriel avant de vous connecter.');
-        } else if (error.message.includes('Invalid login')) {
-          // Increment login attempts
-          setLoginAttempts(prev => prev + 1);
-          
-          // Utilisation plus simple pour vérifier si l'utilisateur existe
-          if (email) {
-            // Nous ne pouvons pas facilement vérifier si l'utilisateur existe côté client
-            // Donc nous pouvons utiliser un message générique pour le moment
-            setErrorMessage('Identifiants incorrects. Veuillez vérifier votre email et mot de passe.');
-          }
+          setErrorMessage('Veuillez confirmer votre adresse email avant de vous connecter. Vérifiez votre boîte mail pour le lien de confirmation.');
+        } else if (error.message.includes('Invalid login credentials')) {
+          setErrorMessage('Identifiants incorrects. Veuillez vérifier votre email et mot de passe. Si vous venez de créer votre compte, assurez-vous d\'avoir confirmé votre email.');
         } else {
-          // Generic error message
+          // Message d'erreur générique
           setErrorMessage(error.message || 'Une erreur est survenue lors de la connexion.');
         }
         return;
@@ -107,16 +103,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
         throw new Error('Session non créée');
       }
       
-      // Log successful login
+      // Connexion réussie
       console.log('Connexion réussie:', new Date().toISOString());
       
-      // Reset login attempts
+      // Réinitialiser le compteur de tentatives
       setLoginAttempts(0);
       
-      // Show success message
+      // Afficher un message de succès
       toast.success('Connexion réussie');
       
-      // Callback or redirect
+      // Rediriger ou appeler le callback de succès
       if (onSuccess) {
         onSuccess();
       } else {
@@ -134,12 +130,50 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     navigate('/auth?mode=reset');
   };
 
+  // Fonction pour envoyer à nouveau l'email de confirmation
+  const handleResendConfirmation = async () => {
+    if (!email) {
+      setFormErrors({ email: "Veuillez entrer votre adresse email" });
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+      });
+      
+      if (error) throw error;
+      
+      toast.success('Email de confirmation envoyé avec succès. Veuillez vérifier votre boîte mail.');
+    } catch (error: any) {
+      console.error('Erreur lors de l\'envoi de l\'email:', error);
+      toast.error(error.message || "Impossible d'envoyer l'email de confirmation");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {errorMessage && (
         <Alert variant="destructive" className="animate-in fade-in-50">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{errorMessage}</AlertDescription>
+          <AlertDescription>
+            {errorMessage}
+            {errorMessage.includes('confirmer votre adresse email') && (
+              <Button 
+                type="button" 
+                variant="link" 
+                className="p-0 h-auto text-sm ml-2"
+                onClick={handleResendConfirmation}
+                disabled={loading}
+              >
+                Renvoyer l'email de confirmation
+              </Button>
+            )}
+          </AlertDescription>
         </Alert>
       )}
       
