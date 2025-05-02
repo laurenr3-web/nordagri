@@ -37,7 +37,7 @@ export default function TimeTrackingPage() {
   } = useTimeTrackingData();
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4 sm:gap-6 min-w-0">
       <TimeTrackingHeader
         onNewSession={() => setIsFormOpen(true)}
       />

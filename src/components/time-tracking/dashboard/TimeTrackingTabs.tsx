@@ -36,23 +36,25 @@ export function TimeTrackingTabs({
       onValueChange={onTabChange}
       className="mt-6"
     >
-      <div className="flex items-center justify-between mb-4">
-        <TabsList>
-          <TabsTrigger value="list" className="flex items-center gap-1">
-            <ListFilter className="h-4 w-4" />
-            <span>Liste</span>
-          </TabsTrigger>
-          <TabsTrigger value="statistics" className="flex items-center gap-1">
-            <BarChart className="h-4 w-4" />
-            <span>Statistiques</span>
-          </TabsTrigger>
-          <TabsTrigger value="rapport" className="flex items-center gap-1">
-            <PieChart className="h-4 w-4" />
-            <span>Rapport</span>
-          </TabsTrigger>
-        </TabsList>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+        <div className="overflow-x-auto pb-2 snap-x">
+          <TabsList className="min-w-max">
+            <TabsTrigger value="list" className="flex items-center gap-1">
+              <ListFilter className="h-4 w-4" />
+              <span>Liste</span>
+            </TabsTrigger>
+            <TabsTrigger value="statistics" className="flex items-center gap-1">
+              <BarChart className="h-4 w-4" />
+              <span>Statistiques</span>
+            </TabsTrigger>
+            <TabsTrigger value="rapport" className="flex items-center gap-1">
+              <PieChart className="h-4 w-4" />
+              <span>Rapport</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
         
-        <Button size="sm" onClick={onNewSession} disabled={isLoading}>
+        <Button size="sm" onClick={onNewSession} disabled={isLoading} className="w-full sm:w-auto">
           Nouvelle session
         </Button>
       </div>
@@ -70,7 +72,7 @@ export function TimeTrackingTabs({
             <Button onClick={onNewSession}>Démarrer une nouvelle session</Button>
           </div>
         ) : (
-          <ScrollArea className="h-[calc(100vh-24rem)]">
+          <ScrollArea className="h-[calc(100vh-28rem)] sm:h-[calc(100vh-24rem)]">
             <div className="space-y-4">
               {entries.map((entry) => (
                 <TimeEntryCard
@@ -89,7 +91,7 @@ export function TimeTrackingTabs({
         <div className="flex flex-col space-y-4">
           <p className="text-muted-foreground mb-4">Accédez à des analyses détaillées de votre temps de travail</p>
           <Link to="/time-tracking/statistics">
-            <Button>Voir les statistiques</Button>
+            <Button className="w-full sm:w-auto">Voir les statistiques</Button>
           </Link>
         </div>
       </TabsContent>

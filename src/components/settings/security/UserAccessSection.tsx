@@ -74,14 +74,18 @@ export function UserAccessSection() {
       
       // Formater les données des membres
       const formattedMembers = membersData?.map(member => {
+        // Type guard to ensure profiles exists and has the expected properties
         const profile = member.profiles || {};
+        const email = typeof profile === 'object' && 'email' in profile ? profile.email : '';
+        const firstName = typeof profile === 'object' && 'first_name' in profile ? profile.first_name : '';
+        const lastName = typeof profile === 'object' && 'last_name' in profile ? profile.last_name : '';
         
         return {
           id: member.id,
           user_id: member.user_id || '',
-          email: profile.email || '',
-          first_name: profile.first_name || '',
-          last_name: profile.last_name || '',
+          email: email || '',
+          first_name: firstName || '',
+          last_name: lastName || '',
           role: member.role,
           status: 'active', // Tous les membres sont actifs par défaut
           created_at: member.created_at

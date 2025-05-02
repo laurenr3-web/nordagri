@@ -15,9 +15,12 @@ const TimeTracking = () => {
           title="Suivi du temps" 
           description="Enregistrez et suivez le temps passé sur vos tâches"
         />
-        <TimeTrackingPage />
+        <div className="w-full overflow-hidden">
+          <TimeTrackingPage />
+        </div>
       </LayoutWrapper>
     </MainLayout>
   );
 };
+
 export default TimeTracking;
