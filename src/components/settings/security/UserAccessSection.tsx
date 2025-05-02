@@ -42,6 +42,7 @@ export function UserAccessSection() {
       
       if (profilesError) {
         console.error("Error fetching profiles:", profilesError);
+        throw profilesError;
       }
       
       let members: any[] = [];
@@ -55,7 +56,8 @@ export function UserAccessSection() {
           first_name: profile.first_name || '',
           last_name: profile.last_name || '',
           role: 'owner', // Par défaut, considérer comme propriétaire
-          status: 'active'
+          status: 'active',
+          created_at: new Date().toISOString() // Ajouter une date par défaut
         }));
         
         console.log("Found profiles associated with farm:", members);
@@ -78,23 +80,32 @@ export function UserAccessSection() {
           
           // Pour chaque membre, essayer de récupérer les informations de profil
           for (const member of farmMembersData) {
-            const { data: userData, error: userError } = await supabase
-              .from('profiles')
-              .select('first_name, last_name, email')
-              .eq('id', member.user_id)
-              .single();
+            try {
+              const { data: userData, error: userError } = await supabase
+                .from('profiles')
+                .select('first_name, last_name, email')
+                .eq('id', member.user_id)
+                .single();
+                
+              if (userError) {
+                console.error("Error fetching user data for member:", member.user_id, userError);
+                continue; // Passer au membre suivant en cas d'erreur
+              }
               
-            if (!userError && userData) {
-              members.push({
-                id: member.id,
-                user_id: member.user_id,
-                email: userData.email || '',
-                first_name: userData.first_name || '',
-                last_name: userData.last_name || '',
-                role: member.role || 'viewer',
-                status: 'active',
-                created_at: member.created_at
-              });
+              if (userData) {
+                members.push({
+                  id: member.id,
+                  user_id: member.user_id,
+                  email: userData.email || '',
+                  first_name: userData.first_name || '',
+                  last_name: userData.last_name || '',
+                  role: member.role || 'viewer',
+                  status: 'active',
+                  created_at: member.created_at || new Date().toISOString()
+                });
+              }
+            } catch (error) {
+              console.error("Error in member processing:", error);
             }
           }
         }
@@ -103,29 +114,35 @@ export function UserAccessSection() {
       }
       
       // Récupérer les invitations en attente
-      const { data: pendingInvites, error: invitesError } = await supabase
-        .from('invitations')
-        .select('*')
-        .eq('farm_id', farmId)
-        .neq('status', 'accepted');
-      
-      if (invitesError) {
-        console.error("Error fetching invitations:", invitesError);
-        // Si la table n'existe pas encore, c'est normal, on continue
+      try {
+        const { data: pendingInvites, error: invitesError } = await supabase
+          .from('invitations')
+          .select('*')
+          .eq('farm_id', farmId)
+          .neq('status', 'accepted');
+        
+        if (invitesError) {
+          console.error("Error fetching invitations:", invitesError);
+          // Si la table n'existe pas encore, c'est normal, on continue
+        } else {
+          // Formater les invitations
+          const formattedInvitations = pendingInvites?.map(invite => ({
+            id: invite.id,
+            email: invite.email,
+            role: invite.role,
+            status: invite.status,
+            created_at: invite.created_at,
+            expires_at: invite.expires_at
+          })) || [];
+          
+          console.log("Pending invitations:", formattedInvitations);
+          setInvitations(formattedInvitations);
+        }
+      } catch (error) {
+        console.error("Error processing invitations:", error);
       }
       
-      // Formater les invitations
-      const formattedInvitations = pendingInvites?.map(invite => ({
-        id: invite.id,
-        email: invite.email,
-        role: invite.role,
-        status: invite.status,
-        created_at: invite.created_at,
-        expires_at: invite.expires_at
-      })) || [];
-      
       console.log("Team members found:", members);
-      console.log("Pending invitations:", formattedInvitations);
       
       // Éviter les doublons (si un utilisateur est à la fois dans profiles et farm_members)
       const uniqueMembers = Array.from(
@@ -133,7 +150,6 @@ export function UserAccessSection() {
       );
       
       setTeamMembers(uniqueMembers);
-      setInvitations(formattedInvitations);
     } catch (error) {
       console.error('Erreur lors du chargement des données de l\'équipe:', error);
       toast.error('Impossible de charger les membres de l\'équipe');
