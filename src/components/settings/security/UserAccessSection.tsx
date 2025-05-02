@@ -33,6 +33,24 @@ interface PendingInvitation {
   expires_at?: string;
 }
 
+// Type guard function to check if an object is a valid profile
+function isValidProfile(profile: any): profile is { 
+  id: string; 
+  email: string; 
+  first_name: string; 
+  last_name: string; 
+  farm_id?: string;
+} {
+  return (
+    profile && 
+    typeof profile === 'object' &&
+    'id' in profile &&
+    'email' in profile &&
+    'first_name' in profile &&
+    'last_name' in profile
+  );
+}
+
 /**
  * Composant pour afficher et gérer les accès utilisateurs et techniciens
  */
@@ -70,22 +88,18 @@ export function UserAccessSection() {
       
       // Si nous avons des profils associés à cette ferme
       if (profilesData && profilesData.length > 0) {
-        // Handle properly to avoid the TypeScript errors
-        members = profilesData.map(profile => {
-          // Ensure we're working with a valid profile object, not an error
-          if (!profile) return null;
-          
-          return {
-            id: profile.id || '',
-            user_id: profile.id || '',
-            email: profile.email || '',
+        members = profilesData
+          .filter(isValidProfile) // Utiliser le type guard pour filtrer les profils valides
+          .map(profile => ({
+            id: profile.id,
+            user_id: profile.id,
+            email: profile.email,
             first_name: profile.first_name || '',
             last_name: profile.last_name || '',
             role: 'owner', // Par défaut, considérer comme propriétaire
             status: 'active',
             created_at: new Date().toISOString() // Ajouter une date par défaut
-          };
-        }).filter(Boolean) as TeamMember[]; // Filter out any null values
+          }));
         
         console.log("Found profiles associated with farm:", members);
       } else {
@@ -121,12 +135,11 @@ export function UserAccessSection() {
                 continue; // Passer au membre suivant en cas d'erreur
               }
               
-              if (userData) {
-                // Make sure we're not working with an error object
-                const userInfo = {
+              if (userData && isValidProfile(userData)) {
+                const userInfo: TeamMember = {
                   id: member.id || '',
                   user_id: member.user_id || '',
-                  email: userData.email || '',
+                  email: userData.email,
                   first_name: userData.first_name || '',
                   last_name: userData.last_name || '',
                   role: member.role || 'viewer',
