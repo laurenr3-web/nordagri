@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProfileSection } from './profile/ProfileSection';
@@ -10,44 +9,35 @@ import { NotificationSettingsSection } from './notifications/NotificationSetting
 import { SubscriptionSection } from './subscription/SubscriptionSection';
 import { useSettings } from '@/hooks/useSettings';
 import { Loader2 } from 'lucide-react';
-
 interface SettingsTabsProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
 }
-
-export default function SettingsTabs({ activeTab, setActiveTab }: SettingsTabsProps) {
-  const { 
-    loading, 
-    profile, 
-    notificationSettings, 
-    updateProfile, 
-    updatePassword, 
+export default function SettingsTabs({
+  activeTab,
+  setActiveTab
+}: SettingsTabsProps) {
+  const {
+    loading,
+    profile,
+    notificationSettings,
+    updateProfile,
+    updatePassword,
     updateNotifications,
-    manageSubscription 
+    manageSubscription
   } = useSettings();
 
   // Extract first and last name from full_name
   const nameParts = profile.full_name.split(' ');
   const firstName = nameParts[0] || '';
   const lastName = nameParts.slice(1).join(' ') || '';
-
   if (loading) {
-    return (
-      <div className="flex items-center justify-center p-8">
+    return <div className="flex items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-primary mr-2" />
         <p>Chargement des paramètres...</p>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <Tabs 
-      defaultValue="essentials" 
-      className="w-full"
-      value={activeTab} 
-      onValueChange={setActiveTab}
-    >
+  return <Tabs defaultValue="essentials" value={activeTab} onValueChange={setActiveTab} className="w-full px-[93px]">
       <div className="overflow-x-auto w-full mb-6 sm:mb-8">
         <TabsList className="flex min-w-[380px] sm:min-w-0 grid grid-cols-2 sm:grid-cols-4 gap-1">
           <TabsTrigger value="essentials" className="min-w-[100px]">Profil</TabsTrigger>
@@ -59,23 +49,11 @@ export default function SettingsTabs({ activeTab, setActiveTab }: SettingsTabsPr
       
       <TabsContent value="essentials">
         <div className="space-y-8">
-          <ProfileSection 
-            firstName={firstName}
-            lastName={lastName}
-            email={profile.email}
-            loading={loading}
-            onUpdateProfile={(firstName, lastName) => {
-              const fullName = `${firstName} ${lastName}`.trim();
-              return updateProfile(fullName, profile.email);
-            }}
-          />
-          <SimpleNotificationSection 
-            emailEnabled={notificationSettings.email_enabled}
-            smsEnabled={notificationSettings.sms_enabled}
-            phoneNumber={notificationSettings.phone_number}
-            onUpdateNotifications={updateNotifications}
-            loading={loading}
-          />
+          <ProfileSection firstName={firstName} lastName={lastName} email={profile.email} loading={loading} onUpdateProfile={(firstName, lastName) => {
+          const fullName = `${firstName} ${lastName}`.trim();
+          return updateProfile(fullName, profile.email);
+        }} />
+          <SimpleNotificationSection emailEnabled={notificationSettings.email_enabled} smsEnabled={notificationSettings.sms_enabled} phoneNumber={notificationSettings.phone_number} onUpdateNotifications={updateNotifications} loading={loading} />
         </div>
       </TabsContent>
       
@@ -84,20 +62,15 @@ export default function SettingsTabs({ activeTab, setActiveTab }: SettingsTabsPr
       </TabsContent>
       
       <TabsContent value="subscription">
-        <SubscriptionSection 
-          onManageSubscription={manageSubscription}
-        />
+        <SubscriptionSection onManageSubscription={manageSubscription} />
       </TabsContent>
       
       <TabsContent value="security">
         <div className="space-y-8">
-          <PasswordSection 
-            onUpdatePassword={updatePassword}
-          />
+          <PasswordSection onUpdatePassword={updatePassword} />
           <NotificationSettingsSection />
           <UserAccessSection />
         </div>
       </TabsContent>
-    </Tabs>
-  );
+    </Tabs>;
 }
