@@ -83,9 +83,14 @@ export function useUserInvitation() {
         throw new Error(error.message || "Erreur lors de l'appel à la fonction d'invitation");
       }
       
+      // Check if we have a response and if it has an error
+      if (!data) {
+        throw new Error("Aucune réponse reçue de la fonction d'invitation");
+      }
+      
       // Handle function-level errors (validation, business logic, etc.)
-      if (!data?.success) {
-        const errorMessage = data?.error || "Une erreur est survenue lors de l'invitation";
+      if (!data.success) {
+        const errorMessage = data.error || "Une erreur est survenue lors de l'invitation";
         console.error('Invitation failed:', errorMessage);
         throw new Error(errorMessage);
       }

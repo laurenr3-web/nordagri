@@ -34,29 +34,73 @@ export function UserAccessSection() {
     try {
       console.log("Fetching team data for farm ID:", farmId);
       
-      // Récupérer les membres de l'équipe directement depuis la table farm_members
-      const { data: membersData, error: membersError } = await supabase
-        .from('farm_members')
-        .select(`
-          id,
-          role,
-          created_at,
-          user_id,
-          profiles:user_id (
-            id,
-            first_name,
-            last_name,
-            email
-          )
-        `)
+      // Récupérer d'abord les utilisateurs depuis profiles
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email, farm_id')
         .eq('farm_id', farmId);
       
-      if (membersError) {
-        console.error("Error fetching farm members:", membersError);
-        throw membersError;
+      if (profilesError) {
+        console.error("Error fetching profiles:", profilesError);
       }
       
-      console.log("Farm members data:", membersData);
+      let members: any[] = [];
+      
+      // Si nous avons des profils associés à cette ferme
+      if (profilesData && profilesData.length > 0) {
+        members = profilesData.map(profile => ({
+          id: profile.id,
+          user_id: profile.id,
+          email: profile.email || '',
+          first_name: profile.first_name || '',
+          last_name: profile.last_name || '',
+          role: 'owner', // Par défaut, considérer comme propriétaire
+          status: 'active'
+        }));
+        
+        console.log("Found profiles associated with farm:", members);
+      } else {
+        console.log("No profiles found for this farm ID");
+      }
+      
+      // Essayer de récupérer les membres depuis farm_members si la table existe
+      try {
+        const { data: farmMembersData, error: membersError } = await supabase
+          .from('farm_members')
+          .select('id, user_id, role, created_at')
+          .eq('farm_id', farmId);
+          
+        if (membersError) {
+          // Si la table n'existe pas, c'est normal
+          console.log("Note: farm_members table might not exist yet:", membersError);
+        } else if (farmMembersData && farmMembersData.length > 0) {
+          console.log("Found farm members:", farmMembersData);
+          
+          // Pour chaque membre, essayer de récupérer les informations de profil
+          for (const member of farmMembersData) {
+            const { data: userData, error: userError } = await supabase
+              .from('profiles')
+              .select('first_name, last_name, email')
+              .eq('id', member.user_id)
+              .single();
+              
+            if (!userError && userData) {
+              members.push({
+                id: member.id,
+                user_id: member.user_id,
+                email: userData.email || '',
+                first_name: userData.first_name || '',
+                last_name: userData.last_name || '',
+                role: member.role || 'viewer',
+                status: 'active',
+                created_at: member.created_at
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error checking farm_members:", error);
+      }
       
       // Récupérer les invitations en attente
       const { data: pendingInvites, error: invitesError } = await supabase
@@ -67,30 +111,8 @@ export function UserAccessSection() {
       
       if (invitesError) {
         console.error("Error fetching invitations:", invitesError);
-        throw invitesError;
+        // Si la table n'existe pas encore, c'est normal, on continue
       }
-      
-      console.log("Pending invitations:", pendingInvites);
-      
-      // Formater les données des membres
-      const formattedMembers = membersData?.map(member => {
-        // Type guard to ensure profiles exists and has the expected properties
-        const profile = member.profiles || {};
-        const email = typeof profile === 'object' && 'email' in profile ? profile.email : '';
-        const firstName = typeof profile === 'object' && 'first_name' in profile ? profile.first_name : '';
-        const lastName = typeof profile === 'object' && 'last_name' in profile ? profile.last_name : '';
-        
-        return {
-          id: member.id,
-          user_id: member.user_id || '',
-          email: email || '',
-          first_name: firstName || '',
-          last_name: lastName || '',
-          role: member.role,
-          status: 'active', // Tous les membres sont actifs par défaut
-          created_at: member.created_at
-        };
-      }) || [];
       
       // Formater les invitations
       const formattedInvitations = pendingInvites?.map(invite => ({
@@ -102,7 +124,15 @@ export function UserAccessSection() {
         expires_at: invite.expires_at
       })) || [];
       
-      setTeamMembers(formattedMembers);
+      console.log("Team members found:", members);
+      console.log("Pending invitations:", formattedInvitations);
+      
+      // Éviter les doublons (si un utilisateur est à la fois dans profiles et farm_members)
+      const uniqueMembers = Array.from(
+        new Map(members.map(item => [item.user_id, item])).values()
+      );
+      
+      setTeamMembers(uniqueMembers);
       setInvitations(formattedInvitations);
     } catch (error) {
       console.error('Erreur lors du chargement des données de l\'équipe:', error);
