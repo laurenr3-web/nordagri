@@ -12,12 +12,33 @@ import { InviteUserDialog } from '../users/InviteUserDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+// Define proper types for team members and invitations
+interface TeamMember {
+  id: string;
+  user_id?: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  status: string;
+  created_at: string;
+}
+
+interface Invitation {
+  id: string;
+  email: string;
+  role: string;
+  status: string;
+  created_at: string;
+  expires_at?: string;
+}
+
 /**
  * Composant pour afficher et gérer les accès utilisateurs et techniciens
  */
 export function UserAccessSection() {
-  const [teamMembers, setTeamMembers] = useState<any[]>([]);
-  const [invitations, setInvitations] = useState<any[]>([]);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const { farmId, isLoading: farmIdLoading } = useFarmId();
@@ -45,13 +66,13 @@ export function UserAccessSection() {
         throw profilesError;
       }
       
-      let members: any[] = [];
+      let members: TeamMember[] = [];
       
       // Si nous avons des profils associés à cette ferme
       if (profilesData && profilesData.length > 0) {
         members = profilesData.map(profile => ({
-          id: profile.id,
-          user_id: profile.id,
+          id: profile.id || '',
+          user_id: profile.id || '',
           email: profile.email || '',
           first_name: profile.first_name || '',
           last_name: profile.last_name || '',
@@ -80,6 +101,8 @@ export function UserAccessSection() {
           
           // Pour chaque membre, essayer de récupérer les informations de profil
           for (const member of farmMembersData) {
+            if (!member.user_id) continue;
+
             try {
               const { data: userData, error: userError } = await supabase
                 .from('profiles')
@@ -94,8 +117,8 @@ export function UserAccessSection() {
               
               if (userData) {
                 members.push({
-                  id: member.id,
-                  user_id: member.user_id,
+                  id: member.id || '',
+                  user_id: member.user_id || '',
                   email: userData.email || '',
                   first_name: userData.first_name || '',
                   last_name: userData.last_name || '',
@@ -124,16 +147,16 @@ export function UserAccessSection() {
         if (invitesError) {
           console.error("Error fetching invitations:", invitesError);
           // Si la table n'existe pas encore, c'est normal, on continue
-        } else {
+        } else if (pendingInvites) {
           // Formater les invitations
-          const formattedInvitations = pendingInvites?.map(invite => ({
-            id: invite.id,
-            email: invite.email,
-            role: invite.role,
-            status: invite.status,
-            created_at: invite.created_at,
+          const formattedInvitations = pendingInvites.map(invite => ({
+            id: invite.id || '',
+            email: invite.email || '',
+            role: invite.role || '',
+            status: invite.status || '',
+            created_at: invite.created_at || '',
             expires_at: invite.expires_at
-          })) || [];
+          }));
           
           console.log("Pending invitations:", formattedInvitations);
           setInvitations(formattedInvitations);
