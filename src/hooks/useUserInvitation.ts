@@ -16,6 +16,7 @@ export interface InviteUserParams {
 export interface InviteUserResponse {
   success: boolean;
   message?: string;
+  error?: string;
   data?: {
     invitation_id: string;
     user_exists: boolean;
@@ -57,16 +58,22 @@ export function useUserInvitation() {
       }
       
       // Ensure farmId is available
-      const validFarmId = assertIsDefined(farmId, "Farm ID");
+      if (!farmId) {
+        toast.error("Identifiant de ferme manquant");
+        console.error("Farm ID is undefined");
+        return false;
+      }
       
       setIsLoading(true);
+      
+      console.log("Sending invitation with params:", { email, role, farmId });
       
       // Call the Edge function to invite the user
       const { data, error } = await supabase.functions.invoke<InviteUserResponse>('invite-user', {
         body: { 
-          email: assertIsString(email),
+          email,
           role,
-          farmId: validFarmId
+          farmId
         }
       });
 
@@ -78,7 +85,7 @@ export function useUserInvitation() {
       
       // Handle function-level errors (validation, business logic, etc.)
       if (!data?.success) {
-        const errorMessage = data?.message || "Une erreur est survenue lors de l'invitation";
+        const errorMessage = data?.error || "Une erreur est survenue lors de l'invitation";
         console.error('Invitation failed:', errorMessage);
         throw new Error(errorMessage);
       }

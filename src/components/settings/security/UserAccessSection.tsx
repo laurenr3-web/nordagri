@@ -32,7 +32,9 @@ export function UserAccessSection() {
   const fetchTeamData = async (farmId: string) => {
     setLoading(true);
     try {
-      // Récupérer les membres de l'équipe
+      console.log("Fetching team data for farm ID:", farmId);
+      
+      // Récupérer les membres de l'équipe directement depuis la table farm_members
       const { data: membersData, error: membersError } = await supabase
         .from('farm_members')
         .select(`
@@ -40,30 +42,21 @@ export function UserAccessSection() {
           role,
           created_at,
           user_id,
-          user:user_id (
+          profiles:user_id (
             id,
+            first_name,
+            last_name,
             email
           )
         `)
         .eq('farm_id', farmId);
       
-      if (membersError) throw membersError;
+      if (membersError) {
+        console.error("Error fetching farm members:", membersError);
+        throw membersError;
+      }
       
-      // Récupérer les profils des utilisateurs pour avoir leurs noms
-      // S'assurer d'avoir un tableau d'IDs valides
-      const userIds = membersData
-        ?.filter(member => member.user && typeof member.user === 'object')
-        .map(member => (member.user as any)?.id)
-        .filter(Boolean) || [];
-      
-      const { data: profilesData, error: profilesError } = userIds.length > 0 
-        ? await supabase
-            .from('profiles')
-            .select('id, first_name, last_name')
-            .in('id', userIds)
-        : { data: [], error: null };
-      
-      if (profilesError) throw profilesError;
+      console.log("Farm members data:", membersData);
       
       // Récupérer les invitations en attente
       const { data: pendingInvites, error: invitesError } = await supabase
@@ -72,19 +65,23 @@ export function UserAccessSection() {
         .eq('farm_id', farmId)
         .neq('status', 'accepted');
       
-      if (invitesError) throw invitesError;
+      if (invitesError) {
+        console.error("Error fetching invitations:", invitesError);
+        throw invitesError;
+      }
       
-      // Formater les données des membres avec vérification de type
+      console.log("Pending invitations:", pendingInvites);
+      
+      // Formater les données des membres
       const formattedMembers = membersData?.map(member => {
-        const user = member.user && typeof member.user === 'object' ? member.user : null;
-        const profile = user ? profilesData?.find(p => p.id === (user as any).id) : null;
+        const profile = member.profiles || {};
         
         return {
           id: member.id,
-          user_id: user ? (user as any).id : '',
-          email: user ? (user as any).email || '' : '',
-          first_name: profile?.first_name || '',
-          last_name: profile?.last_name || '',
+          user_id: member.user_id || '',
+          email: profile.email || '',
+          first_name: profile.first_name || '',
+          last_name: profile.last_name || '',
           role: member.role,
           status: 'active', // Tous les membres sont actifs par défaut
           created_at: member.created_at
