@@ -4,17 +4,17 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-interface Invitation {
+interface PendingInvitation {
   id: string;
   email: string;
   role: string;
   status: string;
   created_at: string;
-  expires_at: string;
+  expires_at?: string;
 }
 
 interface PendingInvitationsListProps {
-  invitations: Invitation[];
+  invitations: PendingInvitation[];
   onCancel: (id: string) => void;
   onResend: (id: string) => void;
 }
@@ -51,7 +51,8 @@ export function PendingInvitationsList({ invitations, onCancel, onResend }: Pend
   };
 
   // Vérifier si la date d'expiration est dépassée
-  const isInvitationExpired = (expirationDate: string) => {
+  const isInvitationExpired = (expirationDate?: string) => {
+    if (!expirationDate) return false;
     return new Date(expirationDate) < new Date();
   };
 

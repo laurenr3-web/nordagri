@@ -24,7 +24,7 @@ interface TeamMember {
   created_at: string;
 }
 
-interface Invitation {
+interface PendingInvitation {
   id: string;
   email: string;
   role: string;
@@ -38,7 +38,7 @@ interface Invitation {
  */
 export function UserAccessSection() {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [invitations, setInvitations] = useState<PendingInvitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const { farmId, isLoading: farmIdLoading } = useFarmId();
@@ -70,16 +70,22 @@ export function UserAccessSection() {
       
       // Si nous avons des profils associés à cette ferme
       if (profilesData && profilesData.length > 0) {
-        members = profilesData.map(profile => ({
-          id: profile.id || '',
-          user_id: profile.id || '',
-          email: profile.email || '',
-          first_name: profile.first_name || '',
-          last_name: profile.last_name || '',
-          role: 'owner', // Par défaut, considérer comme propriétaire
-          status: 'active',
-          created_at: new Date().toISOString() // Ajouter une date par défaut
-        }));
+        // Handle properly to avoid the TypeScript errors
+        members = profilesData.map(profile => {
+          // Ensure we're working with a valid profile object, not an error
+          if (!profile) return null;
+          
+          return {
+            id: profile.id || '',
+            user_id: profile.id || '',
+            email: profile.email || '',
+            first_name: profile.first_name || '',
+            last_name: profile.last_name || '',
+            role: 'owner', // Par défaut, considérer comme propriétaire
+            status: 'active',
+            created_at: new Date().toISOString() // Ajouter une date par défaut
+          };
+        }).filter(Boolean) as TeamMember[]; // Filter out any null values
         
         console.log("Found profiles associated with farm:", members);
       } else {
@@ -116,7 +122,8 @@ export function UserAccessSection() {
               }
               
               if (userData) {
-                members.push({
+                // Make sure we're not working with an error object
+                const userInfo = {
                   id: member.id || '',
                   user_id: member.user_id || '',
                   email: userData.email || '',
@@ -125,7 +132,9 @@ export function UserAccessSection() {
                   role: member.role || 'viewer',
                   status: 'active',
                   created_at: member.created_at || new Date().toISOString()
-                });
+                };
+                
+                members.push(userInfo);
               }
             } catch (error) {
               console.error("Error in member processing:", error);
@@ -149,7 +158,7 @@ export function UserAccessSection() {
           // Si la table n'existe pas encore, c'est normal, on continue
         } else if (pendingInvites) {
           // Formater les invitations
-          const formattedInvitations = pendingInvites.map(invite => ({
+          const formattedInvitations: PendingInvitation[] = pendingInvites.map(invite => ({
             id: invite.id || '',
             email: invite.email || '',
             role: invite.role || '',
