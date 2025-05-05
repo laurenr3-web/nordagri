@@ -177,7 +177,7 @@ export function MaintenanceForm({ onSubmit, defaultValues, isLoading, equipment,
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className={isMobile ? "pb-4" : ""}>
         {isMobile ? (
-          <ScrollArea className="h-[60vh] pr-2">
+          <ScrollArea className="h-[60vh]">
             {formContent}
           </ScrollArea>
         ) : (

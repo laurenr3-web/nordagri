@@ -200,13 +200,13 @@ const MaintenancePlanDialog: React.FC<MaintenancePlanDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[95vh]">
         <DialogHeader>
           <DialogTitle>Créer un plan de maintenance</DialogTitle>
         </DialogHeader>
         
         {isMobile ? (
-          <ScrollArea className="h-[65vh] pr-2">
+          <ScrollArea className="h-[70vh]">
             {formContent}
           </ScrollArea>
         ) : (

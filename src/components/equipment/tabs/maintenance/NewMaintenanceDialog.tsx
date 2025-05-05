@@ -110,7 +110,7 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
             />
           ) : (
             <>
-              <ScrollArea className={isMobile ? "h-[50vh]" : ""}>
+              <ScrollArea className={isMobile ? "h-[60vh]" : ""}>
                 <MaintenanceQuote 
                   maintenance={maintenanceData} 
                   onPrint={handlePrintQuote}
