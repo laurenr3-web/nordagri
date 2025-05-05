@@ -1,46 +1,51 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { TeamMember, PendingInvitation, UserProfile } from '@/types/TeamMember';
-import { isValidProfile } from '@/utils/validationUtils';
+import type { TeamMember, PendingInvitation } from '@/types/TeamMember';
+import { isValidProfile, safelyExtractProfile } from '@/utils/validationUtils';
 
 /**
  * Fetches all team members for a farm
  */
 export async function fetchTeamMembers(farmId: string): Promise<TeamMember[]> {
-  // First get profiles associated with this farm
-  const { data: profilesData, error: profilesError } = await supabase
-    .from('profiles')
-    .select('id, first_name, last_name, email, farm_id')
-    .eq('farm_id', farmId);
-  
-  if (profilesError) {
-    console.error("Error fetching profiles:", profilesError);
-    throw profilesError;
-  }
-  
-  let members: TeamMember[] = [];
-  
-  // Process profiles into team members
-  if (profilesData && profilesData.length > 0) {
-    members = profilesData
-      .filter(isValidProfile)
-      .map(profile => ({
-        id: profile.id,
-        user_id: profile.id,
-        email: profile.email,
-        first_name: profile.first_name || '',
-        last_name: profile.last_name || '',
-        role: 'owner', // Default role
-        status: 'active',
-        created_at: new Date().toISOString()
-      }));
+  try {
+    // First get profiles associated with this farm
+    const { data: profilesData, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, first_name, last_name, email, farm_id')
+      .eq('farm_id', farmId);
     
-    console.log("Found profiles associated with farm:", members);
-  } else {
-    console.log("No profiles found for this farm ID");
+    if (profilesError) {
+      console.error("Error fetching profiles:", profilesError);
+      throw profilesError;
+    }
+    
+    let members: TeamMember[] = [];
+    
+    // Process profiles into team members
+    if (profilesData && profilesData.length > 0) {
+      members = profilesData
+        .filter(profile => isValidProfile(profile))
+        .map(profile => ({
+          id: profile.id,
+          user_id: profile.id,
+          email: profile.email,
+          first_name: profile.first_name || '',
+          last_name: profile.last_name || '',
+          role: 'owner', // Default role
+          status: 'active',
+          created_at: new Date().toISOString()
+        }));
+      
+      console.log("Found profiles associated with farm:", members);
+    } else {
+      console.log("No profiles found for this farm ID");
+    }
+    
+    return members;
+  } catch (error) {
+    console.error("Error in fetchTeamMembers:", error);
+    return [];
   }
-  
-  return members;
 }
 
 /**
@@ -82,14 +87,15 @@ export async function fetchFarmMembers(farmId: string): Promise<TeamMember[]> {
           continue;
         }
         
-        // Verify userData exists and has required properties
-        if (userData && typeof userData === 'object' && 'email' in userData) {
+        // Safely extract profile data
+        const profileData = safelyExtractProfile(userData);
+        if (profileData) {
           const userInfo: TeamMember = {
             id: member.id || '',
             user_id: member.user_id || '',
-            email: userData.email || '',
-            first_name: userData.first_name || '',
-            last_name: userData.last_name || '',
+            email: profileData.email || '',
+            first_name: profileData.first_name || '',
+            last_name: profileData.last_name || '',
             role: member.role || 'viewer',
             status: 'active',
             created_at: member.created_at || new Date().toISOString()

@@ -22,3 +22,24 @@ export function isDateExpired(dateString?: string): boolean {
   if (!dateString) return false;
   return new Date(dateString) < new Date();
 }
+
+/**
+ * Safely extracts profile data from a database response
+ */
+export function safelyExtractProfile(userData: any): { 
+  id: string; 
+  email: string; 
+  first_name: string; 
+  last_name: string 
+} | null {
+  if (!userData || typeof userData !== 'object') {
+    return null;
+  }
+  
+  return {
+    id: userData.id || '',
+    email: userData.email || '',
+    first_name: userData.first_name || '',
+    last_name: userData.last_name || ''
+  };
+}

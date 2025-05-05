@@ -1,14 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import { useFarmId } from '@/hooks/useFarmId';
-import { TeamMember, PendingInvitation } from '@/types/TeamMember';
-import { 
-  fetchTeamData, 
-  cancelInvitation, 
-  resendInvitation 
-} from '@/services/teamService';
-
-export { TeamMember, PendingInvitation };
+import { fetchTeamData, cancelInvitation, resendInvitation } from '@/services/teamService';
+import type { TeamMember, PendingInvitation } from '@/types/TeamMember';
 
 /**
  * Hook for managing team members and invitations
