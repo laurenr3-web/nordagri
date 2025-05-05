@@ -11,6 +11,8 @@ import { ExportSection } from "./ExportSection"
 import { useSessionClosure } from "./useSessionClosure"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useGlobalStore } from "@/store"
+import { useEffect } from "react"
 
 interface SessionClosureProps {
   isOpen: boolean;
@@ -48,7 +50,15 @@ export function SessionClosure({
     handleSendEmail
   } = useSessionClosure(entry);
 
+  const setTimeTracking = useGlobalStore(state => state.setTimeTracking);
   const isMobile = useIsMobile();
+  
+  // Ensure we mark the session as not running when closure dialog is shown
+  useEffect(() => {
+    if (isOpen) {
+      setTimeTracking({ isRunning: false, activeSessionId: null });
+    }
+  }, [isOpen, setTimeTracking]);
 
   const handleSubmit = () => {
     onSubmit({

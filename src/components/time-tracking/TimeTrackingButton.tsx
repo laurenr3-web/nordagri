@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, memo } from 'react';
+import React, { useState, useCallback, memo, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useTimeTracking } from '@/hooks/time-tracking/useTimeTracking';
 import { useTimer } from '@/hooks/time-tracking/useTimer';
@@ -9,6 +9,7 @@ import { TimerDisplay } from './components/TimerDisplay';
 import { TimeTrackingControls } from './components/TimeTrackingControls';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useGlobalStore } from '@/store';
 
 interface TimeTrackingButtonProps {
   className?: string;
@@ -24,16 +25,29 @@ export function TimeTrackingButton({
   position = 'fixed' 
 }: TimeTrackingButtonProps) {
   const navigate = useNavigate();
+  const timeTracking = useGlobalStore(state => state.timeTracking);
   const { 
     activeTimeEntry, 
     isLoading, 
     startTimeEntry, 
     pauseTimeEntry,
-    resumeTimeEntry
+    resumeTimeEntry,
+    refreshActiveTimeEntry
   } = useTimeTracking();
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const duration = useTimer(activeTimeEntry);
+
+  // Periodically check for active sessions to ensure synchronization
+  useEffect(() => {
+    const checkInterval = setInterval(() => {
+      if (!isLoading) {
+        refreshActiveTimeEntry();
+      }
+    }, 30000); // Check every 30 seconds
+    
+    return () => clearInterval(checkInterval);
+  }, [isLoading, refreshActiveTimeEntry]);
   
   // Use useCallback to prevent unnecessary re-renders
   const handleMainButtonClick = useCallback(() => {
@@ -82,6 +96,12 @@ export function TimeTrackingButton({
         return 'bg-gray-100 text-gray-700 hover:bg-gray-200';
     }
   }, [activeTimeEntry]);
+
+  // Don't render anything when there's no active timer and we're not showing
+  // a fixed button
+  if (!activeTimeEntry && position !== 'fixed') {
+    return null;
+  }
   
   return (
     <>
