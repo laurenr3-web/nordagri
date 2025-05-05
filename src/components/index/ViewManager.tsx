@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
@@ -13,6 +12,8 @@ import {
   adaptAlertItems, 
   adaptUpcomingTasks 
 } from '@/hooks/dashboard/adapters';
+import { useFarmId } from '@/hooks/useFarmId';
+import NoFarmAccess from '@/components/common/NoFarmAccess';
 
 interface ViewManagerProps {
   currentView: 'main' | 'calendar' | 'alerts';
@@ -21,6 +22,8 @@ interface ViewManagerProps {
 
 const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) => {
   const navigate = useNavigate();
+  const { farmId, isLoading: farmLoading, noAccess } = useFarmId();
+  
   const { 
     loading, 
     statsData, 
@@ -40,6 +43,7 @@ const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) 
   const adaptedAlertItems = adaptAlertItems(alertItems);
   const adaptedUpcomingTasks = adaptUpcomingTasks(upcomingTasks);
 
+  // Handlers for navigation
   const handleStatsCardClick = (type: string) => {
     switch (type) {
       case 'Active Equipment':
@@ -77,8 +81,13 @@ const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) 
     // Do nothing - this is handled by the parent
   };
 
-  if (loading) {
+  if (farmLoading || loading) {
     return <div className="flex items-center justify-center min-h-screen">Loading dashboard data...</div>;
+  }
+
+  // Si l'utilisateur n'a pas accès à une ferme, afficher le composant NoFarmAccess
+  if (noAccess) {
+    return <NoFarmAccess />;
   }
 
   return (

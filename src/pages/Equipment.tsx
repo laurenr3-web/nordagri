@@ -8,9 +8,12 @@ import { EquipmentItem } from '@/components/equipment/hooks/useEquipmentFilters'
 import type { Equipment } from '@/services/supabase/equipmentService';
 import { LayoutWrapper } from "@/components/layout/LayoutWrapper";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { useFarmId } from "@/hooks/useFarmId";
+import NoFarmAccess from "@/components/common/NoFarmAccess";
 
 const Equipment = () => {
   const { t } = useTranslation();
+  const { farmId, isLoading: farmLoading, noAccess } = useFarmId();
   const { equipment, isLoading } = useEquipmentData();
 
   // Transform Equipment objects to EquipmentItem objects
@@ -45,6 +48,28 @@ const Equipment = () => {
       }
     }));
   }, [equipment]);
+
+  if (farmLoading || isLoading) {
+    return (
+      <MainLayout>
+        <LayoutWrapper>
+          <div className="flex items-center justify-center min-h-[80vh]">
+            <p>Chargement des équipements...</p>
+          </div>
+        </LayoutWrapper>
+      </MainLayout>
+    );
+  }
+
+  if (noAccess) {
+    return (
+      <MainLayout>
+        <LayoutWrapper>
+          <NoFarmAccess />
+        </LayoutWrapper>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
