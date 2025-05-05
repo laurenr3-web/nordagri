@@ -1,5 +1,6 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { TimeEntry } from "@/hooks/time-tracking/types"
 import { SummarySection } from "./SummarySection"
@@ -9,6 +10,7 @@ import { SmartActionsSection } from "./SmartActionsSection"
 import { ExportSection } from "./ExportSection"
 import { useSessionClosure } from "./useSessionClosure"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface SessionClosureProps {
   isOpen: boolean;
@@ -46,6 +48,8 @@ export function SessionClosure({
     handleSendEmail
   } = useSessionClosure(entry);
 
+  const isMobile = useIsMobile();
+
   const handleSubmit = () => {
     onSubmit({
       notes,
@@ -73,6 +77,82 @@ export function SessionClosure({
     }
   };
 
+  const formContent = (
+    <div className="space-y-4">
+      <SummarySection entry={entry} estimatedCost={estimatedCost} />
+      
+      <QuickEditSection
+        notes={notes}
+        setNotes={setNotes}
+        material={material}
+        setMaterial={setMaterial}
+        quantity={quantity}
+        setQuantity={setQuantity}
+      />
+      
+      <AttachmentsSection
+        selectedImage={selectedImage}
+        onFileChange={handleFileChange}
+      />
+      
+      <SmartActionsSection
+        createRecurring={createRecurring}
+        setCreateRecurring={setCreateRecurring}
+        managerVerified={managerVerified}
+        setManagerVerified={setManagerVerified}
+        onCreateIntervention={onCreateIntervention}
+      />
+      
+      <ExportSection
+        onExportPDF={handleExportPDF}
+        onSendEmail={handleSendEmail}
+      />
+    </div>
+  );
+
+  const formButtons = (
+    <div className="flex flex-col sm:flex-row gap-2 w-full">
+      <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
+        Annuler
+      </Button>
+      <div className="flex flex-col sm:flex-row gap-2 w-full">
+        <Button 
+          variant="secondary" 
+          onClick={handleSubmitAndStartNew}
+          className="w-full"
+        >
+          Terminer et démarrer nouvelle tâche
+        </Button>
+        <Button 
+          onClick={handleSubmit}
+          className="w-full"
+        >
+          Terminer la session
+        </Button>
+      </div>
+    </div>
+  );
+
+  if (isMobile) {
+    return (
+      <Sheet open={isOpen} onOpenChange={onClose}>
+        <SheetContent side="bottom" className="h-[90vh] p-4" style={{ maxHeight: '90vh' }}>
+          <SheetHeader className="mb-2">
+            <SheetTitle className="text-lg">Clôture de session</SheetTitle>
+          </SheetHeader>
+
+          <ScrollArea className="flex-1 overflow-y-auto pr-2" style={{ height: 'calc(90vh - 140px)' }}>
+            {formContent}
+          </ScrollArea>
+
+          <SheetFooter className="flex flex-col pt-4 sticky bottom-0 bg-background border-t mt-4">
+            {formButtons}
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh]">
@@ -81,55 +161,11 @@ export function SessionClosure({
         </DialogHeader>
 
         <ScrollArea className="max-h-[60vh] pr-4">
-          <div className="space-y-6">
-            <SummarySection entry={entry} estimatedCost={estimatedCost} />
-            
-            <QuickEditSection
-              notes={notes}
-              setNotes={setNotes}
-              material={material}
-              setMaterial={setMaterial}
-              quantity={quantity}
-              setQuantity={setQuantity}
-            />
-            
-            <AttachmentsSection
-              selectedImage={selectedImage}
-              onFileChange={handleFileChange}
-            />
-            
-            <SmartActionsSection
-              createRecurring={createRecurring}
-              setCreateRecurring={setCreateRecurring}
-              managerVerified={managerVerified}
-              setManagerVerified={setManagerVerified}
-              onCreateIntervention={onCreateIntervention}
-            />
-            
-            <ExportSection
-              onExportPDF={handleExportPDF}
-              onSendEmail={handleSendEmail}
-            />
-          </div>
+          {formContent}
         </ScrollArea>
 
-        <DialogFooter className="mt-6 flex justify-between flex-col sm:flex-row gap-2">
-          <Button variant="outline" onClick={onClose}>Annuler</Button>
-          <div className="flex gap-2">
-            <Button 
-              variant="secondary" 
-              onClick={handleSubmitAndStartNew}
-              className="flex-1"
-            >
-              Terminer et démarrer nouvelle tâche
-            </Button>
-            <Button 
-              onClick={handleSubmit}
-              className="flex-1"
-            >
-              Terminer la session
-            </Button>
-          </div>
+        <DialogFooter className="mt-6">
+          {formButtons}
         </DialogFooter>
       </DialogContent>
     </Dialog>
