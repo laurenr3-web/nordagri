@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Définir le schéma de validation
 const maintenanceFormSchema = z.object({
@@ -31,6 +33,8 @@ interface MaintenanceFormProps {
 }
 
 export function MaintenanceForm({ onSubmit, defaultValues, isLoading, equipment, onCancel }: MaintenanceFormProps) {
+  const isMobile = useIsMobile();
+  
   // Initialiser le formulaire avec React Hook Form
   const form = useForm<MaintenanceFormValues>({
     resolver: zodResolver(maintenanceFormSchema),
@@ -49,124 +53,136 @@ export function MaintenanceForm({ onSubmit, defaultValues, isLoading, equipment,
     onSubmit(data);
   };
 
+  const formContent = (
+    <div className="space-y-6">
+      {/* Titre */}
+      <FormField
+        control={form.control}
+        name="title"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Titre</FormLabel>
+            <FormControl>
+              <Input {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {/* Description */}
+      <FormField
+        control={form.control}
+        name="description"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Description</FormLabel>
+            <FormControl>
+              <Textarea {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {/* Type */}
+      <FormField
+        control={form.control}
+        name="type"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Type</FormLabel>
+            <FormControl>
+              <Input {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {/* Coût */}
+      <FormField
+        control={form.control}
+        name="cost"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Coût</FormLabel>
+            <FormControl>
+              <Input 
+                type="number" 
+                {...field} 
+                onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                value={field.value || 0}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {/* Heures de fonctionnement */}
+      <FormField
+        control={form.control}
+        name="hours"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Heures de fonctionnement</FormLabel>
+            <FormControl>
+              <Input 
+                type="number" 
+                {...field} 
+                onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                value={field.value || 0}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {/* Prochaine maintenance */}
+      <FormField
+        control={form.control}
+        name="nextDue"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Prochaine maintenance (heures)</FormLabel>
+            <FormControl>
+              <Input 
+                type="number" 
+                {...field} 
+                onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                value={field.value || 0}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <div className="flex justify-between">
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Annuler
+          </Button>
+        )}
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Enregistrement...' : 'Enregistrer'}
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        {/* Titre */}
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Titre</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Description */}
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Type */}
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Type</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Coût */}
-        <FormField
-          control={form.control}
-          name="cost"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Coût</FormLabel>
-              <FormControl>
-                <Input 
-                  type="number" 
-                  {...field} 
-                  onChange={(e) => field.onChange(Number(e.target.value) || 0)}
-                  value={field.value || 0}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Heures de fonctionnement */}
-        <FormField
-          control={form.control}
-          name="hours"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Heures de fonctionnement</FormLabel>
-              <FormControl>
-                <Input 
-                  type="number" 
-                  {...field} 
-                  onChange={(e) => field.onChange(Number(e.target.value) || 0)}
-                  value={field.value || 0}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Prochaine maintenance */}
-        <FormField
-          control={form.control}
-          name="nextDue"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Prochaine maintenance (heures)</FormLabel>
-              <FormControl>
-                <Input 
-                  type="number" 
-                  {...field} 
-                  onChange={(e) => field.onChange(Number(e.target.value) || 0)}
-                  value={field.value || 0}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="flex justify-between">
-          {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel}>
-              Annuler
-            </Button>
-          )}
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Enregistrement...' : 'Enregistrer'}
-          </Button>
-        </div>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className={isMobile ? "pb-4" : ""}>
+        {isMobile ? (
+          <ScrollArea className="h-[60vh] pr-2">
+            {formContent}
+          </ScrollArea>
+        ) : (
+          formContent
+        )}
       </form>
     </Form>
   );

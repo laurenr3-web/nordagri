@@ -12,6 +12,8 @@ import MaintenanceQuote from './MaintenanceQuote';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Save } from 'lucide-react';
 import { toast } from 'sonner';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface NewMaintenanceDialogProps {
   equipment: any;
@@ -29,6 +31,7 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
   const [step, setStep] = useState<'form' | 'quote'>('form');
   const [maintenanceData, setMaintenanceData] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleFormSubmit = (values: any) => {
     // Ajouter l'equipment au données du formulaire
@@ -86,7 +89,7 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-3xl max-h-[95vh]">
         <DialogHeader>
           <DialogTitle>
             {step === 'form' ? 'Nouvelle maintenance' : 'Devis de maintenance'}
@@ -98,40 +101,44 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        {step === 'form' ? (
-          <MaintenanceForm 
-            equipment={equipment} 
-            onSubmit={handleFormSubmit} 
-            onCancel={onClose}
-          />
-        ) : (
-          <>
-            <MaintenanceQuote 
-              maintenance={maintenanceData} 
-              onPrint={handlePrintQuote}
-              onDownload={handleDownloadQuote}
+        <div className={isMobile ? "flex flex-col flex-1 overflow-hidden" : ""}>
+          {step === 'form' ? (
+            <MaintenanceForm 
+              equipment={equipment} 
+              onSubmit={handleFormSubmit} 
+              onCancel={onClose}
             />
-            
-            <div className="flex justify-between mt-4">
-              <Button 
-                variant="outline" 
-                onClick={handleQuoteBack}
-                disabled={isSubmitting}
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Retour
-              </Button>
+          ) : (
+            <>
+              <ScrollArea className={isMobile ? "h-[50vh]" : ""}>
+                <MaintenanceQuote 
+                  maintenance={maintenanceData} 
+                  onPrint={handlePrintQuote}
+                  onDownload={handleDownloadQuote}
+                />
+              </ScrollArea>
               
-              <Button 
-                onClick={handleSaveQuote}
-                disabled={isSubmitting}
-              >
-                <Save className="h-4 w-4 mr-2" />
-                {isSubmitting ? 'Enregistrement...' : 'Confirmer et enregistrer'}
-              </Button>
-            </div>
-          </>
-        )}
+              <div className="flex justify-between mt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={handleQuoteBack}
+                  disabled={isSubmitting}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Retour
+                </Button>
+                
+                <Button 
+                  onClick={handleSaveQuote}
+                  disabled={isSubmitting}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {isSubmitting ? 'Enregistrement...' : 'Confirmer et enregistrer'}
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

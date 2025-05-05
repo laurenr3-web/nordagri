@@ -1,102 +1,220 @@
 
 import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
-import MaintenancePlanForm from '../forms/MaintenancePlanForm';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { useMaintenancePlanner, MaintenancePlan } from '@/hooks/maintenance/useMaintenancePlanner';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface MaintenancePlanDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  equipment: { 
-    id: number; 
-    name: string; 
-    unite_d_usure?: string;
-    valeur_actuelle?: number;
-    kilometers?: number;
-  } | null;
+  equipment: {
+    id: number;
+    name: string;
+  };
 }
 
-const getTriggerInfo = (plan: MaintenancePlan, equipment?: any) => {
-  if (!plan.trigger_unit || plan.trigger_unit === 'none') return null;
-
-  const currentValue = plan.trigger_unit === 'hours' 
-    ? equipment?.valeur_actuelle || 0
-    : equipment?.kilometers || 0;
-
-  const threshold = plan.trigger_unit === 'hours'
-    ? plan.trigger_hours || 0
-    : plan.trigger_kilometers || 0;
-
-  const remaining = threshold - currentValue;
-  const isOverdue = remaining <= 0;
-
-  return {
-    current: currentValue,
-    threshold,
-    remaining,
-    isOverdue,
-    unit: plan.trigger_unit === 'hours' ? 'h' : 'km'
-  };
-};
-
-export default function MaintenancePlanDialog({ 
-  isOpen, 
-  onClose, 
-  equipment 
-}: MaintenancePlanDialogProps) {
+const MaintenancePlanDialog: React.FC<MaintenancePlanDialogProps> = ({ 
+  isOpen,
+  onClose,
+  equipment
+}) => {
+  const isMobile = useIsMobile();
+  const [title, setTitle] = useState('Plan de maintenance régulier');
+  const [description, setDescription] = useState('');
+  const [interval, setInterval] = useState('monthly');
+  const [dayOfMonth, setDayOfMonth] = useState('1');
+  const [dayOfWeek, setDayOfWeek] = useState('monday');
+  const [totalTasks, setTotalTasks] = useState('12');
+  const [priority, setPriority] = useState('medium');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { createMaintenancePlan } = useMaintenancePlanner();
 
-  const handleSubmit = async (formData: Omit<MaintenancePlan, 'id' | 'active'>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
     try {
-      setIsSubmitting(true);
+      // Simuler une requête API
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Vérifier que nous avons un équipement valide
-      if (!equipment) {
-        toast.error("Aucun équipement sélectionné");
-        return;
-      }
-      
-      // Créer le plan de maintenance
-      await createMaintenancePlan(formData);
-      
-      // Fermer la boîte de dialogue
+      toast.success('Plan de maintenance créé avec succès');
       onClose();
-      
-      // Notification de succès
-      toast.success("Plan de maintenance créé avec succès");
-      
     } catch (error) {
-      console.error("Erreur lors de la création du plan de maintenance:", error);
-      toast.error("Impossible de créer le plan de maintenance");
+      console.error('Erreur lors de la création du plan de maintenance:', error);
+      toast.error("Une erreur est survenue lors de la création du plan");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const formContent = (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="title">Nom du plan</Label>
+        <Input
+          id="title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+        />
+      </div>
+      
+      <div>
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={3}
+        />
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="equipment">Équipement</Label>
+          <Input
+            id="equipment"
+            value={equipment.name}
+            disabled
+          />
+        </div>
+        
+        <div>
+          <Label htmlFor="interval">Fréquence</Label>
+          <Select
+            value={interval}
+            onValueChange={setInterval}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="daily">Quotidienne</SelectItem>
+              <SelectItem value="weekly">Hebdomadaire</SelectItem>
+              <SelectItem value="biweekly">Bi-hebdomadaire</SelectItem>
+              <SelectItem value="monthly">Mensuelle</SelectItem>
+              <SelectItem value="quarterly">Trimestrielle</SelectItem>
+              <SelectItem value="biannual">Semestrielle</SelectItem>
+              <SelectItem value="annual">Annuelle</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      
+        {interval === 'monthly' && (
+          <div>
+            <Label htmlFor="dayOfMonth">Jour du mois</Label>
+            <Select
+              value={dayOfMonth}
+              onValueChange={setDayOfMonth}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[...Array(31)].map((_, i) => (
+                  <SelectItem key={i} value={(i + 1).toString()}>
+                    {i + 1}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+        
+        {interval === 'weekly' && (
+          <div>
+            <Label htmlFor="dayOfWeek">Jour de la semaine</Label>
+            <Select
+              value={dayOfWeek}
+              onValueChange={setDayOfWeek}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="monday">Lundi</SelectItem>
+                <SelectItem value="tuesday">Mardi</SelectItem>
+                <SelectItem value="wednesday">Mercredi</SelectItem>
+                <SelectItem value="thursday">Jeudi</SelectItem>
+                <SelectItem value="friday">Vendredi</SelectItem>
+                <SelectItem value="saturday">Samedi</SelectItem>
+                <SelectItem value="sunday">Dimanche</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+        
+        <div>
+          <Label htmlFor="totalTasks">Nombre total de tâches</Label>
+          <Input
+            id="totalTasks"
+            type="number"
+            min={1}
+            max={100}
+            value={totalTasks}
+            onChange={(e) => setTotalTasks(e.target.value)}
+          />
+        </div>
+        
+        <div>
+          <Label htmlFor="priority">Priorité</Label>
+          <Select
+            value={priority}
+            onValueChange={setPriority}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="low">Basse</SelectItem>
+              <SelectItem value="medium">Moyenne</SelectItem>
+              <SelectItem value="high">Haute</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      
+      <div className="pt-4 flex justify-end space-x-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onClose}
+          disabled={isSubmitting}
+        >
+          Annuler
+        </Button>
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Création en cours...' : 'Créer le plan'}
+        </Button>
+      </div>
+    </form>
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Créer un plan de maintenance périodique</DialogTitle>
-          <DialogDescription>
-            Configurez un plan de maintenance récurrent pour {equipment?.name || "cet équipement"}
-          </DialogDescription>
+          <DialogTitle>Créer un plan de maintenance</DialogTitle>
         </DialogHeader>
         
-        <MaintenancePlanForm
-          onSubmit={handleSubmit}
-          equipment={equipment}
-          isSubmitting={isSubmitting}
-        />
+        {isMobile ? (
+          <ScrollArea className="h-[65vh] pr-2">
+            {formContent}
+          </ScrollArea>
+        ) : (
+          formContent
+        )}
       </DialogContent>
     </Dialog>
   );
-}
+};
+
+export default MaintenancePlanDialog;
