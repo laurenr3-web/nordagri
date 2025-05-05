@@ -24,6 +24,7 @@ import { CalendarIcon, CheckCircle2, Clock, X } from 'lucide-react';
 import { Intervention } from '@/types/Intervention';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface InterventionDetailsDialogProps {
   isOpen: boolean;
@@ -165,7 +166,7 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Détails de l'intervention</DialogTitle>
           <DialogDescription>
@@ -173,131 +174,133 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="title" className="text-right">
-              Titre
-            </Label>
-            <Input type="text" id="title" value={title} onChange={handleTitleChange} className="col-span-3" />
-          </div>
-          
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="equipment" className="text-right">
-              Équipement
-            </Label>
-            <Input type="text" id="equipment" value={equipment} onChange={handleEquipmentChange} className="col-span-3" />
-          </div>
-          
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="location" className="text-right">
-              Lieu
-            </Label>
-            <Input type="text" id="location" value={location} onChange={handleLocationChange} className="col-span-3" />
-          </div>
-          
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="technician" className="text-right">
-              Technicien
-            </Label>
-            <Input type="text" id="technician" value={technician} onChange={handleTechnicianChange} className="col-span-3" />
-          </div>
-          
-          <div className="grid grid-cols-4 items-start gap-4">
-            <Label htmlFor="description" className="text-right mt-2">
-              Description
-            </Label>
-            <Textarea id="description" value={description} onChange={handleDescriptionChange} className="col-span-3" />
-          </div>
-          
-          <div className="grid grid-cols-4 items-start gap-4">
-            <Label htmlFor="notes" className="text-right mt-2">
-              Notes
-            </Label>
-            <Textarea id="notes" value={notes} onChange={handleNotesChange} className="col-span-3" />
-          </div>
-          
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="date" className="text-right">
-              Date
-            </Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={"outline"}
-                  className={cn(
-                    "col-span-3 justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "PPP") : <span>Choisir une date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={(value) => value && handleDateChange(value)}
-                  disabled={(date) =>
-                    date > new Date()
-                  }
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-          
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="priority" className="text-right">
-              Priorité
-            </Label>
-            <Select value={priority} onValueChange={handlePriorityChange}>
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Priorité" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="high">Haute</SelectItem>
-                <SelectItem value="medium">Moyenne</SelectItem>
-                <SelectItem value="low">Basse</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="status" className="text-right">
-              Statut
-            </Label>
-            <Select value={status} onValueChange={handleStatusChange}>
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Statut" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="scheduled">Planifié</SelectItem>
-                <SelectItem value="in-progress">En cours</SelectItem>
-                <SelectItem value="completed">Terminé</SelectItem>
-                <SelectItem value="canceled">Annulé</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          {intervention && intervention.partsUsed && intervention.partsUsed.length > 0 && (
+        <ScrollArea className="flex-1 max-h-[65vh] pr-3">
+          <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">Pièces utilisées</Label>
-              <div className="col-span-3">
-                <ul className="list-none pl-0">
-                  {intervention.partsUsed.map((part) => (
-                    <li key={part.partId} className="flex items-center justify-between border-b py-2 text-sm">
-                      <span>{part.name}</span>
-                      <span>{part.quantity}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <Label htmlFor="title" className="text-right">
+                Titre
+              </Label>
+              <Input type="text" id="title" value={title} onChange={handleTitleChange} className="col-span-3" />
             </div>
-          )}
-        </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="equipment" className="text-right">
+                Équipement
+              </Label>
+              <Input type="text" id="equipment" value={equipment} onChange={handleEquipmentChange} className="col-span-3" />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="location" className="text-right">
+                Lieu
+              </Label>
+              <Input type="text" id="location" value={location} onChange={handleLocationChange} className="col-span-3" />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="technician" className="text-right">
+                Technicien
+              </Label>
+              <Input type="text" id="technician" value={technician} onChange={handleTechnicianChange} className="col-span-3" />
+            </div>
+            
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label htmlFor="description" className="text-right mt-2">
+                Description
+              </Label>
+              <Textarea id="description" value={description} onChange={handleDescriptionChange} className="col-span-3" />
+            </div>
+            
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label htmlFor="notes" className="text-right mt-2">
+                Notes
+              </Label>
+              <Textarea id="notes" value={notes} onChange={handleNotesChange} className="col-span-3" />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="date" className="text-right">
+                Date
+              </Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "col-span-3 justify-start text-left font-normal",
+                      !date && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date ? format(date, "PPP") : <span>Choisir une date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={(value) => value && handleDateChange(value)}
+                    disabled={(date) =>
+                      date > new Date()
+                    }
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="priority" className="text-right">
+                Priorité
+              </Label>
+              <Select value={priority} onValueChange={handlePriorityChange}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Priorité" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="high">Haute</SelectItem>
+                  <SelectItem value="medium">Moyenne</SelectItem>
+                  <SelectItem value="low">Basse</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="status" className="text-right">
+                Statut
+              </Label>
+              <Select value={status} onValueChange={handleStatusChange}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="scheduled">Planifié</SelectItem>
+                  <SelectItem value="in-progress">En cours</SelectItem>
+                  <SelectItem value="completed">Terminé</SelectItem>
+                  <SelectItem value="canceled">Annulé</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {intervention && intervention.partsUsed && intervention.partsUsed.length > 0 && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right">Pièces utilisées</Label>
+                <div className="col-span-3">
+                  <ul className="list-none pl-0">
+                    {intervention.partsUsed.map((part) => (
+                      <li key={part.partId} className="flex items-center justify-between border-b py-2 text-sm">
+                        <span>{part.name}</span>
+                        <span>{part.quantity}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
         
-        <DialogFooter>
+        <DialogFooter className="mt-4 pt-3 border-t">
           <Button type="button" variant="secondary" onClick={onClose}>
             Fermer
           </Button>
