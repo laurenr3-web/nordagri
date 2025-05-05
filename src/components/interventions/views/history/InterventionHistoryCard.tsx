@@ -23,8 +23,8 @@ const InterventionHistoryCard: React.FC<InterventionHistoryCardProps> = ({
     >
       <div className="flex flex-col gap-2 mb-2">
         <div className="flex flex-col">
-          <h4 className="font-medium break-words">{intervention.title}</h4>
-          <span className="text-sm text-muted-foreground">{intervention.equipment}</span>
+          <h4 className="font-medium break-words line-clamp-2">{intervention.title}</h4>
+          <span className="text-sm text-muted-foreground line-clamp-1">{intervention.equipment}</span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <PriorityBadge priority={intervention.priority} />
@@ -34,16 +34,16 @@ const InterventionHistoryCard: React.FC<InterventionHistoryCardProps> = ({
       
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2 mt-3">
         <div className="flex items-center gap-2 text-sm">
-          <span className="font-medium">Date:</span>
-          <span>{formatDate(intervention.date)}</span>
+          <span className="font-medium min-w-[45px]">Date:</span>
+          <span className="whitespace-nowrap">{formatDate(intervention.date)}</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <span className="font-medium">Technicien:</span>
-          <span className="break-words">{intervention.technician}</span>
+          <span className="font-medium min-w-[45px]">Tech.:</span>
+          <span className="break-words line-clamp-1">{intervention.technician}</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <span className="font-medium">Lieu:</span>
-          <span className="break-words">{intervention.location}</span>
+          <span className="font-medium min-w-[45px]">Lieu:</span>
+          <span className="break-words line-clamp-1">{intervention.location}</span>
         </div>
       </div>
       

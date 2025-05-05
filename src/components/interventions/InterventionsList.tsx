@@ -9,6 +9,9 @@ import FieldTrackingView from './views/FieldTrackingView';
 import RequestsManagementView from './views/RequestsManagementView';
 import EquipmentHistoryView from './views/EquipmentHistoryView';
 import FieldObservationsView from './views/FieldObservationsView';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface InterventionsListProps {
   filteredInterventions: Intervention[];
@@ -35,6 +38,8 @@ const InterventionsList: React.FC<InterventionsListProps> = ({
   onSearchChange,
   onPriorityChange
 }) => {
+  const isMobile = useIsMobile();
+
   const getEmptyStateMessage = () => {
     switch (currentView) {
       case 'scheduled':
@@ -67,11 +72,67 @@ const InterventionsList: React.FC<InterventionsListProps> = ({
   const inProgressCount = filteredInterventions.filter(item => item.status === 'in-progress').length;
   const completedCount = filteredInterventions.filter(item => item.status === 'completed').length;
 
+  // Rendu des cartes d'intervention
+  const renderInterventionCards = (interventions: Intervention[]) => {
+    if (interventions.length === 0) {
+      return (
+        <BlurContainer className="p-8 text-center">
+          <p className="text-muted-foreground">{getEmptyStateMessage()}</p>
+        </BlurContainer>
+      );
+    }
+
+    // Sur mobile, utiliser un carrousel pour afficher les interventions
+    if (isMobile) {
+      return (
+        <Carousel
+          className="w-full"
+          opts={{ 
+            align: "start",
+            loop: false,
+          }}
+        >
+          <CarouselContent className="-ml-2 -mr-2">
+            {interventions.map((intervention) => (
+              <CarouselItem key={intervention.id} className="pl-2 pr-2 basis-full sm:basis-1/2 lg:basis-1/3">
+                <div className="p-1">
+                  <InterventionCard
+                    intervention={intervention}
+                    onViewDetails={onViewDetails}
+                    onStartWork={onStartWork}
+                  />
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <div className="flex justify-center mt-4">
+            <CarouselPrevious className="relative static mr-2" />
+            <CarouselNext className="relative static ml-2" />
+          </div>
+        </Carousel>
+      );
+    }
+
+    // Sur desktop, utiliser la grille
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {interventions.map(intervention => (
+          <InterventionCard 
+            key={intervention.id} 
+            intervention={intervention} 
+            onViewDetails={onViewDetails} 
+            onStartWork={onStartWork} 
+          />
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="w-full">
       <Tabs value={currentView} defaultValue="scheduled" onValueChange={setCurrentView} className="w-full">
-        <div className="overflow-x-auto pb-2 -mx-4 px-4">
-          <TabsList className="mb-6 bg-background border overflow-x-auto whitespace-nowrap w-max min-w-full">
+        <ScrollArea className="w-full overflow-x-auto pb-2">
+          <TabsList className="mb-6 bg-background border w-auto min-w-max flex">
             <TabsTrigger value="scheduled" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
               <CalendarCheck size={16} />
               <span>Planifiées ({scheduledCount})</span>
@@ -101,64 +162,19 @@ const InterventionsList: React.FC<InterventionsListProps> = ({
               <span>Historique</span>
             </TabsTrigger>
           </TabsList>
-        </div>
+        </ScrollArea>
 
-        <div className="px-0 sm:px-4 overflow-x-hidden">
+        <div className="px-0 overflow-x-hidden">
           <TabsContent value="scheduled" className="mt-2 w-full">
-            {getFilteredInterventions('scheduled').length > 0 ? 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {getFilteredInterventions('scheduled').map(intervention => (
-                  <InterventionCard 
-                    key={intervention.id} 
-                    intervention={intervention} 
-                    onViewDetails={onViewDetails} 
-                    onStartWork={onStartWork} 
-                  />
-                ))}
-              </div> 
-            : 
-              <BlurContainer className="p-8 text-center">
-                <p className="text-muted-foreground">{getEmptyStateMessage()}</p>
-              </BlurContainer>
-            }
+            {renderInterventionCards(getFilteredInterventions('scheduled'))}
           </TabsContent>
           
           <TabsContent value="in-progress" className="mt-2 w-full">
-            {getFilteredInterventions('in-progress').length > 0 ? 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {getFilteredInterventions('in-progress').map(intervention => (
-                  <InterventionCard 
-                    key={intervention.id} 
-                    intervention={intervention} 
-                    onViewDetails={onViewDetails} 
-                    onStartWork={onStartWork} 
-                  />
-                ))}
-              </div> 
-            : 
-              <BlurContainer className="p-8 text-center">
-                <p className="text-muted-foreground">{getEmptyStateMessage()}</p>
-              </BlurContainer>
-            }
+            {renderInterventionCards(getFilteredInterventions('in-progress'))}
           </TabsContent>
           
           <TabsContent value="completed" className="mt-2 w-full">
-            {getFilteredInterventions('completed').length > 0 ? 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {getFilteredInterventions('completed').map(intervention => (
-                  <InterventionCard 
-                    key={intervention.id} 
-                    intervention={intervention} 
-                    onViewDetails={onViewDetails} 
-                    onStartWork={onStartWork} 
-                  />
-                ))}
-              </div> 
-            : 
-              <BlurContainer className="p-8 text-center">
-                <p className="text-muted-foreground">{getEmptyStateMessage()}</p>
-              </BlurContainer>
-            }
+            {renderInterventionCards(getFilteredInterventions('completed'))}
           </TabsContent>
           
           <TabsContent value="field-tracking" className="mt-2 w-full">

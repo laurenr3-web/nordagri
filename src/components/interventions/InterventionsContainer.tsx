@@ -1,7 +1,8 @@
+
 import React from 'react';
-import { BlurContainer } from '@/components/ui/blur-container';
 import InterventionsList from './InterventionsList';
 import { Intervention } from '@/types/Intervention';
+
 interface InterventionsContainerProps {
   filteredInterventions: Intervention[];
   currentView: string;
@@ -14,6 +15,7 @@ interface InterventionsContainerProps {
   onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onPriorityChange: (priority: string | null) => void;
 }
+
 const InterventionsContainer: React.FC<InterventionsContainerProps> = ({
   filteredInterventions,
   currentView,
@@ -26,8 +28,22 @@ const InterventionsContainer: React.FC<InterventionsContainerProps> = ({
   onSearchChange,
   onPriorityChange
 }) => {
-  return <div className="container py-4 px-[97px]">
-      <InterventionsList filteredInterventions={filteredInterventions} currentView={currentView} setCurrentView={setCurrentView} onClearSearch={onClearSearch} onViewDetails={onViewDetails} onStartWork={onStartWork} searchQuery={searchQuery} selectedPriority={selectedPriority} onSearchChange={onSearchChange} onPriorityChange={onPriorityChange} />
-    </div>;
+  return (
+    <div className="container py-4 px-4 md:px-6 lg:px-8 max-w-full">
+      <InterventionsList 
+        filteredInterventions={filteredInterventions} 
+        currentView={currentView} 
+        setCurrentView={setCurrentView} 
+        onClearSearch={onClearSearch} 
+        onViewDetails={onViewDetails} 
+        onStartWork={onStartWork} 
+        searchQuery={searchQuery} 
+        selectedPriority={selectedPriority} 
+        onSearchChange={onSearchChange} 
+        onPriorityChange={onPriorityChange} 
+      />
+    </div>
+  );
 };
+
 export default InterventionsContainer;

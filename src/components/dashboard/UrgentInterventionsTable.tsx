@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Clock, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface UrgentIntervention {
   id: number;
@@ -23,6 +25,8 @@ interface UrgentInterventionsTableProps {
 }
 
 export function UrgentInterventionsTable({ interventions, onViewDetails }: UrgentInterventionsTableProps) {
+  const isMobile = useIsMobile();
+  
   if (!interventions || interventions.length === 0) {
     return (
       <div className="text-center py-8 bg-bg-light rounded-lg flex flex-col items-center justify-center">
@@ -57,6 +61,44 @@ export function UrgentInterventionsTable({ interventions, onViewDetails }: Urgen
     }
   };
 
+  // Affichage sous forme de cartes pour mobile
+  if (isMobile) {
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-center text-muted-foreground">Interventions urgentes en cours</p>
+        {interventions.map((intervention) => (
+          <Card 
+            key={intervention.id}
+            className="p-3 cursor-pointer hover:shadow-md transition-all"
+            onClick={() => onViewDetails && onViewDetails(intervention.id)}
+          >
+            <div className="flex justify-between items-start gap-2 mb-2">
+              <h4 className="font-medium text-sm line-clamp-1">{intervention.title}</h4>
+              {getPriorityBadge(intervention.priority)}
+            </div>
+            <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs">
+              <div>
+                <span className="font-medium">Équipement:</span>{' '}
+                <span className="line-clamp-1">{intervention.equipment}</span>
+              </div>
+              <div>
+                <span className="font-medium">Technicien:</span>{' '}
+                <span className="line-clamp-1">{intervention.technician}</span>
+              </div>
+              <div className={
+                intervention.date.getTime() < Date.now() ? "text-alert-red font-medium col-span-2" : "col-span-2"
+              }>
+                <span className="font-medium">Délai:</span>{' '}
+                <span>{formatDistanceToNow(intervention.date, { addSuffix: true, locale: fr })}</span>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  // Affichage tableau pour desktop
   return (
     <Table>
       <TableCaption>Interventions urgentes en cours</TableCaption>

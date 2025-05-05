@@ -24,31 +24,31 @@ const RequestCard: React.FC<RequestCardProps> = ({
     <Card className="w-full hover:shadow-md transition-all">
       <CardHeader className="pb-2">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
-          <CardTitle className="text-base sm:text-lg font-medium break-words">{request.title}</CardTitle>
-          <PriorityBadge priority={request.priority} />
+          <CardTitle className="text-base sm:text-lg font-medium break-words line-clamp-2">{request.title}</CardTitle>
+          <PriorityBadge priority={request.priority} className="flex-shrink-0" />
         </div>
       </CardHeader>
       <CardContent className="pb-2">
         <div className="grid gap-2">
           <div className="flex items-center gap-2 text-sm">
-            <span className="font-medium">Équipement:</span>
-            <span className="break-words">{request.equipment}</span>
+            <span className="font-medium min-w-[90px]">Équipement:</span>
+            <span className="break-words line-clamp-1">{request.equipment}</span>
           </div>
           <div className="flex items-center gap-2 text-sm">
-            <span className="font-medium">Date souhaitée:</span>
+            <span className="font-medium min-w-[90px]">Date souhaitée:</span>
             <span>{formatDate(request.date)}</span>
           </div>
           <div className="flex items-center gap-2 text-sm">
-            <span className="font-medium">Durée estimée:</span>
+            <span className="font-medium min-w-[90px]">Durée estimée:</span>
             <span>{request.scheduledDuration} heures</span>
           </div>
           <div className="flex items-center gap-2 text-sm">
-            <span className="font-medium">Technicien:</span>
-            <span className="break-words">{request.technician}</span>
+            <span className="font-medium min-w-[90px]">Technicien:</span>
+            <span className="break-words line-clamp-1">{request.technician}</span>
           </div>
           {request.description && (
             <div className="mt-2">
-              <p className="text-sm text-muted-foreground line-clamp-3">{request.description}</p>
+              <p className="text-sm text-muted-foreground line-clamp-2">{request.description}</p>
             </div>
           )}
         </div>
