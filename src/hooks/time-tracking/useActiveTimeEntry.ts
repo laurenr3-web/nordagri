@@ -95,13 +95,26 @@ export function useActiveTimeEntry() {
           
           // Specifically handle session completion events
           if (
-            (payload.eventType === 'UPDATE' && payload.new?.status === 'completed') ||
-            (payload.eventType === 'DELETE' && activeTimeEntry?.id === payload.old.id)
+            (payload.eventType === 'UPDATE' && 
+             payload.new && 
+             typeof payload.new === 'object' && 
+             'status' in payload.new && 
+             payload.new.status === 'completed') ||
+            (payload.eventType === 'DELETE' && 
+             payload.old && 
+             typeof payload.old === 'object' && 
+             'id' in payload.old && 
+             activeTimeEntry?.id === payload.old.id)
           ) {
             if (activeTimeEntry && (
-              !payload.new?.id || 
-              payload.new?.id === activeTimeEntry.id || 
-              payload.old?.id === activeTimeEntry.id
+              !payload.new || 
+              (typeof payload.new === 'object' && 
+               'id' in payload.new && 
+               payload.new.id === activeTimeEntry.id) || 
+              (payload.old && 
+               typeof payload.old === 'object' && 
+               'id' in payload.old && 
+               payload.old.id === activeTimeEntry.id)
             )) {
               // Clear the active time entry immediately on completion
               setActiveTimeEntry(null);
