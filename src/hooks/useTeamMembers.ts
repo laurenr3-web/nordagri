@@ -115,11 +115,12 @@ export function useTeamMembers() {
                 continue; // Passer au membre suivant en cas d'erreur
               }
               
-              if (userData && isValidProfile(userData)) {
+              // Vérifier que userData est un objet valide avant d'accéder à ses propriétés
+              if (userData && typeof userData === 'object' && 'email' in userData) {
                 const userInfo: TeamMember = {
                   id: member.id || '',
                   user_id: member.user_id || '',
-                  email: userData.email,
+                  email: userData.email || '',
                   first_name: userData.first_name || '',
                   last_name: userData.last_name || '',
                   role: member.role || 'viewer',
