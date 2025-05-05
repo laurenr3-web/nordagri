@@ -7,6 +7,7 @@ export interface FuelLog {
   price_per_liter: number;
   total_cost: number;
   hours_at_fillup?: number | null;
+  km_at_fillup?: number | null;
   notes?: string | null;
   created_at?: string;
   created_by?: string | null;
@@ -18,5 +19,6 @@ export interface FuelLogFormValues {
   fuel_quantity_liters: number;
   price_per_liter: number; 
   hours_at_fillup?: number | null;
+  km_at_fillup?: number | null;
   notes?: string | null;
 }

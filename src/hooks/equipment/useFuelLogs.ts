@@ -59,6 +59,7 @@ export function useFuelLogs(equipmentId: number) {
           fuel_quantity_liters: Number(values.fuel_quantity_liters),
           price_per_liter: Number(values.price_per_liter),
           hours_at_fillup: values.hours_at_fillup ? Number(values.hours_at_fillup) : null,
+          km_at_fillup: values.km_at_fillup ? Number(values.km_at_fillup) : null,
           notes: values.notes || null,
           farm_id: farmId,
           created_by: user.id
@@ -89,6 +90,7 @@ export function useFuelLogs(equipmentId: number) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fuelLogs', equipmentId] });
+      queryClient.invalidateQueries({ queryKey: ['equipment', equipmentId] }); // Invalider également les données de l'équipement pour voir les mises à jour des compteurs
       toast.success('Plein enregistré avec succès');
       setIsAddDialogOpen(false);
     },

@@ -1,258 +1,168 @@
 
-import * as React from 'react';
-import { DialogWrapper } from '@/components/ui/dialog-wrapper';
+import React from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { FuelLogFormValues } from '@/types/FuelLog';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { FormValidation } from '@/components/common/FormValidation';
-import { useFarmId } from '@/hooks/useFarmId';
-import { useCallback, useEffect, useMemo, useState } from 'react';
 
-// Utilisation d'un input custom pour ajouter un suffixe "$" au champ prix
-import { InputWithSuffix } from '@/components/ui/input-with-suffix';
+const fuelLogSchema = z.object({
+  date: z.date(),
+  fuel_quantity_liters: z.coerce.number().positive('Quantité requise'),
+  price_per_liter: z.coerce.number().positive('Prix requis'),
+  hours_at_fillup: z.coerce.number().optional().nullable(),
+  km_at_fillup: z.coerce.number().optional().nullable(),
+  notes: z.string().optional().nullable()
+});
 
 interface FuelLogDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: FuelLogFormValues) => void;
-  isSubmitting?: boolean;
+  isSubmitting: boolean;
   equipmentId: number;
 }
 
-export function FuelLogDialog({ open, onOpenChange, onSubmit, isSubmitting, equipmentId }: FuelLogDialogProps) {
-  const [date, setDate] = useState<Date>(new Date());
-  const [quantity, setQuantity] = useState('');
-  const [price, setPrice] = useState('');
-  const [hours, setHours] = useState('');
-  const [notes, setNotes] = useState('');
-  const [errors, setErrors] = useState<{
-    quantity?: string;
-    price?: string;
-  }>({});
-  const [attemptingSubmit, setAttemptingSubmit] = useState(false);
+export function FuelLogDialog({
+  open,
+  onOpenChange,
+  onSubmit,
+  isSubmitting,
+  equipmentId
+}: FuelLogDialogProps) {
+  const form = useForm<FuelLogFormValues>({
+    resolver: zodResolver(fuelLogSchema),
+    defaultValues: {
+      date: new Date(),
+      fuel_quantity_liters: 0,
+      price_per_liter: 0,
+      hours_at_fillup: null,
+      km_at_fillup: null,
+      notes: '',
+    }
+  });
   
-  const { farmId, isLoading: isFarmIdLoading } = useFarmId(equipmentId);
-  
-  // Memoize the validation failed handler
-  const handleValidationFailed = useCallback(() => {
-    setAttemptingSubmit(false);
-  }, []);
-
-  // Reset form when dialog opens/closes
-  useEffect(() => {
-    if (open) {
-      setDate(new Date());
-      setQuantity('');
-      setPrice('');
-      setHours('');
-      setNotes('');
-      setErrors({});
-      setAttemptingSubmit(false);
-    }
-  }, [open]);
-
-  // Memoize the form validation function to prevent it from running on every render
-  const validateForm = useCallback((): boolean => {
-    const newErrors: {
-      quantity?: string;
-      price?: string;
-    } = {};
-    
-    if (!quantity || parseFloat(quantity) <= 0) {
-      newErrors.quantity = 'La quantité est obligatoire et doit être supérieure à 0';
-    }
-    
-    if (!price || parseFloat(price) <= 0) {
-      newErrors.price = 'Le prix est obligatoire et doit être supérieur à 0';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }, [quantity, price]);
-  
-  // Memoize the isValid result
-  const isFormValid = useMemo(() => {
-    return validateForm();
-  }, [validateForm]);
-
-  // Debug utility to help track farm ID issues
-  useEffect(() => {
-    if (open) {
-      console.log('FuelLogDialog opened with equipmentId:', equipmentId);
-      console.log('Current farmId:', farmId);
-      console.log('Farm ID loading:', isFarmIdLoading);
-    }
-  }, [open, equipmentId, farmId, isFarmIdLoading]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setAttemptingSubmit(true);
-    
-    if (!validateForm()) {
-      setAttemptingSubmit(false);
-      return;
-    }
-    
-    // Only proceed with submit if we have a farmId
-    if (farmId) {
-      onSubmit({
-        date,
-        fuel_quantity_liters: Number(quantity),
-        price_per_liter: Number(price),
-        hours_at_fillup: hours ? Number(hours) : undefined,
-        notes: notes || undefined,
-      });
-    }
+  const handleSubmit = (values: FuelLogFormValues) => {
+    onSubmit(values);
   };
 
-  // Show loading state while farmId is being retrieved
-  if (open && isFarmIdLoading) {
-    return (
-      <DialogWrapper
-        title="Chargement..."
-        description="Préparation du formulaire en cours"
-        open={open}
-        onOpenChange={onOpenChange}
-      >
-        <div className="flex justify-center p-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </DialogWrapper>
-    );
-  }
-
   return (
-    <DialogWrapper
-      title="Ajouter un plein de carburant"
-      description="Enregistrez un nouveau plein de carburant pour cet équipement"
-      open={open}
-      onOpenChange={onOpenChange}
-    >
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <FormValidation
-          isValid={isFormValid}
-          farmId={farmId}
-          isSubmitting={attemptingSubmit}
-          onValidationFailed={handleValidationFailed}
-        >
-          <div className="space-y-2">
-            <Label htmlFor="fuel-date">Date <span className="text-red-500">*</span></Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  id="fuel-date"
-                  variant="outline"
-                  className={cn(
-                    'w-full justify-start text-left font-normal',
-                    !date && 'text-muted-foreground'
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, 'P', { locale: fr }) : <span>Choisir une date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={(date) => date && setDate(date)}
-                  initialFocus
-                  locale={fr}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Ajouter un plein de carburant</DialogTitle>
+        </DialogHeader>
+        
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="date">Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !form.watch("date") && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {form.watch("date") ? format(form.watch("date"), "dd/MM/yyyy") : "Sélectionner"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={form.watch("date")}
+                    onSelect={(date) => date && form.setValue("date", date)}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              {form.formState.errors.date && (
+                <p className="text-sm text-red-500">{form.formState.errors.date.message}</p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="fuel_quantity_liters">Quantité (L)</Label>
+              <Input
+                id="fuel_quantity_liters"
+                type="number"
+                step="0.01"
+                {...form.register("fuel_quantity_liters")}
+              />
+              {form.formState.errors.fuel_quantity_liters && (
+                <p className="text-sm text-red-500">{form.formState.errors.fuel_quantity_liters.message}</p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="price_per_liter">Prix par litre</Label>
+              <Input
+                id="price_per_liter"
+                type="number"
+                step="0.01"
+                {...form.register("price_per_liter")}
+              />
+              {form.formState.errors.price_per_liter && (
+                <p className="text-sm text-red-500">{form.formState.errors.price_per_liter.message}</p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="hours_at_fillup">Compteur horaire</Label>
+              <Input
+                id="hours_at_fillup"
+                type="number"
+                step="0.1"
+                placeholder="Optionnel"
+                {...form.register("hours_at_fillup")}
+              />
+              {form.formState.errors.hours_at_fillup && (
+                <p className="text-sm text-red-500">{form.formState.errors.hours_at_fillup.message}</p>
+              )}
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="fuel-quantity">
-              Quantité (litres) <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="fuel-quantity"
-              type="number"
-              step="0.01"
-              required
-              min="0.01"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              className={errors.quantity ? "border-red-500" : ""}
-            />
-            {errors.quantity && (
-              <p className="text-red-500 text-sm mt-1">{errors.quantity}</p>
-            )}
+            <div className="space-y-2">
+              <Label htmlFor="km_at_fillup">Kilométrage</Label>
+              <Input
+                id="km_at_fillup"
+                type="number"
+                placeholder="Optionnel"
+                {...form.register("km_at_fillup")}
+              />
+              {form.formState.errors.km_at_fillup && (
+                <p className="text-sm text-red-500">{form.formState.errors.km_at_fillup.message}</p>
+              )}
+            </div>
           </div>
-
+          
           <div className="space-y-2">
-            <Label htmlFor="fuel-price">
-              Prix par litre ($) <span className="text-red-500">*</span>
-            </Label>
-            <InputWithSuffix
-              id="fuel-price"
-              type="number"
-              step="0.001"
-              required
-              min="0.001"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              className={errors.price ? "border-red-500" : ""}
-              suffix="$"
-            />
-            {errors.price && (
-              <p className="text-red-500 text-sm mt-1">{errors.price}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="fuel-hours">Heures au compteur</Label>
-            <Input
-              id="fuel-hours"
-              type="number"
-              step="0.1"
-              min="0"
-              value={hours}
-              onChange={(e) => setHours(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="fuel-notes">Notes</Label>
-            <Textarea 
-              id="fuel-notes"
-              value={notes} 
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Informations supplémentaires..."
-              className="resize-none min-h-[100px]"
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea
+              id="notes"
+              placeholder="Informations complémentaires"
+              {...form.register("notes")}
             />
           </div>
-
-          <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => onOpenChange(false)}
-              disabled={isSubmitting}
-              className="w-full sm:w-auto order-2 sm:order-1"
-            >
-              Annuler
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={isSubmitting || isFarmIdLoading || !farmId}
-              className="w-full sm:w-auto order-1 sm:order-2"
-            >
+          
+          <DialogFooter>
+            <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
             </Button>
-          </div>
-        </FormValidation>
-      </form>
-    </DialogWrapper>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

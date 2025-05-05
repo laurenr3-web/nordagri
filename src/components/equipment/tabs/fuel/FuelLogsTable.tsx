@@ -1,76 +1,60 @@
 
+import React from 'react';
 import { FuelLog } from '@/types/FuelLog';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
-import { Trash2 } from 'lucide-react';
+import { fr } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
-import * as React from 'react';
-import { DeleteFuelLogAlert } from './DeleteFuelLogAlert';
+import { Trash2 } from 'lucide-react';
 
 interface FuelLogsTableProps {
   logs: FuelLog[];
-  onDelete?: (fuelLogId: string) => void;
-  isDeletingId?: string | null;
+  onDelete: (id: string) => void;
+  isDeletingId: string | null;
 }
 
 export function FuelLogsTable({ logs, onDelete, isDeletingId }: FuelLogsTableProps) {
-  const [alertOpenId, setAlertOpenId] = React.useState<string | null>(null);
-
   return (
-    <div className="overflow-x-auto w-full">
-      <Table className="min-w-[600px] sm:min-w-[800px]">
+    <div className="border rounded-lg overflow-hidden">
+      <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Date</TableHead>
             <TableHead>Quantité (L)</TableHead>
-            <TableHead>Prix/L&nbsp;($)</TableHead>
-            <TableHead>Coût total&nbsp;($)</TableHead>
+            <TableHead>Prix (€/L)</TableHead>
+            <TableHead>Total (€)</TableHead>
             <TableHead>Heures</TableHead>
+            <TableHead>Km</TableHead>
             <TableHead>Notes</TableHead>
-            {onDelete && <TableHead>Actions</TableHead>}
+            <TableHead></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {logs.map((log) => (
             <TableRow key={log.id}>
-              <TableCell>{format(new Date(log.date), 'dd/MM/yyyy')}</TableCell>
-              <TableCell>{log.fuel_quantity_liters.toFixed(2)}</TableCell>
               <TableCell>
-                {log.price_per_liter.toFixed(3)}&nbsp;$
+                {log.date ? format(new Date(log.date), 'dd MMM yyyy', { locale: fr }) : '-'}
               </TableCell>
+              <TableCell>{log.fuel_quantity_liters?.toFixed(1) || '-'}</TableCell>
+              <TableCell>{log.price_per_liter?.toFixed(2) || '-'}</TableCell>
+              <TableCell>{log.total_cost?.toFixed(2) || '-'}</TableCell>
+              <TableCell>{log.hours_at_fillup ?? '-'}</TableCell>
+              <TableCell>{log.km_at_fillup ?? '-'}</TableCell>
+              <TableCell className="max-w-[200px] truncate">{log.notes || '-'}</TableCell>
               <TableCell>
-                {log.total_cost.toFixed(2)}&nbsp;$
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onDelete(log.id)}
+                  disabled={isDeletingId === log.id}
+                >
+                  {isDeletingId === log.id ? (
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-b-transparent"></span>
+                  ) : (
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  )}
+                </Button>
               </TableCell>
-              <TableCell>{log.hours_at_fillup?.toFixed(1) || '-'}</TableCell>
-              <TableCell className="max-w-xs truncate">{log.notes || '-'}</TableCell>
-              {onDelete &&
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setAlertOpenId(log.id)}
-                    disabled={isDeletingId === log.id}
-                    className="min-h-[44px]"
-                  >
-                    <Trash2 className="w-4 h-4 text-red-500" />
-                  </Button>
-                  <DeleteFuelLogAlert
-                    open={alertOpenId === log.id}
-                    onOpenChange={(open) => setAlertOpenId(open ? log.id : null)}
-                    onConfirm={() => {
-                      setAlertOpenId(null);
-                      onDelete?.(log.id);
-                    }}
-                  />
-                </TableCell>
-              }
             </TableRow>
           ))}
         </TableBody>
