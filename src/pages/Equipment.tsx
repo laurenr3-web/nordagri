@@ -10,6 +10,7 @@ import { LayoutWrapper } from "@/components/layout/LayoutWrapper";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { useFarmId } from "@/hooks/useFarmId";
 import NoFarmAccess from "@/components/common/NoFarmAccess";
+import EquipmentDialogs from '@/components/equipment/dialogs/EquipmentDialogs';
 
 const Equipment = () => {
   const { t } = useTranslation();
@@ -82,6 +83,8 @@ const Equipment = () => {
           equipment={transformedEquipment} 
           isLoading={isLoading} 
         />
+        {/* Ajout du composant EquipmentDialogs pour les dialogues d'ajout et de détail */}
+        <EquipmentDialogs />
       </LayoutWrapper>
     </MainLayout>
   );
