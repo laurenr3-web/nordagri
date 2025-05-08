@@ -140,35 +140,35 @@ export function MultiSelect({
                     <CommandItem
                       key={option.value}
                       value={option.value}
-                      onSelect={() => {
-                        // Appel direct de handleSelect sans passer par currentValue
-                        handleSelect(option.value);
-                      }}
+                      onSelect={() => handleSelect(option.value)}
                       className="flex items-center gap-2 cursor-pointer"
                     >
-                      {/* Wrapper div cliquable sur toute la surface */}
+                      {/* Utilisation de <div> au lieu de la case à cocher native pour une meilleure compatibilité tactile */}
                       <div 
                         className={cn(
                           "flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
                           isSelected ? "bg-primary text-primary-foreground" : "opacity-50"
                         )}
-                        onMouseDown={(e) => {
-                          // Empêche la fermeture du menu et la perte de focus
-                          e.preventDefault();
-                        }}
                         onClick={(e) => {
-                          // Empêche les conflits d'événements avec cmdk
-                          e.stopPropagation();
+                          e.stopPropagation(); // Empêche le déclenchement de l'événement onSelect
+                          handleSelect(option.value);
+                        }}
+                        onTouchEnd={(e) => {
+                          e.stopPropagation(); // Important pour les appareils tactiles
                           e.preventDefault();
                           handleSelect(option.value);
                         }}
                       >
                         {isSelected && <Check className="h-3 w-3" />}
                       </div>
-                      {/* Label de l'option aussi cliquable */}
+                      {/* Étendre la zone cliquable à tout le texte */}
                       <span 
-                        className="flex-grow cursor-pointer"
+                        className="flex-grow"
                         onClick={(e) => {
+                          e.stopPropagation();
+                          handleSelect(option.value);
+                        }}
+                        onTouchEnd={(e) => {
                           e.stopPropagation();
                           e.preventDefault();
                           handleSelect(option.value);
