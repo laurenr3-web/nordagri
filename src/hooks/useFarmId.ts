@@ -40,7 +40,7 @@ export const useFarmId = (equipmentId?: number) => {
           }
         }
 
-        // Second attempt: Try to get accessible farms via farm_members
+        // Get current user
         const { data: { user }, error: authError } = await supabase.auth.getUser();
         
         if (authError || !user) {
@@ -50,6 +50,23 @@ export const useFarmId = (equipmentId?: number) => {
           return;
         }
 
+        // Second attempt: Check if user is a farm owner
+        console.log('Vérification si l\'utilisateur est propriétaire d\'une ferme');
+        const { data: ownedFarms, error: ownerError } = await supabase
+          .from('farms')
+          .select('id')
+          .eq('owner_id', user.id);
+
+        if (!ownerError && ownedFarms && ownedFarms.length > 0) {
+          // User owns at least one farm
+          console.log('Fermes possédées trouvées:', ownedFarms.length);
+          const firstOwnedFarmId = ownedFarms[0].id;
+          setFarmId(firstOwnedFarmId);
+          setIsLoading(false);
+          return;
+        }
+
+        // Third attempt: Try to get accessible farms via farm_members
         console.log('Recherche des fermes accessibles via farm_members');
         const { data: farmMembers, error: membersError } = await supabase
           .from('farm_members')
