@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
@@ -44,14 +45,14 @@ const AddLocationDialog: React.FC<AddLocationDialogProps> = ({
       setIsSubmitting(true);
       
       // Add the new location - use just the name as that's what the function expects
-      const newLocation = await addLocation(values.name);
+      const newLocation = await addLocation(values.name, values.description);
       
       // Reset the form
       form.reset();
       
       // Select the new location if the function is provided
       if (onSelectLocation && newLocation) {
-        onSelectLocation(newLocation);
+        onSelectLocation(newLocation.name); // Pass the name string instead of the whole object
       }
       
       // Close the dialog
