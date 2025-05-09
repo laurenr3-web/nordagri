@@ -51,6 +51,8 @@ const PartDetailsDialog: React.FC<PartDetailsDialogProps> = ({
     }
   };
 
+  console.log("PartDetailsDialog - isOpen:", isOpen, "selectedPart:", selectedPart);
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent 
@@ -70,6 +72,11 @@ const PartDetailsDialog: React.FC<PartDetailsDialogProps> = ({
             onDelete={handleDelete}
             onDialogClose={() => onOpenChange(false)}
           />
+        )}
+        {!selectedPart && (
+          <div className="py-4 text-center text-muted-foreground">
+            Aucune pièce sélectionnée. Veuillez sélectionner une pièce pour voir ses détails.
+          </div>
         )}
       </DialogContent>
     </Dialog>

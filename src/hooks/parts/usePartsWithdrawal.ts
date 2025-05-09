@@ -171,6 +171,7 @@ export const usePartsWithdrawal = () => {
 
   // Open the withdrawal dialog for a specific part
   const openWithdrawalDialog = (part: Part) => {
+    console.log("Opening withdrawal dialog for part:", part);
     setSelectedPart(part);
     setIsWithdrawalDialogOpen(true);
   };

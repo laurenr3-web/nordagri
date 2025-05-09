@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { PartsDesktopView } from './displays/PartsDesktopView';
@@ -12,6 +13,7 @@ import { usePartsWithdrawal } from '@/hooks/parts/usePartsWithdrawal';
 import WithdrawalDialog from './dialogs/WithdrawalDialog';
 import { Part } from '@/types/Part';
 import { PartsView } from '@/hooks/parts/usePartsFilter';
+import PartDetailsDialog from './dialogs/PartDetailsDialog';
 
 interface PartsContainerProps {
   // Données des pièces
@@ -108,12 +110,21 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
 }) => {
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   const { openWithdrawalDialog, isWithdrawalDialogOpen, selectedPart, setIsWithdrawalDialogOpen } = usePartsWithdrawal();
+  const [isPartDetailsDialogOpen, setIsPartDetailsDialogOpen] = useState(false);
+  const [selectedPartForDetails, setSelectedPartForDetails] = useState<Part | null>(null);
 
   // Get stock status color based on levels
   const getStockStatusColor = (part: Part) => {
     if (part.stock === 0) return "text-destructive";
     if (part.stock <= part.reorderPoint) return "text-yellow-600";
     return "";
+  };
+
+  // Fonction pour gérer l'ouverture des détails de pièce
+  const handleOpenPartDetails = (part: Part) => {
+    setSelectedPartForDetails(part);
+    setIsPartDetailsDialogOpen(true);
+    console.log("Opening details for part:", part);
   };
 
   // Render content based on state
@@ -141,7 +152,7 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
           parts={filteredParts}
           selectedParts={selectedParts}
           onSelectPart={onSelectPart}
-          openPartDetails={openPartDetails}
+          openPartDetails={handleOpenPartDetails}
           openOrderDialog={openOrderDialog}
           openWithdrawalDialog={openWithdrawalDialog}
           getStockStatusColor={getStockStatusColor}
@@ -151,7 +162,7 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
           parts={filteredParts}
           selectedParts={selectedParts}
           onSelectPart={onSelectPart}
-          openPartDetails={openPartDetails}
+          openPartDetails={handleOpenPartDetails}
           openOrderDialog={openOrderDialog}
           openWithdrawalDialog={openWithdrawalDialog}
           getStockStatusColor={getStockStatusColor}
@@ -245,6 +256,12 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
         isOpen={isWithdrawalDialogOpen}
         onOpenChange={setIsWithdrawalDialogOpen}
         part={selectedPart}
+      />
+
+      <PartDetailsDialog 
+        isOpen={isPartDetailsDialogOpen}
+        onOpenChange={setIsPartDetailsDialogOpen}
+        selectedPart={selectedPartForDetails}
       />
     </div>
   );

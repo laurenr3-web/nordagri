@@ -14,6 +14,8 @@ import WithdrawalDialog from '@/components/parts/dialogs/WithdrawalDialog';
 import AddPartDialog from '@/components/parts/dialogs/AddPartDialog';
 import ExpressAddPartDialog from '@/components/parts/dialogs/ExpressAddPartDialog';
 import { usePartsWithdrawal } from '@/hooks/parts/usePartsWithdrawal';
+import { Part } from '@/types/Part';
+import PartDetailsDialog from '@/components/parts/dialogs/PartDetailsDialog';
 
 const Parts = () => {
   const { toast } = useToast();
@@ -21,12 +23,15 @@ const Parts = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAddPartDialogOpen, setIsAddPartDialogOpen] = useState(false);
   const [isExpressAddDialogOpen, setIsExpressAddDialogOpen] = useState(false);
+  const [isPartDetailsDialogOpen, setIsPartDetailsDialogOpen] = useState(false);
+  const [selectedPartForDetails, setSelectedPartForDetails] = useState<Part | null>(null);
 
   // Utiliser le hook usePartsWithdrawal pour gérer l'état du dialogue de retrait
   const { 
     isWithdrawalDialogOpen, 
     setIsWithdrawalDialogOpen, 
-    selectedPart 
+    selectedPart,
+    openWithdrawalDialog
   } = usePartsWithdrawal();
   
   // Check authentication status on page load
@@ -56,6 +61,13 @@ const Parts = () => {
       partsHookData.setCurrentView(view as PartsView);
     }
   };
+
+  // Fonction pour ouvrir les détails d'une pièce
+  const handleOpenPartDetails = (part: Part) => {
+    console.log("Opening part details for:", part);
+    setSelectedPartForDetails(part);
+    setIsPartDetailsDialogOpen(true);
+  };
   
   return (
     <MainLayout>
@@ -80,6 +92,7 @@ const Parts = () => {
           refetch={partsHookData.isError ? () => partsHookData.refetch() : undefined}
           onAddPart={() => setIsAddPartDialogOpen(true)}
           onWithdrawPart={() => setIsWithdrawalDialogOpen(true)}
+          openPartDetails={handleOpenPartDetails}
         />
         
         {/* Dialog for part withdrawal when no specific part is selected */}
@@ -99,6 +112,13 @@ const Parts = () => {
         <ExpressAddPartDialog
           isOpen={isExpressAddDialogOpen}
           onOpenChange={setIsExpressAddDialogOpen}
+        />
+
+        {/* Dialog for part details */}
+        <PartDetailsDialog
+          isOpen={isPartDetailsDialogOpen}
+          onOpenChange={setIsPartDetailsDialogOpen}
+          selectedPart={selectedPartForDetails}
         />
       </LayoutWrapper>
     </MainLayout>
