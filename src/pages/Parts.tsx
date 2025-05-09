@@ -71,6 +71,8 @@ const Parts = () => {
           {...partsHookData}
           setCurrentView={setCurrentView}
           refetch={partsHookData.isError ? () => partsHookData.refetch() : undefined}
+          onAddPart={() => setIsAddPartDialogOpen(true)}
+          onWithdrawPart={() => setIsWithdrawalDialogOpen(true)}
         />
         
         {/* Dialog for part withdrawal when no specific part is selected */}

@@ -33,7 +33,7 @@ const WithdrawalDialog: React.FC<WithdrawalDialogProps> = ({
   const [quantity, setQuantity] = useState(1);
   const [reason, setReason] = useState<string>('');
   const [customReason, setCustomReason] = useState('');
-  const [interventionId, setInterventionId] = useState<string>('');
+  const [interventionId, setInterventionId] = useState<string>('none'); // Changer la valeur par défaut de "" à "none"
   const [comment, setComment] = useState('');
 
   // Gestion des erreurs et validation
@@ -49,7 +49,7 @@ const WithdrawalDialog: React.FC<WithdrawalDialogProps> = ({
       setQuantity(1);
       setReason('');
       setCustomReason('');
-      setInterventionId('');
+      setInterventionId('none'); // Utiliser "none" au lieu de chaîne vide
       setComment('');
       setErrors({});
     }
@@ -91,7 +91,7 @@ const WithdrawalDialog: React.FC<WithdrawalDialogProps> = ({
       quantity,
       reason,
       custom_reason: customReason,
-      intervention_id: interventionId ? parseInt(interventionId) : null,
+      intervention_id: interventionId !== 'none' ? parseInt(interventionId) : null,
       comment
     };
     
@@ -186,7 +186,7 @@ const WithdrawalDialog: React.FC<WithdrawalDialogProps> = ({
                 <SelectValue placeholder="Sélectionner une intervention" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Aucune intervention</SelectItem>
+                <SelectItem value="none">Aucune intervention</SelectItem>
                 {interventions.map((intervention) => (
                   <SelectItem key={intervention.id} value={intervention.id.toString()}>
                     {intervention.title || `Intervention #${intervention.id}`}

@@ -1,111 +1,140 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useStorageLocations } from '@/hooks/parts/useStorageLocations';
 import { Loader2 } from 'lucide-react';
+
+const locationSchema = z.object({
+  name: z.string().min(1, 'Le nom est requis').max(50, 'Le nom est trop long (50 caractères max)'),
+  description: z.string().max(200, 'La description est trop longue (200 caractères max)').optional(),
+});
+
+type LocationFormValues = z.infer<typeof locationSchema>;
 
 interface AddLocationDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSelectLocation: (location: string) => void;
+  onSelectLocation?: (location: string) => void;
 }
 
-export default function AddLocationDialog({
+const AddLocationDialog: React.FC<AddLocationDialogProps> = ({
   isOpen,
   onOpenChange,
   onSelectLocation
-}: AddLocationDialogProps) {
-  const [locationName, setLocationName] = useState('');
-  const [locationDescription, setLocationDescription] = useState('');
-  const { addLocation, isAdding } = useStorageLocations();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!locationName.trim()) return;
-
+}) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { addLocation } = useStorageLocations();
+  
+  const form = useForm<LocationFormValues>({
+    resolver: zodResolver(locationSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+    }
+  });
+  
+  const onSubmit = async (values: LocationFormValues) => {
     try {
-      const result = await addLocation(locationName.trim(), locationDescription.trim() || undefined);
-      if (result) {
-        onSelectLocation(result.name);
-        setLocationName('');
-        setLocationDescription('');
-        onOpenChange(false);
+      setIsSubmitting(true);
+      
+      // Ajouter le nouvel emplacement
+      const newLocation = await addLocation({
+        name: values.name,
+        description: values.description || '',
+      });
+      
+      // Réinitialiser le formulaire
+      form.reset();
+      
+      // Sélectionner le nouvel emplacement si la fonction est fournie
+      if (onSelectLocation && newLocation) {
+        onSelectLocation(newLocation.name);
       }
+      
+      // Fermer la boîte de dialogue
+      onOpenChange(false);
+      
     } catch (error) {
-      console.error('Failed to add location:', error);
+      console.error('Erreur lors de l\'ajout de l\'emplacement:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
-
+  
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle>Ajouter un nouvel emplacement</DialogTitle>
-            <DialogDescription>
-              Entrez les informations de l'emplacement à ajouter à votre liste.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="location-name" className="text-right">
-                Nom
-              </Label>
-              <Input
-                id="location-name"
-                value={locationName}
-                onChange={(e) => setLocationName(e.target.value)}
-                className="col-span-3"
-                autoFocus
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="location-description" className="text-right">
-                Description
-              </Label>
-              <Textarea
-                id="location-description"
-                value={locationDescription}
-                onChange={(e) => setLocationDescription(e.target.value)}
-                className="col-span-3"
-                rows={3}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => onOpenChange(false)}
-              disabled={isAdding}
-            >
-              Annuler
-            </Button>
-            <Button type="submit" disabled={!locationName.trim() || isAdding}>
-              {isAdding ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Enregistrement...
-                </>
-              ) : (
-                'Ajouter'
+        <DialogHeader>
+          <DialogTitle>Ajouter un emplacement</DialogTitle>
+          <DialogDescription>
+            Créez un nouvel emplacement pour stocker vos pièces.
+          </DialogDescription>
+        </DialogHeader>
+        
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nom de l'emplacement*</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Ex: Entrepôt C, Étagère 3..." />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-            </Button>
-          </DialogFooter>
-        </form>
+            />
+            
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description (optionnelle)</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Description ou informations supplémentaires..." />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <DialogFooter className="pt-4">
+              <Button 
+                type="button"
+                variant="outline" 
+                onClick={() => onOpenChange(false)}
+                disabled={isSubmitting}
+              >
+                Annuler
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Enregistrement...
+                  </>
+                ) : (
+                  'Ajouter'
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
-}
+};
+
+export default AddLocationDialog;

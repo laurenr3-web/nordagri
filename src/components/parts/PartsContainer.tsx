@@ -8,24 +8,22 @@ import { PartsFilters } from './filters/PartsFilters';
 import { PartsEmptyState } from './states/PartsEmptyState';
 import { PartsErrorState } from './states/PartsErrorState';
 import { PartsLoadingState } from './states/PartsLoadingState';
-import PartDetailsDialog from './dialogs/PartDetailsDialog';
-import AddPartDialog from './dialogs/AddPartDialog';
-import ExpressAddPartDialog from './dialogs/ExpressAddPartDialog';
-import { PartsView } from '@/hooks/parts/usePartsFilter';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
-import { Part } from '@/types/Part';
 import { usePartsWithdrawal } from '@/hooks/parts/usePartsWithdrawal';
 import WithdrawalDialog from './dialogs/WithdrawalDialog';
+import { Part } from '@/types/Part';
+import { PartsView } from '@/hooks/parts/usePartsFilter';
 
 interface PartsContainerProps {
+  // Données des pièces
   parts: Part[];
   filteredParts: Part[];
   isLoading: boolean;
   isError: boolean;
-  error: unknown;
+  error: Error | null;
   refetch?: () => void;
   
-  // Filters
+  // Filtres et tri
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   selectedCategory: string;
@@ -42,26 +40,29 @@ interface PartsContainerProps {
   setFilterInStock: (inStock: boolean) => void;
   filterCount: number;
   clearFilters: () => void;
-  
-  // Sorting
   sortBy: string;
   setSortBy: (sortBy: string) => void;
   
-  // View
-  currentView: string;
+  // Vue
+  currentView: PartsView;
   setCurrentView: (view: string) => void;
   
-  // Select
-  selectedParts?: (string | number)[];
-  onSelectPart?: (partId: string | number, checked: boolean) => void;
+  // Sélection
+  selectedParts?: string[] | number[];
+  onSelectPart?: (partId: string | number) => void;
   onDeleteSelected?: () => void;
   
-  // Detail and order
-  openPartDetails: (part: Part) => void;
-  openOrderDialog: (part: Part) => void;
+  // Détail et commande
+  openPartDetails?: (part: Part) => void;
+  openOrderDialog?: (part: Part) => void;
+  
+  // Actions
+  onAddPart?: () => void;
+  onWithdrawPart?: () => void;
 }
 
 const PartsContainer: React.FC<PartsContainerProps> = ({
+  // Données des pièces
   parts,
   filteredParts,
   isLoading,
@@ -69,7 +70,7 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
   error,
   refetch,
   
-  // Filters and sorting
+  // Filtres et tri
   searchTerm,
   setSearchTerm,
   selectedCategory,
@@ -89,43 +90,31 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
   sortBy,
   setSortBy,
   
-  // View
+  // Vue
   currentView,
   setCurrentView,
   
-  // Select
+  // Sélection
   selectedParts = [],
   onSelectPart = () => {},
   onDeleteSelected,
   
-  // Detail and order
+  // Détail et commande
   openPartDetails,
   openOrderDialog,
+  
+  // Actions
+  onAddPart,
+  onWithdrawPart
 }) => {
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
-  const [isAddPartDialogOpen, setIsAddPartDialogOpen] = useState(false);
-  const [isExpressAddDialogOpen, setIsExpressAddDialogOpen] = useState(false);
-  const [isPartDetailsDialogOpen, setIsPartDetailsDialogOpen] = useState(false);
-  const [selectedDetailPart, setSelectedDetailPart] = useState<Part | null>(null);
-  
-  const { 
-    openWithdrawalDialog, 
-    isWithdrawalDialogOpen, 
-    selectedPart, 
-    setIsWithdrawalDialogOpen 
-  } = usePartsWithdrawal();
-  
+  const { openWithdrawalDialog, isWithdrawalDialogOpen, selectedPart, setIsWithdrawalDialogOpen } = usePartsWithdrawal();
+
   // Get stock status color based on levels
   const getStockStatusColor = (part: Part) => {
     if (part.stock === 0) return "text-destructive";
     if (part.stock <= part.reorderPoint) return "text-yellow-600";
     return "";
-  };
-
-  // Handle opening details dialog
-  const handleOpenDetails = (part: Part) => {
-    setSelectedDetailPart(part);
-    setIsPartDetailsDialogOpen(true);
   };
 
   // Render content based on state
@@ -138,7 +127,7 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
       return (
         <PartsErrorState 
           error={error instanceof Error ? error.message : "Une erreur s'est produite lors du chargement des pièces."} 
-          refetch={refetch} 
+          refetch={refetch}
         />
       );
     }
@@ -149,23 +138,21 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
     
     return (
       <>
-        {/* Vue mobile */}
         <PartsMobileView 
-          parts={filteredParts} 
+          parts={filteredParts}
           selectedParts={selectedParts}
           onSelectPart={onSelectPart}
-          openPartDetails={handleOpenDetails}
+          openPartDetails={openPartDetails}
           openOrderDialog={openOrderDialog}
           openWithdrawalDialog={openWithdrawalDialog}
           getStockStatusColor={getStockStatusColor}
         />
         
-        {/* Vue desktop */}
         <PartsDesktopView 
           parts={filteredParts}
           selectedParts={selectedParts}
           onSelectPart={onSelectPart}
-          openPartDetails={handleOpenDetails}
+          openPartDetails={openPartDetails}
           openOrderDialog={openOrderDialog}
           openWithdrawalDialog={openWithdrawalDialog}
           getStockStatusColor={getStockStatusColor}
@@ -176,8 +163,8 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
 
   return (
     <div className="space-y-4">
-      <PartsToolbar
-        view={currentView as PartsView}
+      <PartsToolbar 
+        view={currentView}
         setView={(view) => setCurrentView(view)}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
@@ -189,14 +176,13 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
         onDeleteSelected={onDeleteSelected}
         totalParts={parts.length}
         filteredParts={filteredParts.length}
-        onAddPart={() => setIsAddPartDialogOpen(true)}
-        onWithdrawPart={() => setIsWithdrawalDialogOpen(true)}
+        onAddPart={onAddPart}
+        onWithdrawPart={onWithdrawPart}
       />
       
       <div className="grid md:grid-cols-[240px,1fr] gap-4">
-        {/* Filtres sur desktop */}
         <div className="hidden md:block">
-          <PartsFilters
+          <PartsFilters 
             categories={categories}
             selectedCategory={selectedCategory}
             setSelectedCategory={setSelectedCategory}
@@ -214,7 +200,6 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
           />
         </div>
         
-        {/* Contenu principal */}
         <Card>
           <CardContent className="p-0 sm:p-3 md:p-6">
             {renderContent()}
@@ -222,11 +207,16 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
         </Card>
       </div>
       
-      {/* Sheet pour les filtres sur mobile */}
-      <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
-        <SheetContent side="left" className="w-[300px] sm:w-[400px] p-0">
+      <Sheet 
+        open={isFilterSheetOpen} 
+        onOpenChange={setIsFilterSheetOpen}
+      >
+        <SheetContent 
+          side="left" 
+          className="w-[300px] sm:w-[400px] p-0"
+        >
           <div className="h-full overflow-y-auto py-6 px-4">
-            <PartsFilters
+            <PartsFilters 
               categories={categories}
               selectedCategory={selectedCategory}
               setSelectedCategory={(cat) => {
@@ -252,30 +242,10 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
         </SheetContent>
       </Sheet>
       
-      {/* Dialogue de retrait */}
       <WithdrawalDialog 
-        isOpen={isWithdrawalDialogOpen} 
+        isOpen={isWithdrawalDialogOpen}
         onOpenChange={setIsWithdrawalDialogOpen}
         part={selectedPart}
-      />
-
-      {/* Dialogue d'ajout de pièce */}
-      <AddPartDialog
-        isOpen={isAddPartDialogOpen}
-        onOpenChange={setIsAddPartDialogOpen}
-      />
-
-      {/* Dialogue d'ajout express */}
-      <ExpressAddPartDialog
-        isOpen={isExpressAddDialogOpen}
-        onOpenChange={setIsExpressAddDialogOpen}
-      />
-
-      {/* Dialogue de détails de pièce */}
-      <PartDetailsDialog
-        isOpen={isPartDetailsDialogOpen}
-        onOpenChange={setIsPartDetailsDialogOpen}
-        selectedPart={selectedDetailPart}
       />
     </div>
   );

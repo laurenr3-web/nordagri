@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { SettingsSection } from '../SettingsSection';
 import { Button } from '@/components/ui/button';
@@ -24,7 +25,7 @@ export const UserManagementSection = () => {
   // State for user management dialog
   const [addUserDialogOpen, setAddUserDialogOpen] = useState(false);
   const [newUserName, setNewUserName] = useState('');
-  const [newUserRole, setNewUserRole] = useState('');
+  const [newUserRole, setNewUserRole] = useState('administrator'); // Valeur par défaut non vide
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserPhone, setNewUserPhone] = useState('');
 
@@ -143,7 +144,7 @@ export const UserManagementSection = () => {
 
   const resetNewUserForm = () => {
     setNewUserName('');
-    setNewUserRole('');
+    setNewUserRole('administrator'); // Valeur par défaut non vide
     setNewUserEmail('');
     setNewUserPhone('');
   };
@@ -283,15 +284,15 @@ export const UserManagementSection = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="user-role">Role</Label>
-              <Select onValueChange={setNewUserRole}>
+              <Select value={newUserRole} onValueChange={setNewUserRole}>
                 <SelectTrigger id="user-role">
                   <SelectValue placeholder="Select role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Administrator">Administrator</SelectItem>
-                  <SelectItem value="Field Manager">Field Manager</SelectItem>
-                  <SelectItem value="Mechanic">Mechanic</SelectItem>
-                  <SelectItem value="Seasonal Worker">Seasonal Worker</SelectItem>
+                  <SelectItem value="administrator">Administrator</SelectItem>
+                  <SelectItem value="field_manager">Field Manager</SelectItem>
+                  <SelectItem value="mechanic">Mechanic</SelectItem>
+                  <SelectItem value="seasonal_worker">Seasonal Worker</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -346,10 +347,10 @@ export const UserManagementSection = () => {
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Administrator">Administrator</SelectItem>
-                    <SelectItem value="Field Manager">Field Manager</SelectItem>
-                    <SelectItem value="Mechanic">Mechanic</SelectItem>
-                    <SelectItem value="Seasonal Worker">Seasonal Worker</SelectItem>
+                    <SelectItem value="administrator">Administrator</SelectItem>
+                    <SelectItem value="field_manager">Field Manager</SelectItem>
+                    <SelectItem value="mechanic">Mechanic</SelectItem>
+                    <SelectItem value="seasonal_worker">Seasonal Worker</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
