@@ -5,10 +5,11 @@ import { cn } from "@/lib/utils";
 interface BlurContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   intensity?: "none" | "light" | "medium" | "strong";
+  raised?: boolean;
 }
 
 export const BlurContainer = React.forwardRef<HTMLDivElement, BlurContainerProps>(
-  ({ className, children, intensity = "medium", ...props }, ref) => {
+  ({ className, children, intensity = "medium", raised = false, ...props }, ref) => {
     // Define blur intensities
     const blurIntensities = {
       none: "",
@@ -24,6 +25,7 @@ export const BlurContainer = React.forwardRef<HTMLDivElement, BlurContainerProps
         ref={ref}
         className={cn(
           "rounded-lg border shadow-sm",
+          raised && "shadow-md",
           blurClass,
           className
         )}
