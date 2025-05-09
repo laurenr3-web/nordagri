@@ -85,7 +85,7 @@ export const usePartsWithdrawal = () => {
         throw new Error('ID de pièce invalide');
       }
       
-      // For now, return mock data
+      // For now, return mock data with a safeguard to prevent bugs with invalid part IDs
       return [
         {
           id: 1,

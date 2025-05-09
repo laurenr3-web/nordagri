@@ -1,10 +1,10 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Part } from '@/types/Part';
 import PartDetails from '@/components/parts/PartDetails';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 interface PartDetailsDialogProps {
   isOpen: boolean;
@@ -22,7 +22,20 @@ const PartDetailsDialog: React.FC<PartDetailsDialogProps> = ({
   onDelete
 }) => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+
+  // Validate the part data when it changes
+  useEffect(() => {
+    if (isOpen && selectedPart) {
+      // Check if part ID is valid
+      const partId = typeof selectedPart.id === 'string' ? parseInt(selectedPart.id, 10) : selectedPart.id;
+      if (isNaN(partId)) {
+        console.error('Invalid part ID in PartDetailsDialog:', selectedPart.id);
+        toast.error('ID de pièce invalide');
+      } else {
+        console.log('PartDetailsDialog opened with valid part:', selectedPart.name, 'ID:', partId);
+      }
+    }
+  }, [selectedPart, isOpen]);
 
   // Function to handle part deletion
   const handleDelete = async (partId: number | string) => {
@@ -33,25 +46,16 @@ const PartDetailsDialog: React.FC<PartDetailsDialogProps> = ({
         await onDelete(partId);
         
         // Show success toast
-        toast({
-          title: "Pièce supprimée",
-          description: "La pièce a été supprimée avec succès",
-        });
+        toast.success("Pièce supprimée");
         
         // Close the dialog after deletion
         onOpenChange(false);
       }
     } catch (error: any) {
       console.error('Error in PartDetailsDialog handleDelete:', error);
-      toast({
-        title: "Erreur de suppression",
-        description: error.message || "Une erreur est survenue lors de la suppression",
-        variant: "destructive",
-      });
+      toast.error("Erreur de suppression: " + (error.message || "Une erreur est survenue"));
     }
   };
-
-  console.log("PartDetailsDialog - isOpen:", isOpen, "selectedPart:", selectedPart);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>

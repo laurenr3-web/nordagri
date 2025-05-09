@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Part } from '@/types/Part';
@@ -28,6 +28,7 @@ import EditPartDialog from './dialogs/EditPartDialog';
 import WithdrawalDialog from './dialogs/WithdrawalDialog';
 import { useDeletePart } from '@/hooks/parts';
 import { usePartsWithdrawal } from '@/hooks/parts/usePartsWithdrawal';
+import { toast } from 'sonner';
 
 interface PartDetailsProps {
   part: Part;
@@ -54,6 +55,19 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
       </div>
     );
   }
+
+  // When the component mounts or part changes, verify the part ID
+  useEffect(() => {
+    if (part) {
+      const partId = typeof part.id === 'string' ? parseInt(part.id, 10) : part.id;
+      if (isNaN(partId)) {
+        console.error('Invalid part ID in PartDetails:', part.id);
+        toast.error('ID de pièce invalide');
+      } else {
+        console.log('PartDetails loaded with valid part ID:', partId);
+      }
+    }
+  }, [part]);
 
   const handleDelete = async () => {
     try {
@@ -181,7 +195,7 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
         </TabsContent>
         
         <TabsContent value="history" className="mt-6">
-          <WithdrawalHistory part={part} />
+          {activeTab === 'history' && <WithdrawalHistory part={part} />}
         </TabsContent>
       </Tabs>
 

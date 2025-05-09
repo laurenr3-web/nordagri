@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePartsWithdrawal } from '@/hooks/parts/usePartsWithdrawal';
 import { Part } from '@/types/Part';
+import { toast } from 'sonner';
 
 interface WithdrawalHistoryProps {
   part: Part;
@@ -37,48 +38,67 @@ const WithdrawalHistory: React.FC<WithdrawalHistoryProps> = ({ part }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Ensure we're working with a numeric part ID
-  const partId = typeof part.id === 'string' ? parseInt(part.id, 10) : part.id;
-
   useEffect(() => {
     const fetchHistory = async () => {
       try {
         setIsLoading(true);
         setError(null);
+        
+        // Make sure we have a valid part with an ID
+        if (!part || !part.id) {
+          console.log('No valid part provided to WithdrawalHistory:', part);
+          setError('Détails de pièce non disponibles');
+          setHistory([]);
+          setIsLoading(false);
+          return;
+        }
 
-        console.log('Fetching withdrawal history for part ID:', partId);
+        // Ensure we're working with a numeric part ID
+        const partId = typeof part.id === 'string' ? parseInt(part.id, 10) : part.id;
+        
+        console.log('Fetching withdrawal history for part:', { 
+          id: partId, 
+          name: part.name, 
+          isNaN: isNaN(partId) 
+        });
         
         // Safely fetch withdrawal history
         if (isNaN(partId)) {
           console.error('Invalid part ID:', part.id);
           setError('ID de pièce invalide');
           setHistory([]);
+          setIsLoading(false);
           return;
         }
         
         const data = await getWithdrawalHistory(partId);
         console.log('Withdrawal history data received:', data);
-        setHistory(Array.isArray(data) ? data as WithdrawalRecord[] : []);
+        
+        if (!data) {
+          console.warn('No withdrawal history data returned');
+          setHistory([]);
+        } else {
+          setHistory(Array.isArray(data) ? data : []);
+        }
       } catch (err) {
         console.error('Error fetching withdrawal history:', err);
         setError('Erreur lors du chargement de l\'historique');
         setHistory([]);
+        
+        // Show a toast with the error message
+        toast.error("Erreur lors du chargement de l'historique des retraits");
       } finally {
         setIsLoading(false);
       }
     };
 
-    // Only fetch if we have a valid part ID
-    if (part && part.id) {
-      fetchHistory();
-    } else {
-      setIsLoading(false);
-      setError('Informations de pièce manquantes');
-    }
-  }, [partId, getWithdrawalHistory, part]);
+    fetchHistory();
+  }, [part, getWithdrawalHistory]);
 
   // Format reason for display
   const formatReason = (record: WithdrawalRecord) => {
+    if (!record) return '';
+    
     if (record.reason === 'other' && record.custom_reason) {
       return record.custom_reason;
     }
@@ -122,7 +142,7 @@ const WithdrawalHistory: React.FC<WithdrawalHistoryProps> = ({ part }) => {
       URL.revokeObjectURL(url);
     } catch (e) {
       console.error('Error exporting withdrawal history:', e);
-      setError('Erreur lors de l\'export des données');
+      toast.error("Erreur lors de l'export des données");
     }
   };
 
