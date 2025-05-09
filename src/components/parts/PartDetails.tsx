@@ -45,6 +45,16 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
   const navigate = useNavigate();
   const { openWithdrawalDialog, isWithdrawalDialogOpen, selectedPart, setIsWithdrawalDialogOpen } = usePartsWithdrawal();
 
+  // Ensure part data is valid
+  if (!part) {
+    console.error('PartDetails rendered without a valid part object');
+    return (
+      <div className="p-4 text-center text-muted-foreground">
+        Données de pièce non disponibles. Veuillez réessayer.
+      </div>
+    );
+  }
+
   const handleDelete = async () => {
     try {
       if (onDelete) {
@@ -80,6 +90,11 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
     if (onDialogClose) {
       setTimeout(() => onDialogClose(), 300);
     }
+  };
+
+  const handleTabChange = (value: string) => {
+    console.log('Changing tab to:', value);
+    setActiveTab(value);
   };
 
   const openEditDialog = (e: React.MouseEvent) => {
@@ -146,7 +161,7 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
 
       {!onBack && <PartActions onEdit={openEditDialog} onDelete={openDeleteDialog} onWithdrawal={handleWithdrawal} />}
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="w-full grid grid-cols-2">
           <TabsTrigger value="details">Détails</TabsTrigger>
           <TabsTrigger value="history">Historique des retraits</TabsTrigger>

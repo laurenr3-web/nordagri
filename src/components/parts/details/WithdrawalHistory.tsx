@@ -37,25 +37,45 @@ const WithdrawalHistory: React.FC<WithdrawalHistoryProps> = ({ part }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const partId = typeof part.id === 'string' ? parseInt(part.id) : part.id;
+  // Ensure we're working with a numeric part ID
+  const partId = typeof part.id === 'string' ? parseInt(part.id, 10) : part.id;
 
   useEffect(() => {
     const fetchHistory = async () => {
       try {
         setIsLoading(true);
         setError(null);
+
+        console.log('Fetching withdrawal history for part ID:', partId);
+        
+        // Safely fetch withdrawal history
+        if (isNaN(partId)) {
+          console.error('Invalid part ID:', part.id);
+          setError('ID de pièce invalide');
+          setHistory([]);
+          return;
+        }
+        
         const data = await getWithdrawalHistory(partId);
-        setHistory(data as WithdrawalRecord[]);
+        console.log('Withdrawal history data received:', data);
+        setHistory(Array.isArray(data) ? data as WithdrawalRecord[] : []);
       } catch (err) {
+        console.error('Error fetching withdrawal history:', err);
         setError('Erreur lors du chargement de l\'historique');
-        console.error(err);
+        setHistory([]);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchHistory();
-  }, [partId, getWithdrawalHistory]);
+    // Only fetch if we have a valid part ID
+    if (part && part.id) {
+      fetchHistory();
+    } else {
+      setIsLoading(false);
+      setError('Informations de pièce manquantes');
+    }
+  }, [partId, getWithdrawalHistory, part]);
 
   // Format reason for display
   const formatReason = (record: WithdrawalRecord) => {
@@ -69,33 +89,41 @@ const WithdrawalHistory: React.FC<WithdrawalHistoryProps> = ({ part }) => {
 
   // Export history to Excel format
   const handleExport = () => {
-    const exportData = history.map(record => ({
-      Date: format(new Date(record.created_at), 'dd/MM/yyyy HH:mm'),
-      Quantité: record.quantity,
-      Raison: formatReason(record),
-      Intervention: record.interventions?.title || '-',
-      Commentaire: record.comment || '-'
-    }));
+    if (!history.length) return;
 
-    // Create a CSV content
-    const headers = Object.keys(exportData[0]).join(',');
-    const rows = exportData.map(item => 
-      Object.values(item)
-        .map(value => typeof value === 'string' ? `"${value}"` : value)
-        .join(',')
-    );
-    const csvContent = [headers, ...rows].join('\n');
-    
-    // Create and trigger download link
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `historique_retraits_${part.name.replace(/\s+/g, '_')}.csv`);
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      const exportData = history.map(record => ({
+        Date: format(new Date(record.created_at), 'dd/MM/yyyy HH:mm'),
+        Quantité: record.quantity,
+        Raison: formatReason(record),
+        Intervention: record.interventions?.title || '-',
+        Commentaire: record.comment || '-'
+      }));
+
+      // Create a CSV content
+      const headers = Object.keys(exportData[0]).join(',');
+      const rows = exportData.map(item => 
+        Object.values(item)
+          .map(value => typeof value === 'string' ? `"${value}"` : value)
+          .join(',')
+      );
+      const csvContent = [headers, ...rows].join('\n');
+      
+      // Create and trigger download link
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `historique_retraits_${part.name?.replace(/\s+/g, '_') || 'piece'}.csv`);
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('Error exporting withdrawal history:', e);
+      setError('Erreur lors de l\'export des données');
+    }
   };
 
   if (isLoading) {

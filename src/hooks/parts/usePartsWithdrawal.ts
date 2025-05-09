@@ -50,6 +50,7 @@ export const usePartsWithdrawal = () => {
     queryKey: ['interventions'],
     queryFn: async () => {
       try {
+        console.log('Fetching interventions for withdrawal dialog');
         // Temporarily mock interventions data until the Supabase tables are set up
         return [
           { id: 1, title: "Maintenance préventive tracteur #1", equipment_id: 1, date: "2024-06-01", status: "planned" },
@@ -76,35 +77,65 @@ export const usePartsWithdrawal = () => {
 
   // Récupérer l'historique des retraits pour une pièce
   const getWithdrawalHistory = async (partId: number) => {
-    // For now, return mock data
-    return [
-      {
-        id: 1,
-        part_id: partId,
-        part_name: "Test Part",
-        quantity: 2,
-        reason: "intervention",
-        custom_reason: null,
-        intervention_id: 1,
-        comment: "Used during scheduled maintenance",
-        user_id: "user-123",
-        created_at: new Date().toISOString(),
-        interventions: { id: 1, title: "Maintenance préventive tracteur #1" }
-      },
-      {
-        id: 2,
-        part_id: partId,
-        part_name: "Test Part",
-        quantity: 1,
-        reason: "defective",
-        custom_reason: null,
-        intervention_id: null,
-        comment: "Manufacturing defect",
-        user_id: "user-123",
-        created_at: new Date(Date.now() - 86400000).toISOString(),
-        interventions: null
+    try {
+      console.log('Getting withdrawal history for part ID:', partId);
+      
+      if (isNaN(partId)) {
+        console.error('Invalid part ID provided to getWithdrawalHistory:', partId);
+        throw new Error('ID de pièce invalide');
       }
-    ];
+      
+      // For now, return mock data
+      return [
+        {
+          id: 1,
+          part_id: partId,
+          part_name: "Test Part",
+          quantity: 2,
+          reason: "intervention",
+          custom_reason: null,
+          intervention_id: 1,
+          comment: "Used during scheduled maintenance",
+          user_id: "user-123",
+          created_at: new Date().toISOString(),
+          interventions: { id: 1, title: "Maintenance préventive tracteur #1" }
+        },
+        {
+          id: 2,
+          part_id: partId,
+          part_name: "Test Part",
+          quantity: 1,
+          reason: "defective",
+          custom_reason: null,
+          intervention_id: null,
+          comment: "Manufacturing defect",
+          user_id: "user-123",
+          created_at: new Date(Date.now() - 86400000).toISOString(),
+          interventions: null
+        }
+      ];
+
+      /* Real implementation when tables are ready:
+      const { data, error } = await supabase
+        .from('parts_withdrawals')
+        .select(`
+          *,
+          interventions:intervention_id (id, title)
+        `)
+        .eq('part_id', partId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching withdrawal history:', error);
+        throw new Error(error.message);
+      }
+
+      return data;
+      */
+    } catch (error) {
+      console.error('Error in getWithdrawalHistory:', error);
+      throw error;
+    }
   };
 
   // Mutation for submitting a withdrawal
@@ -169,10 +200,10 @@ export const usePartsWithdrawal = () => {
     }
   });
 
-  // Open the withdrawal dialog for a specific part
-  const openWithdrawalDialog = (part: Part) => {
+  // Open the withdrawal dialog for a specific part or for all parts if none specified
+  const openWithdrawalDialog = (part?: Part) => {
     console.log("Opening withdrawal dialog for part:", part);
-    setSelectedPart(part);
+    setSelectedPart(part || null);
     setIsWithdrawalDialogOpen(true);
   };
 
