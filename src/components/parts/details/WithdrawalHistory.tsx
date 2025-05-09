@@ -9,7 +9,6 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePartsWithdrawal } from '@/hooks/parts/usePartsWithdrawal';
 import { Part } from '@/types/Part';
-import { exportToExcel } from '@/utils/excelExport';
 
 interface WithdrawalHistoryProps {
   part: Part;
@@ -21,10 +20,10 @@ interface WithdrawalRecord {
   part_name: string;
   quantity: number;
   reason: string;
-  custom_reason?: string;
+  custom_reason?: string | null;
   intervention_id?: number | null;
-  comment?: string;
-  user_id?: string;
+  comment?: string | null;
+  user_id?: string | null;
   created_at: string;
   interventions?: {
     id: number;
@@ -58,7 +57,7 @@ const WithdrawalHistory: React.FC<WithdrawalHistoryProps> = ({ part }) => {
     fetchHistory();
   }, [partId, getWithdrawalHistory]);
 
-  // Formater la raison pour affichage
+  // Format reason for display
   const formatReason = (record: WithdrawalRecord) => {
     if (record.reason === 'other' && record.custom_reason) {
       return record.custom_reason;
@@ -68,7 +67,7 @@ const WithdrawalHistory: React.FC<WithdrawalHistoryProps> = ({ part }) => {
     return reasonObj ? reasonObj.label : record.reason;
   };
 
-  // Exporter l'historique en format Excel
+  // Export history to Excel format
   const handleExport = () => {
     const exportData = history.map(record => ({
       Date: format(new Date(record.created_at), 'dd/MM/yyyy HH:mm'),
@@ -78,15 +77,25 @@ const WithdrawalHistory: React.FC<WithdrawalHistoryProps> = ({ part }) => {
       Commentaire: record.comment || '-'
     }));
 
-    const columns = [
-      { key: 'Date', header: 'Date' },
-      { key: 'Quantité', header: 'Quantité' },
-      { key: 'Raison', header: 'Raison' },
-      { key: 'Intervention', header: 'Intervention' },
-      { key: 'Commentaire', header: 'Commentaire' }
-    ];
-
-    exportToExcel(exportData, columns, `historique_retraits_${part.name.replace(/\s+/g, '_')}`);
+    // Create a CSV content
+    const headers = Object.keys(exportData[0]).join(',');
+    const rows = exportData.map(item => 
+      Object.values(item)
+        .map(value => typeof value === 'string' ? `"${value}"` : value)
+        .join(',')
+    );
+    const csvContent = [headers, ...rows].join('\n');
+    
+    // Create and trigger download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `historique_retraits_${part.name.replace(/\s+/g, '_')}.csv`);
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (isLoading) {

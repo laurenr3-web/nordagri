@@ -50,6 +50,14 @@ export const usePartsWithdrawal = () => {
     queryKey: ['interventions'],
     queryFn: async () => {
       try {
+        // Temporarily mock interventions data until the Supabase tables are set up
+        return [
+          { id: 1, title: "Maintenance préventive tracteur #1", equipment_id: 1, date: "2024-06-01", status: "planned" },
+          { id: 2, title: "Réparation moissonneuse", equipment_id: 2, date: "2024-05-28", status: "in_progress" },
+          { id: 3, title: "Révision système hydraulique", equipment_id: 3, date: "2024-05-20", status: "completed" }
+        ] as Intervention[];
+        
+        /* Real implementation when tables are ready:
         const { data, error } = await supabase
           .from('interventions')
           .select('id, title, equipment_id, date, status')
@@ -57,6 +65,7 @@ export const usePartsWithdrawal = () => {
 
         if (error) throw error;
         return data as Intervention[];
+        */
       } catch (error) {
         console.error('Error fetching interventions:', error);
         return [];
@@ -67,6 +76,37 @@ export const usePartsWithdrawal = () => {
 
   // Récupérer l'historique des retraits pour une pièce
   const getWithdrawalHistory = async (partId: number) => {
+    // For now, return mock data
+    return [
+      {
+        id: 1,
+        part_id: partId,
+        part_name: "Test Part",
+        quantity: 2,
+        reason: "intervention",
+        custom_reason: null,
+        intervention_id: 1,
+        comment: "Used during scheduled maintenance",
+        user_id: "user-123",
+        created_at: new Date().toISOString(),
+        interventions: { id: 1, title: "Maintenance préventive tracteur #1" }
+      },
+      {
+        id: 2,
+        part_id: partId,
+        part_name: "Test Part",
+        quantity: 1,
+        reason: "defective",
+        custom_reason: null,
+        intervention_id: null,
+        comment: "Manufacturing defect",
+        user_id: "user-123",
+        created_at: new Date(Date.now() - 86400000).toISOString(),
+        interventions: null
+      }
+    ];
+    
+    /* Real implementation when tables are ready:
     try {
       const { data, error } = await supabase
         .from('parts_withdrawals')
@@ -92,12 +132,25 @@ export const usePartsWithdrawal = () => {
       console.error('Error fetching withdrawal history:', error);
       throw error;
     }
+    */
   };
 
-  // Mutation pour soumettre un retrait
+  // Mutation for submitting a withdrawal
   const withdrawalMutation = useMutation({
     mutationFn: async (withdrawal: PartsWithdrawal) => {
-      // 1. Insérer le retrait dans la table parts_withdrawals
+      // For testing/demo purposes, just return the withdrawal data
+      console.log("Withdrawal mutation called with:", withdrawal);
+      
+      // Simulate successful withdrawal
+      const partToUpdate = selectedPart;
+      if (partToUpdate) {
+        partToUpdate.stock -= withdrawal.quantity;
+      }
+      
+      return withdrawal;
+      
+      /* Real implementation when tables are ready:
+      // 1. Insert the withdrawal into parts_withdrawals table
       const { data: withdrawalData, error: withdrawalError } = await supabase
         .from('parts_withdrawals')
         .insert({
@@ -115,18 +168,24 @@ export const usePartsWithdrawal = () => {
 
       if (withdrawalError) throw withdrawalError;
 
-      // 2. Mettre à jour le stock de la pièce
+      // 2. Update the part's stock
       const { error: updateError } = await supabase
         .from('parts')
-        .update({ stock: supabase.rpc('decrement', { row_id: withdrawal.part_id, amount: withdrawal.quantity }) })
+        .update({ 
+          stock: supabase.rpc('decrement', { 
+            row_id: withdrawal.part_id, 
+            amount: withdrawal.quantity 
+          }) 
+        })
         .eq('id', withdrawal.part_id);
 
       if (updateError) throw updateError;
 
       return withdrawalData;
+      */
     },
     onSuccess: () => {
-      // Invalider les requêtes pour forcer le rechargement des données
+      // Invalidate queries to force data reload
       queryClient.invalidateQueries({ queryKey: ['parts'] });
       toast.success('Pièce retirée avec succès');
       setIsWithdrawalDialogOpen(false);
@@ -138,7 +197,7 @@ export const usePartsWithdrawal = () => {
     }
   });
 
-  // Ouvrir la modale de retrait pour une pièce spécifique
+  // Open the withdrawal dialog for a specific part
   const openWithdrawalDialog = (part: Part) => {
     setSelectedPart(part);
     setIsWithdrawalDialogOpen(true);

@@ -8,7 +8,7 @@ import { PartsFilters } from './filters/PartsFilters';
 import { PartsEmptyState } from './states/PartsEmptyState';
 import { PartsErrorState } from './states/PartsErrorState';
 import { PartsLoadingState } from './states/PartsLoadingState';
-import { PartDetailsDialog } from './dialogs/PartDetailsDialog';
+import PartDetailsDialog from './dialogs/PartDetailsDialog';
 import { PartsView } from '@/hooks/parts/usePartsFilter';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Part } from '@/types/Part';
