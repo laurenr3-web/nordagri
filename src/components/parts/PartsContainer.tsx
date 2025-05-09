@@ -9,6 +9,8 @@ import { PartsEmptyState } from './states/PartsEmptyState';
 import { PartsErrorState } from './states/PartsErrorState';
 import { PartsLoadingState } from './states/PartsLoadingState';
 import PartDetailsDialog from './dialogs/PartDetailsDialog';
+import AddPartDialog from './dialogs/AddPartDialog';
+import ExpressAddPartDialog from './dialogs/ExpressAddPartDialog';
 import { PartsView } from '@/hooks/parts/usePartsFilter';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Part } from '@/types/Part';
@@ -101,13 +103,29 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
   openOrderDialog,
 }) => {
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
-  const { openWithdrawalDialog, isWithdrawalDialogOpen, selectedPart, setIsWithdrawalDialogOpen } = usePartsWithdrawal();
+  const [isAddPartDialogOpen, setIsAddPartDialogOpen] = useState(false);
+  const [isExpressAddDialogOpen, setIsExpressAddDialogOpen] = useState(false);
+  const [isPartDetailsDialogOpen, setIsPartDetailsDialogOpen] = useState(false);
+  const [selectedDetailPart, setSelectedDetailPart] = useState<Part | null>(null);
+  
+  const { 
+    openWithdrawalDialog, 
+    isWithdrawalDialogOpen, 
+    selectedPart, 
+    setIsWithdrawalDialogOpen 
+  } = usePartsWithdrawal();
   
   // Get stock status color based on levels
   const getStockStatusColor = (part: Part) => {
     if (part.stock === 0) return "text-destructive";
     if (part.stock <= part.reorderPoint) return "text-yellow-600";
     return "";
+  };
+
+  // Handle opening details dialog
+  const handleOpenDetails = (part: Part) => {
+    setSelectedDetailPart(part);
+    setIsPartDetailsDialogOpen(true);
   };
 
   // Render content based on state
@@ -136,7 +154,7 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
           parts={filteredParts} 
           selectedParts={selectedParts}
           onSelectPart={onSelectPart}
-          openPartDetails={openPartDetails}
+          openPartDetails={handleOpenDetails}
           openOrderDialog={openOrderDialog}
           openWithdrawalDialog={openWithdrawalDialog}
           getStockStatusColor={getStockStatusColor}
@@ -147,7 +165,7 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
           parts={filteredParts}
           selectedParts={selectedParts}
           onSelectPart={onSelectPart}
-          openPartDetails={openPartDetails}
+          openPartDetails={handleOpenDetails}
           openOrderDialog={openOrderDialog}
           openWithdrawalDialog={openWithdrawalDialog}
           getStockStatusColor={getStockStatusColor}
@@ -171,6 +189,8 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
         onDeleteSelected={onDeleteSelected}
         totalParts={parts.length}
         filteredParts={filteredParts.length}
+        onAddPart={() => setIsAddPartDialogOpen(true)}
+        onWithdrawPart={() => setIsWithdrawalDialogOpen(true)}
       />
       
       <div className="grid md:grid-cols-[240px,1fr] gap-4">
@@ -237,6 +257,25 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
         isOpen={isWithdrawalDialogOpen} 
         onOpenChange={setIsWithdrawalDialogOpen}
         part={selectedPart}
+      />
+
+      {/* Dialogue d'ajout de pièce */}
+      <AddPartDialog
+        isOpen={isAddPartDialogOpen}
+        onOpenChange={setIsAddPartDialogOpen}
+      />
+
+      {/* Dialogue d'ajout express */}
+      <ExpressAddPartDialog
+        isOpen={isExpressAddDialogOpen}
+        onOpenChange={setIsExpressAddDialogOpen}
+      />
+
+      {/* Dialogue de détails de pièce */}
+      <PartDetailsDialog
+        isOpen={isPartDetailsDialogOpen}
+        onOpenChange={setIsPartDetailsDialogOpen}
+        selectedPart={selectedDetailPart}
       />
     </div>
   );

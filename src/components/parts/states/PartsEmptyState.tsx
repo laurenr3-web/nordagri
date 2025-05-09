@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Inbox, Search, FilterX } from 'lucide-react';
+import { Inbox, FilterX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface PartsEmptyStateProps {

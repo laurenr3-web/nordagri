@@ -11,11 +11,16 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Plus, MinusCircle } from "lucide-react";
 import WithdrawalDialog from '@/components/parts/dialogs/WithdrawalDialog';
+import AddPartDialog from '@/components/parts/dialogs/AddPartDialog';
+import ExpressAddPartDialog from '@/components/parts/dialogs/ExpressAddPartDialog';
 
 const Parts = () => {
   const { toast } = useToast();
   const partsHookData = useParts();
   const [isLoading, setIsLoading] = useState(true);
+  const [isAddPartDialogOpen, setIsAddPartDialogOpen] = useState(false);
+  const [isExpressAddDialogOpen, setIsExpressAddDialogOpen] = useState(false);
+  const [isWithdrawalDialogOpen, setIsWithdrawalDialogOpen] = useState(false);
   
   // Check authentication status on page load
   useEffect(() => {
@@ -53,10 +58,10 @@ const Parts = () => {
           description="Gérez votre inventaire de pièces et commandez de nouvelles pièces"
           action={
             <div className="flex space-x-2">
-              <Button size="sm" variant="outline" onClick={() => partsHookData.openWithdrawalDialog(partsHookData.filteredParts[0])}>
+              <Button size="sm" variant="outline" onClick={() => setIsWithdrawalDialogOpen(true)}>
                 <MinusCircle className="h-4 w-4 mr-1" /> Retirer une pièce
               </Button>
-              <Button size="sm">
+              <Button size="sm" onClick={() => setIsAddPartDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-1" /> Ajouter une pièce
               </Button>
             </div>
@@ -69,13 +74,23 @@ const Parts = () => {
         />
         
         {/* Dialog for part withdrawal when no specific part is selected */}
-        {partsHookData.isWithdrawalDialogOpen && !partsHookData.selectedPart && (
-          <WithdrawalDialog 
-            isOpen={partsHookData.isWithdrawalDialogOpen} 
-            onOpenChange={partsHookData.setIsWithdrawalDialogOpen}
-            part={null}
-          />
-        )}
+        <WithdrawalDialog 
+          isOpen={isWithdrawalDialogOpen} 
+          onOpenChange={setIsWithdrawalDialogOpen}
+          part={null}
+        />
+        
+        {/* Dialog for adding parts */}
+        <AddPartDialog
+          isOpen={isAddPartDialogOpen}
+          onOpenChange={setIsAddPartDialogOpen}
+        />
+        
+        {/* Dialog for express adding parts */}
+        <ExpressAddPartDialog
+          isOpen={isExpressAddDialogOpen}
+          onOpenChange={setIsExpressAddDialogOpen}
+        />
       </LayoutWrapper>
     </MainLayout>
   );

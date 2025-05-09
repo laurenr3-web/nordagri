@@ -2,12 +2,11 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
+import { X } from 'lucide-react';
 
 interface PartsFiltersProps {
   categories: string[];
@@ -40,128 +39,100 @@ export const PartsFilters: React.FC<PartsFiltersProps> = ({
   inStock,
   setInStock,
   filterCount,
-  clearFilters
+  clearFilters,
 }) => {
-  const formatPrice = (value: number) => `${value}€`;
-  
   return (
-    <Card className="sticky top-4">
+    <Card className="h-full">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Filtres</CardTitle>
+          <CardTitle className="text-base">Filtres</CardTitle>
           {filterCount > 0 && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2 text-muted-foreground flex gap-1 items-center"
               onClick={clearFilters}
-              className="h-8 px-2"
             >
-              Réinitialiser
+              <X className="h-4 w-4" /> Effacer
             </Button>
           )}
         </div>
-        {filterCount > 0 && (
-          <Badge variant="secondary" className="mt-1">
-            {filterCount} filtre{filterCount > 1 ? 's' : ''} appliqué{filterCount > 1 ? 's' : ''}
-          </Badge>
-        )}
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div>
-          <Label className="text-sm font-medium mb-2 block">Catégories</Label>
-          <Tabs 
-            defaultValue={selectedCategory || "all"} 
-            className="w-full"
-            onValueChange={(value) => setSelectedCategory(value)}
-          >
-            <TabsList className="w-full grid grid-cols-2 h-auto">
-              <TabsTrigger value="all" className="text-xs py-1.5">
-                Toutes
-              </TabsTrigger>
-              <TabsTrigger value="favorites" className="text-xs py-1.5">
-                Favoris
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-          
-          {categories.length > 0 && (
-            <div className="grid grid-cols-1 gap-1 mt-2">
-              {categories.map((category) => (
-                <Button
-                  key={category}
-                  variant={selectedCategory === category ? "secondary" : "ghost"}
-                  size="sm"
-                  className="justify-start font-normal h-8"
-                  onClick={() => setSelectedCategory(category)}
+      <CardContent className="grid gap-5">
+        {/* Filtrer par catégorie */}
+        <div className="grid gap-2">
+          <Label className="text-xs font-semibold">Catégorie</Label>
+          <div className="grid grid-cols-2 gap-1">
+            {categories.map((category) => (
+              <Button
+                key={category}
+                variant={selectedCategory === category ? "secondary" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory(category)}
+                className="justify-start h-8 px-2 text-xs"
+              >
+                {category.charAt(0).toUpperCase() + category.slice(1)}
+              </Button>
+            ))}
+          </div>
+        </div>
+        
+        {/* Filtrer par fabricant */}
+        <div className="grid gap-2">
+          <Label className="text-xs font-semibold">Fabricant</Label>
+          <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
+            {manufacturers.map((manufacturer) => (
+              <div key={manufacturer} className="flex items-center gap-2">
+                <Checkbox
+                  id={`manufacturer-${manufacturer}`}
+                  checked={selectedManufacturers.includes(manufacturer)}
+                  onCheckedChange={() => toggleManufacturer(manufacturer)}
+                />
+                <Label
+                  htmlFor={`manufacturer-${manufacturer}`}
+                  className="text-xs font-normal cursor-pointer"
                 >
-                  {category}
-                </Button>
-              ))}
-            </div>
-          )}
-        </div>
-        
-        {manufacturers.length > 0 && (
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">Fabricants</Label>
-            <ScrollArea className="h-[180px] pr-4">
-              <div className="space-y-2">
-                {manufacturers.map((manufacturer) => (
-                  <div key={manufacturer} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`manufacturer-${manufacturer}`}
-                      checked={selectedManufacturers.includes(manufacturer)}
-                      onCheckedChange={() => toggleManufacturer(manufacturer)}
-                    />
-                    <Label
-                      htmlFor={`manufacturer-${manufacturer}`}
-                      className="text-sm cursor-pointer flex-grow"
-                    >
-                      {manufacturer}
-                    </Label>
-                  </div>
-                ))}
+                  {manufacturer}
+                </Label>
               </div>
-            </ScrollArea>
+            ))}
+            {manufacturers.length === 0 && (
+              <p className="text-xs text-muted-foreground">Aucun fabricant disponible</p>
+            )}
           </div>
-        )}
+        </div>
         
-        <div className="space-y-4">
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <Label className="text-sm font-medium">Prix</Label>
-              <span className="text-sm text-muted-foreground">
-                {formatPrice(minPrice)} - {formatPrice(maxPrice)}
-              </span>
-            </div>
-            <div className="pt-4">
-              <Slider
-                defaultValue={[minPrice, maxPrice]}
-                min={0}
-                max={1000}
-                step={10}
-                value={[minPrice, maxPrice]}
-                onValueChange={(values) => {
-                  setMinPrice(values[0]);
-                  setMaxPrice(values[1]);
-                }}
-              />
+        {/* Filtrer par prix */}
+        <div className="grid gap-2">
+          <Label className="text-xs font-semibold">Prix</Label>
+          <div className="grid gap-4">
+            <Slider
+              min={0}
+              max={1000}
+              step={10}
+              value={[minPrice, maxPrice]}
+              onValueChange={(value) => {
+                setMinPrice(value[0]);
+                setMaxPrice(value[1]);
+              }}
+            />
+            <div className="flex justify-between items-center">
+              <span className="text-xs">{minPrice}€</span>
+              <span className="text-xs">{maxPrice}€</span>
             </div>
           </div>
         </div>
         
-        <div className="flex items-center space-x-2">
-          <Checkbox 
-            id="in-stock" 
-            checked={inStock}
-            onCheckedChange={(checked) => setInStock(!!checked)}
-          />
-          <Label
-            htmlFor="in-stock"
-            className="text-sm cursor-pointer flex-grow"
-          >
+        {/* Filtrer par disponibilité */}
+        <div className="flex items-center justify-between">
+          <Label htmlFor="in-stock" className="text-xs font-semibold">
             En stock uniquement
           </Label>
+          <Switch
+            id="in-stock"
+            checked={inStock}
+            onCheckedChange={setInStock}
+          />
         </div>
       </CardContent>
     </Card>
