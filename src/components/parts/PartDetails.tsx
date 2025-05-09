@@ -1,34 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { Part } from '@/types/Part';
-import { ArrowLeft, Edit, Trash2, MinusCircle } from 'lucide-react';
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { useNavigate } from 'react-router-dom';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-import PartImage from './details/PartImage';
-import PartActions from './details/PartActions';
-import PartBasicInfo from './details/PartBasicInfo';
-import PartInventoryInfo from './details/PartInventoryInfo';
-import PartCompatibility from './details/PartCompatibility';
-import PartReorderInfo from './details/PartReorderInfo';
-import WithdrawalHistory from './details/WithdrawalHistory';
-import EditPartDialog from './dialogs/EditPartDialog';
-import WithdrawalDialog from './dialogs/WithdrawalDialog';
 import { useDeletePart } from '@/hooks/parts';
 import { usePartsWithdrawal } from '@/hooks/parts/usePartsWithdrawal';
 import { toast } from 'sonner';
+
+import PartImage from './details/PartImage';
+import PartDetailsHeader from './details/PartDetailsHeader';
+import DeleteConfirmationDialog from './details/DeleteConfirmationDialog';
+import EditPartDialog from './dialogs/EditPartDialog';
+import WithdrawalDialog from './dialogs/WithdrawalDialog';
+import DetailsTabs from './details/DetailsTabs';
 
 interface PartDetailsProps {
   part: Part;
@@ -132,90 +115,28 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
 
   return (
     <div className="space-y-6">
-      {onBack && (
-        <div className="flex items-center justify-between mb-4">
-          <Button variant="ghost" onClick={onBack} className="flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Retour
-          </Button>
-          
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={openEditDialog}>
-              <Edit className="h-4 w-4 mr-2" />
-              Modifier
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={openDeleteDialog}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Supprimer
-            </Button>
-          </div>
-        </div>
-      )}
+      <PartDetailsHeader 
+        part={part}
+        onBack={onBack}
+        onEdit={openEditDialog}
+        onDelete={openDeleteDialog}
+        onWithdrawal={handleWithdrawal}
+      />
 
       <PartImage part={part} />
 
-      <div className="flex justify-between items-start">
-        <div>
-          <h2 className="text-2xl font-semibold">{part.name}</h2>
-          <p className="text-muted-foreground">{part.partNumber}</p>
-        </div>
-        
-        <Button 
-          variant="secondary" 
-          onClick={handleWithdrawal} 
-          className="flex items-center gap-1"
-        >
-          <MinusCircle className="h-4 w-4 mr-1" />
-          Retirer une pièce
-        </Button>
-      </div>
-
-      {!onBack && <PartActions onEdit={openEditDialog} onDelete={openDeleteDialog} onWithdrawal={handleWithdrawal} />}
-
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="w-full grid grid-cols-2">
-          <TabsTrigger value="details">Détails</TabsTrigger>
-          <TabsTrigger value="history">Historique des retraits</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="details" className="space-y-6 mt-6">
-          <Separator />
-          
-          <div className="grid grid-cols-2 gap-6">
-            <PartBasicInfo part={part} />
-            <PartInventoryInfo part={part} />
-          </div>
-
-          <PartCompatibility compatibility={part.compatibility} />
-
-          <PartReorderInfo part={part} />
-        </TabsContent>
-        
-        <TabsContent value="history" className="mt-6">
-          {activeTab === 'history' && <WithdrawalHistory part={part} />}
-        </TabsContent>
-      </Tabs>
+      <DetailsTabs 
+        part={part} 
+        activeTab={activeTab} 
+        onTabChange={handleTabChange} 
+      />
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent onClick={e => e.stopPropagation()}>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Êtes-vous sûr?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Cette action ne peut pas être annulée. Cette pièce sera supprimée définitivement de notre base de données.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={e => e.stopPropagation()}>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Supprimer
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmationDialog 
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleDelete}
+      />
 
       {/* Edit Part Dialog */}
       {isEditDialogOpen && (
