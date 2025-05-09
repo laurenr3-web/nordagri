@@ -104,16 +104,12 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
       ) : currentView === 'grid' ? (
         <EquipmentGrid
           equipment={filteredEquipment}
-          getStatusColor={getStatusColor}
-          getStatusText={getStatusText}
-          handleEquipmentClick={handleEquipmentItemClick}
+          onEquipmentClick={handleEquipmentItemClick}
         />
       ) : (
         <EquipmentList 
           equipment={filteredEquipment}
-          getStatusColor={getStatusColor}
-          getStatusText={getStatusText}
-          handleEquipmentClick={handleEquipmentItemClick}
+          onEquipmentClick={handleEquipmentItemClick}
         />
       )}
       
