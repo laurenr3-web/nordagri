@@ -1,75 +1,75 @@
 
-import React from "react";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { EquipmentItem } from "../hooks/useEquipmentFilters";
+import React from 'react';
+import { Card } from '@/components/ui/card';
+import { motion } from 'framer-motion';
+import StatusBadge from '../details/StatusBadge';
+import MaintenanceAlert from '../details/MaintenanceAlert';
+import { EquipmentImageFallback } from './EquipmentImageFallback';
 
-/**
- * Card Equipement, UI pure, harmonisée Tailwind (tokens !)
- */
+const variants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 }
+};
+
 interface EquipmentGridProps {
-  equipment: EquipmentItem[];
-  getStatusColor: (status: string | undefined) => string;
-  getStatusText: (status: string | undefined) => string;
-  handleEquipmentClick: (equipment: EquipmentItem) => void;
+  equipment: Array<any>;
+  onEquipmentClick: (equipment: any) => void;
 }
 
-const EquipmentCardList: React.FC<EquipmentGridProps> = ({
+const EquipmentGrid: React.FC<EquipmentGridProps> = ({
   equipment,
-  getStatusColor,
-  getStatusText,
-  handleEquipmentClick
+  onEquipmentClick,
 }) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-lg">
-      {equipment.map((item) => (
-        <Card 
-          key={item.id} 
-          className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-          onClick={() => handleEquipmentClick(item)}
-          data-testid={`equipment-card-${item.id}`}
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {equipment.map((item, index) => (
+        <motion.div
+          key={item.id}
+          initial="hidden"
+          animate="visible"
+          variants={variants}
+          transition={{
+            duration: 0.3,
+            delay: index * 0.1,
+          }}
         >
-          <div className="aspect-video relative overflow-hidden">
-            <img
-              src={
-                item.image ||
-                "https://images.unsplash.com/photo-1585911171167-1f66ea3de00c?q=80&w=500&auto=format&fit=crop"
-              }
-              alt={item.name}
-              className="object-cover w-full h-full transition-transform hover:scale-105"
-            />
-            <Badge
-              className={`absolute top-xs right-xs ${getStatusColor(item.status)}`}
-              variant="secondary"
-            >
-              {getStatusText(item.status)}
-            </Badge>
-          </div>
-          <CardHeader className="pb-xs">
-            <div className="flex justify-between items-start">
-              <h3 className="font-semibold text-lg">{item.name}</h3>
-              {item.year && <Badge variant="outline">{item.year}</Badge>}
-            </div>
-          </CardHeader>
-          <CardContent className="pb-xs">
-            <div className="text-sm text-muted-foreground">
-              {item.manufacturer && item.model ? (
-                <p>{item.manufacturer} {item.model}</p>
+          <Card
+            className="relative overflow-hidden transition-all duration-300 hover:shadow-md cursor-pointer"
+            onClick={() => onEquipmentClick(item)}
+          >
+            <div className="relative h-40">
+              {item.image ? (
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="h-full w-full object-cover"
+                />
               ) : (
-                <p>{item.manufacturer || item.model || item.type || "Équipement"}</p>
+                <EquipmentImageFallback item={item} />
               )}
+              <div className="absolute top-2 right-2">
+                <StatusBadge status={item.status} />
+              </div>
+              <div className="absolute top-2 left-2">
+                <MaintenanceAlert equipment={item} size="sm" />
+              </div>
+            </div>
+            <div className="p-3">
+              <div className="flex justify-between items-start">
+                <h3 className="font-semibold truncate flex-1">{item.name}</h3>
+              </div>
+              <p className="text-sm text-muted-foreground truncate">
+                {item.brand} {item.model}
+              </p>
               {item.location && (
-                <p className="mt-xs">Emplacement: {item.location}</p>
+                <p className="text-xs text-muted-foreground mt-1">{item.location}</p>
               )}
             </div>
-          </CardContent>
-          <CardFooter className="text-xs text-muted-foreground pt-0">
-            {item.serialNumber && <p>S/N: {item.serialNumber}</p>}
-          </CardFooter>
-        </Card>
+          </Card>
+        </motion.div>
       ))}
     </div>
   );
 };
 
-export default EquipmentCardList;
+export default EquipmentGrid;
