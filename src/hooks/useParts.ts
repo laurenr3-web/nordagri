@@ -8,6 +8,7 @@ import { usePartsCategories } from './parts/usePartsCategories';
 import { usePartsActions } from './parts/usePartsActions';
 import { useCreatePart, useUpdatePart, useDeletePart } from './usePartsMutations';
 import { usePartsRealtime } from './parts/usePartsRealtime';
+import { usePartsWithdrawal } from './parts/usePartsWithdrawal';
 import { convertToPart } from '@/utils/partTypeConverters';
 
 // Define a more strictly typed version of Part for internal use
@@ -22,6 +23,7 @@ export const useParts = () => {
   const partsFilter = usePartsFilter();
   const orderParts = useOrderParts();
   const partsDialogs = usePartsDialogs();
+  const partsWithdrawal = usePartsWithdrawal();
   
   // Get the parts data from the query result and convert to SafePart
   const data: SafePart[] = (partsQuery.data || []).map(part => ({
@@ -118,6 +120,9 @@ export const useParts = () => {
     
     // Order states
     ...orderParts,
+    
+    // Withdrawal functionality
+    ...partsWithdrawal,
     
     // Actions
     handleAddPart,

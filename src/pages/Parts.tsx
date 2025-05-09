@@ -9,7 +9,8 @@ import { PartsView } from '@/hooks/parts/usePartsFilter';
 import { LayoutWrapper } from "@/components/layout/LayoutWrapper";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, MinusCircle } from "lucide-react";
+import WithdrawalDialog from '@/components/parts/dialogs/WithdrawalDialog';
 
 const Parts = () => {
   const { toast } = useToast();
@@ -51,9 +52,14 @@ const Parts = () => {
           title="Gestion des pièces"
           description="Gérez votre inventaire de pièces et commandez de nouvelles pièces"
           action={
-            <Button size="sm">
-              <Plus className="h-4 w-4 mr-1" /> Ajouter une pièce
-            </Button>
+            <div className="flex space-x-2">
+              <Button size="sm" variant="outline" onClick={() => partsHookData.openWithdrawalDialog(partsHookData.filteredParts[0])}>
+                <MinusCircle className="h-4 w-4 mr-1" /> Retirer une pièce
+              </Button>
+              <Button size="sm">
+                <Plus className="h-4 w-4 mr-1" /> Ajouter une pièce
+              </Button>
+            </div>
           }
         />
         <PartsContainer 
@@ -61,6 +67,15 @@ const Parts = () => {
           setCurrentView={setCurrentView}
           refetch={partsHookData.isError ? () => partsHookData.refetch() : undefined}
         />
+        
+        {/* Dialog for part withdrawal when no specific part is selected */}
+        {partsHookData.isWithdrawalDialogOpen && !partsHookData.selectedPart && (
+          <WithdrawalDialog 
+            isOpen={partsHookData.isWithdrawalDialogOpen} 
+            onOpenChange={partsHookData.setIsWithdrawalDialogOpen}
+            part={null}
+          />
+        )}
       </LayoutWrapper>
     </MainLayout>
   );

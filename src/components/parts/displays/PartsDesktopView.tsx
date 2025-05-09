@@ -3,7 +3,7 @@ import React from 'react';
 import { Part } from '@/types/Part';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, MinusCircle } from 'lucide-react';
 import { CompatibleEquipment } from './CompatibleEquipment';
 
 interface PartsDesktopViewProps {
@@ -12,6 +12,7 @@ interface PartsDesktopViewProps {
   onSelectPart: (partId: string | number, checked: boolean) => void;
   openPartDetails: (part: Part) => void;
   openOrderDialog: (part: Part) => void;
+  openWithdrawalDialog?: (part: Part) => void;
   getStockStatusColor: (part: Part) => string;
   animatingOut?: (string | number)[];
 }
@@ -22,6 +23,7 @@ export const PartsDesktopView: React.FC<PartsDesktopViewProps> = ({
   onSelectPart,
   openPartDetails,
   openOrderDialog,
+  openWithdrawalDialog,
   getStockStatusColor,
   animatingOut = []
 }) => {
@@ -98,6 +100,17 @@ export const PartsDesktopView: React.FC<PartsDesktopViewProps> = ({
                   >
                     Détails
                   </Button>
+                  {openWithdrawalDialog && (
+                    <Button 
+                      variant="secondary" 
+                      size="sm" 
+                      className="h-8 px-2 flex items-center gap-1" 
+                      onClick={() => openWithdrawalDialog(part)}
+                    >
+                      <MinusCircle className="h-3.5 w-3.5" />
+                      Retirer
+                    </Button>
+                  )}
                   <Button 
                     variant="default" 
                     size="sm" 

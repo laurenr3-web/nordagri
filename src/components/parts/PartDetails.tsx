@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Part } from '@/types/Part';
-import { ArrowLeft, Edit, Trash2 } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, MinusCircle } from 'lucide-react';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +15,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useNavigate } from 'react-router-dom';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import PartImage from './details/PartImage';
 import PartActions from './details/PartActions';
@@ -22,8 +23,11 @@ import PartBasicInfo from './details/PartBasicInfo';
 import PartInventoryInfo from './details/PartInventoryInfo';
 import PartCompatibility from './details/PartCompatibility';
 import PartReorderInfo from './details/PartReorderInfo';
+import WithdrawalHistory from './details/WithdrawalHistory';
 import EditPartDialog from './dialogs/EditPartDialog';
+import WithdrawalDialog from './dialogs/WithdrawalDialog';
 import { useDeletePart } from '@/hooks/parts';
+import { usePartsWithdrawal } from '@/hooks/parts/usePartsWithdrawal';
 
 interface PartDetailsProps {
   part: Part;
@@ -36,8 +40,10 @@ interface PartDetailsProps {
 const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDialogClose, onBack }) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('details');
   const deleteMutation = useDeletePart();
   const navigate = useNavigate();
+  const { openWithdrawalDialog, isWithdrawalDialogOpen, selectedPart, setIsWithdrawalDialogOpen } = usePartsWithdrawal();
 
   const handleDelete = async () => {
     try {
@@ -89,6 +95,12 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
     setIsDeleteDialogOpen(true);
   };
 
+  // Handler pour ouvrir la dialogue de retrait
+  const handleWithdrawal = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    openWithdrawalDialog(part);
+  };
+
   return (
     <div className="space-y-6">
       {onBack && (
@@ -116,23 +128,47 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
 
       <PartImage part={part} />
 
-      <div>
-        <h2 className="text-2xl font-semibold">{part.name}</h2>
-        <p className="text-muted-foreground">{part.partNumber}</p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-2xl font-semibold">{part.name}</h2>
+          <p className="text-muted-foreground">{part.partNumber}</p>
+        </div>
+        
+        <Button 
+          variant="secondary" 
+          onClick={handleWithdrawal} 
+          className="flex items-center gap-1"
+        >
+          <MinusCircle className="h-4 w-4 mr-1" />
+          Retirer une pièce
+        </Button>
       </div>
 
-      {!onBack && <PartActions onEdit={openEditDialog} onDelete={openDeleteDialog} />}
+      {!onBack && <PartActions onEdit={openEditDialog} onDelete={openDeleteDialog} onWithdrawal={handleWithdrawal} />}
 
-      <Separator />
-      
-      <div className="grid grid-cols-2 gap-6">
-        <PartBasicInfo part={part} />
-        <PartInventoryInfo part={part} />
-      </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="w-full grid grid-cols-2">
+          <TabsTrigger value="details">Détails</TabsTrigger>
+          <TabsTrigger value="history">Historique des retraits</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="details" className="space-y-6 mt-6">
+          <Separator />
+          
+          <div className="grid grid-cols-2 gap-6">
+            <PartBasicInfo part={part} />
+            <PartInventoryInfo part={part} />
+          </div>
 
-      <PartCompatibility compatibility={part.compatibility} />
+          <PartCompatibility compatibility={part.compatibility} />
 
-      <PartReorderInfo part={part} />
+          <PartReorderInfo part={part} />
+        </TabsContent>
+        
+        <TabsContent value="history" className="mt-6">
+          <WithdrawalHistory part={part} />
+        </TabsContent>
+      </Tabs>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
@@ -162,6 +198,13 @@ const PartDetails: React.FC<PartDetailsProps> = ({ part, onEdit, onDelete, onDia
           onMainDialogClose={onDialogClose}
         />
       )}
+
+      {/* Withdrawal Dialog */}
+      <WithdrawalDialog 
+        isOpen={isWithdrawalDialogOpen && selectedPart?.id === part.id} 
+        onOpenChange={setIsWithdrawalDialogOpen}
+        part={selectedPart}
+      />
     </div>
   );
 };

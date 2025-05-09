@@ -3,7 +3,7 @@ import React from 'react';
 import { Part } from '@/types/Part';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { AlertCircle, Box } from 'lucide-react';
+import { AlertCircle, Box, MinusCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { CompatibleEquipment } from './CompatibleEquipment';
 
@@ -13,6 +13,7 @@ interface PartsMobileViewProps {
   onSelectPart: (partId: string | number, checked: boolean) => void;
   openPartDetails: (part: Part) => void;
   openOrderDialog: (part: Part) => void;
+  openWithdrawalDialog?: (part: Part) => void;
   getStockStatusColor: (part: Part) => string;
   animatingOut?: (string | number)[];
 }
@@ -23,6 +24,7 @@ export const PartsMobileView: React.FC<PartsMobileViewProps> = ({
   onSelectPart,
   openPartDetails,
   openOrderDialog,
+  openWithdrawalDialog,
   getStockStatusColor,
   animatingOut = []
 }) => {
@@ -77,19 +79,30 @@ export const PartsMobileView: React.FC<PartsMobileViewProps> = ({
               </div>
             </div>
           </div>
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex flex-wrap justify-end gap-2 pt-2">
             <Button 
               variant="outline" 
               size="sm" 
-              className="h-8 px-2 flex-1" 
+              className="h-8 px-2 flex-grow" 
               onClick={() => openPartDetails(part)}
             >
               Détails
             </Button>
+            {openWithdrawalDialog && (
+              <Button 
+                variant="secondary" 
+                size="sm" 
+                className="h-8 px-2 flex-grow flex items-center gap-1" 
+                onClick={() => openWithdrawalDialog(part)}
+              >
+                <MinusCircle className="h-3.5 w-3.5" />
+                Retirer
+              </Button>
+            )}
             <Button 
               variant="default" 
               size="sm" 
-              className="h-8 px-2 flex-1" 
+              className="h-8 px-2 flex-grow" 
               onClick={() => openOrderDialog(part)}
             >
               Commander

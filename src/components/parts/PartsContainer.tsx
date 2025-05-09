@@ -1,47 +1,62 @@
 
 import React, { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { PartsDesktopView } from './displays/PartsDesktopView';
+import { PartsMobileView } from './displays/PartsMobileView';
+import { PartsToolbar } from './toolbar/PartsToolbar';
+import { PartsFilters } from './filters/PartsFilters';
+import { PartsEmptyState } from './states/PartsEmptyState';
+import { PartsErrorState } from './states/PartsErrorState';
+import { PartsLoadingState } from './states/PartsLoadingState';
+import { PartDetailsDialog } from './dialogs/PartDetailsDialog';
+import { PartsView } from '@/hooks/parts/usePartsFilter';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Part } from '@/types/Part';
-import PartsHeader from './PartsHeader';
-import PartsGrid from './PartsGrid';
-import PartsList from './PartsList';
-import { Card } from '@/components/ui/card';
-import { AlertCircle, Loader2 } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import FilterSortDialogs from './dialogs/FilterSortDialogs';
-import PartDetailsDialog from './dialogs/PartDetailsDialog';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
-import { deleteMultipleParts } from '@/services/supabase/parts';
-import { convertToPart } from '@/utils/partTypeConverters';
+import { usePartsWithdrawal } from '@/hooks/parts/usePartsWithdrawal';
+import WithdrawalDialog from './dialogs/WithdrawalDialog';
 
 interface PartsContainerProps {
   parts: Part[];
   filteredParts: Part[];
   isLoading: boolean;
   isError: boolean;
+  error: unknown;
+  refetch?: () => void;
+  
+  // Filters
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   selectedCategory: string;
   setSelectedCategory: (category: string) => void;
-  handleAddPart: (part: Omit<Part, 'id'>) => void;
-  handleUpdatePart: (part: Part) => void;
-  handleDeletePart: (partId: number | string) => void;
-  currentView: string;
-  setCurrentView: (view: string) => void;
-  openPartDetails: (part: Part) => void;
+  categories: string[];
+  manufacturers: string[];
+  filterManufacturers: string[];
+  toggleManufacturerFilter: (manufacturer: string) => void;
+  filterMinPrice: number;
+  setFilterMinPrice: (price: number) => void;
+  filterMaxPrice: number;
+  setFilterMaxPrice: (price: number) => void;
+  filterInStock: boolean;
+  setFilterInStock: (inStock: boolean) => void;
   filterCount: number;
   clearFilters: () => void;
-  // Dialog state
-  isFilterDialogOpen: boolean;
-  setIsFilterDialogOpen: (open: boolean) => void;
-  isSortDialogOpen: boolean;
-  setIsSortDialogOpen: (open: boolean) => void;
-  selectedPart: Part | null;
-  isPartDetailsDialogOpen: boolean;
-  setIsPartDetailsDialogOpen: (open: boolean) => void;
-  isAddPartDialogOpen: boolean;
-  setIsAddPartDialogOpen: (open: boolean) => void;
-  refetch?: () => void;
+  
+  // Sorting
+  sortBy: string;
+  setSortBy: (sortBy: string) => void;
+  
+  // View
+  currentView: string;
+  setCurrentView: (view: string) => void;
+  
+  // Select
+  selectedParts?: (string | number)[];
+  onSelectPart?: (partId: string | number, checked: boolean) => void;
+  onDeleteSelected?: () => void;
+  
+  // Detail and order
+  openPartDetails: (part: Part) => void;
+  openOrderDialog: (part: Part) => void;
 }
 
 const PartsContainer: React.FC<PartsContainerProps> = ({
@@ -49,183 +64,182 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
   filteredParts,
   isLoading,
   isError,
+  error,
+  refetch,
+  
+  // Filters and sorting
   searchTerm,
   setSearchTerm,
   selectedCategory,
   setSelectedCategory,
-  handleAddPart,
-  handleUpdatePart,
-  handleDeletePart,
-  currentView,
-  setCurrentView,
-  openPartDetails,
+  categories,
+  manufacturers,
+  filterManufacturers,
+  toggleManufacturerFilter,
+  filterMinPrice,
+  setFilterMinPrice,
+  filterMaxPrice,
+  setFilterMaxPrice,
+  filterInStock,
+  setFilterInStock,
   filterCount,
   clearFilters,
-  isFilterDialogOpen,
-  setIsFilterDialogOpen,
-  isSortDialogOpen,
-  setIsSortDialogOpen,
-  selectedPart,
-  isPartDetailsDialogOpen,
-  setIsPartDetailsDialogOpen,
-  isAddPartDialogOpen,
-  setIsAddPartDialogOpen,
-  refetch
+  sortBy,
+  setSortBy,
+  
+  // View
+  currentView,
+  setCurrentView,
+  
+  // Select
+  selectedParts = [],
+  onSelectPart = () => {},
+  onDeleteSelected,
+  
+  // Detail and order
+  openPartDetails,
+  openOrderDialog,
 }) => {
-  const {
-    toast
-  } = useToast();
-  const [isDeletingMultiple, setIsDeletingMultiple] = useState(false);
-  const [animatingPartIds, setAnimatingPartIds] = useState<(string | number)[]>([]);
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+  const { openWithdrawalDialog, isWithdrawalDialogOpen, selectedPart, setIsWithdrawalDialogOpen } = usePartsWithdrawal();
   
-  const handleDeleteMultiple = async (partIds: (string | number)[]) => {
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer ${partIds.length} pièce(s) ?`)) {
-      return;
+  // Get stock status color based on levels
+  const getStockStatusColor = (part: Part) => {
+    if (part.stock === 0) return "text-destructive";
+    if (part.stock <= part.reorderPoint) return "text-yellow-600";
+    return "";
+  };
+
+  // Render content based on state
+  const renderContent = () => {
+    if (isLoading) {
+      return <PartsLoadingState />;
     }
-    try {
-      setIsDeletingMultiple(true);
-      // Add parts to animating list
-      setAnimatingPartIds(prev => [...prev, ...partIds]);
-
-      // Delete all selected parts using the bulk delete function which now handles both string and number IDs
-      await deleteMultipleParts(partIds);
-      toast({
-        title: "Suppression réussie",
-        description: `${partIds.length} pièce(s) ont été supprimées avec succès`
-      });
-
-      // Refresh the data without full page reload
-      if (refetch) {
-        refetch();
-      }
-    } catch (error) {
-      console.error('Error deleting multiple parts:', error);
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la suppression des pièces",
-        variant: "destructive"
-      });
-      // Reset animating parts on error
-      setAnimatingPartIds([]);
-    } finally {
-      setIsDeletingMultiple(false);
+    
+    if (isError) {
+      return (
+        <PartsErrorState 
+          error={error instanceof Error ? error.message : "Une erreur s'est produite lors du chargement des pièces."} 
+          refetch={refetch} 
+        />
+      );
     }
-  };
-
-  // Convert compatibility from number[] to string[] for PartsGrid
-  const convertPartsForUI = (parts: Part[]): any[] => {
-    return parts.map(part => {
-      // Ensure compatibility is a string array for the UI components
-      const convertedPart = {
-        ...part,
-        compatibility: Array.isArray(part.compatibility) ? part.compatibility.map(id => id.toString()) : []
-      };
-      return convertedPart;
-    });
-  };
-
-  // Convert parts for grid and list views
-  const partsForUI = convertPartsForUI(parts);
-  const filteredPartsForUI = convertPartsForUI(filteredParts);
-
-  // Create a typed wrapper for handleUpdatePart that ensures conversion to the right type
-  const handlePartUpdate = (part: any) => {
-    // Ensure compatibility is converted back to number[]
-    const preparedPart = {
-      ...part,
-      compatibility: Array.isArray(part.compatibility) ? part.compatibility.map(id => typeof id === 'string' ? Number(id) : id) : []
-    };
-    handleUpdatePart(convertToPart(preparedPart));
-  };
-
-  // Wrapper for openPartDetails that handles type conversion
-  const handleOpenPartDetails = (part: any) => {
-    // Convert the part to the expected type with number[] compatibility
-    const convertedPart = {
-      ...part,
-      compatibility: Array.isArray(part.compatibility) ? part.compatibility.map(id => typeof id === 'string' ? Number(id) : id) : []
-    };
-    openPartDetails(convertToPart(convertedPart));
-  };
-  
-  // Wrapper for handleDeletePart to handle animation
-  const handlePartDelete = async (partId: string | number) => {
-    try {
-      setAnimatingPartIds(prev => [...prev, partId]);
-      await handleDeletePart(partId);
-      // Animation and data refresh will be handled by the invalidateQueries
-    } catch (error) {
-      console.error('Error deleting part:', error);
-      setAnimatingPartIds(prev => prev.filter(id => id !== partId));
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la suppression de la pièce",
-        variant: "destructive"
-      });
+    
+    if (!isLoading && filteredParts.length === 0) {
+      return <PartsEmptyState onClearFilters={filterCount > 0 ? clearFilters : undefined} />;
     }
+    
+    return (
+      <>
+        {/* Vue mobile */}
+        <PartsMobileView 
+          parts={filteredParts} 
+          selectedParts={selectedParts}
+          onSelectPart={onSelectPart}
+          openPartDetails={openPartDetails}
+          openOrderDialog={openOrderDialog}
+          openWithdrawalDialog={openWithdrawalDialog}
+          getStockStatusColor={getStockStatusColor}
+        />
+        
+        {/* Vue desktop */}
+        <PartsDesktopView 
+          parts={filteredParts}
+          selectedParts={selectedParts}
+          onSelectPart={onSelectPart}
+          openPartDetails={openPartDetails}
+          openOrderDialog={openOrderDialog}
+          openWithdrawalDialog={openWithdrawalDialog}
+          getStockStatusColor={getStockStatusColor}
+        />
+      </>
+    );
   };
 
-  if (isLoading) {
-    return <div className="flex flex-col items-center justify-center min-h-[400px] bg-background/80">
-        <Loader2 className="h-8 w-8 animate-spin opacity-70" />
-        <p className="mt-2 text-sm text-muted-foreground">Chargement des pièces...</p>
-      </div>;
-  }
-  
-  if (isError) {
-    return <Alert variant="destructive" className="my-4">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Erreur</AlertTitle>
-        <AlertDescription>
-          Impossible de charger les pièces. Veuillez réessayer plus tard.
-          {refetch && <Button variant="outline" size="sm" className="mt-2" onClick={() => refetch()}>
-              Réessayer
-            </Button>}
-        </AlertDescription>
-      </Alert>;
-  }
-  
-  return <div className="space-y-4">
-      <Card className="p-4 sm:p-6 px-[80px]">
-        <PartsHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} currentView={currentView} setCurrentView={setCurrentView} onOpenFilterDialog={() => setIsFilterDialogOpen(true)} onOpenSortDialog={() => setIsSortDialogOpen(true)} filterCount={filterCount} />
-
-        {filteredPartsForUI.length > 0 ? currentView === 'grid' ? <div className="mt-6">
-              <PartsGrid parts={filteredPartsForUI.filter(part => !animatingPartIds.includes(part.id))} openPartDetails={handleOpenPartDetails} openOrderDialog={() => {}} />
-            </div> : <PartsList 
-            parts={filteredPartsForUI} 
-            openPartDetails={handleOpenPartDetails} 
-            openOrderDialog={() => {}} 
-            onDeleteSelected={handleDeleteMultiple} 
-            isDeleting={isDeletingMultiple} 
-            animatingOut={animatingPartIds}
-          /> : partsForUI.length > 0 ? <div className="flex flex-col items-center justify-center py-12 px-4">
-            <p className="mb-4 text-center text-muted-foreground">
-              Aucune pièce ne correspond à vos critères de recherche ou filtres.
-            </p>
-            <Button variant="outline" onClick={clearFilters}>
-              Réinitialiser les filtres
-            </Button>
-          </div> : <div className="flex flex-col items-center justify-center py-12 px-4">
-            <p className="mb-4 text-center text-muted-foreground">
-              Aucune pièce enregistrée. Ajoutez votre première pièce.
-            </p>
-            <Button variant="default" onClick={() => setIsAddPartDialogOpen(true)}>
-              Ajouter une pièce
-            </Button>
-          </div>}
-      </Card>
-
-      <FilterSortDialogs isFilterDialogOpen={isFilterDialogOpen} setIsFilterDialogOpen={setIsFilterDialogOpen} isSortDialogOpen={isSortDialogOpen} setIsSortDialogOpen={setIsSortDialogOpen} />
-
-      <PartDetailsDialog 
-        isOpen={isPartDetailsDialogOpen} 
-        onOpenChange={setIsPartDetailsDialogOpen} 
-        selectedPart={selectedPart} 
-        onEdit={handlePartUpdate} 
-        onDelete={handlePartDelete} 
+  return (
+    <div className="space-y-4">
+      <PartsToolbar
+        view={currentView as PartsView}
+        setView={(view) => setCurrentView(view)}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        filterCount={filterCount}
+        onFilterClick={() => setIsFilterSheetOpen(true)}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        selectedCount={selectedParts.length}
+        onDeleteSelected={onDeleteSelected}
+        totalParts={parts.length}
+        filteredParts={filteredParts.length}
       />
-    </div>;
+      
+      <div className="grid md:grid-cols-[240px,1fr] gap-4">
+        {/* Filtres sur desktop */}
+        <div className="hidden md:block">
+          <PartsFilters
+            categories={categories}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            manufacturers={manufacturers}
+            selectedManufacturers={filterManufacturers}
+            toggleManufacturer={toggleManufacturerFilter}
+            minPrice={filterMinPrice}
+            setMinPrice={setFilterMinPrice}
+            maxPrice={filterMaxPrice}
+            setMaxPrice={setFilterMaxPrice}
+            inStock={filterInStock}
+            setInStock={setFilterInStock}
+            filterCount={filterCount}
+            clearFilters={clearFilters}
+          />
+        </div>
+        
+        {/* Contenu principal */}
+        <Card>
+          <CardContent className="p-0 sm:p-3 md:p-6">
+            {renderContent()}
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* Sheet pour les filtres sur mobile */}
+      <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
+        <SheetContent side="left" className="w-[300px] sm:w-[400px] p-0">
+          <div className="h-full overflow-y-auto py-6 px-4">
+            <PartsFilters
+              categories={categories}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={(cat) => {
+                setSelectedCategory(cat);
+                setIsFilterSheetOpen(false);
+              }}
+              manufacturers={manufacturers}
+              selectedManufacturers={filterManufacturers}
+              toggleManufacturer={toggleManufacturerFilter}
+              minPrice={filterMinPrice}
+              setMinPrice={setFilterMinPrice}
+              maxPrice={filterMaxPrice}
+              setMaxPrice={setFilterMaxPrice}
+              inStock={filterInStock}
+              setInStock={setFilterInStock}
+              filterCount={filterCount}
+              clearFilters={() => {
+                clearFilters();
+                setIsFilterSheetOpen(false);
+              }}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
+      
+      {/* Dialogue de retrait */}
+      <WithdrawalDialog 
+        isOpen={isWithdrawalDialogOpen} 
+        onOpenChange={setIsWithdrawalDialogOpen}
+        part={selectedPart}
+      />
+    </div>
+  );
 };
 
 export default PartsContainer;
-
