@@ -105,34 +105,6 @@ export const usePartsWithdrawal = () => {
         interventions: null
       }
     ];
-    
-    /* Real implementation when tables are ready:
-    try {
-      const { data, error } = await supabase
-        .from('parts_withdrawals')
-        .select(`
-          id, 
-          part_id, 
-          part_name, 
-          quantity, 
-          reason, 
-          custom_reason, 
-          intervention_id, 
-          comment, 
-          user_id, 
-          created_at,
-          interventions (id, title)
-        `)
-        .eq('part_id', partId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      console.error('Error fetching withdrawal history:', error);
-      throw error;
-    }
-    */
   };
 
   // Mutation for submitting a withdrawal

@@ -13,6 +13,7 @@ import { Plus, MinusCircle } from "lucide-react";
 import WithdrawalDialog from '@/components/parts/dialogs/WithdrawalDialog';
 import AddPartDialog from '@/components/parts/dialogs/AddPartDialog';
 import ExpressAddPartDialog from '@/components/parts/dialogs/ExpressAddPartDialog';
+import { usePartsWithdrawal } from '@/hooks/parts/usePartsWithdrawal';
 
 const Parts = () => {
   const { toast } = useToast();
@@ -20,7 +21,13 @@ const Parts = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAddPartDialogOpen, setIsAddPartDialogOpen] = useState(false);
   const [isExpressAddDialogOpen, setIsExpressAddDialogOpen] = useState(false);
-  const [isWithdrawalDialogOpen, setIsWithdrawalDialogOpen] = useState(false);
+
+  // Utiliser le hook usePartsWithdrawal pour gérer l'état du dialogue de retrait
+  const { 
+    isWithdrawalDialogOpen, 
+    setIsWithdrawalDialogOpen, 
+    selectedPart 
+  } = usePartsWithdrawal();
   
   // Check authentication status on page load
   useEffect(() => {
@@ -79,7 +86,7 @@ const Parts = () => {
         <WithdrawalDialog 
           isOpen={isWithdrawalDialogOpen} 
           onOpenChange={setIsWithdrawalDialogOpen}
-          part={null}
+          part={selectedPart}
         />
         
         {/* Dialog for adding parts */}
