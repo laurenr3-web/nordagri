@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
@@ -43,21 +42,18 @@ const AddManufacturerDialog: React.FC<AddManufacturerDialogProps> = ({
     try {
       setIsSubmitting(true);
       
-      // Ajouter le nouveau fabricant
-      const newManufacturer = await addManufacturer({
-        name: values.name,
-        website: values.website || '',
-      });
+      // Add the new manufacturer - use just the name as that's what the function expects
+      const newManufacturer = await addManufacturer(values.name);
       
-      // Réinitialiser le formulaire
+      // Reset the form
       form.reset();
       
-      // Sélectionner le nouveau fabricant si la fonction est fournie
+      // Select the new manufacturer if the function is provided
       if (onSelectManufacturer && newManufacturer) {
         onSelectManufacturer(newManufacturer.name);
       }
       
-      // Fermer la boîte de dialogue
+      // Close the dialog
       onOpenChange(false);
       
     } catch (error) {

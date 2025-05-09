@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -43,21 +43,18 @@ const AddLocationDialog: React.FC<AddLocationDialogProps> = ({
     try {
       setIsSubmitting(true);
       
-      // Ajouter le nouvel emplacement
-      const newLocation = await addLocation({
-        name: values.name,
-        description: values.description || '',
-      });
+      // Add the new location - use just the name as that's what the function expects
+      const newLocation = await addLocation(values.name);
       
-      // Réinitialiser le formulaire
+      // Reset the form
       form.reset();
       
-      // Sélectionner le nouvel emplacement si la fonction est fournie
+      // Select the new location if the function is provided
       if (onSelectLocation && newLocation) {
-        onSelectLocation(newLocation.name);
+        onSelectLocation(newLocation);
       }
       
-      // Fermer la boîte de dialogue
+      // Close the dialog
       onOpenChange(false);
       
     } catch (error) {
@@ -73,7 +70,7 @@ const AddLocationDialog: React.FC<AddLocationDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Ajouter un emplacement</DialogTitle>
           <DialogDescription>
-            Créez un nouvel emplacement pour stocker vos pièces.
+            Créez un nouvel emplacement pour vos pièces.
           </DialogDescription>
         </DialogHeader>
         
@@ -86,7 +83,7 @@ const AddLocationDialog: React.FC<AddLocationDialogProps> = ({
                 <FormItem>
                   <FormLabel>Nom de l'emplacement*</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Ex: Entrepôt C, Étagère 3..." />
+                    <Input {...field} placeholder="Ex: Étagère A, Tiroir 3..." />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -98,9 +95,9 @@ const AddLocationDialog: React.FC<AddLocationDialogProps> = ({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description (optionnelle)</FormLabel>
+                  <FormLabel>Description (optionnel)</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Description ou informations supplémentaires..." />
+                    <Textarea {...field} placeholder="Informations supplémentaires sur l'emplacement" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
