@@ -9,11 +9,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { FuelLogFormValues } from '@/types/FuelLog';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, InfoIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const fuelLogSchema = z.object({
   date: z.date(),
@@ -30,6 +31,8 @@ interface FuelLogDialogProps {
   onSubmit: (values: FuelLogFormValues) => void;
   isSubmitting: boolean;
   equipmentId: number;
+  currentHours?: number;
+  currentKm?: number;
 }
 
 export function FuelLogDialog({
@@ -37,7 +40,9 @@ export function FuelLogDialog({
   onOpenChange,
   onSubmit,
   isSubmitting,
-  equipmentId
+  equipmentId,
+  currentHours,
+  currentKm
 }: FuelLogDialogProps) {
   const form = useForm<FuelLogFormValues>({
     resolver: zodResolver(fuelLogSchema),
@@ -45,8 +50,8 @@ export function FuelLogDialog({
       date: new Date(),
       fuel_quantity_liters: 0,
       price_per_liter: 0,
-      hours_at_fillup: null,
-      km_at_fillup: null,
+      hours_at_fillup: currentHours || null,
+      km_at_fillup: currentKm || null,
       notes: '',
     }
   });
@@ -125,7 +130,7 @@ export function FuelLogDialog({
                 id="hours_at_fillup"
                 type="number"
                 step="0.1"
-                placeholder="Optionnel"
+                placeholder={currentHours ? `Actuel: ${currentHours}` : "Optionnel"}
                 {...form.register("hours_at_fillup")}
               />
               {form.formState.errors.hours_at_fillup && (
@@ -138,7 +143,7 @@ export function FuelLogDialog({
               <Input
                 id="km_at_fillup"
                 type="number"
-                placeholder="Optionnel"
+                placeholder={currentKm ? `Actuel: ${currentKm}` : "Optionnel"}
                 {...form.register("km_at_fillup")}
               />
               {form.formState.errors.km_at_fillup && (
@@ -147,6 +152,13 @@ export function FuelLogDialog({
             </div>
           </div>
           
+          <Alert className="bg-blue-50 text-blue-800 border-blue-200">
+            <InfoIcon className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-sm">
+              Si les heures moteur ou le kilométrage saisis sont supérieurs aux valeurs actuelles de l'équipement, celles-ci seront automatiquement mises à jour.
+            </AlertDescription>
+          </Alert>
+
           <div className="space-y-2">
             <Label htmlFor="notes">Notes</Label>
             <Textarea

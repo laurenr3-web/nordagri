@@ -47,6 +47,10 @@ const EquipmentPerformance: React.FC<EquipmentPerformanceProps> = ({ equipment }
     });
   };
 
+  // Get current hours and km from equipment
+  const currentHours = equipment.valeur_actuelle || equipment.usage?.hours || null;
+  const currentKm = equipment.km || null;
+
   return (
     <div className="grid grid-cols-1 gap-6">
       <Card>
@@ -131,7 +135,7 @@ const EquipmentPerformance: React.FC<EquipmentPerformanceProps> = ({ equipment }
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-primary/10 rounded-lg p-4">
               <h3 className="text-sm font-medium text-muted-foreground">Total heures</h3>
-              <p className="text-2xl font-bold">320</p>
+              <p className="text-2xl font-bold">{currentHours || 0}</p>
               <p className="text-xs text-muted-foreground mt-1">Depuis mise en service</p>
             </div>
             
@@ -162,6 +166,8 @@ const EquipmentPerformance: React.FC<EquipmentPerformanceProps> = ({ equipment }
         onSubmit={(values) => addFuelLog.mutate(values)}
         isSubmitting={addFuelLog.isPending}
         equipmentId={equipment.id}
+        currentHours={currentHours}
+        currentKm={currentKm}
       />
     </div>
   );

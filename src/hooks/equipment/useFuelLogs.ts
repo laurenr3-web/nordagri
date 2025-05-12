@@ -88,10 +88,24 @@ export function useFuelLogs(equipmentId: number) {
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Invalidate both the fuel logs and the equipment data to refresh them
       queryClient.invalidateQueries({ queryKey: ['fuelLogs', equipmentId] });
-      queryClient.invalidateQueries({ queryKey: ['equipment', equipmentId] }); // Invalider également les données de l'équipement pour voir les mises à jour des compteurs
-      toast.success('Plein enregistré avec succès');
+      
+      // Important: Invalidate the equipment data to get the updated hours/km values
+      queryClient.invalidateQueries({ queryKey: ['equipment', equipmentId] });
+      
+      // Also invalidate the general equipment list
+      queryClient.invalidateQueries({ queryKey: ['equipment'] });
+      
+      let successMessage = 'Plein enregistré avec succès';
+      
+      // Add additional success message if hours or km were recorded
+      if (data.hours_at_fillup || data.km_at_fillup) {
+        successMessage += ' et compteurs mis à jour';
+      }
+      
+      toast.success(successMessage);
       setIsAddDialogOpen(false);
     },
     onError: (error: any) => {
