@@ -6,7 +6,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { validateEquipmentStatus } from '@/utils/typeGuards';
 
 /**
- * Hook for fetching and managing equipment data
+ * Hook pour récupérer et gérer les données des équipements pour le tableau de bord
+ * 
+ * Charge la liste des équipements depuis Supabase avec des informations de base
+ * sur leur état et leur maintenance planifiée.
+ * 
+ * @param {any} user - L'utilisateur connecté
+ * @returns {Object} Données des équipements et fonctions pour les manipuler
  */
 export const useEquipmentData = (user: any) => {
   const [loading, setLoading] = useState(true);

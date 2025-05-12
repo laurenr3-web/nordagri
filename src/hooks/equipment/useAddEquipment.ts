@@ -3,6 +3,14 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { equipmentService } from '@/services/supabase/equipmentService';
 import { toast } from 'sonner';
 
+/**
+ * Hook pour l'ajout d'un nouvel équipement dans la base de données
+ * 
+ * Utilise React Query pour gérer la mutation et les mises à jour du cache
+ * après l'ajout réussi d'un équipement.
+ * 
+ * @returns {Object} Mutation pour ajouter un équipement
+ */
 export function useAddEquipment() {
   const queryClient = useQueryClient();
   

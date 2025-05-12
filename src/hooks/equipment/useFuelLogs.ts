@@ -6,11 +6,23 @@ import { FuelLog, FuelLogFormValues } from '@/types/FuelLog';
 import { toast } from 'sonner';
 import { useFarmId } from '@/hooks/useFarmId';
 
+/**
+ * Hook pour la gestion des journaux de carburant d'un équipement
+ * 
+ * Permet de récupérer, ajouter et supprimer des enregistrements de pleins
+ * de carburant pour un équipement donné, avec mise à jour des compteurs.
+ * 
+ * @param {number} equipmentId - L'identifiant de l'équipement
+ * @returns {Object} Fonctions et données pour gérer les journaux de carburant
+ */
 export function useFuelLogs(equipmentId: number) {
   const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { farmId, isLoading: isFarmIdLoading } = useFarmId(equipmentId);
 
+  /**
+   * Requête pour récupérer les journaux de carburant
+   */
   const { data: fuelLogs, isLoading } = useQuery({
     queryKey: ['fuelLogs', equipmentId],
     queryFn: async () => {
@@ -34,6 +46,9 @@ export function useFuelLogs(equipmentId: number) {
     enabled: !!equipmentId,
   });
 
+  /**
+   * Mutation pour ajouter un nouveau log de carburant
+   */
   const addFuelLog = useMutation({
     mutationFn: async (values: FuelLogFormValues) => {
       if (!farmId) {
@@ -129,7 +144,9 @@ export function useFuelLogs(equipmentId: number) {
     },
   });
 
-  // Mutation pour la suppression d'un plein
+  /**
+   * Mutation pour la suppression d'un plein
+   */
   const deleteFuelLog = useMutation({
     mutationFn: async (fuelLogId: string) => {
       const { error } = await supabase

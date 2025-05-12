@@ -3,6 +3,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+/**
+ * Interface des statistiques du tableau de bord
+ */
 export interface DashboardStats {
   activeEquipment: number;
   maintenanceTasks: {
@@ -16,6 +19,14 @@ export interface DashboardStats {
   fieldInterventions: number;
 }
 
+/**
+ * Hook pour récupérer les statistiques globales du tableau de bord
+ * 
+ * Agrège les données statistiques à partir de différentes tables Supabase
+ * pour afficher une vue d'ensemble de l'état du système.
+ * 
+ * @returns {Object} Statistiques, état de chargement et erreurs éventuelles
+ */
 export function useDashboardStats() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats>({

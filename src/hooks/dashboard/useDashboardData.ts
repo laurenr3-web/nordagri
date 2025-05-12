@@ -19,6 +19,14 @@ import { deriveUrgentInterventions, deriveStockAlerts, createCalendarEvents } fr
 // Export types from the types file
 export * from './types/dashboardTypes';
 
+/**
+ * Hook principal pour la récupération et l'agrégation des données du tableau de bord
+ * 
+ * Ce hook combine les données de plusieurs sources (équipements, maintenance, 
+ * interventions, alertes, etc.) pour alimenter le dashboard principal de l'application.
+ * 
+ * @returns {Object} Données agrégées pour le tableau de bord et état de chargement
+ */
 export const useDashboardData = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuthContext();

@@ -1,6 +1,6 @@
 
 import { EquipmentFilter } from '@/data/models/equipment';
-import { PostgrestFilterBuilder } from '@supabase/postgrest-js';
+import type { PostgrestFilterBuilder } from '@supabase/supabase-js';
 
 /**
  * Application des filtres à la requête Supabase

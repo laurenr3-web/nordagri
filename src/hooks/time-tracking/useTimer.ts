@@ -4,6 +4,15 @@ import { formatDuration } from '@/utils/dateHelpers';
 import { TimeEntry } from './types';
 import { useGlobalStore } from '@/store';
 
+/**
+ * Hook pour gérer l'affichage du chronomètre pour une entrée de temps active
+ * 
+ * Calcule et met à jour la durée écoulée pour une entrée de temps active,
+ * avec gestion des pauses et reprises.
+ * 
+ * @param {TimeEntry | null} activeTimeEntry - L'entrée de temps active à chronométrer
+ * @returns {string} Durée formatée (HH:MM:SS)
+ */
 export function useTimer(activeTimeEntry: TimeEntry | null) {
   const [duration, setDuration] = useState<string>('00:00:00');
   const timeTracking = useGlobalStore(state => state.timeTracking);

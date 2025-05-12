@@ -3,6 +3,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/hooks/use-toast";
 
+/**
+ * Interface pour les tâches à venir
+ */
 export interface UpcomingTask {
   id: string | number;
   title: string;
@@ -13,6 +16,15 @@ export interface UpcomingTask {
   assignedTo: string;
 }
 
+/**
+ * Hook pour récupérer les tâches planifiées à venir
+ * 
+ * Charge les tâches de maintenance programmées depuis Supabase,
+ * avec gestion du fallback vers des données simulées en cas d'erreur.
+ * 
+ * @param {any} user - L'utilisateur connecté
+ * @returns {Object} Tâches à venir et état de chargement
+ */
 export const useTasksData = (user: any) => {
   const [loading, setLoading] = useState(true);
   const [upcomingTasks, setUpcomingTasks] = useState<UpcomingTask[]>([]);

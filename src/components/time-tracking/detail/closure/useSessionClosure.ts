@@ -3,6 +3,15 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { TimeEntry } from '@/hooks/time-tracking/types';
 
+/**
+ * Hook pour gérer la clôture d'une session de suivi du temps
+ * 
+ * Gère les états et actions pour finaliser une session de suivi du temps,
+ * incluant l'ajout de notes, matériaux, et pièces jointes.
+ * 
+ * @param {TimeEntry} entry - L'entrée de temps à clôturer
+ * @returns {Object} États et gestionnaires pour la clôture de session
+ */
 export function useSessionClosure(entry: TimeEntry) {
   const [notes, setNotes] = useState(entry.notes || '');
   const [material, setMaterial] = useState('');
@@ -11,6 +20,9 @@ export function useSessionClosure(entry: TimeEntry) {
   const [managerVerified, setManagerVerified] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+  /**
+   * Gère la sélection et l'aperçu d'un fichier image
+   */
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -23,10 +35,16 @@ export function useSessionClosure(entry: TimeEntry) {
     }
   };
 
+  /**
+   * Gère l'export PDF du rapport de session
+   */
   const handleExportPDF = () => {
     toast.success('Export PDF en cours...');
   };
 
+  /**
+   * Gère l'envoi du rapport par email
+   */
   const handleSendEmail = () => {
     toast.success('Rapport envoyé par email');
   };

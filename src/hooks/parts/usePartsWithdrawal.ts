@@ -10,6 +10,14 @@ export type { WithdrawalReason, Intervention, PartsWithdrawal, WithdrawalRecord 
 // Re-export constants for backwards compatibility
 export { WITHDRAWAL_REASONS };
 
+/**
+ * Hook pour gérer les retraits de pièces du stock
+ * 
+ * Combine les fonctionnalités de dialogue de retrait et d'historique des retraits
+ * dans une interface unique pour la gestion complète des retraits de pièces.
+ * 
+ * @returns {Object} Méthodes et données pour gérer les retraits de pièces
+ */
 export const usePartsWithdrawal = () => {
   const withdrawalDialog = useWithdrawalDialog();
   const withdrawalHistory = useWithdrawalHistory();

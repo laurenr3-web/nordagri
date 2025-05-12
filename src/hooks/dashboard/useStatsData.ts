@@ -1,9 +1,13 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/hooks/use-toast";
 import { Tractor, Wrench, Package, MapPin } from 'lucide-react';
 import React from 'react';
 
+/**
+ * Interface pour les données de cartes statistiques
+ */
 export interface StatsCardData {
   title: string;
   value: number | string;
@@ -12,6 +16,15 @@ export interface StatsCardData {
   description?: string;
 }
 
+/**
+ * Hook pour récupérer les statistiques globales pour le tableau de bord
+ * 
+ * Obtient des statistiques sur les équipements, tâches de maintenance,
+ * inventaire des pièces et interventions sur le terrain.
+ * 
+ * @param {any} user - L'utilisateur connecté
+ * @returns {Object} Données statistiques et état de chargement
+ */
 export const useStatsData = (user: any) => {
   const [loading, setLoading] = useState(true);
   const [statsData, setStatsData] = useState<StatsCardData[]>([]);
@@ -20,6 +33,9 @@ export const useStatsData = (user: any) => {
     fetchStatsData();
   }, [user]);
 
+  /**
+   * Définit des données de test en cas d'échec de récupération
+   */
   const setMockData = () => {
     setStatsData([
       {
@@ -51,6 +67,9 @@ export const useStatsData = (user: any) => {
     setLoading(false);
   };
 
+  /**
+   * Récupère les statistiques depuis la base de données
+   */
   const fetchStatsData = async () => {
     setLoading(true);
     try {

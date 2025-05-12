@@ -6,6 +6,15 @@ import { useMaintenancePlans } from './detail/useMaintenancePlans';
 import { useEquipmentUpdate } from './detail/useEquipmentUpdate';
 import { useMaintenanceUtils } from './detail/useMaintenanceUtils';
 
+/**
+ * Hook principal pour la page de détail d'un équipement
+ * 
+ * Agrège les données détaillées d'un équipement, ses tâches de maintenance,
+ * ses plans de maintenance et les fonctions de mise à jour.
+ * 
+ * @param {string | undefined} id - L'identifiant de l'équipement
+ * @returns {Object} Données complètes et fonctions pour la page de détail
+ */
 export function useEquipmentDetail(id: string | undefined) {
   const navigate = useNavigate();
   const { equipment, setEquipment, loading, error } = useEquipmentData(id);

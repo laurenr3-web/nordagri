@@ -1,12 +1,16 @@
 
-import { Part } from '@/types/Part';
-
+/**
+ * Interface pour les raisons de retrait de pièces
+ */
 export interface WithdrawalReason {
   id: string;
   label: string;
   requiresComment?: boolean;
 }
 
+/**
+ * Interface pour les interventions associées aux retraits
+ */
 export interface Intervention {
   id: number;
   title: string;
@@ -15,6 +19,9 @@ export interface Intervention {
   status?: string;
 }
 
+/**
+ * Interface pour les données de retrait de pièces
+ */
 export interface PartsWithdrawal {
   id?: number;
   part_id: number;
@@ -28,6 +35,9 @@ export interface PartsWithdrawal {
   created_at?: string;
 }
 
+/**
+ * Interface pour les enregistrements d'historique de retrait
+ */
 export interface WithdrawalRecord {
   id: number;
   part_id: number;

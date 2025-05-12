@@ -3,6 +3,15 @@ import { useState, useEffect } from 'react';
 import { equipmentService } from '@/services/supabase/equipmentService';
 import { toast } from 'sonner';
 
+/**
+ * Hook pour récupérer les données détaillées d'un équipement spécifique
+ * 
+ * Charge les informations complètes d'un équipement à partir de son ID, 
+ * avec gestion des états de chargement et des erreurs.
+ * 
+ * @param {string | undefined} id - L'identifiant de l'équipement à récupérer
+ * @returns {Object} Données de l'équipement, états de chargement et erreurs
+ */
 export function useEquipmentData(id: string | undefined) {
   const [equipment, setEquipment] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);

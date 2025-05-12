@@ -4,6 +4,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/hooks/use-toast";
 import { MaintenanceEvent } from './types/dashboardTypes';
 
+/**
+ * Hook pour récupérer les événements de maintenance planifiés
+ * 
+ * Charge les tâches de maintenance depuis Supabase avec des informations
+ * sur leur statut, priorité et équipement associé.
+ * 
+ * @param {any} user - L'utilisateur connecté
+ * @returns {Object} Événements de maintenance, état de chargement et fonction de rafraîchissement
+ */
 export const useMaintenanceData = (user: any) => {
   const [loading, setLoading] = useState(true);
   const [maintenanceEvents, setMaintenanceEvents] = useState<MaintenanceEvent[]>([]);
@@ -13,6 +22,9 @@ export const useMaintenanceData = (user: any) => {
     fetchMaintenanceEvents();
   }, [user]);
 
+  /**
+   * Récupère les événements de maintenance depuis Supabase
+   */
   const fetchMaintenanceEvents = async () => {
     setLoading(true);
     setError(null);
