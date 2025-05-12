@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 export interface StatsCardData {
@@ -27,6 +26,7 @@ export interface EquipmentItem {
   };
   nextMaintenance?: string | null;
   km?: number | null; // Add the km property
+  valeur_actuelle?: number | null; // Add the valeur_actuelle property
 }
 
 export interface MaintenanceEvent {

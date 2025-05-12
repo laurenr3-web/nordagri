@@ -19,6 +19,7 @@ export interface EquipmentItem {
   };
   nextMaintenance?: string | null; // Keep for backward compatibility
   km?: number | null; // Add the km property
+  valeur_actuelle?: number | null; // Add the valeur_actuelle property
 }
 
 // Define a type for raw equipment data from database
@@ -31,6 +32,7 @@ export interface RawEquipmentData {
   usage_hours?: number;
   usage_target?: number;
   model?: string;
+  valeur_actuelle?: number;
 }
 
 // Define a type for maintenance task data
