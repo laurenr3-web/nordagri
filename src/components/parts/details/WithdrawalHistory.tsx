@@ -44,34 +44,33 @@ const WithdrawalHistory: React.FC<WithdrawalHistoryProps> = ({ part }) => {
         setIsLoading(true);
         setError(null);
         
-        // Make sure we have a valid part with an ID
+        // Safety check: Make sure part exists and has a valid ID
         if (!part || !part.id) {
-          console.log('No valid part provided to WithdrawalHistory:', part);
+          console.error('No valid part provided to WithdrawalHistory:', part);
           setError('Détails de pièce non disponibles');
           setHistory([]);
-          setIsLoading(false);
           return;
         }
 
-        // Ensure we're working with a numeric part ID
+        // Convert part ID to number if it's a string
         const partId = typeof part.id === 'string' ? parseInt(part.id, 10) : part.id;
         
         console.log('Fetching withdrawal history for part:', { 
           id: partId, 
-          name: part.name, 
+          name: part.name || 'Unknown', 
           isNaN: isNaN(partId) 
         });
         
-        // Safely fetch withdrawal history
-        if (isNaN(partId)) {
+        // Validate part ID before proceeding
+        if (isNaN(partId) || partId <= 0) {
           console.error('Invalid part ID:', part.id);
           setError('ID de pièce invalide');
           setHistory([]);
-          setIsLoading(false);
           return;
         }
         
         try {
+          // Get withdrawal history with error handling
           const data = await getWithdrawalHistory(partId);
           console.log('Withdrawal history data received:', data);
           
@@ -79,6 +78,7 @@ const WithdrawalHistory: React.FC<WithdrawalHistoryProps> = ({ part }) => {
             console.warn('No withdrawal history data returned');
             setHistory([]);
           } else {
+            // Ensure we have an array
             setHistory(Array.isArray(data) ? data : []);
           }
         } catch (fetchError: any) {
@@ -87,11 +87,9 @@ const WithdrawalHistory: React.FC<WithdrawalHistoryProps> = ({ part }) => {
           setHistory([]);
         }
       } catch (err: any) {
-        console.error('Error in WithdrawalHistory effect:', err);
+        console.error('General error in WithdrawalHistory effect:', err);
         setError('Erreur lors du chargement de l\'historique');
         setHistory([]);
-        
-        // Show a toast with the error message
         toast.error("Erreur lors du chargement de l'historique des retraits");
       } finally {
         setIsLoading(false);
@@ -113,7 +111,7 @@ const WithdrawalHistory: React.FC<WithdrawalHistoryProps> = ({ part }) => {
     return reasonObj ? reasonObj.label : record.reason;
   };
 
-  // Export history to Excel format
+  // Export history to Excel format with error handling
   const handleExport = () => {
     if (!history.length) return;
 
@@ -152,6 +150,7 @@ const WithdrawalHistory: React.FC<WithdrawalHistoryProps> = ({ part }) => {
     }
   };
 
+  // Loading state
   if (isLoading) {
     return (
       <Card>
@@ -172,6 +171,7 @@ const WithdrawalHistory: React.FC<WithdrawalHistoryProps> = ({ part }) => {
     );
   }
 
+  // Error state
   if (error) {
     return (
       <Card>
@@ -190,6 +190,24 @@ const WithdrawalHistory: React.FC<WithdrawalHistoryProps> = ({ part }) => {
     );
   }
 
+  // Empty state
+  if (history.length === 0) {
+    return (
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-md font-medium">Historique des retraits</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-6">
+            <Clock className="h-8 w-8 mx-auto text-muted-foreground opacity-50" />
+            <p className="text-muted-foreground mt-2">Aucun retrait enregistré pour cette pièce</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Data state
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -202,45 +220,38 @@ const WithdrawalHistory: React.FC<WithdrawalHistoryProps> = ({ part }) => {
       </CardHeader>
       
       <CardContent>
-        {history.length === 0 ? (
-          <div className="text-center py-6">
-            <Clock className="h-8 w-8 mx-auto text-muted-foreground opacity-50" />
-            <p className="text-muted-foreground mt-2">Aucun retrait enregistré pour cette pièce</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {history.map(record => (
-              <div key={record.id} className="border-b pb-3 mb-3 last:border-0 last:pb-0 last:mb-0">
-                <div className="flex justify-between items-center mb-1">
-                  <div className="flex items-center">
-                    <Badge variant="outline" className="mr-2">{record.quantity} unité(s)</Badge>
-                    <span className="text-sm text-muted-foreground">
-                      {format(new Date(record.created_at), 'dd MMMM yyyy, HH:mm', { locale: fr })}
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="text-sm space-y-1 mt-1">
-                  <div>
-                    <span className="font-medium">Raison:</span> {formatReason(record)}
-                  </div>
-                  
-                  {record.interventions && (
-                    <div>
-                      <span className="font-medium">Intervention:</span> {record.interventions.title}
-                    </div>
-                  )}
-                  
-                  {record.comment && (
-                    <div>
-                      <span className="font-medium">Commentaire:</span> {record.comment}
-                    </div>
-                  )}
+        <div className="space-y-4">
+          {history.map(record => (
+            <div key={record.id} className="border-b pb-3 mb-3 last:border-0 last:pb-0 last:mb-0">
+              <div className="flex justify-between items-center mb-1">
+                <div className="flex items-center">
+                  <Badge variant="outline" className="mr-2">{record.quantity} unité(s)</Badge>
+                  <span className="text-sm text-muted-foreground">
+                    {format(new Date(record.created_at), 'dd MMMM yyyy, HH:mm', { locale: fr })}
+                  </span>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+              
+              <div className="text-sm space-y-1 mt-1">
+                <div>
+                  <span className="font-medium">Raison:</span> {formatReason(record)}
+                </div>
+                
+                {record.interventions && (
+                  <div>
+                    <span className="font-medium">Intervention:</span> {record.interventions.title}
+                  </div>
+                )}
+                
+                {record.comment && (
+                  <div>
+                    <span className="font-medium">Commentaire:</span> {record.comment}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );

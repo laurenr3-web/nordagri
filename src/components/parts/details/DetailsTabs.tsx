@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Part } from '@/types/Part';
@@ -20,6 +20,9 @@ const DetailsTabs: React.FC<DetailsTabsProps> = ({
   activeTab, 
   onTabChange 
 }) => {
+  // Add console log to track tab changes
+  console.log('DetailsTabs rendered with activeTab:', activeTab, 'and part:', part.id);
+  
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
       <TabsList className="w-full grid grid-cols-2">
@@ -30,7 +33,7 @@ const DetailsTabs: React.FC<DetailsTabsProps> = ({
       <TabsContent value="details" className="space-y-6 mt-6">
         <Separator />
         
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <PartBasicInfo part={part} />
           <PartInventoryInfo part={part} />
         </div>
@@ -41,7 +44,11 @@ const DetailsTabs: React.FC<DetailsTabsProps> = ({
       </TabsContent>
       
       <TabsContent value="history" className="mt-6">
-        {activeTab === 'history' && <WithdrawalHistory part={part} />}
+        {activeTab === 'history' && (
+          <React.Suspense fallback={<div>Chargement de l'historique...</div>}>
+            <WithdrawalHistory part={part} />
+          </React.Suspense>
+        )}
       </TabsContent>
     </Tabs>
   );
