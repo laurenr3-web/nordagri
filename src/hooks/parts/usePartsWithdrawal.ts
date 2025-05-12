@@ -80,37 +80,50 @@ export const usePartsWithdrawal = () => {
     try {
       console.log('Getting withdrawal history for part ID:', partId);
       
-      if (isNaN(partId)) {
+      if (isNaN(partId) || partId <= 0) {
         console.error('Invalid part ID provided to getWithdrawalHistory:', partId);
         throw new Error('ID de pièce invalide');
       }
       
-      // For now, return mock data with a safeguard to prevent bugs with invalid part IDs
+      // Generate mock data with the actual part ID provided
       return [
         {
           id: 1,
           part_id: partId,
-          part_name: "Test Part",
+          part_name: "Filtre",
           quantity: 2,
           reason: "intervention",
           custom_reason: null,
           intervention_id: 1,
-          comment: "Used during scheduled maintenance",
+          comment: "Utilisé lors de la maintenance programmée",
           user_id: "user-123",
-          created_at: new Date().toISOString(),
+          created_at: new Date(Date.now() - 7 * 86400000).toISOString(),
           interventions: { id: 1, title: "Maintenance préventive tracteur #1" }
         },
         {
           id: 2,
           part_id: partId,
-          part_name: "Test Part",
+          part_name: "Filtre",
           quantity: 1,
           reason: "defective",
           custom_reason: null,
           intervention_id: null,
-          comment: "Manufacturing defect",
+          comment: "Défaut de fabrication",
           user_id: "user-123",
-          created_at: new Date(Date.now() - 86400000).toISOString(),
+          created_at: new Date(Date.now() - 30 * 86400000).toISOString(),
+          interventions: null
+        },
+        {
+          id: 3,
+          part_id: partId,
+          part_name: "Filtre",
+          quantity: 3,
+          reason: "other",
+          custom_reason: "Test de qualité",
+          intervention_id: null,
+          comment: "Utilisé pour des tests",
+          user_id: "user-123",
+          created_at: new Date(Date.now() - 60 * 86400000).toISOString(),
           interventions: null
         }
       ];
