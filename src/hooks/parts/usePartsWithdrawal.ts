@@ -5,7 +5,7 @@ import { WITHDRAWAL_REASONS } from './withdrawal/constants';
 import { WithdrawalReason, Intervention, PartsWithdrawal, WithdrawalRecord } from './withdrawal/types';
 
 // Re-export types for backwards compatibility
-export { WithdrawalReason, Intervention, PartsWithdrawal, WithdrawalRecord };
+export type { WithdrawalReason, Intervention, PartsWithdrawal, WithdrawalRecord };
 
 // Re-export constants for backwards compatibility
 export { WITHDRAWAL_REASONS };
