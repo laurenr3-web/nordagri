@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { usePartsWithdrawal, PartsWithdrawal } from '@/hooks/parts/usePartsWithdrawal';
+import { usePartsWithdrawal, PartsWithdrawal, WITHDRAWAL_REASONS } from '@/hooks/parts/usePartsWithdrawal';
 import { Part } from '@/types/Part';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';

@@ -7,7 +7,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { usePartsWithdrawal } from '@/hooks/parts/usePartsWithdrawal';
+import { usePartsWithdrawal, WithdrawalRecord } from '@/hooks/parts/usePartsWithdrawal';
 import { Part } from '@/types/Part';
 import { toast } from 'sonner';
 
@@ -15,25 +15,8 @@ interface WithdrawalHistoryProps {
   part: Part;
 }
 
-interface WithdrawalRecord {
-  id: number;
-  part_id: number;
-  part_name: string;
-  quantity: number;
-  reason: string;
-  custom_reason?: string | null;
-  intervention_id?: number | null;
-  comment?: string | null;
-  user_id?: string | null;
-  created_at: string;
-  interventions?: {
-    id: number;
-    title: string;
-  } | null;
-}
-
 const WithdrawalHistory: React.FC<WithdrawalHistoryProps> = ({ part }) => {
-  const { getWithdrawalHistory, WITHDRAWAL_REASONS } = usePartsWithdrawal();
+  const { getWithdrawalHistory, formatWithdrawalReason } = usePartsWithdrawal();
   const [history, setHistory] = useState<WithdrawalRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -99,18 +82,6 @@ const WithdrawalHistory: React.FC<WithdrawalHistoryProps> = ({ part }) => {
     fetchHistory();
   }, [part, getWithdrawalHistory]);
 
-  // Format reason for display
-  const formatReason = (record: WithdrawalRecord) => {
-    if (!record) return '';
-    
-    if (record.reason === 'other' && record.custom_reason) {
-      return record.custom_reason;
-    }
-    
-    const reasonObj = WITHDRAWAL_REASONS.find(r => r.id === record.reason);
-    return reasonObj ? reasonObj.label : record.reason;
-  };
-
   // Export history to Excel format with error handling
   const handleExport = () => {
     if (!history.length) return;
@@ -119,7 +90,7 @@ const WithdrawalHistory: React.FC<WithdrawalHistoryProps> = ({ part }) => {
       const exportData = history.map(record => ({
         Date: format(new Date(record.created_at), 'dd/MM/yyyy HH:mm'),
         Quantité: record.quantity,
-        Raison: formatReason(record),
+        Raison: formatWithdrawalReason(record.reason, record.custom_reason),
         Intervention: record.interventions?.title || '-',
         Commentaire: record.comment || '-'
       }));
@@ -234,7 +205,7 @@ const WithdrawalHistory: React.FC<WithdrawalHistoryProps> = ({ part }) => {
               
               <div className="text-sm space-y-1 mt-1">
                 <div>
-                  <span className="font-medium">Raison:</span> {formatReason(record)}
+                  <span className="font-medium">Raison:</span> {formatWithdrawalReason(record.reason, record.custom_reason)}
                 </div>
                 
                 {record.interventions && (
