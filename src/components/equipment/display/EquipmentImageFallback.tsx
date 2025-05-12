@@ -6,7 +6,12 @@ interface EquipmentImageFallbackProps {
 }
 
 export const EquipmentImageFallback: React.FC<EquipmentImageFallbackProps> = ({ item }) => {
-  const getColorForCategory = (category: string) => {
+  const getColorForCategory = (category: string | undefined) => {
+    // If category is undefined, return the default color
+    if (!category) {
+      return 'bg-gray-100 text-gray-600';
+    }
+    
     const colorMap: Record<string, string> = {
       'tracteur': 'bg-green-100 text-green-600',
       'moissonneuse': 'bg-yellow-100 text-yellow-600',
@@ -15,7 +20,7 @@ export const EquipmentImageFallback: React.FC<EquipmentImageFallbackProps> = ({ 
       'semoir': 'bg-pink-100 text-pink-600',
     };
     
-    return colorMap[category?.toLowerCase()] || 'bg-gray-100 text-gray-600';
+    return colorMap[category.toLowerCase()] || 'bg-gray-100 text-gray-600';
   };
 
   const getInitials = () => {
