@@ -24,7 +24,6 @@ export function FuelLogsTable({ logs, onDelete, isDeletingId }: FuelLogsTablePro
             <TableHead>Prix (€/L)</TableHead>
             <TableHead>Total (€)</TableHead>
             <TableHead>Heures</TableHead>
-            <TableHead>Km</TableHead>
             <TableHead>Notes</TableHead>
             <TableHead></TableHead>
           </TableRow>
@@ -39,7 +38,6 @@ export function FuelLogsTable({ logs, onDelete, isDeletingId }: FuelLogsTablePro
               <TableCell>{log.price_per_liter?.toFixed(2) || '-'}</TableCell>
               <TableCell>{log.total_cost?.toFixed(2) || '-'}</TableCell>
               <TableCell>{log.hours_at_fillup ?? '-'}</TableCell>
-              <TableCell>{log.km_at_fillup ?? '-'}</TableCell>
               <TableCell className="max-w-[200px] truncate">{log.notes || '-'}</TableCell>
               <TableCell>
                 <Button

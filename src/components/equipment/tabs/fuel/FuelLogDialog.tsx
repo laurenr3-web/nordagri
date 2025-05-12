@@ -21,7 +21,6 @@ const fuelLogSchema = z.object({
   fuel_quantity_liters: z.coerce.number().positive('Quantité requise'),
   price_per_liter: z.coerce.number().positive('Prix requis'),
   hours_at_fillup: z.coerce.number().optional().nullable(),
-  km_at_fillup: z.coerce.number().optional().nullable(),
   notes: z.string().optional().nullable()
 });
 
@@ -32,7 +31,6 @@ interface FuelLogDialogProps {
   isSubmitting: boolean;
   equipmentId: number;
   currentHours?: number;
-  currentKm?: number;
 }
 
 export function FuelLogDialog({
@@ -41,8 +39,7 @@ export function FuelLogDialog({
   onSubmit,
   isSubmitting,
   equipmentId,
-  currentHours,
-  currentKm
+  currentHours
 }: FuelLogDialogProps) {
   const form = useForm<FuelLogFormValues>({
     resolver: zodResolver(fuelLogSchema),
@@ -51,7 +48,6 @@ export function FuelLogDialog({
       fuel_quantity_liters: 0,
       price_per_liter: 0,
       hours_at_fillup: currentHours || null,
-      km_at_fillup: currentKm || null,
       notes: '',
     }
   });
@@ -137,25 +133,12 @@ export function FuelLogDialog({
                 <p className="text-sm text-red-500">{form.formState.errors.hours_at_fillup.message}</p>
               )}
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="km_at_fillup">Kilométrage</Label>
-              <Input
-                id="km_at_fillup"
-                type="number"
-                placeholder={currentKm ? `Actuel: ${currentKm}` : "Optionnel"}
-                {...form.register("km_at_fillup")}
-              />
-              {form.formState.errors.km_at_fillup && (
-                <p className="text-sm text-red-500">{form.formState.errors.km_at_fillup.message}</p>
-              )}
-            </div>
           </div>
           
           <Alert className="bg-blue-50 text-blue-800 border-blue-200">
             <InfoIcon className="h-4 w-4 text-blue-600" />
             <AlertDescription className="text-sm">
-              Si les heures moteur ou le kilométrage saisis sont supérieurs aux valeurs actuelles de l'équipement, celles-ci seront automatiquement mises à jour.
+              Si les heures moteur saisies sont supérieures aux valeurs actuelles de l'équipement, celles-ci seront automatiquement mises à jour.
             </AlertDescription>
           </Alert>
 

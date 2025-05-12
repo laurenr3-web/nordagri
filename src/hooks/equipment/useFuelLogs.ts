@@ -74,7 +74,6 @@ export function useFuelLogs(equipmentId: number) {
           fuel_quantity_liters: Number(values.fuel_quantity_liters),
           price_per_liter: Number(values.price_per_liter),
           hours_at_fillup: values.hours_at_fillup ? Number(values.hours_at_fillup) : null,
-          km_at_fillup: values.km_at_fillup ? Number(values.km_at_fillup) : null,
           notes: values.notes || null,
           farm_id: farmId,
           created_by: user.id
@@ -116,7 +115,7 @@ export function useFuelLogs(equipmentId: number) {
       let successMessage = 'Plein enregistré avec succès';
       
       // Add additional success message if hours or km were recorded
-      if (data.hours_at_fillup || data.km_at_fillup) {
+      if (data.hours_at_fillup) {
         successMessage += ' et compteurs mis à jour';
       }
       

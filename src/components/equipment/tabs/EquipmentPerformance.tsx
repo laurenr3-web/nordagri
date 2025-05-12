@@ -1,8 +1,8 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-// Change the import to use the updated EquipmentItem type with the km property
 import { EquipmentItem } from '@/hooks/dashboard/types/equipmentTypes';
 import { useFuelLogs } from '@/hooks/equipment/useFuelLogs';
 import { FuelLogDialog } from './fuel/FuelLogDialog';
@@ -47,9 +47,8 @@ const EquipmentPerformance: React.FC<EquipmentPerformanceProps> = ({ equipment }
     });
   };
 
-  // Get current hours and km from equipment
+  // Get current hours from equipment
   const currentHours = equipment.valeur_actuelle || equipment.usage?.hours || null;
-  const currentKm = equipment.km || null;
 
   return (
     <div className="grid grid-cols-1 gap-6">
@@ -167,7 +166,6 @@ const EquipmentPerformance: React.FC<EquipmentPerformanceProps> = ({ equipment }
         isSubmitting={addFuelLog.isPending}
         equipmentId={equipment.id}
         currentHours={currentHours}
-        currentKm={currentKm}
       />
     </div>
   );
