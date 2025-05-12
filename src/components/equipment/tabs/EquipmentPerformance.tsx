@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { EquipmentItem } from '../hooks/useEquipmentFilters';
+// Change the import to use the updated EquipmentItem type with the km property
+import { EquipmentItem } from '@/hooks/dashboard/types/equipmentTypes';
 import { useFuelLogs } from '@/hooks/equipment/useFuelLogs';
 import { FuelLogDialog } from './fuel/FuelLogDialog';
 import { FuelLogsTable } from './fuel/FuelLogsTable';
