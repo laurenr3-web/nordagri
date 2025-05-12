@@ -71,17 +71,23 @@ const WithdrawalHistory: React.FC<WithdrawalHistoryProps> = ({ part }) => {
           return;
         }
         
-        const data = await getWithdrawalHistory(partId);
-        console.log('Withdrawal history data received:', data);
-        
-        if (!data) {
-          console.warn('No withdrawal history data returned');
+        try {
+          const data = await getWithdrawalHistory(partId);
+          console.log('Withdrawal history data received:', data);
+          
+          if (!data) {
+            console.warn('No withdrawal history data returned');
+            setHistory([]);
+          } else {
+            setHistory(Array.isArray(data) ? data : []);
+          }
+        } catch (fetchError: any) {
+          console.error('Error in getWithdrawalHistory:', fetchError);
+          setError(`Erreur lors du chargement: ${fetchError.message || 'Erreur inconnue'}`);
           setHistory([]);
-        } else {
-          setHistory(Array.isArray(data) ? data : []);
         }
-      } catch (err) {
-        console.error('Error fetching withdrawal history:', err);
+      } catch (err: any) {
+        console.error('Error in WithdrawalHistory effect:', err);
         setError('Erreur lors du chargement de l\'historique');
         setHistory([]);
         
