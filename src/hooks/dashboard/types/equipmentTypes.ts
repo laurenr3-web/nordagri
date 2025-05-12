@@ -18,6 +18,7 @@ export interface EquipmentItem {
     due: string;
   };
   nextMaintenance?: string | null; // Keep for backward compatibility
+  km?: number | null; // Add the km property
 }
 
 // Define a type for raw equipment data from database

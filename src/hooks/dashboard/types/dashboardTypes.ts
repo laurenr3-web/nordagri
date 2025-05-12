@@ -26,6 +26,7 @@ export interface EquipmentItem {
     due: string;
   };
   nextMaintenance?: string | null;
+  km?: number | null; // Add the km property
 }
 
 export interface MaintenanceEvent {
