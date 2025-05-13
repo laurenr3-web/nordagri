@@ -40,7 +40,7 @@ const createWrapper = () => {
       },
     },
   });
-  
+
   return ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={queryClient}>
       {children}
@@ -56,24 +56,23 @@ describe('usePartsData', () => {
   it('should fetch parts data', async () => {
     const wrapper = createWrapper();
     const { result } = renderHook(() => usePartsData(), { wrapper });
-    
+
     await waitFor(() => !result.current.isLoading);
-    
+
     expect(result.current.data).toHaveLength(3);
     expect(result.current.data?.[0].name).toBe('Air Filter');
     expect(result.current.isLoading).toBe(false);
   });
 
   it('should handle errors', async () => {
-    // Mock getParts to throw an error
     const { getParts } = require('@/services/supabase/parts');
     getParts.mockRejectedValueOnce(new Error('Failed to fetch parts'));
-    
+
     const wrapper = createWrapper();
     const { result } = renderHook(() => usePartsData(), { wrapper });
-    
+
     await waitFor(() => result.current.error !== null);
-    
+
     expect(result.current.error).toBeTruthy();
     expect(result.current.data).toBeUndefined();
     expect(result.current.isLoading).toBe(false);
@@ -82,20 +81,20 @@ describe('usePartsData', () => {
   it('should convert compatibility to numbers', async () => {
     const { getParts } = require('@/services/supabase/parts');
     getParts.mockResolvedValueOnce([
-      { 
-        id: 1, 
-        name: 'Test Part', 
-        compatibility: ['1', '2', '3'], 
+      {
+        id: 1,
+        name: 'Test Part',
+        category: 'Test',
         stock: 5,
-        category: 'Test'
+        compatibility: ['1', '2', '3']
       }
     ]);
-    
+
     const wrapper = createWrapper();
     const { result } = renderHook(() => usePartsData(), { wrapper });
-    
+
     await waitFor(() => !result.current.isLoading);
-    
+
     expect(result.current.data?.[0].compatibility).toEqual([1, 2, 3]);
   });
 });
