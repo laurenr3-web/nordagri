@@ -80,7 +80,6 @@ describe('usePartsData', () => {
   });
 
   it('should convert compatibility to numbers', async () => {
-    // Mock getParts to return parts with string compatibility
     const { getParts } = require('@/services/supabase/parts');
     getParts.mockResolvedValueOnce([
       { 
