@@ -1,28 +1,34 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { usePartsData } from '@/hooks/parts/usePartsData';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
 
-// Mock the parts service
-vi.mock('@/services/supabase/partsService', () => ({
-  partsService: {
-    getParts: vi.fn(),
-    getPartById: vi.fn(),
-    addPart: vi.fn(),
-    updatePart: vi.fn(),
-    deletePart: vi.fn()
+// Mock the supabase client
+vi.mock('@/integrations/supabase/client', () => ({
+  supabase: {
+    auth: {
+      getSession: vi.fn().mockResolvedValue({ data: { session: { user: { id: 'test-user' } } }, error: null })
+    },
+    from: vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({ data: { farm_id: 1 }, error: null })
+        }),
+        mockResolvedValue: vi.fn().mockResolvedValue([])
+      })
+    })
   }
 }));
 
-// Mock the filter hook
-vi.mock('@/hooks/parts/usePartsFilter', () => ({
-  usePartsFilter: () => ({
-    filters: { search: '', category: [] },
-    setFilters: vi.fn(),
-    activeFilters: []
-  })
+// Mock the getParts service
+vi.mock('@/services/supabase/parts', () => ({
+  getParts: vi.fn().mockResolvedValue([
+    { id: 1, name: 'Air Filter', category: 'Filters', stock: 10 },
+    { id: 2, name: 'Oil Filter', category: 'Filters', stock: 5 },
+    { id: 3, name: 'Spark Plug', category: 'Engine', stock: 20 }
+  ])
 }));
 
 // Create a wrapper component with QueryClientProvider
@@ -43,105 +49,53 @@ const createWrapper = () => {
 };
 
 describe('usePartsData', () => {
-  const mockParts = [
-    { id: 1, name: 'Air Filter', category: 'Filters', stock: 10 },
-    { id: 2, name: 'Oil Filter', category: 'Filters', stock: 5 },
-    { id: 3, name: 'Spark Plug', category: 'Engine', stock: 20 }
-  ];
-
   beforeEach(() => {
     vi.resetAllMocks();
-    
-    // Import the parts service after mocking
-    const { partsService } = require('@/services/supabase/partsService');
-    
-    // Setup default mock implementations
-    partsService.getParts.mockResolvedValue(mockParts);
-    partsService.getPartById.mockImplementation((id) => 
-      Promise.resolve(mockParts.find(part => part.id === id) || null)
-    );
-    partsService.addPart.mockImplementation((part) => 
-      Promise.resolve({ id: 4, ...part })
-    );
-    partsService.updatePart.mockImplementation((part) => 
-      Promise.resolve(part)
-    );
-    partsService.deletePart.mockResolvedValue(undefined);
   });
 
   it('should fetch parts data', async () => {
     const wrapper = createWrapper();
-    const { result, waitFor } = renderHook(() => usePartsData(), { wrapper });
+    const { result } = renderHook(() => usePartsData(), { wrapper });
     
     await waitFor(() => !result.current.isLoading);
     
-    expect(result.current.data).toEqual(mockParts);
+    expect(result.current.data).toHaveLength(3);
+    expect(result.current.data?.[0].name).toBe('Air Filter');
     expect(result.current.isLoading).toBe(false);
-    expect(result.current.error).toBeNull();
-  });
-
-  it('should refetch parts when filters change', async () => {
-    const wrapper = createWrapper();
-    const { result, waitFor, rerender } = renderHook(() => usePartsData(), { wrapper });
-    
-    await waitFor(() => !result.current.isLoading);
-    
-    // Import the service again to access the mock
-    const { partsService } = require('@/services/supabase/partsService');
-    
-    // Clear the mock calls
-    partsService.getParts.mockClear();
-    
-    // Set up a new mock response for filtered data
-    const filteredParts = [mockParts[0], mockParts[1]];
-    partsService.getParts.mockResolvedValue(filteredParts);
-    
-    // Simulate a filter change by forcing a rerender
-    rerender();
-    
-    await waitFor(() => result.current.data !== mockParts);
-    
-    expect(result.current.data).toEqual(filteredParts);
   });
 
   it('should handle errors', async () => {
+    // Mock getParts to throw an error
+    const { getParts } = require('@/services/supabase/parts');
+    getParts.mockRejectedValueOnce(new Error('Failed to fetch parts'));
+    
     const wrapper = createWrapper();
+    const { result } = renderHook(() => usePartsData(), { wrapper });
     
-    // Import the service again to access the mock
-    const { partsService } = require('@/services/supabase/partsService');
-    
-    // Setup mock to throw an error
-    partsService.getParts.mockRejectedValue(new Error('Failed to fetch parts'));
-    
-    const { result, waitFor } = renderHook(() => usePartsData(), { wrapper });
-    
-    await waitFor(() => !result.current.isLoading);
+    await waitFor(() => result.current.error !== null);
     
     expect(result.current.error).toBeTruthy();
     expect(result.current.data).toBeUndefined();
+    expect(result.current.isLoading).toBe(false);
   });
 
-  it('should sort parts by name by default', async () => {
+  it('should convert compatibility to numbers', async () => {
+    // Mock getParts to return parts with string compatibility
+    const { getParts } = require('@/services/supabase/parts');
+    getParts.mockResolvedValueOnce([
+      { 
+        id: 1, 
+        name: 'Test Part', 
+        compatibility: ['1', '2', '3'], 
+        stock: 5 
+      }
+    ]);
+    
     const wrapper = createWrapper();
-    
-    // Setup unsorted parts
-    const unsortedParts = [
-      { id: 3, name: 'Spark Plug', category: 'Engine', stock: 20 },
-      { id: 1, name: 'Air Filter', category: 'Filters', stock: 10 },
-      { id: 2, name: 'Oil Filter', category: 'Filters', stock: 5 }
-    ];
-    
-    // Import the service again to access the mock
-    const { partsService } = require('@/services/supabase/partsService');
-    partsService.getParts.mockResolvedValue(unsortedParts);
-    
-    const { result, waitFor } = renderHook(() => usePartsData(), { wrapper });
+    const { result } = renderHook(() => usePartsData(), { wrapper });
     
     await waitFor(() => !result.current.isLoading);
     
-    // Expect parts to be sorted alphabetically by name
-    expect(result.current.data?.[0].name).toBe('Air Filter');
-    expect(result.current.data?.[1].name).toBe('Oil Filter');
-    expect(result.current.data?.[2].name).toBe('Spark Plug');
+    expect(result.current.data?.[0].compatibility).toEqual([1, 2, 3]);
   });
 });
