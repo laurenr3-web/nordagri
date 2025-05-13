@@ -87,7 +87,8 @@ describe('usePartsData', () => {
         id: 1, 
         name: 'Test Part', 
         compatibility: ['1', '2', '3'], 
-        stock: 5 
+        stock: 5,
+        category: 'Test'
       }
     ]);
     
