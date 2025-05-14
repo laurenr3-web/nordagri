@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, Clock } from 'lucide-react';
+import { Download, Clock, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
@@ -15,7 +15,56 @@ interface WithdrawalHistoryProps {
   part: Part;
 }
 
-const WithdrawalHistory: React.FC<WithdrawalHistoryProps> = ({ part }) => {
+// Error boundary pour capturer les erreurs dans le composant WithdrawalHistory
+class WithdrawalHistoryErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('WithdrawalHistory error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-md font-medium">Historique des retraits</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-4">
+              <AlertCircle className="h-8 w-8 mx-auto text-destructive mb-2" />
+              <p className="text-muted-foreground">
+                Une erreur s'est produite lors du chargement de l'historique
+              </p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="mt-3" 
+                onClick={() => window.location.reload()}
+              >
+                Recharger la page
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+const WithdrawalHistoryContent: React.FC<WithdrawalHistoryProps> = ({ part }) => {
   const { getWithdrawalHistory, formatWithdrawalReason } = usePartsWithdrawal();
   const [history, setHistory] = useState<WithdrawalRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -225,6 +274,14 @@ const WithdrawalHistory: React.FC<WithdrawalHistoryProps> = ({ part }) => {
         </div>
       </CardContent>
     </Card>
+  );
+};
+
+const WithdrawalHistory: React.FC<WithdrawalHistoryProps> = (props) => {
+  return (
+    <WithdrawalHistoryErrorBoundary>
+      <WithdrawalHistoryContent {...props} />
+    </WithdrawalHistoryErrorBoundary>
   );
 };
 

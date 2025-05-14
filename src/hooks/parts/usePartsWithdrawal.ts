@@ -1,36 +1,40 @@
 
-import { useWithdrawalDialog } from './withdrawal/useWithdrawalDialog';
 import { useWithdrawalHistory } from './withdrawal/useWithdrawalHistory';
-import { WITHDRAWAL_REASONS } from './withdrawal/constants';
-import { WithdrawalReason, Intervention, PartsWithdrawal, WithdrawalRecord } from './withdrawal/types';
 
-// Re-export types for backwards compatibility
-export type { WithdrawalReason, Intervention, PartsWithdrawal, WithdrawalRecord };
+// Re-exporter les types depuis useWithdrawalHistory
+export type { WithdrawalRecord } from './withdrawal/types';
 
-// Re-export constants for backwards compatibility
-export { WITHDRAWAL_REASONS };
-
-/**
- * Hook pour gérer les retraits de pièces du stock
- * 
- * Combine les fonctionnalités de dialogue de retrait et d'historique des retraits
- * dans une interface unique pour la gestion complète des retraits de pièces.
- * 
- * @returns {Object} Méthodes et données pour gérer les retraits de pièces
- */
+// Hook principal pour la gestion des retraits
 export const usePartsWithdrawal = () => {
-  const withdrawalDialog = useWithdrawalDialog();
-  const withdrawalHistory = useWithdrawalHistory();
+  // États locaux pour le dialogue de retrait
+  const [isWithdrawalDialogOpen, setIsWithdrawalDialogOpen] = React.useState(false);
+  const [selectedPart, setSelectedPart] = React.useState<any>(null);
+
+  // Importer les fonctionnalités de l'historique des retraits
+  const { getWithdrawalHistory, formatWithdrawalReason, WITHDRAWAL_REASONS } = useWithdrawalHistory();
+
+  // Ouvrir le dialogue avec une pièce sélectionnée
+  const openWithdrawalDialog = (part: any) => {
+    setSelectedPart(part);
+    setIsWithdrawalDialogOpen(true);
+  };
 
   return {
-    // From withdrawal dialog hook
-    ...withdrawalDialog,
+    // États
+    isWithdrawalDialogOpen,
+    setIsWithdrawalDialogOpen,
+    selectedPart,
+    setSelectedPart,
     
-    // From withdrawal history hook
-    getWithdrawalHistory: withdrawalHistory.getWithdrawalHistory,
-    formatWithdrawalReason: withdrawalHistory.formatWithdrawalReason,
+    // Actions
+    openWithdrawalDialog,
     
-    // Constants
+    // Fonctions de l'historique
+    getWithdrawalHistory,
+    formatWithdrawalReason,
     WITHDRAWAL_REASONS
   };
 };
+
+// Nécessaire pour l'importation React
+import React from 'react';

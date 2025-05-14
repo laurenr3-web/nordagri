@@ -1,15 +1,31 @@
 
 import { WithdrawalReason } from './types';
 
-/**
- * Liste des raisons prédéfinies pour le retrait de pièces
- * Ces raisons sont utilisées dans les formulaires de retrait pour
- * catégoriser la cause du retrait d'une pièce du stock.
- */
+// Raisons de retrait de pièces prédéfinies
 export const WITHDRAWAL_REASONS: WithdrawalReason[] = [
-  { id: 'intervention', label: 'Utilisée dans une intervention' },
-  { id: 'defective', label: 'Pièce défectueuse' },
-  { id: 'lost', label: 'Perte ou vol' },
-  { id: 'return', label: 'Retour fournisseur' },
-  { id: 'other', label: 'Autre', requiresComment: true }
+  {
+    id: 'intervention',
+    label: 'Intervention de maintenance',
+    description: 'Pièce utilisée dans le cadre d\'une intervention de maintenance'
+  },
+  {
+    id: 'defective',
+    label: 'Pièce défectueuse',
+    description: 'Pièce retirée car défectueuse ou endommagée'
+  },
+  {
+    id: 'expired',
+    label: 'Pièce périmée',
+    description: 'Pièce retirée car dépassant sa date de péremption'
+  },
+  {
+    id: 'inventory_adjustment',
+    label: 'Ajustement d\'inventaire',
+    description: 'Correction suite à inventaire physique'
+  },
+  {
+    id: 'other',
+    label: 'Autre raison',
+    description: 'Autre raison de retrait (à préciser)'
+  }
 ];
