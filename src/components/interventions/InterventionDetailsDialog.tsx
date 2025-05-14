@@ -5,16 +5,15 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Wrench, Trash2 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Wrench, Trash2, Calendar, MapPin, User, Clock, FileText, AlertCircle } from 'lucide-react';
 import { Intervention } from '@/types/Intervention';
 import { formatDate } from './utils/interventionUtils';
-import StatusBadge from './StatusBadge';
-import PriorityBadge from './PriorityBadge';
 import { DeleteInterventionAlert } from './dialogs/DeleteInterventionAlert';
 import { useDeleteIntervention } from '@/hooks/interventions/useDeleteIntervention';
 
@@ -44,6 +43,34 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
     });
   };
 
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'scheduled':
+        return 'info';
+      case 'in-progress':
+        return 'warning';
+      case 'completed':
+        return 'success';
+      case 'canceled':
+        return 'destructive';
+      default:
+        return 'outline';
+    }
+  };
+
+  const getPriorityBadgeVariant = (priority: string) => {
+    switch (priority) {
+      case 'high':
+        return 'destructive';
+      case 'medium':
+        return 'warning';
+      case 'low':
+        return 'secondary';
+      default:
+        return 'outline';
+    }
+  };
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -51,73 +78,128 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
           <DialogHeader>
             <DialogTitle className="text-2xl flex items-center justify-between">
               <span>{intervention.title}</span>
-              <div className="flex items-center gap-2">
-                <StatusBadge status={intervention.status} />
-                <PriorityBadge priority={intervention.priority} />
-              </div>
             </DialogTitle>
-            <DialogDescription>
-              <div className="text-sm text-muted-foreground">
-                {typeof intervention.date === 'string' ? formatDate(new Date(intervention.date)) : formatDate(intervention.date)}
-              </div>
-            </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h3 className="font-semibold">Équipement</h3>
-                <p>{intervention.equipment}</p>
-              </div>
-              <div>
-                <h3 className="font-semibold">Lieu</h3>
-                <p>{intervention.location}</p>
-              </div>
-            </div>
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            <Badge variant={getStatusBadgeVariant(intervention.status)}>
+              {intervention.status === 'scheduled' && 'Planifié'}
+              {intervention.status === 'in-progress' && 'En cours'}
+              {intervention.status === 'completed' && 'Terminé'}
+              {intervention.status === 'canceled' && 'Annulé'}
+            </Badge>
+            <Badge variant={getPriorityBadgeVariant(intervention.priority)}>
+              {intervention.priority === 'high' && 'Priorité haute'}
+              {intervention.priority === 'medium' && 'Priorité moyenne'}
+              {intervention.priority === 'low' && 'Priorité basse'}
+            </Badge>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h3 className="font-semibold">Technicien assigné</h3>
-                <p>{intervention.technician || 'Non assigné'}</p>
-              </div>
-              <div>
-                <h3 className="font-semibold">Durée prévue</h3>
-                <p>{intervention.scheduledDuration} heure(s)</p>
-              </div>
-            </div>
+          <Card className="mb-4 border-l-4 border-l-primary">
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="flex items-start gap-2">
+                    <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Date</p>
+                      <p className="font-medium">
+                        {typeof intervention.date === 'string' 
+                          ? formatDate(new Date(intervention.date)) 
+                          : formatDate(intervention.date)}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-2">
+                    <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Lieu</p>
+                      <p className="font-medium">{intervention.location}</p>
+                    </div>
+                  </div>
+                </div>
 
-            {intervention.status === 'completed' && intervention.duration && (
-              <div>
-                <h3 className="font-semibold">Durée réelle</h3>
-                <p>{intervention.duration} heure(s)</p>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-2">
+                    <Wrench className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Équipement</p>
+                      <p className="font-medium">{intervention.equipment}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-2">
+                    <User className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Technicien</p>
+                      <p className="font-medium">{intervention.technician || 'Non assigné'}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-            )}
+            </CardContent>
+          </Card>
 
-            <div>
-              <h3 className="font-semibold">Description</h3>
-              <p className="whitespace-pre-wrap">{intervention.description}</p>
-            </div>
+          <Card className="mb-4">
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                <div className="flex items-start gap-2">
+                  <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Durée prévue</p>
+                    <p className="font-medium">{intervention.scheduledDuration} heure(s)</p>
+                  </div>
+                </div>
 
-            {intervention.notes && (
-              <div>
-                <h3 className="font-semibold">Notes</h3>
-                <p className="whitespace-pre-wrap">{intervention.notes}</p>
+                {intervention.status === 'completed' && intervention.duration && (
+                  <div className="flex items-start gap-2">
+                    <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Durée réelle</p>
+                      <p className="font-medium">{intervention.duration} heure(s)</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-start gap-2">
+                  <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Description</p>
+                    <p className="whitespace-pre-wrap bg-muted p-3 rounded-md text-sm mt-1">
+                      {intervention.description || 'Aucune description'}
+                    </p>
+                  </div>
+                </div>
+
+                {intervention.notes && (
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Notes</p>
+                      <p className="whitespace-pre-wrap bg-muted p-3 rounded-md text-sm mt-1">{intervention.notes}</p>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+            </CardContent>
+          </Card>
 
-            {intervention.partsUsed && intervention.partsUsed.length > 0 && (
-              <div>
-                <h3 className="font-semibold">Pièces utilisées</h3>
-                <ul className="list-disc pl-5">
+          {intervention.partsUsed && intervention.partsUsed.length > 0 && (
+            <Card className="mb-4">
+              <CardContent className="pt-6">
+                <h3 className="text-md font-medium mb-3">Pièces utilisées</h3>
+                <ul className="space-y-2">
                   {intervention.partsUsed.map((part, index) => (
-                    <li key={index}>
-                      {part.name} - Quantité: {part.quantity}
+                    <li key={index} className="flex items-center justify-between p-2 bg-muted rounded-md">
+                      <span className="font-medium">{part.name}</span>
+                      <Badge variant="outline">Quantité: {part.quantity}</Badge>
                     </li>
                   ))}
                 </ul>
-              </div>
-            )}
-          </div>
+              </CardContent>
+            </Card>
+          )}
 
           <DialogFooter className="gap-2 sm:gap-0">
             <Button
