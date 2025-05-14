@@ -13,8 +13,11 @@ describe('useMaintenanceContent', () => {
       status: 'scheduled', // Use valid status
       priority: 'medium',
       dueDate: new Date('2025-05-20'), // Changed from string to Date object
-      equipment_id: 1,
-      equipment_name: 'Tractor'
+      equipmentId: 1, // Changed from equipment_id to equipmentId
+      equipment: 'Tractor', // Using equipment instead of equipment_name
+      type: 'preventive', // Added required property
+      engineHours: 2, // Added required property
+      assignedTo: '', // Added required property
     },
     {
       id: 2,
@@ -23,8 +26,11 @@ describe('useMaintenanceContent', () => {
       status: 'completed', // Use valid status
       priority: 'low',
       dueDate: new Date('2025-05-15'), // Changed from string to Date object
-      equipment_id: 2,
-      equipment_name: 'Harvester'
+      equipmentId: 2, // Changed from equipment_id to equipmentId
+      equipment: 'Harvester', // Using equipment instead of equipment_name
+      type: 'preventive', // Added required property
+      engineHours: 1, // Added required property
+      assignedTo: '', // Added required property
     },
     {
       id: 3,
@@ -33,8 +39,11 @@ describe('useMaintenanceContent', () => {
       status: 'scheduled', // Use valid status
       priority: 'high',
       dueDate: new Date('2025-05-10'), // Changed from string to Date object
-      equipment_id: 1,
-      equipment_name: 'Tractor'
+      equipmentId: 1, // Changed from equipment_id to equipmentId
+      equipment: 'Tractor', // Using equipment instead of equipment_name
+      type: 'corrective', // Added required property
+      engineHours: 4, // Added required property
+      assignedTo: '', // Added required property
     }
   ];
 
