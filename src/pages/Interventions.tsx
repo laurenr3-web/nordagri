@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/ui/layouts/MainLayout';
 import InterventionsHeader from '@/components/interventions/InterventionsHeader';
@@ -14,6 +13,7 @@ import { LayoutWrapper } from '@/components/layout/LayoutWrapper';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { Toaster } from '@/components/ui/sonner';
 
 const InterventionsPage = () => {
   const queryClient = useQueryClient();
@@ -142,6 +142,9 @@ const InterventionsPage = () => {
           interventions={interventions}
           filteredInterventions={filteredInterventions}
         />
+
+        {/* Toaster pour les notifications */}
+        <Toaster />
       </LayoutWrapper>
     </MainLayout>
   );
