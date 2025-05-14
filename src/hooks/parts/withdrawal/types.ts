@@ -1,41 +1,25 @@
 
-// Types pour l'historique des retraits de pièces
+// Define the types shared across withdrawal components
 
-// Enregistrement d'un retrait de pièce
 export interface WithdrawalRecord {
   id: number;
   part_id: number;
   part_name: string;
   quantity: number;
   reason: string;
-  custom_reason: string | null;
-  intervention_id: number | null;
-  comment: string | null;
-  user_id: string;
-  created_at: string;
-  interventions: {
-    id: number;
-    title: string;
-  } | null;
+  custom_reason?: string;
+  date: string;
+  user_name: string;
+  intervention_id?: number;
+  intervention_title?: string;
+  comment?: string;
 }
 
-// Raison de retrait
 export interface WithdrawalReason {
   id: string;
   label: string;
-  description?: string;
 }
 
-// Intervention associée à un retrait
-export interface Intervention {
-  id: number;
-  title: string;
-  equipment_id: number;
-  date: string;
-  status: string;
-}
-
-// Données de retrait de pièce
 export interface PartsWithdrawal {
   part_id: number;
   part_name: string;
@@ -44,4 +28,12 @@ export interface PartsWithdrawal {
   custom_reason?: string;
   intervention_id: number | null;
   comment?: string;
+}
+
+export interface Intervention {
+  id: number;
+  title: string;
+  equipment_id: number;
+  date: string;
+  status: string;
 }
