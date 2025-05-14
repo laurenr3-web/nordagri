@@ -4,6 +4,7 @@ import { useTimeTracking } from '@/hooks/time-tracking/useTimeTracking';
 import { useActiveTimeEntry } from '@/hooks/time-tracking/useActiveTimeEntry';
 import { useTimeEntryOperations } from '@/hooks/time-tracking/useTimeEntryOperations';
 import { renderHook, act } from '@testing-library/react';
+import { TimeEntryTaskType } from '@/hooks/time-tracking/types';
 
 // Mock the dependent hooks
 vi.mock('@/hooks/time-tracking/useActiveTimeEntry');
@@ -13,7 +14,7 @@ describe('useTimeTracking', () => {
   const mockActiveTimeEntry = {
     id: 'entry-1',
     user_id: 'user-1',
-    task_type: 'maintenance',
+    task_type: 'maintenance' as TimeEntryTaskType,
     start_time: '2025-05-12T10:00:00Z',
     status: 'active',
     created_at: '2025-05-12T10:00:00Z',
@@ -52,7 +53,7 @@ describe('useTimeTracking', () => {
   it('should call startTimeEntry and refreshActiveTimeEntry when startTimeEntry is called', async () => {
     const { result } = renderHook(() => useTimeTracking());
     
-    const startParams = { task_type: 'repair' };
+    const startParams = { task_type: 'repair' as TimeEntryTaskType };
     
     await act(async () => {
       await result.current.startTimeEntry(startParams);

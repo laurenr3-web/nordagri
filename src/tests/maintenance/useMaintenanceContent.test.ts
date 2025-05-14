@@ -9,8 +9,8 @@ describe('useMaintenanceContent', () => {
     {
       id: 1,
       title: 'Oil Change',
-      description: 'Change engine oil',
-      status: 'pending',
+      notes: 'Change engine oil', // Using notes instead of description
+      status: 'scheduled', // Use valid status
       priority: 'medium',
       due_date: new Date('2025-05-20').toISOString(),
       equipment_id: 1,
@@ -19,8 +19,8 @@ describe('useMaintenanceContent', () => {
     {
       id: 2,
       title: 'Tire Check',
-      description: 'Check tire pressure',
-      status: 'completed',
+      notes: 'Check tire pressure', // Using notes instead of description
+      status: 'completed', // Use valid status
       priority: 'low',
       due_date: new Date('2025-05-15').toISOString(),
       equipment_id: 2,
@@ -29,8 +29,8 @@ describe('useMaintenanceContent', () => {
     {
       id: 3,
       title: 'Engine Repair',
-      description: 'Fix engine issues',
-      status: 'overdue',
+      notes: 'Fix engine issues', // Using notes instead of description
+      status: 'scheduled', // Use valid status
       priority: 'high',
       due_date: new Date('2025-05-10').toISOString(),
       equipment_id: 1,
@@ -77,7 +77,7 @@ describe('useMaintenanceContent', () => {
     expect(filteredTasks.length).toBe(1);
     expect(filteredTasks[0].id).toBe(2);
     
-    filteredTasks = result.current.getCurrentTasks('overdue');
+    filteredTasks = result.current.getCurrentTasks('high');
     expect(filteredTasks.length).toBe(1);
     expect(filteredTasks[0].id).toBe(3);
   });
@@ -116,7 +116,7 @@ describe('useMaintenanceContent', () => {
     // Filter tasks that match search query
     const tasksMatchingQuery = mockTasks.filter(task => 
       task.title.toLowerCase().includes(result.current.searchQuery.toLowerCase()) ||
-      task.description.toLowerCase().includes(result.current.searchQuery.toLowerCase())
+      task.notes.toLowerCase().includes(result.current.searchQuery.toLowerCase())
     );
     
     expect(tasksMatchingQuery.length).toBe(1);
