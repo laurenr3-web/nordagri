@@ -19,10 +19,15 @@ export const useWithdrawalHistory = () => {
           part_name: "Example Part",
           quantity: 2,
           reason: "maintenance",
+          created_at: "2024-05-10T14:30:00",
           date: "2024-05-10T14:30:00",
           user_name: "Jean Dupont",
           intervention_id: 123,
-          intervention_title: "Maintenance tracteur"
+          intervention_title: "Maintenance tracteur",
+          interventions: {
+            id: 123,
+            title: "Maintenance tracteur"
+          }
         },
         {
           id: 2,
@@ -30,6 +35,7 @@ export const useWithdrawalHistory = () => {
           part_name: "Example Part",
           quantity: 1,
           reason: "repair",
+          created_at: "2024-05-08T10:15:00",
           date: "2024-05-08T10:15:00",
           user_name: "Sophie Martin",
           comment: "Remplacement urgent"
@@ -41,6 +47,7 @@ export const useWithdrawalHistory = () => {
           quantity: 3,
           reason: "other",
           custom_reason: "Préparation stock saison",
+          created_at: "2024-05-05T16:45:00",
           date: "2024-05-05T16:45:00",
           user_name: "Alexandre Petit"
         }
@@ -77,9 +84,14 @@ export const useWithdrawalHistory = () => {
         reason: item.reason,
         custom_reason: item.custom_reason,
         date: item.created_at,
+        created_at: item.created_at,
         user_name: item.users ? item.users.name : 'Utilisateur inconnu',
         intervention_id: item.intervention_id,
         intervention_title: item.interventions ? item.interventions.title : undefined,
+        interventions: item.interventions ? {
+          id: item.intervention_id,
+          title: item.interventions.title
+        } : undefined,
         comment: item.comment
       }));
       */
