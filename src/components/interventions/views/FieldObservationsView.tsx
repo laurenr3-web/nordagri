@@ -8,7 +8,9 @@ import { useFieldObservations } from '@/hooks/observations/useFieldObservations'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { FileText, EyeOff, AlertTriangle, Eye } from 'lucide-react';
 import { format } from 'date-fns';
-import { UrgencyLevel } from '@/types/FieldObservation';
+import { UrgencyLevel, FieldObservation } from '@/types/FieldObservation';
+import ObservationDetailsDialog from '@/components/observations/ObservationDetailsDialog';
+import { useObservationDetails } from '@/hooks/observations/useObservationDetails';
 
 const UrgencyBadge = ({ level }: { level: UrgencyLevel }) => {
   const getBadgeClass = () => {
@@ -31,8 +33,17 @@ const UrgencyBadge = ({ level }: { level: UrgencyLevel }) => {
   );
 };
 
-const ObservationCard = ({ observation }: { observation: any }) => (
-  <BlurContainer className="p-4 transition-all hover:shadow-md">
+const ObservationCard = ({ 
+  observation,
+  onClick 
+}: { 
+  observation: FieldObservation,
+  onClick: (observation: FieldObservation) => void 
+}) => (
+  <BlurContainer 
+    className="p-4 transition-all hover:shadow-md hover:bg-gray-50 cursor-pointer"
+    onClick={() => onClick(observation)}
+  >
     <div className="flex justify-between items-start">
       <div>
         <h3 className="font-semibold">{observation.equipment}</h3>
@@ -74,9 +85,25 @@ const FieldObservationsView: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
   const { observations, isLoading } = useFieldObservations();
+  const [selectedObservationId, setSelectedObservationId] = useState<number | undefined>(undefined);
+  
+  const {
+    observation,
+    isLoading: isLoadingDetails,
+    isOpen: isDetailsOpen,
+    openObservationDetails,
+    closeObservationDetails,
+    handleDeleteObservation,
+    isDeleting
+  } = useObservationDetails(selectedObservationId);
 
   // Pour tester - afficher les observations dans la console
   console.log('Observations:', observations);
+
+  const handleObservationClick = (observation: FieldObservation) => {
+    setSelectedObservationId(observation.id);
+    openObservationDetails(observation.id);
+  };
 
   const filteredObservations = observations.filter(observation => {
     if (activeTab === 'all') return true;
@@ -134,12 +161,25 @@ const FieldObservationsView: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredObservations.map((observation) => (
-                <ObservationCard key={observation.id} observation={observation} />
+                <ObservationCard 
+                  key={observation.id} 
+                  observation={observation} 
+                  onClick={handleObservationClick}
+                />
               ))}
             </div>
           )}
         </TabsContent>
       </Tabs>
+
+      <ObservationDetailsDialog
+        observation={observation}
+        isOpen={isDetailsOpen}
+        isLoading={isLoadingDetails}
+        onClose={closeObservationDetails}
+        onDelete={handleDeleteObservation}
+        isDeleting={isDeleting}
+      />
     </div>
   );
 };
