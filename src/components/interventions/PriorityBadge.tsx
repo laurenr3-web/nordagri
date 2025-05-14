@@ -9,9 +9,15 @@ interface PriorityBadgeProps {
 }
 
 const PriorityBadge: React.FC<PriorityBadgeProps> = ({ priority, className }) => {
+  // Get the capitalized label safely, ensuring priority is defined
+  const getCapitalizedLabel = () => {
+    if (!priority) return 'Unknown';
+    return priority.charAt(0).toUpperCase() + priority.slice(1);
+  };
+
   return (
     <Badge className={`${getPriorityBadgeClass(priority)} ${className || ''}`}>
-      {priority.charAt(0).toUpperCase() + priority.slice(1)}
+      {getCapitalizedLabel()}
     </Badge>
   );
 };
