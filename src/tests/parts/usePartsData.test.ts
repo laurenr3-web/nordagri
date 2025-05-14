@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { usePartsData } from '@/hooks/parts/usePartsData';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 
 // Mock the supabase client
 vi.mock('@/integrations/supabase/client', () => ({
@@ -41,11 +41,15 @@ const createWrapper = () => {
     },
   });
 
-  return ({ children }: { children: ReactNode }): JSX.Element => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  );
+  const Wrapper = ({ children }: { children: ReactNode }) => {
+    return (
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    );
+  };
+
+  return Wrapper;
 };
 
 describe('usePartsData', () => {
