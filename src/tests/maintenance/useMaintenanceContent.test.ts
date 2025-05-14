@@ -12,7 +12,7 @@ describe('useMaintenanceContent', () => {
       notes: 'Change engine oil', // Using notes instead of description
       status: 'scheduled', // Use valid status
       priority: 'medium',
-      dueDate: new Date('2025-05-20').toISOString(), // Changed from due_date to dueDate
+      dueDate: new Date('2025-05-20'), // Changed from string to Date object
       equipment_id: 1,
       equipment_name: 'Tractor'
     },
@@ -22,7 +22,7 @@ describe('useMaintenanceContent', () => {
       notes: 'Check tire pressure', // Using notes instead of description
       status: 'completed', // Use valid status
       priority: 'low',
-      dueDate: new Date('2025-05-15').toISOString(), // Changed from due_date to dueDate
+      dueDate: new Date('2025-05-15'), // Changed from string to Date object
       equipment_id: 2,
       equipment_name: 'Harvester'
     },
@@ -32,7 +32,7 @@ describe('useMaintenanceContent', () => {
       notes: 'Fix engine issues', // Using notes instead of description
       status: 'scheduled', // Use valid status
       priority: 'high',
-      dueDate: new Date('2025-05-10').toISOString(), // Changed from due_date to dueDate
+      dueDate: new Date('2025-05-10'), // Changed from string to Date object
       equipment_id: 1,
       equipment_name: 'Tractor'
     }
