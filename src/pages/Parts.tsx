@@ -10,7 +10,7 @@ import { LayoutWrapper } from "@/components/layout/LayoutWrapper";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Plus, MinusCircle } from "lucide-react";
-import WithdrawalDialog from '@/components/parts/dialogs/WithdrawalDialog';
+import { WithdrawalDialog } from '@/components/parts/dialogs/withdrawal';
 import AddPartDialog from '@/components/parts/dialogs/AddPartDialog';
 import ExpressAddPartDialog from '@/components/parts/dialogs/ExpressAddPartDialog';
 import { usePartsWithdrawal } from '@/hooks/parts/usePartsWithdrawal';

@@ -11,13 +11,16 @@ interface WithdrawalItemProps {
 }
 
 const WithdrawalItem: React.FC<WithdrawalItemProps> = ({ record, formatWithdrawalReason }) => {
+  // Use created_at if available, otherwise use date
+  const displayDate = record.created_at || record.date;
+  
   return (
     <div className="border-b pb-3 mb-3 last:border-0 last:pb-0 last:mb-0">
       <div className="flex justify-between items-center mb-1">
         <div className="flex items-center">
           <Badge variant="outline" className="mr-2">{record.quantity} unité(s)</Badge>
           <span className="text-sm text-muted-foreground">
-            {format(new Date(record.created_at), 'dd MMMM yyyy, HH:mm', { locale: fr })}
+            {format(new Date(displayDate), 'dd MMMM yyyy, HH:mm', { locale: fr })}
           </span>
         </div>
       </div>
@@ -27,9 +30,9 @@ const WithdrawalItem: React.FC<WithdrawalItemProps> = ({ record, formatWithdrawa
           <span className="font-medium">Raison:</span> {formatWithdrawalReason(record.reason, record.custom_reason)}
         </div>
         
-        {record.interventions && (
+        {(record.interventions || record.intervention_title) && (
           <div>
-            <span className="font-medium">Intervention:</span> {record.interventions.title}
+            <span className="font-medium">Intervention:</span> {record.interventions?.title || record.intervention_title}
           </div>
         )}
         

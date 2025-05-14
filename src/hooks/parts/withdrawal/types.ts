@@ -7,10 +7,15 @@ export interface WithdrawalRecord {
   part_name: string;
   quantity: number;
   reason: string;
-  custom_reason?: string;
+  custom_reason?: string | null;
+  created_at: string; // Added created_at for consistency with usage
   date: string;
   user_name: string;
   intervention_id?: number;
+  interventions?: { // Added interventions object to match component usage
+    id?: number;
+    title?: string;
+  };
   intervention_title?: string;
   comment?: string;
 }

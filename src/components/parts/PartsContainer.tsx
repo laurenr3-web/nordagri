@@ -10,7 +10,7 @@ import { PartsErrorState } from './states/PartsErrorState';
 import { PartsLoadingState } from './states/PartsLoadingState';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { usePartsWithdrawal } from '@/hooks/parts/usePartsWithdrawal';
-import WithdrawalDialog from './dialogs/WithdrawalDialog';
+import { WithdrawalDialog } from './dialogs/withdrawal';
 import { Part } from '@/types/Part';
 import { PartsView } from '@/hooks/parts/usePartsFilter';
 import PartDetailsDialog from './dialogs/PartDetailsDialog';

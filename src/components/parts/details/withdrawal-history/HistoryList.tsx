@@ -22,10 +22,10 @@ const HistoryList: React.FC<HistoryListProps> = ({ history, part, formatWithdraw
 
     try {
       const exportData = history.map(record => ({
-        Date: format(new Date(record.created_at), 'dd/MM/yyyy HH:mm'),
+        Date: format(new Date(record.created_at || record.date), 'dd/MM/yyyy HH:mm'),
         Quantité: record.quantity,
         Raison: formatWithdrawalReason(record.reason, record.custom_reason),
-        Intervention: record.interventions?.title || '-',
+        Intervention: record.interventions?.title || record.intervention_title || '-',
         Commentaire: record.comment || '-'
       }));
 

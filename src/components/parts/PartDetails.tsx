@@ -10,7 +10,7 @@ import PartImage from './details/PartImage';
 import PartDetailsHeader from './details/PartDetailsHeader';
 import DeleteConfirmationDialog from './details/DeleteConfirmationDialog';
 import EditPartDialog from './dialogs/EditPartDialog';
-import WithdrawalDialog from './dialogs/WithdrawalDialog';
+import { WithdrawalDialog } from '@/components/parts/dialogs/withdrawal';
 import DetailsTabs from './details/DetailsTabs';
 
 interface PartDetailsProps {
