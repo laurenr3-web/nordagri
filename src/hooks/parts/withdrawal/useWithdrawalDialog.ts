@@ -120,3 +120,6 @@ export const useWithdrawalDialog = () => {
     interventions,
   };
 };
+
+// Export the types for use in other files
+export type { PartsWithdrawal, Intervention };

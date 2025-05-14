@@ -25,3 +25,23 @@ export interface WithdrawalReason {
   label: string;
   description?: string;
 }
+
+// Intervention associée à un retrait
+export interface Intervention {
+  id: number;
+  title: string;
+  equipment_id: number;
+  date: string;
+  status: string;
+}
+
+// Données de retrait de pièce
+export interface PartsWithdrawal {
+  part_id: number;
+  part_name: string;
+  quantity: number;
+  reason: string;
+  custom_reason?: string;
+  intervention_id: number | null;
+  comment?: string;
+}

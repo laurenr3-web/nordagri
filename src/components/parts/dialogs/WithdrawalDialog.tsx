@@ -12,7 +12,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { usePartsWithdrawal, PartsWithdrawal, WITHDRAWAL_REASONS } from '@/hooks/parts/usePartsWithdrawal';
+import { 
+  usePartsWithdrawal, 
+  WITHDRAWAL_REASONS, 
+  PartsWithdrawal 
+} from '@/hooks/parts/usePartsWithdrawal';
 import { Part } from '@/types/Part';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -28,7 +32,7 @@ const WithdrawalDialog: React.FC<WithdrawalDialogProps> = ({
   onOpenChange,
   part
 }) => {
-  const { withdrawalMutation, interventions, WITHDRAWAL_REASONS } = usePartsWithdrawal();
+  const { withdrawalMutation, interventions } = usePartsWithdrawal();
   
   // État du formulaire
   const [quantity, setQuantity] = useState(1);
