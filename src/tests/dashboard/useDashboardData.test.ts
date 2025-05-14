@@ -10,6 +10,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { useInterventionsData } from '@/hooks/interventions/useInterventionsData';
 import { usePartsData } from '@/hooks/parts/usePartsData';
 import { StatsCardData, EquipmentItem, MaintenanceEvent, AlertItem, UpcomingTask } from '@/hooks/dashboard/types/dashboardTypes';
+import { Tractor, Wrench, Package, MapPin } from 'lucide-react';
 
 // Mock all imported hooks
 vi.mock('@/hooks/dashboard/useStatsData');
@@ -30,12 +31,23 @@ describe('useDashboardData', () => {
     
     // Setup default mock implementations
     vi.mocked(useStatsData).mockReturnValue({
-      statsData: [{ title: 'Total Equipment', value: 5 }] as StatsCardData[]
+      loading: false,
+      statsData: [{ 
+        title: 'Total Equipment', 
+        value: 5, 
+        icon: Tractor, 
+        change: 0 
+      }] as any[]
     });
     
     vi.mocked(useEquipmentData).mockReturnValue({
       loading: false,
-      equipmentData: [{ id: 1, name: 'Tractor', type: 'tractor', status: 'operational' }] as EquipmentItem[],
+      equipmentData: [{ 
+        id: 1, 
+        name: 'Tractor', 
+        type: 'tractor', 
+        status: 'operational' 
+      }] as EquipmentItem[],
       fetchEquipment: vi.fn()
     });
     
@@ -89,7 +101,7 @@ describe('useDashboardData', () => {
       interventions: [{ 
         id: '1', 
         title: 'Field repair', 
-        status: 'pending',
+        status: 'scheduled',
         equipment: 'Tractor',
         priority: 'high',
         date: new Date(),
@@ -99,9 +111,8 @@ describe('useDashboardData', () => {
       isLoading: false,
       createIntervention: vi.fn(),
       updateInterventionStatus: vi.fn(),
-      assignTechnician: vi.fn(),
-      submitReport: vi.fn()
-    });
+      assignTechnician: vi.fn()
+    } as any);
     
     vi.mocked(usePartsData).mockReturnValue({
       data: [{ 
@@ -114,7 +125,8 @@ describe('useDashboardData', () => {
         stock: 5,
         reorderPoint: 2,
         price: 19.99,
-        location: 'Shelf A'
+        location: 'Shelf A',
+        image: 'airfilter.jpg' // Added required property
       }],
       isLoading: false,
       error: null,
@@ -124,7 +136,7 @@ describe('useDashboardData', () => {
       isPending: false,
       isError: false,
       refetch: vi.fn()
-    });
+    } as any);
   });
 
   it('should aggregate data from multiple hooks', async () => {
@@ -153,7 +165,10 @@ describe('useDashboardData', () => {
 
   it('should handle empty data gracefully', async () => {
     // Mock hooks to return empty arrays
-    vi.mocked(useStatsData).mockReturnValue({ statsData: [] });
+    vi.mocked(useStatsData).mockReturnValue({
+      loading: false,
+      statsData: []
+    });
     vi.mocked(useEquipmentData).mockReturnValue({
       loading: false, 
       equipmentData: [],
@@ -178,9 +193,8 @@ describe('useDashboardData', () => {
       isLoading: false,
       createIntervention: vi.fn(),
       updateInterventionStatus: vi.fn(),
-      assignTechnician: vi.fn(),
-      submitReport: vi.fn()
-    });
+      assignTechnician: vi.fn()
+    } as any);
     vi.mocked(usePartsData).mockReturnValue({
       data: [],
       isLoading: false,
@@ -191,7 +205,7 @@ describe('useDashboardData', () => {
       isPending: false,
       isError: false,
       refetch: vi.fn()
-    });
+    } as any);
     
     const { result } = renderHook(() => useDashboardData());
     
