@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, Clock, AlertCircle } from 'lucide-react';
@@ -69,35 +69,37 @@ const WithdrawalHistoryContent: React.FC<WithdrawalHistoryProps> = ({ part }) =>
   const [history, setHistory] = useState<WithdrawalRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Extract part ID once to stabilize it and prevent re-renders
+  const partId = React.useMemo(() => {
+    if (!part || !part.id) return null;
+    return typeof part.id === 'string' ? parseInt(part.id, 10) : part.id;
+  }, [part]);
 
   useEffect(() => {
+    // Skip the effect entirely if partId is invalid
+    if (!partId) {
+      setError('Détails de pièce non disponibles');
+      setIsLoading(false);
+      return;
+    }
+    
+    let isMounted = true; // For cleanup
+    
     const fetchHistory = async () => {
       try {
         setIsLoading(true);
         setError(null);
         
-        // Safety check: Make sure part exists and has a valid ID
-        if (!part || !part.id) {
-          console.error('No valid part provided to WithdrawalHistory:', part);
-          setError('Détails de pièce non disponibles');
-          setHistory([]);
-          return;
-        }
-
-        // Convert part ID to number if it's a string
-        const partId = typeof part.id === 'string' ? parseInt(part.id, 10) : part.id;
-        
-        console.log('Fetching withdrawal history for part:', { 
-          id: partId, 
-          name: part.name || 'Unknown', 
-          isNaN: isNaN(partId) 
-        });
+        console.log('Fetching withdrawal history for part ID:', partId);
         
         // Validate part ID before proceeding
         if (isNaN(partId) || partId <= 0) {
-          console.error('Invalid part ID:', part.id);
-          setError('ID de pièce invalide');
-          setHistory([]);
+          console.error('Invalid part ID:', partId);
+          if (isMounted) {
+            setError('ID de pièce invalide');
+            setHistory([]);
+          }
           return;
         }
         
@@ -106,33 +108,45 @@ const WithdrawalHistoryContent: React.FC<WithdrawalHistoryProps> = ({ part }) =>
           const data = await getWithdrawalHistory(partId);
           console.log('Withdrawal history data received:', data);
           
-          if (!data) {
-            console.warn('No withdrawal history data returned');
-            setHistory([]);
-          } else {
-            // Ensure we have an array
-            setHistory(Array.isArray(data) ? data : []);
+          if (isMounted) {
+            if (!data) {
+              console.warn('No withdrawal history data returned');
+              setHistory([]);
+            } else {
+              // Ensure we have an array
+              setHistory(Array.isArray(data) ? data : []);
+            }
           }
         } catch (fetchError: any) {
           console.error('Error in getWithdrawalHistory:', fetchError);
-          setError(`Erreur lors du chargement: ${fetchError.message || 'Erreur inconnue'}`);
-          setHistory([]);
+          if (isMounted) {
+            setError(`Erreur lors du chargement: ${fetchError.message || 'Erreur inconnue'}`);
+            setHistory([]);
+          }
         }
       } catch (err: any) {
         console.error('General error in WithdrawalHistory effect:', err);
-        setError('Erreur lors du chargement de l\'historique');
-        setHistory([]);
-        toast.error("Erreur lors du chargement de l'historique des retraits");
+        if (isMounted) {
+          setError('Erreur lors du chargement de l\'historique');
+          setHistory([]);
+          toast.error("Erreur lors du chargement de l'historique des retraits");
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchHistory();
-  }, [part, getWithdrawalHistory]);
+    
+    return () => {
+      isMounted = false; // Prevent state updates after unmount
+    };
+  }, [partId, getWithdrawalHistory]); // Only re-run when partId or getWithdrawalHistory change
 
   // Export history to Excel format with error handling
-  const handleExport = () => {
+  const handleExport = useCallback(() => {
     if (!history.length) return;
 
     try {
@@ -168,7 +182,7 @@ const WithdrawalHistoryContent: React.FC<WithdrawalHistoryProps> = ({ part }) =>
       console.error('Error exporting withdrawal history:', e);
       toast.error("Erreur lors de l'export des données");
     }
-  };
+  }, [history, formatWithdrawalReason, part.name]); // Only re-create this function when dependencies change
 
   // Loading state
   if (isLoading) {

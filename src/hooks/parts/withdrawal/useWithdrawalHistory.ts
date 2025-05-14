@@ -1,11 +1,12 @@
 
 import { useQuery } from '@tanstack/react-query';
+import { useCallback } from 'react';
 import { WithdrawalRecord } from './types';
 import { WITHDRAWAL_REASONS } from './constants';
 
 export const useWithdrawalHistory = () => {
   // Récupérer l'historique des retraits pour une pièce
-  const getWithdrawalHistory = async (partId: number): Promise<WithdrawalRecord[]> => {
+  const getWithdrawalHistory = useCallback(async (partId: number): Promise<WithdrawalRecord[]> => {
     try {
       console.log('Getting withdrawal history for part ID:', partId);
       
@@ -78,17 +79,17 @@ export const useWithdrawalHistory = () => {
       console.error('Error in getWithdrawalHistory:', error);
       throw error;
     }
-  };
+  }, []); // Empty dependency array since this function doesn't depend on any reactive values
 
   // Format reason for display based on reason code
-  const formatWithdrawalReason = (reason: string, customReason?: string | null) => {
+  const formatWithdrawalReason = useCallback((reason: string, customReason?: string | null) => {
     if (reason === 'other' && customReason) {
       return customReason;
     }
     
     const reasonObj = WITHDRAWAL_REASONS.find(r => r.id === reason);
     return reasonObj ? reasonObj.label : reason;
-  };
+  }, []); // Empty dependency array since this doesn't depend on any reactive values
 
   return {
     getWithdrawalHistory,

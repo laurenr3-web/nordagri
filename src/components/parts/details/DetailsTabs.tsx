@@ -1,5 +1,5 @@
 
-import React, { lazy } from 'react';
+import React, { lazy, memo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -18,7 +18,8 @@ interface DetailsTabsProps {
   onTabChange: (value: string) => void;
 }
 
-const DetailsTabs: React.FC<DetailsTabsProps> = ({ 
+// Utiliser React.memo pour éviter les re-rendus inutiles
+const DetailsTabs: React.FC<DetailsTabsProps> = memo(({ 
   part, 
   activeTab, 
   onTabChange 
@@ -32,7 +33,6 @@ const DetailsTabs: React.FC<DetailsTabsProps> = ({
     );
   }
   
-  // Add console log to track tab changes
   console.log('DetailsTabs rendered with activeTab:', activeTab, 'and part:', part.id);
   
   return (
@@ -70,6 +70,8 @@ const DetailsTabs: React.FC<DetailsTabsProps> = ({
       </TabsContent>
     </Tabs>
   );
-};
+});
+
+DetailsTabs.displayName = 'DetailsTabs';
 
 export default DetailsTabs;
