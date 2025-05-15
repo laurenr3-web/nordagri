@@ -10,10 +10,9 @@ export const useWithdrawalHistory = () => {
     try {
       console.log('Fetching withdrawal history for part:', partId);
       
-      // Real implementation to fetch data from Supabase
-      // Using 'from' with type assertion to bypass TypeScript checking
+      // Fetch withdrawal records without the intervention join
       const { data, error } = await supabase
-        .from('parts_withdrawals' as any)
+        .from('parts_withdrawals')
         .select(`
           id,
           part_id,
@@ -23,8 +22,7 @@ export const useWithdrawalHistory = () => {
           created_at,
           user_id,
           comment,
-          intervention_id,
-          interventions(id, title)
+          intervention_id
         `)
         .eq('part_id', partId)
         .order('created_at', { ascending: false });
@@ -41,25 +39,54 @@ export const useWithdrawalHistory = () => {
       
       console.log('Retrieved withdrawal records:', data.length);
       
+      // Get all unique intervention IDs
+      const interventionIds = data
+        .filter(record => record.intervention_id)
+        .map(record => record.intervention_id);
+      
+      // If there are interventions to fetch
+      let interventionsMap = {};
+      if (interventionIds.length > 0) {
+        // Fetch intervention details separately
+        const { data: interventionsData, error: interventionsError } = await supabase
+          .from('interventions')
+          .select('id, title')
+          .in('id', interventionIds);
+          
+        if (interventionsError) {
+          console.error('Error fetching interventions:', interventionsError);
+        } else if (interventionsData) {
+          // Create a map of interventions for easy lookup
+          interventionsMap = interventionsData.reduce((acc, intervention) => {
+            acc[intervention.id] = intervention;
+            return acc;
+          }, {});
+        }
+      }
+      
       // Transform the data to match our app's data structure
-      return (data as any[]).map(item => ({
-        id: item.id,
-        part_id: item.part_id,
-        part_name: "", // We'll get this from the part itself
-        quantity: item.quantity,
-        reason: item.reason,
-        custom_reason: item.custom_reason,
-        date: item.created_at,
-        created_at: item.created_at,
-        user_name: "Utilisateur", // We'll implement user name fetching later
-        intervention_id: item.intervention_id,
-        interventions: item.interventions ? {
-          id: item.interventions.id,
-          title: item.interventions.title
-        } : undefined,
-        intervention_title: item.interventions?.title,
-        comment: item.comment
-      }));
+      return data.map(item => {
+        const intervention = item.intervention_id ? interventionsMap[item.intervention_id] : null;
+        
+        return {
+          id: item.id,
+          part_id: item.part_id,
+          part_name: "", // We'll get this from the part itself
+          quantity: item.quantity,
+          reason: item.reason,
+          custom_reason: item.custom_reason,
+          date: item.created_at,
+          created_at: item.created_at,
+          user_name: "Utilisateur", // We'll implement user name fetching later
+          intervention_id: item.intervention_id,
+          interventions: intervention ? {
+            id: intervention.id,
+            title: intervention.title
+          } : undefined,
+          intervention_title: intervention ? intervention.title : undefined,
+          comment: item.comment
+        };
+      });
       
     } catch (error) {
       console.error('Error fetching withdrawal history:', error);
