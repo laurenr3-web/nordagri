@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { DialogWrapper } from '@/components/ui/dialog-wrapper';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,6 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { equipmentService } from '@/services/supabase/equipmentService';
 
 interface ImportMaintenanceDialogProps {
   isOpen: boolean;
@@ -47,21 +47,23 @@ const ImportMaintenanceDialog: React.FC<ImportMaintenanceDialogProps> = ({
   const [maintenanceItems, setMaintenanceItems] = useState<(MaintenanceTemplateItem & { selected: boolean })[]>([]);
   const [customItems, setCustomItems] = useState<CustomMaintenanceItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoadingEquipment, setIsLoadingEquipment] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>("template");
   
-  // Charger les équipements
+  // Charger les vrais équipements depuis Supabase
   useEffect(() => {
     const fetchEquipment = async () => {
       try {
-        // Normalement, vous auriez un service pour récupérer vos équipements
-        // Simulons les données ici pour l'exemple
-        const mockEquipment = [
-          { id: 1, name: 'Tracteur John Deere 6120R' },
-          { id: 2, name: 'Moissonneuse New Holland CX8.90' },
-          { id: 3, name: 'Pulvérisateur Amazone UX 5201' },
-        ];
+        setIsLoadingEquipment(true);
+        // Utiliser le service d'équipement pour récupérer les vrais équipements
+        const equipmentData = await equipmentService.getEquipment();
         
-        setEquipmentOptions(mockEquipment);
+        const mappedEquipment = equipmentData.map(eq => ({
+          id: eq.id,
+          name: eq.name || `Équipement #${eq.id}`
+        }));
+        
+        setEquipmentOptions(mappedEquipment);
         
         // Si un équipement initial est fourni, sélectionnez son template approprié
         if (initialEquipmentName) {
@@ -76,6 +78,8 @@ const ImportMaintenanceDialog: React.FC<ImportMaintenanceDialogProps> = ({
       } catch (error) {
         console.error('Erreur lors du chargement des équipements:', error);
         toast.error('Impossible de charger la liste des équipements');
+      } finally {
+        setIsLoadingEquipment(false);
       }
     };
     
@@ -260,10 +264,10 @@ const ImportMaintenanceDialog: React.FC<ImportMaintenanceDialogProps> = ({
           <Select 
             value={selectedEquipmentId?.toString()} 
             onValueChange={handleEquipmentChange}
-            disabled={!!initialEquipmentId}
+            disabled={!!initialEquipmentId || isLoadingEquipment}
           >
             <SelectTrigger id="equipment">
-              <SelectValue placeholder="Sélectionner un équipement" />
+              <SelectValue placeholder={isLoadingEquipment ? "Chargement..." : "Sélectionner un équipement"} />
             </SelectTrigger>
             <SelectContent>
               {equipmentOptions.map(equipment => (
