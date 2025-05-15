@@ -58,8 +58,14 @@ export const useWithdrawalHistory = () => {
       
       console.log('Retrieved withdrawal records:', data.length);
       
-      // Cast data to our known type
-      const withdrawalRecords = data as PartsWithdrawal[];
+      // More safely cast data by first checking it's an array and then casting
+      if (!Array.isArray(data)) {
+        console.error('Expected array but got:', typeof data);
+        return [];
+      }
+      
+      // Cast to unknown first, then to our type
+      const withdrawalRecords = data as unknown as PartsWithdrawal[];
       
       // Get all unique intervention IDs
       const interventionIds = withdrawalRecords
@@ -79,9 +85,13 @@ export const useWithdrawalHistory = () => {
           
         if (interventionsError) {
           console.error('Error fetching interventions:', interventionsError);
-        } else if (interventionsData) {
+        } else if (interventionsData && Array.isArray(interventionsData)) {
+          // More safely cast by first making sure it's an array
+          // Cast to unknown first, then to our type
+          const safeInterventionsData = interventionsData as unknown as InterventionBasic[];
+          
           // Create a map of interventions for easy lookup
-          interventionsMap = (interventionsData as InterventionBasic[]).reduce((acc, intervention) => {
+          interventionsMap = safeInterventionsData.reduce((acc, intervention) => {
             acc[intervention.id] = intervention;
             return acc;
           }, {} as Record<number, InterventionBasic>);
