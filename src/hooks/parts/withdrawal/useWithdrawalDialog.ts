@@ -87,10 +87,12 @@ export const useWithdrawalDialog = () => {
         }
       } catch (stockError: any) {
         // If stock update fails, we should delete the withdrawal record
+        // Make sure to cast data to any to access its id property
+        const typedData = data as any;
         await supabase
           .from('parts_withdrawals' as any)
           .delete()
-          .eq('id', data.id);
+          .eq('id', typedData.id);
           
         throw new Error(stockError.message || 'Erreur lors de la mise à jour du stock');
       }
