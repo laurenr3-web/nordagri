@@ -55,16 +55,16 @@ const ContentWrapper: React.FC<ContentWrapperProps> = ({ part }) => {
         try {
           // Get withdrawal history with error handling
           const data = await getWithdrawalHistory(partId);
-          console.log('Withdrawal history data received:', data);
+          
+          // Add part name to the records
+          const recordsWithPartName = data.map(record => ({
+            ...record,
+            part_name: part.name || `Pièce #${partId}`
+          }));
           
           if (isMounted) {
-            if (!data) {
-              console.warn('No withdrawal history data returned');
-              setHistory([]);
-            } else {
-              // Ensure we have an array
-              setHistory(Array.isArray(data) ? data : []);
-            }
+            console.log('Setting withdrawal history data:', recordsWithPartName);
+            setHistory(recordsWithPartName);
           }
         } catch (fetchError: any) {
           console.error('Error in getWithdrawalHistory:', fetchError);
@@ -92,7 +92,7 @@ const ContentWrapper: React.FC<ContentWrapperProps> = ({ part }) => {
     return () => {
       isMounted = false; // Prevent state updates after unmount
     };
-  }, [partId, getWithdrawalHistory]); // Only re-run when partId or getWithdrawalHistory change
+  }, [partId, getWithdrawalHistory, part.name]); // Added part.name as dependency
 
   // Loading state
   if (isLoading) {

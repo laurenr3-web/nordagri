@@ -90,6 +90,20 @@
 | owner_id | uuid | ID du propriétaire |
 | farm_id | uuid | ID de l'exploitation |
 
+### `parts_withdrawals` - Retraits de pièces
+| Colonne | Type | Description |
+|---------|------|-------------|
+| id | bigint | Identifiant unique auto-increment |
+| part_id | bigint | Référence à parts(id) |
+| quantity | integer | Quantité retirée |
+| reason | varchar(50) | Raison du retrait |
+| custom_reason | varchar(255) | Raison personnalisée si 'other' |
+| intervention_id | bigint | Référence à interventions(id) |
+| comment | text | Commentaire |
+| user_id | uuid | Référence à auth.users(id) |
+| created_at | timestamp with time zone | Date du retrait (default: now()) |
+| farm_id | bigint | Référence à farms(id) |
+
 ## Relations et Sécurité
 
 ### Politiques de sécurité (RLS)
@@ -108,6 +122,8 @@ profiles <- equipment -> maintenance_tasks
     +--- fuel_logs
     |
     +--- parts_inventory
+    |
+    +--- parts_withdrawals
 ```
 
 ## Fonctions clés
@@ -120,3 +136,20 @@ Calcul automatique du coût total de carburant.
 
 ### `get_equipment_statistics()`
 Récupération des statistiques de maintenance pour un équipement.
+
+### `decrement_part_stock(p_part_id BIGINT, p_quantity INTEGER)`
+Décrémente le stock d'une pièce en vérifiant que le stock est suffisant.
+```sql
+CREATE OR REPLACE FUNCTION decrement_part_stock(p_part_id BIGINT, p_quantity INTEGER)
+RETURNS VOID AS $$
+BEGIN
+  UPDATE parts
+  SET stock = stock - p_quantity
+  WHERE id = p_part_id AND stock >= p_quantity;
+  
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Stock insuffisant ou pièce non trouvée';
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
+```

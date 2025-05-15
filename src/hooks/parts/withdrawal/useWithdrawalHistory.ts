@@ -10,91 +10,56 @@ export const useWithdrawalHistory = () => {
     try {
       console.log('Fetching withdrawal history for part:', partId);
       
-      // For demo/testing purposes, return mock data
-      // In production, this would be replaced with actual API call
-      const mockData: WithdrawalRecord[] = [
-        {
-          id: 1,
-          part_id: partId,
-          part_name: "Example Part",
-          quantity: 2,
-          reason: "maintenance",
-          created_at: "2024-05-10T14:30:00",
-          date: "2024-05-10T14:30:00",
-          user_name: "Jean Dupont",
-          intervention_id: 123,
-          intervention_title: "Maintenance tracteur",
-          interventions: {
-            id: 123,
-            title: "Maintenance tracteur"
-          }
-        },
-        {
-          id: 2,
-          part_id: partId,
-          part_name: "Example Part",
-          quantity: 1,
-          reason: "repair",
-          created_at: "2024-05-08T10:15:00",
-          date: "2024-05-08T10:15:00",
-          user_name: "Sophie Martin",
-          comment: "Remplacement urgent"
-        },
-        {
-          id: 3,
-          part_id: partId,
-          part_name: "Example Part",
-          quantity: 3,
-          reason: "other",
-          custom_reason: "Préparation stock saison",
-          created_at: "2024-05-05T16:45:00",
-          date: "2024-05-05T16:45:00",
-          user_name: "Alexandre Petit"
-        }
-      ];
-      
-      return mockData;
-      
-      /* Real implementation when table is ready:
+      // Real implementation to fetch data from Supabase
       const { data, error } = await supabase
         .from('parts_withdrawals')
         .select(`
           id,
           part_id,
-          part_name,
           quantity,
           reason,
           custom_reason,
           created_at,
-          users(name),
+          user_id,
+          comment,
           intervention_id,
-          interventions(title),
-          comment
+          interventions(id, title)
         `)
         .eq('part_id', partId)
         .order('created_at', { ascending: false });
         
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error fetching withdrawal history:', error);
+        throw error;
+      }
       
+      if (!data || data.length === 0) {
+        console.log('No withdrawal records found for part:', partId);
+        return [];
+      }
+      
+      console.log('Retrieved withdrawal records:', data.length);
+      
+      // Transform the data to match our app's data structure
       return data.map(item => ({
         id: item.id,
         part_id: item.part_id,
-        part_name: item.part_name,
+        part_name: "", // We'll get this from the part itself
         quantity: item.quantity,
         reason: item.reason,
         custom_reason: item.custom_reason,
         date: item.created_at,
         created_at: item.created_at,
-        user_name: item.users ? item.users.name : 'Utilisateur inconnu',
+        user_name: "Utilisateur", // We'll implement user name fetching later
         intervention_id: item.intervention_id,
-        intervention_title: item.interventions ? item.interventions.title : undefined,
         interventions: item.interventions ? {
-          id: item.intervention_id,
+          id: item.interventions.id,
           title: item.interventions.title
         } : undefined,
+        intervention_title: item.interventions?.title,
         comment: item.comment
       }));
-      */
+      
     } catch (error) {
       console.error('Error fetching withdrawal history:', error);
       throw error;
@@ -102,7 +67,7 @@ export const useWithdrawalHistory = () => {
   }, []);
 
   // Format reason text based on reason code and custom reason
-  const formatWithdrawalReason = useCallback((reason: string, customReason?: string): string => {
+  const formatWithdrawalReason = useCallback((reason: string, customReason?: string | null): string => {
     if (reason === 'other' && customReason) {
       return customReason;
     }

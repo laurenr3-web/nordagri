@@ -1,14 +1,11 @@
 
 import { WithdrawalReason } from './types';
 
-// Constants used in withdrawal components
 export const WITHDRAWAL_REASONS: WithdrawalReason[] = [
-  { id: 'maintenance', label: 'Maintenance' },
+  { id: 'maintenance', label: 'Maintenance préventive' },
   { id: 'repair', label: 'Réparation' },
-  { id: 'replace', label: 'Remplacement' },
-  { id: 'used_up', label: 'Utilisation normale' },
+  { id: 'replacement', label: 'Remplacement' },
   { id: 'defective', label: 'Pièce défectueuse' },
-  { id: 'expired', label: 'Expirée' },
-  { id: 'lost', label: 'Perdue/Égarée' },
-  { id: 'other', label: 'Autre (préciser)' }
+  { id: 'inventory', label: 'Ajustement d\'inventaire' },
+  { id: 'other', label: 'Autre raison' }
 ];

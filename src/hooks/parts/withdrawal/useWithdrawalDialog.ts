@@ -17,22 +17,18 @@ export const useWithdrawalDialog = () => {
     queryFn: async () => {
       try {
         console.log('Fetching interventions for withdrawal dialog');
-        // Temporarily mock interventions data until the Supabase tables are set up
-        return [
-          { id: 1, title: "Maintenance préventive tracteur #1", equipment_id: 1, date: "2024-06-01", status: "planned" },
-          { id: 2, title: "Réparation moissonneuse", equipment_id: 2, date: "2024-05-28", status: "in_progress" },
-          { id: 3, title: "Révision système hydraulique", equipment_id: 3, date: "2024-05-20", status: "completed" }
-        ] as Intervention[];
         
-        /* Real implementation when tables are ready:
         const { data, error } = await supabase
           .from('interventions')
           .select('id, title, equipment_id, date, status')
           .order('date', { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching interventions:', error);
+          throw error;
+        }
+        
         return data as Intervention[];
-        */
       } catch (error) {
         console.error('Error fetching interventions:', error);
         return [];
@@ -44,55 +40,64 @@ export const useWithdrawalDialog = () => {
   // Mutation for submitting a withdrawal
   const withdrawalMutation = useMutation({
     mutationFn: async (withdrawal: PartsWithdrawal) => {
-      // For testing/demo purposes, just return the withdrawal data
       console.log("Withdrawal mutation called with:", withdrawal);
       
-      // Simulate successful withdrawal
-      const partToUpdate = selectedPart;
-      if (partToUpdate) {
-        partToUpdate.stock -= withdrawal.quantity;
+      // Get current user ID
+      const { data: authData } = await supabase.auth.getUser();
+      const userId = authData.user?.id;
+      
+      if (!userId) {
+        throw new Error('User not authenticated');
       }
       
-      return withdrawal;
-      
-      /* Real implementation when tables are ready:
-      // 1. Insert the withdrawal into parts_withdrawals table
-      const { data: withdrawalData, error: withdrawalError } = await supabase
+      // 1. Insert the withdrawal record
+      const { data, error } = await supabase
         .from('parts_withdrawals')
         .insert({
           part_id: withdrawal.part_id,
-          part_name: withdrawal.part_name,
           quantity: withdrawal.quantity,
           reason: withdrawal.reason,
           custom_reason: withdrawal.reason === 'other' ? withdrawal.custom_reason : null,
           intervention_id: withdrawal.intervention_id || null,
           comment: withdrawal.comment,
-          user_id: (await supabase.auth.getUser()).data.user?.id
+          user_id: userId
         })
         .select()
         .single();
 
-      if (withdrawalError) throw withdrawalError;
+      if (error) {
+        console.error('Error inserting withdrawal record:', error);
+        throw error;
+      }
 
       // 2. Update the part's stock
-      const { error: updateError } = await supabase
-        .from('parts')
-        .update({ 
-          stock: supabase.rpc('decrement', { 
-            row_id: withdrawal.part_id, 
-            amount: withdrawal.quantity 
-          }) 
-        })
-        .eq('id', withdrawal.part_id);
+      try {
+        // Call the decrement_part_stock function we created in SQL
+        const { error: updateError } = await supabase.rpc('decrement_part_stock', {
+          p_part_id: withdrawal.part_id,
+          p_quantity: withdrawal.quantity
+        });
 
-      if (updateError) throw updateError;
+        if (updateError) {
+          console.error('Error updating part stock:', updateError);
+          throw updateError;
+        }
+      } catch (stockError: any) {
+        // If stock update fails, we should delete the withdrawal record
+        await supabase
+          .from('parts_withdrawals')
+          .delete()
+          .eq('id', data.id);
+          
+        throw new Error(stockError.message || 'Erreur lors de la mise à jour du stock');
+      }
 
-      return withdrawalData;
-      */
+      return data;
     },
     onSuccess: () => {
       // Invalidate queries to force data reload
       queryClient.invalidateQueries({ queryKey: ['parts'] });
+      queryClient.invalidateQueries({ queryKey: ['withdrawalHistory'] });
       toast.success('Pièce retirée avec succès');
       setIsWithdrawalDialogOpen(false);
       setSelectedPart(null);
