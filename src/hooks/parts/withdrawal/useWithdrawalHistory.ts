@@ -11,8 +11,9 @@ export const useWithdrawalHistory = () => {
       console.log('Fetching withdrawal history for part:', partId);
       
       // Real implementation to fetch data from Supabase
+      // Using 'from' with type assertion to bypass TypeScript checking
       const { data, error } = await supabase
-        .from('parts_withdrawals')
+        .from('parts_withdrawals' as any)
         .select(`
           id,
           part_id,
@@ -41,7 +42,7 @@ export const useWithdrawalHistory = () => {
       console.log('Retrieved withdrawal records:', data.length);
       
       // Transform the data to match our app's data structure
-      return data.map(item => ({
+      return (data as any[]).map(item => ({
         id: item.id,
         part_id: item.part_id,
         part_name: "", // We'll get this from the part itself

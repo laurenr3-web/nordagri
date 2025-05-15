@@ -52,7 +52,7 @@ export const useWithdrawalDialog = () => {
       
       // 1. Insert the withdrawal record
       const { data, error } = await supabase
-        .from('parts_withdrawals')
+        .from('parts_withdrawals' as any)
         .insert({
           part_id: withdrawal.part_id,
           quantity: withdrawal.quantity,
@@ -73,10 +73,13 @@ export const useWithdrawalDialog = () => {
       // 2. Update the part's stock
       try {
         // Call the decrement_part_stock function we created in SQL
-        const { error: updateError } = await supabase.rpc('decrement_part_stock', {
-          p_part_id: withdrawal.part_id,
-          p_quantity: withdrawal.quantity
-        });
+        const { error: updateError } = await supabase.rpc(
+          'decrement_part_stock' as any,
+          {
+            p_part_id: withdrawal.part_id,
+            p_quantity: withdrawal.quantity
+          }
+        );
 
         if (updateError) {
           console.error('Error updating part stock:', updateError);
@@ -85,7 +88,7 @@ export const useWithdrawalDialog = () => {
       } catch (stockError: any) {
         // If stock update fails, we should delete the withdrawal record
         await supabase
-          .from('parts_withdrawals')
+          .from('parts_withdrawals' as any)
           .delete()
           .eq('id', data.id);
           
