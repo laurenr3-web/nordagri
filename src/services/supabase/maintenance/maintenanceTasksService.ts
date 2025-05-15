@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { MaintenanceTask, MaintenanceStatus, MaintenanceType, MaintenancePriority } from '@/hooks/maintenance/maintenanceSlice';
 
@@ -204,6 +203,74 @@ export class MaintenanceTasksService {
       console.error('Error completing task:', error);
       throw new Error('Failed to complete maintenance task');
     }
+  }
+
+  async bulkCreateMaintenance(tasks: Omit<MaintenanceTask, 'id'>[]): Promise<MaintenanceTask[]> {
+    console.log('Bulk creating maintenance tasks:', tasks);
+    
+    if (tasks.length === 0) {
+      return [];
+    }
+    
+    // Récupérer l'utilisateur connecté
+    const { data: sessionData } = await supabase.auth.getSession();
+    const currentUserId = sessionData.session?.user?.id;
+    
+    if (!currentUserId) {
+      console.error('No authenticated user found when adding task');
+      throw new Error('You must be logged in to add maintenance tasks');
+    }
+    
+    // Préparer les données pour l'insertion en masse
+    const insertData = tasks.map(task => ({
+      title: task.title,
+      equipment: task.equipment,
+      equipment_id: task.equipmentId,
+      type: task.type,
+      status: task.status || 'scheduled',
+      priority: task.priority,
+      due_date: task.dueDate.toISOString(),
+      estimated_duration: task.engineHours,
+      assigned_to: task.assignedTo,
+      notes: task.notes,
+      trigger_unit: task.trigger_unit,
+      trigger_hours: task.trigger_hours,
+      trigger_kilometers: task.trigger_kilometers,
+      owner_id: currentUserId
+    }));
+    
+    console.log('Prepared data for bulk insertion:', insertData);
+
+    const { data, error } = await supabase
+      .from('maintenance_tasks')
+      .insert(insertData)
+      .select();
+
+    if (error) {
+      console.error('Error bulk adding tasks:', error);
+      throw new Error('Failed to add maintenance tasks: ' + error.message);
+    }
+
+    console.log('Tasks added successfully, returned data:', data);
+
+    return data.map(task => ({
+      id: task.id,
+      title: task.title,
+      equipment: task.equipment,
+      equipmentId: task.equipment_id,
+      type: task.type as MaintenanceType,
+      status: task.status as MaintenanceStatus,
+      priority: task.priority as MaintenancePriority,
+      dueDate: new Date(task.due_date),
+      completedDate: task.completed_date ? new Date(task.completed_date) : undefined,
+      engineHours: task.estimated_duration || 0,
+      actualDuration: task.actual_duration,
+      assignedTo: task.assigned_to || '',
+      notes: task.notes || '',
+      trigger_unit: task.trigger_unit,
+      trigger_hours: task.trigger_hours,
+      trigger_kilometers: task.trigger_kilometers,
+    }));
   }
 }
 

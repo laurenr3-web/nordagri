@@ -7,6 +7,7 @@ export const maintenanceService = {
   // Méthodes de maintenanceTasksService
   getTasks: maintenanceTasksService.getTasks.bind(maintenanceTasksService),
   addTask: maintenanceTasksService.addTask.bind(maintenanceTasksService),
+  bulkCreateMaintenance: maintenanceTasksService.bulkCreateMaintenance.bind(maintenanceTasksService),
   updateTaskStatus: maintenanceTasksService.updateTaskStatus.bind(maintenanceTasksService),
   updateTaskPriority: maintenanceTasksService.updateTaskPriority.bind(maintenanceTasksService),
   deleteTask: maintenanceTasksService.deleteTask.bind(maintenanceTasksService),

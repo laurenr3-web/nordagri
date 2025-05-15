@@ -7,13 +7,15 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { FileDown, Plus, Trash } from 'lucide-react';
+import { FileDown, Plus, Trash, Wrench, Filter, Droplets, Settings, Check } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { maintenanceTemplates, MaintenanceTemplateItem } from '@/constants/maintenanceTemplates';
 import { maintenanceService } from '@/services/supabase/maintenanceService';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
 
 interface ImportMaintenanceDialogProps {
   isOpen: boolean;
@@ -45,6 +47,7 @@ const ImportMaintenanceDialog: React.FC<ImportMaintenanceDialogProps> = ({
   const [maintenanceItems, setMaintenanceItems] = useState<(MaintenanceTemplateItem & { selected: boolean })[]>([]);
   const [customItems, setCustomItems] = useState<CustomMaintenanceItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<string>("template");
   
   // Charger les équipements
   useEffect(() => {
@@ -105,6 +108,14 @@ const ImportMaintenanceDialog: React.FC<ImportMaintenanceDialogProps> = ({
       )
     );
   };
+
+  const toggleAllMaintenanceItems = (selected: boolean) => {
+    setMaintenanceItems(prev => prev.map(item => ({ ...item, selected })));
+  };
+  
+  const toggleAllCustomItems = (selected: boolean) => {
+    setCustomItems(prev => prev.map(item => ({ ...item, selected })));
+  };
   
   const updateMaintenanceItemInterval = (id: string, interval: number) => {
     setMaintenanceItems(prev => 
@@ -139,6 +150,20 @@ const ImportMaintenanceDialog: React.FC<ImportMaintenanceDialogProps> = ({
         i === index ? { ...item, [field]: value } : item
       )
     );
+  };
+
+  // Obtenir l'icône appropriée selon la catégorie
+  const getCategoryIcon = (category: string) => {
+    const lowerCategory = category.toLowerCase();
+    if (lowerCategory.includes('moteur') || lowerCategory.includes('mécanique')) {
+      return <Wrench className="h-4 w-4" />;
+    } else if (lowerCategory.includes('filtre')) {
+      return <Filter className="h-4 w-4" />;
+    } else if (lowerCategory.includes('hydraulique') || lowerCategory.includes('fluid')) {
+      return <Droplets className="h-4 w-4" />;
+    } else {
+      return <Settings className="h-4 w-4" />;
+    }
   };
   
   const handleImport = async () => {
@@ -203,10 +228,8 @@ const ImportMaintenanceDialog: React.FC<ImportMaintenanceDialogProps> = ({
         }))
       ];
       
-      // Ajouter chaque tâche à la base de données
-      for (const task of maintenanceTasks) {
-        await maintenanceService.addTask(task);
-      }
+      // Utiliser la nouvelle méthode bulkCreateMaintenance
+      await maintenanceService.bulkCreateMaintenance(maintenanceTasks);
       
       toast.success(`${maintenanceTasks.length} entretiens importés avec succès`);
       onClose();
@@ -268,181 +291,241 @@ const ImportMaintenanceDialog: React.FC<ImportMaintenanceDialogProps> = ({
           </Select>
         </div>
         
-        <Tabs defaultValue="template" className="w-full">
+        <Tabs defaultValue="template" value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-2 mb-4">
             <TabsTrigger value="template">Entretiens recommandés</TabsTrigger>
             <TabsTrigger value="custom">Entretiens personnalisés</TabsTrigger>
           </TabsList>
           
           <TabsContent value="template" className="space-y-4">
-            <div className="max-h-[300px] overflow-y-auto space-y-2">
-              {maintenanceItems.map((item) => (
-                <Card key={item.id} className="overflow-hidden">
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-2">
-                      <Checkbox 
-                        id={`check-${item.id}`}
-                        checked={item.selected}
-                        onCheckedChange={() => toggleMaintenanceItem(item.id)}
-                        className="mt-1"
-                      />
-                      <div className="flex-1 space-y-2">
-                        <Label 
-                          htmlFor={`check-${item.id}`}
-                          className="font-medium block"
-                        >
-                          {item.name}
-                        </Label>
-                        <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <span>Catégorie: {item.category}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <span>Priorité: {item.priority}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Label htmlFor={`interval-${item.id}`}>Intervalle:</Label>
-                          <Input 
-                            id={`interval-${item.id}`}
-                            type="number" 
-                            value={item.interval} 
-                            onChange={(e) => updateMaintenanceItemInterval(item.id, parseInt(e.target.value) || 0)}
-                            className="w-20 h-8"
-                            disabled={!item.selected}
-                          />
-                          <span className="text-sm">{item.interval_type}</span>
-                        </div>
-                        <p className="text-sm">{item.description}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="flex justify-between items-center mb-2">
+              <div className="text-sm text-muted-foreground">
+                {maintenanceItems.filter(i => i.selected).length} entretiens sélectionnés sur {maintenanceItems.length}
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => toggleAllMaintenanceItems(true)}
+                >
+                  <Check className="h-4 w-4 mr-1" /> Tout sélectionner
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => toggleAllMaintenanceItems(false)}
+                >
+                  Tout désélectionner
+                </Button>
+              </div>
             </div>
+
+            <ScrollArea className="h-[300px] pr-4">
+              <div className="space-y-3">
+                {maintenanceItems.map((item) => (
+                  <Card key={item.id} className={`overflow-hidden transition-colors ${item.selected ? 'border-primary/30' : 'border-muted'}`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <Checkbox 
+                          id={`check-${item.id}`}
+                          checked={item.selected}
+                          onCheckedChange={() => toggleMaintenanceItem(item.id)}
+                          className="mt-1"
+                        />
+                        <div className="flex-1 space-y-2">
+                          <div className="flex justify-between items-start">
+                            <Label 
+                              htmlFor={`check-${item.id}`}
+                              className="font-medium text-base flex items-center gap-2"
+                            >
+                              {getCategoryIcon(item.category)}
+                              {item.name}
+                            </Label>
+                            <Badge variant={item.priority === 'high' ? 'destructive' : item.priority === 'medium' ? 'default' : 'outline'}>
+                              {item.priority === 'high' ? 'Critique' : item.priority === 'medium' ? 'Important' : 'Normal'}
+                            </Badge>
+                          </div>
+                          <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+                            <Badge variant="outline" className="bg-muted/50">
+                              {item.category}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-2 bg-muted/30 p-2 rounded-md">
+                            <Label htmlFor={`interval-${item.id}`} className="whitespace-nowrap">Intervalle:</Label>
+                            <Input 
+                              id={`interval-${item.id}`}
+                              type="number" 
+                              value={item.interval} 
+                              onChange={(e) => updateMaintenanceItemInterval(item.id, parseInt(e.target.value) || 0)}
+                              className="w-24 h-8"
+                              disabled={!item.selected}
+                            />
+                            <Badge variant="secondary" className="ml-1">
+                              {item.interval_type === 'hours' ? 'Heures' : 
+                               item.interval_type === 'months' ? 'Mois' : 'Kilomètres'}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{item.description}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </ScrollArea>
           </TabsContent>
           
           <TabsContent value="custom" className="space-y-4">
-            <div className="max-h-[300px] overflow-y-auto space-y-4">
-              {customItems.map((item, index) => (
-                <Card key={index}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-2">
-                      <Checkbox 
-                        id={`custom-${index}`}
-                        checked={item.selected}
-                        onCheckedChange={(checked) => updateCustomItem(index, 'selected', !!checked)}
-                        className="mt-1"
-                      />
-                      <div className="flex-1 space-y-3">
-                        <div className="flex items-start justify-between">
-                          <Label htmlFor={`custom-name-${index}`} className="mb-1 block">Nom</Label>
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => removeCustomItem(index)}
-                            className="h-8 w-8"
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <Input 
-                          id={`custom-name-${index}`}
-                          value={item.name}
-                          onChange={(e) => updateCustomItem(index, 'name', e.target.value)}
-                          placeholder="Nom de l'entretien"
-                          disabled={!item.selected}
-                        />
-                        
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <Label htmlFor={`custom-category-${index}`}>Catégorie</Label>
-                            <Input 
-                              id={`custom-category-${index}`}
-                              value={item.category}
-                              onChange={(e) => updateCustomItem(index, 'category', e.target.value)}
-                              placeholder="Ex: Moteur, Filtres..."
-                              disabled={!item.selected}
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <Label htmlFor={`custom-priority-${index}`}>Priorité</Label>
-                            <Select 
-                              value={item.priority}
-                              onValueChange={(value) => updateCustomItem(index, 'priority', value)}
-                              disabled={!item.selected}
-                            >
-                              <SelectTrigger id={`custom-priority-${index}`}>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="low">Basse</SelectItem>
-                                <SelectItem value="medium">Moyenne</SelectItem>
-                                <SelectItem value="high">Haute</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <Label htmlFor={`custom-interval-${index}`}>Intervalle</Label>
-                            <Input 
-                              id={`custom-interval-${index}`}
-                              type="number"
-                              value={item.interval}
-                              onChange={(e) => updateCustomItem(index, 'interval', parseInt(e.target.value) || 0)}
-                              disabled={!item.selected}
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <Label htmlFor={`custom-interval-type-${index}`}>Type d'intervalle</Label>
-                            <Select 
-                              value={item.interval_type}
-                              onValueChange={(value: any) => updateCustomItem(index, 'interval_type', value)}
-                              disabled={!item.selected}
-                            >
-                              <SelectTrigger id={`custom-interval-type-${index}`}>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="hours">Heures</SelectItem>
-                                <SelectItem value="months">Mois</SelectItem>
-                                <SelectItem value="kilometers">Kilomètres</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-1">
-                          <Label htmlFor={`custom-description-${index}`}>Description</Label>
-                          <Textarea 
-                            id={`custom-description-${index}`}
-                            value={item.description}
-                            onChange={(e) => updateCustomItem(index, 'description', e.target.value)}
-                            placeholder="Description détaillée de l'entretien"
-                            disabled={!item.selected}
-                            className="h-20"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-              
-              {customItems.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>Aucun entretien personnalisé ajouté</p>
-                  <p className="text-sm">Cliquez sur le bouton ci-dessous pour ajouter un entretien</p>
+            <div className="flex justify-between items-center mb-2">
+              <div className="text-sm text-muted-foreground">
+                {customItems.filter(i => i.selected && i.name).length} entretiens personnalisés
+              </div>
+              {customItems.length > 0 && (
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => toggleAllCustomItems(true)}
+                  >
+                    <Check className="h-4 w-4 mr-1" /> Tout sélectionner
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => toggleAllCustomItems(false)}
+                  >
+                    Tout désélectionner
+                  </Button>
                 </div>
               )}
-              
-              <Button onClick={addCustomItem} variant="outline" className="w-full">
-                <Plus className="h-4 w-4 mr-2" />
-                Ajouter un entretien personnalisé
-              </Button>
             </div>
+
+            <ScrollArea className="h-[300px] pr-4">
+              <div className="space-y-4">
+                {customItems.map((item, index) => (
+                  <Card key={index} className={`overflow-hidden transition-colors ${item.selected ? 'border-primary/30' : 'border-muted'}`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-2">
+                        <Checkbox 
+                          id={`custom-${index}`}
+                          checked={item.selected}
+                          onCheckedChange={(checked) => updateCustomItem(index, 'selected', !!checked)}
+                          className="mt-1"
+                        />
+                        <div className="flex-1 space-y-3">
+                          <div className="flex items-start justify-between">
+                            <Label htmlFor={`custom-name-${index}`} className="mb-1 block">Nom</Label>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => removeCustomItem(index)}
+                              className="h-8 w-8 text-destructive hover:text-destructive/90"
+                            >
+                              <Trash className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <Input 
+                            id={`custom-name-${index}`}
+                            value={item.name}
+                            onChange={(e) => updateCustomItem(index, 'name', e.target.value)}
+                            placeholder="Nom de l'entretien"
+                            disabled={!item.selected}
+                          />
+                          
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                              <Label htmlFor={`custom-category-${index}`}>Catégorie</Label>
+                              <Input 
+                                id={`custom-category-${index}`}
+                                value={item.category}
+                                onChange={(e) => updateCustomItem(index, 'category', e.target.value)}
+                                placeholder="Ex: Moteur, Filtres..."
+                                disabled={!item.selected}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor={`custom-priority-${index}`}>Priorité</Label>
+                              <Select 
+                                value={item.priority}
+                                onValueChange={(value) => updateCustomItem(index, 'priority', value)}
+                                disabled={!item.selected}
+                              >
+                                <SelectTrigger id={`custom-priority-${index}`}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="low">Basse</SelectItem>
+                                  <SelectItem value="medium">Moyenne</SelectItem>
+                                  <SelectItem value="high">Haute</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                              <Label htmlFor={`custom-interval-${index}`}>Intervalle</Label>
+                              <Input 
+                                id={`custom-interval-${index}`}
+                                type="number"
+                                value={item.interval}
+                                onChange={(e) => updateCustomItem(index, 'interval', parseInt(e.target.value) || 0)}
+                                disabled={!item.selected}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor={`custom-interval-type-${index}`}>Type d'intervalle</Label>
+                              <Select 
+                                value={item.interval_type}
+                                onValueChange={(value: any) => updateCustomItem(index, 'interval_type', value)}
+                                disabled={!item.selected}
+                              >
+                                <SelectTrigger id={`custom-interval-type-${index}`}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="hours">Heures</SelectItem>
+                                  <SelectItem value="months">Mois</SelectItem>
+                                  <SelectItem value="kilometers">Kilomètres</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <Label htmlFor={`custom-description-${index}`}>Description</Label>
+                            <Textarea 
+                              id={`custom-description-${index}`}
+                              value={item.description}
+                              onChange={(e) => updateCustomItem(index, 'description', e.target.value)}
+                              placeholder="Description détaillée de l'entretien"
+                              disabled={!item.selected}
+                              className="h-20"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                
+                <Button onClick={addCustomItem} variant="outline" className="w-full">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Ajouter un entretien personnalisé
+                </Button>
+              </div>
+            </ScrollArea>
+
+            {customItems.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>Aucun entretien personnalisé ajouté</p>
+                <p className="text-sm">Cliquez sur le bouton ci-dessous pour ajouter un entretien</p>
+                <Button onClick={addCustomItem} variant="outline" className="mt-4">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Ajouter un entretien personnalisé
+                </Button>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
         
