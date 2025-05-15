@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { maintenanceTemplates } from '@/constants/maintenanceTemplates';
+import { maintenanceTemplates, MaintenanceTemplateItem } from '@/constants/maintenanceTemplates';
 import { maintenanceService } from '@/services/supabase/maintenanceService';
 import { useEquipment } from '@/hooks/equipment/useEquipment';
 import TemplateTab from './TemplateTab';
