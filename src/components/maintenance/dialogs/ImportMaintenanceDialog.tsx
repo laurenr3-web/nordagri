@@ -15,18 +15,13 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { equipmentService } from '@/services/supabase/equipmentService';
+import { useEquipment } from '@/hooks/equipment/useEquipment';
 
 interface ImportMaintenanceDialogProps {
   isOpen: boolean;
   onClose: () => void;
   equipmentId?: number;
   equipmentName?: string;
-}
-
-interface EquipmentOption {
-  id: number;
-  name: string;
 }
 
 interface CustomMaintenanceItem extends Omit<MaintenanceTemplateItem, 'id'> {
@@ -43,50 +38,15 @@ const ImportMaintenanceDialog: React.FC<ImportMaintenanceDialogProps> = ({
   const [selectedTemplate, setSelectedTemplate] = useState<string>('Tracteur');
   const [selectedEquipmentId, setSelectedEquipmentId] = useState<number | undefined>(initialEquipmentId);
   const [selectedEquipmentName, setSelectedEquipmentName] = useState<string | undefined>(initialEquipmentName);
-  const [equipmentOptions, setEquipmentOptions] = useState<EquipmentOption[]>([]);
   const [maintenanceItems, setMaintenanceItems] = useState<(MaintenanceTemplateItem & { selected: boolean })[]>([]);
   const [customItems, setCustomItems] = useState<CustomMaintenanceItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isLoadingEquipment, setIsLoadingEquipment] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>("template");
   
-  // Charger les vrais équipements depuis Supabase
-  useEffect(() => {
-    const fetchEquipment = async () => {
-      try {
-        setIsLoadingEquipment(true);
-        // Utiliser le service d'équipement pour récupérer les vrais équipements
-        const equipmentData = await equipmentService.getEquipment();
-        
-        const mappedEquipment = equipmentData.map(eq => ({
-          id: eq.id,
-          name: eq.name || `Équipement #${eq.id}`
-        }));
-        
-        setEquipmentOptions(mappedEquipment);
-        
-        // Si un équipement initial est fourni, sélectionnez son template approprié
-        if (initialEquipmentName) {
-          if (initialEquipmentName.toLowerCase().includes('tracteur')) {
-            setSelectedTemplate('Tracteur');
-          } else if (initialEquipmentName.toLowerCase().includes('moissonneus')) {
-            setSelectedTemplate('Moissonneuse');
-          } else if (initialEquipmentName.toLowerCase().includes('pulvéris')) {
-            setSelectedTemplate('Pulvérisateur');
-          }
-        }
-      } catch (error) {
-        console.error('Erreur lors du chargement des équipements:', error);
-        toast.error('Impossible de charger la liste des équipements');
-      } finally {
-        setIsLoadingEquipment(false);
-      }
-    };
-    
-    fetchEquipment();
-  }, [initialEquipmentId, initialEquipmentName]);
+  // Fetch real equipment data from Supabase
+  const { data: equipmentData, isLoading: isLoadingEquipment } = useEquipment();
   
-  // Mettre à jour les éléments de maintenance lorsque le template change
+  // Update maintenance items when the template changes
   useEffect(() => {
     const template = maintenanceTemplates.find(t => t.type === selectedTemplate);
     if (template) {
@@ -94,13 +54,26 @@ const ImportMaintenanceDialog: React.FC<ImportMaintenanceDialogProps> = ({
     }
   }, [selectedTemplate]);
   
+  // When receiving an initial equipment, select appropriate template
+  useEffect(() => {
+    if (initialEquipmentName) {
+      if (initialEquipmentName.toLowerCase().includes('tracteur')) {
+        setSelectedTemplate('Tracteur');
+      } else if (initialEquipmentName.toLowerCase().includes('moissonneus')) {
+        setSelectedTemplate('Moissonneuse');
+      } else if (initialEquipmentName.toLowerCase().includes('pulvéris')) {
+        setSelectedTemplate('Pulvérisateur');
+      }
+    }
+  }, [initialEquipmentId, initialEquipmentName]);
+  
   const handleTemplateChange = (value: string) => {
     setSelectedTemplate(value);
   };
   
   const handleEquipmentChange = (value: string) => {
     const equipmentId = parseInt(value, 10);
-    const equipment = equipmentOptions.find(e => e.id === equipmentId);
+    const equipment = equipmentData?.find(e => e.id === equipmentId);
     setSelectedEquipmentId(equipmentId);
     setSelectedEquipmentName(equipment?.name);
   };
@@ -156,7 +129,7 @@ const ImportMaintenanceDialog: React.FC<ImportMaintenanceDialogProps> = ({
     );
   };
 
-  // Obtenir l'icône appropriée selon la catégorie
+  // Get the appropriate icon based on the category
   const getCategoryIcon = (category: string) => {
     const lowerCategory = category.toLowerCase();
     if (lowerCategory.includes('moteur') || lowerCategory.includes('mécanique')) {
@@ -179,7 +152,7 @@ const ImportMaintenanceDialog: React.FC<ImportMaintenanceDialogProps> = ({
     setIsLoading(true);
     
     try {
-      // Combiner les éléments sélectionnés de template et personnalisés
+      // Combine selected template and custom items
       const selectedTemplateItems = maintenanceItems.filter(item => item.selected);
       const selectedCustomItems = customItems.filter(item => item.selected && item.name.trim() !== '');
       
@@ -188,7 +161,7 @@ const ImportMaintenanceDialog: React.FC<ImportMaintenanceDialogProps> = ({
         return;
       }
       
-      // Convertir tous les éléments en tâches de maintenance
+      // Convert all items to maintenance tasks
       const maintenanceTasks = [
         ...selectedTemplateItems.map(item => ({
           title: item.name,
@@ -200,7 +173,7 @@ const ImportMaintenanceDialog: React.FC<ImportMaintenanceDialogProps> = ({
           dueDate: new Date(Date.now() + item.interval * (
             item.interval_type === 'hours' ? 3600000 : 
             item.interval_type === 'months' ? 2592000000 : 
-            86400000 // km - on utilise une date arbitraire pour les km
+            86400000 // km - we use an arbitrary date for km
           )),
           engineHours: item.interval_type === 'hours' ? item.interval : 0,
           assignedTo: '',
@@ -232,13 +205,13 @@ const ImportMaintenanceDialog: React.FC<ImportMaintenanceDialogProps> = ({
         }))
       ];
       
-      // Utiliser la nouvelle méthode bulkCreateMaintenance
+      // Use the bulkCreateMaintenance method
       await maintenanceService.bulkCreateMaintenance(maintenanceTasks);
       
       toast.success(`${maintenanceTasks.length} entretiens importés avec succès`);
       onClose();
       
-      // Recharger la page après un court délai
+      // Reload the page after a short delay
       setTimeout(() => {
         window.location.reload();
       }, 1000);
@@ -270,11 +243,17 @@ const ImportMaintenanceDialog: React.FC<ImportMaintenanceDialogProps> = ({
               <SelectValue placeholder={isLoadingEquipment ? "Chargement..." : "Sélectionner un équipement"} />
             </SelectTrigger>
             <SelectContent>
-              {equipmentOptions.map(equipment => (
-                <SelectItem key={equipment.id} value={equipment.id.toString()}>
-                  {equipment.name}
-                </SelectItem>
-              ))}
+              {isLoadingEquipment ? (
+                <SelectItem value="loading" disabled>Chargement...</SelectItem>
+              ) : equipmentData?.length ? (
+                equipmentData.map(equipment => (
+                  <SelectItem key={equipment.id} value={equipment.id.toString()}>
+                    {equipment.name}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="none" disabled>Aucun équipement</SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>
