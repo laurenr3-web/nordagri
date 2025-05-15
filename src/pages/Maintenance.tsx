@@ -11,7 +11,8 @@ import MaintenanceCompletionDialog from '@/components/maintenance/dialogs/Mainte
 import { LayoutWrapper } from '@/components/layout/LayoutWrapper';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { FileDown, Plus } from 'lucide-react';
+import ImportMaintenanceDialog from '@/components/maintenance/dialogs/ImportMaintenanceDialog';
 
 const Maintenance = () => {
   const {
@@ -26,6 +27,8 @@ const Maintenance = () => {
     setIsCompletionDialogOpen,
     isNewTaskDialogOpen,
     setIsNewTaskDialogOpen,
+    isImportDialogOpen,
+    setIsImportDialogOpen,
     tasks,
     handleOpenNewTaskDialog,
     handleAddTask,
@@ -47,10 +50,16 @@ const Maintenance = () => {
           title="Maintenance" 
           description="Suivez et planifiez l'entretien de vos équipements"
           action={
-            <Button onClick={() => setIsNewTaskDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              <span>Nouvelle tâche</span>
-            </Button>
+            <div className="flex space-x-2">
+              <Button variant="outline" onClick={() => setIsImportDialogOpen(true)}>
+                <FileDown className="h-4 w-4 mr-2" />
+                <span>Import entretiens fabricant</span>
+              </Button>
+              <Button onClick={() => setIsNewTaskDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                <span>Nouvelle tâche</span>
+              </Button>
+            </div>
           }
         />
         
@@ -99,6 +108,11 @@ const Maintenance = () => {
             refreshTasks();
           }} 
           userName={getUserDisplayName()} 
+        />
+        
+        <ImportMaintenanceDialog
+          isOpen={isImportDialogOpen}
+          onClose={() => setIsImportDialogOpen(false)}
         />
       </LayoutWrapper>
     </MainLayout>

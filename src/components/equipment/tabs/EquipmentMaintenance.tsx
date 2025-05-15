@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Calendar } from 'lucide-react';
+import { Plus, Calendar, FileDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useEquipmentDetail } from '@/hooks/equipment/useEquipmentDetail';
@@ -16,6 +16,7 @@ import { formatDate, getStatusBadge, getPriorityColor } from './maintenance/main
 import MaintenanceQuoteDialog from './maintenance/MaintenanceQuoteDialog';
 import MaintenanceCompletionDialog from '@/components/maintenance/dialogs/MaintenanceCompletionDialog';
 import MaintenancePlanDialog from '@/components/maintenance/dialogs/MaintenancePlanDialog';
+import ImportMaintenanceDialog from '@/components/maintenance/dialogs/ImportMaintenanceDialog';
 
 interface EquipmentMaintenanceProps {
   equipment: any;
@@ -31,6 +32,7 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
   const [isQuoteDialogOpen, setIsQuoteDialogOpen] = useState(false);
   const [isCompletionDialogOpen, setIsCompletionDialogOpen] = useState(false);
   const [isPlanDialogOpen, setIsPlanDialogOpen] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
 
   const handleAddTask = () => {
     setIsNewMaintenanceOpen(true);
@@ -42,6 +44,10 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
 
   const handleAddPart = () => {
     setIsAddPartDialogOpen(true);
+  };
+
+  const handleImportMaintenance = () => {
+    setIsImportDialogOpen(true);
   };
 
   const handleCompleteTask = (taskId: number) => {
@@ -158,6 +164,10 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
             <Plus className="h-4 w-4 mr-2" />
             Nouvelle pièce
           </Button>
+          <Button onClick={handleImportMaintenance} variant="outline">
+            <FileDown className="h-4 w-4 mr-2" />
+            Import entretiens
+          </Button>
           <Button onClick={handleAddTask}>
             <Plus className="h-4 w-4 mr-2" />
             Nouvelle tâche
@@ -226,6 +236,14 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
         isOpen={isPlanDialogOpen}
         onClose={() => setIsPlanDialogOpen(false)}
         equipment={{ id: Number(equipment?.id), name: equipment?.name }}
+      />
+
+      {/* Dialog pour importer des entretiens recommandés */}
+      <ImportMaintenanceDialog
+        isOpen={isImportDialogOpen}
+        onClose={() => setIsImportDialogOpen(false)}
+        equipmentId={Number(equipment?.id)}
+        equipmentName={equipment?.name}
       />
     </div>
   );

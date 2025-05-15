@@ -15,6 +15,7 @@ export const useMaintenancePage = () => {
   const [selectedTask, setSelectedTask] = useState<MaintenanceTask | null>(null);
   const [isCompletionDialogOpen, setIsCompletionDialogOpen] = useState(false);
   const [isNewTaskDialogOpen, setIsNewTaskDialogOpen] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
 
   // Get user information from the auth context
   const {
@@ -126,6 +127,8 @@ export const useMaintenancePage = () => {
     setIsCompletionDialogOpen,
     isNewTaskDialogOpen,
     setIsNewTaskDialogOpen,
+    isImportDialogOpen,
+    setIsImportDialogOpen,
     tasks,
     isLoading,
     handleOpenNewTaskDialog,
