@@ -4,15 +4,34 @@ import { WithdrawalRecord, WithdrawalReason } from './types';
 import { WITHDRAWAL_REASONS } from './constants';
 import { supabase } from '@/integrations/supabase/client';
 
+// Define an interface for the parts_withdrawals table
+interface PartsWithdrawal {
+  id: number;
+  part_id: number;
+  quantity: number;
+  reason: string;
+  custom_reason?: string | null;
+  created_at: string;
+  user_id: string;
+  comment?: string | null;
+  intervention_id?: number | null;
+}
+
+// Define a basic interface for interventions
+interface InterventionBasic {
+  id: number;
+  title: string;
+}
+
 export const useWithdrawalHistory = () => {
   // Function to get withdrawal history for a part
   const getWithdrawalHistory = useCallback(async (partId: number): Promise<WithdrawalRecord[]> => {
     try {
       console.log('Fetching withdrawal history for part:', partId);
       
-      // Fetch withdrawal records without the intervention join
+      // Use type assertion to tell TypeScript that this is a valid query
       const { data, error } = await supabase
-        .from('parts_withdrawals')
+        .from('parts_withdrawals' as any)
         .select(`
           id,
           part_id,
@@ -39,17 +58,22 @@ export const useWithdrawalHistory = () => {
       
       console.log('Retrieved withdrawal records:', data.length);
       
+      // Cast data to our known type
+      const withdrawalRecords = data as PartsWithdrawal[];
+      
       // Get all unique intervention IDs
-      const interventionIds = data
+      const interventionIds = withdrawalRecords
         .filter(record => record.intervention_id)
-        .map(record => record.intervention_id);
+        .map(record => record.intervention_id)
+        .filter(id => id !== null && id !== undefined) as number[];
       
       // If there are interventions to fetch
-      let interventionsMap = {};
+      let interventionsMap: Record<number, InterventionBasic> = {};
+      
       if (interventionIds.length > 0) {
         // Fetch intervention details separately
         const { data: interventionsData, error: interventionsError } = await supabase
-          .from('interventions')
+          .from('interventions' as any)
           .select('id, title')
           .in('id', interventionIds);
           
@@ -57,16 +81,18 @@ export const useWithdrawalHistory = () => {
           console.error('Error fetching interventions:', interventionsError);
         } else if (interventionsData) {
           // Create a map of interventions for easy lookup
-          interventionsMap = interventionsData.reduce((acc, intervention) => {
+          interventionsMap = (interventionsData as InterventionBasic[]).reduce((acc, intervention) => {
             acc[intervention.id] = intervention;
             return acc;
-          }, {});
+          }, {} as Record<number, InterventionBasic>);
         }
       }
       
       // Transform the data to match our app's data structure
-      return data.map(item => {
-        const intervention = item.intervention_id ? interventionsMap[item.intervention_id] : null;
+      return withdrawalRecords.map(item => {
+        const intervention = item.intervention_id && interventionsMap[item.intervention_id] 
+          ? interventionsMap[item.intervention_id] 
+          : null;
         
         return {
           id: item.id,
@@ -78,13 +104,13 @@ export const useWithdrawalHistory = () => {
           date: item.created_at,
           created_at: item.created_at,
           user_name: "Utilisateur", // We'll implement user name fetching later
-          intervention_id: item.intervention_id,
+          intervention_id: item.intervention_id || undefined,
           interventions: intervention ? {
             id: intervention.id,
             title: intervention.title
           } : undefined,
           intervention_title: intervention ? intervention.title : undefined,
-          comment: item.comment
+          comment: item.comment || undefined
         };
       });
       
