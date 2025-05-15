@@ -1,10 +1,14 @@
-
 import { CalendarEvent } from '../useDashboardData';
 
 /**
  * Normalize priority to one of the allowed values
  */
-export const normalizePriority = (priority: string): 'high' | 'medium' | 'low' => {
+export const normalizePriority = (priority: string | undefined | null): 'high' | 'medium' | 'low' => {
+  // Handle undefined or null priority
+  if (!priority) {
+    return 'medium'; // Default priority if undefined or null
+  }
+  
   switch(priority.toLowerCase()) {
     case 'high':
     case 'critical':
