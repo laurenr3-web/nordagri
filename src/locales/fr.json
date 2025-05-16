@@ -22,23 +22,5 @@
   "mobilemenu.maintenance": "Maintenance",
   "mobilemenu.parts": "Pièces",
   "mobilemenu.time": "Temps",
-  "mobilemenu.settings": "Paramètres",
-
-  "network.connected": "Connecté au réseau",
-  "network.offline": "Mode hors-ligne activé",
-  "network.offlineMode": "Les modifications seront synchronisées dès le retour de la connexion",
-  "network.offlineModeActive": "Mode hors-ligne",
-  
-  "sync.syncing": "Synchronisation en cours",
-  "sync.pendingItems": "Éléments en attente",
-  "sync.itemsWillSync": "{{count}} élément(s) à synchroniser",
-  "sync.syncNow": "Synchroniser maintenant",
-  "sync.cannotSyncOffline": "Impossible de synchroniser en mode hors-ligne",
-  "sync.conflictsDetected": "Conflits détectés",
-  "sync.syncComplete": "Synchronisation terminée",
-  "sync.syncWithErrors": "Synchronisation terminée avec des problèmes",
-  "sync.syncStats": "{{success}} succès, {{error}} erreurs, {{conflict}} conflits",
-  "sync.operationQueued": "{{entityType}} enregistré(e) en local",
-  "sync.willSyncWhenOnline": "Sera synchronisé(e) quand vous serez connecté(e)",
-  "sync.errorQueueing": "Erreur lors de l'enregistrement local de {{entityType}}"
+  "mobilemenu.settings": "Paramètres"
 }

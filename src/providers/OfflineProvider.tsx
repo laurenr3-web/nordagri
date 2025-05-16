@@ -1,37 +1,19 @@
 
-import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import React, { createContext, useContext, ReactNode } from 'react';
 import { useNetworkState } from '@/hooks/useNetworkState';
-import { 
-  useOfflineSyncManager, 
-  OfflineSyncService, 
-  SyncStats 
-} from '@/services/offline/offlineSyncService';
-import { Wifi, WifiOff, Cloud, AlertTriangle } from 'lucide-react';
+import { useOfflineSyncManager } from '@/services/offline/offlineSyncService';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { useTranslation } from 'react-i18next';
 
 interface OfflineContextType {
   isOnline: boolean;
   isSyncing: boolean;
   pendingSyncCount: number;
-  syncStats: SyncStats;
-  triggerSync: () => Promise<void>;
-  addToSyncQueue: (
-    tableName: string, 
-    operation: 'insert' | 'update' | 'delete', 
-    data: any,
-    userId?: string
-  ) => Promise<string>;
 }
 
 const OfflineContext = createContext<OfflineContextType>({
   isOnline: true,
   isSyncing: false,
-  pendingSyncCount: 0,
-  syncStats: { total: 0, pending: 0, success: 0, error: 0, conflict: 0 },
-  triggerSync: async () => {},
-  addToSyncQueue: async () => ''
+  pendingSyncCount: 0
 });
 
 export const useOfflineStatus = () => useContext(OfflineContext);
@@ -42,116 +24,38 @@ interface OfflineProviderProps {
 
 export const OfflineProvider: React.FC<OfflineProviderProps> = ({ children }) => {
   const isOnline = useNetworkState();
-  const { isSyncing, syncCount, syncStats, syncPendingItems } = useOfflineSyncManager();
-  const [showBanner, setShowBanner] = useState(false);
-  const { t } = useTranslation();
+  const { isSyncing, syncCount } = useOfflineSyncManager();
   
-  // Handle banner display, with a delay to avoid flashes
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    
-    if (!isOnline) {
-      timer = setTimeout(() => {
-        setShowBanner(true);
-      }, 2000);
-    } else {
-      setShowBanner(false);
-    }
-    
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
-  }, [isOnline]);
-
-  // Show a notification when connection status changes
-  useEffect(() => {
+  // Show a toast when the connection status changes
+  React.useEffect(() => {
     if (isOnline) {
-      toast.success(t("network.connected"));
-      
-      if (syncCount > 0) {
-        toast(t("sync.pendingItems"), {
-          description: t("sync.itemsWillSync", { count: syncCount }),
-          action: {
-            label: t("sync.syncNow"),
-            onClick: () => syncPendingItems()
-          }
-        });
-      }
+      toast.success("Connecté au réseau");
     } else {
-      toast.warning(t("network.offline"), {
-        description: t("network.offlineMode")
+      toast.warning("Mode hors-ligne activé", {
+        description: "Les modifications seront synchronisées dès le retour de la connexion"
       });
     }
-  }, [isOnline, syncCount, t, syncPendingItems]);
-
-  // Handle manual synchronization triggering
-  const triggerSync = async () => {
-    if (isOnline) {
-      await syncPendingItems();
-    } else {
-      toast.error(t("sync.cannotSyncOffline"));
-    }
-  };
+  }, [isOnline]);
 
   const value = {
     isOnline,
     isSyncing,
-    pendingSyncCount: syncCount,
-    syncStats,
-    triggerSync,
-    addToSyncQueue: OfflineSyncService.addToSyncQueue
+    pendingSyncCount: syncCount
   };
 
   return (
     <OfflineContext.Provider value={value}>
       {children}
-      
-      {/* Persistent offline mode banner */}
-      {showBanner && (
-        <div className="fixed top-0 right-0 p-2 m-4 bg-orange-100 text-orange-800 rounded-md shadow-md z-50 flex items-center gap-2 animate-fade-in">
-          <WifiOff className="h-4 w-4" />
-          <span className="text-sm font-medium">{t("network.offlineModeActive")}</span>
+      {!isOnline && (
+        <div className="fixed top-0 right-0 p-2 m-4 bg-orange-100 text-orange-800 rounded-md shadow-md z-50 flex items-center gap-2">
+          <div className="h-2 w-2 bg-orange-500 rounded-full animate-pulse"></div>
+          <span className="text-sm font-medium">Mode hors-ligne</span>
         </div>
       )}
-      
-      {/* Sync status */}
       {isSyncing && (
-        <div className="fixed top-0 right-0 p-2 m-4 bg-blue-100 text-blue-800 rounded-md shadow-md z-50 flex items-center gap-2 animate-fade-in">
-          <Cloud className="h-4 w-4 animate-spin" />
-          <span className="text-sm font-medium">
-            {t("sync.syncing")}...
-            {syncStats.success > 0 && ` (${syncStats.success}/${syncStats.total})`}
-          </span>
-        </div>
-      )}
-      
-      {/* Pending items banner (when online) */}
-      {isOnline && !isSyncing && syncCount > 0 && (
-        <div className="fixed bottom-0 right-0 p-2 m-4 bg-blue-50 text-blue-800 rounded-md shadow-md z-50 flex flex-col gap-2 animate-fade-in">
-          <div className="flex items-center gap-2">
-            <Cloud className="h-4 w-4" />
-            <span className="text-sm font-medium">
-              {t("sync.pendingItems")}: {syncCount}
-            </span>
-          </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="text-xs bg-white"
-            onClick={triggerSync}
-          >
-            {t("sync.syncNow")}
-          </Button>
-        </div>
-      )}
-      
-      {/* Conflicts banner */}
-      {syncStats.conflict > 0 && (
-        <div className="fixed bottom-0 left-0 p-2 m-4 bg-yellow-50 text-yellow-800 rounded-md shadow-md z-50 flex items-center gap-2 animate-fade-in">
-          <AlertTriangle className="h-4 w-4" />
-          <span className="text-sm font-medium">
-            {t("sync.conflictsDetected")}: {syncStats.conflict}
-          </span>
+        <div className="fixed top-0 right-0 p-2 m-4 bg-blue-100 text-blue-800 rounded-md shadow-md z-50 flex items-center gap-2">
+          <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse"></div>
+          <span className="text-sm font-medium">Synchronisation en cours...</span>
         </div>
       )}
     </OfflineContext.Provider>
