@@ -14,6 +14,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { TimeTracker } from '@/components/time-tracking/TimeTracker';
 import { useTranslation } from "react-i18next";
+import { NetworkStatus } from './NetworkStatus';
 
 // NavLink now supports ARIA for accessibility
 const NavLink = ({ path, icon, label, isActive }: { 
@@ -94,14 +95,19 @@ const Navbar = () => {
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden p-4" role="navigation" aria-label="Barre latérale principale">
-      <Link to="/" className="flex items-center gap-2 px-3 py-4" aria-label="Accueil">
-        <img
-          src="/placeholder.svg"
-          alt="Logo"
-          className="h-6 w-6"
-        />
-        <span className="text-xl font-semibold">NordAgri</span>
-      </Link>
+      <div className="flex items-center justify-between px-3 py-4">
+        <Link to="/" className="flex items-center gap-2" aria-label="Accueil">
+          <img
+            src="/placeholder.svg"
+            alt="Logo"
+            className="h-6 w-6"
+          />
+          <span className="text-xl font-semibold">NordAgri</span>
+        </Link>
+        
+        <NetworkStatus />
+      </div>
+      
       <div className="flex-1 overflow-auto py-2">
         <nav className="grid gap-1" role="tablist">
           {navItems.map((item) => (
@@ -115,6 +121,7 @@ const Navbar = () => {
           ))}
         </nav>
       </div>
+      
       {!isMobile && (
         <div className="mt-auto p-4 border-t">
           <TimeTracker className="w-full justify-center rounded-lg p-2" />

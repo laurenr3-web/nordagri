@@ -2,12 +2,11 @@
 import { useQueryWithOfflineSupport } from '@/hooks/useQueryWithOfflineSupport';
 import { interventionService } from '@/services/supabase/interventionService';
 import { useOfflineStatus } from '@/providers/OfflineProvider';
-import { OfflineSyncService } from '@/services/offline/offlineSyncService';
 import { Intervention } from '@/types/Intervention';
 import { toast } from 'sonner';
 
 export function useInterventionsWithOffline() {
-  const { isOnline } = useOfflineStatus();
+  const { isOnline, addToSyncQueue } = useOfflineStatus();
   
   // Fetch interventions with offline support
   const { 
@@ -30,15 +29,19 @@ export function useInterventionsWithOffline() {
   const createIntervention = async (intervention: any) => {
     try {
       if (!isOnline) {
-        // Store in local sync queue if offline
-        const id = OfflineSyncService.addToSyncQueue('add_intervention', intervention);
+        // Create a local ID for offline-created intervention
+        const tempId = -Math.floor(Math.random() * 10000); // Temporary negative ID
+        
+        // Add to sync queue
+        await addToSyncQueue('add_intervention', intervention, 'interventions');
+        
         toast.success("Intervention enregistrée en local", {
           description: "Elle sera synchronisée quand vous serez connecté"
         });
         
         // Return a mock response
         const mockedResponse: Intervention = {
-          id: -Math.floor(Math.random() * 10000), // Temporary negative ID
+          id: tempId, // Temporary negative ID
           title: intervention.title,
           equipment: intervention.equipment,
           equipmentId: intervention.equipmentId,
@@ -69,11 +72,13 @@ export function useInterventionsWithOffline() {
   const updateIntervention = async (intervention: Intervention) => {
     try {
       if (!isOnline) {
-        // Store in local sync queue if offline
-        const id = OfflineSyncService.addToSyncQueue('update_intervention', intervention);
+        // Store in sync queue
+        await addToSyncQueue('update_intervention', intervention, 'interventions');
+        
         toast.success("Modification enregistrée en local", {
           description: "Elle sera synchronisée quand vous serez connecté"
         });
+        
         return intervention;
       } else {
         // Do regular API call if online
@@ -85,6 +90,30 @@ export function useInterventionsWithOffline() {
       throw error;
     }
   };
+  
+  // Delete an intervention (with offline support)
+  const deleteIntervention = async (id: number | string) => {
+    try {
+      if (!isOnline) {
+        // Store in sync queue
+        await addToSyncQueue('delete_intervention', { id }, 'interventions');
+        
+        toast.success("Suppression enregistrée en local", {
+          description: "Elle sera synchronisée quand vous serez connecté"
+        });
+        
+        return true;
+      } else {
+        // Do regular API call if online
+        await interventionService.deleteIntervention(id);
+        return true;
+      }
+    } catch (error) {
+      console.error('Error deleting intervention:', error);
+      toast.error("Erreur lors de la suppression de l'intervention");
+      throw error;
+    }
+  };
 
   return {
     interventions: interventions || [],
@@ -93,6 +122,7 @@ export function useInterventionsWithOffline() {
     refetch,
     isOfflineData,
     createIntervention,
-    updateIntervention
+    updateIntervention,
+    deleteIntervention
   };
 }

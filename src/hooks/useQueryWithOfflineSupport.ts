@@ -2,6 +2,7 @@
 import { useQuery, UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import { useNetworkState } from './useNetworkState';
+import { IndexedDBService } from '@/services/offline/indexedDBService';
 
 export function useQueryWithOfflineSupport<TQueryFnData = unknown, TError = unknown, TData = TQueryFnData>(
   queryKey: any[],
@@ -21,7 +22,14 @@ export function useQueryWithOfflineSupport<TQueryFnData = unknown, TError = unkn
         // If online, execute the query and cache the result
         if (isOnline) {
           const data = await queryFn();
-          localStorage.setItem(cacheKeyToUse, JSON.stringify(data));
+          
+          // Store in IndexedDB
+          await IndexedDBService.updateInStore('offline_cache', {
+            key: cacheKeyToUse,
+            data,
+            timestamp: Date.now()
+          });
+          
           setIsOfflineData(false);
           return data;
         }
@@ -30,10 +38,11 @@ export function useQueryWithOfflineSupport<TQueryFnData = unknown, TError = unkn
         throw new Error('Network is offline');
       } catch (error) {
         // If there's cached data, use it
-        const cachedData = localStorage.getItem(cacheKeyToUse);
-        if (cachedData) {
+        const cacheItem = await IndexedDBService.getByKey('offline_cache', cacheKeyToUse);
+        
+        if (cacheItem?.data) {
           setIsOfflineData(true);
-          return JSON.parse(cachedData) as TQueryFnData;
+          return cacheItem.data as TQueryFnData;
         }
         throw error;
       }
@@ -45,13 +54,17 @@ export function useQueryWithOfflineSupport<TQueryFnData = unknown, TError = unkn
   
   // Load cached data when offline
   useEffect(() => {
-    // Only try to load from cache if we're offline and the query should be enabled
-    if (!isOnline && options?.enabled !== false) {
-      const cachedData = localStorage.getItem(cacheKeyToUse);
-      if (cachedData) {
-        setIsOfflineData(true);
+    const loadFromCache = async () => {
+      // Only try to load from cache if we're offline and the query should be enabled
+      if (!isOnline && options?.enabled !== false) {
+        const cacheItem = await IndexedDBService.getByKey('offline_cache', cacheKeyToUse);
+        if (cacheItem?.data) {
+          setIsOfflineData(true);
+        }
       }
-    }
+    };
+    
+    loadFromCache();
   }, [isOnline, cacheKeyToUse, options?.enabled]);
 
   const result = useQuery<TQueryFnData, TError, TData>(queryOptions);
