@@ -3,7 +3,7 @@ import React, { createContext, useContext, ReactNode, useEffect } from 'react';
 import { useNetworkState } from '@/hooks/useNetworkState';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { toast } from 'sonner';
-import { Database, Save, CloudOff, CloudSync } from 'lucide-react';
+import { Database, Save, CloudOff, Cloud } from 'lucide-react';
 import { SyncOperationType } from '@/services/offline/offlineSyncService';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useIndexedDBInitialization } from '@/hooks/useIndexedDBInitialization';
@@ -39,7 +39,7 @@ export const OfflineProvider: React.FC<OfflineProviderProps> = ({ children }) =>
   useEffect(() => {
     if (isOnline) {
       toast.success("Connecté au réseau", {
-        icon: <CloudSync size={16} />
+        icon: <Cloud size={16} />
       });
     } else {
       toast.warning("Mode hors-ligne activé", {

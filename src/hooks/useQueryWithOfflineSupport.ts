@@ -40,7 +40,7 @@ export function useQueryWithOfflineSupport<TQueryFnData = unknown, TError = unkn
         // If there's cached data, use it
         const cacheItem = await IndexedDBService.getByKey('offline_cache', cacheKeyToUse);
         
-        if (cacheItem?.data) {
+        if (cacheItem && typeof cacheItem === 'object' && 'data' in cacheItem) {
           setIsOfflineData(true);
           return cacheItem.data as TQueryFnData;
         }
@@ -58,7 +58,7 @@ export function useQueryWithOfflineSupport<TQueryFnData = unknown, TError = unkn
       // Only try to load from cache if we're offline and the query should be enabled
       if (!isOnline && options?.enabled !== false) {
         const cacheItem = await IndexedDBService.getByKey('offline_cache', cacheKeyToUse);
-        if (cacheItem?.data) {
+        if (cacheItem && typeof cacheItem === 'object' && 'data' in cacheItem) {
           setIsOfflineData(true);
         }
       }

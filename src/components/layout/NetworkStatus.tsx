@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useOfflineStatus } from '@/providers/OfflineProvider';
-import { CloudOff, CloudSync, Database } from 'lucide-react';
+import { CloudOff, Cloud, Database } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
@@ -40,7 +40,7 @@ export const NetworkStatus: React.FC<NetworkStatusProps> = ({
       onClick={handleClick}
     >
       {!isOnline && <CloudOff className="h-3 w-3" />}
-      {isOnline && isSyncing && <CloudSync className="h-3 w-3 animate-spin" />}
+      {isOnline && isSyncing && <Cloud className="h-3 w-3 animate-spin" />}
       {isOnline && !isSyncing && pendingSyncCount > 0 && <Database className="h-3 w-3" />}
       
       {showLabel && (

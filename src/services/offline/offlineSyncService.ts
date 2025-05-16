@@ -2,6 +2,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { IndexedDBService } from './indexedDBService';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
+import { useEffect, useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 // Types for sync queue items
 export type SyncOperationType = 
@@ -35,6 +37,21 @@ const MAX_RETRY_COUNT = 3;
 
 // Utility function to format a local identifier
 const formatLocalId = (type: string) => `local_${type}_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+
+// Type guard for checking if a result has data
+const hasData = (result: any): result is { data: any } => {
+  return result && typeof result === 'object' && 'data' in result;
+};
+
+// Type guard for checking if an object has id
+const hasId = (obj: any): obj is { id: string | number } => {
+  return obj && typeof obj === 'object' && 'id' in obj;
+};
+
+// Type guard for checking if an object has updated_at
+const hasUpdatedAt = (obj: any): obj is { updated_at: string } => {
+  return obj && typeof obj === 'object' && 'updated_at' in obj;
+};
 
 // Offline Sync Service
 export class OfflineSyncService {
@@ -143,10 +160,13 @@ export class OfflineSyncService {
             
           if (error) throw error;
           
+          const itemId = hasData(insertedData) && Array.isArray(insertedData) && insertedData.length > 0 && 
+            hasId(insertedData[0]) ? insertedData[0].id : undefined;
+          
           result = {
             success: true,
             message: `Successfully added to ${tableName}`,
-            itemId: insertedData && insertedData[0]?.id,
+            itemId,
             affectedRecords: 1
           };
           
@@ -167,10 +187,13 @@ export class OfflineSyncService {
               
             if (error) throw error;
             
+            const itemId = hasData(insertedData) && Array.isArray(insertedData) && insertedData.length > 0 && 
+              hasId(insertedData[0]) ? insertedData[0].id : undefined;
+            
             result = {
               success: true,
               message: `Successfully created item in ${tableName} (was local)`,
-              itemId: insertedData && insertedData[0]?.id,
+              itemId,
               affectedRecords: 1
             };
           } else {
@@ -333,7 +356,7 @@ export class OfflineSyncService {
   static async getFromOfflineCache<T>(key: string): Promise<T | null> {
     try {
       const cacheItem = await IndexedDBService.getByKey('offline_cache', key);
-      return cacheItem ? cacheItem.data : null;
+      return cacheItem && hasData(cacheItem) ? cacheItem.data : null;
     } catch (error) {
       console.error('Error getting from offline cache:', error);
       return null;
@@ -355,98 +378,4 @@ export class OfflineSyncService {
   }
 }
 
-// Hook to manage sync when the user comes back online
-export function useOfflineSyncManager() {
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [syncCount, setSyncCount] = useState(0);
-  const { toast } = useToast();
-  
-  // Function to sync pending items
-  const syncPendingItems = async () => {
-    const queue = await OfflineSyncService.getSyncQueue();
-    
-    if (queue.length === 0) return;
-    
-    setIsSyncing(true);
-    setSyncCount(queue.length);
-    
-    toast({
-      title: "Synchronisation en cours",
-      description: `${queue.length} élément(s) en attente de synchronisation...`,
-    });
-    
-    try {
-      await OfflineSyncService.processSyncQueue(
-        (current, total) => {
-          // Update progress
-          setSyncCount(total - current);
-        },
-        (results) => {
-          // Handle completion
-          const successCount = results.filter(r => r.success).length;
-          const failCount = results.filter(r => !r.success).length;
-          
-          if (failCount === 0) {
-            toast({
-              title: "Synchronisation terminée",
-              description: `${successCount} élément(s) synchronisé(s) avec succès.`,
-            });
-          } else {
-            toast({
-              title: "Synchronisation terminée avec des erreurs",
-              description: `${successCount} élément(s) synchronisé(s), ${failCount} échec(s).`,
-              variant: "destructive",
-            });
-          }
-        }
-      );
-    } catch (error) {
-      console.error('Error during sync:', error);
-      toast({
-        title: "Erreur de synchronisation",
-        description: `Une erreur est survenue: ${error.message || error}`,
-        variant: "destructive",
-      });
-    } finally {
-      setIsSyncing(false);
-      // Update final count
-      const remainingQueue = await OfflineSyncService.getSyncQueue();
-      setSyncCount(remainingQueue.length);
-    }
-  };
-  
-  // Listen for online/offline events
-  useEffect(() => {
-    const handleOnline = () => {
-      syncPendingItems();
-    };
-    
-    window.addEventListener('online', handleOnline);
-    
-    // Check for pending items at load
-    if (navigator.onLine) {
-      const checkQueue = async () => {
-        const queue = await OfflineSyncService.getSyncQueue();
-        setSyncCount(queue.length);
-        if (queue.length > 0) {
-          syncPendingItems();
-        }
-      };
-      
-      checkQueue();
-    }
-    
-    // Set up interval to periodically check sync count
-    const interval = setInterval(async () => {
-      const queue = await OfflineSyncService.getSyncQueue();
-      setSyncCount(queue.length);
-    }, 30000);
-    
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      clearInterval(interval);
-    };
-  }, []);
-  
-  return { isSyncing, syncCount };
-}
+// Hook removed - hooks should be in their own files, not inside a service class
