@@ -1,241 +1,493 @@
 
 import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
+import { useForm } from "react-hook-form";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
   DialogTitle,
-  DialogFooter,
-  DialogClose,
+  DialogFooter
 } from '@/components/ui/dialog';
+import { 
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Wrench, Trash2, Calendar, MapPin, User, Clock, FileText, AlertCircle } from 'lucide-react';
 import { Intervention } from '@/types/Intervention';
-import { formatDate } from './utils/interventionUtils';
-import { DeleteInterventionAlert } from './dialogs/DeleteInterventionAlert';
-import { useDeleteIntervention } from '@/hooks/interventions/useDeleteIntervention';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Separator } from '@/components/ui/separator';
+
+import { Calendar, Clock, MapPin, Play, FileCheck, Settings } from 'lucide-react';
+import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { useInterventionDetail } from '@/hooks/interventions/useInterventionDetail';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { CalendarIcon } from "lucide-react"
+ 
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { cn } from '@/lib/utils';
+import StatusBadge from './StatusBadge';
+import PriorityBadge from './PriorityBadge';
+import InterventionReportDialog from './dialogs/InterventionReportDialog';
 
 interface InterventionDetailsDialogProps {
-  intervention: Intervention;
-  isOpen: boolean;
-  onClose: () => void;
-  onStartWork: () => void;
-  handleInterventionUpdate: (interventionId: number, updates: Partial<Intervention>) => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  interventionId: number;
+  onUpdate: (intervention: Intervention) => void;
+  onStartWork: (intervention: Intervention) => void;
+  onGenerateReport?: () => void;
+  loading?: boolean;
 }
 
-const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({ 
-  intervention, 
-  isOpen, 
-  onClose, 
+const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
+  open,
+  onOpenChange,
+  interventionId,
+  onUpdate,
   onStartWork,
-  handleInterventionUpdate
+  onGenerateReport,
+  loading = false
 }) => {
-  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
-  const { deleteIntervention, isDeleting } = useDeleteIntervention();
+  const { intervention } = useInterventionDetail(interventionId);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+  
+  const form = useForm({
+    defaultValues: {
+      title: '',
+      equipment: '',
+      location: '',
+      priority: 'medium' as 'high' | 'medium' | 'low',
+      date: new Date(),
+      scheduledDuration: 0,
+      technician: '',
+      description: '',
+      notes: ''
+    }
+  });
 
-  const handleDelete = () => {
-    deleteIntervention(intervention.id, {
-      onSuccess: () => {
-        onClose();
-      }
-    });
+  // Définir les valeurs du formulaire lorsque l'intervention est chargée
+  React.useEffect(() => {
+    if (intervention) {
+      form.reset({
+        title: intervention.title,
+        equipment: intervention.equipment,
+        location: intervention.location,
+        priority: intervention.priority,
+        date: typeof intervention.date === 'string' 
+          ? new Date(intervention.date) 
+          : intervention.date,
+        scheduledDuration: intervention.scheduledDuration || 0,
+        technician: intervention.technician,
+        description: intervention.description,
+        notes: intervention.notes || ''
+      });
+    }
+  }, [intervention, form]);
+
+  if (loading || !intervention) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent>
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full"></div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  const handleSubmit = (values: any) => {
+    const updatedIntervention: Intervention = {
+      ...intervention,
+      ...values
+    };
+    
+    onUpdate(updatedIntervention);
+    setIsEditing(false);
   };
 
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case 'scheduled':
-        return 'info';
-      case 'in-progress':
-        return 'warning';
-      case 'completed':
-        return 'success';
-      case 'canceled':
-        return 'destructive';
-      default:
-        return 'outline';
-    }
+  const handleStartWork = () => {
+    const updatedIntervention: Intervention = {
+      ...intervention,
+      status: 'in-progress'
+    };
+    
+    onUpdate(updatedIntervention);
+    onStartWork(updatedIntervention);
+    toast.success(`Intervention "${intervention.title}" démarrée`);
   };
 
-  const getPriorityBadgeVariant = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return 'destructive';
-      case 'medium':
-        return 'warning';
-      case 'low':
-        return 'secondary';
-      default:
-        return 'outline';
-    }
+  const handleMarkComplete = () => {
+    setIsReportDialogOpen(true);
+  };
+
+  const handleCompleteWithReport = (intervention: Intervention, report: any) => {
+    const updatedIntervention: Intervention = {
+      ...intervention,
+      status: 'completed',
+      duration: report.duration,
+      notes: report.notes,
+      partsUsed: report.partsUsed || []
+    };
+    
+    onUpdate(updatedIntervention);
+    toast.success(`Intervention "${intervention.title}" marquée comme terminée`);
   };
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle className="text-2xl flex items-center justify-between">
-              <span>{intervention.title}</span>
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="flex flex-wrap items-center gap-3 mb-4">
-            <Badge variant={getStatusBadgeVariant(intervention.status)}>
-              {intervention.status === 'scheduled' && 'Planifié'}
-              {intervention.status === 'in-progress' && 'En cours'}
-              {intervention.status === 'completed' && 'Terminé'}
-              {intervention.status === 'canceled' && 'Annulé'}
-            </Badge>
-            <Badge variant={getPriorityBadgeVariant(intervention.priority)}>
-              {intervention.priority === 'high' && 'Priorité haute'}
-              {intervention.priority === 'medium' && 'Priorité moyenne'}
-              {intervention.priority === 'low' && 'Priorité basse'}
-            </Badge>
-          </div>
-
-          <Card className="mb-4 border-l-4 border-l-primary">
-            <CardContent className="pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="flex items-start gap-2">
-                    <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Date</p>
-                      <p className="font-medium">
-                        {typeof intervention.date === 'string' 
-                          ? formatDate(new Date(intervention.date)) 
-                          : formatDate(intervention.date)}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-2">
-                    <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Lieu</p>
-                      <p className="font-medium">{intervention.location}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-start gap-2">
-                    <Wrench className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Équipement</p>
-                      <p className="font-medium">{intervention.equipment}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-2">
-                    <User className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Technicien</p>
-                      <p className="font-medium">{intervention.technician || 'Non assigné'}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="mb-4">
-            <CardContent className="pt-6">
-              <div className="space-y-4">
-                <div className="flex items-start gap-2">
-                  <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Durée prévue</p>
-                    <p className="font-medium">{intervention.scheduledDuration} heure(s)</p>
-                  </div>
-                </div>
-
-                {intervention.status === 'completed' && intervention.duration && (
-                  <div className="flex items-start gap-2">
-                    <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Durée réelle</p>
-                      <p className="font-medium">{intervention.duration} heure(s)</p>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex items-start gap-2">
-                  <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Description</p>
-                    <p className="whitespace-pre-wrap bg-muted p-3 rounded-md text-sm mt-1">
-                      {intervention.description || 'Aucune description'}
-                    </p>
-                  </div>
-                </div>
-
-                {intervention.notes && (
-                  <div className="flex items-start gap-2">
-                    <AlertCircle className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Notes</p>
-                      <p className="whitespace-pre-wrap bg-muted p-3 rounded-md text-sm mt-1">{intervention.notes}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {intervention.partsUsed && intervention.partsUsed.length > 0 && (
-            <Card className="mb-4">
-              <CardContent className="pt-6">
-                <h3 className="text-md font-medium mb-3">Pièces utilisées</h3>
-                <ul className="space-y-2">
-                  {intervention.partsUsed.map((part, index) => (
-                    <li key={index} className="flex items-center justify-between p-2 bg-muted rounded-md">
-                      <span className="font-medium">{part.name}</span>
-                      <Badge variant="outline">Quantité: {part.quantity}</Badge>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
-
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => setIsDeleteAlertOpen(true)}
-              className="gap-1"
-            >
-              <Trash2 size={16} />
-              <span>Supprimer</span>
-            </Button>
-            <div className="flex gap-2 ml-auto">
-              {intervention.status === 'scheduled' && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="gap-1"
-                  onClick={onStartWork}
-                >
-                  <Wrench size={16} />
-                  <span>Démarrer</span>
-                </Button>
+            <DialogTitle className="flex items-center text-xl">
+              {!isEditing ? (
+                <>
+                  <span>{intervention.title}</span>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="ml-2" 
+                    onClick={() => setIsEditing(true)}
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </>
+              ) : (
+                "Modifier l'intervention"
               )}
-              <DialogClose asChild>
-                <Button size="sm">Fermer</Button>
-              </DialogClose>
+            </DialogTitle>
+            
+            {!isEditing && (
+              <div className="flex gap-2 mt-2">
+                <StatusBadge status={intervention.status} />
+                <PriorityBadge priority={intervention.priority} />
+              </div>
+            )}
+          </DialogHeader>
+          
+          <ScrollArea className="max-h-[calc(90vh-180px)]">
+            {isEditing ? (
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Titre</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="equipment"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Équipement</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="location"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Emplacement</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="date"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Date</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, "P", { locale: fr })
+                                  ) : (
+                                    <span>Sélectionner une date</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <CalendarComponent
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) =>
+                                  date < new Date("1900-01-01")
+                                }
+                                initialFocus
+                                locale={fr}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="scheduledDuration"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Durée prévue (heures)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              min="0" 
+                              step="0.5" 
+                              {...field} 
+                              onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="technician"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Technicien</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="priority"
+                      render={({ field }) => (
+                        <FormItem className="space-y-1">
+                          <FormLabel>Priorité</FormLabel>
+                          <FormControl>
+                            <RadioGroup
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                              className="flex gap-4"
+                            >
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="low" id="low" />
+                                <Label htmlFor="low">Basse</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="medium" id="medium" />
+                                <Label htmlFor="medium">Moyenne</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="high" id="high" />
+                                <Label htmlFor="high">Haute</Label>
+                              </div>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea rows={3} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Notes</FormLabel>
+                        <FormControl>
+                          <Textarea rows={3} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <DialogFooter>
+                    <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
+                      Annuler
+                    </Button>
+                    <Button type="submit">Enregistrer</Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            ) : (
+              <div className="space-y-4 py-2">
+                {/* Informations de base */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <div className="text-sm text-muted-foreground">Date</div>
+                      <div>{format(new Date(intervention.date), 'PPP', { locale: fr })}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <div className="text-sm text-muted-foreground">Durée prévue</div>
+                      <div>{intervention.scheduledDuration} heures</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <div className="text-sm text-muted-foreground">Emplacement</div>
+                      <div>{intervention.location || 'Non spécifié'}</div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <div className="text-sm text-muted-foreground">Technicien</div>
+                    <div>{intervention.technician || 'Non assigné'}</div>
+                  </div>
+                </div>
+                
+                <Separator className="my-4" />
+                
+                {/* Description */}
+                <div>
+                  <h3 className="font-medium mb-2">Description</h3>
+                  <p className="text-sm whitespace-pre-line">{intervention.description || 'Aucune description'}</p>
+                </div>
+                
+                {/* Notes */}
+                {intervention.notes && (
+                  <div>
+                    <h3 className="font-medium mb-2">Notes</h3>
+                    <p className="text-sm whitespace-pre-line">{intervention.notes}</p>
+                  </div>
+                )}
+                
+                {/* Pièces utilisées */}
+                {intervention.partsUsed && intervention.partsUsed.length > 0 && (
+                  <div>
+                    <h3 className="font-medium mb-2">Pièces utilisées</h3>
+                    <ul className="text-sm space-y-1">
+                      {intervention.partsUsed.map((part, index) => (
+                        <li key={index} className="flex justify-between">
+                          <span>{part.name}</span>
+                          <span className="font-medium">{part.quantity} unité(s)</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+          </ScrollArea>
+          
+          {!isEditing && (
+            <div className="flex justify-between gap-2 mt-4">
+              <div className="flex gap-2">
+                {intervention.status === 'scheduled' && (
+                  <Button onClick={handleStartWork}>
+                    <Play className="mr-2 h-4 w-4" />
+                    Démarrer l'intervention
+                  </Button>
+                )}
+                
+                {intervention.status === 'in-progress' && (
+                  <Button onClick={handleMarkComplete}>
+                    <FileCheck className="mr-2 h-4 w-4" />
+                    Marquer comme terminée
+                  </Button>
+                )}
+                
+                {onGenerateReport && intervention.status === 'completed' && (
+                  <Button onClick={onGenerateReport}>
+                    <FileCheck className="mr-2 h-4 w-4" />
+                    Générer rapport PDF
+                  </Button>
+                )}
+              </div>
+              
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                Fermer
+              </Button>
             </div>
-          </DialogFooter>
+          )}
         </DialogContent>
       </Dialog>
       
-      <DeleteInterventionAlert
-        open={isDeleteAlertOpen}
-        onOpenChange={setIsDeleteAlertOpen}
-        onConfirm={handleDelete}
-        isDeleting={isDeleting}
+      <InterventionReportDialog
+        open={isReportDialogOpen}
+        onOpenChange={setIsReportDialogOpen}
+        intervention={intervention}
+        onSubmit={handleCompleteWithReport}
+        availableParts={[
+          { id: 1, name: 'Filtre à huile', quantity: 10 },
+          { id: 2, name: 'Filtre à air', quantity: 5 },
+          { id: 3, name: 'Huile moteur', quantity: 20 },
+          { id: 4, name: 'Courroie', quantity: 8 }
+        ]}
       />
     </>
   );

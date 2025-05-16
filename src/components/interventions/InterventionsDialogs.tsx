@@ -1,17 +1,15 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import NewInterventionDialog from './NewInterventionDialog';
 import InterventionDetailsDialog from './InterventionDetailsDialog';
+import InterventionReportPdfDialog from './dialogs/InterventionReportPdfDialog';
+import { useInterventionDetail } from '@/hooks/interventions/useInterventionDetail';
 import { Intervention, InterventionFormValues } from '@/types/Intervention';
-import { useInterventionsData } from '@/hooks/interventions/useInterventionsData';
-import { useEquipmentOptions } from '@/hooks/equipment/useEquipmentOptions';
-import { toast } from 'sonner';
-import { useTechnicians } from '@/hooks/team/useTechnicians';
 
 interface InterventionsDialogsProps {
   isNewInterventionDialogOpen: boolean;
   onCloseNewInterventionDialog: () => void;
-  onCreate: (intervention: InterventionFormValues) => Promise<void>;
+  onCreate: (values: InterventionFormValues) => Promise<void>;
   interventionDetailsOpen: boolean;
   selectedInterventionId: number | null;
   onCloseInterventionDetails: () => void;
@@ -28,72 +26,45 @@ const InterventionsDialogs: React.FC<InterventionsDialogsProps> = ({
   selectedInterventionId,
   onCloseInterventionDetails,
   onStartWork,
-  interventions,
-  filteredInterventions
+  interventions
 }) => {
-  const { createIntervention, updateInterventionStatus } = useInterventionsData();
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   
-  // Utiliser le hook pour récupérer les équipements réels
-  const { data: equipments = [], isLoading: isLoadingEquipments } = useEquipmentOptions();
-  
-  // Récupérer les techniciens depuis la base de données
-  const { data: technicians = [], isLoading: isLoadingTechnicians } = useTechnicians();
-  
-  // Trouver l'intervention sélectionnée pour les détails
-  const selectedIntervention = selectedInterventionId
-    ? interventions.find(i => i.id === selectedInterventionId) || null
-    : null;
-  
-  // Wrapper pour la création d'intervention qui utilise notre service
-  const handleCreateIntervention = async (values: InterventionFormValues) => {
-    try {
-      await createIntervention(values);
-      toast.success("Intervention créée avec succès");
-      // Appeler le onCreate du parent pour mettre à jour l'UI
-      await onCreate(values);
-      return Promise.resolve();
-    } catch (error) {
-      console.error("Error in handleCreateIntervention:", error);
-      toast.error("Erreur lors de la création de l'intervention");
-      return Promise.reject(error);
-    }
-  };
-
-  // Fonction pour mettre à jour une intervention
-  const handleInterventionUpdate = (interventionId: number, updates: Partial<Intervention>) => {
-    const intervention = interventions.find(i => i.id === interventionId);
-    if (intervention) {
-      const updatedIntervention = { ...intervention, ...updates };
-      // Ici, on pourrait appeler un service pour mettre à jour l'intervention
-      toast.success("Intervention mise à jour");
-    }
-  };
+  // Récupérer les détails de l'intervention sélectionnée
+  const { intervention, loading, handleInterventionUpdate } = useInterventionDetail(selectedInterventionId);
   
   return (
     <>
-      {/* Dialog pour créer une nouvelle intervention */}
+      {/* Dialog for creating a new intervention */}
       <NewInterventionDialog
         open={isNewInterventionDialogOpen}
-        onOpenChange={onCloseNewInterventionDialog}
-        onCreate={handleCreateIntervention}
-        equipments={equipments}
-        technicians={technicians}
-        isLoadingEquipment={isLoadingEquipments}
-        isLoadingTechnicians={isLoadingTechnicians}
+        onOpenChange={(open) => {
+          if (!open) onCloseNewInterventionDialog();
+        }}
+        onCreate={onCreate}
       />
       
-      {/* Dialog pour voir les détails d'une intervention */}
-      {selectedIntervention && selectedInterventionId && (
+      {/* Dialog for viewing/editing intervention details */}
+      {selectedInterventionId !== null && (
         <InterventionDetailsDialog
-          intervention={selectedIntervention}
-          isOpen={interventionDetailsOpen}
-          onClose={onCloseInterventionDetails}
-          onStartWork={() => {
-            if (selectedIntervention) {
-              onStartWork(selectedIntervention);
-            }
+          open={interventionDetailsOpen}
+          onOpenChange={(open) => {
+            if (!open) onCloseInterventionDetails();
           }}
-          handleInterventionUpdate={handleInterventionUpdate}
+          interventionId={selectedInterventionId}
+          onUpdate={handleInterventionUpdate}
+          onStartWork={onStartWork}
+          onGenerateReport={() => setIsReportDialogOpen(true)}
+          loading={loading}
+        />
+      )}
+      
+      {/* Dialog for generating PDF report */}
+      {intervention && (
+        <InterventionReportPdfDialog
+          open={isReportDialogOpen}
+          onOpenChange={setIsReportDialogOpen}
+          intervention={intervention}
         />
       )}
     </>
