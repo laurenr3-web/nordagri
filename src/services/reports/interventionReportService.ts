@@ -15,6 +15,13 @@ declare module 'jspdf' {
     lastAutoTable: {
       finalY: number;
     };
+    internal: {
+      getNumberOfPages: () => number;
+      pageSize: {
+        getWidth: () => number;
+        getHeight: () => number;
+      };
+    };
   }
 }
 
@@ -176,12 +183,16 @@ export const interventionReportService = {
     if (options.farmLogo) {
       try {
         // Charger le logo
-        const logoData = await fetch(options.farmLogo).then(res => res.arrayBuffer());
+        const response = await fetch(options.farmLogo);
+        const arrayBuffer = await response.arrayBuffer();
+        // Convertir ArrayBuffer en Uint8Array pour compatibilité avec jsPDF
+        const uint8Array = new Uint8Array(arrayBuffer);
+        
         const logoFormat = options.farmLogo.split('.').pop()?.toLowerCase() || 'png';
         
         // Ajouter le logo
         doc.addImage(
-          logoData,
+          uint8Array,
           logoFormat,
           margin,
           yPos,
@@ -286,9 +297,13 @@ export const interventionReportService = {
         
         // Charger et ajouter la photo
         try {
-          const photoData = await fetch(photos[i]).then(res => res.arrayBuffer());
+          const response = await fetch(photos[i]);
+          const arrayBuffer = await response.arrayBuffer();
+          // Convertir ArrayBuffer en Uint8Array pour compatibilité avec jsPDF
+          const uint8Array = new Uint8Array(arrayBuffer);
+          
           doc.addImage(
-            photoData,
+            uint8Array,
             'JPEG', // Supposer que toutes les photos sont JPG
             xPos,
             yPos,
