@@ -4,12 +4,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { interventionService } from '@/services/supabase/interventionService';
 import { Intervention } from '@/types/Intervention';
 import { toast } from 'sonner';
-import { useOfflineStatus } from '@/providers/OfflineProvider';
 
 export function useInterventionDetail(interventionId: string | number | undefined) {
   const queryClient = useQueryClient();
   const [isUpdating, setIsUpdating] = useState(false);
-  const { isOnline, addToSyncQueue } = useOfflineStatus();
   
   // Fetch intervention details
   const {
@@ -24,19 +22,9 @@ export function useInterventionDetail(interventionId: string | number | undefine
   
   // Update intervention mutation
   const updateMutation = useMutation({
-    mutationFn: async (updatedIntervention: Intervention) => {
+    mutationFn: (updatedIntervention: Intervention) => {
       setIsUpdating(true);
-      if (isOnline) {
-        return interventionService.updateIntervention(updatedIntervention);
-      } else {
-        // Mode hors-ligne: ajouter à la file d'attente de synchronisation
-        await addToSyncQueue(
-          'update_intervention', 
-          updatedIntervention, 
-          'interventions'
-        );
-        return updatedIntervention;
-      }
+      return interventionService.updateIntervention(updatedIntervention);
     },
     onSuccess: (updatedIntervention) => {
       // Update cache
