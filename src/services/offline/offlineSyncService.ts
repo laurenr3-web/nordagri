@@ -5,6 +5,10 @@ import { toast } from 'sonner';
 import { useCallback, useState, useEffect } from 'react';
 import { IndexedDBService } from './indexedDBService';
 import { useNetworkState } from '@/hooks/useNetworkState';
+import { Database } from '@/integrations/supabase/types';
+
+// Get table names from the Supabase types to ensure type safety
+type TableNames = keyof Database['public']['Tables'];
 
 // Types for our sync service
 export interface SyncOperation {
@@ -173,8 +177,9 @@ export class OfflineSyncService {
       
       // Check if the record already exists (to avoid duplicates)
       if (data.id) {
+        // Use type casting to handle dynamic table names
         const { data: existingData, error: checkError } = await supabase
-          .from(operation.tableName)
+          .from(operation.tableName as any)
           .select('id')
           .eq('id', data.id)
           .single();
@@ -188,7 +193,7 @@ export class OfflineSyncService {
       }
       
       const { error } = await supabase
-        .from(operation.tableName)
+        .from(operation.tableName as any)
         .insert(data);
       
       if (error) {
@@ -211,7 +216,7 @@ export class OfflineSyncService {
       
       // Check if the record exists and if it has been modified since
       const { data: currentData, error: checkError } = await supabase
-        .from(operation.tableName)
+        .from(operation.tableName as any)
         .select('*')
         .eq('id', data.id)
         .single();
@@ -224,11 +229,11 @@ export class OfflineSyncService {
       }
       
       // If the update timestamp is defined, check for conflicts
-      if (data.updated_at && currentData.updated_at) {
-        // Type guard to ensure currentData has updated_at property
-        if (typeof currentData === 'object' && 'updated_at' in currentData) {
+      if (data.updated_at && currentData && typeof currentData === 'object' && 'updated_at' in currentData) {
+        const remoteUpdatedAt = (currentData as any).updated_at;
+        if (remoteUpdatedAt) {
           const localDate = new Date(data.updated_at);
-          const remoteDate = new Date(currentData.updated_at as string);
+          const remoteDate = new Date(remoteUpdatedAt);
           
           if (remoteDate > localDate) {
             return { 
@@ -240,7 +245,7 @@ export class OfflineSyncService {
       }
       
       const { error } = await supabase
-        .from(operation.tableName)
+        .from(operation.tableName as any)
         .update(data)
         .eq('id', data.id);
       
@@ -264,7 +269,7 @@ export class OfflineSyncService {
       
       // Check if the record still exists
       const { data: existingData, error: checkError } = await supabase
-        .from(operation.tableName)
+        .from(operation.tableName as any)
         .select('id')
         .eq('id', data.id)
         .single();
@@ -278,7 +283,7 @@ export class OfflineSyncService {
       }
       
       const { error } = await supabase
-        .from(operation.tableName)
+        .from(operation.tableName as any)
         .delete()
         .eq('id', data.id);
       
