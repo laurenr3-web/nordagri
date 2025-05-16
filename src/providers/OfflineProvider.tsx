@@ -17,7 +17,12 @@ interface OfflineContextType {
   pendingSyncCount: number;
   syncStats: SyncStats;
   triggerSync: () => Promise<void>;
-  addToSyncQueue: typeof OfflineSyncService.addToSyncQueue;
+  addToSyncQueue: (
+    tableName: string, 
+    operation: 'insert' | 'update' | 'delete', 
+    data: any,
+    userId?: string
+  ) => Promise<string>;
 }
 
 const OfflineContext = createContext<OfflineContextType>({
@@ -26,7 +31,7 @@ const OfflineContext = createContext<OfflineContextType>({
   pendingSyncCount: 0,
   syncStats: { total: 0, pending: 0, success: 0, error: 0, conflict: 0 },
   triggerSync: async () => {},
-  addToSyncQueue: OfflineSyncService.addToSyncQueue
+  addToSyncQueue: async () => ''
 });
 
 export const useOfflineStatus = () => useContext(OfflineContext);
@@ -41,7 +46,7 @@ export const OfflineProvider: React.FC<OfflineProviderProps> = ({ children }) =>
   const [showBanner, setShowBanner] = useState(false);
   const { t } = useTranslation();
   
-  // Gérer l'affichage de la bannière, avec un délai pour éviter des flashs
+  // Handle banner display, with a delay to avoid flashes
   useEffect(() => {
     let timer: NodeJS.Timeout;
     
@@ -58,7 +63,7 @@ export const OfflineProvider: React.FC<OfflineProviderProps> = ({ children }) =>
     };
   }, [isOnline]);
 
-  // Afficher une notification lorsque l'état de connexion change
+  // Show a notification when connection status changes
   useEffect(() => {
     if (isOnline) {
       toast.success(t("network.connected"));
@@ -77,9 +82,9 @@ export const OfflineProvider: React.FC<OfflineProviderProps> = ({ children }) =>
         description: t("network.offlineMode")
       });
     }
-  }, [isOnline, syncCount, t]);
+  }, [isOnline, syncCount, t, syncPendingItems]);
 
-  // Gérer le déclenchement manuel de la synchronisation
+  // Handle manual synchronization triggering
   const triggerSync = async () => {
     if (isOnline) {
       await syncPendingItems();
@@ -101,7 +106,7 @@ export const OfflineProvider: React.FC<OfflineProviderProps> = ({ children }) =>
     <OfflineContext.Provider value={value}>
       {children}
       
-      {/* Bannière mode hors-ligne persistante */}
+      {/* Persistent offline mode banner */}
       {showBanner && (
         <div className="fixed top-0 right-0 p-2 m-4 bg-orange-100 text-orange-800 rounded-md shadow-md z-50 flex items-center gap-2 animate-fade-in">
           <WifiOff className="h-4 w-4" />
@@ -109,7 +114,7 @@ export const OfflineProvider: React.FC<OfflineProviderProps> = ({ children }) =>
         </div>
       )}
       
-      {/* Statut de synchronisation */}
+      {/* Sync status */}
       {isSyncing && (
         <div className="fixed top-0 right-0 p-2 m-4 bg-blue-100 text-blue-800 rounded-md shadow-md z-50 flex items-center gap-2 animate-fade-in">
           <Cloud className="h-4 w-4 animate-spin" />
@@ -120,7 +125,7 @@ export const OfflineProvider: React.FC<OfflineProviderProps> = ({ children }) =>
         </div>
       )}
       
-      {/* Bannière éléments en attente (quand en ligne) */}
+      {/* Pending items banner (when online) */}
       {isOnline && !isSyncing && syncCount > 0 && (
         <div className="fixed bottom-0 right-0 p-2 m-4 bg-blue-50 text-blue-800 rounded-md shadow-md z-50 flex flex-col gap-2 animate-fade-in">
           <div className="flex items-center gap-2">
@@ -140,7 +145,7 @@ export const OfflineProvider: React.FC<OfflineProviderProps> = ({ children }) =>
         </div>
       )}
       
-      {/* Bannière pour les conflits */}
+      {/* Conflicts banner */}
       {syncStats.conflict > 0 && (
         <div className="fixed bottom-0 left-0 p-2 m-4 bg-yellow-50 text-yellow-800 rounded-md shadow-md z-50 flex items-center gap-2 animate-fade-in">
           <AlertTriangle className="h-4 w-4" />

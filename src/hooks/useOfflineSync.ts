@@ -6,9 +6,9 @@ import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 
 /**
- * Hook pour faciliter l'utilisation du système de synchronisation hors-ligne
- * @param entityType Type d'entité pour laquelle on gère la synchronisation
- * @returns Fonctions et état pour gérer les opérations avec support hors-ligne
+ * Hook to facilitate the use of the offline synchronization system
+ * @param entityType Type of entity being synchronized
+ * @returns Functions and state to manage operations with offline support
  */
 export function useOfflineSync<T extends Record<string, any>>(entityType: string) {
   const [queuedItems, setQueuedItems] = useState<Record<string, boolean>>({});
@@ -16,10 +16,10 @@ export function useOfflineSync<T extends Record<string, any>>(entityType: string
   const { t } = useTranslation();
   
   /**
-   * Ajoute une opération à la file de synchronisation
-   * @param operationType Type d'opération
-   * @param data Données à synchroniser
-   * @param optimisticId ID optimiste pour identifier l'élément en attente
+   * Adds an operation to the synchronization queue
+   * @param operationType Type of operation
+   * @param data Data to synchronize
+   * @param optimisticId Optimistic ID to identify the pending item
    */
   const queueOperation = async <D extends Record<string, any>>(
     operationType: SyncOperationType,
@@ -27,15 +27,23 @@ export function useOfflineSync<T extends Record<string, any>>(entityType: string
     optimisticId?: string | number
   ): Promise<string> => {
     try {
-      // Ajouter à la file de synchronisation
-      const id = await addToSyncQueue(operationType, data);
+      // Determine the operation type from the operationType string
+      const operation = operationType.startsWith('add_') ? 'insert' : 
+                        operationType.startsWith('update_') ? 'update' : 
+                        operationType.startsWith('delete_') ? 'delete' : 'insert';
       
-      // Si un ID optimiste est fourni, le marquer comme en attente
+      // Extract the table name from the operationType or use entityType
+      const tableName = entityType;
+      
+      // Add to the synchronization queue
+      const id = await addToSyncQueue(tableName, operation as 'insert' | 'update' | 'delete', data);
+      
+      // If an optimistic ID is provided, mark it as pending
       if (optimisticId) {
         setQueuedItems(prev => ({ ...prev, [optimisticId.toString()]: true }));
       }
       
-      // Afficher une notification
+      // Display a notification
       if (!isOnline) {
         toast.info(t("sync.operationQueued", { entityType }), {
           description: t("sync.willSyncWhenOnline")
@@ -51,16 +59,16 @@ export function useOfflineSync<T extends Record<string, any>>(entityType: string
   };
   
   /**
-   * Vérifie si un élément est en attente de synchronisation
-   * @param id ID de l'élément à vérifier
+   * Checks if an item is pending synchronization
+   * @param id ID of the item to check
    */
   const isItemQueued = (id: string | number): boolean => {
     return !!queuedItems[id.toString()];
   };
   
   /**
-   * Marque un élément comme synchronisé
-   * @param id ID de l'élément à marquer
+   * Marks an item as synchronized
+   * @param id ID of the item to mark
    */
   const markItemSynced = (id: string | number): void => {
     setQueuedItems(prev => {
@@ -71,9 +79,9 @@ export function useOfflineSync<T extends Record<string, any>>(entityType: string
   };
   
   /**
-   * Crée une entité avec support hors-ligne
-   * @param entity Entité à créer
-   * @param onlineCreateFn Fonction à utiliser quand en ligne
+   * Creates an entity with offline support
+   * @param entity Entity to create
+   * @param onlineCreateFn Function to use when online
    */
   const createWithOfflineSupport = async <E extends Record<string, any>>(
     entity: E,
@@ -81,10 +89,10 @@ export function useOfflineSync<T extends Record<string, any>>(entityType: string
   ): Promise<E & { id: string | number; _isOptimistic?: boolean }> => {
     try {
       if (isOnline) {
-        // Si en ligne, utiliser la fonction normale
+        // If online, use the normal function
         return await onlineCreateFn(entity);
       } else {
-        // Si hors ligne, créer un ID temporaire et ajouter à la file
+        // If offline, create a temporary ID and add to the queue
         const temporaryId = `temp_${entityType}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         const entityWithId = { ...entity, id: temporaryId, _isOptimistic: true };
         
@@ -103,9 +111,9 @@ export function useOfflineSync<T extends Record<string, any>>(entityType: string
   };
   
   /**
-   * Met à jour une entité avec support hors-ligne
-   * @param entity Entité à mettre à jour
-   * @param onlineUpdateFn Fonction à utiliser quand en ligne
+   * Updates an entity with offline support
+   * @param entity Entity to update
+   * @param onlineUpdateFn Function to use when online
    */
   const updateWithOfflineSupport = async <E extends Record<string, any> & { id: string | number }>(
     entity: E,
@@ -113,10 +121,10 @@ export function useOfflineSync<T extends Record<string, any>>(entityType: string
   ): Promise<E> => {
     try {
       if (isOnline) {
-        // Si en ligne, utiliser la fonction normale
+        // If online, use the normal function
         return await onlineUpdateFn(entity);
       } else {
-        // Si hors ligne, ajouter à la file
+        // If offline, add to the queue
         await queueOperation(
           `update_${entityType}` as SyncOperationType,
           entity,
@@ -132,9 +140,9 @@ export function useOfflineSync<T extends Record<string, any>>(entityType: string
   };
   
   /**
-   * Supprime une entité avec support hors-ligne
-   * @param id ID de l'entité à supprimer
-   * @param onlineDeleteFn Fonction à utiliser quand en ligne
+   * Deletes an entity with offline support
+   * @param id ID of the entity to delete
+   * @param onlineDeleteFn Function to use when online
    */
   const deleteWithOfflineSupport = async (
     id: string | number,
@@ -142,10 +150,10 @@ export function useOfflineSync<T extends Record<string, any>>(entityType: string
   ): Promise<void> => {
     try {
       if (isOnline) {
-        // Si en ligne, utiliser la fonction normale
+        // If online, use the normal function
         await onlineDeleteFn(id);
       } else {
-        // Si hors ligne, ajouter à la file
+        // If offline, add to the queue
         await queueOperation(
           `delete_${entityType}` as SyncOperationType,
           { id },

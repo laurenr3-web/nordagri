@@ -6,7 +6,7 @@ import { useCallback, useState, useEffect } from 'react';
 import { IndexedDBService } from './indexedDBService';
 import { useNetworkState } from '@/hooks/useNetworkState';
 
-// Types nécessaires à notre service de synchronisation
+// Types for our sync service
 export interface SyncOperation {
   id: string;
   tableName: string;
@@ -19,6 +19,9 @@ export interface SyncOperation {
   userId?: string;
 }
 
+// Export this type for use in other modules
+export type SyncOperationType = string;
+
 export interface SyncStats {
   total: number;
   pending: number;
@@ -27,7 +30,7 @@ export interface SyncStats {
   conflict: number;
 }
 
-// Service de synchronisation hors ligne
+// Offline sync service
 export class OfflineSyncService {
   static async addToSyncQueue(
     tableName: string,
@@ -91,7 +94,7 @@ export class OfflineSyncService {
   static async clearSuccessfulOperations(olderThan?: number): Promise<void> {
     try {
       const allOperations = await IndexedDBService.getAllItems('sync_operations');
-      const cutoff = olderThan || Date.now() - 7 * 24 * 60 * 60 * 1000; // Par défaut: 7 jours
+      const cutoff = olderThan || Date.now() - 7 * 24 * 60 * 60 * 1000; // Default: 7 days
       
       const operationsToDelete = allOperations
         .filter(op => op.status === 'success' && op.timestamp < cutoff)
@@ -151,7 +154,7 @@ export class OfflineSyncService {
       }
     }
     
-    // Récupérer toutes les statistiques
+    // Get all statistics
     const allOperations = await this.getSyncOperations();
     const stats: SyncStats = {
       total: allOperations.length,
@@ -168,10 +171,10 @@ export class OfflineSyncService {
     try {
       const { data } = operation;
       
-      // Vérifier si l'enregistrement existe déjà (pour éviter les doublons)
+      // Check if the record already exists (to avoid duplicates)
       if (data.id) {
         const { data: existingData, error: checkError } = await supabase
-          .from(operation.tableName as any)
+          .from(operation.tableName)
           .select('id')
           .eq('id', data.id)
           .single();
@@ -185,7 +188,7 @@ export class OfflineSyncService {
       }
       
       const { error } = await supabase
-        .from(operation.tableName as any)
+        .from(operation.tableName)
         .insert(data);
       
       if (error) {
@@ -206,9 +209,9 @@ export class OfflineSyncService {
         return { error: 'No ID provided for update operation' };
       }
       
-      // Vérifier si l'enregistrement existe et s'il a été modifié depuis
+      // Check if the record exists and if it has been modified since
       const { data: currentData, error: checkError } = await supabase
-        .from(operation.tableName as any)
+        .from(operation.tableName)
         .select('*')
         .eq('id', data.id)
         .single();
@@ -220,21 +223,24 @@ export class OfflineSyncService {
         };
       }
       
-      // Si le timestamp de mise à jour est défini, vérifier les conflits
+      // If the update timestamp is defined, check for conflicts
       if (data.updated_at && currentData.updated_at) {
-        const localDate = new Date(data.updated_at);
-        const remoteDate = new Date(currentData.updated_at);
-        
-        if (remoteDate > localDate) {
-          return { 
-            error: `Remote record has been modified more recently (${remoteDate.toISOString()} > ${localDate.toISOString()})`,
-            conflict: true
-          };
+        // Type guard to ensure currentData has updated_at property
+        if (typeof currentData === 'object' && 'updated_at' in currentData) {
+          const localDate = new Date(data.updated_at);
+          const remoteDate = new Date(currentData.updated_at as string);
+          
+          if (remoteDate > localDate) {
+            return { 
+              error: `Remote record has been modified more recently (${remoteDate.toISOString()} > ${localDate.toISOString()})`,
+              conflict: true
+            };
+          }
         }
       }
       
       const { error } = await supabase
-        .from(operation.tableName as any)
+        .from(operation.tableName)
         .update(data)
         .eq('id', data.id);
       
@@ -256,23 +262,23 @@ export class OfflineSyncService {
         return { error: 'No ID provided for delete operation' };
       }
       
-      // Vérifier si l'enregistrement existe encore
+      // Check if the record still exists
       const { data: existingData, error: checkError } = await supabase
-        .from(operation.tableName as any)
+        .from(operation.tableName)
         .select('id')
         .eq('id', data.id)
         .single();
       
       if (checkError) {
-        // Si l'erreur est que l'enregistrement n'existe pas, ce n'est pas un problème
+        // If the error is that the record does not exist, that's not an issue
         if (checkError.code === 'PGRST116') {
-          return {}; // L'enregistrement est déjà supprimé, c'est ok
+          return {}; // The record is already deleted, that's ok
         }
         return { error: checkError.message };
       }
       
       const { error } = await supabase
-        .from(operation.tableName as any)
+        .from(operation.tableName)
         .delete()
         .eq('id', data.id);
       
@@ -287,7 +293,7 @@ export class OfflineSyncService {
   }
 }
 
-// Hook pour utiliser le service de synchronisation dans les composants React
+// Hook for using the sync service in React components
 export function useOfflineSyncManager() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncCount, setSyncCount] = useState(0);
@@ -301,7 +307,7 @@ export function useOfflineSyncManager() {
   
   const isOnline = useNetworkState();
   
-  // Charger les opérations en attente au démarrage
+  // Load pending operations at startup
   const loadPendingOperations = useCallback(async () => {
     try {
       const pendingOps = await OfflineSyncService.getSyncOperations('pending');
@@ -320,7 +326,7 @@ export function useOfflineSyncManager() {
     }
   }, []);
   
-  // Synchroniser les opérations en attente
+  // Synchronize pending operations
   const syncPendingItems = useCallback(async () => {
     if (!isOnline || isSyncing) return;
     
@@ -331,18 +337,18 @@ export function useOfflineSyncManager() {
       setSyncCount(stats.pending);
       
       if (stats.success > 0) {
-        toast.success(`${stats.success} élément(s) synchronisé(s) avec succès`);
+        toast.success(`${stats.success} item(s) synchronized successfully`);
       }
       
       if (stats.error > 0) {
-        toast.error(`${stats.error} erreur(s) de synchronisation`);
+        toast.error(`${stats.error} synchronization error(s)`);
       }
       
       if (stats.conflict > 0) {
-        toast.warning(`${stats.conflict} conflit(s) de synchronisation détecté(s)`);
+        toast.warning(`${stats.conflict} synchronization conflict(s) detected`);
       }
       
-      // Nettoyer les opérations réussies après 7 jours
+      // Clean up successful operations after 7 days
       await OfflineSyncService.clearSuccessfulOperations();
     } catch (error) {
       console.error('[useOfflineSyncManager] Error syncing pending items:', error);
@@ -351,20 +357,20 @@ export function useOfflineSyncManager() {
     }
   }, [isOnline, isSyncing]);
   
-  // Synchroniser automatiquement lorsque la connexion est rétablie
+  // Automatically synchronize when connection is restored
   useEffect(() => {
     if (isOnline) {
       syncPendingItems();
     }
   }, [isOnline, syncPendingItems]);
   
-  // Charger les opérations en attente au démarrage et configurer un intervalle de vérification
+  // Load pending operations at startup and set up a check interval
   useEffect(() => {
     loadPendingOperations();
     
     const interval = setInterval(() => {
       loadPendingOperations();
-    }, 30000); // Vérifier toutes les 30 secondes
+    }, 30000); // Check every 30 seconds
     
     return () => clearInterval(interval);
   }, [loadPendingOperations]);
