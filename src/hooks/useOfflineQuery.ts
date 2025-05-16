@@ -8,7 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 // S'assurer que le service de sync ait le client Supabase
 syncService.setSupabaseClient(supabase);
 
-export interface UseOfflineQueryResult<TData> extends UseQueryResult<TData> {
+export interface UseOfflineQueryResult<TData> extends Omit<UseQueryResult<TData>, 'data'> {
+  data: TData | undefined;
   isOffline: boolean;
   isCached: boolean;
   pendingSync: number;
@@ -19,16 +20,18 @@ export function useOfflineQuery<
   TError = unknown,
   TData = TQueryFnData,
   TQueryKey extends any[] = any[]
->(
-  queryKey: TQueryKey,
-  queryFn: () => Promise<TQueryFnData>,
-  options?: Omit<UseQueryOptions<TQueryFnData, TError, TData, TQueryKey>, 'queryKey' | 'queryFn'>,
+>(options: {
+  queryKey: TQueryKey;
+  queryFn: () => Promise<TQueryFnData>;
+  enabled?: boolean;
+  staleTime?: number;
   cacheParams?: {
     tableName: string;
     cacheKey?: string;
     cacheTime?: number; // Durée de validité du cache en millisecondes
-  }
-): UseOfflineQueryResult<TData> {
+  };
+}): UseOfflineQueryResult<TData> {
+  const { queryKey, queryFn, enabled, staleTime, cacheParams } = options;
   const isOnline = useNetworkState();
   const [isCached, setIsCached] = useState<boolean>(false);
   const [pendingSync, setPendingSync] = useState<number>(0);
@@ -99,9 +102,8 @@ export function useOfflineQuery<
   const queryResult = useQuery<TQueryFnData, TError, TData, TQueryKey>({
     queryKey,
     queryFn: offlineQueryFn,
-    ...(options || {}),
-    // Toujours activé si on a un cache, sinon seulement si en ligne (sauf si explicitement désactivé)
-    enabled: (options?.enabled !== false) && (isOnline || cacheParams?.tableName !== undefined)
+    enabled: (enabled !== false) && (isOnline || cacheParams?.tableName !== undefined),
+    staleTime
   });
 
   // Si des données ont été chargées et que nous avons une configuration de cache, mettre à jour la référence
@@ -111,12 +113,16 @@ export function useOfflineQuery<
     }
   }, [queryResult.data]);
 
-  return {
+  // On va ajouter manuellement toutes les propriétés pour s'assurer qu'elles sont bien là
+  const result: UseOfflineQueryResult<TData> = {
     ...queryResult,
+    data: queryResult.data,
     isOffline: !isOnline,
     isCached,
     pendingSync
   };
+
+  return result;
 }
 
 export function useOfflineMutation<

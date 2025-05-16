@@ -47,7 +47,7 @@ export function useInterventionsWithOffline() {
         const dataWithLocalId = { ...interventionData, id: localId };
         
         // Add to sync queue
-        await addToSyncQueue('add_intervention', dataWithLocalId, 'interventions');
+        await addToSyncQueue('create', dataWithLocalId, 'interventions');
         
         // Return the local data so UI can update immediately
         return dataWithLocalId;
@@ -76,7 +76,7 @@ export function useInterventionsWithOffline() {
         return interventionData;
       } else {
         // Offline: Queue for later sync
-        await addToSyncQueue('update_intervention', interventionData, 'interventions');
+        await addToSyncQueue('update', interventionData, 'interventions', interventionData.id);
         
         // Return the data so UI can update immediately
         return interventionData;
@@ -115,7 +115,7 @@ export function useInterventionsWithOffline() {
         return id;
       } else {
         // Offline: Queue for later sync
-        await addToSyncQueue('delete_intervention', { id }, 'interventions');
+        await addToSyncQueue('delete', { id }, 'interventions', id);
         
         // Return the id so UI can update immediately
         return id;
