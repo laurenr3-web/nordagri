@@ -1,32 +1,22 @@
 
+import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useCallback, useState, useEffect } from 'react';
 import { IndexedDBService } from './indexedDBService';
-import { useEffect, useState } from 'react';
+import { useNetworkState } from '@/hooks/useNetworkState';
 
-// Types for sync operations
-export type SyncOperationType = 'add_intervention' | 'update_intervention' | 'delete_intervention' | 
-                             'add_maintenance' | 'update_maintenance' | 'delete_maintenance' |
-                             'add_part' | 'update_part' | 'delete_part' |
-                             'add_equipment' | 'update_equipment' | 'delete_equipment' |
-                             'add_time_entry' | 'update_time_entry' | 'delete_time_entry' |
-                             'add_observation' | 'update_observation' | 'delete_observation';
-
+// Types nécessaires à notre service de synchronisation
 export interface SyncOperation {
   id: string;
-  type: SyncOperationType;
+  tableName: string;
+  operation: 'insert' | 'update' | 'delete';
   data: any;
   timestamp: number;
   status: 'pending' | 'processing' | 'success' | 'error' | 'conflict';
-  attempts: number;
+  retryCount: number;
   error?: string;
-  meta?: SyncMeta;
-}
-
-interface SyncMeta {
-  conflictDetected?: boolean;
-  serverVersion?: string;
-  attempts: number;
+  userId?: string;
 }
 
 export interface SyncStats {
@@ -37,386 +27,353 @@ export interface SyncStats {
   conflict: number;
 }
 
-// Service pour gérer la synchronisation hors-ligne
-class OfflineSyncServiceClass {
-  private syncQueue: SyncOperation[] = [];
-  private isSyncing = false;
-  private dbInitialized = false;
-  private maxRetryAttempts = 3;
-
-  constructor() {
-    this.initializeDB();
-  }
-
-  private async initializeDB() {
-    try {
-      await IndexedDBService.initialize();
-      this.dbInitialized = true;
-      await this.loadQueueFromStorage();
-      console.log('Offline sync service initialized');
-    } catch (error) {
-      console.error('Error initializing IndexedDB:', error);
-    }
-  }
-
-  // Ajouter une opération à la file de synchronisation
-  async addToSyncQueue(type: SyncOperationType, data: any): Promise<string> {
-    // Attendre l'initialisation de la BD si nécessaire
-    if (!this.dbInitialized) {
-      await this.waitForDBInitialization();
-    }
-
-    const operation: SyncOperation = {
-      id: `sync_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      type,
+// Service de synchronisation hors ligne
+export class OfflineSyncService {
+  static async addToSyncQueue(
+    tableName: string,
+    operation: 'insert' | 'update' | 'delete',
+    data: any,
+    userId?: string
+  ): Promise<string> {
+    const syncOperation: SyncOperation = {
+      id: uuidv4(),
+      tableName,
+      operation,
       data,
       timestamp: Date.now(),
       status: 'pending',
-      attempts: 0
+      retryCount: 0,
+      userId
     };
-
-    this.syncQueue.push(operation);
     
-    // Sauvegarder l'opération dans IndexedDB
-    await IndexedDBService.addItem('sync_operations', operation);
-    
-    return operation.id;
-  }
-
-  private async waitForDBInitialization() {
-    return new Promise<void>((resolve) => {
-      const checkInterval = setInterval(() => {
-        if (this.dbInitialized) {
-          clearInterval(checkInterval);
-          resolve();
-        }
-      }, 100);
-    });
-  }
-
-  private async loadQueueFromStorage() {
     try {
-      const storedOperations = await IndexedDBService.getAllItems('sync_operations');
-      this.syncQueue = storedOperations;
-      console.log(`Loaded ${this.syncQueue.length} operations from storage`);
+      await IndexedDBService.addItem('sync_operations', syncOperation);
+      console.log(`[OfflineSyncService] Added to sync queue: ${operation} on ${tableName}`, data);
+      return syncOperation.id;
     } catch (error) {
-      console.error('Error loading sync queue from storage:', error);
+      console.error('[OfflineSyncService] Error adding to sync queue:', error);
+      throw error;
     }
   }
-
-  private async updateOperationInStorage(operation: SyncOperation) {
+  
+  static async getSyncOperations(status?: 'pending' | 'processing' | 'success' | 'error' | 'conflict'): Promise<SyncOperation[]> {
     try {
-      await IndexedDBService.updateItem('sync_operations', operation);
-    } catch (error) {
-      console.error('Error updating operation in storage:', error);
-    }
-  }
-
-  private async removeOperationFromStorage(operationId: string) {
-    try {
-      await IndexedDBService.deleteItem('sync_operations', operationId);
-    } catch (error) {
-      console.error('Error removing operation from storage:', error);
-    }
-  }
-
-  // Obtenir le statut actuel de la file d'attente
-  getQueueStatus(): SyncStats {
-    const stats: SyncStats = {
-      total: this.syncQueue.length,
-      pending: 0,
-      success: 0,
-      error: 0,
-      conflict: 0
-    };
-
-    this.syncQueue.forEach(op => {
-      switch (op.status) {
-        case 'pending':
-          stats.pending++;
-          break;
-        case 'success':
-          stats.success++;
-          break;
-        case 'error':
-          stats.error++;
-          break;
-        case 'conflict':
-          stats.conflict++;
-          break;
-        default:
-          break;
+      const allOperations = await IndexedDBService.getAllItems('sync_operations');
+      if (status) {
+        return allOperations.filter(op => op.status === status);
       }
-    });
-
+      return allOperations;
+    } catch (error) {
+      console.error('[OfflineSyncService] Error getting sync operations:', error);
+      return [];
+    }
+  }
+  
+  static async updateSyncOperationStatus(
+    id: string,
+    status: 'pending' | 'processing' | 'success' | 'error' | 'conflict',
+    error?: string
+  ): Promise<void> {
+    try {
+      const operation = await IndexedDBService.getItem('sync_operations', id);
+      if (operation) {
+        operation.status = status;
+        if (error) {
+          operation.error = error;
+        }
+        await IndexedDBService.updateItem('sync_operations', operation);
+      }
+    } catch (error) {
+      console.error('[OfflineSyncService] Error updating sync operation status:', error);
+    }
+  }
+  
+  static async clearSuccessfulOperations(olderThan?: number): Promise<void> {
+    try {
+      const allOperations = await IndexedDBService.getAllItems('sync_operations');
+      const cutoff = olderThan || Date.now() - 7 * 24 * 60 * 60 * 1000; // Par défaut: 7 jours
+      
+      const operationsToDelete = allOperations
+        .filter(op => op.status === 'success' && op.timestamp < cutoff)
+        .map(op => op.id);
+      
+      for (const id of operationsToDelete) {
+        await IndexedDBService.deleteItem('sync_operations', id);
+      }
+      
+      console.log(`[OfflineSyncService] Cleared ${operationsToDelete.length} successful operations`);
+    } catch (error) {
+      console.error('[OfflineSyncService] Error clearing successful operations:', error);
+    }
+  }
+  
+  static async processSyncOperations(): Promise<SyncStats> {
+    const pendingOperations = await this.getSyncOperations('pending');
+    console.log(`[OfflineSyncService] Processing ${pendingOperations.length} pending operations`);
+    
+    let success = 0;
+    let error = 0;
+    let conflict = 0;
+    
+    for (const operation of pendingOperations) {
+      try {
+        await this.updateSyncOperationStatus(operation.id, 'processing');
+        
+        let result;
+        switch (operation.operation) {
+          case 'insert':
+            result = await this.processInsert(operation);
+            break;
+          case 'update':
+            result = await this.processUpdate(operation);
+            break;
+          case 'delete':
+            result = await this.processDelete(operation);
+            break;
+        }
+        
+        if (result.error) {
+          if (result.conflict) {
+            await this.updateSyncOperationStatus(operation.id, 'conflict', result.error);
+            conflict++;
+          } else {
+            await this.updateSyncOperationStatus(operation.id, 'error', result.error);
+            error++;
+          }
+        } else {
+          await this.updateSyncOperationStatus(operation.id, 'success');
+          success++;
+        }
+      } catch (error: any) {
+        console.error(`[OfflineSyncService] Error processing operation ${operation.id}:`, error);
+        await this.updateSyncOperationStatus(operation.id, 'error', error.message || 'Unknown error');
+        error++;
+      }
+    }
+    
+    // Récupérer toutes les statistiques
+    const allOperations = await this.getSyncOperations();
+    const stats: SyncStats = {
+      total: allOperations.length,
+      pending: allOperations.filter(op => op.status === 'pending').length,
+      success: allOperations.filter(op => op.status === 'success').length,
+      error: allOperations.filter(op => op.status === 'error').length,
+      conflict: allOperations.filter(op => op.status === 'conflict').length
+    };
+    
     return stats;
   }
-
-  // Synchroniser toutes les opérations en attente
-  async syncPendingOperations(): Promise<SyncStats> {
-    if (this.isSyncing) return this.getQueueStatus();
-    
+  
+  private static async processInsert(operation: SyncOperation): Promise<{ error?: string; conflict?: boolean }> {
     try {
-      this.isSyncing = true;
+      const { data } = operation;
       
-      // Filtrer les opérations en attente
-      const pendingOperations = this.syncQueue.filter(op => 
-        op.status === 'pending' || (op.status === 'error' && op.attempts < this.maxRetryAttempts)
-      );
-      
-      console.log(`Starting sync of ${pendingOperations.length} pending operations`);
-      
-      // Traiter chaque opération
-      for (const operation of pendingOperations) {
-        operation.status = 'processing';
-        operation.attempts += 1;
-        await this.updateOperationInStorage(operation);
+      // Vérifier si l'enregistrement existe déjà (pour éviter les doublons)
+      if (data.id) {
+        const { data: existingData, error: checkError } = await supabase
+          .from(operation.tableName as any)
+          .select('id')
+          .eq('id', data.id)
+          .single();
         
-        try {
-          await this.processOperation(operation);
-          
-          // Supprimer l'opération réussie de la file et du stockage
-          this.syncQueue = this.syncQueue.filter(op => op.id !== operation.id);
-          await this.removeOperationFromStorage(operation.id);
-          
-        } catch (error) {
-          console.error(`Error processing operation ${operation.id}:`, error);
-          
-          // Mettre à jour le statut de l'opération
-          operation.status = 'error';
-          operation.error = error instanceof Error ? error.message : String(error);
-          await this.updateOperationInStorage(operation);
+        if (existingData) {
+          return { 
+            error: `Record already exists with id ${data.id}`, 
+            conflict: true 
+          };
         }
       }
       
-      console.log('Sync completed');
-      return this.getQueueStatus();
+      const { error } = await supabase
+        .from(operation.tableName as any)
+        .insert(data);
       
-    } finally {
-      this.isSyncing = false;
+      if (error) {
+        return { error: error.message };
+      }
+      
+      return {};
+    } catch (error: any) {
+      return { error: error.message || 'Error during insert operation' };
     }
   }
-
-  private async processOperation(operation: SyncOperation): Promise<void> {
-    const { type, data } = operation;
-    
-    // Vérifier les conflits potentiels pour les mises à jour
-    if (type.startsWith('update_')) {
-      const hasConflict = await this.checkForConflicts(type, data);
-      
-      if (hasConflict) {
-        operation.status = 'conflict';
-        operation.meta = { 
-          conflictDetected: true, 
-          serverVersion: hasConflict,
-          attempts: operation.attempts
-        };
-        await this.updateOperationInStorage(operation);
-        return;
-      }
-    }
-
-    switch (type) {
-      // Opérations sur les interventions
-      case 'add_intervention':
-        await supabase.from('interventions').insert(data);
-        break;
-      case 'update_intervention':
-        await supabase.from('interventions').update(data).eq('id', data.id);
-        break;
-      case 'delete_intervention':
-        await supabase.from('interventions').delete().eq('id', data.id);
-        break;
-      
-      // Opérations sur la maintenance
-      case 'add_maintenance':
-        await supabase.from('maintenance_tasks').insert(data);
-        break;
-      case 'update_maintenance':
-        await supabase.from('maintenance_tasks').update(data).eq('id', data.id);
-        break;
-      case 'delete_maintenance':
-        await supabase.from('maintenance_tasks').delete().eq('id', data.id);
-        break;
-      
-      // Opérations sur les pièces
-      case 'add_part':
-        await supabase.from('parts').insert(data);
-        break;
-      case 'update_part':
-        await supabase.from('parts').update(data).eq('id', data.id);
-        break;
-      case 'delete_part':
-        await supabase.from('parts').delete().eq('id', data.id);
-        break;
-
-      // Opérations sur les équipements
-      case 'add_equipment':
-        await supabase.from('equipment').insert(data);
-        break;
-      case 'update_equipment':
-        await supabase.from('equipment').update(data).eq('id', data.id);
-        break;
-      case 'delete_equipment':
-        await supabase.from('equipment').delete().eq('id', data.id);
-        break;
-        
-      // Opérations sur le suivi du temps
-      case 'add_time_entry':
-        await supabase.from('time_entries').insert(data);
-        break;
-      case 'update_time_entry': {
-        // Exemple spécifique pour les entrées de temps
-        const { id, ...updateData } = data;
-        await supabase.from('time_entries').update(updateData).eq('id', id);
-        break;
-      }
-      case 'delete_time_entry':
-        await supabase.from('time_entries').delete().eq('id', data.id);
-        break;
-        
-      // Opérations sur les observations
-      case 'add_observation':
-        await supabase.from('field_observations').insert(data);
-        break;
-      case 'update_observation':
-        await supabase.from('field_observations').update(data).eq('id', data.id);
-        break;
-      case 'delete_observation':
-        await supabase.from('field_observations').delete().eq('id', data.id);
-        break;
-
-      default:
-        throw new Error(`Unknown operation type: ${type}`);
-    }
-
-    operation.status = 'success';
-  }
-
-  // Vérifier s'il y a des conflits pour une mise à jour
-  private async checkForConflicts(type: string, data: any): Promise<string | null> {
-    // Extraire le nom de la table à partir du type d'opération
-    const entityType = type.replace('update_', '');
-    let tableName = '';
-    
-    // Mapper le type d'entité à la table correspondante
-    switch (entityType) {
-      case 'intervention':
-        tableName = 'interventions';
-        break;
-      case 'maintenance':
-        tableName = 'maintenance_tasks';
-        break;
-      case 'part':
-        tableName = 'parts';
-        break;
-      case 'equipment':
-        tableName = 'equipment';
-        break;
-      case 'time_entry':
-        tableName = 'time_entries';
-        break;
-      case 'observation':
-        tableName = 'field_observations';
-        break;
-      default:
-        console.warn(`Unknown entity type for conflict check: ${entityType}`);
-        return null;
-    }
-    
+  
+  private static async processUpdate(operation: SyncOperation): Promise<{ error?: string; conflict?: boolean }> {
     try {
-      // Récupérer la version serveur actuelle
-      const { data: serverItem } = await supabase
-        .from(tableName)
+      const { data } = operation;
+      
+      if (!data.id) {
+        return { error: 'No ID provided for update operation' };
+      }
+      
+      // Vérifier si l'enregistrement existe et s'il a été modifié depuis
+      const { data: currentData, error: checkError } = await supabase
+        .from(operation.tableName as any)
         .select('*')
         .eq('id', data.id)
         .single();
       
-      // Si l'élément n'existe plus sur le serveur, pas de conflit
-      if (!serverItem) return null;
+      if (checkError || !currentData) {
+        return { 
+          error: checkError ? checkError.message : `Record with id ${data.id} not found`,
+          conflict: !currentData
+        };
+      }
       
-      // Pour les entités qui ont un champ version, on vérifie la version
-      // Sinon, on utilise la date de modification ou de création
-      if (Object.prototype.hasOwnProperty.call(data, 'version') && 
-          Object.prototype.hasOwnProperty.call(serverItem, 'version')) {
-        // Si la version locale est antérieure à la version serveur, il y a conflit
-        return data.version !== serverItem.version ? serverItem.version : null;
-      } else {
-        // Utiliser updated_at ou created_at comme alternative
-        const localTimestamp = data.updated_at || data.created_at;
-        const serverTimestamp = serverItem.updated_at || serverItem.created_at;
+      // Si le timestamp de mise à jour est défini, vérifier les conflits
+      if (data.updated_at && currentData.updated_at) {
+        const localDate = new Date(data.updated_at);
+        const remoteDate = new Date(currentData.updated_at);
         
-        if (localTimestamp && serverTimestamp && new Date(localTimestamp) < new Date(serverTimestamp)) {
-          return serverTimestamp;
+        if (remoteDate > localDate) {
+          return { 
+            error: `Remote record has been modified more recently (${remoteDate.toISOString()} > ${localDate.toISOString()})`,
+            conflict: true
+          };
         }
       }
       
-      return null;
-    } catch (error) {
-      console.error(`Error checking for conflicts:`, error);
-      return null;
+      const { error } = await supabase
+        .from(operation.tableName as any)
+        .update(data)
+        .eq('id', data.id);
+      
+      if (error) {
+        return { error: error.message };
+      }
+      
+      return {};
+    } catch (error: any) {
+      return { error: error.message || 'Error during update operation' };
+    }
+  }
+  
+  private static async processDelete(operation: SyncOperation): Promise<{ error?: string; conflict?: boolean }> {
+    try {
+      const { data } = operation;
+      
+      if (!data.id) {
+        return { error: 'No ID provided for delete operation' };
+      }
+      
+      // Vérifier si l'enregistrement existe encore
+      const { data: existingData, error: checkError } = await supabase
+        .from(operation.tableName as any)
+        .select('id')
+        .eq('id', data.id)
+        .single();
+      
+      if (checkError) {
+        // Si l'erreur est que l'enregistrement n'existe pas, ce n'est pas un problème
+        if (checkError.code === 'PGRST116') {
+          return {}; // L'enregistrement est déjà supprimé, c'est ok
+        }
+        return { error: checkError.message };
+      }
+      
+      const { error } = await supabase
+        .from(operation.tableName as any)
+        .delete()
+        .eq('id', data.id);
+      
+      if (error) {
+        return { error: error.message };
+      }
+      
+      return {};
+    } catch (error: any) {
+      return { error: error.message || 'Error during delete operation' };
     }
   }
 }
 
-// Instance singleton du service de synchronisation
-export const OfflineSyncService = new OfflineSyncServiceClass();
-
-// Hook pour utiliser le gestionnaire de synchronisation
+// Hook pour utiliser le service de synchronisation dans les composants React
 export function useOfflineSyncManager() {
-  const [syncCount, setSyncCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [syncStats, setSyncStats] = useState<SyncStats>({ total: 0, pending: 0, success: 0, error: 0, conflict: 0 });
+  const [syncCount, setSyncCount] = useState(0);
+  const [syncStats, setSyncStats] = useState<SyncStats>({
+    total: 0,
+    pending: 0,
+    success: 0,
+    error: 0,
+    conflict: 0
+  });
   
-  // Charger le statut initial
-  useEffect(() => {
-    const loadInitialStatus = async () => {
-      const stats = OfflineSyncService.getQueueStatus();
-      setSyncCount(stats.pending);
-      setSyncStats(stats);
-    };
-    
-    loadInitialStatus();
-    
-    // Vérifier périodiquement le statut de synchronisation
-    const intervalId = setInterval(() => {
-      const stats = OfflineSyncService.getQueueStatus();
-      setSyncCount(stats.pending);
-      setSyncStats(stats);
-    }, 5000);
-    
-    return () => clearInterval(intervalId);
+  const isOnline = useNetworkState();
+  
+  // Charger les opérations en attente au démarrage
+  const loadPendingOperations = useCallback(async () => {
+    try {
+      const pendingOps = await OfflineSyncService.getSyncOperations('pending');
+      setSyncCount(pendingOps.length);
+      
+      const allOps = await OfflineSyncService.getSyncOperations();
+      setSyncStats({
+        total: allOps.length,
+        pending: allOps.filter(op => op.status === 'pending').length,
+        success: allOps.filter(op => op.status === 'success').length,
+        error: allOps.filter(op => op.status === 'error').length,
+        conflict: allOps.filter(op => op.status === 'conflict').length
+      });
+    } catch (error) {
+      console.error('[useOfflineSyncManager] Error loading pending operations:', error);
+    }
   }, []);
-
-  // Fonction pour déclencher la synchronisation
-  const syncPendingItems = async () => {
-    if (isSyncing) return;
-    
-    setIsSyncing(true);
+  
+  // Synchroniser les opérations en attente
+  const syncPendingItems = useCallback(async () => {
+    if (!isOnline || isSyncing) return;
     
     try {
-      const stats = await OfflineSyncService.syncPendingOperations();
-      setSyncCount(stats.pending);
+      setIsSyncing(true);
+      const stats = await OfflineSyncService.processSyncOperations();
       setSyncStats(stats);
+      setSyncCount(stats.pending);
       
-      // Afficher une notification de réussite/erreur
-      if (stats.error > 0 || stats.conflict > 0) {
-        toast.warning(`Synchronisation terminée avec des problèmes`, {
-          description: `${stats.success} succès, ${stats.error} erreurs, ${stats.conflict} conflits`
-        });
-      } else if (stats.success > 0) {
-        toast.success(`Synchronisation terminée`, {
-          description: `${stats.success} élément(s) synchronisé(s)`
-        });
+      if (stats.success > 0) {
+        toast.success(`${stats.success} élément(s) synchronisé(s) avec succès`);
       }
       
+      if (stats.error > 0) {
+        toast.error(`${stats.error} erreur(s) de synchronisation`);
+      }
+      
+      if (stats.conflict > 0) {
+        toast.warning(`${stats.conflict} conflit(s) de synchronisation détecté(s)`);
+      }
+      
+      // Nettoyer les opérations réussies après 7 jours
+      await OfflineSyncService.clearSuccessfulOperations();
     } catch (error) {
-      console.error('Error during synchronization:', error);
-      toast.error('Erreur de synchronisation');
+      console.error('[useOfflineSyncManager] Error syncing pending items:', error);
     } finally {
       setIsSyncing(false);
     }
+  }, [isOnline, isSyncing]);
+  
+  // Synchroniser automatiquement lorsque la connexion est rétablie
+  useEffect(() => {
+    if (isOnline) {
+      syncPendingItems();
+    }
+  }, [isOnline, syncPendingItems]);
+  
+  // Charger les opérations en attente au démarrage et configurer un intervalle de vérification
+  useEffect(() => {
+    loadPendingOperations();
+    
+    const interval = setInterval(() => {
+      loadPendingOperations();
+    }, 30000); // Vérifier toutes les 30 secondes
+    
+    return () => clearInterval(interval);
+  }, [loadPendingOperations]);
+  
+  return {
+    isSyncing,
+    syncCount,
+    syncStats,
+    syncPendingItems,
+    addToSyncQueue: OfflineSyncService.addToSyncQueue
   };
-
-  return { syncCount, isSyncing, syncStats, syncPendingItems };
 }
