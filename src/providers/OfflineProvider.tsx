@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, ReactNode, useEffect, useCallback } from 'react';
-import { syncService, SyncStatus, SyncOperationType } from '@/services/syncService';
+import { syncService, SyncStatus } from '@/services/syncService';
 import { toast } from 'sonner';
 import { Database, CloudOff } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -9,6 +9,12 @@ import { supabase } from '@/integrations/supabase/client';
 
 // Initialiser le service avec le client Supabase
 syncService.setSupabaseClient(supabase);
+
+// Extended SyncOperationType to include string literals used in useInterventionsWithOffline.ts
+export type SyncOperationType = 
+  | 'create' | 'update' | 'delete'  // Base operations from syncService
+  | 'add_intervention' | 'update_intervention' | 'delete_intervention'  // Intervention operations
+  | 'add_time_entry' | 'update_time_entry' | 'delete_time_entry';  // Time entry operations
 
 interface OfflineContextType {
   isOnline: boolean;

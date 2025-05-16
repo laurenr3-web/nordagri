@@ -46,7 +46,7 @@ export function useInterventionsWithOffline() {
         const localId = OfflineSyncService.createLocalId('add_intervention');
         const dataWithLocalId = { ...interventionData, id: localId };
         
-        // Add to sync queue
+        // Add to sync queue - using the string literal that matches our extended SyncOperationType
         await addToSyncQueue('add_intervention', dataWithLocalId, 'interventions');
         
         // Return the local data so UI can update immediately

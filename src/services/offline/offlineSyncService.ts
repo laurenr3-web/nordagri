@@ -1,20 +1,10 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { IndexedDBService } from './indexedDBService';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
-import { useEffect, useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { SyncOperationType } from '@/providers/OfflineProvider';
 
 // Types for sync queue items
-export type SyncOperationType = 
-  | 'add_intervention' 
-  | 'update_intervention' 
-  | 'delete_intervention' 
-  | 'add_time_entry' 
-  | 'update_time_entry' 
-  | 'delete_time_entry';
-
 export interface SyncQueueItem {
   id: string;
   type: SyncOperationType;
