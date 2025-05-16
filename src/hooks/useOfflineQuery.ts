@@ -1,4 +1,3 @@
-
 import { useQuery, UseQueryOptions, UseQueryResult, useMutation, UseMutationOptions, UseMutationResult } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNetworkState } from './useNetworkState';
@@ -8,8 +7,9 @@ import { supabase } from '@/integrations/supabase/client';
 // S'assurer que le service de sync ait le client Supabase
 syncService.setSupabaseClient(supabase);
 
-export interface UseOfflineQueryResult<TData> extends Omit<UseQueryResult<TData>, 'data'> {
+export interface UseOfflineQueryResult<TData> extends Omit<UseQueryResult<TData, Error>, 'data' | 'error'> {
   data: TData | undefined;
+  error: Error | null;
   isOffline: boolean;
   isCached: boolean;
   pendingSync: number;
@@ -17,7 +17,6 @@ export interface UseOfflineQueryResult<TData> extends Omit<UseQueryResult<TData>
 
 export function useOfflineQuery<
   TQueryFnData = unknown,
-  TError = unknown,
   TData = TQueryFnData,
   TQueryKey extends any[] = any[]
 >(options: {
@@ -99,7 +98,7 @@ export function useOfflineQuery<
   };
 
   // Utiliser useQuery avec notre fonction adaptée
-  const queryResult = useQuery<TQueryFnData, TError, TData, TQueryKey>({
+  const queryResult = useQuery<TQueryFnData, Error, TData, TQueryKey>({
     queryKey,
     queryFn: offlineQueryFn,
     enabled: (enabled !== false) && (isOnline || cacheParams?.tableName !== undefined),
@@ -113,10 +112,11 @@ export function useOfflineQuery<
     }
   }, [queryResult.data]);
 
-  // On va ajouter manuellement toutes les propriétés pour s'assurer qu'elles sont bien là
+  // Prépare le résultat avec les propriétés supplémentaires
   const result: UseOfflineQueryResult<TData> = {
     ...queryResult,
     data: queryResult.data,
+    error: queryResult.error || null,
     isOffline: !isOnline,
     isCached,
     pendingSync
@@ -127,7 +127,7 @@ export function useOfflineQuery<
 
 export function useOfflineMutation<
   TData = unknown,
-  TError = unknown,
+  TError = Error,
   TVariables = void,
   TContext = unknown
 >(
