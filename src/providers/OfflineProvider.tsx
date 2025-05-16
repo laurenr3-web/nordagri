@@ -6,7 +6,7 @@ import {
   OfflineSyncService, 
   SyncStats 
 } from '@/services/offline/offlineSyncService';
-import { Wifi, WifiOff, CloudSync, AlertTriangle } from 'lucide-react';
+import { Wifi, WifiOff, Cloud, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
@@ -112,7 +112,7 @@ export const OfflineProvider: React.FC<OfflineProviderProps> = ({ children }) =>
       {/* Statut de synchronisation */}
       {isSyncing && (
         <div className="fixed top-0 right-0 p-2 m-4 bg-blue-100 text-blue-800 rounded-md shadow-md z-50 flex items-center gap-2 animate-fade-in">
-          <CloudSync className="h-4 w-4 animate-spin" />
+          <Cloud className="h-4 w-4 animate-spin" />
           <span className="text-sm font-medium">
             {t("sync.syncing")}...
             {syncStats.success > 0 && ` (${syncStats.success}/${syncStats.total})`}
@@ -124,7 +124,7 @@ export const OfflineProvider: React.FC<OfflineProviderProps> = ({ children }) =>
       {isOnline && !isSyncing && syncCount > 0 && (
         <div className="fixed bottom-0 right-0 p-2 m-4 bg-blue-50 text-blue-800 rounded-md shadow-md z-50 flex flex-col gap-2 animate-fade-in">
           <div className="flex items-center gap-2">
-            <CloudSync className="h-4 w-4" />
+            <Cloud className="h-4 w-4" />
             <span className="text-sm font-medium">
               {t("sync.pendingItems")}: {syncCount}
             </span>

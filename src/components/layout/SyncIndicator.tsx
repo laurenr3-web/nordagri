@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useOfflineStatus } from '@/providers/OfflineProvider';
-import { Wifi, WifiOff, CloudSync, AlertTriangle } from 'lucide-react';
+import { Wifi, WifiOff, Cloud, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
@@ -27,10 +27,10 @@ export const SyncIndicator: React.FC = () => {
       return <WifiOff className="h-4 w-4" />;
     }
     if (isSyncing) {
-      return <CloudSync className="h-4 w-4 animate-spin" />;
+      return <Cloud className="h-4 w-4 animate-spin" />;
     }
     if (pendingSyncCount > 0) {
-      return <CloudSync className="h-4 w-4" />;
+      return <Cloud className="h-4 w-4" />;
     }
     return <Wifi className="h-4 w-4" />;
   };
