@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { OfflineSyncService, SyncResult, SyncOperationType } from '@/services/offline/offlineSyncService';
+import { OfflineSyncService, SyncResult } from '@/services/offline/offlineSyncService';
+import { SyncOperationType } from '@/providers/OfflineProvider';
 import { useNetworkState } from './useNetworkState';
 import { toast } from 'sonner';
 
