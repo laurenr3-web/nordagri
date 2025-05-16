@@ -1,5 +1,4 @@
 
-import { Intervention } from '@/types/Intervention';
 import { jsPDF } from 'jspdf';
 
 export interface InterventionReportOptions {
