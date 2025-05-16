@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { IndexedDBService } from './indexedDBService';
 import { toast } from 'sonner';
@@ -27,7 +28,7 @@ export interface SyncQueueItem {
 export interface SyncResult {
   success: boolean;
   message: string;
-  itemId?: string;
+  itemId?: string | number;
   affectedRecords?: number;
   error?: any;
 }
@@ -51,6 +52,11 @@ const hasId = (obj: any): obj is { id: string | number } => {
 // Type guard for checking if an object has updated_at
 const hasUpdatedAt = (obj: any): obj is { updated_at: string } => {
   return obj && typeof obj === 'object' && 'updated_at' in obj;
+};
+
+// Helper function to ensure an ID is a string
+const ensureStringId = (id: string | number): string => {
+  return id?.toString() || '';
 };
 
 // Offline Sync Service
@@ -197,6 +203,7 @@ export class OfflineSyncService {
               affectedRecords: 1
             };
           } else {
+            const stringId = ensureStringId(recordId);
             const { data: updatedData, error } = await supabase
               .from(tableName as any)
               .update(dataToUpdate)
@@ -230,6 +237,7 @@ export class OfflineSyncService {
               affectedRecords: 0
             };
           } else {
+            const stringId = ensureStringId(recordId);
             const { error } = await supabase
               .from(tableName as any)
               .delete()
