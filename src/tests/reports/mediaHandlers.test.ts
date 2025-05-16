@@ -36,11 +36,11 @@ vi.mock('@/services/reports/components/sectionHandlers', () => ({
 
 describe('mediaHandlers', () => {
   let doc: jsPDF;
-  let mockFetch: any;
+  let mockFetch: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     doc = new jsPDF();
-    mockFetch = global.fetch as jest.Mock;
+    mockFetch = global.fetch as ReturnType<typeof vi.fn>;
     mockFetch.mockClear();
     vi.clearAllMocks();
   });

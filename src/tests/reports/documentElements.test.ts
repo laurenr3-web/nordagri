@@ -36,12 +36,12 @@ vi.mock('jspdf', () => {
 
 describe('documentElements', () => {
   let doc: jsPDF;
-  let mockFetch: any;
+  let mockFetch: ReturnType<typeof vi.fn>;
   let options: InterventionReportOptions;
 
   beforeEach(() => {
     doc = new jsPDF();
-    mockFetch = global.fetch as jest.Mock;
+    mockFetch = global.fetch as ReturnType<typeof vi.fn>;
     mockFetch.mockClear();
     vi.clearAllMocks();
     

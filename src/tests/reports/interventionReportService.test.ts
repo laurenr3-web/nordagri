@@ -4,6 +4,7 @@ import { interventionReportService } from '@/services/reports/interventionReport
 import { saveAs } from 'file-saver';
 import { supabase } from '@/integrations/supabase/client';
 import { Intervention } from '@/types/Intervention';
+import { generateReport } from '@/services/reports/generators/pdfGenerator';
 
 // Mock dependencies
 vi.mock('file-saver', () => ({
@@ -74,8 +75,8 @@ describe('interventionReportService', () => {
     });
 
     it('should handle errors during download', async () => {
-      const mockGenerateReport = vi.fn().mockRejectedValue(new Error('Generation failed'));
-      vi.spyOn(interventionReportService, 'generateReport').mockImplementation(mockGenerateReport);
+      const mockGenerateReportMethod = vi.fn().mockRejectedValue(new Error('Generation failed'));
+      vi.spyOn(interventionReportService, 'generateReport').mockImplementation(mockGenerateReportMethod);
       
       await expect(interventionReportService.downloadReport(mockIntervention))
         .rejects.toThrow('Generation failed');

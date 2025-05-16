@@ -129,7 +129,7 @@ describe('pdfGenerator', () => {
       // Test with includeParts=false
       await generateReport(mockIntervention, signature, [], optionsNoParts);
       
-      const autoTableCalls = (jsPDF as unknown as jest.Mock).mock.results[0].value.autoTable.mock.calls;
+      const autoTableCalls = vi.mocked(jsPDF).mock.results[0].value.autoTable.mock.calls;
       expect(autoTableCalls.length).toBe(1); // Only the equipment section, not parts
       
       // Reset and test with empty partsUsed
@@ -138,13 +138,13 @@ describe('pdfGenerator', () => {
       
       await generateReport(interventionNoParts, signature, [], options);
       
-      const autoTableCallsAfter = (jsPDF as unknown as jest.Mock).mock.results[0].value.autoTable.mock.calls;
+      const autoTableCallsAfter = vi.mocked(jsPDF).mock.results[0].value.autoTable.mock.calls;
       expect(autoTableCallsAfter.length).toBe(1); // Only the equipment section
     });
 
     it('should handle errors gracefully', async () => {
       // Make jsPDF throw an error
-      (jsPDF as unknown as jest.Mock).mockImplementationOnce(() => {
+      vi.mocked(jsPDF).mockImplementationOnce(() => {
         throw new Error('PDF generation error');
       });
       
