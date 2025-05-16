@@ -1,4 +1,3 @@
-
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { Intervention } from '@/types/Intervention';
