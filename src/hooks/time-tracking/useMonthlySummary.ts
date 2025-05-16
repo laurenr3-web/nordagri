@@ -29,6 +29,7 @@ export function useMonthlySummary() {
       try {
         setIsLoading(true);
         
+        // Dates de calcul
         const today = new Date();
         const startOfToday = new Date(today);
         startOfToday.setHours(0, 0, 0, 0);
@@ -36,8 +37,9 @@ export function useMonthlySummary() {
         const endOfToday = new Date(today);
         endOfToday.setHours(23, 59, 59, 999);
         
-        const weekStart = startOfWeek(today, { weekStartsOn: 1 });
-        const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
+        // Utiliser la même logique que dans useTimeTrackingStats pour la semaine
+        const weekStart = startOfWeek(today, { weekStartsOn: 1 }); // Commence le lundi
+        const weekEnd = endOfWeek(today, { weekStartsOn: 1 }); // Finit le dimanche
         
         const monthStart = startOfMonth(today);
         const monthEnd = endOfMonth(today);
@@ -47,7 +49,7 @@ export function useMonthlySummary() {
         
         const userId = sessionData.session.user.id;
         
-        // Get all time entries for the current month
+        // Obtenir toutes les entrées de temps pour le mois en cours
         const { data, error } = await supabase
           .from('time_sessions')
           .select(`
@@ -58,7 +60,6 @@ export function useMonthlySummary() {
             status
           `)
           .eq('user_id', userId)
-          .gte('start_time', monthStart.toISOString())
           .lte('start_time', monthEnd.toISOString());
           
         if (error) throw error;
@@ -67,44 +68,47 @@ export function useMonthlySummary() {
         let weekHours = 0;
         let monthHours = 0;
         
-        // Set standard work hours for percentage calculation
-        const standardDayHours = 8; // 8 hours per day
-        const standardWeekHours = 40; // 40 hours per week
-        const standardMonthHours = 160; // ~160 hours per month
+        // Heures de travail standards pour le calcul des pourcentages
+        const standardDayHours = 8; // 8 heures par jour
+        const standardWeekHours = 40; // 40 heures par semaine
+        const standardMonthHours = 160; // ~160 heures par mois
         
-        // Calculate hours for each period
+        // Calculer les heures pour chaque période
         data?.forEach(session => {
           const startTime = new Date(session.start_time);
           
-          // Calculate duration if not available
+          // Calculer la durée si non disponible
           let sessionDuration = session.duration;
           if (!sessionDuration && session.end_time) {
             const endTime = new Date(session.end_time);
-            sessionDuration = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60); // hours
+            sessionDuration = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60); // heures
           } else if (!sessionDuration && session.status === 'active') {
-            // For active sessions without duration, calculate from start to now
-            sessionDuration = (new Date().getTime() - startTime.getTime()) / (1000 * 60 * 60); // hours
+            // Pour les sessions actives sans durée, calculer du début à maintenant
+            sessionDuration = (new Date().getTime() - startTime.getTime()) / (1000 * 60 * 60); // heures
+          } else if (!sessionDuration) {
+            // Si aucune durée ni heure de fin, considérer comme 0
+            sessionDuration = 0;
           }
           
-          if (sessionDuration) {
-            // Add to monthly total
+          // Vérifier si dans le mois en cours
+          if (startTime >= monthStart && startTime <= monthEnd) {
             monthHours += sessionDuration;
             
-            // Check if in current week
+            // Vérifier si dans la semaine en cours - utiliser la même logique que dans useTimeTrackingStats
             if (startTime >= weekStart && startTime <= weekEnd) {
               weekHours += sessionDuration;
-            }
-            
-            // Check if today
-            const sessionDate = format(startTime, 'yyyy-MM-dd');
-            const todayDate = format(today, 'yyyy-MM-dd');
-            if (sessionDate === todayDate) {
-              todayHours += sessionDuration;
+              
+              // Vérifier si aujourd'hui
+              const sessionDate = format(startTime, 'yyyy-MM-dd');
+              const todayDate = format(today, 'yyyy-MM-dd');
+              if (sessionDate === todayDate) {
+                todayHours += sessionDuration;
+              }
             }
           }
         });
         
-        // Calculate percentages
+        // Calculer les pourcentages
         const todayPercentage = Math.min((todayHours / standardDayHours) * 100, 100);
         const weekPercentage = Math.min((weekHours / standardWeekHours) * 100, 100);
         const monthPercentage = Math.min((monthHours / standardMonthHours) * 100, 100);
@@ -127,7 +131,7 @@ export function useMonthlySummary() {
     
     fetchSummary();
     
-    // Set an interval to refresh the data every minute (important for active sessions)
+    // Mettre en place un intervalle pour actualiser les données toutes les minutes (important pour les sessions actives)
     const intervalId = setInterval(fetchSummary, 60000);
     
     return () => clearInterval(intervalId);

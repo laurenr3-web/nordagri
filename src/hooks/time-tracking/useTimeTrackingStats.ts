@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { timeTrackingService } from '@/services/supabase/timeTrackingService';
 import { TimeEntry } from './types';
-import { startOfWeek, endOfWeek } from 'date-fns';
+import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, format } from 'date-fns';
 
 export function useTimeTrackingStats(userId: string | null) {
   const [stats, setStats] = useState({
@@ -10,45 +10,42 @@ export function useTimeTrackingStats(userId: string | null) {
     totalWeek: 0,
     totalMonth: 0
   });
+  const [isLoading, setIsLoading] = useState(true);
 
   const calculateStats = async () => {
     if (!userId) return;
 
     try {
+      setIsLoading(true);
+      
       // Calcul pour aujourd'hui
       const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
+      const todayString = format(today, 'yyyy-MM-dd');
       
-      const todayEntries = await timeTrackingService.getTimeEntries({
-        userId,
-        startDate: today,
-        endDate: tomorrow
-      });
-      
-      // Calcul pour la semaine
-      const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 }); // Commence le lundi
-      const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 }); // Finit le dimanche
-      
-      const weekEntries = await timeTrackingService.getTimeEntries({
-        userId,
-        startDate: weekStart,
-        endDate: weekEnd
-      });
+      // Utiliser les mêmes paramètres de début et fin de semaine que dans useMonthlySummary
+      const weekStart = startOfWeek(today, { weekStartsOn: 1 }); // Commence le lundi
+      const weekEnd = endOfWeek(today, { weekStartsOn: 1 }); // Finit le dimanche
       
       // Calcul pour le mois
-      const firstDayOfMonth = new Date();
-      firstDayOfMonth.setDate(1);
-      firstDayOfMonth.setHours(0, 0, 0, 0);
+      const monthStart = startOfMonth(today);
+      const monthEnd = endOfMonth(today);
       
-      const lastDayOfMonth = new Date(firstDayOfMonth.getFullYear(), firstDayOfMonth.getMonth() + 1, 0);
-      lastDayOfMonth.setHours(23, 59, 59, 999);
-      
+      // Récupérer toutes les entrées de temps pour le mois en cours
       const monthEntries = await timeTrackingService.getTimeEntries({
         userId,
-        startDate: firstDayOfMonth,
-        endDate: lastDayOfMonth
+        startDate: monthStart,
+        endDate: monthEnd
+      });
+      
+      // Filtrer pour obtenir les entrées pour aujourd'hui et cette semaine
+      const todayEntries = monthEntries.filter(entry => {
+        const entryDate = format(new Date(entry.start_time), 'yyyy-MM-dd');
+        return entryDate === todayString;
+      });
+      
+      const weekEntries = monthEntries.filter(entry => {
+        const entryDate = new Date(entry.start_time);
+        return entryDate >= weekStart && entryDate <= weekEnd;
       });
 
       setStats({
@@ -58,11 +55,18 @@ export function useTimeTrackingStats(userId: string | null) {
       });
     } catch (error) {
       console.error("Error calculating statistics:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const calculateTotalHours = (entries: TimeEntry[]): number => {
     return entries.reduce((total, entry) => {
+      // Utiliser directement duration si disponible
+      if (entry.duration) {
+        return total + entry.duration;
+      }
+      
       const start = new Date(entry.start_time);
       const end = entry.end_time ? new Date(entry.end_time) : new Date();
       const diffMs = end.getTime() - start.getTime();
@@ -74,8 +78,13 @@ export function useTimeTrackingStats(userId: string | null) {
   useEffect(() => {
     if (userId) {
       calculateStats();
+      
+      // Actualiser les statistiques toutes les minutes pour les sessions actives
+      const intervalId = setInterval(calculateStats, 60000);
+      
+      return () => clearInterval(intervalId);
     }
   }, [userId]);
 
-  return { stats };
+  return { stats, isLoading, calculateStats };
 }
