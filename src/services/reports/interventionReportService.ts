@@ -12,6 +12,9 @@ import { saveAs } from 'file-saver';
 declare module 'jspdf' {
   interface jsPDF {
     autoTable: (options: any) => jsPDF;
+    lastAutoTable: {
+      finalY: number;
+    };
   }
 }
 
@@ -88,7 +91,7 @@ export const interventionReportService = {
         columnStyles: { 0: { fontStyle: 'bold', cellWidth: 80 } }
       });
       
-      yPos = (doc as any).lastAutoTable.finalY + 10;
+      yPos = doc.lastAutoTable.finalY + 10;
       
       // Section Description
       yPos = this.addSection(doc, 'Description du Problème', yPos);
@@ -139,7 +142,7 @@ export const interventionReportService = {
           styles: { fontSize: 9 }
         });
         
-        yPos = (doc as any).lastAutoTable.finalY + 10;
+        yPos = doc.lastAutoTable.finalY + 10;
       }
       
       // Ajouter les photos
