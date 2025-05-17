@@ -30,7 +30,6 @@ import TimeTrackingStatistics from '@/pages/TimeTrackingStatistics';
 import Footer from "@/components/layout/Footer";
 import LegalPage from "@/pages/Legal";
 import Pricing from "@/pages/Pricing";
-import BentoDemo from '@/pages/BentoDemo'; // Import the new BentoDemo page
 
 const queryClient = new QueryClient();
 
@@ -97,11 +96,6 @@ function App() {
                     </ProtectedRoute>
                   } />
                   <Route path="/scan/:id" element={<ScanRedirect />} />
-                  <Route path="/bento-demo" element={
-                    <ProtectedRoute>
-                      <BentoDemo />
-                    </ProtectedRoute>
-                  } />
                   <Route path="*" element={<NotFound />} />
                   <Route path="/legal" element={<LegalPage />} />
                   <Route path="/pricing" element={<Pricing />} />
