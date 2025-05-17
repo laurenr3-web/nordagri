@@ -62,11 +62,13 @@ export function useTimeTrackingStats(userId: string | null) {
 
   const calculateTotalHours = (entries: TimeEntry[]): number => {
     return entries.reduce((total, entry) => {
-      // Utiliser directement duration si disponible
-      if (entry.duration) {
-        return total + entry.duration;
+      // Check if duration exists in the entry as any property
+      const durationValue = (entry as any).duration;
+      if (durationValue !== undefined && durationValue !== null) {
+        return total + durationValue;
       }
       
+      // If no duration, calculate from start_time and end_time
       const start = new Date(entry.start_time);
       const end = entry.end_time ? new Date(entry.end_time) : new Date();
       const diffMs = end.getTime() - start.getTime();
