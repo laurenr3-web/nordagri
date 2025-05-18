@@ -1,15 +1,15 @@
 
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { Parts } from '@/pages/Parts';
-import { Equipment } from '@/pages/Equipment';
-import { Interventions } from '@/pages/Interventions';
-import { Index } from '@/pages/Index';
-import { Maintenance } from '@/pages/Maintenance';
-import { Settings } from '@/pages/Settings';
-import { NotFound } from '@/pages/NotFound';
-import { TimeTracking } from '@/pages/TimeTracking';
-import { Dashboard } from '@/pages/Dashboard';
+import Parts from '@/pages/Parts';
+import Equipment from '@/pages/Equipment';
+import Interventions from '@/pages/Interventions';
+import Index from '@/pages/Index';
+import Maintenance from '@/pages/Maintenance';
+import Settings from '@/pages/Settings';
+import NotFound from '@/pages/NotFound';
+import TimeTracking from '@/pages/TimeTracking';
+import Dashboard from '@/pages/Dashboard';
 
 const AppRoutes: React.FC = () => {
   return (
