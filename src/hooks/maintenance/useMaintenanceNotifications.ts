@@ -1,10 +1,10 @@
 
 import { useState, useEffect } from 'react';
 import { MaintenanceTask } from './maintenanceSlice';
-import { toast } from 'sonner';
 import { addDays, format, isWithinInterval, isPast, isToday } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useTasksManager } from './useTasksManager';
+import { toast } from "@/hooks/use-toast";
 
 // Types pour les notifications de maintenance
 interface MaintenanceNotification {
@@ -105,9 +105,13 @@ export function useMaintenanceNotifications() {
               ? `Maintenance en retard: ${notification.title}`
               : `Maintenance critique aujourd'hui: ${notification.title}`;
               
-            toast.warning(message, {
+            // Using the shadcn toast instead of sonner
+            toast({
+              title: message,
               description: `Équipement: ${notification.equipment}`,
-              duration: 5000,
+              // Short duration for toast (8 seconds instead of default)
+              duration: 8000,
+              variant: "destructive",
             });
           });
         }
