@@ -1,7 +1,9 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Dashboard from './Dashboard';
+import BentoDashboard from './BentoDashboard';
 import CalendarView from './CalendarView';
 import AllAlertsSection from './AllAlertsSection';
 import { useDashboardData } from '@/hooks/dashboard/useDashboardData';
@@ -16,7 +18,7 @@ import { useFarmId } from '@/hooks/useFarmId';
 import NoFarmAccess from '@/components/common/NoFarmAccess';
 
 interface ViewManagerProps {
-  currentView: 'main' | 'calendar' | 'alerts';
+  currentView: 'main' | 'bento' | 'calendar' | 'alerts';
   currentMonth: Date;
 }
 
@@ -108,6 +110,24 @@ const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) 
           handleMaintenanceCalendarClick={handleMaintenanceCalendarClick}
           handleAlertsViewAllClick={handleAlertsViewAllClick}
           handleTasksAddClick={handleTasksAddClick}
+          handleEquipmentClick={handleEquipmentClick}
+        />
+      </TabsContent>
+      
+      <TabsContent value="bento">
+        <BentoDashboard 
+          statsData={adaptedStatsData}
+          equipmentData={adaptedEquipmentData}
+          maintenanceEvents={adaptedMaintenanceEvents}
+          alertItems={adaptedAlertItems}
+          upcomingTasks={adaptedUpcomingTasks}
+          urgentInterventions={urgentInterventions}
+          stockAlerts={stockAlerts}
+          weeklyCalendarEvents={weeklyCalendarEvents}
+          handleStatsCardClick={handleStatsCardClick}
+          handleEquipmentViewAllClick={handleEquipmentViewAllClick}
+          handleMaintenanceCalendarClick={handleMaintenanceCalendarClick}
+          handleAlertsViewAllClick={handleAlertsViewAllClick}
           handleEquipmentClick={handleEquipmentClick}
         />
       </TabsContent>
