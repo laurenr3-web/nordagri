@@ -19,14 +19,14 @@ interface RegularTab extends TabBase {
   type?: never;
 }
 
-interface Separator extends TabBase {
+interface SeparatorTab extends TabBase {
   type: "separator";
   title?: never;
   icon?: never;
   path?: never;
 }
 
-type TabItem = RegularTab | Separator;
+export type TabItem = RegularTab | SeparatorTab;
 
 interface ExpandableTabsProps {
   tabs: TabItem[];
@@ -95,6 +95,11 @@ export function ExpandableTabs({
     }
   };
 
+  // Type guard function to check if a tab is a RegularTab
+  const isRegularTab = (tab: TabItem): tab is RegularTab => {
+    return !('type' in tab);
+  };
+
   const Separator = () => (
     <div className="mx-1 h-[24px] w-[1.2px] bg-border" aria-hidden="true" />
   );
@@ -112,44 +117,46 @@ export function ExpandableTabs({
           return <Separator key={`separator-${index}`} />;
         }
 
-        // This is safe now because we checked for separator type above
-        const tabItem = tab as RegularTab;
-        const Icon = tabItem.icon;
-        const isActive = selected === index || (tabItem.path && tabItem.path === currentPath);
-        
-        return (
-          <motion.button
-            key={tabItem.title}
-            variants={buttonVariants}
-            initial={false}
-            animate="animate"
-            custom={isActive}
-            onClick={() => handleSelect(index)}
-            transition={transition}
-            className={cn(
-              "relative flex items-center rounded-xl px-4 py-2 text-sm font-medium transition-colors duration-300",
-              isActive
-                ? cn("bg-muted", activeColor)
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            )}
-          >
-            <Icon size={20} />
-            <AnimatePresence initial={false}>
-              {isActive && (
-                <motion.span
-                  variants={spanVariants}
-                  initial="initial"
-                  animate="animate"
-                  exit="exit"
-                  transition={transition}
-                  className="overflow-hidden"
-                >
-                  {tabItem.title}
-                </motion.span>
+        if (isRegularTab(tab)) {
+          const Icon = tab.icon;
+          const isActive = selected === index || (tab.path && tab.path === currentPath);
+          
+          return (
+            <motion.button
+              key={tab.title}
+              variants={buttonVariants}
+              initial={false}
+              animate="animate"
+              custom={isActive}
+              onClick={() => handleSelect(index)}
+              transition={transition}
+              className={cn(
+                "relative flex items-center rounded-xl px-4 py-2 text-sm font-medium transition-colors duration-300",
+                isActive
+                  ? cn("bg-muted", activeColor)
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
-            </AnimatePresence>
-          </motion.button>
-        );
+            >
+              <Icon size={20} />
+              <AnimatePresence initial={false}>
+                {isActive && (
+                  <motion.span
+                    variants={spanVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    transition={transition}
+                    className="overflow-hidden"
+                  >
+                    {tab.title}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.button>
+          );
+        }
+
+        return null; // This should never happen but it makes TypeScript happy
       })}
     </div>
   );
