@@ -13,7 +13,6 @@ export interface InterventionsListProps {
   setCurrentView: (view: string) => void;
   onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onPriorityChange: (priority: string) => void;
-  // Add the missing prop
   onClearSearch: () => void;
 }
 
@@ -23,10 +22,6 @@ const InterventionsList: React.FC<InterventionsListProps> = ({
   onStartWork,
   searchQuery,
   selectedPriority,
-  onSearchChange,
-  onPriorityChange,
-  currentView,
-  setCurrentView,
   onClearSearch
 }) => {
   // Determine if the device is mobile (for responsive design)

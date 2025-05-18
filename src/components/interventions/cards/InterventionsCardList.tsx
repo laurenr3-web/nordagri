@@ -27,7 +27,7 @@ const InterventionsCardList: React.FC<InterventionsCardListProps> = ({
   }
 
   return (
-    <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}`}>
+    <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3'}`}>
       {interventions.map((intervention) => (
         <InterventionCard
           key={intervention.id}

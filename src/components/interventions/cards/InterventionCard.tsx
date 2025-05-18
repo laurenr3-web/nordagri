@@ -4,11 +4,13 @@ import { Intervention } from '@/types/Intervention';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, MapPin, FileText, Wrench, Download } from 'lucide-react';
-import { getStatusColor, getPriorityColor } from '../utils/interventionUtils';
-import { formatDate } from '@/utils/dateHelpers';
+import { Calendar, Clock, MapPin, FileText, Wrench, Download, User } from 'lucide-react';
+import { getStatusColor, getPriorityColor, formatDate } from '../utils/interventionUtils';
 import { exportInterventionToPDF } from '@/utils/pdf-export/intervention-report';
 import { toast } from 'sonner';
+import { useOfflineStatus } from '@/providers/OfflineProvider';
+import StatusBadge from '../StatusBadge';
+import PriorityBadge from '../PriorityBadge';
 
 interface InterventionCardProps {
   intervention: Intervention;
@@ -21,8 +23,20 @@ const InterventionCard: React.FC<InterventionCardProps> = ({
   onViewDetails,
   onStartWork
 }) => {
-  const statusColor = getStatusColor(intervention.status);
-  const priorityColor = getPriorityColor(intervention.priority);
+  const { isOnline } = useOfflineStatus();
+  const isPendingSync = intervention.id < 0; // If ID is negative, it's a pending sync item
+
+  // Determine border color based on priority
+  const getPriorityBorderClass = () => {
+    switch(intervention.priority) {
+      case 'high':
+        return 'border-l-4 border-l-red-500';
+      case 'medium':
+        return 'border-l-4 border-l-orange-500';
+      default:
+        return 'border-l-4 border-l-green-500';
+    }
+  };
   
   const handleExportPDF = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -38,76 +52,105 @@ const InterventionCard: React.FC<InterventionCardProps> = ({
 
   return (
     <Card 
-      className="hover:shadow-md transition-shadow cursor-pointer"
+      className={`w-full overflow-hidden transition-all hover:shadow-md animate-fade-in ${getPriorityBorderClass()} ${isPendingSync ? 'bg-orange-50' : ''}`}
       onClick={() => onViewDetails(intervention)}
     >
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="font-semibold truncate mr-2">{intervention.title}</h3>
-          <div className="flex gap-1">
-            <Badge variant="outline" className={`${priorityColor} text-xs`}>
-              {intervention.priority === 'high' ? 'Élevée' : 
-               intervention.priority === 'medium' ? 'Moyenne' : 'Basse'}
-            </Badge>
-            <Badge className={`${statusColor} text-xs`}>
-              {intervention.status === 'scheduled' ? 'Planifiée' :
-               intervention.status === 'in-progress' ? 'En cours' : 
-               intervention.status === 'completed' ? 'Terminée' : 'Annulée'}
-            </Badge>
+      <CardContent className="p-4 sm:p-5">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-0 mb-3">
+          <h3 className="font-semibold text-base sm:text-lg leading-tight break-words">
+            {intervention.title}
+            {isPendingSync && (
+              <span className="ml-2 text-orange-500 text-xs font-normal">
+                🕓 En attente de synchronisation
+              </span>
+            )}
+          </h3>
+          <div className="flex flex-wrap gap-2 sm:ml-2 sm:flex-shrink-0">
+            <StatusBadge status={intervention.status} />
+            <PriorityBadge priority={intervention.priority} />
           </div>
         </div>
         
-        <div className="text-sm space-y-2 text-muted-foreground">
-          <div className="flex items-center">
-            <Calendar className="h-3.5 w-3.5 mr-2" />
-            <span>{formatDate(intervention.date)}</span>
+        <div className="flex flex-col gap-3 text-sm">
+          <div className="p-2 bg-background rounded-md">
+            <div className="flex items-center gap-2">
+              <Wrench size={16} className="text-blue-600 flex-shrink-0" />
+              <span className="font-medium break-words line-clamp-1">{intervention.equipment}</span>
+            </div>
           </div>
           
-          {intervention.scheduledDuration && (
-            <div className="flex items-center">
-              <Clock className="h-3.5 w-3.5 mr-2" />
-              <span>{intervention.scheduledDuration}h</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <MapPin size={14} className="flex-shrink-0" />
+              <span className="break-words line-clamp-1">{intervention.location}</span>
             </div>
-          )}
-          
-          <div className="flex items-center">
-            <FileText className="h-3.5 w-3.5 mr-2" />
-            <span className="truncate">{intervention.equipment}</span>
+            
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <User size={14} className="flex-shrink-0" />
+              <span className="font-medium break-words line-clamp-1">{intervention.technician}</span>
+            </div>
           </div>
           
-          {intervention.location && (
-            <div className="flex items-center">
-              <MapPin className="h-3.5 w-3.5 mr-2" />
-              <span className="truncate">{intervention.location}</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Calendar size={14} className="flex-shrink-0" />
+              <span className="whitespace-nowrap">{formatDate(intervention.date)}</span>
             </div>
-          )}
+            
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Clock size={14} className="flex-shrink-0" />
+              <span className="whitespace-nowrap">
+                {intervention.status === 'completed' && intervention.duration
+                  ? `${intervention.duration} hrs`
+                  : `${intervention.scheduledDuration} hrs`}
+              </span>
+            </div>
+          </div>
         </div>
+        
+        {intervention.description && (
+          <div className="mt-4 text-sm">
+            <p className="text-muted-foreground bg-muted/30 p-2 rounded-md italic line-clamp-2">{intervention.description}</p>
+          </div>
+        )}
       </CardContent>
       
-      <CardFooter className="p-2 bg-muted/40 flex justify-between border-t">
+      <CardFooter className="px-4 py-3 sm:px-5 bg-background border-t flex flex-col sm:flex-row sm:justify-end gap-2">
         {intervention.status === 'scheduled' && (
           <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-xs"
+            variant="outline" 
+            size="sm"
+            className="w-full sm:w-auto gap-1"
             onClick={(e) => {
               e.stopPropagation();
               onStartWork(intervention);
             }}
+            disabled={isPendingSync || !isOnline}
           >
-            <Wrench className="h-3.5 w-3.5 mr-1" />
-            Démarrer
+            <Wrench size={16} />
+            <span>Démarrer</span>
           </Button>
         )}
         
         <Button
           variant="ghost"
           size="sm"
-          className="text-xs ml-auto"
+          className="w-full sm:w-auto gap-1"
           onClick={handleExportPDF}
         >
-          <Download className="h-3.5 w-3.5 mr-1" />
-          PDF
+          <Download size={16} />
+          <span>PDF</span>
+        </Button>
+        
+        <Button 
+          size="sm"
+          className="w-full sm:w-auto"
+          onClick={(e) => {
+            e.stopPropagation();
+            onViewDetails(intervention);
+          }}
+        >
+          Détails
         </Button>
       </CardFooter>
     </Card>
