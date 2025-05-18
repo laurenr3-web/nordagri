@@ -4,9 +4,10 @@
  */
 export class IndexedDBService {
   private static DB_NAME = 'nordagri_offline_db';
-  private static DB_VERSION = 1;
+  private static DB_VERSION = 2; // Increased version to add new store
   private static SYNC_QUEUE_STORE = 'sync_queue';
   private static OFFLINE_CACHE_STORE = 'offline_cache';
+  private static FORM_DRAFTS_STORE = 'form_drafts';
   
   /**
    * Open IndexedDB database connection
@@ -26,18 +27,27 @@ export class IndexedDBService {
       
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
+        const oldVersion = event.oldVersion;
         
-        // Create sync queue store with index on timestamp
+        // Create sync queue store with index on timestamp if it doesn't exist
         if (!db.objectStoreNames.contains(this.SYNC_QUEUE_STORE)) {
           const syncQueueStore = db.createObjectStore(this.SYNC_QUEUE_STORE, { keyPath: 'id' });
           syncQueueStore.createIndex('timestamp', 'timestamp', { unique: false });
           syncQueueStore.createIndex('type', 'type', { unique: false });
         }
         
-        // Create offline cache store
+        // Create offline cache store if it doesn't exist
         if (!db.objectStoreNames.contains(this.OFFLINE_CACHE_STORE)) {
           const cacheStore = db.createObjectStore(this.OFFLINE_CACHE_STORE, { keyPath: 'key' });
           cacheStore.createIndex('timestamp', 'timestamp', { unique: false });
+        }
+        
+        // Create form drafts store if it doesn't exist (added in version 2)
+        if (oldVersion < 2 && !db.objectStoreNames.contains(this.FORM_DRAFTS_STORE)) {
+          const draftsStore = db.createObjectStore(this.FORM_DRAFTS_STORE, { keyPath: 'id' });
+          draftsStore.createIndex('formType', 'formType', { unique: false });
+          draftsStore.createIndex('lastSaved', 'lastSaved', { unique: false });
+          draftsStore.createIndex('formId', 'formId', { unique: false });
         }
       };
     });
