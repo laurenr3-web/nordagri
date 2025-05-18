@@ -21,44 +21,44 @@ const InterventionTabs: React.FC<InterventionTabsProps> = ({
     {
       id: 'scheduled',
       label: 'Planifiées',
-      icon: <Calendar className="w-5 h-5 mr-2" />,
+      icon: <Calendar className="w-4 h-4 mr-1" />,
       count: scheduledCount
     },
     {
       id: 'in-progress',
       label: 'En cours',
-      icon: <Clock className="w-5 h-5 mr-2" />,
+      icon: <Clock className="w-4 h-4 mr-1" />,
       count: inProgressCount
     },
     {
       id: 'completed',
       label: 'Terminées',
-      icon: <Wrench className="w-5 h-5 mr-2" />,
+      icon: <Wrench className="w-4 h-4 mr-1" />,
       count: completedCount
     },
     {
       id: 'field-tracking',
       label: 'Suivi terrain',
-      icon: <MapPin className="w-5 h-5 mr-2" />,
+      icon: <MapPin className="w-4 h-4 mr-1" />,
       count: null
     },
     {
       id: 'requests',
       label: 'Demandes',
-      icon: <FileText className="w-5 h-5 mr-2" />,
+      icon: <FileText className="w-4 h-4 mr-1" />,
       count: null
     },
     {
       id: 'observations',
       label: 'Observations',
-      icon: <Eye className="w-5 h-5 mr-2" />,
+      icon: <Eye className="w-4 h-4 mr-1" />,
       count: null
     }
   ];
 
   return (
     <div className="overflow-x-auto mb-6">
-      <div className="flex space-x-1 min-w-max">
+      <div className="flex space-x-1 min-w-max pb-2">
         {tabs.map((tab) => (
           <button
             key={tab.id}

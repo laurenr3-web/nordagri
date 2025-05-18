@@ -4,7 +4,6 @@ import { Intervention } from '@/types/Intervention';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import InterventionTabs from './navigation/InterventionTabs';
 import InterventionContentRenderer from './views/InterventionContentRenderer';
-import InterventionsHeader from './InterventionsHeader';
 
 interface InterventionsContainerProps {
   filteredInterventions: Intervention[];
@@ -13,10 +12,6 @@ interface InterventionsContainerProps {
   onClearSearch: () => void;
   onViewDetails: (intervention: Intervention) => void;
   onStartWork: (intervention: Intervention) => void;
-  searchQuery: string;
-  selectedPriority: string | null;
-  onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onPriorityChange: (priority: string | null) => void;
 }
 
 const InterventionsContainer: React.FC<InterventionsContainerProps> = ({
@@ -25,11 +20,7 @@ const InterventionsContainer: React.FC<InterventionsContainerProps> = ({
   setCurrentView,
   onClearSearch,
   onViewDetails,
-  onStartWork,
-  searchQuery,
-  selectedPriority,
-  onSearchChange,
-  onPriorityChange
+  onStartWork
 }) => {
   // Calculate counts for the navigation tabs
   const scheduledCount = useMemo(() => 
@@ -56,16 +47,6 @@ const InterventionsContainer: React.FC<InterventionsContainerProps> = ({
 
   return (
     <div className="flex flex-col h-full">
-      <InterventionsHeader 
-        searchQuery={searchQuery}
-        onSearchChange={onSearchChange}
-        selectedPriority={selectedPriority}
-        onPriorityChange={onPriorityChange}
-        currentView={currentView}
-        setCurrentView={setCurrentView}
-        onNewIntervention={() => {}}
-      />
-      
       <div className="container py-2 px-4">
         <InterventionTabs 
           scheduledCount={scheduledCount}

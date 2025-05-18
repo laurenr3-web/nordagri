@@ -122,8 +122,6 @@ const InterventionsPage = () => {
           onSearchChange={handleSearchChange}
           selectedPriority={selectedPriority}
           onPriorityChange={handlePriorityChange}
-          currentView={currentView}
-          setCurrentView={setCurrentView}
         />
 
         <InterventionsContainer
@@ -136,10 +134,6 @@ const InterventionsPage = () => {
             handleStartWork(intervention);
             toast.success(`Intervention "${intervention.title}" démarrée`);
           }}
-          searchQuery={searchQuery}
-          selectedPriority={selectedPriority}
-          onSearchChange={handleSearchChange}
-          onPriorityChange={handlePriorityChange}
         />
 
         {/* Dialogs for interventions */}

@@ -2,8 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Calendar, List, MapPin, FileText, Plus, Filter, Eye, Search } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Plus, Search, Filter } from 'lucide-react';
 
 interface InterventionsHeaderProps {
   onNewIntervention: () => void;
@@ -11,8 +10,6 @@ interface InterventionsHeaderProps {
   onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   selectedPriority: string | null;
   onPriorityChange: (priority: string | null) => void;
-  currentView?: string;
-  setCurrentView?: (view: string) => void;
 }
 
 const InterventionsHeader: React.FC<InterventionsHeaderProps> = ({
@@ -20,12 +17,10 @@ const InterventionsHeader: React.FC<InterventionsHeaderProps> = ({
   searchQuery,
   onSearchChange,
   selectedPriority,
-  onPriorityChange,
-  currentView,
-  setCurrentView
+  onPriorityChange
 }) => {
   return (
-    <div className="border-b mb-2">
+    <div className="border-b mb-4">
       <div className="container py-2 px-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="w-full sm:w-auto flex-1 flex items-center gap-2">
@@ -45,6 +40,11 @@ const InterventionsHeader: React.FC<InterventionsHeaderProps> = ({
               <span className="sr-only">Filtrer</span>
             </Button>
           </div>
+          
+          <Button onClick={onNewIntervention} size="sm" className="w-full sm:w-auto">
+            <Plus className="h-4 w-4 mr-1" />
+            Nouvelle intervention
+          </Button>
         </div>
       </div>
     </div>
