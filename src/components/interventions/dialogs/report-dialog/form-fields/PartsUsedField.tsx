@@ -5,12 +5,7 @@ import { Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { InterventionReportFormValues } from '../../hooks/useInterventionReportForm';
 import { PartsList } from './PartsList';
-
-interface Part {
-  id: number;
-  name: string;
-  quantity: number;
-}
+import { Part } from '@/types/Part';
 
 interface PartsUsedFieldProps {
   control: Control<InterventionReportFormValues>;
@@ -19,6 +14,13 @@ interface PartsUsedFieldProps {
   getValues: UseFormGetValues<InterventionReportFormValues>;
   setValue: UseFormSetValue<InterventionReportFormValues>;
 }
+
+// Define a simplified part type that matches our usage in the form
+type FormPart = {
+  id: number;
+  name: string;
+  quantity: number;
+};
 
 export const PartsUsedField: React.FC<PartsUsedFieldProps> = ({
   control,
@@ -87,7 +89,7 @@ export const PartsUsedField: React.FC<PartsUsedFieldProps> = ({
       )}
       
       <PartsList 
-        parts={watch('partsUsed') || []}
+        parts={(watch('partsUsed') || []) as FormPart[]}
         onRemovePart={removePart}
         onUpdateQuantity={updatePartQuantity}
       />
