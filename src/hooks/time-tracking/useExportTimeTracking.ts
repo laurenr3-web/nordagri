@@ -4,7 +4,7 @@ import { fr } from 'date-fns/locale';
 import { TimeEntry } from '@/hooks/time-tracking/types';
 import { TopEquipment } from '@/hooks/time-tracking/useTopEquipment';
 import { TaskTypeDistribution } from '@/hooks/time-tracking/useTaskTypeDistribution';
-import { exportTimeReportToPDF } from '@/utils/pdfExport';
+import { exportTimeReportToPDF } from '@/utils/pdf-export';
 import { exportToExcel, ExcelColumn } from '@/utils/excelExport';
 
 export interface EmployeeHoursData {
