@@ -4,6 +4,7 @@ import { Intervention } from '@/types/Intervention';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import InterventionTabs from './navigation/InterventionTabs';
 import InterventionContentRenderer from './views/InterventionContentRenderer';
+import InterventionsHeader from './InterventionsHeader';
 
 interface InterventionsContainerProps {
   filteredInterventions: Intervention[];
@@ -54,9 +55,18 @@ const InterventionsContainer: React.FC<InterventionsContainerProps> = ({
   };
 
   return (
-    <ScrollArea className="h-[calc(100vh-180px)] w-full">
-      <div className="container py-4 px-4 md:px-6 lg:px-8 max-w-full">
-        {/* Navigation Tabs */}
+    <div className="flex flex-col h-full">
+      <InterventionsHeader 
+        searchQuery={searchQuery}
+        onSearchChange={onSearchChange}
+        selectedPriority={selectedPriority}
+        onPriorityChange={onPriorityChange}
+        currentView={currentView}
+        setCurrentView={setCurrentView}
+        onNewIntervention={() => {}}
+      />
+      
+      <div className="container py-2 px-4">
         <InterventionTabs 
           scheduledCount={scheduledCount}
           inProgressCount={inProgressCount}
@@ -64,8 +74,7 @@ const InterventionsContainer: React.FC<InterventionsContainerProps> = ({
           currentView={currentView}
           onTabClick={handleTabClick}
         />
-
-        {/* Content Renderer for different views */}
+        
         <InterventionContentRenderer 
           currentView={currentView}
           filteredInterventions={filteredInterventions}
@@ -73,7 +82,7 @@ const InterventionsContainer: React.FC<InterventionsContainerProps> = ({
           onStartWork={onStartWork}
         />
       </div>
-    </ScrollArea>
+    </div>
   );
 };
 
