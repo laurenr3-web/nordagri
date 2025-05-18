@@ -62,13 +62,13 @@ export function ExpandableTabs({
   currentPath,
 }: ExpandableTabsProps) {
   const [selected, setSelected] = React.useState<number | null>(
-    currentPath ? tabs.findIndex(tab => tab.path === currentPath) : null
+    currentPath ? tabs.findIndex(tab => 'path' in tab && tab.path === currentPath) : null
   );
   const outsideClickRef = React.useRef(null);
 
   React.useEffect(() => {
     if (currentPath) {
-      const index = tabs.findIndex(tab => tab.path === currentPath);
+      const index = tabs.findIndex(tab => 'path' in tab && tab.path === currentPath);
       if (index !== -1) {
         setSelected(index);
       }
@@ -85,7 +85,7 @@ export function ExpandableTabs({
     onChange?.(index);
     
     const tab = tabs[index];
-    if (tab && 'path' in tab && onTabClick) {
+    if ('path' in tab && onTabClick) {
       onTabClick(tab.path);
     }
   };
@@ -103,16 +103,18 @@ export function ExpandableTabs({
       )}
     >
       {tabs.map((tab, index) => {
-        if (tab.type === "separator") {
+        if ('type' in tab && tab.type === "separator") {
           return <Separator key={`separator-${index}`} />;
         }
 
-        const Icon = tab.icon;
-        const isActive = selected === index || (tab.path && tab.path === currentPath);
+        // This is safe now because we checked for separator type above
+        const normalTab = tab as Tab;
+        const Icon = normalTab.icon;
+        const isActive = selected === index || (normalTab.path && normalTab.path === currentPath);
         
         return (
           <motion.button
-            key={tab.title}
+            key={normalTab.title}
             variants={buttonVariants}
             initial={false}
             animate="animate"
@@ -137,7 +139,7 @@ export function ExpandableTabs({
                   transition={transition}
                   className="overflow-hidden"
                 >
-                  {tab.title}
+                  {normalTab.title}
                 </motion.span>
               )}
             </AnimatePresence>
