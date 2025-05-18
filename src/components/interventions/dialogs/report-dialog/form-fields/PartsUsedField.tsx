@@ -3,9 +3,14 @@ import React from 'react';
 import { Control, UseFormGetValues, UseFormSetValue, UseFormWatch } from "react-hook-form";
 import { Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { InterventionReportFormValues } from '../../hooks/useInterventionReportForm';
 import { PartsList } from './PartsList';
+
+interface Part {
+  id: number;
+  name: string;
+  quantity: number;
+}
 
 interface PartsUsedFieldProps {
   control: Control<InterventionReportFormValues>;
@@ -34,7 +39,7 @@ export const PartsUsedField: React.FC<PartsUsedFieldProps> = ({
       setValue('partsUsed', updatedParts);
     } else {
       // Ajouter une nouvelle pièce avec quantité 1
-      setValue('partsUsed', [...currentParts, { ...part, quantity: 1 }]);
+      setValue('partsUsed', [...currentParts, { id: part.id, name: part.name, quantity: 1 }] as Part[]);
     }
   };
 
@@ -43,7 +48,7 @@ export const PartsUsedField: React.FC<PartsUsedFieldProps> = ({
     const currentParts = getValues('partsUsed') || [];
     setValue(
       'partsUsed',
-      currentParts.filter(p => p.id !== partId)
+      currentParts.filter(p => p.id !== partId) as Part[]
     );
   };
 
@@ -53,7 +58,7 @@ export const PartsUsedField: React.FC<PartsUsedFieldProps> = ({
     const updatedParts = currentParts.map(part => 
       part.id === partId ? { ...part, quantity } : part
     );
-    setValue('partsUsed', updatedParts);
+    setValue('partsUsed', updatedParts as Part[]);
   };
 
   return (
