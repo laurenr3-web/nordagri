@@ -6,6 +6,7 @@ import * as z from 'zod';
 import { Intervention } from '@/types/Intervention';
 import { toast } from 'sonner';
 import { exportInterventionToPDF } from '@/utils/pdfExport';
+import { FormPart } from '../report-dialog/form-fields/PartsUsedField';
 
 // Define a schema for the form values
 const reportFormSchema = z.object({

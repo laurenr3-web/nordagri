@@ -15,7 +15,7 @@ interface PartsUsedFieldProps {
 }
 
 // Define a simplified part type that matches our usage in the form
-type FormPart = {
+export type FormPart = {
   id: number;
   name: string;
   quantity: number;
