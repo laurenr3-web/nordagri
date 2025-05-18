@@ -36,8 +36,8 @@ describe('PartsList Component', () => {
     // Vérification des inputs de quantité
     const quantityInputs = screen.getAllByRole('spinbutton');
     expect(quantityInputs.length).toBe(2);
-    expect(quantityInputs[0]).toHaveValue(1);
-    expect(quantityInputs[1]).toHaveValue(2);
+    expect(quantityInputs[0].getAttribute('value')).toBe('1');
+    expect(quantityInputs[1].getAttribute('value')).toBe('2');
   });
   
   it('calls onRemovePart when removal button is clicked', () => {

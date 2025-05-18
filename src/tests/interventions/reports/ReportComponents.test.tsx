@@ -11,6 +11,7 @@ import {
   DescriptionSection,
   ReportFooter
 } from '@/components/interventions/reports/components';
+import { Intervention } from '@/types/Intervention';
 
 // Mock des composants PDF
 vi.mock('@react-pdf/renderer', () => {
@@ -33,11 +34,11 @@ vi.mock('@react-pdf/renderer', () => {
 
 describe('Report PDF Components', () => {
   it('renders ReportHeader correctly', () => {
-    const mockIntervention = { title: 'Test Intervention', date: new Date() };
+    const mockIntervention = { id: 123, date: new Date() };
     render(
       <ReportHeader 
-        reportTitle="Rapport d'intervention" 
-        intervention={mockIntervention} 
+        id={mockIntervention.id}
+        date={mockIntervention.date}
       />
     );
     // Pas besoin de vérification car le composant est principalement pour le PDF
@@ -45,37 +46,51 @@ describe('Report PDF Components', () => {
   });
 
   it('renders GeneralInfoSection correctly', () => {
-    const mockIntervention = {
+    const mockIntervention: Partial<Intervention> = {
       id: 1,
       title: 'Test Intervention',
       date: new Date(),
       priority: 'high',
+      equipment: 'Test Equipment',
+      equipmentId: 123,
+      location: 'Test Location',
+      coordinates: { lat: 0, lng: 0 },
+      status: 'completed',
+      technician: 'John Doe',
+      description: 'Test description',
+      partsUsed: []
     };
-    render(<GeneralInfoSection intervention={mockIntervention} />);
+    render(<GeneralInfoSection intervention={mockIntervention as Intervention} />);
     expect(true).toBe(true);
   });
 
   it('renders EquipmentSection correctly', () => {
-    const mockIntervention = {
-      equipment: 'Tracteur',
-      equipmentId: 123,
-      location: 'Zone A'
-    };
-    render(<EquipmentSection intervention={mockIntervention} />);
+    render(
+      <EquipmentSection 
+        equipment="Tracteur"
+        equipmentId={123}
+      />
+    );
     expect(true).toBe(true);
   });
 
   it('renders PartsSection correctly', () => {
     const mockParts = [
-      { id: 1, name: 'Filtre', quantity: 2 },
-      { id: 2, name: 'Huile', quantity: 1 }
+      { partId: 1, name: 'Filtre', quantity: 2 },
+      { partId: 2, name: 'Huile', quantity: 1 }
     ];
     render(<PartsSection parts={mockParts} />);
     expect(true).toBe(true);
   });
 
   it('renders TimeSection correctly', () => {
-    render(<TimeSection duration={2.5} />);
+    render(
+      <TimeSection 
+        scheduledDuration={2}
+        actualDuration={2.5}
+        status="completed"
+      />
+    );
     expect(true).toBe(true);
   });
 
