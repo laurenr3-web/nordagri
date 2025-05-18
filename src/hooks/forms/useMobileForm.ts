@@ -1,5 +1,5 @@
 
-import { useForm, UseFormProps, FieldValues } from 'react-hook-form';
+import { useForm, FieldValues } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import useNetworkState from '@/hooks/useNetworkState';
 import { useDraftManager } from './useDraftManager';
@@ -7,7 +7,8 @@ import { useAutoSave } from './useAutoSave';
 import { useFormSubmission } from './useFormSubmission';
 import { UseMobileFormProps, UseMobileFormReturn } from './types';
 
-export { UseMobileFormProps, UseMobileFormReturn } from './types';
+// Use explicit export type syntax for re-exports
+export type { UseMobileFormProps, UseMobileFormReturn } from './types';
 
 export function useMobileForm<T extends FieldValues>({
   formType,
