@@ -74,7 +74,7 @@ const MobileMenu = () => {
           activeColor="text-primary"
           currentPath={location.pathname}
           onTabClick={handleTabClick}
-          className="w-full justify-center overflow-x-auto flex-nowrap"
+          className="w-full justify-center overflow-x-auto flex-nowrap scrollbar-hide"
         />
       </nav>
     </>
