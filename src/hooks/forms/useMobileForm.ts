@@ -26,6 +26,7 @@ export interface UseMobileFormReturn<T extends FieldValues> extends UseFormRetur
   discardDraft: () => Promise<void>;
   saveDraftManually: () => Promise<void>;
   isOnline: boolean;
+  isSubmitting: boolean; // Added isSubmitting property
 }
 
 export function useMobileForm<T extends FieldValues>({
@@ -43,6 +44,7 @@ export function useMobileForm<T extends FieldValues>({
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isDraftAvailable, setIsDraftAvailable] = useState<boolean>(initialIsDraftAvailable);
   const [hasPendingChanges, setHasPendingChanges] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false); // Added isSubmitting state
   const draftIdRef = useRef<string | null>(null);
   const isOnline = useNetworkState();
 
@@ -201,14 +203,22 @@ export function useMobileForm<T extends FieldValues>({
   // Handle offline submission
   const originalHandleSubmit = form.handleSubmit;
   form.handleSubmit = (onValidSubmit, onInvalidSubmit) => {
-    return originalHandleSubmit((data) => {
-      if (!isOnline && onSubmitOffline) {
-        // If offline, handle submission differently
-        return onSubmitOffline(data);
+    return originalHandleSubmit(async (data) => {
+      setIsSubmitting(true); // Set submitting state to true
+      try {
+        if (!isOnline && onSubmitOffline) {
+          // If offline, handle submission differently
+          await onSubmitOffline(data);
+        } else {
+          // Otherwise proceed with normal submission
+          await onValidSubmit(data);
+        }
+      } catch (error) {
+        console.error("Form submission error:", error);
+        throw error;
+      } finally {
+        setIsSubmitting(false); // Set submitting state back to false when done
       }
-      
-      // Otherwise proceed with normal submission
-      return onValidSubmit(data);
     }, onInvalidSubmit);
   };
 
@@ -221,6 +231,7 @@ export function useMobileForm<T extends FieldValues>({
     recoverDraft,
     discardDraft,
     saveDraftManually,
-    isOnline
+    isOnline,
+    isSubmitting // Return the isSubmitting state
   };
 }
