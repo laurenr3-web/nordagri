@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { BlurContainer } from '@/components/ui/blur-container';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Intervention } from '@/types/Intervention';
 import InterventionCard from './InterventionCard';
 import { CalendarCheck, Clock, CheckCircle2, Wrench, FileText, Eye, History } from 'lucide-react';
@@ -12,6 +11,7 @@ import FieldObservationsView from './views/FieldObservationsView';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { useIsMobile } from '@/hooks/use-mobile';
+import { ExpandableTabs, TabItem } from '@/components/ui/expandable-tabs';
 
 interface InterventionsListProps {
   filteredInterventions: Intervention[];
@@ -72,6 +72,45 @@ const InterventionsList: React.FC<InterventionsListProps> = ({
   const inProgressCount = filteredInterventions.filter(item => item.status === 'in-progress').length;
   const completedCount = filteredInterventions.filter(item => item.status === 'completed').length;
 
+  // Définir les onglets avec les icônes et compteurs
+  const navigationTabs: TabItem[] = [
+    {
+      title: `Planifiées (${scheduledCount})`,
+      icon: CalendarCheck,
+      path: 'scheduled'
+    },
+    {
+      title: `En cours (${inProgressCount})`,
+      icon: Clock,
+      path: 'in-progress'
+    },
+    {
+      title: `Terminées (${completedCount})`,
+      icon: CheckCircle2,
+      path: 'completed'
+    },
+    {
+      title: 'Suivi Terrain',
+      icon: Wrench,
+      path: 'field-tracking'
+    },
+    {
+      title: 'Demandes',
+      icon: FileText,
+      path: 'requests'
+    },
+    {
+      title: 'Observations',
+      icon: Eye,
+      path: 'observations'
+    },
+    {
+      title: 'Historique',
+      icon: History,
+      path: 'history'
+    }
+  ];
+
   // Rendu des cartes d'intervention
   const renderInterventionCards = (interventions: Intervention[]) => {
     if (interventions.length === 0) {
@@ -128,72 +167,51 @@ const InterventionsList: React.FC<InterventionsListProps> = ({
     );
   };
 
+  // Fonction pour afficher le contenu en fonction de l'onglet actif
+  const renderContent = () => {
+    switch (currentView) {
+      case 'scheduled':
+        return renderInterventionCards(getFilteredInterventions('scheduled'));
+      case 'in-progress':
+        return renderInterventionCards(getFilteredInterventions('in-progress'));
+      case 'completed':
+        return renderInterventionCards(getFilteredInterventions('completed'));
+      case 'field-tracking':
+        return <FieldTrackingView interventions={filteredInterventions} onViewDetails={onViewDetails} />;
+      case 'requests':
+        return <RequestsManagementView interventions={filteredInterventions} onViewDetails={onViewDetails} />;
+      case 'observations':
+        return <FieldObservationsView />;
+      case 'history':
+        return <EquipmentHistoryView interventions={filteredInterventions} onViewDetails={onViewDetails} />;
+      default:
+        return renderInterventionCards(filteredInterventions);
+    }
+  };
+
+  const handleTabClick = (path: string | undefined) => {
+    if (path) {
+      setCurrentView(path);
+    }
+  };
+
   return (
     <div className="w-full">
-      <Tabs value={currentView} defaultValue="scheduled" onValueChange={setCurrentView} className="w-full">
+      <div className="flex flex-col space-y-6">
         <ScrollArea className="w-full overflow-x-auto pb-2">
-          <TabsList className="mb-6 bg-background border w-auto min-w-max flex">
-            <TabsTrigger value="scheduled" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
-              <CalendarCheck size={16} />
-              <span>Planifiées ({scheduledCount})</span>
-            </TabsTrigger>
-            <TabsTrigger value="in-progress" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
-              <Clock size={16} />
-              <span>En cours ({inProgressCount})</span>
-            </TabsTrigger>
-            <TabsTrigger value="completed" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
-              <CheckCircle2 size={16} />
-              <span>Terminées ({completedCount})</span>
-            </TabsTrigger>
-            <TabsTrigger value="field-tracking" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
-              <Wrench size={16} />
-              <span>Suivi Terrain</span>
-            </TabsTrigger>
-            <TabsTrigger value="requests" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
-              <FileText size={16} />
-              <span>Demandes</span>
-            </TabsTrigger>
-            <TabsTrigger value="observations" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
-              <Eye size={16} />
-              <span>Observations</span>
-            </TabsTrigger>
-            <TabsTrigger value="history" className="data-[state=active]:bg-primary/10 flex items-center gap-1">
-              <History size={16} />
-              <span>Historique</span>
-            </TabsTrigger>
-          </TabsList>
+          <ExpandableTabs
+            tabs={navigationTabs}
+            activeColor="text-primary"
+            currentPath={currentView}
+            onTabClick={handleTabClick}
+            className="w-full mb-6 justify-start overflow-x-auto flex-nowrap scrollbar-hide"
+          />
         </ScrollArea>
 
-        <div className="px-0 overflow-x-hidden">
-          <TabsContent value="scheduled" className="mt-2 w-full">
-            {renderInterventionCards(getFilteredInterventions('scheduled'))}
-          </TabsContent>
-          
-          <TabsContent value="in-progress" className="mt-2 w-full">
-            {renderInterventionCards(getFilteredInterventions('in-progress'))}
-          </TabsContent>
-          
-          <TabsContent value="completed" className="mt-2 w-full">
-            {renderInterventionCards(getFilteredInterventions('completed'))}
-          </TabsContent>
-          
-          <TabsContent value="field-tracking" className="mt-2 w-full">
-            <FieldTrackingView interventions={filteredInterventions} onViewDetails={onViewDetails} />
-          </TabsContent>
-          
-          <TabsContent value="requests" className="mt-2 w-full">
-            <RequestsManagementView interventions={filteredInterventions} onViewDetails={onViewDetails} />
-          </TabsContent>
-          
-          <TabsContent value="observations" className="mt-2 w-full">
-            <FieldObservationsView />
-          </TabsContent>
-          
-          <TabsContent value="history" className="mt-2 w-full">
-            <EquipmentHistoryView interventions={filteredInterventions} onViewDetails={onViewDetails} />
-          </TabsContent>
+        <div className="px-0">
+          {renderContent()}
         </div>
-      </Tabs>
+      </div>
     </div>
   );
 };
