@@ -1,11 +1,10 @@
-
 import React from 'react';
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Clock, Wrench, FileCheck, CheckCircle } from 'lucide-react';
+import { Clock, Wrench, FileCheck, CheckCircle, Download } from 'lucide-react';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Intervention } from '@/types/Intervention';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { exportInterventionToPDF } from '@/utils/pdfExport';
+import { toast } from 'sonner';
 
 // Schéma de validation pour le formulaire
 const formSchema = z.object({
@@ -106,6 +107,23 @@ const InterventionReportDialog: React.FC<InterventionReportDialogProps> = ({
       part.id === partId ? { ...part, quantity } : part
     );
     form.setValue('partsUsed', updatedParts);
+  };
+  
+  const handleExportToPDF = async () => {
+    try {
+      if (intervention) {
+        const values = form.getValues();
+        await exportInterventionToPDF(
+          intervention,
+          values.notes,
+          values.duration
+        );
+        toast.success("Rapport d'intervention exporté en PDF");
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'export du PDF:", error);
+      toast.error("Erreur lors de l'export du PDF");
+    }
   };
 
   return (
@@ -252,6 +270,15 @@ const InterventionReportDialog: React.FC<InterventionReportDialogProps> = ({
                   onClick={() => onOpenChange(false)}
                 >
                   Annuler
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleExportToPDF}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Exporter PDF
                 </Button>
                 <Button type="submit">
                   <CheckCircle className="h-4 w-4 mr-2" />

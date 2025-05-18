@@ -1,7 +1,8 @@
-
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, pdf } from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
+import { InterventionReportPDF } from '@/components/interventions/reports/InterventionReportPDF';
+import { Intervention } from '@/types/Intervention';
 
 // Define styles for PDF
 const styles = StyleSheet.create({
@@ -276,4 +277,27 @@ export const exportTimeEntriesToPDF = async (
   ).toBlob();
   
   saveAs(blob, `${filename}.pdf`);
+};
+
+export const exportInterventionToPDF = async (
+  intervention: Intervention,
+  reportNotes?: string,
+  actualDuration?: number,
+  filename?: string
+): Promise<void> => {
+  const dateStr = typeof intervention.date === 'string' 
+    ? new Date(intervention.date).toISOString().split('T')[0]
+    : intervention.date.toISOString().split('T')[0];
+  
+  const defaultFilename = `intervention-${intervention.id}-${dateStr}`;
+  
+  const blob = await pdf(
+    <InterventionReportPDF
+      intervention={intervention}
+      reportNotes={reportNotes}
+      actualDuration={actualDuration}
+    />
+  ).toBlob();
+  
+  saveAs(blob, `${filename || defaultFilename}.pdf`);
 };

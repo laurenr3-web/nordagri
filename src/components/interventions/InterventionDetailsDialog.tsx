@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -11,11 +10,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Wrench, Trash2, Calendar, MapPin, User, Clock, FileText, AlertCircle } from 'lucide-react';
+import { Wrench, Trash2, Calendar, MapPin, User, Clock, FileText, AlertCircle, Download } from 'lucide-react';
 import { Intervention } from '@/types/Intervention';
 import { formatDate } from './utils/interventionUtils';
 import { DeleteInterventionAlert } from './dialogs/DeleteInterventionAlert';
 import { useDeleteIntervention } from '@/hooks/interventions/useDeleteIntervention';
+import { exportInterventionToPDF } from '@/utils/pdfExport';
+import { toast } from 'sonner';
 
 interface InterventionDetailsDialogProps {
   intervention: Intervention;
@@ -68,6 +69,16 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
         return 'secondary';
       default:
         return 'outline';
+    }
+  };
+  
+  const handleExportToPDF = async () => {
+    try {
+      await exportInterventionToPDF(intervention);
+      toast.success("Rapport d'intervention exporté avec succès");
+    } catch (error) {
+      console.error("Erreur lors de l'export du PDF:", error);
+      toast.error("Erreur lors de l'export du PDF");
     }
   };
 
@@ -212,6 +223,15 @@ const InterventionDetailsDialog: React.FC<InterventionDetailsDialogProps> = ({
               <span>Supprimer</span>
             </Button>
             <div className="flex gap-2 ml-auto">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="gap-1"
+                onClick={handleExportToPDF}
+              >
+                <Download size={16} />
+                <span>Exporter PDF</span>
+              </Button>
               {intervention.status === 'scheduled' && (
                 <Button 
                   variant="outline" 
