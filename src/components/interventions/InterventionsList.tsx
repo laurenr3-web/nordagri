@@ -2,6 +2,7 @@
 import React from 'react';
 import { Intervention } from '@/types/Intervention';
 import InterventionsCardList from './cards/InterventionsCardList';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export interface InterventionsListProps {
   filteredInterventions: Intervention[];
@@ -24,8 +25,8 @@ const InterventionsList: React.FC<InterventionsListProps> = ({
   selectedPriority,
   onClearSearch
 }) => {
-  // Determine if the device is mobile (for responsive design)
-  const isMobile = window.innerWidth < 640;
+  // Use the custom hook for responsive design
+  const isMobile = useIsMobile();
 
   return (
     <div className="w-full">

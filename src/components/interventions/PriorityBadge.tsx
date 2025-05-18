@@ -1,25 +1,38 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { getPriorityBadgeClass } from './utils/interventionUtils';
+import { AlertTriangle, AlertCircle, AlertOctagon } from 'lucide-react';
 
 interface PriorityBadgeProps {
   priority: 'high' | 'medium' | 'low';
-  className?: string; // Added className property
 }
 
-const PriorityBadge: React.FC<PriorityBadgeProps> = ({ priority, className }) => {
-  // Get the capitalized label safely, ensuring priority is defined
-  const getCapitalizedLabel = () => {
-    if (!priority) return 'Unknown';
-    return priority.charAt(0).toUpperCase() + priority.slice(1);
-  };
-
-  return (
-    <Badge className={`${getPriorityBadgeClass(priority)} ${className || ''}`}>
-      {getCapitalizedLabel()}
-    </Badge>
-  );
+const PriorityBadge: React.FC<PriorityBadgeProps> = ({ priority }) => {
+  switch (priority) {
+    case 'high':
+      return (
+        <Badge variant="destructive" className="flex gap-1 items-center">
+          <AlertOctagon size={12} />
+          <span>Haute</span>
+        </Badge>
+      );
+    case 'medium':
+      return (
+        <Badge variant="warning" className="flex gap-1 items-center">
+          <AlertTriangle size={12} />
+          <span>Moyenne</span>
+        </Badge>
+      );
+    case 'low':
+      return (
+        <Badge variant="secondary" className="flex gap-1 items-center">
+          <AlertCircle size={12} />
+          <span>Basse</span>
+        </Badge>
+      );
+    default:
+      return <Badge variant="secondary">{priority}</Badge>;
+  }
 };
 
 export default PriorityBadge;

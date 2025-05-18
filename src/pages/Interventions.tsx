@@ -115,6 +115,17 @@ const InterventionsPage = () => {
           }
         />
 
+        {/* Header with search and filters */}
+        <InterventionsHeader
+          onNewIntervention={handleOpenNewInterventionDialog}
+          searchQuery={searchQuery}
+          onSearchChange={handleSearchChange}
+          selectedPriority={selectedPriority}
+          onPriorityChange={handlePriorityChange}
+          currentView={currentView}
+          setCurrentView={setCurrentView}
+        />
+
         <InterventionsContainer
           filteredInterventions={filteredInterventions.length > 0 ? filteredInterventions : interventions}
           currentView={currentView}

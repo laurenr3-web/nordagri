@@ -1,21 +1,24 @@
 
-export const getEmptyStateMessage = (currentView: string): string => {
-  switch (currentView) {
+/**
+ * Returns appropriate empty state message based on current view
+ */
+export const getEmptyStateMessage = (view: string): string => {
+  switch (view) {
     case 'scheduled':
-      return 'Aucune intervention planifiée.';
+      return "Aucune intervention planifiée.";
     case 'in-progress':
-      return 'Aucune intervention en cours.';
+      return "Aucune intervention en cours.";
     case 'completed':
-      return 'Aucune intervention terminée.';
+      return "Aucune intervention terminée.";
     case 'field-tracking':
-      return 'Aucune intervention terrain à suivre.';
+      return "Aucun suivi terrain disponible.";
     case 'requests':
-      return 'Aucune demande d\'intervention.';
-    case 'history':
-      return 'Aucun historique d\'intervention.';
+      return "Aucune demande d'intervention.";
     case 'observations':
-      return 'Aucune observation terrain trouvée.';
+      return "Aucune observation de terrain.";
+    case 'history':
+      return "Aucun historique d'intervention.";
     default:
-      return 'Aucune intervention trouvée correspondant à vos critères de recherche.';
+      return "Aucune intervention disponible.";
   }
 };
