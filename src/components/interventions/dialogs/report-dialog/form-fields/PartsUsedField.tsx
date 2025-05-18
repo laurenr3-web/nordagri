@@ -5,7 +5,6 @@ import { Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { InterventionReportFormValues } from '../../hooks/useInterventionReportForm';
 import { PartsList } from './PartsList';
-import { Part } from '@/types/Part';
 
 interface PartsUsedFieldProps {
   control: Control<InterventionReportFormValues>;

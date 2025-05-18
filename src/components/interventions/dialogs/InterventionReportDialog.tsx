@@ -28,6 +28,9 @@ const InterventionReportDialog: React.FC<InterventionReportDialogProps> = ({
     form,
     handleSubmit,
     handleExportToPDF,
+    addPart,
+    removePart,
+    updatePartQuantity
   } = useInterventionReportForm({ intervention, onSubmit, onOpenChange });
 
   if (!intervention) return null;
@@ -48,6 +51,9 @@ const InterventionReportDialog: React.FC<InterventionReportDialogProps> = ({
           <ReportForm 
             form={form} 
             availableParts={availableParts}
+            addPart={addPart}
+            removePart={removePart}
+            updatePartQuantity={updatePartQuantity}
           />
           
           <DialogFooterActions 

@@ -10,11 +10,17 @@ import { NotesField } from './form-fields/NotesField';
 interface ReportFormProps {
   form: UseFormReturn<InterventionReportFormValues>;
   availableParts: Array<{ id: number; name: string; quantity: number; }>;
+  addPart?: (part: { id: number; name: string }) => void;
+  removePart?: (partId: number) => void;
+  updatePartQuantity?: (partId: number, quantity: number) => void;
 }
 
 export const ReportForm: React.FC<ReportFormProps> = ({
   form,
-  availableParts
+  availableParts,
+  addPart,
+  removePart,
+  updatePartQuantity
 }) => {
   return (
     <Form {...form}>
