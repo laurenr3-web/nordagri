@@ -60,8 +60,8 @@ describe('ReportForm Component', () => {
   it('renders all field components', () => {
     render(<ReportFormWrapper />);
     
-    expect(screen.getByTestId('duration-field')).toBeInTheDocument();
-    expect(screen.getByTestId('parts-used-field')).toBeInTheDocument();
-    expect(screen.getByTestId('notes-field')).toBeInTheDocument();
+    expect(screen.getByTestId('duration-field')).toBeTruthy();
+    expect(screen.getByTestId('parts-used-field')).toBeTruthy();
+    expect(screen.getByTestId('notes-field')).toBeTruthy();
   });
 });

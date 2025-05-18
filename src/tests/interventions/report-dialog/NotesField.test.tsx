@@ -6,6 +6,7 @@ import { Form } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { InterventionReportFormValues } from '@/components/interventions/dialogs/hooks/useInterventionReportForm';
 
 // Schéma minimal pour le test
 const testSchema = z.object({
@@ -14,7 +15,7 @@ const testSchema = z.object({
 
 // Wrapper pour tester le composant avec react-hook-form
 const NotesFieldWrapper = () => {
-  const form = useForm({
+  const form = useForm<Pick<InterventionReportFormValues, 'notes'>>({
     resolver: zodResolver(testSchema),
     defaultValues: {
       notes: ''
@@ -23,7 +24,7 @@ const NotesFieldWrapper = () => {
 
   return (
     <Form {...form}>
-      <NotesField control={form.control} />
+      <NotesField control={form.control as any} />
     </Form>
   );
 };
@@ -33,10 +34,10 @@ describe('NotesField Component', () => {
     render(<NotesFieldWrapper />);
     
     // Vérification de la présence du label
-    expect(screen.getByText('Compte-rendu')).toBeInTheDocument();
+    expect(screen.getByText('Compte-rendu')).toBeTruthy();
     
     // Vérification de la présence du textarea
     const textarea = screen.getByPlaceholderText('Décrivez les travaux effectués et observations');
-    expect(textarea).toBeInTheDocument();
+    expect(textarea).toBeTruthy();
   });
 });

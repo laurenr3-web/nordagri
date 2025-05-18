@@ -6,6 +6,7 @@ import { Form } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { InterventionReportFormValues } from '@/components/interventions/dialogs/hooks/useInterventionReportForm';
 
 // Définition du type Part pour le test
 interface Part {
@@ -25,7 +26,7 @@ const testSchema = z.object({
   ).optional()
 });
 
-type TestFormValues = z.infer<typeof testSchema>;
+type TestFormValues = Pick<InterventionReportFormValues, 'partsUsed'>;
 
 // Wrapper pour tester le composant avec react-hook-form
 const PartsUsedFieldWrapper = ({ availableParts }: { availableParts: Part[] }) => {
@@ -39,7 +40,7 @@ const PartsUsedFieldWrapper = ({ availableParts }: { availableParts: Part[] }) =
   return (
     <Form {...form}>
       <PartsUsedField 
-        control={form.control}
+        control={form.control as any}
         availableParts={availableParts}
         watch={form.watch}
         getValues={form.getValues}
@@ -53,8 +54,8 @@ describe('PartsUsedField Component', () => {
   it('renders empty state initially', () => {
     render(<PartsUsedFieldWrapper availableParts={[]} />);
     
-    expect(screen.getByText('Pièces utilisées')).toBeInTheDocument();
-    expect(screen.getByText('Aucune pièce utilisée')).toBeInTheDocument();
+    expect(screen.getByText('Pièces utilisées')).toBeTruthy();
+    expect(screen.getByText('Aucune pièce utilisée')).toBeTruthy();
   });
 
   it('renders available parts buttons', () => {
@@ -65,8 +66,8 @@ describe('PartsUsedField Component', () => {
     
     render(<PartsUsedFieldWrapper availableParts={mockParts} />);
     
-    expect(screen.getByText('Ajouter une pièce :')).toBeInTheDocument();
-    expect(screen.getByText('Filtre à huile')).toBeInTheDocument();
-    expect(screen.getByText('Filtre à air')).toBeInTheDocument();
+    expect(screen.getByText('Ajouter une pièce :')).toBeTruthy();
+    expect(screen.getByText('Filtre à huile')).toBeTruthy();
+    expect(screen.getByText('Filtre à air')).toBeTruthy();
   });
 });

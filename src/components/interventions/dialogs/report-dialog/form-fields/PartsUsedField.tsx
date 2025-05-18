@@ -39,7 +39,7 @@ export const PartsUsedField: React.FC<PartsUsedFieldProps> = ({
       setValue('partsUsed', updatedParts);
     } else {
       // Ajouter une nouvelle pièce avec quantité 1
-      setValue('partsUsed', [...currentParts, { id: part.id, name: part.name, quantity: 1 }] as Part[]);
+      setValue('partsUsed', [...currentParts, { id: part.id, name: part.name, quantity: 1 }]);
     }
   };
 
@@ -48,7 +48,7 @@ export const PartsUsedField: React.FC<PartsUsedFieldProps> = ({
     const currentParts = getValues('partsUsed') || [];
     setValue(
       'partsUsed',
-      currentParts.filter(p => p.id !== partId) as Part[]
+      currentParts.filter(p => p.id !== partId)
     );
   };
 
@@ -58,7 +58,7 @@ export const PartsUsedField: React.FC<PartsUsedFieldProps> = ({
     const updatedParts = currentParts.map(part => 
       part.id === partId ? { ...part, quantity } : part
     );
-    setValue('partsUsed', updatedParts as Part[]);
+    setValue('partsUsed', updatedParts);
   };
 
   return (

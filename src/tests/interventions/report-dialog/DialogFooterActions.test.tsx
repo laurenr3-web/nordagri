@@ -19,9 +19,9 @@ describe('DialogFooterActions Component', () => {
     );
     
     // Vérification de la présence des boutons
-    expect(screen.getByText('Annuler')).toBeInTheDocument();
-    expect(screen.getByText('Exporter PDF')).toBeInTheDocument();
-    expect(screen.getByText('Valider l\'intervention')).toBeInTheDocument();
+    expect(screen.getByText('Annuler')).toBeTruthy();
+    expect(screen.getByText('Exporter PDF')).toBeTruthy();
+    expect(screen.getByText('Valider l\'intervention')).toBeTruthy();
   });
   
   it('calls the appropriate functions when buttons are clicked', () => {

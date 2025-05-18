@@ -13,7 +13,7 @@ describe('PartsList Component', () => {
       />
     );
     
-    expect(screen.getByText('Aucune pièce utilisée')).toBeInTheDocument();
+    expect(screen.getByText('Aucune pièce utilisée')).toBeTruthy();
   });
   
   it('renders parts list correctly', () => {
@@ -30,8 +30,8 @@ describe('PartsList Component', () => {
       />
     );
     
-    expect(screen.getByText('Filtre à huile')).toBeInTheDocument();
-    expect(screen.getByText('Filtre à air')).toBeInTheDocument();
+    expect(screen.getByText('Filtre à huile')).toBeTruthy();
+    expect(screen.getByText('Filtre à air')).toBeTruthy();
     
     // Vérification des inputs de quantité
     const quantityInputs = screen.getAllByRole('spinbutton');

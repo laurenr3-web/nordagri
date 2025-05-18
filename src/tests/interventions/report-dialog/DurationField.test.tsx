@@ -6,6 +6,7 @@ import { Form } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { InterventionReportFormValues } from '@/components/interventions/dialogs/hooks/useInterventionReportForm';
 
 // Schéma minimal pour le test
 const testSchema = z.object({
@@ -14,7 +15,7 @@ const testSchema = z.object({
 
 // Wrapper pour tester le composant avec react-hook-form
 const DurationFieldWrapper = () => {
-  const form = useForm({
+  const form = useForm<Pick<InterventionReportFormValues, 'duration'>>({
     resolver: zodResolver(testSchema),
     defaultValues: {
       duration: 1
@@ -23,7 +24,7 @@ const DurationFieldWrapper = () => {
 
   return (
     <Form {...form}>
-      <DurationField control={form.control} />
+      <DurationField control={form.control as any} />
     </Form>
   );
 };
@@ -33,13 +34,13 @@ describe('DurationField Component', () => {
     render(<DurationFieldWrapper />);
     
     // Vérification de la présence du label
-    expect(screen.getByText('Durée réelle (heures)')).toBeInTheDocument();
+    expect(screen.getByText('Durée réelle (heures)')).toBeTruthy();
     
     // Vérification de la présence du champ input
     const input = screen.getByRole('spinbutton');
-    expect(input).toBeInTheDocument();
+    expect(input).toBeTruthy();
     
     // Vérification de la description
-    expect(screen.getByText('Durée effective de l\'intervention')).toBeInTheDocument();
+    expect(screen.getByText('Durée effective de l\'intervention')).toBeTruthy();
   });
 });
