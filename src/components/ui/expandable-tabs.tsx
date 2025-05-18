@@ -7,21 +7,26 @@ import { useOnClickOutside } from "usehooks-ts";
 import { cn } from "@/lib/utils";
 import { LucideIcon } from "lucide-react";
 
-interface Tab {
+interface TabBase {
+  title?: string;
+  icon?: LucideIcon;
+  path?: string;
+}
+
+interface RegularTab extends TabBase {
   title: string;
   icon: LucideIcon;
-  path?: string;
   type?: never;
 }
 
-interface Separator {
+interface Separator extends TabBase {
   type: "separator";
   title?: never;
   icon?: never;
   path?: never;
 }
 
-type TabItem = Tab | Separator;
+type TabItem = RegularTab | Separator;
 
 interface ExpandableTabsProps {
   tabs: TabItem[];
@@ -108,13 +113,13 @@ export function ExpandableTabs({
         }
 
         // This is safe now because we checked for separator type above
-        const normalTab = tab as Tab;
-        const Icon = normalTab.icon;
-        const isActive = selected === index || (normalTab.path && normalTab.path === currentPath);
+        const tabItem = tab as RegularTab;
+        const Icon = tabItem.icon;
+        const isActive = selected === index || (tabItem.path && tabItem.path === currentPath);
         
         return (
           <motion.button
-            key={normalTab.title}
+            key={tabItem.title}
             variants={buttonVariants}
             initial={false}
             animate="animate"
@@ -139,7 +144,7 @@ export function ExpandableTabs({
                   transition={transition}
                   className="overflow-hidden"
                 >
-                  {normalTab.title}
+                  {tabItem.title}
                 </motion.span>
               )}
             </AnimatePresence>
