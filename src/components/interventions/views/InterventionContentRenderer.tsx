@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Intervention } from '@/types/Intervention';
 import FieldTrackingView from './FieldTrackingView';
 import RequestsManagementView from './RequestsManagementView';
@@ -24,38 +24,26 @@ const InterventionContentRenderer: React.FC<InterventionContentRendererProps> = 
 }) => {
   const isMobile = useIsMobile();
 
-  // Filtrer les interventions en fonction de l'onglet actif
-  const getFilteredInterventions = (status: string) => {
-    if (status === 'all') return filteredInterventions;
-    return filteredInterventions.filter(item => item.status === status);
-  };
+  // Memoize filtered interventions based on the status to avoid recalculating on every render
+  const currentInterventions = useMemo(() => {
+    if (currentView === 'scheduled') {
+      return filteredInterventions.filter(item => item.status === 'scheduled');
+    } else if (currentView === 'in-progress') {
+      return filteredInterventions.filter(item => item.status === 'in-progress');
+    } else if (currentView === 'completed') {
+      return filteredInterventions.filter(item => item.status === 'completed');
+    }
+    return filteredInterventions;
+  }, [filteredInterventions, currentView]);
 
-  // Fonction pour afficher le contenu en fonction de l'onglet actif
+  // Use the memoized interventions for specialized views
   switch (currentView) {
     case 'scheduled':
-      return (
-        <InterventionsCardList
-          interventions={getFilteredInterventions('scheduled')}
-          emptyMessage={getEmptyStateMessage(currentView)}
-          isMobile={isMobile}
-          onViewDetails={onViewDetails}
-          onStartWork={onStartWork}
-        />
-      );
     case 'in-progress':
-      return (
-        <InterventionsCardList
-          interventions={getFilteredInterventions('in-progress')}
-          emptyMessage={getEmptyStateMessage(currentView)}
-          isMobile={isMobile}
-          onViewDetails={onViewDetails}
-          onStartWork={onStartWork}
-        />
-      );
     case 'completed':
       return (
         <InterventionsCardList
-          interventions={getFilteredInterventions('completed')}
+          interventions={currentInterventions}
           emptyMessage={getEmptyStateMessage(currentView)}
           isMobile={isMobile}
           onViewDetails={onViewDetails}

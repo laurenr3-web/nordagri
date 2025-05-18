@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Intervention } from '@/types/Intervention';
 import InterventionTabs from './navigation/InterventionTabs';
 import InterventionContentRenderer from './views/InterventionContentRenderer';
@@ -24,10 +24,14 @@ const InterventionsList: React.FC<InterventionsListProps> = ({
   onViewDetails,
   onStartWork
 }) => {
-  // Obtenez les nombres pour chaque catégorie
-  const scheduledCount = filteredInterventions.filter(item => item.status === 'scheduled').length;
-  const inProgressCount = filteredInterventions.filter(item => item.status === 'in-progress').length;
-  const completedCount = filteredInterventions.filter(item => item.status === 'completed').length;
+  // Use useMemo to compute counts only when filteredInterventions changes
+  const { scheduledCount, inProgressCount, completedCount } = useMemo(() => {
+    return {
+      scheduledCount: filteredInterventions.filter(item => item.status === 'scheduled').length,
+      inProgressCount: filteredInterventions.filter(item => item.status === 'in-progress').length,
+      completedCount: filteredInterventions.filter(item => item.status === 'completed').length
+    };
+  }, [filteredInterventions]);
 
   const handleTabClick = (path: string | undefined) => {
     if (path) {
