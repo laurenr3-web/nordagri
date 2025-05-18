@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Settings, Wrench, Tractor, Folder, PieChart, Clock, FileText } from 'lucide-react';
 import { TimeTracker } from '@/components/time-tracking/TimeTracker';
@@ -10,6 +10,7 @@ const MobileMenu = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const menuRef = useRef<HTMLDivElement>(null);
 
   if (location.pathname === '/auth') {
     return null;
@@ -65,16 +66,17 @@ const MobileMenu = () => {
         <TimeTracker />
       </div>
       <nav
-        className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t lg:hidden p-2"
+        className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t lg:hidden p-1.5"
         role="navigation"
         aria-label="Menu principal mobile"
+        ref={menuRef}
       >
         <ExpandableTabs 
           tabs={navItems}
           activeColor="text-primary"
           currentPath={location.pathname}
           onTabClick={handleTabClick}
-          className="w-full justify-center overflow-x-auto flex-nowrap scrollbar-hide"
+          className="w-full justify-between overflow-x-auto flex-nowrap scrollbar-hide"
         />
       </nav>
     </>

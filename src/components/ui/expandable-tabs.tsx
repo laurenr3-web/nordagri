@@ -44,9 +44,9 @@ const buttonVariants = {
     paddingRight: ".5rem",
   },
   animate: (isSelected: boolean) => ({
-    gap: isSelected ? ".5rem" : 0,
-    paddingLeft: isSelected ? "1rem" : ".5rem",
-    paddingRight: isSelected ? "1rem" : ".5rem",
+    gap: isSelected ? ".25rem" : 0,
+    paddingLeft: isSelected ? ".75rem" : ".5rem",
+    paddingRight: isSelected ? ".75rem" : ".5rem",
   }),
 };
 
@@ -56,7 +56,7 @@ const spanVariants = {
   exit: { width: 0, opacity: 0 },
 };
 
-const transition = { delay: 0.1, type: "spring", bounce: 0, duration: 0.6 };
+const transition = { delay: 0.05, type: "spring", bounce: 0, duration: 0.4 };
 
 export function ExpandableTabs({
   tabs,
@@ -70,6 +70,8 @@ export function ExpandableTabs({
     currentPath ? tabs.findIndex(tab => 'path' in tab && tab.path === currentPath) : null
   );
   const outsideClickRef = React.useRef(null);
+  const tabsContainerRef = React.useRef<HTMLDivElement>(null);
+  const activeTabRef = React.useRef<HTMLButtonElement>(null);
 
   React.useEffect(() => {
     if (currentPath) {
@@ -79,6 +81,23 @@ export function ExpandableTabs({
       }
     }
   }, [currentPath, tabs]);
+
+  // Auto-scroll to active tab
+  React.useEffect(() => {
+    if (activeTabRef.current && tabsContainerRef.current) {
+      const container = tabsContainerRef.current;
+      const activeTab = activeTabRef.current;
+      
+      // Calculate position to scroll to
+      const scrollLeft = activeTab.offsetLeft - (container.clientWidth / 2) + (activeTab.clientWidth / 2);
+      
+      // Smooth scroll to the active tab
+      container.scrollTo({
+        left: scrollLeft,
+        behavior: "smooth",
+      });
+    }
+  }, [selected, currentPath]);
 
   useOnClickOutside(outsideClickRef, () => {
     setSelected(null);
@@ -108,56 +127,62 @@ export function ExpandableTabs({
     <div
       ref={outsideClickRef}
       className={cn(
-        "flex flex-wrap items-center gap-2 rounded-2xl border bg-background p-1 shadow-sm",
+        "flex items-center gap-1 rounded-2xl border bg-background p-1 shadow-sm",
         className
       )}
     >
-      {tabs.map((tab, index) => {
-        if ('type' in tab && tab.type === "separator") {
-          return <Separator key={`separator-${index}`} />;
-        }
+      <div 
+        ref={tabsContainerRef}
+        className="flex items-center overflow-x-auto scrollbar-hide"
+      >
+        {tabs.map((tab, index) => {
+          if ('type' in tab && tab.type === "separator") {
+            return <Separator key={`separator-${index}`} />;
+          }
 
-        if (isRegularTab(tab)) {
-          const Icon = tab.icon;
-          const isActive = selected === index || (tab.path && tab.path === currentPath);
-          
-          return (
-            <motion.button
-              key={tab.title}
-              variants={buttonVariants}
-              initial={false}
-              animate="animate"
-              custom={isActive}
-              onClick={() => handleSelect(index)}
-              transition={transition}
-              className={cn(
-                "relative flex items-center rounded-xl px-4 py-2 text-sm font-medium transition-colors duration-300",
-                isActive
-                  ? cn("bg-muted", activeColor)
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              )}
-            >
-              <Icon size={20} />
-              <AnimatePresence initial={false}>
-                {isActive && (
-                  <motion.span
-                    variants={spanVariants}
-                    initial="initial"
-                    animate="animate"
-                    exit="exit"
-                    transition={transition}
-                    className="overflow-hidden"
-                  >
-                    {tab.title}
-                  </motion.span>
+          if (isRegularTab(tab)) {
+            const Icon = tab.icon;
+            const isActive = selected === index || (tab.path && tab.path === currentPath);
+            
+            return (
+              <motion.button
+                key={tab.title}
+                ref={isActive ? activeTabRef : null}
+                variants={buttonVariants}
+                initial={false}
+                animate="animate"
+                custom={isActive}
+                onClick={() => handleSelect(index)}
+                transition={transition}
+                className={cn(
+                  "relative flex items-center rounded-xl px-3 py-1.5 text-sm font-medium transition-colors duration-300",
+                  isActive
+                    ? cn("bg-muted", activeColor)
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
-              </AnimatePresence>
-            </motion.button>
-          );
-        }
+              >
+                <Icon size={18} className="flex-shrink-0" />
+                <AnimatePresence initial={false}>
+                  {isActive && (
+                    <motion.span
+                      variants={spanVariants}
+                      initial="initial"
+                      animate="animate"
+                      exit="exit"
+                      transition={transition}
+                      className="overflow-hidden ml-1 text-xs sm:text-sm whitespace-nowrap"
+                    >
+                      {tab.title}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </motion.button>
+            );
+          }
 
-        return null; // This should never happen but it makes TypeScript happy
-      })}
+          return null; // This should never happen but it makes TypeScript happy
+        })}
+      </div>
     </div>
   );
 }
