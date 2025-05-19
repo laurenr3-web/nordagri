@@ -5,6 +5,7 @@ import { IndexedDBService } from '@/services/offline/indexedDBService';
 import { toast } from 'sonner';
 import { useNetworkState } from '@/hooks/useNetworkState';
 import { useState, useEffect } from 'react';
+import { Equipment } from '@/services/supabase/equipment/types';
 
 export function useEquipmentData() {
   const isOnline = useNetworkState();
