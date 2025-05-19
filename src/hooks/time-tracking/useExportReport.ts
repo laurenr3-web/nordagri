@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { format, startOfMonth, endOfMonth, getISOWeek, startOfWeek, subMonths, addMonths } from 'date-fns';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -21,52 +21,27 @@ interface ExportData {
 
 export function useExportReport(month: Date) {
   const [isExporting, setIsExporting] = useState(false);
-  const { exportReportToPDF, exportEntriesToExcel, exportEntriesToPDF } = useExportTimeTracking();
+  const { exportReportToPDF, exportEntriesToExcel } = useExportTimeTracking();
 
   const fetchExportData = async (): Promise<ExportData | null> => {
     try {
-      console.log("Starting to fetch export data for month:", format(month, 'yyyy-MM'));
-      
       const startDate = startOfMonth(month);
       const endDate = endOfMonth(month);
       
-      console.log("Date range:", {
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString()
-      });
-      
-      // Get user session
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) {
-        console.error("Session error:", sessionError);
-        throw new Error(`Error fetching user session: ${sessionError.message}`);
-      }
-      
-      if (!sessionData.session?.user) {
-        console.error("No user session found");
-        toast.error("Veuillez vous connecter pour exporter les données");
-        return null;
-      }
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session?.user) return null;
       
       const userId = sessionData.session.user.id;
-      console.log("User ID:", userId);
       
       // Get user info
-      const { data: userData, error: userError } = await supabase
+      const { data: userData } = await supabase
         .from('profiles')
         .select('first_name, last_name')
         .eq('id', userId)
         .single();
-        
-      if (userError) {
-        console.error("Error fetching user profile:", userError);
-      }
-      
-      console.log("User data:", userData);
       
       // Get all time entries for the month
-      const { data: timeEntries, error: timeError } = await supabase
+      const { data: timeEntries } = await supabase
         .from('time_sessions')
         .select(`
           id,
@@ -75,7 +50,7 @@ export function useExportReport(month: Date) {
           duration,
           custom_task_type,
           equipment_id,
-          equipment:equipment_id (id, name),
+          equipment:equipment_id (name),
           notes,
           user_id,
           status
@@ -85,18 +60,7 @@ export function useExportReport(month: Date) {
         .lte('start_time', endDate.toISOString())
         .order('start_time');
         
-      if (timeError) {
-        console.error("Error fetching time entries:", timeError);
-        throw new Error(`Error fetching time entries: ${timeError.message}`);
-      }
-      
-      console.log(`Found ${timeEntries?.length || 0} time entries for the month`);
-      
-      if (!timeEntries || timeEntries.length === 0) {
-        console.log("No time entries found for the selected month");
-        toast.error("Aucune session de temps trouvée pour le mois sélectionné");
-        return null;
-      }
+      if (!timeEntries) return null;
       
       // Calculate summary data
       let totalHours = 0;
@@ -120,20 +84,9 @@ export function useExportReport(month: Date) {
         taskTypeMap.set(taskType, (taskTypeMap.get(taskType) || 0) + duration);
         
         // Equipment usage - store ID along with name and hours
-        if (entry.equipment_id) {
-          // Handle equipment data safely
-          let equipmentName = "Équipement non spécifié";
-          let equipmentId = entry.equipment_id;
-          
-          // Safely extract equipment name
-          if (entry.equipment) {
-            if (typeof entry.equipment === 'object') {
-              equipmentName = (entry.equipment as any).name || "Équipement non spécifié";
-            } else {
-              console.warn("Unexpected equipment data format:", entry.equipment);
-            }
-          }
-          
+        if (entry.equipment_id && entry.equipment) {
+          const equipmentName = entry.equipment.name;
+          const equipmentId = entry.equipment_id;
           const currentEntry = equipmentMap.get(equipmentId) || { name: equipmentName, hours: 0 };
           currentEntry.hours += duration;
           equipmentMap.set(equipmentId, currentEntry);
@@ -154,19 +107,10 @@ export function useExportReport(month: Date) {
           start_time: entry.start_time,
           end_time: entry.end_time,
           status: entry.status,
-          equipment_name: entry.equipment && typeof entry.equipment === 'object' 
-            ? (entry.equipment as any).name || "Équipement non spécifié" 
-            : "Équipement non spécifié",
+          equipment_name: entry.equipment?.name || "Équipement non spécifié",
           notes: entry.notes,
           task_type: entry.custom_task_type || "Non spécifié"
         } as TimeEntry;
-      });
-      
-      console.log("Summary calculated:", {
-        totalHours,
-        taskTypeCount: taskTypeMap.size,
-        equipmentCount: equipmentMap.size,
-        dailyEntries: dailyHoursMap.size
       });
       
       // Prepare data for export
@@ -183,17 +127,9 @@ export function useExportReport(month: Date) {
         tasks
       };
       
-      console.log("Export data prepared:", {
-        taskDistributionLength: exportData.summary.taskTypeDistribution.length,
-        topEquipmentLength: exportData.summary.topEquipment.length,
-        dailyHoursLength: exportData.dailyHours.length,
-        tasksLength: exportData.tasks.length
-      });
-      
       return exportData;
     } catch (error) {
       console.error("Error preparing export data:", error);
-      toast.error("Erreur lors de la préparation des données d'export");
       return null;
     }
   };
@@ -208,11 +144,6 @@ export function useExportReport(month: Date) {
         toast.error("Aucune donnée à exporter");
         return;
       }
-      
-      console.log("Exporting data to PDF:", {
-        taskTypeDistribution: data.summary.taskTypeDistribution.length,
-        topEquipment: data.summary.topEquipment.length
-      });
       
       // Get daily/weekly/monthly summary
       const today = new Date();
@@ -233,7 +164,7 @@ export function useExportReport(month: Date) {
       // Format the month for display
       const formattedMonth = format(month, 'MMMM yyyy', { locale: fr });
       
-      await exportReportToPDF(
+      exportReportToPDF(
         formattedMonth,
         {
           daily: dailyHours,
@@ -264,10 +195,6 @@ export function useExportReport(month: Date) {
         return;
       }
       
-      console.log("Exporting data to Excel:", {
-        entries: data.tasks.length
-      });
-      
       exportEntriesToExcel(data.tasks);
       
       toast.success("Rapport Excel exporté avec succès");
@@ -278,40 +205,10 @@ export function useExportReport(month: Date) {
       setIsExporting(false);
     }
   };
-  
-  const exportTasksToPdf = async () => {
-    try {
-      setIsExporting(true);
-      toast.info("Génération du PDF de sessions...");
-      
-      const data = await fetchExportData();
-      if (!data) {
-        toast.error("Aucune donnée à exporter");
-        return;
-      }
-      
-      console.log("Exporting tasks to PDF:", {
-        entries: data.tasks.length
-      });
-      
-      // Format the month for display
-      const formattedMonth = format(month, 'MMMM yyyy', { locale: fr });
-      
-      await exportEntriesToPDF(data.tasks, `Sessions de temps - ${formattedMonth}`);
-      
-      toast.success("Sessions PDF exportées avec succès");
-    } catch (error) {
-      console.error("Error exporting tasks to PDF:", error);
-      toast.error("Erreur lors de l'export PDF des sessions");
-    } finally {
-      setIsExporting(false);
-    }
-  };
 
   return {
     exportToPdf,
     exportToExcel,
-    exportTasksToPdf,
     isExporting
   };
 }

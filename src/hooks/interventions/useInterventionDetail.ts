@@ -1,31 +1,57 @@
 
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { interventionService } from '@/services/supabase/interventionService';
 import { Intervention } from '@/types/Intervention';
+import { toast } from 'sonner';
 
-// Simulated fetch function 
-const fetchIntervention = async (id: number): Promise<Intervention> => {
-  // This would be an API call in a real app
-  return {
-    id,
-    title: `Intervention #${id}`,
-    status: "completed" as const,
-    priority: "medium" as const,
-    equipment: "Tracteur John Deere",
-    equipmentId: 123,
-    description: "Maintenance régulière",
-    startDate: new Date(),
-    date: new Date(),
-    location: "Champ Nord"
-  };
-};
-
-export default function useInterventionDetail(id: number | undefined) {
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['intervention', id],
-    queryFn: () => id !== undefined ? fetchIntervention(Number(id)) : Promise.reject('No ID provided'),
-    enabled: id !== undefined,
-    staleTime: 5 * 60 * 1000 // 5 minutes
+export function useInterventionDetail(interventionId: string | number | undefined) {
+  const queryClient = useQueryClient();
+  const [isUpdating, setIsUpdating] = useState(false);
+  
+  // Fetch intervention details
+  const {
+    data: intervention,
+    isLoading,
+    error
+  } = useQuery({
+    queryKey: ['interventions', interventionId],
+    queryFn: () => interventionId ? interventionService.getInterventionById(interventionId) : null,
+    enabled: !!interventionId
   });
-
-  return { intervention: data, isLoading, error, refetch };
+  
+  // Update intervention mutation
+  const updateMutation = useMutation({
+    mutationFn: (updatedIntervention: Intervention) => {
+      setIsUpdating(true);
+      return interventionService.updateIntervention(updatedIntervention);
+    },
+    onSuccess: (updatedIntervention) => {
+      // Update cache
+      queryClient.setQueryData(['interventions', updatedIntervention.id], updatedIntervention);
+      queryClient.invalidateQueries({ queryKey: ['interventions'] });
+      
+      toast.success('Intervention mise à jour avec succès');
+      setIsUpdating(false);
+    },
+    onError: (error: any) => {
+      toast.error('Erreur lors de la mise à jour de l\'intervention', {
+        description: error.message
+      });
+      setIsUpdating(false);
+    }
+  });
+  
+  // Handle intervention update
+  const handleInterventionUpdate = (updatedIntervention: Intervention) => {
+    updateMutation.mutate(updatedIntervention);
+  };
+  
+  return {
+    intervention,
+    loading: isLoading,
+    error,
+    isUpdating,
+    handleInterventionUpdate
+  };
 }

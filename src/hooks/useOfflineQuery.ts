@@ -1,8 +1,11 @@
-
 import { useQuery, UseQueryOptions, UseQueryResult, useMutation, UseMutationOptions, UseMutationResult } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNetworkState } from './useNetworkState';
 import { syncService, SyncStatus } from '@/services/syncService';
+import { supabase } from '@/integrations/supabase/client';
+
+// S'assurer que le service de sync ait le client Supabase
+syncService.setSupabaseClient(supabase);
 
 export interface UseOfflineQueryResult<TData> extends Omit<UseQueryResult<TData, Error>, 'data' | 'error'> {
   data: TData | undefined;
@@ -24,7 +27,7 @@ export function useOfflineQuery<
   cacheParams?: {
     tableName: string;
     cacheKey?: string;
-    cacheTime?: number; // Duration of cache validity in milliseconds
+    cacheTime?: number; // Durée de validité du cache en millisecondes
   };
 }): UseOfflineQueryResult<TData> {
   const { queryKey, queryFn, enabled, staleTime, cacheParams } = options;
@@ -33,33 +36,33 @@ export function useOfflineQuery<
   const [pendingSync, setPendingSync] = useState<number>(0);
   const cacheKey = cacheParams?.cacheKey || `query_cache_${queryKey.join('_')}`;
   
-  // Reference to last cached data
+  // Référence à la dernière donnée mise en cache
   const lastCachedData = useRef<TData | null>(null);
   
-  // Get sync status
+  // Récupérer le statut de synchronisation
   useEffect(() => {
-    const status = syncService.getStatus();
-    setPendingSync(status.pendingSyncCount);
+    const syncStatus = syncService.getStatus();
+    setPendingSync(syncStatus.pendingSyncCount);
     
-    const handleStatusChange = (newStatus: SyncStatus) => {
-      setPendingSync(newStatus.pendingSyncCount);
+    const handleStatusChange = (status: SyncStatus) => {
+      setPendingSync(status.pendingSyncCount);
     };
     
-    syncService.addEventListener(handleStatusChange);
+    syncService.addEventListener('statusChange', handleStatusChange);
     
     return () => {
-      syncService.removeEventListener(handleStatusChange);
+      syncService.removeEventListener('statusChange', handleStatusChange);
     };
   }, []);
   
-  // Query function adapted for offline support
+  // Fonction de requête adaptée pour le support hors ligne
   const offlineQueryFn = async (): Promise<TQueryFnData> => {
     if (isOnline) {
       try {
-        // Online: execute query normally
+        // En ligne: exécuter la requête normalement
         const data = await queryFn();
         
-        // If caching is configured, store results
+        // Si la mise en cache est configurée, stocker les résultats
         if (cacheParams?.tableName) {
           await syncService.cacheQueryResult(cacheKey, data, cacheParams.tableName);
         }
@@ -67,7 +70,7 @@ export function useOfflineQuery<
         setIsCached(false);
         return data;
       } catch (error) {
-        // On error, try to retrieve from cache
+        // En cas d'erreur, essayer de récupérer du cache
         if (cacheParams?.tableName) {
           const cachedData = await syncService.getCachedQueryResult<TQueryFnData>(cacheKey);
           if (cachedData) {
@@ -78,9 +81,9 @@ export function useOfflineQuery<
         throw error;
       }
     } else {
-      // Offline: retrieve from cache
+      // Hors ligne: récupérer du cache
       if (!cacheParams?.tableName) {
-        throw new Error('Offline and no cache configuration');
+        throw new Error('Hors ligne et pas de configuration de cache');
       }
       
       const cachedData = await syncService.getCachedQueryResult<TQueryFnData>(cacheKey);
@@ -90,11 +93,11 @@ export function useOfflineQuery<
         return cachedData;
       }
       
-      throw new Error('No cached data available');
+      throw new Error('Aucune donnée en cache disponible');
     }
   };
 
-  // Use useQuery with our adapted function
+  // Utiliser useQuery avec notre fonction adaptée
   const queryResult = useQuery<TQueryFnData, Error, TData, TQueryKey>({
     queryKey,
     queryFn: offlineQueryFn,
@@ -102,14 +105,14 @@ export function useOfflineQuery<
     staleTime
   });
 
-  // If data has been loaded and cache is configured, update reference
+  // Si des données ont été chargées et que nous avons une configuration de cache, mettre à jour la référence
   useEffect(() => {
     if (queryResult.data !== undefined) {
       lastCachedData.current = queryResult.data;
     }
   }, [queryResult.data]);
 
-  // Prepare result with additional properties
+  // Prépare le résultat avec les propriétés supplémentaires
   const result: UseOfflineQueryResult<TData> = {
     ...queryResult,
     data: queryResult.data,
@@ -138,54 +141,54 @@ export function useOfflineMutation<
 ): UseMutationResult<TData, TError, TVariables, TContext> & { isOffline: boolean } {
   const isOnline = useNetworkState();
   
-  // Mutation function adapted for offline support
+  // Fonction de mutation adaptée pour le support hors ligne
   const offlineMutationFn = async (variables: TVariables): Promise<TData> => {
     try {
-      // If online, try normal operation first
+      // Si en ligne, essayer d'abord l'opération normale
       if (isOnline) {
         return await mutationFn(variables);
       }
       
-      // If offline and sync configuration is provided
+      // Si hors ligne et que la synchronisation est configurée
       if (syncParams) {
         const { tableName, operationType, getEntityId } = syncParams;
         
         switch (operationType) {
           case 'create':
             await syncService.create(tableName, variables);
-            return {} as TData;
+            return {} as TData; // Retourner un objet vide comme résultat temporaire
           
           case 'update': {
             if (!getEntityId) {
-              throw new Error('getEntityId is required for update operations');
+              throw new Error('getEntityId est requis pour les opérations de mise à jour');
             }
             const entityId = getEntityId(variables);
             if (entityId === undefined) {
-              throw new Error('Entity ID not available for update');
+              throw new Error('ID d\'entité non disponible pour la mise à jour');
             }
             await syncService.update(tableName, entityId, variables);
-            return variables as unknown as TData;
+            return variables as unknown as TData; // Retourner les variables comme résultat
           }
           
           case 'delete': {
             if (!getEntityId) {
-              throw new Error('getEntityId is required for delete operations');
+              throw new Error('getEntityId est requis pour les opérations de suppression');
             }
             const entityId = getEntityId(variables);
             if (entityId === undefined) {
-              throw new Error('Entity ID not available for delete');
+              throw new Error('ID d\'entité non disponible pour la suppression');
             }
             await syncService.delete(tableName, entityId);
             return {} as TData;
           }
           
           default:
-            throw new Error(`Unsupported operation type: ${operationType}`);
+            throw new Error(`Type d'opération non pris en charge: ${operationType}`);
         }
       }
       
-      // If offline and no sync configuration
-      throw new Error('Offline and no sync configuration');
+      // Si hors ligne et pas de configuration de synchronisation
+      throw new Error('Hors ligne et pas de configuration de synchronisation');
     } catch (error) {
       throw error;
     }
@@ -202,7 +205,7 @@ export function useOfflineMutation<
   };
 }
 
-// Hook for sync status information
+// Hook utilitaire pour obtenir des informations sur le statut de synchronisation
 export function useSyncStatus() {
   const [status, setStatus] = useState<SyncStatus>(syncService.getStatus());
   
@@ -211,10 +214,10 @@ export function useSyncStatus() {
       setStatus(newStatus);
     };
     
-    syncService.addEventListener(handleStatusChange);
+    syncService.addEventListener('statusChange', handleStatusChange);
     
     return () => {
-      syncService.removeEventListener(handleStatusChange);
+      syncService.removeEventListener('statusChange', handleStatusChange);
     };
   }, []);
   

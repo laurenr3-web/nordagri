@@ -1,6 +1,8 @@
 
 import React from 'react';
-import { Calendar, Clock, Wrench, MapPin, FileText, Eye } from 'lucide-react';
+import { CalendarCheck, Clock, CheckCircle2, Wrench, FileText, Eye, History } from 'lucide-react';
+import { ExpandableTabs, TabItem } from '@/components/ui/expandable-tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface InterventionTabsProps {
   scheduledCount: number;
@@ -17,73 +19,55 @@ const InterventionTabs: React.FC<InterventionTabsProps> = ({
   currentView,
   onTabClick
 }) => {
-  const tabs = [
+  // Définir les onglets avec les icônes et compteurs
+  const navigationTabs: TabItem[] = [
     {
-      id: 'scheduled',
-      label: 'Planifiées',
-      icon: <Calendar className="w-4 h-4 mr-1" />,
-      count: scheduledCount
+      title: `Planifiées (${scheduledCount})`,
+      icon: CalendarCheck,
+      path: 'scheduled'
     },
     {
-      id: 'in-progress',
-      label: 'En cours',
-      icon: <Clock className="w-4 h-4 mr-1" />,
-      count: inProgressCount
+      title: `En cours (${inProgressCount})`,
+      icon: Clock,
+      path: 'in-progress'
     },
     {
-      id: 'completed',
-      label: 'Terminées',
-      icon: <Wrench className="w-4 h-4 mr-1" />,
-      count: completedCount
+      title: `Terminées (${completedCount})`,
+      icon: CheckCircle2,
+      path: 'completed'
     },
     {
-      id: 'field-tracking',
-      label: 'Suivi terrain',
-      icon: <MapPin className="w-4 h-4 mr-1" />,
-      count: null
+      title: 'Suivi Terrain',
+      icon: Wrench,
+      path: 'field-tracking'
     },
     {
-      id: 'requests',
-      label: 'Demandes',
-      icon: <FileText className="w-4 h-4 mr-1" />,
-      count: null
+      title: 'Demandes',
+      icon: FileText,
+      path: 'requests'
     },
     {
-      id: 'observations',
-      label: 'Observations',
-      icon: <Eye className="w-4 h-4 mr-1" />,
-      count: null
+      title: 'Observations',
+      icon: Eye,
+      path: 'observations'
+    },
+    {
+      title: 'Historique',
+      icon: History,
+      path: 'history'
     }
   ];
 
   return (
-    <div className="overflow-x-auto mb-6">
-      <div className="flex space-x-1 min-w-max pb-2">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => onTabClick(tab.id)}
-            className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors 
-              ${currentView === tab.id 
-                ? 'bg-primary text-primary-foreground' 
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-              }`}
-          >
-            {tab.icon}
-            <span>{tab.label}</span>
-            {tab.count !== null && (
-              <span className={`ml-2 rounded-full px-2 py-0.5 text-xs 
-                ${currentView === tab.id 
-                  ? 'bg-primary-foreground text-primary' 
-                  : 'bg-muted-foreground/20'
-                }`}>
-                {tab.count}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
-    </div>
+    <ScrollArea className="w-full overflow-x-auto pb-2">
+      <ExpandableTabs
+        tabs={navigationTabs}
+        activeColor="text-primary"
+        currentPath={currentView}
+        onTabClick={onTabClick}
+        className="w-full mb-6 justify-start overflow-x-auto flex-nowrap scrollbar-hide"
+      />
+    </ScrollArea>
   );
 };
 

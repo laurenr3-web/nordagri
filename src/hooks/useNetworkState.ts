@@ -2,24 +2,22 @@
 import { useState, useEffect } from 'react';
 
 /**
- * Custom hook to monitor network connectivity status
- * @returns {boolean} - True if the device is online, false otherwise
+ * Hook to determine if the user is currently online or offline
+ * @returns boolean - true if user is online, false otherwise
  */
 export function useNetworkState(): boolean {
-  const [isOnline, setIsOnline] = useState(
-    typeof navigator !== 'undefined' ? navigator.onLine : true
-  );
+  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
 
   useEffect(() => {
-    // Handler to update state when network status changes
+    // Event handlers to update state
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
-    // Register event listeners
+    // Add event listeners
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Clean up event listeners
+    // Clean up listeners on component destruction
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
@@ -28,3 +26,5 @@ export function useNetworkState(): boolean {
 
   return isOnline;
 }
+
+export default useNetworkState;

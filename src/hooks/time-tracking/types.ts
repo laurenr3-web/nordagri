@@ -23,7 +23,6 @@ export interface TimeEntry {
   updated_at: string;
   current_duration?: string;
   journee_id?: string;
-  duration?: number; // Add this property for completed sessions
 }
 
 export interface ActiveTimeEntry extends TimeEntry {

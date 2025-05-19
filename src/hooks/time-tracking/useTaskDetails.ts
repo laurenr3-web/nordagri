@@ -79,8 +79,7 @@ export function useTaskDetails(date: Date) {
             end_time: task.end_time,
             duration: taskDuration || 0,
             task_type: task.custom_task_type || 'Non spécifié',
-            // Fixed: Access equipment name properly
-            equipment_name: typeof task.equipment === 'object' ? (task.equipment as any).name : undefined,
+            equipment_name: task.equipment?.name,
             notes: task.notes
           };
         });

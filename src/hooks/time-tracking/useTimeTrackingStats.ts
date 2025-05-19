@@ -61,76 +61,20 @@ export function useTimeTrackingStats(userId: string | null) {
   };
 
   const calculateTotalHours = (entries: TimeEntry[]): number => {
-    let totalHours = 0;
-    
-    entries.forEach(entry => {
-      // Si nous avons une durée stockée et que la session est terminée, utiliser cette valeur
-      if (entry.status === 'completed' && typeof entry.duration === 'number') {
-        totalHours += entry.duration;
-        return;
+    return entries.reduce((total, entry) => {
+      // Check if duration exists in the entry as any property
+      const durationValue = (entry as any).duration;
+      if (durationValue !== undefined && durationValue !== null) {
+        return total + durationValue;
       }
       
-      // Pour les entrées actives ou sans durée, calculer à partir de start_time
+      // If no duration, calculate from start_time and end_time
       const start = new Date(entry.start_time);
-      let end;
-      
-      if (entry.end_time) {
-        end = new Date(entry.end_time);
-      } else if (entry.status === 'active') {
-        // Pour les sessions en cours, calculer jusqu'à maintenant
-        end = new Date();
-      } else {
-        // Pour les sessions en pause, ne pas calculer de temps supplémentaire
-        return;
-      }
-      
+      const end = entry.end_time ? new Date(entry.end_time) : new Date();
       const diffMs = end.getTime() - start.getTime();
       const hours = diffMs / (1000 * 60 * 60);
-      
-      // Ajouter une vérification pour éviter les valeurs aberrantes
-      if (hours >= 0 && hours < 24) {
-        totalHours += hours;
-      } else if (hours >= 24) {
-        console.warn(`Unusually long time entry detected: ${hours.toFixed(1)} hours`);
-      }
-    });
-    
-    // Limite de temps maximum par période pour éviter les valeurs aberrantes
-    const MAX_DAILY_HOURS = 24;
-    const MAX_WEEKLY_HOURS = 168; // 7 jours * 24 heures
-    const MAX_MONTHLY_HOURS = 744; // ~31 jours * 24 heures
-    
-    if (entries.length > 0) {
-      // Déterminer le type de période en fonction du premier élément
-      const firstEntry = entries[0];
-      const firstDate = new Date(firstEntry.start_time);
-      
-      // Vérifier si toutes les entrées sont du même jour
-      const allSameDay = entries.every(entry => {
-        return format(new Date(entry.start_time), 'yyyy-MM-dd') === format(firstDate, 'yyyy-MM-dd');
-      });
-      
-      if (allSameDay) {
-        return Math.min(totalHours, MAX_DAILY_HOURS);
-      }
-      
-      // Vérifier si toutes les entrées sont dans la même semaine
-      const weekStart = startOfWeek(firstDate, { weekStartsOn: 1 });
-      const weekEnd = endOfWeek(firstDate, { weekStartsOn: 1 });
-      const allSameWeek = entries.every(entry => {
-        const date = new Date(entry.start_time);
-        return date >= weekStart && date <= weekEnd;
-      });
-      
-      if (allSameWeek) {
-        return Math.min(totalHours, MAX_WEEKLY_HOURS);
-      }
-      
-      // Par défaut, limiter au maximum mensuel
-      return Math.min(totalHours, MAX_MONTHLY_HOURS);
-    }
-    
-    return totalHours;
+      return total + hours;
+    }, 0);
   };
 
   useEffect(() => {

@@ -7,7 +7,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { cn } from "@/components/interventions/utils/interventionUtils";
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { Label } from '@/components/ui/label';

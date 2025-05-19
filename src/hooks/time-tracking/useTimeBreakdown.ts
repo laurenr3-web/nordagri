@@ -41,9 +41,7 @@ export function useTimeBreakdown() {
 
         // Process the data for the chart
         const groupedData = timeData.reduce((acc, session) => {
-          // Fixed: Access task name properly
-          const taskType = session.task_types && typeof session.task_types === 'object' ? 
-            (session.task_types as any).name || 'other' : 'other';
+          const taskType = session.task_types?.name || 'other';
           const duration = session.duration || 0;
           
           if (!acc[taskType]) {

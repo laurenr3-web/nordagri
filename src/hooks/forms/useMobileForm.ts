@@ -1,7 +1,7 @@
 
 import { useForm, FieldValues } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useNetworkState } from '@/hooks/useNetworkState';
+import useNetworkState from '@/hooks/useNetworkState';
 import { useDraftManager } from './useDraftManager';
 import { useAutoSave } from './useAutoSave';
 import { useFormSubmission } from './useFormSubmission';

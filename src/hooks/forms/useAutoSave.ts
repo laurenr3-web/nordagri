@@ -1,71 +1,61 @@
+
 import { useEffect, useRef } from 'react';
 import { FieldValues } from 'react-hook-form';
-import { useNetworkState } from '@/hooks/useNetworkState';
 
 export function useAutoSave<T extends FieldValues>(
   formValues: T,
   hasPendingChanges: boolean,
   setHasPendingChanges: (value: boolean) => void,
   saveDraft: (data: T) => Promise<void>,
-  autoSave: boolean,
-  autoSaveInterval: number,
-  lastSaved: Date | null,
+  autoSave: boolean = true,
+  autoSaveInterval: number = 30000,
+  lastSaved: Date | null = null
 ) {
-  const isOnline = useNetworkState();
-  const formStateRef = useRef<T | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
-  // Keep track of form values for auto-save
+  const formStateRef = useRef(formValues);
+
+  // Auto-save on form changes
   useEffect(() => {
+    if (!autoSave) return;
+
+    // Update ref so we can access current values in the interval
     formStateRef.current = formValues;
-    
-    // Mark as having pending changes if we have a previous save
-    if (lastSaved) {
+
+    // Only mark as having changes if values are different
+    if (lastSaved !== null) {
       setHasPendingChanges(true);
     }
-  }, [formValues, lastSaved, setHasPendingChanges]);
-  
-  // Set up auto-save interval
+
+    const intervalId = setInterval(() => {
+      const currentValues = formStateRef.current;
+
+      if (!hasPendingChanges) return;
+
+      saveDraft(currentValues as T);
+    }, autoSaveInterval);
+
+    return () => clearInterval(intervalId);
+  }, [autoSave, autoSaveInterval, formValues, hasPendingChanges, lastSaved, saveDraft, setHasPendingChanges]);
+
+  // Save draft when closing/navigating away
   useEffect(() => {
-    if (!autoSave || autoSaveInterval <= 0) {
-      return;
-    }
-    
-    const saveFormState = async () => {
-      if (hasPendingChanges && formStateRef.current) {
-        await saveDraft(formStateRef.current);
-        setHasPendingChanges(false);
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (hasPendingChanges) {
+        // Auto-save on page exit
+        saveDraft(formStateRef.current as T);
+        
+        // Show confirmation dialog
+        event.preventDefault();
+        event.returnValue = '';
       }
     };
-    
-    // Clear any existing auto-save interval
-    if (timeoutRef.current !== null) {
-      clearInterval(timeoutRef.current);
-    }
-    
-    // Set up new interval
-    const intervalId = setInterval(saveFormState, autoSaveInterval);
-    timeoutRef.current = intervalId;
-    
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
     return () => {
-      if (timeoutRef.current !== null) {
-        clearInterval(timeoutRef.current);
-      }
+      window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [autoSave, autoSaveInterval, saveDraft, hasPendingChanges, setHasPendingChanges]);
-  
-  // Auto-save when going offline
-  useEffect(() => {
-    if (!isOnline && hasPendingChanges && formStateRef.current) {
-      saveDraft(formStateRef.current)
-        .then(() => {
-          setHasPendingChanges(false);
-        })
-        .catch((error) => {
-          console.error('Error auto-saving when going offline:', error);
-        });
-    }
-  }, [isOnline, hasPendingChanges, saveDraft, setHasPendingChanges]);
-  
-  return { formStateRef };
+  }, [hasPendingChanges, saveDraft]);
+
+  return {
+    formStateRef
+  };
 }

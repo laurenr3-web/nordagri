@@ -66,9 +66,9 @@ export function useInterventionsData() {
 
   // Mutation pour mettre à jour une intervention
   const updateMutation = useMutation({
-    mutationFn: ({ id, updates }: { id: number; updates: Partial<Intervention> }) => {
+    mutationFn: (intervention: Intervention) => {
       setIsLoading(true);
-      return interventionService.updateIntervention(id, updates);
+      return interventionService.updateIntervention(intervention);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['interventions'] });
@@ -97,30 +97,23 @@ export function useInterventionsData() {
   // Assigner un technicien à une intervention
   const assignTechnician = (intervention: Intervention, technician: string) => {
     const updatedIntervention = { ...intervention, technician };
-    updateMutation.mutate({ id: intervention.id, updates: updatedIntervention });
+    updateMutation.mutate(updatedIntervention);
   };
 
   // Soumettre un rapport post-intervention
   const submitInterventionReport = (intervention: Intervention, report: {
     duration: number;
     notes: string;
-    partsUsed: Array<{ id: number; name: string; quantity: number; }>;
+    partsUsed: Array<{ partId: number; name: string; quantity: number; }>;
   }) => {
-    // Convert the partsUsed format to match what's expected by the Intervention type
-    const updatedPartsUsed = report.partsUsed.map(part => ({
-      id: part.id,
-      name: part.name,
-      quantity: part.quantity
-    }));
-    
     const updatedIntervention: Intervention = {
       ...intervention,
       status: 'completed',
       duration: report.duration,
       notes: report.notes,
-      partsUsed: updatedPartsUsed
+      partsUsed: report.partsUsed
     };
-    updateMutation.mutate({ id: intervention.id, updates: updatedIntervention });
+    updateMutation.mutate(updatedIntervention);
   };
 
   return {

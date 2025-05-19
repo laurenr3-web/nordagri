@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -119,7 +120,6 @@ const EquipmentTimeTracking: React.FC<EquipmentTimeTrackingProps> = ({ equipment
     }
   };
   
-  
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -137,7 +137,7 @@ const EquipmentTimeTracking: React.FC<EquipmentTimeTrackingProps> = ({ equipment
         </CardHeader>
         <CardContent>
           <div className="text-3xl font-bold text-blue-700">
-            {isLoading ? <Skeleton className="h-10 w-24" /> : `${totalHours.toFixed(2)} hours`}
+            {isLoading ? <Skeleton className="h-10 w-24" /> : `${totalHours.toFixed(1)} hours`}
           </div>
           <p className="text-blue-600 mt-1">
             Across {timeEntries.length} sessions

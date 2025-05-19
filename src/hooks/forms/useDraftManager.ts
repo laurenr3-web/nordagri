@@ -24,7 +24,7 @@ export function useDraftManager<T extends FieldValues>(
       const draftId = await FormDraftService.saveDraft(
         formType,
         data,
-        formId ? { formId } : undefined
+        formId
       );
       draftIdRef.current = draftId;
       setLastSaved(new Date());
@@ -42,11 +42,8 @@ export function useDraftManager<T extends FieldValues>(
   useEffect(() => {
     const checkForDrafts = async () => {
       try {
-        const drafts = await FormDraftService.getDraftsByType<T>(formType);
-        const relevantDraft = drafts.find(draft => 
-          draft.meta && typeof draft.meta === 'object' && 
-          'formId' in draft.meta && draft.meta.formId === formId
-        );
+        const drafts = await FormDraftService.getDraftsByType(formType);
+        const relevantDraft = drafts.find(draft => draft.formId === formId);
         
         if (relevantDraft) {
           draftIdRef.current = relevantDraft.id;
@@ -65,10 +62,7 @@ export function useDraftManager<T extends FieldValues>(
     if (!draftIdRef.current) {
       // Try to find a draft for this form type and ID
       const drafts = await FormDraftService.getDraftsByType<T>(formType);
-      const draft = drafts.find(d => 
-        d.meta && typeof d.meta === 'object' && 
-        'formId' in d.meta && d.meta.formId === formId
-      );
+      const draft = drafts.find(d => d.formId === formId);
       
       if (!draft) {
         return false;
@@ -84,9 +78,9 @@ export function useDraftManager<T extends FieldValues>(
         return false;
       }
       
-      setLastSaved(new Date(draft.updatedAt));
+      setLastSaved(new Date(draft.lastSaved));
       toast.info("Brouillon restauré", {
-        description: `Dernière sauvegarde: ${new Date(draft.updatedAt).toLocaleTimeString()}`
+        description: `Dernière sauvegarde: ${new Date(draft.lastSaved).toLocaleTimeString()}`
       });
       
       return true;

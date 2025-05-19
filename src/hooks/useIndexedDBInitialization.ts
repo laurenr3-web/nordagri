@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { IndexedDBService } from '@/services/offline/indexedDBService';
+import { IndexedDBMigrations } from '@/services/offline/indexedDBMigrations';
 
 export function useIndexedDBInitialization() {
   const [isInitialized, setIsInitialized] = useState(false);
@@ -9,8 +10,8 @@ export function useIndexedDBInitialization() {
   useEffect(() => {
     const initializeDB = async () => {
       try {
-        // Check if database exists using static method
-        const dbExists = await IndexedDBService.databaseExists();
+        // Check if database exists
+        const dbExists = await IndexedDBMigrations.databaseExists();
         
         // If database doesn't exist, initialize it
         if (!dbExists) {

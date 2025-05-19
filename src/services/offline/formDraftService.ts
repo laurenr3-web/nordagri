@@ -1,109 +1,158 @@
 
+/**
+ * Service to handle form draft persistence and recovery
+ */
+import { v4 as uuidv4 } from 'uuid';
 import { IndexedDBService } from './indexedDBService';
+import { toast } from 'sonner';
 
-export interface FormDraft<T> {
+export interface FormDraft<T = any> {
   id: string;
-  data: T;
-  createdAt: number;
-  updatedAt: number;
   formType: string;
-  meta?: Record<string, any>;
-  formId?: string | number;
-  lastSaved?: number; // Add this missing property
+  data: T;
+  lastSaved: number;
+  formId?: string | number; // For editing existing items
+  user?: string; // For multi-user environments
+  metadata?: Record<string, any>; // Additional information
 }
 
+const DRAFTS_STORE = 'form_drafts';
+const AUTO_SAVE_INTERVAL = 30000; // 30 seconds
+
 export class FormDraftService {
-  // Store a draft form to IndexedDB
-  static async saveDraft<T>(formType: string, data: T, meta?: Record<string, any>): Promise<string> {
-    const id = crypto.randomUUID();
-    const timestamp = Date.now();
-    
-    const draft: FormDraft<T> = {
-      id,
-      data,
-      formType,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-      lastSaved: timestamp, // Add this missing property
-      meta,
-      formId: meta && typeof meta === 'object' ? meta.formId : undefined
-    };
-    
-    await IndexedDBService.addToStore('formDrafts', draft);
-    return id;
-  }
-  
-  // Update an existing draft
-  static async updateDraft<T>(id: string, data: T, meta?: Record<string, any>): Promise<void> {
-    const existingDraft = await this.getDraft<T>(id);
-    
-    if (!existingDraft) {
-      throw new Error(`Draft with ID ${id} not found`);
-    }
-    
-    const updatedDraft: FormDraft<T> = {
-      ...existingDraft,
-      data,
-      updatedAt: Date.now(),
-      lastSaved: Date.now(), // Add this missing property
-      meta: meta !== undefined ? meta : existingDraft.meta
-    };
-    
-    await IndexedDBService.updateInStore('formDrafts', updatedDraft);
-  }
-  
-  // Get a specific draft by ID
-  static async getDraft<T>(id: string): Promise<FormDraft<T> | null> {
+  /**
+   * Save a form draft
+   * @param formType Identifier for the form type (e.g., 'intervention', 'observation')
+   * @param data Form data to save
+   * @param formId Optional ID if editing an existing item
+   * @param metadata Additional metadata
+   * @returns Promise with the draft ID
+   */
+  static async saveDraft<T>(
+    formType: string,
+    data: T,
+    formId?: string | number,
+    metadata?: Record<string, any>
+  ): Promise<string> {
     try {
-      const draft = await IndexedDBService.getByKey('formDrafts', id) as FormDraft<T> | undefined;
-      return draft || null;
+      // Check if we're updating an existing draft
+      let draftId: string;
+      const existingDrafts = await this.getDraftsByType(formType);
+      const existingDraft = existingDrafts.find(
+        (draft) => draft.formId === formId
+      );
+
+      if (existingDraft) {
+        draftId = existingDraft.id;
+        await IndexedDBService.updateInStore(DRAFTS_STORE, {
+          ...existingDraft,
+          data,
+          lastSaved: Date.now(),
+          metadata: { ...existingDraft.metadata, ...metadata }
+        });
+      } else {
+        // Create a new draft
+        draftId = uuidv4();
+        const draft: FormDraft<T> = {
+          id: draftId,
+          formType,
+          data,
+          formId,
+          lastSaved: Date.now(),
+          metadata
+        };
+        await IndexedDBService.addToStore(DRAFTS_STORE, draft);
+      }
+
+      return draftId;
     } catch (error) {
-      console.error('Error retrieving draft:', error);
+      console.error('Error saving form draft:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get a specific draft by ID
+   * @param draftId Draft ID to retrieve
+   * @returns Promise with the draft or null
+   */
+  static async getDraft<T>(draftId: string): Promise<FormDraft<T> | null> {
+    try {
+      return await IndexedDBService.getByKey<FormDraft<T>>(DRAFTS_STORE, draftId);
+    } catch (error) {
+      console.error('Error retrieving form draft:', error);
       return null;
     }
   }
-  
-  // Delete a draft by ID
-  static async deleteDraft(id: string): Promise<void> {
-    await IndexedDBService.deleteFromStore('formDrafts', id);
-  }
-  
-  // Alias for deleteDraft to match usage in the codebase
-  static async removeDraft(id: string): Promise<void> {
-    await this.deleteDraft(id);
-  }
-  
-  // Get all drafts for a specific form type
-  static async getDrafts<T>(formType: string): Promise<FormDraft<T>[]> {
+
+  /**
+   * Get all drafts for a specific form type
+   * @param formType Form type to filter by
+   * @returns Promise with an array of drafts
+   */
+  static async getDraftsByType<T>(formType: string): Promise<FormDraft<T>[]> {
     try {
-      const allDrafts = await IndexedDBService.getAllFromStore<FormDraft<T>>('formDrafts');
-      
-      // Filter by form type
-      const typeDrafts = allDrafts.filter(draft => draft.formType === formType);
-      
-      // Sort by updatedAt (newest first)
-      return typeDrafts.sort((a, b) => b.updatedAt - a.updatedAt);
+      const allDrafts = await IndexedDBService.getAllFromStore<FormDraft<T>>(DRAFTS_STORE);
+      return allDrafts.filter(draft => draft.formType === formType);
     } catch (error) {
-      console.error('Error retrieving drafts:', error);
+      console.error('Error retrieving form drafts by type:', error);
       return [];
     }
   }
 
-  // Alias for getDrafts to match usage in the codebase
-  static async getDraftsByType<T>(formType: string): Promise<FormDraft<T>[]> {
-    return this.getDrafts<T>(formType);
-  }
-  
-  // Get the most recent draft for a specific form type
-  static async getRecentDraft<T>(formType: string): Promise<FormDraft<T> | null> {
-    const drafts = await this.getDrafts<T>(formType);
-    
-    if (drafts && drafts.length > 0) {
-      // Sort drafts by updatedAt date (most recent first)
-      const sortedDrafts = [...drafts].sort((a, b) => b.updatedAt - a.updatedAt);
-      return sortedDrafts[0];
+  /**
+   * Remove a draft by ID
+   * @param draftId Draft ID to remove
+   * @returns Promise<void>
+   */
+  static async removeDraft(draftId: string): Promise<void> {
+    try {
+      await IndexedDBService.deleteFromStore(DRAFTS_STORE, draftId);
+    } catch (error) {
+      console.error('Error removing form draft:', error);
+      throw error;
     }
-    
-    return null;
+  }
+
+  /**
+   * Remove all drafts for a specific form type
+   * @param formType Form type to remove
+   * @returns Promise<void>
+   */
+  static async removeDraftsByType(formType: string): Promise<void> {
+    try {
+      const drafts = await this.getDraftsByType(formType);
+      for (const draft of drafts) {
+        await this.removeDraft(draft.id);
+      }
+    } catch (error) {
+      console.error('Error removing form drafts by type:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Clear drafts older than a specific age
+   * @param maxAgeMs Maximum age in milliseconds to keep
+   * @returns Promise<number> Number of drafts cleared
+   */
+  static async clearOldDrafts(maxAgeMs: number): Promise<number> {
+    try {
+      const now = Date.now();
+      const allDrafts = await IndexedDBService.getAllFromStore<FormDraft>(DRAFTS_STORE);
+      let removedCount = 0;
+
+      for (const draft of allDrafts) {
+        if (now - draft.lastSaved > maxAgeMs) {
+          await this.removeDraft(draft.id);
+          removedCount++;
+        }
+      }
+
+      return removedCount;
+    } catch (error) {
+      console.error('Error clearing old form drafts:', error);
+      return 0;
+    }
   }
 }

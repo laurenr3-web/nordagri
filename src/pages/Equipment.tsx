@@ -15,15 +15,13 @@ import EquipmentDialogs from '@/components/equipment/dialogs/EquipmentDialogs';
 const Equipment = () => {
   const { t } = useTranslation();
   const { farmId, isLoading: farmLoading, noAccess } = useFarmId();
-  const equipmentQuery = useEquipmentData();
-  const { isLoading } = equipmentQuery;
-  const equipmentData = equipmentQuery.data || [];
+  const { equipment, isLoading } = useEquipmentData();
 
   // Transform Equipment objects to EquipmentItem objects
   const transformedEquipment = useMemo(() => {
-    if (!equipmentData) return [];
+    if (!equipment) return [];
     
-    return equipmentData.map((item: Equipment) => ({
+    return equipment.map((item: Equipment) => ({
       id: item.id,
       name: item.name,
       type: item.type || 'Unknown',
@@ -50,7 +48,7 @@ const Equipment = () => {
         due: 'In 30 days' 
       }
     }));
-  }, [equipmentData]);
+  }, [equipment]);
 
   if (farmLoading || isLoading) {
     return (

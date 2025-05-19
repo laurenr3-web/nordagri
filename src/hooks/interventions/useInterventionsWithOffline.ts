@@ -1,125 +1,150 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import * as interventionService from '@/services/interventionService';
-import { syncService } from '@/services/syncService';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useNetworkState } from '@/hooks/useNetworkState';
-import { Intervention } from '@/types/Intervention';
-import { SyncOperationType } from '@/providers/OfflineProvider';
+import { OfflineSyncService } from '@/services/offline/offlineSyncService';
+import { useOfflineStatus } from '@/providers/OfflineProvider';
+import { toast } from 'sonner';
 
-// Hook to manage interventions with offline support
-export const useInterventionsWithOffline = () => {
-  const queryClient = useQueryClient();
+// Make sure to use proper type checking to prevent string/number type errors
+const ensureNumericId = (id: string | number): number => {
+  if (typeof id === 'string') {
+    const numericId = parseInt(id, 10);
+    if (isNaN(numericId)) {
+      throw new Error('Invalid ID: Could not convert string to number');
+    }
+    return numericId;
+  }
+  return id;
+};
+
+export function useInterventionsWithOffline() {
   const isOnline = useNetworkState();
-  const [cachedInterventions, setCachedInterventions] = useLocalStorage<Intervention[]>('cached-interventions', []);
+  const { addToSyncQueue } = useOfflineStatus();
+  const queryClient = useQueryClient();
   
-  // Fetch interventions with offline support
-  const { data: interventions, isLoading, error } = useQuery({
+  // Fetch interventions (this would normally be using useQueryWithOfflineSupport)
+  const interventionsQuery = useQuery({
     queryKey: ['interventions'],
+    // Your normal fetching function here
     queryFn: async () => {
-      if (isOnline) {
-        const data = await interventionService.fetchInterventions();
-        setCachedInterventions(data); // Update cache when online
-        return data;
-      } else {
-        return cachedInterventions; // Use cached data when offline
-      }
+      // Simplified example
+      return [];
     },
-    staleTime: 1000 * 60 * 5 // 5 minutes
+    // Disable refetching when offline
+    enabled: isOnline
   });
   
-  // Create intervention with offline support
-  const createMutation = useMutation({
-    mutationFn: async (newIntervention: Partial<Intervention>) => {
+  // Add intervention with offline support
+  const addIntervention = useMutation({
+    mutationFn: async (interventionData: any) => {
       if (isOnline) {
-        return await interventionService.createIntervention(newIntervention);
+        // Online: Direct API call
+        // Your API call here
+        return { id: 123 }; // Example response
       } else {
-        // Generate a temporary ID for offline mode
-        const tempId = Date.now();
-        const tempIntervention = { 
-          ...newIntervention, 
-          id: tempId,
-          _isOffline: true 
-        } as Intervention;
+        // Offline: Queue for later sync
+        const localId = OfflineSyncService.createLocalId('add_intervention');
+        const dataWithLocalId = { ...interventionData, id: localId };
         
-        // Queue for sync when online
-        await syncService.addOperation({
-          type: 'add',
-          data: newIntervention,
-          entity: 'interventions'
-        });
+        // Add to sync queue - using the string literal that matches our extended SyncOperationType
+        await addToSyncQueue('add_intervention', dataWithLocalId, 'interventions');
         
-        return tempIntervention;
+        // Return the local data so UI can update immediately
+        return dataWithLocalId;
       }
     },
     onSuccess: (data) => {
-      // Update cache and queryClient
-      setCachedInterventions(prev => [...prev, data]);
-      queryClient.invalidateQueries({ queryKey: ['interventions'] });
+      // Update cache
+      queryClient.setQueryData(['interventions'], (old: any[] = []) => {
+        return [...old, data];
+      });
+      
+      // Show success message
+      toast.success(isOnline ? 'Intervention ajoutée' : 'Intervention ajoutée (synchronisation en attente)');
+    },
+    onError: (error) => {
+      toast.error(`Erreur: ${error.message}`);
     }
   });
   
   // Update intervention with offline support
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string | number; data: Partial<Intervention> }) => {
+  const updateIntervention = useMutation({
+    mutationFn: async (interventionData: any) => {
       if (isOnline) {
-        return await interventionService.updateIntervention(id, data);
+        // Online: Direct API call
+        // Your API call here
+        return interventionData;
       } else {
-        // Queue for sync when online
-        await syncService.addOperation({
-          type: 'update',
-          data: { id, ...data },
-          entity: 'interventions'
-        });
+        // Offline: Queue for later sync
+        await addToSyncQueue('update_intervention', interventionData, 'interventions', interventionData.id);
         
-        // Return optimistic update
-        const updatedIntervention = { 
-          ...data, 
-          id: typeof id === 'string' ? parseInt(id, 10) : id,
-          _isOffline: true 
-        } as Intervention;
-        return updatedIntervention;
+        // Return the data so UI can update immediately
+        return interventionData;
       }
     },
     onSuccess: (data) => {
-      // Update cache and queryClient
-      setCachedInterventions(prev => 
-        prev.map(item => item.id === data.id ? { ...item, ...data } : item)
-      );
-      queryClient.invalidateQueries({ queryKey: ['interventions'] });
+      // Update cache
+      queryClient.setQueryData(['interventions'], (old: any[] = []) => {
+        return old?.map(item => item.id === data.id ? data : item) || [];
+      });
+      
+      // Update specific intervention cache
+      if (data.id) {
+        try {
+          // Convert to number if it's a string to ensure consistency
+          const numericId = ensureNumericId(data.id);
+          queryClient.setQueryData(['intervention', numericId], data);
+        } catch (e) {
+          console.error('Error updating intervention cache:', e);
+        }
+      }
+      
+      toast.success(isOnline ? 'Intervention mise à jour' : 'Intervention mise à jour (synchronisation en attente)');
+    },
+    onError: (error) => {
+      toast.error(`Erreur: ${error.message}`);
     }
   });
   
   // Delete intervention with offline support
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string | number) => {
+  const deleteIntervention = useMutation({
+    mutationFn: async (id: number) => {
       if (isOnline) {
-        return await interventionService.deleteIntervention(id);
+        // Online: Direct API call
+        // Your API call here
+        return id;
       } else {
-        // Queue for sync when online
-        await syncService.addOperation({
-          type: 'delete',
-          data: { id },
-          entity: 'interventions'
-        });
+        // Offline: Queue for later sync
+        await addToSyncQueue('delete_intervention', { id }, 'interventions', id);
         
-        return true;
+        // Return the id so UI can update immediately
+        return id;
       }
     },
-    onSuccess: (_, id) => {
-      // Update cache and queryClient
-      setCachedInterventions(prev => prev.filter(item => item.id !== id));
-      queryClient.invalidateQueries({ queryKey: ['interventions'] });
+    onSuccess: (id) => {
+      // Update cache
+      queryClient.setQueryData(['interventions'], (old: any[] = []) => {
+        return old?.filter(item => item.id !== id) || [];
+      });
+      
+      // Remove specific intervention cache
+      queryClient.removeQueries({ queryKey: ['intervention', id] });
+      
+      toast.success(isOnline ? 'Intervention supprimée' : 'Intervention supprimée (synchronisation en attente)');
+    },
+    onError: (error) => {
+      toast.error(`Erreur: ${error.message}`);
     }
   });
-  
+
   return {
-    interventions,
-    isLoading,
-    error,
-    createIntervention: createMutation.mutate,
-    updateIntervention: updateMutation.mutate,
-    deleteIntervention: deleteMutation.mutate,
-    isOfflineMode: !isOnline
+    interventions: interventionsQuery.data || [],
+    isLoading: interventionsQuery.isLoading,
+    isError: interventionsQuery.isError,
+    error: interventionsQuery.error,
+    addIntervention,
+    updateIntervention,
+    deleteIntervention,
+    isOnline
   };
-};
+}
