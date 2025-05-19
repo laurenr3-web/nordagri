@@ -8,6 +8,7 @@ export interface FormDraft<T> {
   updatedAt: number;
   formType: string;
   meta?: Record<string, any>;
+  formId?: string | number;
 }
 
 export class FormDraftService {
@@ -22,7 +23,8 @@ export class FormDraftService {
       formType,
       createdAt: timestamp,
       updatedAt: timestamp,
-      meta
+      meta,
+      formId: meta && typeof meta === 'object' ? meta.formId : undefined
     };
     
     await IndexedDBService.addToStore('formDrafts', draft);
@@ -63,6 +65,11 @@ export class FormDraftService {
     await IndexedDBService.deleteFromStore('formDrafts', id);
   }
   
+  // Alias for deleteDraft to match usage in the codebase
+  static async removeDraft(id: string): Promise<void> {
+    await this.deleteDraft(id);
+  }
+  
   // Get all drafts for a specific form type
   static async getDrafts<T>(formType: string): Promise<FormDraft<T>[]> {
     try {
@@ -77,6 +84,11 @@ export class FormDraftService {
       console.error('Error retrieving drafts:', error);
       return [];
     }
+  }
+
+  // Alias for getDrafts to match usage in the codebase
+  static async getDraftsByType<T>(formType: string): Promise<FormDraft<T>[]> {
+    return this.getDrafts<T>(formType);
   }
   
   // Get the most recent draft for a specific form type

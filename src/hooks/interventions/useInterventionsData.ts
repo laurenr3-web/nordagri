@@ -108,7 +108,7 @@ export function useInterventionsData() {
   }) => {
     // Convert the partsUsed format to match what's expected by the Intervention type
     const updatedPartsUsed = report.partsUsed.map(part => ({
-      id: part.id,
+      partId: part.id,
       name: part.name,
       quantity: part.quantity
     }));
@@ -118,7 +118,7 @@ export function useInterventionsData() {
       status: 'completed',
       duration: report.duration,
       notes: report.notes,
-      partsUsed: updatedPartsUsed
+      partsUsed: updatedPartsUsed as any
     };
     updateMutation.mutate(updatedIntervention);
   };

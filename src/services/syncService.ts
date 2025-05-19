@@ -8,6 +8,18 @@ export interface SyncStatus {
   isOnline: boolean;
 }
 
+export interface SyncQueueEntry {
+  id?: number;
+  type: 'add' | 'update' | 'delete';
+  data: Record<string, any>;
+  entity: string;
+  createdAt: number;
+  retryCount: number;
+  status: 'pending' | 'processing' | 'success' | 'failed';
+  error?: string;
+  processedAt?: number;
+}
+
 export class SyncService {
   private listeners: ((status: SyncStatus) => void)[] = [];
   private status: SyncStatus = {
@@ -20,9 +32,10 @@ export class SyncService {
   /**
    * Update an entity for offline first
    */
-  public async update<T>(storeName: string, id: string | number, data: T): Promise<void> {
-    await IndexedDBService.updateById(storeName, id, {
+  public async update<T extends Record<string, any>>(storeName: string, id: string | number, data: T): Promise<void> {
+    await IndexedDBService.updateInStore(storeName, {
       ...data,
+      id,
       _updatedAt: Date.now(),
       _isOffline: true
     });
@@ -32,7 +45,7 @@ export class SyncService {
   /**
    * Create an entity for offline first
    */
-  public async create<T>(storeName: string, data: T): Promise<any> {
+  public async create<T extends Record<string, any>>(storeName: string, data: T): Promise<any> {
     const record = {
       ...data,
       _createdAt: Date.now(),
@@ -58,7 +71,7 @@ export class SyncService {
   public async addOperation(operation: { 
     type: string,
     entity: string,
-    data: any,
+    data: Record<string, any>,
     priority?: number
   }): Promise<number> {
     return this.addToSyncQueue(
@@ -71,17 +84,17 @@ export class SyncService {
   /**
    * Add an operation to the sync queue
    */
-  public async addToSyncQueue(type: 'add' | 'update' | 'delete', data: any, entity: string): Promise<number> {
-    const queueEntry = {
+  public async addToSyncQueue(type: 'add' | 'update' | 'delete', data: Record<string, any>, entity: string): Promise<number> {
+    const queueEntry: SyncQueueEntry = {
       type,
       data,
       entity,
       createdAt: Date.now(),
       retryCount: 0,
-      status: 'pending' as 'pending' | 'processing' | 'success' | 'failed'
+      status: 'pending'
     };
 
-    const id = await IndexedDBService.addToStore('sync_queue', queueEntry);
+    const id = await IndexedDBService.addToStore('sync_queue', queueEntry) as number;
     await this.updatePendingCount();
     return id;
   }
@@ -89,9 +102,10 @@ export class SyncService {
   /**
    * Get all pending operations from the sync queue
    */
-  public async getPendingOperations() {
+  public async getPendingOperations(): Promise<SyncQueueEntry[]> {
     try {
-      return await IndexedDBService.getAllFromStore('sync_queue') || [];
+      const operations = await IndexedDBService.getAllFromStore<SyncQueueEntry>('sync_queue') || [];
+      return operations;
     } catch (error) {
       console.error('Error getting pending operations:', error);
       return [];
@@ -169,9 +183,7 @@ export class SyncService {
       // Process operations in sequence
       for (const operation of operations) {
         try {
-          // Ensure the operation has an id property 
-          const opId = 'id' in operation ? operation.id : null;
-          if (opId === null) {
+          if (typeof operation.id !== 'number') {
             throw new Error('Operation missing ID field');
           }
           
@@ -179,32 +191,30 @@ export class SyncService {
           await new Promise(resolve => setTimeout(resolve, 200));
           
           // Mark as processed
-          await IndexedDBService.updateById('sync_queue', opId, {
-            ...operation,
+          await IndexedDBService.updateInStore('sync_queue', {
+            id: operation.id,
             status: 'success',
             processedAt: Date.now()
           });
           
-          results.push({ id: opId as number, success: true });
+          results.push({ id: operation.id, success: true });
         } catch (error) {
-          // Ensure the operation has the required properties
-          const opId = 'id' in operation ? operation.id : null;
-          const retryCount = 'retryCount' in operation ? (operation.retryCount as number) : 0;
-          
-          if (opId === null) {
+          if (typeof operation.id !== 'number') {
             console.error('Cannot update operation without ID', operation);
             continue;
           }
           
+          const retryCount = operation.retryCount || 0;
+          
           // Mark as failed
-          await IndexedDBService.updateById('sync_queue', opId, {
-            ...operation,
+          await IndexedDBService.updateInStore('sync_queue', {
+            id: operation.id,
             status: 'failed',
             error: String(error),
             retryCount: retryCount + 1
           });
           
-          results.push({ id: opId as number, success: false, error });
+          results.push({ id: operation.id, success: false, error });
         }
       }
 
@@ -242,8 +252,13 @@ export class SyncService {
    * Get a cached query result
    */
   public async getCachedQueryResult<T>(key: string, tableName: string = 'offline_cache'): Promise<T | null> {
-    const cached = await IndexedDBService.getByKey(tableName, key);
-    return cached && typeof cached === 'object' && 'data' in cached ? cached.data as T : null;
+    try {
+      const cached = await IndexedDBService.getByKey(tableName, key);
+      return cached && typeof cached === 'object' && 'data' in cached ? (cached as any).data as T : null;
+    } catch (error) {
+      console.error(`Error fetching cached query result for key ${key}:`, error);
+      return null;
+    }
   }
 
   /**
@@ -251,17 +266,11 @@ export class SyncService {
    */
   public async getSyncStats(): Promise<{ pending: number; failed: number; success: number; }> {
     try {
-      const pending = (await this.getPendingOperations()).filter(op => 
-        op && typeof op === 'object' && 'status' in op && op.status === 'pending'
-      ).length;
-  
-      const failed = (await this.getPendingOperations()).filter(op => 
-        op && typeof op === 'object' && 'status' in op && op.status === 'failed'
-      ).length;
-  
-      const success = (await this.getPendingOperations()).filter(op => 
-        op && typeof op === 'object' && 'status' in op && op.status === 'success'
-      ).length;
+      const operations = await this.getPendingOperations();
+      
+      const pending = operations.filter(op => op.status === 'pending').length;
+      const failed = operations.filter(op => op.status === 'failed').length;
+      const success = operations.filter(op => op.status === 'success').length;
   
       return { pending, failed, success };
     } catch (error) {

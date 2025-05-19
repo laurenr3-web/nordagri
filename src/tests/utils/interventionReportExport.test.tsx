@@ -39,7 +39,7 @@ describe('exportInterventionToPDF utility', () => {
     },
     status: "completed" as const,
     priority: "medium" as const,
-    date: "2023-05-18",
+    date: new Date("2023-05-18"),
     duration: 2,
     scheduledDuration: 3,
     technician: "Jean Dupont",
