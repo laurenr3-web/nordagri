@@ -1,46 +1,7 @@
 
 import { Intervention, InterventionFormValues } from '@/types/Intervention';
-
-// Mock data for interventions while we don't have a real backend
-const mockInterventions: Intervention[] = [
-  {
-    id: 1,
-    title: "Reparation pompe hydraulique",
-    equipment: "Tracteur John Deere 5050E",
-    description: "Remplacement de la pompe hydraulique qui fuit",
-    location: "Hangar principal",
-    status: "scheduled",
-    priority: "high",
-    technician: "Marc Dubois",
-    date: new Date("2025-05-20"),
-    scheduledDuration: 3
-  },
-  {
-    id: 2,
-    title: "Maintenance préventive",
-    equipment: "Moissonneuse Claas Lexion 8900",
-    description: "Vérification complète avant la saison",
-    location: "Atelier",
-    status: "in-progress",
-    priority: "medium",
-    technician: "Sophie Martin",
-    date: new Date("2025-05-18"),
-    scheduledDuration: 4
-  },
-  {
-    id: 3,
-    title: "Changement filtre à huile",
-    equipment: "Tracteur New Holland T7",
-    description: "Remplacement du filtre à huile et vidange",
-    location: "Parcelle Est",
-    status: "completed",
-    priority: "low",
-    technician: "Pierre Leroy",
-    date: new Date("2025-05-15"),
-    scheduledDuration: 1,
-    duration: 1.5
-  }
-];
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 /**
  * Service for managing interventions through Supabase
@@ -50,67 +11,108 @@ export const interventionService = {
    * Get all interventions
    */
   async getInterventions(): Promise<Intervention[]> {
-    // Simulate API delay
-    await new Promise(r => setTimeout(r, 500));
-    
-    return [...mockInterventions];
+    try {
+      console.log('Fetching real interventions from Supabase');
+      const { data, error } = await supabase
+        .from('interventions')
+        .select('*')
+        .order('date', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching interventions:', error);
+        toast.error('Erreur lors du chargement des interventions');
+        throw error;
+      }
+      
+      return data as Intervention[] || [];
+    } catch (err) {
+      console.error('Exception lors du chargement des interventions:', err);
+      throw err;
+    }
   },
   
   /**
    * Get intervention by ID
    */
   async getInterventionById(id: number): Promise<Intervention | null> {
-    // Simulate API delay
-    await new Promise(r => setTimeout(r, 300));
-    
-    const intervention = mockInterventions.find(i => Number(i.id) === Number(id));
-    return intervention || null;
+    try {
+      const { data, error } = await supabase
+        .from('interventions')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching intervention by id:', error);
+        toast.error('Erreur lors du chargement de l\'intervention');
+        throw error;
+      }
+      
+      return data as Intervention;
+    } catch (err) {
+      console.error('Exception lors du chargement de l\'intervention:', err);
+      throw err;
+    }
   },
   
   /**
    * Add a new intervention
    */
   async addIntervention(intervention: InterventionFormValues): Promise<Intervention> {
-    // Simulate API delay
-    await new Promise(r => setTimeout(r, 700));
-    
-    const newId = mockInterventions.length + 1;
-    const newIntervention: Intervention = {
-      id: newId,
-      title: intervention.title,
-      description: intervention.description,
-      equipment: intervention.equipment,
-      location: intervention.location || "",
-      status: intervention.status || "scheduled",
-      priority: intervention.priority,
-      technician: intervention.technician || "",
-      date: intervention.date,
-      scheduledDuration: intervention.scheduledDuration || 1
-    };
-    
-    mockInterventions.push(newIntervention);
-    return newIntervention;
+    try {
+      const { data, error } = await supabase
+        .from('interventions')
+        .insert({
+          title: intervention.title,
+          description: intervention.description,
+          equipment: intervention.equipment,
+          location: intervention.location || "",
+          status: intervention.status || "scheduled",
+          priority: intervention.priority,
+          technician: intervention.technician || "",
+          date: intervention.date,
+          scheduledDuration: intervention.scheduledDuration || 1,
+          equipment_id: intervention.equipmentId
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error adding intervention:', error);
+        toast.error('Erreur lors de l\'ajout de l\'intervention');
+        throw error;
+      }
+      
+      return data as Intervention;
+    } catch (err) {
+      console.error('Exception lors de l\'ajout de l\'intervention:', err);
+      throw err;
+    }
   },
   
   /**
    * Update intervention
    */
   async updateIntervention(id: number, updates: Partial<Intervention>): Promise<Intervention> {
-    // Simulate API delay
-    await new Promise(r => setTimeout(r, 600));
-    
-    const index = mockInterventions.findIndex(i => Number(i.id) === Number(id));
-    
-    if (index === -1) {
-      throw new Error(`Intervention with ID ${id} not found`);
+    try {
+      const { data, error } = await supabase
+        .from('interventions')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error updating intervention:', error);
+        toast.error('Erreur lors de la mise à jour de l\'intervention');
+        throw error;
+      }
+      
+      return data as Intervention;
+    } catch (err) {
+      console.error('Exception lors de la mise à jour de l\'intervention:', err);
+      throw err;
     }
-    
-    mockInterventions[index] = {
-      ...mockInterventions[index],
-      ...updates
-    };
-    
-    return mockInterventions[index];
   },
   
   /**
@@ -124,15 +126,20 @@ export const interventionService = {
    * Delete intervention
    */
   async deleteIntervention(id: number): Promise<void> {
-    // Simulate API delay
-    await new Promise(r => setTimeout(r, 400));
-    
-    const index = mockInterventions.findIndex(i => Number(i.id) === Number(id));
-    
-    if (index === -1) {
-      throw new Error(`Intervention with ID ${id} not found`);
+    try {
+      const { error } = await supabase
+        .from('interventions')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        console.error('Error deleting intervention:', error);
+        toast.error('Erreur lors de la suppression de l\'intervention');
+        throw error;
+      }
+    } catch (err) {
+      console.error('Exception lors de la suppression de l\'intervention:', err);
+      throw err;
     }
-    
-    mockInterventions.splice(index, 1);
   }
 };
