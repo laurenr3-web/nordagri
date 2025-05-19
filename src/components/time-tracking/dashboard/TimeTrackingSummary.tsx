@@ -13,11 +13,11 @@ interface TimeTrackingStatsProps {
 }
 
 export function TimeTrackingSummary({ stats, isLoading }: TimeTrackingStatsProps) {
-  // Format hours with a maximum of 1 decimal place, and ensure it doesn't display unreasonable values
+  // Format hours with a maximum of 2 decimal places, and ensure it doesn't display unreasonable values
   const formatHours = (hours: number): string => {
     // Safety check for ridiculous values
     const safeHours = isNaN(hours) ? 0 : Math.min(hours, 744); // 31 days * 24 hours max
-    return `${safeHours.toFixed(1)} h`;
+    return `${safeHours.toFixed(2)} h`;
   };
 
   return (

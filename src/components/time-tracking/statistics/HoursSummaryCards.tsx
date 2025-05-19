@@ -49,7 +49,7 @@ const HoursSummaryCards: React.FC<HoursSummaryCardsProps> = ({ summary, isLoadin
           <CardContent className="p-4 flex flex-row items-center justify-between">
             <div>
               <p className="text-sm font-medium">{card.title}</p>
-              <h3 className="text-2xl font-bold">{card.value.toFixed(1)}h</h3>
+              <h3 className="text-2xl font-bold">{card.value.toFixed(2)}h</h3>
             </div>
             <div className={`p-2 rounded-full ${card.color} bg-opacity-20`}>
               {card.icon}

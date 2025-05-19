@@ -16,7 +16,7 @@ export function TimeTrackingStats({ stats, isLoading }: TimeTrackingStatsProps) 
   const formatHours = (hours: number) => {
     // Safety check for unreasonable values
     const safeHours = isNaN(hours) ? 0 : Math.min(hours, 744); // Maximum 31 days * 24 hours
-    return `${safeHours.toFixed(1)} h`;
+    return `${safeHours.toFixed(2)} h`;
   };
 
   return (
