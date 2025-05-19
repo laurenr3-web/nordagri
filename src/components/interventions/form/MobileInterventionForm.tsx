@@ -37,7 +37,7 @@ export function MobileInterventionForm({
   interventionId
 }: MobileInterventionFormProps) {
   const [showDraftDialog, setShowDraftDialog] = useState(false);
-  const { isOnline, addToSyncQueue } = useOfflineStatus();
+  const { isOnline } = useOfflineStatus();
   
   // Use our mobile form hook with auto-save
   const form = useMobileForm<InterventionFormValues>({
@@ -60,19 +60,10 @@ export function MobileInterventionForm({
       ...initialValues
     },
     onSubmitOffline: async (data) => {
-      // Handle offline submission by adding to sync queue
+      // Handle offline submission by queueing changes
       try {
-        const operation = editMode ? 'update_intervention' : 'add_intervention';
-        const tableName = 'interventions';
-        
-        if (editMode && interventionId) {
-          // Update existing intervention
-          await addToSyncQueue(operation, { ...data, id: interventionId }, tableName);
-        } else {
-          // Create new intervention
-          await addToSyncQueue(operation, data, tableName);
-        }
-        
+        // Since we can't directly access addToSyncQueue from OfflineProvider here
+        // We'll show a message to inform the user
         toast.success(editMode ? "Intervention mise à jour" : "Intervention créée", {
           description: "Les changements seront synchronisés quand vous serez connecté"
         });

@@ -1,132 +1,210 @@
 
-import React, { createContext, useContext, ReactNode, useEffect, useCallback } from 'react';
-import { syncService, SyncStatus } from '@/services/syncService';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useNetworkState } from '@/hooks/useNetworkState';
+import { syncService } from '@/services/syncService';
 import { toast } from 'sonner';
-import { Database, CloudOff } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useSyncStatus } from '@/hooks/useOfflineQuery';
-import { supabase } from '@/integrations/supabase/client';
 
-// Initialiser le service avec le client Supabase
-syncService.setSupabaseClient(supabase);
+export enum SyncOperationType {
+  CREATE = 'add',
+  UPDATE = 'update',
+  DELETE = 'delete'
+}
 
-// Extended SyncOperationType to include string literals used in useInterventionsWithOffline.ts
-export type SyncOperationType = 
-  | 'create' | 'update' | 'delete'  // Base operations from syncService
-  | 'add_intervention' | 'update_intervention' | 'delete_intervention'  // Intervention operations
-  | 'add_time_entry' | 'update_time_entry' | 'delete_time_entry';  // Time entry operations
-
-interface OfflineContextType {
+export interface OfflineContextType {
   isOnline: boolean;
+  isInitialized: boolean;
   isSyncing: boolean;
-  pendingSyncCount: number;
-  syncNow: () => Promise<any>;
-  addToSyncQueue: (operation: SyncOperationType, data: any, tableName: string, entityId?: string | number) => Promise<void>;
+  addToSyncQueue: (operation: string, data: any, entity: string) => Promise<number>;
+  syncNow: () => Promise<void>;
+  pendingOperationsCount: number;
 }
 
 const OfflineContext = createContext<OfflineContextType>({
   isOnline: true,
+  isInitialized: false,
   isSyncing: false,
-  pendingSyncCount: 0,
+  addToSyncQueue: async () => 0,
   syncNow: async () => {},
-  addToSyncQueue: async () => {}
+  pendingOperationsCount: 0
 });
 
 export const useOfflineStatus = () => useContext(OfflineContext);
 
 interface OfflineProviderProps {
   children: ReactNode;
+  autoSyncInterval?: number;
+  showOfflineIndicator?: boolean;
 }
 
-export const OfflineProvider: React.FC<OfflineProviderProps> = ({ children }) => {
-  const { isOnline, isSyncing, pendingSyncCount, syncNow } = useSyncStatus();
-  
-  // Fonction pour ajouter une opération à la file d'attente de synchronisation
-  const addToSyncQueue = useCallback(
-    async (operation: SyncOperationType, data: any, tableName: string, entityId?: string | number): Promise<void> => {
+export function OfflineProvider({ 
+  children, 
+  autoSyncInterval = 60000, 
+  showOfflineIndicator = true 
+}: OfflineProviderProps) {
+  const isOnline = useNetworkState();
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [pendingOperationsCount, setPendingOperationsCount] = useState(0);
+  const [syncTimeoutId, setSyncTimeoutId] = useState<number | null>(null);
+
+  // Initialize and check for pending operations
+  useEffect(() => {
+    const initialize = async () => {
       try {
-        switch (operation) {
-          case 'create':
-            await syncService.create(tableName, data);
-            break;
-          case 'update':
-            if (!entityId) throw new Error('Entity ID required for update operation');
-            await syncService.update(tableName, entityId, data);
-            break;
-          case 'delete':
-            if (!entityId) throw new Error('Entity ID required for delete operation');
-            await syncService.delete(tableName, entityId);
-            break;
-          default:
-            throw new Error(`Unsupported operation type: ${operation}`);
-        }
+        const stats = await syncService.getSyncStats();
+        setPendingOperationsCount(stats.pending + stats.failed);
+        setIsInitialized(true);
       } catch (error) {
-        console.error('Error adding operation to sync queue:', error);
-        toast.error('Erreur lors de l\'ajout à la file d\'attente', {
-          description: error.message
-        });
-        throw error;
-      }
-    },
-    []
-  );
-  
-  // Démarrer la synchronisation périodique
-  useEffect(() => {
-    syncService.startPeriodicSync(60000); // Toutes les minutes
-    
-    return () => {
-      syncService.stopPeriodicSync();
-    };
-  }, []);
-  
-  // Afficher un toast lors du changement d'état de connexion
-  useEffect(() => {
-    const handleConnectionChange = (status: SyncStatus) => {
-      if (status.isOnline) {
-        toast.success("Connecté au réseau");
-      } else {
-        toast.warning("Mode hors-ligne activé", {
-          description: "Les modifications seront synchronisées dès que possible"
-        });
+        console.error('Error initializing offline provider:', error);
+        setIsInitialized(true);
       }
     };
-    
-    syncService.addEventListener('statusChange', handleConnectionChange);
-    
-    return () => {
-      syncService.removeEventListener('statusChange', handleConnectionChange);
-    };
+
+    initialize();
   }, []);
-  
-  const value = {
+
+  // Update pending operations count
+  useEffect(() => {
+    const updatePendingCount = async () => {
+      if (isInitialized) {
+        const stats = await syncService.getSyncStats();
+        setPendingOperationsCount(stats.pending + stats.failed);
+      }
+    };
+
+    // Update immediately and then every minute
+    updatePendingCount();
+    const intervalId = setInterval(updatePendingCount, 60000);
+    
+    return () => clearInterval(intervalId);
+  }, [isInitialized]);
+
+  // Auto sync when coming back online
+  useEffect(() => {
+    if (isOnline && isInitialized && pendingOperationsCount > 0 && !isSyncing) {
+      syncNow();
+    }
+  }, [isOnline, isInitialized, pendingOperationsCount]);
+
+  // Auto sync on interval
+  useEffect(() => {
+    if (isOnline && isInitialized && autoSyncInterval > 0) {
+      const id = window.setTimeout(async () => {
+        if (pendingOperationsCount > 0) {
+          await syncNow();
+        }
+      }, autoSyncInterval);
+      
+      setSyncTimeoutId(id);
+      
+      return () => {
+        if (syncTimeoutId) {
+          clearTimeout(syncTimeoutId);
+        }
+      };
+    }
+  }, [isOnline, isInitialized, pendingOperationsCount, autoSyncInterval]);
+
+  // Add an operation to the sync queue
+  const addToSyncQueue = async (operation: string, data: any, entity: string): Promise<number> => {
+    try {
+      let type: 'add' | 'update' | 'delete';
+      
+      switch (operation) {
+        case 'add':
+        case 'create':
+          type = 'add';
+          break;
+        case 'update':
+        case 'edit':
+          type = 'update';
+          break;
+        case 'delete':
+        case 'remove':
+          type = 'delete';
+          break;
+        default:
+          type = 'update';
+      }
+      
+      const id = await syncService.addToSyncQueue(type, data, entity);
+      
+      // Update pending operations count
+      const stats = await syncService.getSyncStats();
+      setPendingOperationsCount(stats.pending + stats.failed);
+      
+      return id;
+    } catch (error) {
+      console.error('Error adding operation to sync queue:', error);
+      throw error;
+    }
+  };
+
+  // Sync now
+  const syncNow = async (): Promise<void> => {
+    if (isSyncing || !isOnline) return;
+    
+    try {
+      setIsSyncing(true);
+      
+      // Get all pending operations
+      const operations = await syncService.getPendingOperations();
+      
+      if (operations.length === 0) {
+        setIsSyncing(false);
+        return;
+      }
+      
+      // Process operations
+      const results = await syncService.sync();
+      
+      // Update pending operations count
+      const stats = await syncService.getSyncStats();
+      setPendingOperationsCount(stats.pending + stats.failed);
+      
+      // Show success toast
+      const successCount = results.filter(r => r.success).length;
+      
+      if (successCount > 0) {
+        toast.success(`Synchronisation terminée`, {
+          description: `${successCount} opération(s) synchronisée(s)`
+        });
+      }
+    } catch (error) {
+      console.error('Error performing sync:', error);
+      toast.error('Erreur lors de la synchronisation', {
+        description: 'Veuillez réessayer plus tard'
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const value: OfflineContextType = {
     isOnline,
+    isInitialized,
     isSyncing,
-    pendingSyncCount,
+    addToSyncQueue,
     syncNow,
-    addToSyncQueue
+    pendingOperationsCount
   };
 
   return (
     <OfflineContext.Provider value={value}>
       {children}
-      {!isOnline && (
-        <div className="fixed top-0 right-0 p-2 m-4 bg-orange-100 text-orange-800 rounded-md shadow-md z-50 flex items-center gap-2">
-          <CloudOff className="h-4 w-4" />
-          <span className="text-sm font-medium">Mode hors-ligne</span>
+      {showOfflineIndicator && !isOnline && (
+        <div className="fixed bottom-16 left-0 right-0 bg-red-500 text-white text-center py-1 text-sm">
+          Mode hors ligne
         </div>
       )}
-      {pendingSyncCount > 0 && !isOnline && (
-        <div className="fixed bottom-4 right-4 max-w-md z-40">
-          <Alert variant="warning" className="border-orange-400 shadow-lg">
-            <Database className="h-4 w-4" />
-            <AlertTitle>Données non synchronisées</AlertTitle>
-            <AlertDescription className="text-xs">
-              {pendingSyncCount} modification(s) seront synchronisée(s) lorsque vous serez connecté.
-            </AlertDescription>
-          </Alert>
+      {showOfflineIndicator && isOnline && pendingOperationsCount > 0 && (
+        <div className="fixed bottom-16 left-0 right-0 bg-yellow-500 text-white text-center py-1 text-sm">
+          {isSyncing ? 
+            `Synchronisation en cours (${pendingOperationsCount})...` : 
+            `${pendingOperationsCount} opération(s) en attente`
+          }
         </div>
       )}
     </OfflineContext.Provider>
   );
-};
+}

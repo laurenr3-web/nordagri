@@ -115,6 +115,15 @@ const InterventionsPage = () => {
           }
         />
 
+        {/* Header with search and filters */}
+        <InterventionsHeader
+          onNewIntervention={handleOpenNewInterventionDialog}
+          searchQuery={searchQuery}
+          onSearchChange={handleSearchChange}
+          selectedPriority={selectedPriority}
+          onPriorityChange={handlePriorityChange}
+        />
+
         <InterventionsContainer
           filteredInterventions={filteredInterventions.length > 0 ? filteredInterventions : interventions}
           currentView={currentView}
@@ -125,10 +134,6 @@ const InterventionsPage = () => {
             handleStartWork(intervention);
             toast.success(`Intervention "${intervention.title}" démarrée`);
           }}
-          searchQuery={searchQuery}
-          selectedPriority={selectedPriority}
-          onSearchChange={handleSearchChange}
-          onPriorityChange={handlePriorityChange}
         />
 
         {/* Dialogs for interventions */}

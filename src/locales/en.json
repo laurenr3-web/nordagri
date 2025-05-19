@@ -1,0 +1,27 @@
+
+{
+  "dashboard.title": "Dashboard",
+  "settings.title": "Settings",
+  "settings.tabs.essentials": "Essentials",
+  "settings.tabs.security": "Security",
+  "settings.tabs.notifications": "Notifications",
+  "settings.tabs.interface": "Interface",
+  "settings.notifications.title": "Notification Settings",
+  "settings.notifications.desc": "Configure how and when you receive notifications.",
+  "settings.interface.title": "Interface Settings",
+  "settings.interface.desc": "Customize the app's appearance and behavior.",
+  "navbar.dashboard": "Dashboard",
+  "navbar.equipment": "Equipment",
+  "navbar.maintenance": "Maintenance",
+  "navbar.parts": "Parts",
+  "navbar.interventions": "Interventions",
+  "navbar.time": "Time Tracking",
+  "navbar.settings": "Settings",
+  "mobilemenu.dashboard": "Dashboard",
+  "mobilemenu.equipment": "Equipment",
+  "mobilemenu.maintenance": "Maintenance",
+  "mobilemenu.parts": "Parts",
+  "mobilemenu.interventions": "Interventions",
+  "mobilemenu.time": "Time",
+  "mobilemenu.settings": "Settings"
+}

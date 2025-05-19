@@ -159,7 +159,10 @@ export function useTimeStatistics() {
         
         const equipId = session.equipment_id;
         const hours = session.duration || 0;
-        const current = equipmentData.get(equipId) || { name: session.equipment?.name || null, hours: 0 };
+        // Fixed: Access equipment name properly
+        const equipmentName = session.equipment && typeof session.equipment === 'object' ? 
+          (session.equipment as any).name : null;
+        const current = equipmentData.get(equipId) || { name: equipmentName, hours: 0 };
         equipmentData.set(equipId, { name: current.name, hours: current.hours + hours });
       });
 

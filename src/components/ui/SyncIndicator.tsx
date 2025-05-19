@@ -28,7 +28,7 @@ export function SyncIndicator({
   const { isOnline, isSyncing, pendingSyncCount, syncNow } = useSyncStatus();
   const [isSyncing2, setIsSyncing2] = useState(false);
 
-  // Fonction pour déclencher manuellement une synchronisation
+  // Function to manually trigger synchronization
   const handleSync = async () => {
     if (!isOnline) {
       toast.error("Synchronisation impossible", {
@@ -46,7 +46,7 @@ export function SyncIndicator({
       setIsSyncing2(true);
       const results = await syncNow();
       
-      // Compter les succès et les échecs
+      // Count successes and failures
       const successCount = results.filter(r => r.success).length;
       const failCount = results.filter(r => !r.success).length;
       
@@ -61,21 +61,21 @@ export function SyncIndicator({
       }
     } catch (error) {
       toast.error("Erreur de synchronisation", {
-        description: error.message
+        description: error instanceof Error ? error.message : "Une erreur s'est produite"
       });
     } finally {
       setIsSyncing2(false);
     }
   };
 
-  // Si tout est synchronisé et en ligne, on peut afficher une version minimale
+  // If everything is synchronized and online, we can show a minimal version
   if (variant === 'minimal' && isOnline && pendingSyncCount === 0 && !isSyncing && !isSyncing2) {
     return null;
   }
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      {/* Indicateur d'état */}
+      {/* Status indicator */}
       <Badge 
         variant={!isOnline ? "destructive" : (pendingSyncCount > 0 ? "outline" : "secondary")}
         className={cn(
@@ -99,7 +99,7 @@ export function SyncIndicator({
         )}
       </Badge>
 
-      {/* Bouton de synchronisation manuelle */}
+      {/* Manual sync button */}
       {showButton && pendingSyncCount > 0 && isOnline && !(isSyncing || isSyncing2) && (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>

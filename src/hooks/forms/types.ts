@@ -1,6 +1,16 @@
 
-import { UseFormProps, UseFormReturn, FieldValues } from 'react-hook-form';
-import { ZodSchema } from 'zod';
+import { 
+  UseFormProps, 
+  UseFormReturn, 
+  FieldValues, 
+  UseFormStateReturn, 
+  FieldPath
+} from 'react-hook-form';
+import { z } from 'zod';
+
+export interface FormDraftRef {
+  current: string | null;
+}
 
 export interface UseMobileFormProps<T extends FieldValues> extends UseFormProps<T> {
   formType: string;
@@ -8,8 +18,8 @@ export interface UseMobileFormProps<T extends FieldValues> extends UseFormProps<
   autoSave?: boolean;
   autoSaveInterval?: number;
   onAutoSave?: (data: T) => void;
-  zodSchema?: ZodSchema<any>;
   onSubmitOffline?: (data: T) => Promise<void>;
+  zodSchema?: z.ZodType<any, any>;
   isDraftAvailable?: boolean;
 }
 
@@ -23,8 +33,4 @@ export interface UseMobileFormReturn<T extends FieldValues> extends UseFormRetur
   saveDraftManually: () => Promise<void>;
   isOnline: boolean;
   isSubmitting: boolean;
-}
-
-export interface FormDraftRef {
-  draftId: string | null;
 }

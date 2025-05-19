@@ -1,258 +1,145 @@
 
-import { supabase } from '@/integrations/supabase/client';
 import { Intervention, InterventionFormValues } from '@/types/Intervention';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
+/**
+ * Service for managing interventions through Supabase
+ */
 export const interventionService = {
-  // Récupérer toutes les interventions
+  /**
+   * Get all interventions
+   */
   async getInterventions(): Promise<Intervention[]> {
-    const { data, error } = await supabase
-      .from('interventions')
-      .select('*');
-    
-    if (error) {
-      console.error('Error fetching interventions:', error);
-      throw error;
+    try {
+      console.log('Fetching real interventions from Supabase');
+      const { data, error } = await supabase
+        .from('interventions')
+        .select('*')
+        .order('date', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching interventions:', error);
+        toast.error('Erreur lors du chargement des interventions');
+        throw error;
+      }
+      
+      return data as Intervention[] || [];
+    } catch (err) {
+      console.error('Exception lors du chargement des interventions:', err);
+      throw err;
     }
-    
-    // Convert database records to frontend objects
-    return (data || []).map(item => ({
-      id: item.id,
-      title: item.title,
-      equipment: item.equipment,
-      equipmentId: item.equipment_id,
-      location: item.location,
-      coordinates: { 
-        lat: typeof item.coordinates === 'object' && item.coordinates !== null && 'lat' in item.coordinates 
-          ? Number(item.coordinates.lat) || 0 
-          : 0, 
-        lng: typeof item.coordinates === 'object' && item.coordinates !== null && 'lng' in item.coordinates 
-          ? Number(item.coordinates.lng) || 0 
-          : 0 
-      },
-      status: (item.status as Intervention['status']) || 'scheduled',
-      priority: (item.priority as Intervention['priority']) || 'medium',
-      date: new Date(item.date),
-      duration: item.duration || undefined,
-      scheduledDuration: item.scheduled_duration || undefined,
-      technician: item.technician,
-      description: item.description || '',
-      partsUsed: item.parts_used ? 
-        (Array.isArray(item.parts_used) ? 
-          item.parts_used.map((p: any) => ({
-            partId: p.partId || 0,
-            name: p.name || '',
-            quantity: p.quantity || 0
-          })) : []
-        ) : [],
-      notes: item.notes || '',
-    }));
   },
   
-  // Récupérer une intervention par son ID
-  async getInterventionById(id: string | number): Promise<Intervention> {
-    const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
-    
-    const { data, error } = await supabase
-      .from('interventions')
-      .select('*')
-      .eq('id', numericId)
-      .single();
-    
-    if (error) {
-      console.error(`Error fetching intervention with id ${id}:`, error);
-      throw error;
+  /**
+   * Get intervention by ID
+   */
+  async getInterventionById(id: number): Promise<Intervention | null> {
+    try {
+      const { data, error } = await supabase
+        .from('interventions')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching intervention by id:', error);
+        toast.error('Erreur lors du chargement de l\'intervention');
+        throw error;
+      }
+      
+      return data as Intervention;
+    } catch (err) {
+      console.error('Exception lors du chargement de l\'intervention:', err);
+      throw err;
     }
-    
-    return {
-      id: data.id,
-      title: data.title,
-      equipment: data.equipment,
-      equipmentId: data.equipment_id,
-      location: data.location,
-      coordinates: data.coordinates && typeof data.coordinates === 'object' ? 
-        { 
-          lat: typeof data.coordinates === 'object' && 'lat' in data.coordinates ? 
-            Number(data.coordinates.lat) || 0 : 0, 
-          lng: typeof data.coordinates === 'object' && 'lng' in data.coordinates ? 
-            Number(data.coordinates.lng) || 0 : 0 
-        } : 
-        { lat: 0, lng: 0 },
-      status: (data.status as Intervention['status']) || 'scheduled',
-      priority: (data.priority as Intervention['priority']) || 'medium',
-      date: new Date(data.date),
-      duration: data.duration || undefined,
-      scheduledDuration: data.scheduled_duration || undefined,
-      technician: data.technician,
-      description: data.description || '',
-      partsUsed: Array.isArray(data.parts_used) ? 
-        data.parts_used.map((p: any) => ({
-          partId: p.partId || 0,
-          name: p.name || '',
-          quantity: p.quantity || 0
-        })) : [],
-      notes: data.notes || ''
-    };
   },
   
-  // Add an intervention
+  /**
+   * Add a new intervention
+   */
   async addIntervention(intervention: InterventionFormValues): Promise<Intervention> {
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-    
-    if (sessionError) {
-      console.error('Error getting session:', sessionError);
-      throw sessionError;
-    }
-    
-    const newIntervention = {
-      title: intervention.title,
-      equipment: intervention.equipment,
-      equipment_id: intervention.equipmentId,
-      location: intervention.location,
-      coordinates: { lat: 34.052235, lng: -118.243683 }, // Default coordinates
-      status: 'scheduled',
-      priority: intervention.priority,
-      date: intervention.date.toISOString(),
-      scheduled_duration: intervention.scheduledDuration,
-      technician: intervention.technician,
-      description: intervention.description,
-      notes: intervention.notes || "",
-      parts_used: [],
-      owner_id: sessionData.session?.user.id
-    };
-    
-    const { data, error } = await supabase
-      .from('interventions')
-      .insert(newIntervention)
-      .select()
-      .single();
-    
-    if (error) {
-      console.error('Error adding intervention:', error);
-      throw error;
-    }
-    
-    return {
-      id: data.id,
-      title: data.title,
-      equipment: data.equipment,
-      equipmentId: data.equipment_id,
-      location: data.location,
-      coordinates: data.coordinates && typeof data.coordinates === 'object' ? 
-        { 
-          lat: typeof data.coordinates === 'object' && 'lat' in data.coordinates ? 
-            Number(data.coordinates.lat) || 0 : 0, 
-          lng: typeof data.coordinates === 'object' && 'lng' in data.coordinates ? 
-            Number(data.coordinates.lng) || 0 : 0 
-        } : 
-        { lat: 0, lng: 0 },
-      status: (data.status as Intervention['status']) || 'scheduled',
-      priority: (data.priority as Intervention['priority']) || 'medium',
-      date: new Date(data.date),
-      duration: data.duration || undefined,
-      scheduledDuration: data.scheduled_duration || undefined,
-      technician: data.technician,
-      description: data.description || '',
-      partsUsed: Array.isArray(data.parts_used) ? 
-        data.parts_used.map((p: any) => ({
-          partId: p.partId || 0,
-          name: p.name || '',
-          quantity: p.quantity || 0
-        })) : [],
-      notes: data.notes || ''
-    };
-  },
-  
-  // Mettre à jour une intervention
-  async updateIntervention(intervention: Intervention): Promise<Intervention> {
-    const updates = {
-      title: intervention.title,
-      equipment: intervention.equipment,
-      equipment_id: intervention.equipmentId,
-      location: intervention.location,
-      coordinates: intervention.coordinates,
-      status: intervention.status,
-      priority: intervention.priority,
-      date: typeof intervention.date === 'string' ? intervention.date : intervention.date.toISOString(),
-      duration: intervention.duration,
-      scheduled_duration: intervention.scheduledDuration,
-      technician: intervention.technician,
-      description: intervention.description,
-      parts_used: intervention.partsUsed,
-      notes: intervention.notes,
-      updated_at: new Date().toISOString()
-    };
-    
-    const { data, error } = await supabase
-      .from('interventions')
-      .update(updates)
-      .eq('id', intervention.id)
-      .select()
-      .single();
-    
-    if (error) {
-      console.error(`Error updating intervention with id ${intervention.id}:`, error);
-      throw error;
-    }
-    
-    return {
-      id: data.id,
-      title: data.title,
-      equipment: data.equipment,
-      equipmentId: data.equipment_id,
-      location: data.location,
-      coordinates: data.coordinates && typeof data.coordinates === 'object' ? 
-        { 
-          lat: typeof data.coordinates === 'object' && 'lat' in data.coordinates ? 
-            Number(data.coordinates.lat) || 0 : 0, 
-          lng: typeof data.coordinates === 'object' && 'lng' in data.coordinates ? 
-            Number(data.coordinates.lng) || 0 : 0 
-        } : 
-        { lat: 0, lng: 0 },
-      status: (data.status as Intervention['status']) || 'scheduled',
-      priority: (data.priority as Intervention['priority']) || 'medium',
-      date: new Date(data.date),
-      duration: data.duration || undefined,
-      scheduledDuration: data.scheduled_duration || undefined,
-      technician: data.technician,
-      description: data.description || '',
-      partsUsed: Array.isArray(data.parts_used) ? 
-        data.parts_used.map((p: any) => ({
-          partId: p.partId || 0,
-          name: p.name || '',
-          quantity: p.quantity || 0
-        })) : [],
-      notes: data.notes || ''
-    };
-  },
-  
-  // Mettre à jour le statut d'une intervention
-  async updateInterventionStatus(id: number, status: string): Promise<void> {
-    const updates = { 
-      status,
-      ...(status === 'completed' ? { completed_at: new Date().toISOString() } : {})
-    };
-    
-    const { error } = await supabase
-      .from('interventions')
-      .update(updates)
-      .eq('id', id);
-    
-    if (error) {
-      console.error('Error updating intervention status:', error);
-      throw error;
+    try {
+      const { data, error } = await supabase
+        .from('interventions')
+        .insert({
+          title: intervention.title,
+          description: intervention.description,
+          equipment: intervention.equipment,
+          location: intervention.location || "",
+          status: intervention.status || "scheduled",
+          priority: intervention.priority,
+          technician: intervention.technician || "",
+          date: intervention.date,
+          scheduledDuration: intervention.scheduledDuration || 1,
+          equipment_id: intervention.equipmentId
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error adding intervention:', error);
+        toast.error('Erreur lors de l\'ajout de l\'intervention');
+        throw error;
+      }
+      
+      return data as Intervention;
+    } catch (err) {
+      console.error('Exception lors de l\'ajout de l\'intervention:', err);
+      throw err;
     }
   },
   
-  // Supprimer une intervention
+  /**
+   * Update intervention
+   */
+  async updateIntervention(id: number, updates: Partial<Intervention>): Promise<Intervention> {
+    try {
+      const { data, error } = await supabase
+        .from('interventions')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error updating intervention:', error);
+        toast.error('Erreur lors de la mise à jour de l\'intervention');
+        throw error;
+      }
+      
+      return data as Intervention;
+    } catch (err) {
+      console.error('Exception lors de la mise à jour de l\'intervention:', err);
+      throw err;
+    }
+  },
+  
+  /**
+   * Update intervention status
+   */
+  async updateInterventionStatus(id: number, status: 'scheduled' | 'in-progress' | 'completed' | 'canceled'): Promise<Intervention> {
+    return this.updateIntervention(id, { status });
+  },
+  
+  /**
+   * Delete intervention
+   */
   async deleteIntervention(id: number): Promise<void> {
-    const { error } = await supabase
-      .from('interventions')
-      .delete()
-      .eq('id', id);
-    
-    if (error) {
-      console.error('Error deleting intervention:', error);
-      throw error;
+    try {
+      const { error } = await supabase
+        .from('interventions')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        console.error('Error deleting intervention:', error);
+        toast.error('Erreur lors de la suppression de l\'intervention');
+        throw error;
+      }
+    } catch (err) {
+      console.error('Exception lors de la suppression de l\'intervention:', err);
+      throw err;
     }
   }
 };
