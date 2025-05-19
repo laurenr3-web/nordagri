@@ -102,7 +102,7 @@ describe('exportInterventionToPDF utility', () => {
   });
 
   it('uses custom filename if provided', async () => {
-    await exportInterventionToPDF(mockIntervention, {}, "rapport-custom");
+    await exportInterventionToPDF(mockIntervention, { filename: "rapport-custom" });
     
     expect(saveAs).toHaveBeenCalledWith(
       expect.any(Blob),

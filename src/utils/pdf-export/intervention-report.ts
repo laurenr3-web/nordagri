@@ -7,8 +7,11 @@ import { InterventionReportPDFOptions } from './types';
  */
 export async function exportInterventionToPDF(
   intervention: Intervention,
-  options?: InterventionReportPDFOptions
+  options?: InterventionReportPDFOptions & { filename?: string }
 ): Promise<void> {
+  // Extract the filename option if provided
+  const { filename } = options || {};
+  
   console.log(`Exporting PDF for intervention ${intervention.id}: ${intervention.title}`, options);
   
   // In a real implementation, this would generate a PDF using a library like react-pdf
