@@ -9,6 +9,7 @@ export interface FormDraft<T> {
   formType: string;
   meta?: Record<string, any>;
   formId?: string | number;
+  lastSaved?: number; // Add this missing property
 }
 
 export class FormDraftService {
@@ -23,6 +24,7 @@ export class FormDraftService {
       formType,
       createdAt: timestamp,
       updatedAt: timestamp,
+      lastSaved: timestamp, // Add this missing property
       meta,
       formId: meta && typeof meta === 'object' ? meta.formId : undefined
     };
@@ -43,6 +45,7 @@ export class FormDraftService {
       ...existingDraft,
       data,
       updatedAt: Date.now(),
+      lastSaved: Date.now(), // Add this missing property
       meta: meta !== undefined ? meta : existingDraft.meta
     };
     

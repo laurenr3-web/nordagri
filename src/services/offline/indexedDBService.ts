@@ -46,7 +46,7 @@ export class IndexedDBService {
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
         
-        // Create object stores for different types of data
+        // Create object stores with consistent names across the application
         if (!db.objectStoreNames.contains('formDrafts')) {
           db.createObjectStore('formDrafts', { keyPath: 'id' });
         }
@@ -55,7 +55,6 @@ export class IndexedDBService {
           db.createObjectStore('syncQueue', { keyPath: 'id', autoIncrement: true });
         }
 
-        // Add more stores as needed for offline functionality
         if (!db.objectStoreNames.contains('interventions')) {
           const interventionsStore = db.createObjectStore('interventions', { keyPath: 'id' });
           interventionsStore.createIndex('status', 'status', { unique: false });
@@ -68,6 +67,19 @@ export class IndexedDBService {
 
         if (!db.objectStoreNames.contains('offline_cache')) {
           db.createObjectStore('offline_cache', { keyPath: 'key' });
+        }
+
+        // Ensure these store names are correctly defined for consistency
+        if (!db.objectStoreNames.contains('equipment_options')) {
+          db.createObjectStore('equipment_options', { keyPath: 'key' });
+        }
+        
+        if (!db.objectStoreNames.contains('equipment_stats')) {
+          db.createObjectStore('equipment_stats', { keyPath: 'key' });
+        }
+        
+        if (!db.objectStoreNames.contains('equipment_maintenance')) {
+          db.createObjectStore('equipment_maintenance', { keyPath: 'key' });
         }
       };
     });

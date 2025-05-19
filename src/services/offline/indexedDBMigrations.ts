@@ -25,10 +25,12 @@ export class IndexedDBMigrations {
   static async clearAllData(): Promise<void> {
     await IndexedDBService.openDB();
     
-    // Clear each store
-    await IndexedDBService.clearStore('syncOperations');
-    await IndexedDBService.clearStore('offline_cache');
-    await IndexedDBService.clearStore('form_drafts');
+    // Clear each store using the correct store names defined in IndexedDBService
+    await IndexedDBService.clearStore('syncQueue'); // Changed from 'syncOperations' to 'syncQueue'
+    await IndexedDBService.clearStore('offline_cache'); // Keep this as is
+    await IndexedDBService.clearStore('formDrafts'); // Changed from 'form_drafts' to 'formDrafts'
+    await IndexedDBService.clearStore('interventions'); // Add this store from IndexedDBService
+    await IndexedDBService.clearStore('equipment'); // Add this store from IndexedDBService
     
     console.log('IndexedDB data cleared');
   }
