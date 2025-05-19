@@ -54,7 +54,7 @@ export const useInterventionReportForm = ({ intervention, onSubmit, onOpenChange
       notes: values.notes || '',
       // Convert form part format to intervention part format
       partsUsed: (values.partsUsed || []).map(part => ({
-        partId: part.id,
+        id: part.id,  // Use id instead of partId
         name: part.name,
         quantity: part.quantity
       }))

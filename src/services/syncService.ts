@@ -168,7 +168,7 @@ class SyncServiceClass {
    */
   public async getCachedQueryResult<T>(key: string): Promise<T | null> {
     try {
-      const cache = await IndexedDBService.getByKey('offline_cache', key);
+      const cache = await IndexedDBService.getByKey<{key: string, data: T}>('offline_cache', key);
       if (cache && 'data' in cache) {
         return cache.data as T;
       }
@@ -176,6 +176,19 @@ class SyncServiceClass {
       console.error('Error getting cached data:', error);
     }
     return null;
+  }
+
+  /**
+   * Add an operation to the queue
+   */
+  public async addOperation(params: {
+    type: 'add' | 'update' | 'delete';
+    entity: string;
+    data: any;
+    priority: number;
+  }): Promise<number> {
+    const { type, entity, data, priority } = params;
+    return this.addToSyncQueue(type, data, entity);
   }
 
   /**

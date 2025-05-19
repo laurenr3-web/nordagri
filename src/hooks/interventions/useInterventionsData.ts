@@ -104,7 +104,7 @@ export function useInterventionsData() {
   const submitInterventionReport = (intervention: Intervention, report: {
     duration: number;
     notes: string;
-    partsUsed: Array<{ partId: number; name: string; quantity: number; }>;
+    partsUsed: Array<{ id: number; name: string; quantity: number; }>;
   }) => {
     const updatedIntervention: Intervention = {
       ...intervention,

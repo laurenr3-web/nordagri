@@ -1,7 +1,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as interventionService from '@/services/interventionService';
-import { useSyncService } from '@/services/syncService';
+import { syncService } from '@/services/syncService';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useNetworkState } from '@/hooks/useNetworkState';
 import { Intervention } from '@/types/Intervention';
@@ -11,7 +11,6 @@ import { SyncOperationType } from '@/providers/OfflineProvider';
 export const useInterventionsWithOffline = () => {
   const queryClient = useQueryClient();
   const isOnline = useNetworkState();
-  const syncService = useSyncService();
   const [cachedInterventions, setCachedInterventions] = useLocalStorage<Intervention[]>('cached-interventions', []);
   
   // Fetch interventions with offline support
@@ -36,7 +35,7 @@ export const useInterventionsWithOffline = () => {
         return await interventionService.createIntervention(newIntervention);
       } else {
         // Generate a temporary ID for offline mode
-        const tempId = `temp-${Date.now()}`;
+        const tempId = Date.now();
         const tempIntervention = { 
           ...newIntervention, 
           id: tempId,
@@ -76,7 +75,11 @@ export const useInterventionsWithOffline = () => {
         });
         
         // Return optimistic update
-        const updatedIntervention = { id, ...data, _isOffline: true } as Intervention;
+        const updatedIntervention = { 
+          ...data, 
+          id: typeof id === 'string' ? parseInt(id, 10) : id,
+          _isOffline: true 
+        } as Intervention;
         return updatedIntervention;
       }
     },

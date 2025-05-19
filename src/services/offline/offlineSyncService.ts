@@ -1,3 +1,4 @@
+
 import { IndexedDBService } from './indexedDBService';
 import { SyncOperationType } from '@/providers/OfflineProvider';
 
@@ -16,12 +17,11 @@ export interface SyncOperation {
 
 // Main service for handling offline synchronization
 export class OfflineSyncService {
-  private dbService: IndexedDBService;
   private isProcessing: boolean = false;
   private maxRetries: number = 3;
 
-  constructor(dbService: IndexedDBService) {
-    this.dbService = dbService;
+  constructor() {
+    // Constructor is now empty as we use static methods
   }
 
   // Add an operation to the sync queue
@@ -43,14 +43,14 @@ export class OfflineSyncService {
       attempts: 0
     };
 
-    await this.dbService.addToStore('syncOperations', operation);
+    await IndexedDBService.addToStore('syncOperations', operation);
     return id;
   }
 
   // Get all pending operations
   async getPendingOperations(): Promise<SyncOperation[]> {
     try {
-      const operations = await this.dbService.getAllFromStore('syncOperations');
+      const operations = await IndexedDBService.getAllFromStore<SyncOperation>('syncOperations');
       return operations.filter((op: SyncOperation) => 
         op.status === 'pending' || op.status === 'failed'
       );
@@ -97,7 +97,7 @@ export class OfflineSyncService {
           
           // Mark as complete and remove
           await this.updateOperationStatus(operation.id, 'complete');
-          await this.dbService.deleteFromStore('syncOperations', operation.id);
+          await IndexedDBService.deleteFromStore('syncOperations', operation.id);
           
           successCount++;
         } catch (error) {
@@ -105,11 +105,9 @@ export class OfflineSyncService {
           const newAttempts = operation.attempts + 1;
           const status = newAttempts >= this.maxRetries ? 'failed' : 'pending';
           
-          await this.dbService.updateInStore('syncOperations', operation.id, {
-            status,
-            attempts: newAttempts,
-            errorMessage: error instanceof Error ? error.message : 'Unknown error'
-          });
+          await this.updateOperationStatus(operation.id, status, 
+            error instanceof Error ? error.message : 'Unknown error',
+            newAttempts);
           
           if (status === 'failed') {
             failedCount++;
@@ -127,12 +125,14 @@ export class OfflineSyncService {
   private async updateOperationStatus(
     id: string,
     status: SyncOperation['status'],
-    errorMessage?: string
+    errorMessage?: string,
+    attempts?: number
   ): Promise<void> {
-    await this.dbService.updateInStore('syncOperations', id, { 
-      status, 
-      ...(errorMessage && { errorMessage })
-    });
+    const updates: Partial<SyncOperation> = { status };
+    if (errorMessage) updates.errorMessage = errorMessage;
+    if (attempts !== undefined) updates.attempts = attempts;
+    
+    await IndexedDBService.updateInStore('syncOperations', id, updates);
   }
 
   // Process a single operation
@@ -155,3 +155,6 @@ export class OfflineSyncService {
     }
   }
 }
+
+// Create and export a singleton instance
+export const offlineSyncService = new OfflineSyncService();

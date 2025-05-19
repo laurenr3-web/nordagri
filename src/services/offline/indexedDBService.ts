@@ -5,6 +5,28 @@ export class IndexedDBService {
   static DB_VERSION = 1;
   
   /**
+   * Check if the database exists
+   * @returns Promise<boolean>
+   */
+  static async databaseExists(): Promise<boolean> {
+    return new Promise((resolve) => {
+      const request = indexedDB.open(this.DB_NAME);
+      request.onupgradeneeded = () => {
+        request.transaction?.abort();
+        resolve(false);
+      };
+      request.onsuccess = () => {
+        const db = request.result;
+        db.close();
+        resolve(true);
+      };
+      request.onerror = () => {
+        resolve(false);
+      };
+    });
+  }
+  
+  /**
    * Open database connection
    * @returns Promise<IDBDatabase>
    */
@@ -43,6 +65,10 @@ export class IndexedDBService {
           const equipmentStore = db.createObjectStore('equipment', { keyPath: 'id' });
           equipmentStore.createIndex('status', 'status', { unique: false });
         }
+
+        if (!db.objectStoreNames.contains('offline_cache')) {
+          db.createObjectStore('offline_cache', { keyPath: 'key' });
+        }
       };
     });
   }
@@ -78,7 +104,7 @@ export class IndexedDBService {
   /**
    * Update an item in a store
    * @param storeName Store name
-   * @param data Data to update
+   * @param data Data to update (must include the key)
    * @returns Promise<void>
    */
   static async updateInStore(storeName: string, data: any): Promise<void> {
@@ -95,6 +121,55 @@ export class IndexedDBService {
       
       request.onerror = (event) => {
         reject(new Error(`Error updating in ${storeName}: ${(event.target as IDBRequest).error?.message}`));
+      };
+      
+      transaction.oncomplete = () => {
+        db.close();
+      };
+    });
+  }
+  
+  /**
+   * Update an item in a store by ID
+   * @param storeName Store name
+   * @param id Item ID
+   * @param data Data to update
+   * @returns Promise<void>
+   */
+  static async updateInStore(storeName: string, id: string | number, data: any): Promise<void> {
+    const db = await this.openDB();
+    
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([storeName], 'readwrite');
+      const store = transaction.objectStore(storeName);
+      
+      // First, get the current item
+      const getRequest = store.get(id);
+      
+      getRequest.onsuccess = () => {
+        const item = getRequest.result;
+        if (!item) {
+          reject(new Error(`Item with id ${id} not found in ${storeName}`));
+          return;
+        }
+        
+        // Merge with the new data
+        const updatedItem = { ...item, ...data };
+        
+        // Put it back
+        const putRequest = store.put(updatedItem);
+        
+        putRequest.onsuccess = () => {
+          resolve();
+        };
+        
+        putRequest.onerror = (event) => {
+          reject(new Error(`Error updating item ${id} in ${storeName}: ${(event.target as IDBRequest).error?.message}`));
+        };
+      };
+      
+      getRequest.onerror = (event) => {
+        reject(new Error(`Error getting item ${id} from ${storeName}: ${(event.target as IDBRequest).error?.message}`));
       };
       
       transaction.oncomplete = () => {
@@ -123,6 +198,34 @@ export class IndexedDBService {
       
       request.onerror = (event) => {
         reject(new Error(`Error getting from ${storeName}: ${(event.target as IDBRequest).error?.message}`));
+      };
+      
+      transaction.oncomplete = () => {
+        db.close();
+      };
+    });
+  }
+
+  /**
+   * Get an item by key
+   * @param storeName Store name
+   * @param key Key to search for
+   * @returns Promise<T | undefined>
+   */
+  static async getByKey<T>(storeName: string, key: string): Promise<T | undefined> {
+    const db = await this.openDB();
+    
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([storeName], 'readonly');
+      const store = transaction.objectStore(storeName);
+      const request = store.get(key);
+      
+      request.onsuccess = () => {
+        resolve(request.result);
+      };
+      
+      request.onerror = (event) => {
+        reject(new Error(`Error getting item by key ${key} from ${storeName}: ${(event.target as IDBRequest).error?.message}`));
       };
       
       transaction.oncomplete = () => {

@@ -13,8 +13,7 @@ export class IndexedDBMigrations {
    * Run all migrations to ensure database is up to date
    */
   static async runMigrations(): Promise<void> {
-    const dbService = new IndexedDBService();
-    await dbService.openDB(); // This will trigger the onupgradeneeded event if needed
+    await IndexedDBService.openDB(); // This will trigger the onupgradeneeded event if needed
 
     // Additional migrations could be added here if needed
     console.log('IndexedDB migrations completed');
@@ -24,13 +23,12 @@ export class IndexedDBMigrations {
    * Clear all data from IndexedDB (useful for testing)
    */
   static async clearAllData(): Promise<void> {
-    const dbService = new IndexedDBService();
-    await dbService.openDB();
+    await IndexedDBService.openDB();
     
     // Clear each store
-    await dbService.clearStore('syncOperations');
-    await dbService.clearStore('offline_cache');
-    await dbService.clearStore('form_drafts');
+    await IndexedDBService.clearStore('syncOperations');
+    await IndexedDBService.clearStore('offline_cache');
+    await IndexedDBService.clearStore('form_drafts');
     
     console.log('IndexedDB data cleared');
   }

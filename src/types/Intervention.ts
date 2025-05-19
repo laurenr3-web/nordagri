@@ -9,7 +9,8 @@ export interface Intervention {
   priority: "high" | "medium" | "low";
   equipment: string;
   partsUsed?: {
-    id: number;
+    id?: number;
+    partId?: number;
     name: string;
     quantity: number;
     unitPrice?: number;
@@ -22,7 +23,8 @@ export interface Intervention {
   technician?: string;
   scheduledDuration?: number;
   duration?: number;
-  equipmentId?: number; // Added to align with the form values
+  equipmentId?: number; 
+  coordinates?: { lat: number; lng: number; };
 }
 
 // Form values interface for new interventions
