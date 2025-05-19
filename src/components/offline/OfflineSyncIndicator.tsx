@@ -1,89 +1,64 @@
 
 import React from 'react';
-import { CloudOff, Cloud, CloudSync, CloudLightning } from 'lucide-react';
-import { useOfflineStatus } from '@/providers/OfflineProvider';
-import { cn } from '@/lib/utils';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { useNetworkState } from '@/hooks/useNetworkState';
+import { CloudOff, Cloud, RefreshCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { TranslatedText } from '@/components/i18n/TranslatedText';
 
 interface OfflineSyncIndicatorProps {
-  showSyncButton?: boolean;
-  className?: string;
+  pendingItems?: number;
+  isSyncing?: boolean;
+  onManualSync?: () => void;
 }
 
-export function OfflineSyncIndicator({ showSyncButton = false, className }: OfflineSyncIndicatorProps) {
-  const { isOnline, isSyncing, pendingSyncCount, syncNow } = useOfflineStatus();
-  
-  // Determine the status and appropriate icon
-  const getStatusDetails = () => {
-    if (!isOnline) {
-      return {
-        icon: <CloudOff className="h-4 w-4" />,
-        label: "Hors-ligne",
-        tooltip: "Vous êtes actuellement hors-ligne. Les modifications seront synchronisées lors de votre reconnexion.",
-        color: "bg-orange-100 text-orange-800 border-orange-200"
-      };
-    } else if (isSyncing) {
-      return {
-        icon: <CloudSync className="h-4 w-4 animate-spin" />,
-        label: "Synchronisation...",
-        tooltip: "Synchronisation en cours...",
-        color: "bg-blue-100 text-blue-800 border-blue-200"
-      };
-    } else if (pendingSyncCount > 0) {
-      return {
-        icon: <CloudLightning className="h-4 w-4" />,
-        label: `${pendingSyncCount} en attente`,
-        tooltip: `${pendingSyncCount} modification(s) en attente de synchronisation`,
-        color: "bg-amber-100 text-amber-800 border-amber-200"
-      };
-    } else {
-      return {
-        icon: <Cloud className="h-4 w-4" />,
-        label: "Connecté",
-        tooltip: "Toutes les données sont synchronisées",
-        color: "bg-green-100 text-green-800 border-green-200"
-      };
-    }
-  };
-  
-  const { icon, label, tooltip, color } = getStatusDetails();
+export function OfflineSyncIndicator({ 
+  pendingItems = 0,
+  isSyncing = false,
+  onManualSync
+}: OfflineSyncIndicatorProps) {
+  const isOnline = useNetworkState();
+  const { t } = useTranslation();
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="flex items-center gap-2">
-            <Badge 
-              variant="outline" 
-              className={cn(
-                "py-1 px-2 flex items-center gap-1.5 whitespace-nowrap", 
-                color, 
-                className
-              )}
-            >
-              {icon}
-              <span className="text-xs">{label}</span>
-            </Badge>
-            
-            {showSyncButton && pendingSyncCount > 0 && isOnline && !isSyncing && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="text-xs h-7 px-2 py-1"
-                onClick={syncNow}
-                disabled={isSyncing}
-              >
-                Synchroniser
-              </Button>
-            )}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>{tooltip}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <div className="flex items-center gap-2">
+      <div className={`flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+        isOnline 
+          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+          : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+      }`}>
+        {isOnline ? (
+          <Cloud className="h-3.5 w-3.5 mr-1" />
+        ) : (
+          <CloudOff className="h-3.5 w-3.5 mr-1" />
+        )}
+        
+        {isOnline 
+          ? <TranslatedText i18nKey="offline.status.online" defaultText="Connected" />
+          : <TranslatedText i18nKey="offline.status.offline" defaultText="Offline" />
+        }
+      </div>
+
+      {isOnline && pendingItems > 0 && !isSyncing && (
+        <button
+          onClick={onManualSync}
+          className="flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+          title={t('offline.syncNow', 'Sync now')}
+        >
+          <RefreshCw className="h-3 w-3 mr-1" />
+          <TranslatedText 
+            i18nKey={pendingItems === 1 ? "offline.status.pendingSync" : "offline.status.pluralPendingSync"}
+            values={{ count: pendingItems }}
+            defaultText={`${pendingItems} pending`}
+          />
+        </button>
+      )}
+
+      {isSyncing && (
+        <div className="flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+          <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+          <TranslatedText i18nKey="offline.status.syncing" defaultText="Syncing..." />
+        </div>
+      )}
+    </div>
   );
 }

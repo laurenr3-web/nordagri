@@ -42,7 +42,7 @@ export const getCurrentLanguage = (): SupportedLanguage => {
 };
 
 // Helper function to change the language
-export const changeLanguage = (lang: SupportedLanguage): Promise<typeof i18n> => {
+export const changeLanguage = (lang: SupportedLanguage) => {
   return i18n.changeLanguage(lang);
 };
 

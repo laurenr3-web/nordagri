@@ -13,7 +13,7 @@ export function useAutoSave<T extends FieldValues>(
 ) {
   const isOnline = useNetworkState();
   const formStateRef = useRef<T | null>(null);
-  const timeoutRef = useRef<number | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Keep track of form values for auto-save
   useEffect(() => {

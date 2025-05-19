@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { changeLanguage, SupportedLanguage } from '@/i18n';
-import { Language } from 'lucide-react';
+import { Languages } from 'lucide-react';
 
 interface LanguageOption {
   value: SupportedLanguage;
@@ -62,7 +62,7 @@ export function LanguageSelector({
       <Select value={currentLang} onValueChange={handleLanguageChange}>
         <SelectTrigger className="w-full">
           <div className="flex items-center gap-2">
-            <Language className="h-4 w-4" />
+            <Languages className="h-4 w-4" />
             <SelectValue>
               {languages.find(l => l.value === currentLang)?.label || 'Language'}
             </SelectValue>
