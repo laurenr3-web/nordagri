@@ -2,7 +2,7 @@
 import { Intervention } from '@/types/Intervention';
 import { InterventionReportPDFOptions } from './types';
 import { exportInterventionToPDF as exportReport, sendInterventionReportByEmail as sendReportByEmail } from './intervention-report';
-import { exportTimeReportToPDF } from './time-report';
+import { exportTimeReportToPDF, exportTimeEntriesToPDF } from './time-tracking-export';
 
 export interface ExportOptions {
   reportNotes?: string;
@@ -23,8 +23,8 @@ export async function sendInterventionReportByEmail(
   return sendReportByEmail(intervention, email, options);
 }
 
-// Re-export the time report function
-export { exportTimeReportToPDF };
+// Re-export the time report functions
+export { exportTimeReportToPDF, exportTimeEntriesToPDF };
 
 // Re-export types
 export * from './types';

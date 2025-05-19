@@ -5,6 +5,7 @@ import { TimeEntry } from '@/hooks/time-tracking/types';
 import { TopEquipment } from '@/hooks/time-tracking/useTopEquipment';
 import { TaskTypeDistribution } from '@/hooks/time-tracking/useTaskTypeDistribution';
 import { exportToExcel, ExcelColumn } from '@/utils/excelExport';
+import { exportTimeReportToPDF } from '@/utils/pdf-export/time-tracking-export';
 
 export interface EmployeeHoursData {
   date: string;
@@ -47,12 +48,35 @@ export const useExportTimeTracking = () => {
     taskDistribution: TaskTypeDistribution[],
     topEquipment: TopEquipment[]
   ) => {
-    // We'll use the direct export function instead of the complex one with multiple parameters
-    console.log('Exporting report to PDF', { month, summary, taskDistribution, topEquipment });
-    
-    // Since we can't access the actual PDF export function, we'll just log the intended action
-    const filename = `rapport-temps-${format(new Date(), 'yyyy-MM')}`;
-    console.log(`PDF would be exported to: ${filename}.pdf`);
+    try {
+      // Calculate percentages for task types
+      const totalTaskHours = taskDistribution.reduce((acc, task) => acc + task.hours, 0);
+      const taskDistWithPercentages = taskDistribution.map(task => ({
+        ...task,
+        percentage: totalTaskHours > 0 ? (task.hours / totalTaskHours) * 100 : 0
+      }));
+      
+      // Safely map topEquipment to ensure name is always defined
+      const safeTopEquipment = topEquipment.map(equipment => ({
+        ...equipment,
+        name: equipment.name || 'Équipement non spécifié'
+      }));
+      
+      // Generate filename with current date
+      const filename = `rapport-temps-${format(new Date(), 'yyyy-MM')}`;
+      
+      // Use the updated exportTimeReportToPDF function from our utility
+      return exportTimeReportToPDF(
+        month,
+        summary,
+        taskDistWithPercentages,
+        safeTopEquipment,
+        filename
+      );
+    } catch (error) {
+      console.error("Error in exportReportToPDF:", error);
+      throw error;
+    }
   };
 
   // Export entries to Excel

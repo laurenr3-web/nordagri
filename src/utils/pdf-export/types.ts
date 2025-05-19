@@ -1,45 +1,26 @@
 
-import { Intervention } from '@/types/Intervention';
+// Types for the PDF report generation
 
-export interface InterventionReportPDFOptions {
-  companyName?: string;
-  companyLogo?: string;
-  companyDetails?: string;
-  signature?: string;
-  reportNotes?: string;
-  actualDuration?: number;
-  images?: string[];
-  technician?: string;
+// Options for generating PDF reports
+export interface PDFGenerationOptions {
   filename?: string;
 }
 
-export interface TimeReportPDFOptions {
-  employeeName: string;
-  companyName?: string;
-  companyLogo?: string;
-  period: {
-    start: Date;
-    end: Date;
-  };
+// Result of a PDF generation operation
+export interface PDFGenerationResult {
+  url: string;
+  blob: Blob;
+  filename: string;
+  contentType: string;
 }
 
-// Ajout des types manquants
-export interface TableHeader {
-  key: string;
-  label: string;
+// Options for time report PDF generation
+export interface TimeReportPDFOptions extends PDFGenerationOptions {
+  includeTaskDistribution?: boolean;
+  includeTopEquipment?: boolean;
 }
 
-export interface TableData {
-  headers: TableHeader[];
-  rows: Record<string, any>[];
-}
-
-export interface TimeEntriesPDFProps {
-  title: string;
-  subtitle: string;
-  tableData: TableData;
-}
-
+// Props for TimeReportPDF component
 export interface TimeReportPDFProps {
   month: string;
   summary: {
@@ -50,17 +31,32 @@ export interface TimeReportPDFProps {
   taskDistribution: Array<{
     type: string;
     hours: number;
-    percentage: number;
+    percentage?: number;
   }>;
   topEquipment: Array<{
+    id?: number;
     name: string;
     hours: number;
   }>;
 }
 
-export interface PDFGenerationResult {
-  url: string;
-  blob: Blob;
-  filename: string;
-  contentType: string;
+// Table data for PDF generation
+export interface TableData {
+  headers: Array<{
+    key: string;
+    label: string;
+  }>;
+  rows: Array<Record<string, any>>;
+}
+
+// Options for generating intervention report PDFs
+export interface InterventionReportPDFOptions {
+  companyName?: string;
+  companyLogo?: string;
+  companyDetails?: string;
+  signature?: string;
+  reportNotes?: string;
+  actualDuration?: number;
+  images?: string[];
+  technician?: string;
 }

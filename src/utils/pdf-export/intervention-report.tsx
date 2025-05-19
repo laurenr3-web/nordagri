@@ -13,6 +13,12 @@ export const exportInterventionToPDF = async (
   try {
     console.log("Début de la génération du PDF pour l'intervention:", intervention.id);
     
+    // Guard against null/undefined intervention
+    if (!intervention) {
+      console.error("Intervention object is null or undefined");
+      throw new Error("Intervention object is required for PDF generation");
+    }
+    
     // Format de date pour le nom de fichier
     const dateStr = typeof intervention.date === 'string' 
       ? new Date(intervention.date).toISOString().split('T')[0]
@@ -24,16 +30,27 @@ export const exportInterventionToPDF = async (
     const filename = options?.filename || defaultFilename;
     
     console.log("Création du document PDF avec React-PDF");
+    
+    // Ensure all required props are present with reasonable fallbacks
+    const safeIntervention = {
+      ...intervention,
+      title: intervention.title || 'Intervention sans titre',
+      description: intervention.description || '',
+      equipment: intervention.equipment || 'Non spécifié',
+      partsUsed: intervention.partsUsed || []
+    };
+    
+    // Generate the PDF document
     const blob = await pdf(
       <InterventionReportPDF
-        intervention={intervention}
+        intervention={safeIntervention}
         companyName={options?.companyName}
         companyLogo={options?.companyLogo}
         companyDetails={options?.companyDetails}
         signature={options?.signature}
         reportNotes={options?.reportNotes}
         actualDuration={options?.actualDuration}
-        images={options?.images}
+        images={options?.images || []}
         technician={options?.technician}
       />
     ).toBlob();
@@ -62,16 +79,32 @@ export const sendInterventionReportByEmail = async (
 ): Promise<boolean> => {
   try {
     console.log("Début de la génération du PDF pour envoi par email");
+    
+    // Guard against null/undefined intervention
+    if (!intervention) {
+      console.error("Intervention object is null or undefined");
+      throw new Error("Intervention object is required for email");
+    }
+    
+    // Ensure all required props are present with reasonable fallbacks
+    const safeIntervention = {
+      ...intervention,
+      title: intervention.title || 'Intervention sans titre',
+      description: intervention.description || '',
+      equipment: intervention.equipment || 'Non spécifié',
+      partsUsed: intervention.partsUsed || []
+    };
+    
     const blob = await pdf(
       <InterventionReportPDF
-        intervention={intervention}
+        intervention={safeIntervention}
         companyName={options?.companyName}
         companyLogo={options?.companyLogo}
         companyDetails={options?.companyDetails}
         signature={options?.signature}
         reportNotes={options?.reportNotes}
         actualDuration={options?.actualDuration}
-        images={options?.images}
+        images={options?.images || []}
         technician={options?.technician}
       />
     ).toBlob();
