@@ -60,6 +60,7 @@ export function useMonthlySummary() {
             status
           `)
           .eq('user_id', userId)
+          .gte('start_time', monthStart.toISOString())
           .lte('start_time', monthEnd.toISOString());
           
         if (error) throw error;
@@ -76,37 +77,54 @@ export function useMonthlySummary() {
         // Calculer les heures pour chaque période
         data?.forEach(session => {
           const startTime = new Date(session.start_time);
+          const todayDate = format(today, 'yyyy-MM-dd');
+          const sessionDate = format(startTime, 'yyyy-MM-dd');
           
-          // Calculer la durée si non disponible
-          let sessionDuration = session.duration;
-          if (!sessionDuration && session.end_time) {
-            const endTime = new Date(session.end_time);
-            sessionDuration = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60); // heures
-          } else if (!sessionDuration && session.status === 'active') {
-            // Pour les sessions actives sans durée, calculer du début à maintenant
-            sessionDuration = (new Date().getTime() - startTime.getTime()) / (1000 * 60 * 60); // heures
-          } else if (!sessionDuration) {
-            // Si aucune durée ni heure de fin, considérer comme 0
-            sessionDuration = 0;
+          // Calculer la durée avec la même logique que useTimeTrackingStats
+          let sessionDuration = 0;
+          
+          // Pour les sessions terminées avec durée stockée
+          if (session.status === 'completed' && session.duration) {
+            sessionDuration = session.duration;
+          } 
+          // Pour les sessions sans durée ou actives
+          else {
+            const endTime = session.end_time 
+              ? new Date(session.end_time) 
+              : (session.status === 'active' ? new Date() : startTime);
+              
+            // Ne calculer la durée que si la session est terminée ou active
+            if (session.status === 'completed' || session.status === 'active') {
+              sessionDuration = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60); // heures
+            }
           }
           
-          // Vérifier si dans le mois en cours
+          // Limiter les durées aberrantes
+          if (sessionDuration > 24) {
+            console.warn(`Unusually long session detected: ${sessionDuration.toFixed(1)} hours`);
+            sessionDuration = Math.min(sessionDuration, 24); // Limite à 24 heures par session
+          }
+          
+          // Vérifier si dans le mois en cours (déjà filtré par la requête, mais par précaution)
           if (startTime >= monthStart && startTime <= monthEnd) {
             monthHours += sessionDuration;
             
-            // Vérifier si dans la semaine en cours - utiliser la même logique que dans useTimeTrackingStats
+            // Vérifier si dans la semaine en cours
             if (startTime >= weekStart && startTime <= weekEnd) {
               weekHours += sessionDuration;
               
               // Vérifier si aujourd'hui
-              const sessionDate = format(startTime, 'yyyy-MM-dd');
-              const todayDate = format(today, 'yyyy-MM-dd');
               if (sessionDate === todayDate) {
                 todayHours += sessionDuration;
               }
             }
           }
         });
+        
+        // Appliquer des limites raisonnables
+        monthHours = Math.min(monthHours, 744); // ~31 jours * 24h
+        weekHours = Math.min(weekHours, 168); // 7 jours * 24h
+        todayHours = Math.min(todayHours, 24);
         
         // Calculer les pourcentages
         const todayPercentage = Math.min((todayHours / standardDayHours) * 100, 100);

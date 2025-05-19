@@ -13,6 +13,13 @@ interface TimeTrackingStatsProps {
 }
 
 export function TimeTrackingSummary({ stats, isLoading }: TimeTrackingStatsProps) {
+  // Format hours with a maximum of 1 decimal place, and ensure it doesn't display unreasonable values
+  const formatHours = (hours: number): string => {
+    // Safety check for ridiculous values
+    const safeHours = isNaN(hours) ? 0 : Math.min(hours, 744); // 31 days * 24 hours max
+    return `${safeHours.toFixed(1)} h`;
+  };
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6 w-full">
       <Card className="rounded-xl sm:rounded-lg w-full max-w-full bg-blue-50">
@@ -21,7 +28,7 @@ export function TimeTrackingSummary({ stats, isLoading }: TimeTrackingStatsProps
         </CardHeader>
         <CardContent>
           <div className="text-2xl sm:text-2xl font-bold min-h-[44px] flex items-center justify-center sm:justify-start">
-            {isLoading ? <Skeleton className="h-8 w-20" /> : `${stats.totalToday.toFixed(1)} h`}
+            {isLoading ? <Skeleton className="h-8 w-20" /> : formatHours(stats.totalToday)}
           </div>
         </CardContent>
       </Card>
@@ -31,7 +38,7 @@ export function TimeTrackingSummary({ stats, isLoading }: TimeTrackingStatsProps
         </CardHeader>
         <CardContent>
           <div className="text-2xl sm:text-2xl font-bold min-h-[44px] flex items-center justify-center sm:justify-start">
-            {isLoading ? <Skeleton className="h-8 w-20" /> : `${stats.totalWeek.toFixed(1)} h`}
+            {isLoading ? <Skeleton className="h-8 w-20" /> : formatHours(stats.totalWeek)}
           </div>
         </CardContent>
       </Card>
@@ -41,7 +48,7 @@ export function TimeTrackingSummary({ stats, isLoading }: TimeTrackingStatsProps
         </CardHeader>
         <CardContent>
           <div className="text-2xl sm:text-2xl font-bold min-h-[44px] flex items-center justify-center sm:justify-start">
-            {isLoading ? <Skeleton className="h-8 w-20" /> : `${stats.totalMonth.toFixed(1)} h`}
+            {isLoading ? <Skeleton className="h-8 w-20" /> : formatHours(stats.totalMonth)}
           </div>
         </CardContent>
       </Card>
