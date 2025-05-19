@@ -105,9 +105,12 @@ export class OfflineSyncService {
           const newAttempts = operation.attempts + 1;
           const status = newAttempts >= this.maxRetries ? 'failed' : 'pending';
           
-          await this.updateOperationStatus(operation.id, status, 
+          await this.updateOperationStatus(
+            operation.id, 
+            status, 
             error instanceof Error ? error.message : 'Unknown error',
-            newAttempts);
+            newAttempts
+          );
           
           if (status === 'failed') {
             failedCount++;
@@ -132,7 +135,7 @@ export class OfflineSyncService {
     if (errorMessage) updates.errorMessage = errorMessage;
     if (attempts !== undefined) updates.attempts = attempts;
     
-    await IndexedDBService.updateInStore('syncOperations', id, updates);
+    await IndexedDBService.updateInStore('syncOperations', { id, ...updates });
   }
 
   // Process a single operation

@@ -49,7 +49,7 @@ export function useInterventionsData() {
     mutationFn: ({ id, status }: { id: number; status: Intervention['status'] }) => {
       setIsLoading(true);
       console.log(`Updating intervention ${id} status to ${status}`);
-      return interventionService.updateInterventionStatus(id, status); // Assuming this takes 2 args as expected
+      return interventionService.updateInterventionStatus(id, status);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['interventions'] });

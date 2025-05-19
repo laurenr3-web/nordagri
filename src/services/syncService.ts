@@ -48,8 +48,24 @@ export class SyncService {
    * Delete an entity for offline first
    */
   public async delete(storeName: string, id: string | number): Promise<void> {
-    await IndexedDBService.deleteById(storeName, id);
+    await IndexedDBService.deleteFromStore(storeName, id);
     await this.addToSyncQueue('delete', { id }, storeName);
+  }
+  
+  /**
+   * Add an operation to the sync queue for compatibility with existing code
+   */
+  public async addOperation(operation: { 
+    type: string,
+    entity: string,
+    data: any,
+    priority?: number
+  }): Promise<number> {
+    return this.addToSyncQueue(
+      operation.type as 'add' | 'update' | 'delete',
+      operation.data,
+      operation.entity
+    );
   }
 
   /**
@@ -74,9 +90,12 @@ export class SyncService {
    * Get all pending operations from the sync queue
    */
   public async getPendingOperations() {
-    return await IndexedDBService.getAllFromStore('sync_queue', query => 
-      query.where('status').equals('pending')
-    ) || [];
+    try {
+      return await IndexedDBService.getAllFromStore('sync_queue') || [];
+    } catch (error) {
+      console.error('Error getting pending operations:', error);
+      return [];
+    }
   }
 
   /**
@@ -150,27 +169,42 @@ export class SyncService {
       // Process operations in sequence
       for (const operation of operations) {
         try {
+          // Ensure the operation has an id property 
+          const opId = 'id' in operation ? operation.id : null;
+          if (opId === null) {
+            throw new Error('Operation missing ID field');
+          }
+          
           // Mock processing for now - would be replaced with actual API calls
           await new Promise(resolve => setTimeout(resolve, 200));
           
           // Mark as processed
-          await IndexedDBService.updateById('sync_queue', operation.id, {
+          await IndexedDBService.updateById('sync_queue', opId, {
             ...operation,
             status: 'success',
             processedAt: Date.now()
           });
           
-          results.push({ id: operation.id, success: true });
+          results.push({ id: opId as number, success: true });
         } catch (error) {
+          // Ensure the operation has the required properties
+          const opId = 'id' in operation ? operation.id : null;
+          const retryCount = 'retryCount' in operation ? (operation.retryCount as number) : 0;
+          
+          if (opId === null) {
+            console.error('Cannot update operation without ID', operation);
+            continue;
+          }
+          
           // Mark as failed
-          await IndexedDBService.updateById('sync_queue', operation.id, {
+          await IndexedDBService.updateById('sync_queue', opId, {
             ...operation,
             status: 'failed',
             error: String(error),
-            retryCount: operation.retryCount + 1
+            retryCount: retryCount + 1
           });
           
-          results.push({ id: operation.id, success: false, error });
+          results.push({ id: opId as number, success: false, error });
         }
       }
 
@@ -216,19 +250,24 @@ export class SyncService {
    * Get sync statistics
    */
   public async getSyncStats(): Promise<{ pending: number; failed: number; success: number; }> {
-    const pending = (await IndexedDBService.getAllFromStore('sync_queue', query => 
-      query.where('status').equals('pending')
-    )).length;
-
-    const failed = (await IndexedDBService.getAllFromStore('sync_queue', query => 
-      query.where('status').equals('failed')
-    )).length;
-
-    const success = (await IndexedDBService.getAllFromStore('sync_queue', query => 
-      query.where('status').equals('success')
-    )).length;
-
-    return { pending, failed, success };
+    try {
+      const pending = (await this.getPendingOperations()).filter(op => 
+        op && typeof op === 'object' && 'status' in op && op.status === 'pending'
+      ).length;
+  
+      const failed = (await this.getPendingOperations()).filter(op => 
+        op && typeof op === 'object' && 'status' in op && op.status === 'failed'
+      ).length;
+  
+      const success = (await this.getPendingOperations()).filter(op => 
+        op && typeof op === 'object' && 'status' in op && op.status === 'success'
+      ).length;
+  
+      return { pending, failed, success };
+    } catch (error) {
+      console.error('Error getting sync stats:', error);
+      return { pending: 0, failed: 0, success: 0 };
+    }
   }
 }
 

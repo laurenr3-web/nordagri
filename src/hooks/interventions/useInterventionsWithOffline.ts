@@ -43,12 +43,11 @@ export const useInterventionsWithOffline = () => {
         } as Intervention;
         
         // Queue for sync when online
-        await syncService.addOperation({
-          type: SyncOperationType.CREATE,
-          entity: 'interventions',
-          data: newIntervention,
-          priority: 1
-        });
+        await syncService.addToSyncQueue(
+          'add',
+          newIntervention,
+          'interventions'
+        );
         
         return tempIntervention;
       }
@@ -67,12 +66,11 @@ export const useInterventionsWithOffline = () => {
         return await interventionService.updateIntervention(id, data);
       } else {
         // Queue for sync when online
-        await syncService.addOperation({
-          type: SyncOperationType.UPDATE,
-          entity: 'interventions',
-          data: { id, ...data },
-          priority: 2
-        });
+        await syncService.addToSyncQueue(
+          'update',
+          { id, ...data },
+          'interventions'
+        );
         
         // Return optimistic update
         const updatedIntervention = { 
@@ -99,12 +97,11 @@ export const useInterventionsWithOffline = () => {
         return await interventionService.deleteIntervention(id);
       } else {
         // Queue for sync when online
-        await syncService.addOperation({
-          type: SyncOperationType.DELETE,
-          entity: 'interventions',
-          data: { id },
-          priority: 3
-        });
+        await syncService.addToSyncQueue(
+          'delete',
+          { id },
+          'interventions'
+        );
         
         return true;
       }
