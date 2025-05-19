@@ -18,6 +18,7 @@ interface OfflineContextType {
   lastSyncTime: Date | null;
   syncErrors: Error[];
   triggerSync: () => Promise<void>;
+  addToSyncQueue: (operation: string, data: any, tableName: string) => Promise<void>;
 }
 
 // Create context with default values
@@ -27,7 +28,8 @@ const OfflineContext = createContext<OfflineContextType>({
   pendingOperations: 0,
   lastSyncTime: null,
   syncErrors: [],
-  triggerSync: async () => {}
+  triggerSync: async () => {},
+  addToSyncQueue: async () => {}
 });
 
 // Hook to use the offline context
@@ -119,13 +121,39 @@ export const OfflineProvider: React.FC<OfflineProviderProps> = ({
     }
   };
 
+  // Add to sync queue
+  const addToSyncQueue = async (operation: string, data: any, tableName: string) => {
+    if (!syncService) {
+      throw new Error("Sync service not available");
+    }
+    
+    try {
+      await syncService.addOperation({
+        type: operation,
+        entity: tableName,
+        data: data,
+        priority: 1
+      });
+      
+      // Update pending operations count
+      const count = await syncService.getPendingOperationsCount();
+      setPendingOperations(count);
+      
+      return Promise.resolve();
+    } catch (error) {
+      console.error("Error adding operation to sync queue:", error);
+      throw error;
+    }
+  };
+
   const contextValue: OfflineContextType = {
     isOnline,
     isSyncing,
     pendingOperations,
     lastSyncTime,
     syncErrors,
-    triggerSync
+    triggerSync,
+    addToSyncQueue
   };
 
   return (

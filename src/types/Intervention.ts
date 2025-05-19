@@ -1,18 +1,13 @@
 
 export interface Intervention {
-  id: string | number;
+  id: number;  // Changed from string | number to just number
   title: string;
   description?: string;
   startDate?: Date;
   endDate?: Date;
-  status?: string;
-  priority?: string;
-  equipment?: {
-    id: number;
-    name: string;
-    serialNumber?: string;
-    model?: string;
-  };
+  status: "completed" | "scheduled" | "in-progress" | "canceled"; // Using string literals instead of generic string
+  priority: "high" | "medium" | "low"; // Using string literals instead of generic string
+  equipment: string; // Changed from object type to string to match actual usage
   partsUsed?: {
     id: number;
     name: string;
@@ -35,16 +30,13 @@ export interface InterventionFormValues {
   description?: string;
   startDate?: Date;
   endDate?: Date;
-  status?: string;
-  priority?: string;
-  equipment?: string | {
-    id: number;
-    name: string;
-    serialNumber?: string;
-    model?: string;
-  };
+  status?: "completed" | "scheduled" | "in-progress" | "canceled";
+  priority: "high" | "medium" | "low";
+  equipment: string;
+  equipmentId: number;
   notes?: string;
   location?: string;
   technician?: string;
   scheduledDuration?: number;
+  date: Date;
 }

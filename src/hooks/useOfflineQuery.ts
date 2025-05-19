@@ -4,10 +4,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNetworkState } from './useNetworkState';
 import { syncService, SyncStatus } from '@/services/syncService';
 
-// This line caused the issue because we were trying to set the Supabase client
-// but it's not defined in this context currently, so let's comment it out for now
-// syncService.setSupabaseClient(supabase);
-
 export interface UseOfflineQueryResult<TData> extends Omit<UseQueryResult<TData, Error>, 'data' | 'error'> {
   data: TData | undefined;
   error: Error | null;

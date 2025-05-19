@@ -1,68 +1,29 @@
 
+import { Intervention } from '@/types/Intervention';
+
 export interface InterventionReportPDFOptions {
-  companyName?: string;
-  companyLogo?: string;
-  companyDetails?: string;
-  signature?: string;
   reportNotes?: string;
   actualDuration?: number;
+  signature?: string;
   images?: string[];
-  technician?: string;
+  includeCustomerInfo?: boolean;
+  includeCompanyLogo?: boolean;
+  includePartsSection?: boolean;
+  templateType?: 'standard' | 'detailed' | 'simple';
 }
 
-export interface TimeReportPDFOptions {
-  companyName?: string;
-  companyLogo?: string;
-  periodName?: string;
-  employeeName?: string;
-  notes?: string;
+export interface PDFGenerationResult {
+  url: string;
+  blob: Blob;
+  filename: string;
+  contentType: string;
 }
 
-// Types for time entries PDF
-export interface TimeEntriesPDFProps {
-  timeEntries: any[];  // Remplacer par le type correct
-  options?: TimeReportPDFOptions;
-  title?: string;
-  subtitle?: string;
-  tableData?: TableData;
-}
-
-export interface TimeReportPDFProps {
-  timeEntries: any[];  // Remplacer par le type correct
-  options?: TimeReportPDFOptions;
-  month?: string;
-  summary?: any;
-  taskDistribution?: any;
-  topEquipment?: any;
-}
-
-export interface TableData {
-  headers: string[];
-  rows: any[][];
-}
-
-// Type for Intervention used in PDF reports
-export interface InterventionForPDF {
-  id: number;
-  title: string;
-  description?: string;
-  startDate?: Date;
-  endDate?: Date;
-  status?: string;
-  priority?: string;
-  equipment?: {
-    id: number;
-    name: string;
-    serialNumber?: string;
-    model?: string;
-  };
-  partsUsed?: PartUsed[];
-  notes?: string;
-}
-
-export interface PartUsed {
-  id: number;
-  name: string;
-  quantity: number;
-  unitPrice?: number;
+export interface PDFExportService {
+  generatePDF(intervention: Intervention, options?: InterventionReportPDFOptions): Promise<PDFGenerationResult>;
+  downloadPDF(intervention: Intervention, options?: InterventionReportPDFOptions): Promise<void>;
+  sendByEmail(intervention: Intervention, email: string, options?: InterventionReportPDFOptions & {
+    subject?: string;
+    message?: string;
+  }): Promise<boolean>;
 }
