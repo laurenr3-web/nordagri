@@ -13,6 +13,9 @@ export interface SyncQueueItem {
   retryCount?: number;
   lastError?: string;
   tableName: string;
+  priority?: number; // Higher number means higher priority
+  dependsOn?: string[]; // IDs of queue items this item depends on
+  conflictStrategy?: 'client-wins' | 'server-wins' | 'manual-resolution';
 }
 
 export interface SyncResult {
@@ -21,6 +24,9 @@ export interface SyncResult {
   itemId?: string | number;
   affectedRecords?: number;
   error?: any;
+  conflictDetected?: boolean;
+  serverData?: any;
+  clientData?: any;
 }
 
 const SYNC_QUEUE_STORE = 'sync_queue';
@@ -57,7 +63,12 @@ export class OfflineSyncService {
   static async addToSyncQueue(
     type: SyncOperationType, 
     data: any, 
-    tableName: string
+    tableName: string,
+    options?: {
+      priority?: number;
+      dependsOn?: string[];
+      conflictStrategy?: 'client-wins' | 'server-wins' | 'manual-resolution';
+    }
   ): Promise<string> {
     try {
       // Create new item
@@ -68,7 +79,10 @@ export class OfflineSyncService {
         data,
         timestamp: Date.now(),
         retryCount: 0,
-        tableName
+        tableName,
+        priority: options?.priority || 0,
+        dependsOn: options?.dependsOn,
+        conflictStrategy: options?.conflictStrategy || 'client-wins'
       };
       
       // Add item to IndexedDB
@@ -127,6 +141,104 @@ export class OfflineSyncService {
       console.error('Error clearing sync queue:', error);
     }
   }
+
+  /**
+   * Check for potential conflicts before processing
+   * Returns true if conflict detected
+   */
+  static async checkForConflicts(item: SyncQueueItem): Promise<{conflict: boolean, serverData?: any}> {
+    if (!supabase || item.type === 'delete' || item.type.includes('delete_')) {
+      return { conflict: false };
+    }
+    
+    try {
+      // Get the entity ID from the data
+      const entityId = item.data?.id;
+      if (!entityId || typeof entityId === 'string' && entityId.startsWith('local_')) {
+        return { conflict: false }; // No conflict for new items
+      }
+      
+      // Get the current server-side version
+      const { data: serverData, error } = await supabase
+        .from(item.tableName as any)
+        .select('*')
+        .eq('id', entityId)
+        .single();
+      
+      if (error) {
+        console.warn('Error checking for conflicts:', error);
+        return { conflict: false }; // Can't determine, proceed with caution
+      }
+      
+      // Check if there's a difference in timestamps or content
+      if (!serverData) {
+        // Item no longer exists on server
+        return { conflict: item.type !== 'add_intervention' && !item.type.includes('add_') };
+      }
+      
+      // Check for content conflicts (simplified - in real world, do more detailed comparison)
+      if (hasUpdatedAt(serverData) && hasUpdatedAt(item.data)) {
+        const serverTime = new Date(serverData.updated_at).getTime();
+        const clientTime = new Date(item.data.updated_at).getTime();
+        
+        // If server version is newer, we have a conflict
+        if (serverTime > clientTime) {
+          return { conflict: true, serverData };
+        }
+      }
+      
+      return { conflict: false };
+    } catch (error) {
+      console.error('Error during conflict check:', error);
+      return { conflict: false }; // On error, proceed with caution
+    }
+  }
+  
+  /**
+   * Resolve a conflict based on strategy
+   */
+  static async resolveConflict(
+    item: SyncQueueItem, 
+    serverData: any
+  ): Promise<{resolvedData: any, strategy: string}> {
+    switch (item.conflictStrategy) {
+      case 'server-wins':
+        return { resolvedData: null, strategy: 'server-wins' }; // Skip the operation
+        
+      case 'client-wins':
+        return { resolvedData: item.data, strategy: 'client-wins' }; // Use client data
+        
+      case 'manual-resolution':
+        // Store conflict for later resolution
+        await this.storeConflict(item, serverData);
+        // Skip for now
+        return { resolvedData: null, strategy: 'deferred' };
+        
+      default:
+        // Default strategy is client-wins
+        return { resolvedData: item.data, strategy: 'client-wins' };
+    }
+  }
+  
+  /**
+   * Store conflict for later manual resolution
+   */
+  static async storeConflict(item: SyncQueueItem, serverData: any): Promise<string> {
+    const conflictId = uuidv4();
+    
+    await IndexedDBService.addToStore('sync_conflicts', {
+      id: conflictId,
+      queueItemId: item.id,
+      serverData,
+      clientData: item.data,
+      tableName: item.tableName,
+      type: item.type,
+      timestamp: Date.now(),
+      resolved: false
+    });
+    
+    return conflictId;
+  }
   
   /**
    * Process a sync queue item
@@ -137,6 +249,46 @@ export class OfflineSyncService {
     try {
       if (!tableName) {
         throw new Error('Table name is required for sync operations');
+      }
+      
+      // Check for dependencies and skip if not all resolved
+      if (item.dependsOn && item.dependsOn.length > 0) {
+        const queue = await this.getSyncQueue();
+        const pendingDependencies = item.dependsOn.filter(depId => 
+          queue.some(qItem => qItem.id === depId)
+        );
+        
+        if (pendingDependencies.length > 0) {
+          return {
+            success: false,
+            message: `Waiting for ${pendingDependencies.length} dependencies to be processed first`,
+            itemId: id
+          };
+        }
+      }
+      
+      // Check for conflicts
+      const { conflict, serverData } = await this.checkForConflicts(item);
+      
+      if (conflict) {
+        console.log(`Conflict detected for ${tableName} operation`);
+        
+        // Resolve based on strategy
+        const { resolvedData, strategy } = await this.resolveConflict(item, serverData);
+        
+        if (!resolvedData) {
+          // If strategy resulted in no data (e.g., server-wins or deferred), skip operation
+          return {
+            success: true, // Mark as success to remove from queue
+            message: `Conflict resolved using ${strategy} strategy`,
+            conflictDetected: true,
+            serverData,
+            clientData: data
+          };
+        }
+        
+        // Otherwise use the resolved data
+        const dataToUse = resolvedData;
       }
       
       let result: SyncResult;
@@ -272,7 +424,7 @@ export class OfflineSyncService {
   }
   
   /**
-   * Process the sync queue
+   * Process the sync queue with improved dependency handling
    */
   static async processSyncQueue(
     onProgress?: (current: number, total: number) => void,
@@ -289,11 +441,33 @@ export class OfflineSyncService {
       const results: SyncResult[] = [];
       let processed = 0;
       
-      // Sort by timestamp to process in order
-      const sortedQueue = [...queue].sort((a, b) => a.timestamp - b.timestamp);
+      // Sort by priority (higher first) and timestamp (older first)
+      const sortedQueue = [...queue].sort((a, b) => {
+        // First by priority (descending)
+        const priorityDiff = (b.priority || 0) - (a.priority || 0);
+        if (priorityDiff !== 0) return priorityDiff;
+        
+        // Then by timestamp (ascending)
+        return a.timestamp - b.timestamp;
+      });
       
-      for (const item of sortedQueue) {
-        // Skip items that have exceeded retry count
+      // Track which items have dependencies
+      const itemsWithDependencies = new Set(
+        sortedQueue
+          .filter(item => item.dependsOn && item.dependsOn.length > 0)
+          .map(item => item.id)
+      );
+      
+      // Track processed item IDs
+      const processedIds = new Set<string>();
+      
+      // Process independent items first
+      const independentItems = sortedQueue.filter(
+        item => !item.dependsOn || item.dependsOn.length === 0
+      );
+      
+      for (const item of independentItems) {
+        // Skip items with too many retries
         if ((item.retryCount || 0) >= MAX_RETRY_COUNT) {
           results.push({
             success: false,
@@ -302,7 +476,6 @@ export class OfflineSyncService {
             error: new Error('Max retry count exceeded')
           });
           
-          // We keep failed items in the queue for manual resolution
           processed++;
           onProgress?.(processed, queue.length);
           continue;
@@ -315,10 +488,55 @@ export class OfflineSyncService {
         // Remove from queue if successful
         if (result.success) {
           await this.removeFromSyncQueue(item.id);
+          processedIds.add(item.id);
         }
         
         processed++;
         onProgress?.(processed, queue.length);
+      }
+      
+      // Process items with dependencies once their dependencies are cleared
+      let dependentItemsProcessed = false;
+      
+      while (!dependentItemsProcessed) {
+        dependentItemsProcessed = true; // Assume we're done unless we find more to process
+        
+        for (const item of sortedQueue) {
+          // Skip already processed items
+          if (processedIds.has(item.id)) continue;
+          
+          // Skip items with no dependencies
+          if (!item.dependsOn || item.dependsOn.length === 0) continue;
+          
+          // Check if all dependencies are now processed
+          const dependenciesResolved = item.dependsOn.every(depId => processedIds.has(depId));
+          
+          if (dependenciesResolved) {
+            // Skip items with too many retries
+            if ((item.retryCount || 0) >= MAX_RETRY_COUNT) {
+              results.push({
+                success: false,
+                message: `Max retry count reached for item ${item.id}`,
+                itemId: item.id,
+                error: new Error('Max retry count exceeded')
+              });
+            } else {
+              // Process the item
+              const result = await this.processSyncItem(item);
+              results.push(result);
+              
+              // Remove from queue if successful
+              if (result.success) {
+                await this.removeFromSyncQueue(item.id);
+                processedIds.add(item.id);
+                dependentItemsProcessed = false; // We made progress, do another round
+              }
+            }
+            
+            processed++;
+            onProgress?.(processed, queue.length);
+          }
+        }
       }
       
       onComplete?.(results);
@@ -374,6 +592,30 @@ export class OfflineSyncService {
   static isLocalId(id: string | number): boolean {
     return typeof id === 'string' && id.startsWith('local_');
   }
+  
+  /**
+   * Schedule periodic sync
+   */
+  static schedulePeriodicSync(intervalMs: number = 60000): number {
+    const intervalId = window.setInterval(async () => {
+      const isOnline = navigator.onLine;
+      if (isOnline) {
+        const pendingCount = await this.getPendingSyncCount();
+        if (pendingCount > 0) {
+          await this.processSyncQueue();
+        }
+      }
+    }, intervalMs);
+    
+    return intervalId;
+  }
+  
+  /**
+   * Clear a scheduled periodic sync
+   */
+  static clearPeriodicSync(intervalId: number): void {
+    if (intervalId) {
+      window.clearInterval(intervalId);
+    }
+  }
 }
-
-// Hook removed - hooks should be in their own files, not inside a service class
