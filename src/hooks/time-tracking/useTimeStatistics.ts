@@ -159,7 +159,9 @@ export function useTimeStatistics() {
         
         const equipId = session.equipment_id;
         const hours = session.duration || 0;
-        const current = equipmentData.get(equipId) || { name: session.equipment?.name || null, hours: 0 };
+        // Fix: Access equipment name safely
+        const equipmentName = session.equipment?.name || null;
+        const current = equipmentData.get(equipId) || { name: equipmentName, hours: 0 };
         equipmentData.set(equipId, { name: current.name, hours: current.hours + hours });
       });
 

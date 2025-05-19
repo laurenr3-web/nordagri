@@ -50,7 +50,7 @@ export function useExportReport(month: Date) {
           duration,
           custom_task_type,
           equipment_id,
-          equipment:equipment_id (name),
+          equipment:equipment_id (id, name),
           notes,
           user_id,
           status
@@ -85,7 +85,8 @@ export function useExportReport(month: Date) {
         
         // Equipment usage - store ID along with name and hours
         if (entry.equipment_id && entry.equipment) {
-          const equipmentName = entry.equipment.name;
+          // Fix: Access equipment name safely
+          const equipmentName = entry.equipment?.name || 'Équipement inconnu';
           const equipmentId = entry.equipment_id;
           const currentEntry = equipmentMap.get(equipmentId) || { name: equipmentName, hours: 0 };
           currentEntry.hours += duration;
@@ -107,6 +108,7 @@ export function useExportReport(month: Date) {
           start_time: entry.start_time,
           end_time: entry.end_time,
           status: entry.status,
+          // Fix: Access equipment name safely
           equipment_name: entry.equipment?.name || "Équipement non spécifié",
           notes: entry.notes,
           task_type: entry.custom_task_type || "Non spécifié"

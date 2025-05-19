@@ -79,6 +79,7 @@ export function useTaskDetails(date: Date) {
             end_time: task.end_time,
             duration: taskDuration || 0,
             task_type: task.custom_task_type || 'Non spécifié',
+            // Fix: Access equipment name safely
             equipment_name: task.equipment?.name,
             notes: task.notes
           };
