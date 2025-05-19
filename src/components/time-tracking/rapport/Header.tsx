@@ -1,43 +1,53 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { FileText } from 'lucide-react';
+import { FilePdf, FileSpreadsheet, FileDown, Download } from 'lucide-react';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 
-type HeaderProps = {
+interface HeaderProps {
   isExporting: boolean;
-  onExport: (type: 'pdf' | 'excel') => void;
-};
+  onExport: (type: 'pdf' | 'excel' | 'sessions-pdf') => void;
+}
 
-const Header: React.FC<HeaderProps> = ({ isExporting, onExport }) => (
-  <div className="flex flex-col space-y-2">
+const Header: React.FC<HeaderProps> = ({ isExporting, onExport }) => {
+  return (
     <div className="flex justify-between items-center">
       <div>
-        <h2 className="text-lg font-semibold">NordAgri</h2>
-        <p className="text-sm text-muted-foreground">Plateforme de gestion agricole</p>
+        <h1 className="text-xl sm:text-2xl font-bold">Rapport d'activité</h1>
+        <p className="text-sm text-muted-foreground">
+          Analyse de votre activité par période
+        </p>
       </div>
-      <div className="flex gap-2">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="flex items-center gap-1" 
-          onClick={() => onExport('pdf')}
-          disabled={isExporting}
-        >
-          <FileText className="h-4 w-4" />
-          <span className="hidden sm:inline">Exporter</span>
-        </Button>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={() => onExport('excel')}
-          disabled={isExporting}
-        >
-          <FileText className="h-4 w-4" />
-          <span className="hidden sm:inline">Excel</span>
-        </Button>
-      </div>
+      
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" disabled={isExporting}>
+            <Download className="h-4 w-4 mr-2" />
+            Exporter {isExporting && '...'}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuItem onClick={() => onExport('pdf')}>
+            <FilePdf className="h-4 w-4 mr-2" />
+            <span>Rapport PDF</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onExport('excel')}>
+            <FileSpreadsheet className="h-4 w-4 mr-2" />
+            <span>Exporter en Excel</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onExport('sessions-pdf')}>
+            <FileDown className="h-4 w-4 mr-2" />
+            <span>Liste des sessions (PDF)</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
-  </div>
-);
+  );
+};
 
 export default Header;

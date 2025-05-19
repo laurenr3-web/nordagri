@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Card, 
@@ -44,9 +43,8 @@ const TimeTrackingRapport: React.FC = () => {
   const { isLoading: isDailyHoursLoading, dailyHours } = useDailyHours(currentMonth);
   const { isLoading: isDistributionLoading, distribution } = useTaskTypeDistribution(currentMonth);
   const { isLoading: isEquipmentLoading, equipment } = useTopEquipment(currentMonth);
-  const { exportToPdf, exportToExcel, isExporting } = useExportReport(currentMonth);
+  const { exportToPdf, exportToExcel, exportTasksToPdf, isExporting } = useExportReport(currentMonth);
   
-  // Helper function to calculate bi-weekly start date (last even Monday)
   const getLastEvenMondayStart = () => {
     const today = new Date();
     // Start from beginning of current week (Monday)
@@ -65,7 +63,6 @@ const TimeTrackingRapport: React.FC = () => {
     return lastWeekStart;
   };
   
-  // Fetch pay period statistics
   useEffect(() => {
     const fetchPayPeriodStats = async () => {
       setIsLoadingPayPeriod(true);
@@ -168,11 +165,13 @@ const TimeTrackingRapport: React.FC = () => {
     setSelectedDate(null);
   };
 
-  const handleExport = async (type: 'pdf' | 'excel') => {
+  const handleExport = async (type: 'pdf' | 'excel' | 'sessions-pdf') => {
     if (type === 'pdf') {
       await exportToPdf();
-    } else {
+    } else if (type === 'excel') {
       await exportToExcel();
+    } else if (type === 'sessions-pdf') {
+      await exportTasksToPdf();
     }
   };
 
