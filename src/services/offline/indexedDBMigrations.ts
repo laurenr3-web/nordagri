@@ -13,25 +13,40 @@ export class IndexedDBMigrations {
    * Run all migrations to ensure database is up to date
    */
   static async runMigrations(): Promise<void> {
-    await IndexedDBService.openDB(); // This will trigger the onupgradeneeded event if needed
-
-    // Additional migrations could be added here if needed
-    console.log('IndexedDB migrations completed');
+    try {
+      await IndexedDBService.openDB(); // This will trigger the onupgradeneeded event if needed
+      console.log('IndexedDB migrations completed');
+    } catch (error) {
+      console.error('Error running migrations:', error);
+      throw error;
+    }
   }
 
   /**
    * Clear all data from IndexedDB (useful for testing)
    */
   static async clearAllData(): Promise<void> {
-    await IndexedDBService.openDB();
-    
-    // Clear each store using the correct store names defined in IndexedDBService
-    await IndexedDBService.clearStore('syncQueue'); // Changed from 'syncOperations' to 'syncQueue'
-    await IndexedDBService.clearStore('offline_cache'); // Keep this as is
-    await IndexedDBService.clearStore('formDrafts'); // Changed from 'form_drafts' to 'formDrafts'
-    await IndexedDBService.clearStore('interventions'); // Add this store from IndexedDBService
-    await IndexedDBService.clearStore('equipment'); // Add this store from IndexedDBService
-    
-    console.log('IndexedDB data cleared');
+    try {
+      // Delete the database entirely rather than just clearing stores
+      await new Promise<void>((resolve, reject) => {
+        const deleteRequest = indexedDB.deleteDatabase(IndexedDBService.DB_NAME);
+        
+        deleteRequest.onerror = () => {
+          reject(new Error('Could not delete database'));
+        };
+        
+        deleteRequest.onsuccess = () => {
+          console.log('Database deleted successfully');
+          resolve();
+        };
+      });
+      
+      // Reinitialize the database with correct store structure
+      await IndexedDBService.openDB();
+      console.log('IndexedDB recreated with correct structure');
+    } catch (error) {
+      console.error('Error clearing IndexedDB data:', error);
+      throw error;
+    }
   }
 }
