@@ -1,145 +1,109 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { OfflineSyncService, SyncResult } from '@/services/offline/offlineSyncService';
-import { SyncOperationType } from '@/providers/OfflineProvider';
+import { useState, useEffect } from 'react';
 import { useNetworkState } from './useNetworkState';
-import { toast } from 'sonner';
+import { SyncOperationType } from '@/providers/OfflineProvider';
+import { IndexedDBService } from '@/services/offline/indexedDBService';
+import { OfflineSyncService } from '@/services/offline/offlineSyncService';
 
-export interface OfflineSyncState {
-  isSyncing: boolean;
-  syncCount: number;
-  lastSyncTime: Date | null;
-  lastSyncResults: SyncResult[];
-  addToSyncQueue: (type: SyncOperationType, data: any, tableName: string) => Promise<string>;
-  syncNow: () => Promise<SyncResult[]>;
-}
+// Singleton instances for services
+let indexedDBService: IndexedDBService | null = null;
+let offlineSyncService: OfflineSyncService | null = null;
 
-export function useOfflineSync(
-  syncOnReconnect = true,
-  notifyOnSync = true
-): OfflineSyncState {
-  const [isSyncing, setIsSyncing] = useState<boolean>(false);
-  const [syncCount, setSyncCount] = useState<number>(0);
-  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
-  const [lastSyncResults, setLastSyncResults] = useState<SyncResult[]>([]);
-  const isOnline = useNetworkState();
+// Initialize services
+const getServices = () => {
+  if (!indexedDBService) {
+    indexedDBService = new IndexedDBService('nordagri-db', 1);
+  }
   
-  // Load the initial sync count on mount
+  if (!offlineSyncService && indexedDBService) {
+    offlineSyncService = new OfflineSyncService(indexedDBService);
+  }
+  
+  return { indexedDBService, offlineSyncService };
+};
+
+// Hook for managing offline synchronization
+export const useOfflineSync = () => {
+  const isOnline = useNetworkState();
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
+  
+  const { offlineSyncService } = getServices();
+  
+  // Load initial pending count
   useEffect(() => {
-    const loadSyncCount = async () => {
-      const count = await OfflineSyncService.getPendingSyncCount();
-      setSyncCount(count);
+    const loadPendingCount = async () => {
+      if (offlineSyncService) {
+        const count = await offlineSyncService.getPendingOperationsCount();
+        setPendingCount(count);
+      }
     };
     
-    loadSyncCount();
+    loadPendingCount();
     
-    // Set up interval to periodically check sync count
-    const interval = setInterval(loadSyncCount, 30000);
+    // Set up periodic check
+    const interval = setInterval(loadPendingCount, 30000); // Every 30 seconds
+    
     return () => clearInterval(interval);
   }, []);
   
-  // Function to add an item to the sync queue
-  const addToSyncQueue = useCallback(
-    async (type: SyncOperationType, data: any, tableName: string): Promise<string> => {
-      const id = await OfflineSyncService.addToSyncQueue(type, data, tableName);
-      
-      // Update the sync count
-      const count = await OfflineSyncService.getPendingSyncCount();
-      setSyncCount(count);
-      
-      return id;
-    },
-    []
-  );
+  // Auto sync when coming back online
+  useEffect(() => {
+    if (isOnline && pendingCount > 0 && !isSyncing) {
+      syncPendingOperations();
+    }
+  }, [isOnline, pendingCount, isSyncing]);
   
-  // Function to manually trigger synchronization
-  const syncNow = useCallback(async (): Promise<SyncResult[]> => {
-    if (!isOnline) {
-      if (notifyOnSync) {
-        toast.warning("Synchronisation impossible", {
-          description: "Vous êtes hors connexion. Réessayez quand vous serez connecté."
-        });
-      }
-      return [];
-    }
+  // Queue an operation for sync
+  const queueOperation = async (
+    type: SyncOperationType,
+    entity: string,
+    data: any,
+    priority: number = 5
+  ) => {
+    if (!offlineSyncService) return null;
     
-    if (isSyncing) {
-      if (notifyOnSync) {
-        toast.info("Synchronisation déjà en cours...");
-      }
-      return [];
-    }
+    const operationId = await offlineSyncService.queueOperation(
+      type,
+      entity,
+      data,
+      priority
+    );
+    
+    // Update pending count
+    const newCount = await offlineSyncService.getPendingOperationsCount();
+    setPendingCount(newCount);
+    
+    return operationId;
+  };
+  
+  // Sync all pending operations
+  const syncPendingOperations = async () => {
+    if (!offlineSyncService || !isOnline || isSyncing) return;
+    
+    setIsSyncing(true);
     
     try {
-      setIsSyncing(true);
-      
-      if (notifyOnSync) {
-        toast.loading("Synchronisation en cours...");
-      }
-      
-      const results = await OfflineSyncService.processSyncQueue(
-        (current, total) => {
-          if (notifyOnSync) {
-            toast.loading(`Synchronisation en cours... (${current}/${total})`);
-          }
-        },
-        (results) => {
-          // Count successful and failed operations
-          const successCount = results.filter(r => r.success).length;
-          const failCount = results.filter(r => !r.success).length;
-          
-          if (notifyOnSync) {
-            if (failCount === 0) {
-              toast.success(`${successCount} élément(s) synchronisé(s) avec succès`);
-            } else {
-              toast.warning(`Synchronisation terminée avec ${failCount} erreur(s)`, {
-                description: `${successCount} élément(s) synchronisé(s), ${failCount} échec(s)`
-              });
-            }
-          }
-        }
-      );
-      
-      setLastSyncResults(results);
+      const result = await offlineSyncService.processQueue();
       setLastSyncTime(new Date());
       
-      // Update the sync count
-      const count = await OfflineSyncService.getPendingSyncCount();
-      setSyncCount(count);
+      // Update pending count
+      const newCount = await offlineSyncService.getPendingOperationsCount();
+      setPendingCount(newCount);
       
-      return results;
-    } catch (error) {
-      console.error('Error during synchronization:', error);
-      
-      if (notifyOnSync) {
-        toast.error("Erreur de synchronisation", {
-          description: `Une erreur est survenue: ${error.message || error}`
-        });
-      }
-      
-      return [{
-        success: false,
-        message: `Sync error: ${error.message || error}`,
-        error
-      }];
+      return result;
     } finally {
       setIsSyncing(false);
     }
-  }, [isOnline, isSyncing, notifyOnSync]);
-  
-  // Trigger sync when coming back online if configured
-  useEffect(() => {
-    if (syncOnReconnect && isOnline && syncCount > 0 && !isSyncing) {
-      syncNow();
-    }
-  }, [isOnline, syncCount, isSyncing, syncOnReconnect, syncNow]);
+  };
   
   return {
+    isOnline,
     isSyncing,
-    syncCount,
+    pendingCount,
     lastSyncTime,
-    lastSyncResults,
-    addToSyncQueue,
-    syncNow
+    queueOperation,
+    syncPendingOperations
   };
-}
+};

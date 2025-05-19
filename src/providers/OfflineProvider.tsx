@@ -1,163 +1,109 @@
-import React, {
-  createContext,
-  useState,
-  useEffect,
-  useContext,
-  useCallback,
-} from 'react';
-import { useNetworkState } from '@/hooks/useNetworkState';
-import { useToast } from '@/components/ui/use-toast';
-import { useTranslation } from 'react-i18next';
 
-interface OfflineContextProps {
-  isOffline: boolean;
-  pendingSyncCount: number;
-  isSyncing: boolean;
-  syncNow: () => void;
-  lastSync: Date | null;
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useNetworkState } from '@/hooks/useNetworkState';
+
+// Define the operation types for synchronization
+export enum SyncOperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  BATCH = 'batch'
 }
 
-const OfflineContext = createContext<OfflineContextProps>({
-  isOffline: false,
-  pendingSyncCount: 0,
+// Define the context type
+interface OfflineContextType {
+  isOnline: boolean;
+  isSyncing: boolean;
+  pendingOperations: number;
+  lastSyncTime: Date | null;
+  syncErrors: Error[];
+  triggerSync: () => Promise<void>;
+}
+
+// Create context with default values
+const OfflineContext = createContext<OfflineContextType>({
+  isOnline: true,
   isSyncing: false,
-  syncNow: () => {},
-  lastSync: null,
+  pendingOperations: 0,
+  lastSyncTime: null,
+  syncErrors: [],
+  triggerSync: async () => {}
 });
 
+// Hook to use the offline context
+export const useOfflineStatus = () => useContext(OfflineContext);
+
 interface OfflineProviderProps {
-  children: React.ReactNode;
-  autoSyncInterval?: number;
-  showOfflineIndicator?: boolean;
+  children: ReactNode;
+  syncService?: any; // Ideally you would type this properly
 }
 
-export const OfflineProvider: React.FC<OfflineProviderProps> = ({
-  children,
-  autoSyncInterval = 60000, // Default to 60 seconds
-  showOfflineIndicator = true,
-}) => {
+export const OfflineProvider: React.FC<OfflineProviderProps> = ({ children, syncService }) => {
   const isOnline = useNetworkState();
-  const [pendingSyncCount, setPendingSyncCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [lastSync, setLastSync] = useState<Date | null>(null);
-  const { toast } = useToast();
-  const { t } = useTranslation();
+  const [pendingOperations, setPendingOperations] = useState(0);
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
+  const [syncErrors, setSyncErrors] = useState<Error[]>([]);
 
-  // Mock localStorage, replace with your actual persistence mechanism
-  const [offlineData, setOfflineData] = useState<any[]>([]);
-
-  // Load initial data from localStorage on mount
+  // Fetch pending operations count
   useEffect(() => {
-    const storedData = localStorage.getItem('offlineData');
-    if (storedData) {
-      setOfflineData(JSON.parse(storedData));
+    const fetchPendingCount = async () => {
+      try {
+        if (syncService) {
+          const count = await syncService.getPendingOperationsCount();
+          setPendingOperations(count);
+        }
+      } catch (error) {
+        console.error('Failed to fetch pending operations count:', error);
+      }
+    };
+
+    fetchPendingCount();
+    // Set up an interval to periodically check for pending operations
+    const interval = setInterval(fetchPendingCount, 60000); // Check every minute
+    
+    return () => clearInterval(interval);
+  }, [syncService]);
+
+  // Auto-sync when coming back online
+  useEffect(() => {
+    if (isOnline && pendingOperations > 0 && !isSyncing) {
+      triggerSync();
     }
-  }, []);
+  }, [isOnline, pendingOperations, isSyncing]);
 
-  // Save data to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('offlineData', JSON.stringify(offlineData));
-    setPendingSyncCount(offlineData.length);
-  }, [offlineData]);
-
-  // Function to schedule a sync operation
-  const scheduleSyncOperation = (
-    entity: string,
-    entityId: string | number,
-    operationType: 'create' | 'update' | 'delete',
-    payload: any
-  ) => {
-    setOfflineData((prevData) => [
-      ...prevData,
-      {
-        entity,
-        entityId,
-        operationType,
-        payload,
-        timestamp: new Date().toISOString(),
-      },
-    ]);
+  // Trigger manual sync
+  const triggerSync = async () => {
+    if (!isOnline || !syncService || isSyncing) return;
+    
+    setIsSyncing(true);
+    setSyncErrors([]);
+    
+    try {
+      await syncService.syncPendingOperations();
+      setLastSyncTime(new Date());
+      // Refresh count after sync
+      const count = await syncService.getPendingOperationsCount();
+      setPendingOperations(count);
+    } catch (error) {
+      console.error('Sync failed:', error);
+      if (error instanceof Error) {
+        setSyncErrors(prev => [...prev, error]);
+      } else {
+        setSyncErrors(prev => [...prev, new Error('Unknown sync error')]);
+      }
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
-  // Function to execute sync operations
-  const executeSyncOperations = useCallback(async () => {
-    if (!isOnline || isSyncing || offlineData.length === 0) {
-      return;
-    }
-
-    setIsSyncing(true);
-    let successCount = 0;
-    let failCount = 0;
-
-    for (const operation of offlineData) {
-      try {
-        // Simulate API call based on operation type
-        console.log(
-          `Simulating API call: ${operation.operationType} ${operation.entity} ${operation.entityId}`
-        );
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate network latency
-        successCount++;
-      } catch (error: any) {
-        const errorId = error && typeof error === 'object' && 'id' in error ? error.id : 'unknown';
-        console.error(`Sync error for operation ${errorId}:`, error);
-        failCount++;
-      } finally {
-        // Remove the operation from the queue
-        setOfflineData((prevData) =>
-          prevData.filter((item) => item !== operation)
-        );
-      }
-    }
-
-    setIsSyncing(false);
-    setLastSync(new Date());
-
-    if (failCount === 0) {
-      toast({
-        title: t('offline.syncSuccess', { count: successCount }),
-        description: t('offline.syncSuccess', { count: successCount }),
-      });
-    } else {
-      toast({
-        title: t('offline.syncPartial', { failCount }),
-        description: t('offline.syncPartial', { failCount }),
-      });
-    }
-  }, [isOnline, isSyncing, offlineData, toast, t]);
-
-  // Auto-sync effect
-  useEffect(() => {
-    if (autoSyncInterval <= 0) {
-      return;
-    }
-
-    let intervalId: NodeJS.Timeout;
-
-    if (isOnline) {
-      intervalId = setInterval(executeSyncOperations, autoSyncInterval);
-    }
-
-    return () => clearInterval(intervalId);
-  }, [isOnline, autoSyncInterval, executeSyncOperations]);
-
-  // Initial sync and online status sync
-  useEffect(() => {
-    if (isOnline) {
-      executeSyncOperations();
-    } else {
-      toast({
-        title: t('offline.offlineMode'),
-        description: t('offline.pendingChanges'),
-      });
-    }
-  }, [isOnline, toast, t, executeSyncOperations]);
-
-  const contextValue: OfflineContextProps = {
-    isOffline: !isOnline,
-    pendingSyncCount,
+  const contextValue: OfflineContextType = {
+    isOnline,
     isSyncing,
-    syncNow: executeSyncOperations,
-    lastSync,
+    pendingOperations,
+    lastSyncTime,
+    syncErrors,
+    triggerSync
   };
 
   return (
@@ -166,5 +112,3 @@ export const OfflineProvider: React.FC<OfflineProviderProps> = ({
     </OfflineContext.Provider>
   );
 };
-
-export const useOffline = () => useContext(OfflineContext);

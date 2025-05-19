@@ -1,34 +1,24 @@
 
 export interface Intervention {
-  id: number;
+  id: string | number;
   title: string;
-  equipment: string;
-  equipmentId: number;
-  location: string;
-  coordinates: {
-    lat: number;
-    lng: number;
+  description?: string;
+  startDate?: Date;
+  endDate?: Date;
+  status?: string;
+  priority?: string;
+  equipment?: {
+    id: number;
+    name: string;
+    serialNumber?: string;
+    model?: string;
   };
-  status: 'scheduled' | 'in-progress' | 'completed' | 'canceled';
-  priority: 'high' | 'medium' | 'low';
-  date: string | Date;
-  duration?: number;
-  scheduledDuration?: number;
-  technician: string;
-  description: string;
-  partsUsed: Array<{ partId: number; name: string; quantity: number; }>;
+  partsUsed?: {
+    id: number;
+    name: string;
+    quantity: number;
+    unitPrice?: number;
+  }[];
   notes?: string;
-}
-
-export interface InterventionFormValues {
-  title: string;
-  equipment: string;
-  equipmentId: number;
-  location: string;
-  priority: 'high' | 'medium' | 'low';
-  date: Date;
-  scheduledDuration: number;
-  technician: string;
-  description: string;
-  notes?: string;
+  _isOffline?: boolean;
 }
