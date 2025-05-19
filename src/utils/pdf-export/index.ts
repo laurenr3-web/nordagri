@@ -1,5 +1,8 @@
 
 import { Intervention } from '@/types/Intervention';
+import { InterventionReportPDFOptions } from './types';
+import { exportInterventionToPDF as exportReport, sendInterventionReportByEmail as sendReportByEmail } from './intervention-report';
+import { exportTimeReportToPDF } from './time-report';
 
 export interface ExportOptions {
   reportNotes?: string;
@@ -9,14 +12,7 @@ export interface ExportOptions {
 }
 
 export async function exportInterventionToPDF(intervention: Intervention, options?: ExportOptions): Promise<void> {
-  console.log('Exporting intervention to PDF', intervention, options);
-  // Mock implementation for now
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      console.log('PDF exported successfully');
-      resolve();
-    }, 1000);
-  });
+  return exportReport(intervention, options);
 }
 
 export async function sendInterventionReportByEmail(
@@ -24,12 +20,8 @@ export async function sendInterventionReportByEmail(
   email: string,
   options?: ExportOptions & { subject?: string; message?: string }
 ): Promise<boolean> {
-  console.log('Sending intervention report to', email, intervention, options);
-  // Mock implementation for now
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      console.log('Email sent successfully to', email);
-      resolve(true);
-    }, 1500);
-  });
+  return sendReportByEmail(intervention, email, options);
 }
+
+// Re-export the time report function
+export { exportTimeReportToPDF };

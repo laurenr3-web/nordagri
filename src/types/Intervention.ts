@@ -1,13 +1,13 @@
 
 export interface Intervention {
-  id: number;  // Changed from string | number to just number
+  id: number;
   title: string;
   description?: string;
   startDate?: Date;
   endDate?: Date;
-  status: "completed" | "scheduled" | "in-progress" | "canceled"; // Using string literals instead of generic string
-  priority: "high" | "medium" | "low"; // Using string literals instead of generic string
-  equipment: string; // Changed from object type to string to match actual usage
+  status: "completed" | "scheduled" | "in-progress" | "canceled";
+  priority: "high" | "medium" | "low";
+  equipment: string;
   partsUsed?: {
     id: number;
     name: string;
