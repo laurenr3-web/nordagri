@@ -11,6 +11,7 @@ const fetchIntervention = async (id: number): Promise<Intervention> => {
     status: "completed" as const,
     priority: "medium" as const,
     equipment: "Tracteur John Deere",
+    equipmentId: 123,
     description: "Maintenance régulière",
     startDate: new Date(),
     date: new Date(),

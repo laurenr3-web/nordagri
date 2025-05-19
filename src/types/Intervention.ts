@@ -22,6 +22,7 @@ export interface Intervention {
   technician?: string;
   scheduledDuration?: number;
   duration?: number;
+  equipmentId?: number; // Added to align with the form values
 }
 
 // Form values interface for new interventions

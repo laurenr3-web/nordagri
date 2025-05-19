@@ -62,7 +62,7 @@ export function MobileInterventionForm({
     onSubmitOffline: async (data) => {
       // Handle offline submission by adding to sync queue
       try {
-        const operation = editMode ? 'update_intervention' : 'add_intervention';
+        const operation = editMode ? 'update' : 'add';
         const tableName = 'interventions';
         
         if (editMode && interventionId) {

@@ -4,6 +4,12 @@ import { useNetworkState } from '@/hooks/useNetworkState';
 import { syncService } from '@/services/syncService';
 import { toast } from 'sonner';
 
+export enum SyncOperationType {
+  CREATE = 'add',
+  UPDATE = 'update',
+  DELETE = 'delete'
+}
+
 export interface OfflineContextType {
   isOnline: boolean;
   isInitialized: boolean;
@@ -149,30 +155,21 @@ export function OfflineProvider({
         return;
       }
       
-      // Process each operation
-      // In a real implementation, this would call API endpoints
-      // This is just a placeholder that marks all as completed
-      for (const op of operations) {
-        if (op.id) {
-          // Process operation here
-          await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API call
-          
-          // Mark as completed
-          await syncService.updateOperationStatus(op.id, 'completed');
-        }
-      }
-      
-      // Clear completed operations
-      await syncService.clearCompletedOperations();
+      // Process operations
+      const results = await syncService.sync();
       
       // Update pending operations count
       const stats = await syncService.getSyncStats();
       setPendingOperationsCount(stats.pending + stats.failed);
       
-      toast.success(`Synchronisation terminée`, {
-        description: `${operations.length} opération(s) synchronisée(s)`
-      });
+      // Show success toast
+      const successCount = results.filter(r => r.success).length;
       
+      if (successCount > 0) {
+        toast.success(`Synchronisation terminée`, {
+          description: `${successCount} opération(s) synchronisée(s)`
+        });
+      }
     } catch (error) {
       console.error('Error performing sync:', error);
       toast.error('Erreur lors de la synchronisation', {
