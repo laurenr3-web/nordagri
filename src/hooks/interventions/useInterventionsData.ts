@@ -49,7 +49,7 @@ export function useInterventionsData() {
     mutationFn: ({ id, status }: { id: number; status: Intervention['status'] }) => {
       setIsLoading(true);
       console.log(`Updating intervention ${id} status to ${status}`);
-      return interventionService.updateInterventionStatus(id, status);
+      return interventionService.updateInterventionStatus(id, status); // Assuming this takes 2 args as expected
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['interventions'] });
@@ -106,12 +106,19 @@ export function useInterventionsData() {
     notes: string;
     partsUsed: Array<{ id: number; name: string; quantity: number; }>;
   }) => {
+    // Convert the partsUsed format to match what's expected by the Intervention type
+    const updatedPartsUsed = report.partsUsed.map(part => ({
+      id: part.id,
+      name: part.name,
+      quantity: part.quantity
+    }));
+    
     const updatedIntervention: Intervention = {
       ...intervention,
       status: 'completed',
       duration: report.duration,
       notes: report.notes,
-      partsUsed: report.partsUsed
+      partsUsed: updatedPartsUsed
     };
     updateMutation.mutate(updatedIntervention);
   };

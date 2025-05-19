@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Document, Page, Text, View } from '@react-pdf/renderer';
-import { TimeEntriesPDFProps } from './types';
+import { TableData, TimeEntriesPDFProps } from './types';
 import { styles } from './styles';
 
 export const TimeEntriesPDF: React.FC<TimeEntriesPDFProps> = ({ 

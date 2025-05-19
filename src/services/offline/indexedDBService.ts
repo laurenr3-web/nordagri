@@ -100,7 +100,7 @@ export class IndexedDBService {
       };
     });
   }
-  
+
   /**
    * Update an item in a store
    * @param storeName Store name
@@ -136,7 +136,7 @@ export class IndexedDBService {
    * @param data Data to update
    * @returns Promise<void>
    */
-  static async updateInStore(storeName: string, id: string | number, data: any): Promise<void> {
+  static async updateById(storeName: string, id: string | number, data: any): Promise<void> {
     const db = await this.openDB();
     
     return new Promise((resolve, reject) => {

@@ -27,3 +27,33 @@ export interface PDFExportService {
     message?: string;
   }): Promise<boolean>;
 }
+
+// Adding missing types for time tracking PDF export
+export interface TableData {
+  headers: Array<{ key: string; label: string }>;
+  rows: Array<Record<string, any>>;
+}
+
+export interface TimeEntriesPDFProps {
+  title: string;
+  subtitle: string;
+  tableData: TableData;
+}
+
+export interface TimeReportPDFProps {
+  month: string;
+  summary: {
+    daily: number;
+    weekly: number;
+    monthly: number;
+  };
+  taskDistribution: Array<{
+    type: string;
+    hours: number;
+    percentage: number;
+  }>;
+  topEquipment: Array<{
+    name: string;
+    hours: number;
+  }>;
+}

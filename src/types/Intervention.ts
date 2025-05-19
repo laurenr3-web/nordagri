@@ -10,7 +10,6 @@ export interface Intervention {
   equipment: string;
   partsUsed?: {
     id?: number;
-    partId?: number;
     name: string;
     quantity: number;
     unitPrice?: number;
@@ -18,7 +17,7 @@ export interface Intervention {
   notes?: string;
   _isOffline?: boolean;
   // Additional properties needed by components
-  date?: Date;
+  date?: string | Date; // Allow both string and Date types for compatibility
   location?: string;
   technician?: string;
   scheduledDuration?: number;
