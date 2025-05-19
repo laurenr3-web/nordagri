@@ -36,9 +36,16 @@ export const useOfflineStatus = () => useContext(OfflineContext);
 interface OfflineProviderProps {
   children: ReactNode;
   syncService?: any; // Ideally you would type this properly
+  autoSyncInterval?: number; // Minutes between auto sync attempts
+  showOfflineIndicator?: boolean;
 }
 
-export const OfflineProvider: React.FC<OfflineProviderProps> = ({ children, syncService }) => {
+export const OfflineProvider: React.FC<OfflineProviderProps> = ({ 
+  children, 
+  syncService,
+  autoSyncInterval = 5,
+  showOfflineIndicator = true
+}) => {
   const isOnline = useNetworkState();
   const [isSyncing, setIsSyncing] = useState(false);
   const [pendingOperations, setPendingOperations] = useState(0);
@@ -64,6 +71,21 @@ export const OfflineProvider: React.FC<OfflineProviderProps> = ({ children, sync
     
     return () => clearInterval(interval);
   }, [syncService]);
+  
+  // Auto-sync periodically based on interval
+  useEffect(() => {
+    if (!isOnline || !syncService) return;
+    
+    const autoSync = async () => {
+      if (pendingOperations > 0 && !isSyncing) {
+        await triggerSync();
+      }
+    };
+    
+    const interval = setInterval(autoSync, autoSyncInterval * 60 * 1000); // Convert minutes to ms
+    
+    return () => clearInterval(interval);
+  }, [isOnline, pendingOperations, isSyncing, autoSyncInterval, syncService]);
 
   // Auto-sync when coming back online
   useEffect(() => {

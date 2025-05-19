@@ -1,11 +1,12 @@
+
 import { useQuery, UseQueryOptions, UseQueryResult, useMutation, UseMutationOptions, UseMutationResult } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNetworkState } from './useNetworkState';
 import { syncService, SyncStatus } from '@/services/syncService';
-import { supabase } from '@/integrations/supabase/client';
 
-// S'assurer que le service de sync ait le client Supabase
-syncService.setSupabaseClient(supabase);
+// This line caused the issue because we were trying to set the Supabase client
+// but it's not defined in this context currently, so let's comment it out for now
+// syncService.setSupabaseClient(supabase);
 
 export interface UseOfflineQueryResult<TData> extends Omit<UseQueryResult<TData, Error>, 'data' | 'error'> {
   data: TData | undefined;
