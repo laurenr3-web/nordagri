@@ -49,6 +49,13 @@ export interface TableData {
   rows: Array<Record<string, any>>;
 }
 
+// Props for TimeEntriesPDF component
+export interface TimeEntriesPDFProps {
+  title: string;
+  subtitle: string;
+  tableData: TableData;
+}
+
 // Options for generating intervention report PDFs
 export interface InterventionReportPDFOptions {
   companyName?: string;
