@@ -11,16 +11,25 @@ export class IndexedDBService {
   static async databaseExists(): Promise<boolean> {
     return new Promise((resolve) => {
       const request = indexedDB.open(this.DB_NAME);
+      
       request.onupgradeneeded = () => {
+        // If onupgradeneeded is triggered, the database didn't exist previously
+        // We need to abort this transaction to avoid partially creating it
         request.transaction?.abort();
         resolve(false);
       };
+      
       request.onsuccess = () => {
         const db = request.result;
+        const storeNames = Array.from(db.objectStoreNames);
         db.close();
-        resolve(true);
+        
+        // On considère que la base existe si elle a au moins un store
+        resolve(storeNames.length > 0);
       };
+      
       request.onerror = () => {
+        console.error('Error checking if database exists:', request.error);
         resolve(false);
       };
     });
@@ -32,53 +41,68 @@ export class IndexedDBService {
    */
   static async openDB(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
+      console.log(`Opening IndexedDB database: ${this.DB_NAME} (v${this.DB_VERSION})`);
       const request = indexedDB.open(this.DB_NAME, this.DB_VERSION);
       
       request.onerror = (event) => {
-        reject(new Error('Error opening database: ' + (event.target as IDBRequest).error?.message));
+        const error = (event.target as IDBRequest).error;
+        console.error('Error opening database:', error);
+        reject(new Error(`Error opening database: ${error?.message || 'Unknown error'}`));
       };
       
       request.onsuccess = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
+        console.log('Database opened successfully, object stores:', Array.from(db.objectStoreNames));
         resolve(db);
       };
       
       request.onupgradeneeded = (event) => {
+        console.log('Database upgrade needed, creating object stores');
         const db = (event.target as IDBOpenDBRequest).result;
+        const existingStoreNames = Array.from(db.objectStoreNames);
+        console.log('Existing stores:', existingStoreNames);
         
         // Create object stores with consistent names across the application
-        if (!db.objectStoreNames.contains('formDrafts')) {
+        if (!existingStoreNames.includes('formDrafts')) {
+          console.log('Creating formDrafts store');
           db.createObjectStore('formDrafts', { keyPath: 'id' });
         }
         
-        if (!db.objectStoreNames.contains('syncQueue')) {
+        if (!existingStoreNames.includes('syncQueue')) {
+          console.log('Creating syncQueue store');
           db.createObjectStore('syncQueue', { keyPath: 'id', autoIncrement: true });
         }
 
-        if (!db.objectStoreNames.contains('interventions')) {
+        if (!existingStoreNames.includes('interventions')) {
+          console.log('Creating interventions store');
           const interventionsStore = db.createObjectStore('interventions', { keyPath: 'id' });
           interventionsStore.createIndex('status', 'status', { unique: false });
         }
 
-        if (!db.objectStoreNames.contains('equipment')) {
+        if (!existingStoreNames.includes('equipment')) {
+          console.log('Creating equipment store');
           const equipmentStore = db.createObjectStore('equipment', { keyPath: 'id' });
           equipmentStore.createIndex('status', 'status', { unique: false });
         }
 
-        if (!db.objectStoreNames.contains('offline_cache')) {
+        if (!existingStoreNames.includes('offline_cache')) {
+          console.log('Creating offline_cache store');
           db.createObjectStore('offline_cache', { keyPath: 'key' });
         }
 
         // Ensure these store names are correctly defined for consistency
-        if (!db.objectStoreNames.contains('equipment_options')) {
+        if (!existingStoreNames.includes('equipment_options')) {
+          console.log('Creating equipment_options store');
           db.createObjectStore('equipment_options', { keyPath: 'key' });
         }
         
-        if (!db.objectStoreNames.contains('equipment_stats')) {
+        if (!existingStoreNames.includes('equipment_stats')) {
+          console.log('Creating equipment_stats store');
           db.createObjectStore('equipment_stats', { keyPath: 'key' });
         }
         
-        if (!db.objectStoreNames.contains('equipment_maintenance')) {
+        if (!existingStoreNames.includes('equipment_maintenance')) {
+          console.log('Creating equipment_maintenance store');
           db.createObjectStore('equipment_maintenance', { keyPath: 'key' });
         }
       };
