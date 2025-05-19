@@ -25,3 +25,6 @@ export async function sendInterventionReportByEmail(
 
 // Re-export the time report function
 export { exportTimeReportToPDF };
+
+// Re-export types
+export * from './types';

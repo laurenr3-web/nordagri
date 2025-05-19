@@ -186,7 +186,7 @@ export const InterventionReportPDF: React.FC<InterventionReportPDFProps> = ({
             <Text style={styles.value}>
               {intervention.status === 'completed' ? 'Terminée' :
                intervention.status === 'in-progress' ? 'En cours' : 
-               intervention.status === 'cancelled' ? 'Annulée' : 'Planifiée'}
+               intervention.status === 'scheduled' ? 'Planifiée' : 'Annulée'}
             </Text>
           </View>
           <View style={styles.row}>

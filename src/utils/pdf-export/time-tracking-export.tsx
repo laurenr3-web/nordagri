@@ -2,7 +2,7 @@
 import { pdf } from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
-import { TableData, TimeReportPDFProps } from './types';
+import { TableData, TimeReportPDFOptions, TimeReportPDFProps } from './types';
 
 // Implement a simple TimeReportPDF component since it's missing
 const TimeReportPDF = ({ month, summary, taskDistribution, topEquipment }: TimeReportPDFProps) => (

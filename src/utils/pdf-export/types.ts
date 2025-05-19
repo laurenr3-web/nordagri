@@ -22,3 +22,45 @@ export interface TimeReportPDFOptions {
     end: Date;
   };
 }
+
+// Ajout des types manquants
+export interface TableHeader {
+  key: string;
+  label: string;
+}
+
+export interface TableData {
+  headers: TableHeader[];
+  rows: Record<string, any>[];
+}
+
+export interface TimeEntriesPDFProps {
+  title: string;
+  subtitle: string;
+  tableData: TableData;
+}
+
+export interface TimeReportPDFProps {
+  month: string;
+  summary: {
+    daily: number;
+    weekly: number;
+    monthly: number;
+  };
+  taskDistribution: Array<{
+    type: string;
+    hours: number;
+    percentage: number;
+  }>;
+  topEquipment: Array<{
+    name: string;
+    hours: number;
+  }>;
+}
+
+export interface PDFGenerationResult {
+  url: string;
+  blob: Blob;
+  filename: string;
+  contentType: string;
+}

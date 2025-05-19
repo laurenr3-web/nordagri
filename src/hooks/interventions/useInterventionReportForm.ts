@@ -5,8 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Intervention } from '@/types/Intervention';
 import { toast } from 'sonner';
-import { exportInterventionToPDF } from '@/utils/pdf-export'; // Correction de l'import
-import { FormPart } from '../report-dialog/form-fields/PartsUsedField';
+import { exportInterventionToPDF } from '@/utils/pdfExport';
 
 // Define a schema for the form values
 const reportFormSchema = z.object({
@@ -23,6 +22,13 @@ const reportFormSchema = z.object({
 
 // Export the type for form values
 export type InterventionReportFormValues = z.infer<typeof reportFormSchema>;
+
+// Définir le type FormPart pour résoudre l'erreur d'importation
+export type FormPart = {
+  id: number;
+  name: string;
+  quantity: number;
+};
 
 interface UseInterventionReportFormProps {
   intervention: Intervention | null;
