@@ -51,8 +51,9 @@ export const timeEntryQueries = {
           start_time: data.start_time,
           end_time: data.end_time,
           status: data.status as TimeEntryStatus,
-          // Fix: Access equipment name safely
-          equipment_name: data.equipment?.name || 'Unknown Equipment',
+          // Fixed: Access equipment name properly
+          equipment_name: data.equipment && typeof data.equipment === 'object' ? 
+            (data.equipment as any).name || 'Unknown Equipment' : 'Unknown Equipment',
           intervention_title: data.title,
           notes: data.notes,
           location: data.location,
@@ -180,8 +181,9 @@ export const timeEntryQueries = {
         start_time: data.start_time,
         end_time: data.end_time,
         status: data.status as TimeEntryStatus,
-        // Fix: Access equipment name safely
-        equipment_name: data.equipment?.name || 'Unknown Equipment',
+        // Fixed: Access equipment name properly
+        equipment_name: data.equipment && typeof data.equipment === 'object' ? 
+          (data.equipment as any).name || 'Unknown Equipment' : 'Unknown Equipment',
         intervention_title: data.title,
         notes: data.notes,
         location: data.location,
@@ -322,8 +324,9 @@ export const timeEntryQueries = {
       data?.forEach(item => {
         if (item.equipment_id && item.duration) {
           const id = item.equipment_id;
-          // Fix: Access equipment name safely
-          const equipName = item.equipment?.name || 'Unknown';
+          // Fixed: Access equipment name properly
+          const equipName = item.equipment && typeof item.equipment === 'object' ? 
+            (item.equipment as any).name || 'Unknown' : 'Unknown';
           const current = equipmentMap.get(id) || { name: equipName, minutes: 0 };
           current.minutes += item.duration * 60; // Convert hours to minutes
           equipmentMap.set(id, current);

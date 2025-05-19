@@ -52,8 +52,9 @@ export function useTopEquipment(month: Date) {
           if (!session.equipment_id || !session.equipment) return;
           
           const equipmentId = session.equipment_id;
-          // Fix: Access equipment name safely
-          const equipmentName = session.equipment?.name || 'Équipement inconnu';
+          // Fixed: Access equipment name properly
+          const equipmentName = typeof session.equipment === 'object' ? 
+            (session.equipment as any).name || 'Équipement inconnu' : 'Équipement inconnu';
           
           // Calculate duration if not available
           let sessionDuration = session.duration;

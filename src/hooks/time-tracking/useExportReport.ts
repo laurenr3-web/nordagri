@@ -85,8 +85,8 @@ export function useExportReport(month: Date) {
         
         // Equipment usage - store ID along with name and hours
         if (entry.equipment_id && entry.equipment) {
-          // Fix: Access equipment name safely
-          const equipmentName = entry.equipment?.name || 'Équipement inconnu';
+          // Fixed: Access equipment name properly
+          const equipmentName = typeof entry.equipment === 'object' ? (entry.equipment as any).name || 'Équipement inconnu' : 'Équipement inconnu';
           const equipmentId = entry.equipment_id;
           const currentEntry = equipmentMap.get(equipmentId) || { name: equipmentName, hours: 0 };
           currentEntry.hours += duration;
@@ -108,8 +108,8 @@ export function useExportReport(month: Date) {
           start_time: entry.start_time,
           end_time: entry.end_time,
           status: entry.status,
-          // Fix: Access equipment name safely
-          equipment_name: entry.equipment?.name || "Équipement non spécifié",
+          // Fixed: Access equipment name properly
+          equipment_name: typeof entry.equipment === 'object' ? (entry.equipment as any).name || "Équipement non spécifié" : "Équipement non spécifié",
           notes: entry.notes,
           task_type: entry.custom_task_type || "Non spécifié"
         } as TimeEntry;
