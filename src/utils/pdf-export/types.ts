@@ -1,43 +1,16 @@
 
-import { Intervention } from '@/types/Intervention';
+// Define types for PDF exports
 
-export interface InterventionReportPDFOptions {
-  companyName?: string;
-  companyLogo?: string;
-  companyDetails?: string;
-  signature?: string;
-  reportNotes?: string;
-  actualDuration?: number;
-  images?: string[];
-  technician?: string;
-  filename?: string;
+export interface TableData {
+  headers: Array<{
+    key: string;
+    label: string;
+  }>;
+  rows: Array<Record<string, any>>;
 }
 
 export interface TimeReportPDFOptions {
-  employeeName: string;
-  companyName?: string;
-  companyLogo?: string;
-  period: {
-    start: Date;
-    end: Date;
-  };
-}
-
-// Ajout des types manquants
-export interface TableHeader {
-  key: string;
-  label: string;
-}
-
-export interface TableData {
-  headers: TableHeader[];
-  rows: Record<string, any>[];
-}
-
-export interface TimeEntriesPDFProps {
-  title: string;
-  subtitle: string;
-  tableData: TableData;
+  filename?: string;
 }
 
 export interface TimeReportPDFProps {
@@ -53,14 +26,14 @@ export interface TimeReportPDFProps {
     percentage: number;
   }>;
   topEquipment: Array<{
+    id?: number;
     name: string;
     hours: number;
   }>;
 }
 
-export interface PDFGenerationResult {
-  url: string;
-  blob: Blob;
-  filename: string;
-  contentType: string;
+export interface TimeEntriesPDFProps {
+  title: string;
+  subtitle: string;
+  tableData: TableData;
 }
