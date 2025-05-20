@@ -64,9 +64,11 @@ export interface InterventionReportPDFProps {
   technician?: string;
 }
 
-// Add the PDFGenerationResult type
+// Add the PDFGenerationResult type with the filename property
 export interface PDFGenerationResult {
   blob: Blob;
   url: string;
+  filename: string;
+  contentType?: string;
   download: () => void;
 }

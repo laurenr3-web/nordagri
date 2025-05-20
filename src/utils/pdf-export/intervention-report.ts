@@ -1,6 +1,6 @@
 
 import { Intervention } from '@/types/Intervention';
-import { InterventionReportPDFOptions } from './types';
+import { InterventionReportPDFOptions, PDFGenerationResult } from './types';
 
 /**
  * Export an intervention to PDF format

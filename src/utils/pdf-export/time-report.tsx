@@ -81,6 +81,12 @@ export async function exportTimeReportToPDF(
     blob,
     filename,
     contentType: 'application/pdf',
+    download: () => {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.click();
+    }
   };
 }
 
