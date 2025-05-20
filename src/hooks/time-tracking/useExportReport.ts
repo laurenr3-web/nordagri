@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -166,6 +167,16 @@ export function useExportReport(month: Date) {
       // Format the month for display
       const formattedMonth = format(month, 'MMMM yyyy', { locale: fr });
       
+      // Calculate total hours for percentage calculation
+      const totalTaskHours = data.summary.taskTypeDistribution.reduce((sum, task) => sum + task.hours, 0);
+      
+      // Add percentage to each task type distribution entry
+      const taskDistributionWithPercentage = data.summary.taskTypeDistribution.map(task => ({
+        type: task.type,
+        hours: task.hours,
+        percentage: totalTaskHours > 0 ? (task.hours / totalTaskHours) * 100 : 0
+      }));
+      
       await exportTimeReportToPDF(
         formattedMonth,
         {
@@ -173,7 +184,7 @@ export function useExportReport(month: Date) {
           weekly: weeklyHours,
           monthly: monthlyHours
         },
-        data.summary.taskTypeDistribution,
+        taskDistributionWithPercentage,
         data.summary.topEquipment,
         `rapport-temps-${format(month, 'yyyy-MM')}`
       );

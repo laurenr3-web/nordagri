@@ -7,6 +7,7 @@ export interface TaskTypeDistribution {
   type: string;
   hours: number;
   color?: string;
+  percentage?: number; // Make percentage optional to be compatible with both interfaces
 }
 
 // Colors for different task types
