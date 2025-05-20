@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     width: '50%',
   },
   table: {
-    display: 'table',
+    display: 'flex',
     width: 'auto',
     borderStyle: 'solid',
     borderWidth: 1,

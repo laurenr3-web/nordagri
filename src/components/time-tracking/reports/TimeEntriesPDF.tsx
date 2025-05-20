@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   table: {
-    display: 'table',
+    display: 'flex',
     width: 'auto',
     borderStyle: 'solid',
     borderWidth: 1,
