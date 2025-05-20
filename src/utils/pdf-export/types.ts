@@ -37,3 +37,36 @@ export interface TimeEntriesPDFProps {
   subtitle: string;
   tableData: TableData;
 }
+
+// Add the InterventionReportPDFOptions type
+export interface InterventionReportPDFOptions {
+  companyName?: string;
+  companyLogo?: string;
+  companyDetails?: string;
+  signature?: string;
+  reportNotes?: string;
+  actualDuration?: number;
+  images?: string[];
+  technician?: string;
+  filename?: string;
+}
+
+// Define the props interface for InterventionReportPDF
+export interface InterventionReportPDFProps {
+  intervention: any; // Replace with your Intervention type
+  companyName?: string;
+  companyLogo?: string;
+  companyDetails?: string;
+  signature?: string;
+  reportNotes?: string;
+  actualDuration?: number;
+  images?: string[];
+  technician?: string;
+}
+
+// Add the PDFGenerationResult type
+export interface PDFGenerationResult {
+  blob: Blob;
+  url: string;
+  download: () => void;
+}

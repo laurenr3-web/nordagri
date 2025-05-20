@@ -7,7 +7,7 @@ import { InterventionReportPDFOptions } from './types';
  */
 export async function exportInterventionToPDF(
   intervention: Intervention,
-  options?: InterventionReportPDFOptions & { filename?: string }
+  options?: InterventionReportPDFOptions
 ): Promise<void> {
   // Extract the filename option if provided
   const { filename } = options || {};
