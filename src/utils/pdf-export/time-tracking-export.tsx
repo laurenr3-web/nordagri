@@ -2,9 +2,9 @@
 import React from 'react';
 import { pdf } from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
-import { TimeReportPDFProps, TimeEntriesPDFProps, PDFGenerationResult } from './types';
 import { TimeReportPDF } from '@/components/time-tracking/reports/TimeReportPDF';
 import { TimeEntriesPDF } from '@/components/time-tracking/reports/TimeEntriesPDF';
+import { PDFGenerationResult } from './types';
 
 /**
  * Generate and download a PDF report of time tracking summary
@@ -19,24 +19,24 @@ export const exportTimeReportToPDF = async (
   taskDistribution: Array<{
     type: string;
     hours: number;
-    percentage?: number;
+    percentage: number;
   }>,
   topEquipment: Array<{
     id?: number;
     name: string;
     hours: number;
   }>,
-  filename: string = 'time-report'
+  filename = 'time-report'
 ): Promise<void> => {
   try {
-    console.log("Creating time report PDF with data:", {
+    console.log("Création du rapport PDF avec les données:", {
       month,
       summary,
       taskDistributionLength: taskDistribution.length,
       topEquipmentLength: topEquipment.length
     });
 
-    // Generate PDF document
+    // Generate PDF blob
     const blob = await pdf(
       <TimeReportPDF
         month={month}
@@ -49,15 +49,15 @@ export const exportTimeReportToPDF = async (
       />
     ).toBlob();
 
-    console.log(`PDF blob created, size: ${blob.size}`);
-    
-    // Download the PDF file
+    console.log(`Blob PDF créé, taille: ${blob.size}`);
+
+    // Télécharger le fichier PDF en utilisant file-saver
     saveAs(blob, `${filename}.pdf`);
-    console.log(`PDF download initiated: ${filename}.pdf`);
-    
+    console.log(`Téléchargement du PDF lancé: ${filename}.pdf`);
+
     return Promise.resolve();
   } catch (error) {
-    console.error("Error generating time report PDF:", error);
+    console.error("Erreur lors de la génération du rapport PDF:", error);
     throw error;
   }
 };
@@ -66,13 +66,23 @@ export const exportTimeReportToPDF = async (
  * Generate and download a PDF of time entries
  */
 export const exportTimeEntriesToPDF = async (
-  props: TimeEntriesPDFProps,
-  filename: string = 'time-entries'
+  props: {
+    title: string;
+    subtitle: string;
+    tableData: {
+      headers: Array<{
+        key: string;
+        label: string;
+      }>;
+      rows: Array<Record<string, any>>;
+    }
+  },
+  filename = 'time-entries'
 ): Promise<void> => {
   try {
-    console.log("Creating time entries PDF");
+    console.log("Création du PDF des entrées de temps");
 
-    // Generate PDF document
+    // Generate PDF blob
     const blob = await pdf(
       <TimeEntriesPDF
         title={props.title}
@@ -80,16 +90,42 @@ export const exportTimeEntriesToPDF = async (
         tableData={props.tableData}
       />
     ).toBlob();
-    
-    console.log(`PDF blob created, size: ${blob.size}`);
-    
-    // Download the PDF file
+
+    console.log(`Blob PDF créé, taille: ${blob.size}`);
+
+    // Télécharger le fichier PDF
     saveAs(blob, `${filename}.pdf`);
-    console.log(`PDF download initiated: ${filename}.pdf`);
-    
+    console.log(`Téléchargement du PDF lancé: ${filename}.pdf`);
+
     return Promise.resolve();
   } catch (error) {
-    console.error("Error generating time entries PDF:", error);
+    console.error("Erreur lors de la génération du PDF des entrées:", error);
+    throw error;
+  }
+};
+
+/**
+ * Utility function to create a downloadable PDF and return a result object
+ */
+export const createPDF = async (
+  documentElement: React.ReactElement,
+  filename = 'document'
+): Promise<PDFGenerationResult> => {
+  try {
+    const blob = await pdf(documentElement).toBlob();
+    const url = URL.createObjectURL(blob);
+    
+    return {
+      blob,
+      url,
+      filename: `${filename}.pdf`,
+      contentType: 'application/pdf',
+      download: () => {
+        saveAs(blob, `${filename}.pdf`);
+      }
+    };
+  } catch (error) {
+    console.error("Erreur lors de la création du PDF:", error);
     throw error;
   }
 };

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -8,6 +7,7 @@ import { useExportTimeTracking } from './useExportTimeTracking';
 import { TimeEntry } from './types';
 import { TaskTypeDistribution } from './useTaskTypeDistribution';
 import { TopEquipment } from './useTopEquipment';
+import { exportTimeReportToPDF, exportTimeEntriesToPDF } from '@/utils/pdf-export/time-tracking-export';
 
 interface ExportData {
   summary: {
@@ -21,7 +21,7 @@ interface ExportData {
 
 export function useExportReport(month: Date) {
   const [isExporting, setIsExporting] = useState(false);
-  const { exportReportToPDF, exportEntriesToExcel } = useExportTimeTracking();
+  const { exportEntriesToExcel, formatEntriesForExport } = useExportTimeTracking();
 
   const fetchExportData = async (): Promise<ExportData | null> => {
     try {
@@ -166,7 +166,7 @@ export function useExportReport(month: Date) {
       // Format the month for display
       const formattedMonth = format(month, 'MMMM yyyy', { locale: fr });
       
-      exportReportToPDF(
+      await exportTimeReportToPDF(
         formattedMonth,
         {
           daily: dailyHours,
@@ -174,7 +174,8 @@ export function useExportReport(month: Date) {
           monthly: monthlyHours
         },
         data.summary.taskTypeDistribution,
-        data.summary.topEquipment
+        data.summary.topEquipment,
+        `rapport-temps-${format(month, 'yyyy-MM')}`
       );
       
       toast.success("Rapport PDF exporté avec succès");
