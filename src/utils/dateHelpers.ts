@@ -45,6 +45,28 @@ export function formatDateTime(date: Date | string): string {
 }
 
 /**
+ * Calculate the duration between two dates in hours
+ * @param startTime The start date/time
+ * @param endTime The end date/time (defaults to now if not provided)
+ * @returns Duration in hours, capped at 24 hours
+ */
+export function calculateDuration(startTime: string | Date, endTime?: string | Date | null): number {
+  const start = new Date(startTime);
+  const end = endTime ? new Date(endTime) : new Date();
+  
+  // Validation
+  if (isNaN(start.getTime()) || (endTime && isNaN(end.getTime()))) {
+    console.error('Invalid date provided');
+    return 0;
+  }
+  
+  const duration = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+  
+  // Limiter à 24h max et ne pas accepter de valeurs négatives
+  return Math.max(0, Math.min(duration, 24));
+}
+
+/**
  * Check if a number is even
  */
 export function isEven(number: number): boolean {

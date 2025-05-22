@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
+import { calculateDuration } from '@/utils/dateHelpers';
 
 export interface TimeSummary {
   today: number;
@@ -25,7 +26,12 @@ export function useMonthlySummary() {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    let isActive = true;
+    
     const fetchSummary = async () => {
+      if (!isActive) return;
+      
       try {
         setIsLoading(true);
         
@@ -80,7 +86,7 @@ export function useMonthlySummary() {
           const todayDate = format(today, 'yyyy-MM-dd');
           const sessionDate = format(startTime, 'yyyy-MM-dd');
           
-          // Calculer la durée avec la même logique que useTimeTrackingStats
+          // Calculer la durée avec la nouvelle fonction utilitaire
           let sessionDuration = 0;
           
           // Pour les sessions terminées avec durée stockée
@@ -89,20 +95,12 @@ export function useMonthlySummary() {
           } 
           // Pour les sessions sans durée ou actives
           else {
-            const endTime = session.end_time 
-              ? new Date(session.end_time) 
-              : (session.status === 'active' ? new Date() : startTime);
-              
+            sessionDuration = calculateDuration(session.start_time, session.end_time);
+            
             // Ne calculer la durée que si la session est terminée ou active
-            if (session.status === 'completed' || session.status === 'active') {
-              sessionDuration = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60); // heures
+            if (session.status !== 'completed' && session.status !== 'active') {
+              sessionDuration = 0;
             }
-          }
-          
-          // Limiter les durées aberrantes
-          if (sessionDuration > 24) {
-            console.warn(`Unusually long session detected: ${sessionDuration.toFixed(1)} hours`);
-            sessionDuration = Math.min(sessionDuration, 24); // Limite à 24 heures par session
           }
           
           // Vérifier si dans le mois en cours (déjà filtré par la requête, mais par précaution)
@@ -131,28 +129,37 @@ export function useMonthlySummary() {
         const weekPercentage = Math.min((weekHours / standardWeekHours) * 100, 100);
         const monthPercentage = Math.min((monthHours / standardMonthHours) * 100, 100);
         
-        setSummary({
-          today: todayHours,
-          week: weekHours,
-          month: monthHours,
-          todayPercentage,
-          weekPercentage,
-          monthPercentage
-        });
+        if (isActive) {
+          setSummary({
+            today: todayHours,
+            week: weekHours,
+            month: monthHours,
+            todayPercentage,
+            weekPercentage,
+            monthPercentage
+          });
+        }
       } catch (err) {
         console.error('Error fetching time summary:', err);
-        setError(err instanceof Error ? err : new Error('Unknown error'));
+        if (isActive) {
+          setError(err instanceof Error ? err : new Error('Unknown error'));
+        }
       } finally {
-        setIsLoading(false);
+        if (isActive) {
+          setIsLoading(false);
+        }
       }
     };
     
     fetchSummary();
     
     // Mettre en place un intervalle pour actualiser les données toutes les minutes (important pour les sessions actives)
-    const intervalId = setInterval(fetchSummary, 60000);
+    intervalId = setInterval(fetchSummary, 60000);
     
-    return () => clearInterval(intervalId);
+    return () => {
+      isActive = false;
+      clearInterval(intervalId);
+    };
   }, []);
   
   return {

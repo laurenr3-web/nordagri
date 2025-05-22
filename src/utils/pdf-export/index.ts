@@ -10,4 +10,3 @@ export * from './time-report';
 // Re-export for backward compatibility
 export { exportTimeReportToPDF, exportTimeEntriesToPDF, createPDF } from './time-tracking-export';
 export { exportInterventionToPDF, sendInterventionReportByEmail } from './intervention-report';
-

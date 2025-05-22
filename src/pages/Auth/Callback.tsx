@@ -31,16 +31,18 @@ const AuthCallback = () => {
           const errorCode = hashParams.get('error_code');
           const errorDescription = hashParams.get('error_description');
 
-          // Log pour débogage
-          console.log('Auth callback params:', { 
-            hasHash: true, 
-            type, 
-            hasAccessToken: !!accessToken,
-            hasRefreshToken: !!refreshToken,
-            error,
-            errorCode,
-            errorDescription
-          });
+          // Log limité pour débogage en dev uniquement
+          if (import.meta.env.DEV) {
+            console.log('Auth callback params:', { 
+              hasHash: true, 
+              type, 
+              hasAccessToken: !!accessToken,
+              hasRefreshToken: !!refreshToken,
+              error,
+              errorCode,
+              errorDescription
+            });
+          }
 
           // Gérer les erreurs dans les paramètres
           if (error) {

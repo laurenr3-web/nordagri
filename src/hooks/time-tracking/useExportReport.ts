@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -8,10 +9,17 @@ import { TimeEntry } from './types';
 import { TaskTypeDistribution } from './useTaskTypeDistribution';
 import { TopEquipment } from './useTopEquipment';
 import { exportTimeReportToPDF, exportTimeEntriesToPDF } from '@/utils/pdf-export/time-tracking-export';
+import { calculateDuration } from '@/utils/dateHelpers';
 
-interface EquipmentData {
+// Define a proper interface for equipment
+interface Equipment {
   id: number;
   name: string;
+}
+
+// Type guard to verify if an object is of type Equipment
+function isEquipment(obj: any): obj is Equipment {
+  return obj && typeof obj === 'object' && 'id' in obj && 'name' in obj;
 }
 
 interface ExportData {
@@ -90,9 +98,7 @@ export function useExportReport(month: Date) {
       const tasks = timeEntries.map(entry => {
         let duration = entry.duration || 0;
         if (!duration && entry.end_time) {
-          const startTime = new Date(entry.start_time);
-          const endTime = new Date(entry.end_time);
-          duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60); // hours
+          duration = calculateDuration(entry.start_time, entry.end_time);
         }
         
         totalHours += duration;
@@ -103,15 +109,13 @@ export function useExportReport(month: Date) {
         
         // Equipment usage - store ID along with name and hours
         if (entry.equipment_id) {
-          // Fix: Extract equipment data correctly - Supabase might return it differently
-          // We need to ensure we're working with the right structure
+          // Use type guard to safely access equipment data
           const equipment = entry.equipment;
-          // Safely access properties with a more flexible approach
-          const equipmentName = equipment ? (
-            typeof equipment === 'object' ? 
-              (equipment as any).name || 'Équipement inconnu' :
-              'Équipement inconnu'
-          ) : 'Équipement inconnu';
+          const equipmentName = isEquipment(equipment) 
+            ? equipment.name 
+            : (typeof equipment === 'object' && equipment !== null && 'name' in equipment) 
+              ? String(equipment.name) 
+              : 'Équipement inconnu';
           
           const equipmentId = entry.equipment_id;
           const currentEntry = equipmentMap.get(equipmentId) || { name: equipmentName, hours: 0 };
@@ -123,15 +127,16 @@ export function useExportReport(month: Date) {
         const dateString = format(new Date(entry.start_time), 'yyyy-MM-dd');
         dailyHoursMap.set(dateString, (dailyHoursMap.get(dateString) || 0) + duration);
         
-        // Use safer user name concatenation
+        // Safe user name concatenation
         const userName = [userData?.first_name, userData?.last_name].filter(Boolean).join(' ') || "Utilisateur";
         
-        // Fix: Safely access equipment name
+        // Get equipment name safely using type guard
         let equipmentName = "Équipement non spécifié";
         if (entry.equipment) {
-          const equipment = entry.equipment;
-          if (typeof equipment === 'object' && equipment !== null) {
-            equipmentName = (equipment as any).name || "Équipement non spécifié";
+          if (isEquipment(entry.equipment)) {
+            equipmentName = entry.equipment.name;
+          } else if (typeof entry.equipment === 'object' && entry.equipment !== null && 'name' in entry.equipment) {
+            equipmentName = String(entry.equipment.name);
           }
         }
         
