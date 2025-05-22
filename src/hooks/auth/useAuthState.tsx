@@ -7,8 +7,13 @@ import { User, Session } from '@supabase/supabase-js';
  */
 export interface ProfileData {
   id: string;
+  email: string;
   first_name?: string;
   last_name?: string;
+  farm_id?: string;
+  role?: string;
+  created_at: string;
+  updated_at: string;
   [key: string]: any; // For other potential profile fields
 }
 

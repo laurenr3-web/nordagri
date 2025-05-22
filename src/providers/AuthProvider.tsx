@@ -2,18 +2,7 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { User, Session } from '@supabase/supabase-js';
-
-// Define a type for the profile data
-interface ProfileData {
-  id: string;
-  email: string;
-  first_name?: string;
-  last_name?: string;
-  farm_id?: string;
-  role?: string;
-  created_at: string;
-  updated_at: string;
-}
+import { ProfileData } from '@/hooks/auth/useAuthState';
 
 // Définir le type pour le contexte d'authentification
 interface AuthContextType {
