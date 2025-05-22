@@ -1,6 +1,6 @@
 
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
-import { PDFGenerationResult, TimeReportPDFOptions } from './types';
+import { PDFGenerationResult, TimeReportPDFProps } from './types';
 import { formatDate } from '@/i18n';
 
 // Define basic styles for the PDF
