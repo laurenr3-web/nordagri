@@ -103,9 +103,16 @@ export function useExportReport(month: Date) {
         
         // Equipment usage - store ID along with name and hours
         if (entry.equipment_id) {
-          // Properly type equipment and extract data safely
-          const equipment = entry.equipment as EquipmentData | null;
-          const equipmentName = equipment?.name || 'Équipement inconnu';
+          // Fix: Extract equipment data correctly - Supabase might return it differently
+          // We need to ensure we're working with the right structure
+          const equipment = entry.equipment;
+          // Safely access properties with a more flexible approach
+          const equipmentName = equipment ? (
+            typeof equipment === 'object' ? 
+              (equipment as any).name || 'Équipement inconnu' :
+              'Équipement inconnu'
+          ) : 'Équipement inconnu';
+          
           const equipmentId = entry.equipment_id;
           const currentEntry = equipmentMap.get(equipmentId) || { name: equipmentName, hours: 0 };
           currentEntry.hours += duration;
@@ -119,6 +126,15 @@ export function useExportReport(month: Date) {
         // Use safer user name concatenation
         const userName = [userData?.first_name, userData?.last_name].filter(Boolean).join(' ') || "Utilisateur";
         
+        // Fix: Safely access equipment name
+        let equipmentName = "Équipement non spécifié";
+        if (entry.equipment) {
+          const equipment = entry.equipment;
+          if (typeof equipment === 'object' && equipment !== null) {
+            equipmentName = (equipment as any).name || "Équipement non spécifié";
+          }
+        }
+        
         // Return TimeEntry object
         return {
           id: entry.id,
@@ -130,8 +146,7 @@ export function useExportReport(month: Date) {
           start_time: entry.start_time,
           end_time: entry.end_time,
           status: entry.status,
-          // Properly access equipment name with safe fallback
-          equipment_name: entry.equipment ? (entry.equipment as EquipmentData).name || "Équipement non spécifié" : "Équipement non spécifié",
+          equipment_name: equipmentName,
           notes: entry.notes,
           task_type: entry.custom_task_type || "Non spécifié"
         } as TimeEntry;
