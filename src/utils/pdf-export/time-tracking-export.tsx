@@ -41,10 +41,7 @@ export const exportTimeReportToPDF = async (
       <TimeReportPDF
         month={month}
         summary={summary}
-        taskDistribution={taskDistribution.map(item => ({
-          ...item,
-          percentage: item.percentage || 0
-        }))}
+        taskDistribution={taskDistribution}
         topEquipment={topEquipment}
       />
     ).toBlob();

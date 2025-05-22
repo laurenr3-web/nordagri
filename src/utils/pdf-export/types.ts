@@ -1,16 +1,12 @@
 
-// Define types for PDF exports
+import { ReactElement } from "react";
 
-export interface TableData {
-  headers: Array<{
-    key: string;
-    label: string;
-  }>;
-  rows: Array<Record<string, any>>;
-}
-
-export interface TimeReportPDFOptions {
-  filename?: string;
+export interface PDFGenerationResult {
+  blob: Blob;
+  url: string;
+  filename: string;
+  contentType: string;
+  download: () => void;
 }
 
 export interface TimeReportPDFProps {
@@ -35,40 +31,19 @@ export interface TimeReportPDFProps {
 export interface TimeEntriesPDFProps {
   title: string;
   subtitle: string;
-  tableData: TableData;
+  tableData: {
+    headers: Array<{
+      key: string;
+      label: string;
+    }>;
+    rows: Array<Record<string, any>>;
+  };
 }
 
-// Add the InterventionReportPDFOptions type
-export interface InterventionReportPDFOptions {
-  companyName?: string;
-  companyLogo?: string;
-  companyDetails?: string;
-  signature?: string;
-  reportNotes?: string;
-  actualDuration?: number;
-  images?: string[];
-  technician?: string;
-  filename?: string;
-}
-
-// Define the props interface for InterventionReportPDF
-export interface InterventionReportPDFProps {
-  intervention: any; // Replace with your Intervention type
-  companyName?: string;
-  companyLogo?: string;
-  companyDetails?: string;
-  signature?: string;
-  reportNotes?: string;
-  actualDuration?: number;
-  images?: string[];
-  technician?: string;
-}
-
-// Add the PDFGenerationResult type with the filename property
-export interface PDFGenerationResult {
-  blob: Blob;
-  url: string;
-  filename: string;
-  contentType?: string;
-  download: () => void;
+export interface TableData {
+  headers: Array<{
+    key: string;
+    label: string;
+  }>;
+  rows: Array<Record<string, any>>;
 }

@@ -1,61 +1,8 @@
 
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, Text, View } from '@react-pdf/renderer';
 import { TimeEntriesPDFProps } from '@/utils/pdf-export/types';
-
-// Create styles
-const styles = StyleSheet.create({
-  page: {
-    padding: 30,
-    fontFamily: 'Helvetica',
-  },
-  header: {
-    fontSize: 24,
-    marginBottom: 5,
-    textAlign: 'center',
-    fontWeight: 'bold',
-  },
-  subtitle: {
-    fontSize: 16,
-    marginBottom: 20,
-    textAlign: 'center',
-    color: '#666',
-  },
-  table: {
-    display: 'flex',
-    width: 'auto',
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: '#bfbfbf',
-    marginBottom: 20,
-  },
-  tableRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#bfbfbf',
-  },
-  tableHeader: {
-    backgroundColor: '#f0f0f0',
-    fontWeight: 'bold',
-  },
-  tableHeaderCell: {
-    padding: 5,
-    fontWeight: 'bold',
-  },
-  tableCell: {
-    padding: 5,
-    fontSize: 10,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 30,
-    left: 0,
-    right: 0,
-    textAlign: 'center',
-    fontSize: 10,
-    color: 'grey',
-  },
-});
+import { styles } from '@/utils/pdf-export/styles';
 
 export const TimeEntriesPDF: React.FC<TimeEntriesPDFProps> = ({ 
   title, 
@@ -65,7 +12,7 @@ export const TimeEntriesPDF: React.FC<TimeEntriesPDFProps> = ({
   <Document>
     <Page size="A4" style={styles.page}>
       <View>
-        <Text style={styles.header}>{title}</Text>
+        <Text style={styles.title}>{title}</Text>
         <Text style={styles.subtitle}>{subtitle}</Text>
       </View>
       

@@ -25,14 +25,19 @@ export function useExportReport(month: Date) {
   const { exportEntriesToExcel, formatEntriesForExport } = useExportTimeTracking();
 
   const fetchExportData = async (): Promise<ExportData | null> => {
+    console.log("Début de récupération des données pour l'export, mois:", format(month, 'MMMM yyyy', { locale: fr }));
     try {
       const startDate = startOfMonth(month);
       const endDate = endOfMonth(month);
       
       const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session?.user) return null;
+      if (!sessionData.session?.user) {
+        console.error("Aucune session utilisateur trouvée");
+        return null;
+      }
       
       const userId = sessionData.session.user.id;
+      console.log("ID utilisateur récupéré:", userId);
       
       // Get user info
       const { data: userData } = await supabase
@@ -41,7 +46,10 @@ export function useExportReport(month: Date) {
         .eq('id', userId)
         .single();
       
+      console.log("Données utilisateur récupérées:", userData);
+      
       // Get all time entries for the month
+      console.log("Récupération des entrées de temps du", startDate.toISOString(), "au", endDate.toISOString());
       const { data: timeEntries } = await supabase
         .from('time_sessions')
         .select(`
@@ -61,7 +69,12 @@ export function useExportReport(month: Date) {
         .lte('start_time', endDate.toISOString())
         .order('start_time');
         
-      if (!timeEntries) return null;
+      if (!timeEntries) {
+        console.error("Aucune entrée de temps trouvée");
+        return null;
+      }
+      
+      console.log(`${timeEntries.length} entrées de temps récupérées`);
       
       // Calculate summary data
       let totalHours = 0;
@@ -130,9 +143,17 @@ export function useExportReport(month: Date) {
         tasks
       };
       
+      console.log("Données d'export préparées:", {
+        totalHours,
+        taskTypesCount: exportData.summary.taskTypeDistribution.length,
+        topEquipmentCount: exportData.summary.topEquipment.length,
+        dailyEntriesCount: exportData.dailyHours.length,
+        tasksCount: exportData.tasks.length
+      });
+      
       return exportData;
     } catch (error) {
-      console.error("Error preparing export data:", error);
+      console.error("Erreur lors de la préparation des données d'export:", error);
       return null;
     }
   };
@@ -141,12 +162,16 @@ export function useExportReport(month: Date) {
     try {
       setIsExporting(true);
       toast.info("Génération du PDF...");
+      console.log("Début de l'export PDF");
       
       const data = await fetchExportData();
       if (!data) {
+        console.error("Aucune donnée à exporter");
         toast.error("Aucune donnée à exporter");
         return;
       }
+      
+      console.log("Données récupérées pour l'export PDF");
       
       // Get daily/weekly/monthly summary
       const today = new Date();
@@ -169,6 +194,7 @@ export function useExportReport(month: Date) {
       
       // Calculate total hours for percentage calculation
       const totalTaskHours = data.summary.taskTypeDistribution.reduce((sum, task) => sum + task.hours, 0);
+      console.log("Total des heures pour pourcentage:", totalTaskHours);
       
       // Add percentage to each task type distribution entry
       const taskDistributionWithPercentage = data.summary.taskTypeDistribution.map(task => ({
@@ -177,21 +203,29 @@ export function useExportReport(month: Date) {
         percentage: totalTaskHours > 0 ? (task.hours / totalTaskHours) * 100 : 0
       }));
       
-      await exportTimeReportToPDF(
-        formattedMonth,
-        {
-          daily: dailyHours,
-          weekly: weeklyHours,
-          monthly: monthlyHours
-        },
-        taskDistributionWithPercentage,
-        data.summary.topEquipment,
-        `rapport-temps-${format(month, 'yyyy-MM')}`
-      );
+      console.log("Distribution des tâches avec pourcentages calculés:", taskDistributionWithPercentage);
       
-      toast.success("Rapport PDF exporté avec succès");
+      try {
+        console.log("Appel à exportTimeReportToPDF");
+        await exportTimeReportToPDF(
+          formattedMonth,
+          {
+            daily: dailyHours,
+            weekly: weeklyHours,
+            monthly: monthlyHours
+          },
+          taskDistributionWithPercentage,
+          data.summary.topEquipment,
+          `rapport-temps-${format(month, 'yyyy-MM')}`
+        );
+        console.log("PDF exporté avec succès");
+        toast.success("Rapport PDF exporté avec succès");
+      } catch (error) {
+        console.error("Erreur lors de l'appel à exportTimeReportToPDF:", error);
+        toast.error("Erreur lors de la génération du PDF");
+      }
     } catch (error) {
-      console.error("Error exporting to PDF:", error);
+      console.error("Erreur lors de l'export PDF:", error);
       toast.error("Erreur lors de l'export du PDF");
     } finally {
       setIsExporting(false);
@@ -202,18 +236,22 @@ export function useExportReport(month: Date) {
     try {
       setIsExporting(true);
       toast.info("Génération du fichier Excel...");
+      console.log("Début de l'export Excel");
       
       const data = await fetchExportData();
       if (!data) {
+        console.error("Aucune donnée à exporter");
         toast.error("Aucune donnée à exporter");
         return;
       }
       
+      console.log("Données récupérées pour l'export Excel");
       exportEntriesToExcel(data.tasks);
+      console.log("Excel exporté avec succès");
       
       toast.success("Rapport Excel exporté avec succès");
     } catch (error) {
-      console.error("Error exporting to Excel:", error);
+      console.error("Erreur lors de l'export Excel:", error);
       toast.error("Erreur lors de l'export Excel");
     } finally {
       setIsExporting(false);
