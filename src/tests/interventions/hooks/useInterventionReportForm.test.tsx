@@ -2,11 +2,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useInterventionReportForm } from '@/components/interventions/dialogs/hooks/useInterventionReportForm';
-import { exportInterventionToPDF } from '@/utils/pdfExport';
+import { exportInterventionToPDF } from '@/utils/pdf-export'; // Updated import path
 import { toast } from 'sonner';
 
 // Mocks
-vi.mock('@/utils/pdfExport', () => ({
+vi.mock('@/utils/pdf-export', () => ({
   exportInterventionToPDF: vi.fn().mockResolvedValue(undefined)
 }));
 

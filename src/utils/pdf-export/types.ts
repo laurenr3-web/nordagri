@@ -1,5 +1,6 @@
 
 import { ReactElement } from "react";
+import { Intervention } from "@/types/Intervention";
 
 export interface PDFGenerationResult {
   blob: Blob;
@@ -46,4 +47,28 @@ export interface TableData {
     label: string;
   }>;
   rows: Array<Record<string, any>>;
+}
+
+export interface InterventionReportPDFOptions {
+  filename?: string;
+  companyName?: string;
+  companyLogo?: string;
+  companyDetails?: string;
+  signature?: string;
+  reportNotes?: string;
+  actualDuration?: number;
+  images?: string[];
+  technician?: string;
+}
+
+export interface InterventionReportPDFProps {
+  intervention: Intervention;
+  companyName?: string;
+  companyLogo?: string;
+  companyDetails?: string;
+  signature?: string;
+  reportNotes?: string;
+  actualDuration?: number;
+  images?: string[];
+  technician?: string;
 }

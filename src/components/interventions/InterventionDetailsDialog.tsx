@@ -10,7 +10,7 @@ import {
 import { Intervention } from '@/types/Intervention';
 import { DeleteInterventionAlert } from './dialogs/DeleteInterventionAlert';
 import { useDeleteIntervention } from '@/hooks/interventions/useDeleteIntervention';
-import { exportInterventionToPDF } from '@/utils/pdf-export';
+import { exportInterventionToPDF } from '@/utils/pdf-export'; // Updated import
 import { toast } from 'sonner';
 import InterventionDialogContent from './details/DialogContent';
 import DialogFooterActions from './details/DialogFooterActions';

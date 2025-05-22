@@ -8,7 +8,7 @@ import { InterventionReportPDFOptions } from './types';
 
 export const exportInterventionToPDF = async (
   intervention: Intervention,
-  options?: InterventionReportPDFOptions & { filename?: string }
+  options?: InterventionReportPDFOptions
 ): Promise<void> => {
   try {
     console.log("Début de la génération du PDF pour l'intervention:", intervention.id);

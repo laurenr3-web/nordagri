@@ -1,11 +1,10 @@
-
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Intervention } from '@/types/Intervention';
 import { toast } from 'sonner';
-import { exportInterventionToPDF } from '@/utils/pdfExport';
+import { exportInterventionToPDF } from '@/utils/pdf-export'; // Updated import path
 import { FormPart } from '../report-dialog/form-fields/PartsUsedField';
 
 // Define a schema for the form values
@@ -71,10 +70,15 @@ export const useInterventionReportForm = ({ intervention, onSubmit, onOpenChange
     
     try {
       const formValues = form.getValues();
+      
+      // Afficher un toast de notification pour informer l'utilisateur
+      toast.info("Génération du PDF en cours...");
+      
       await exportInterventionToPDF(intervention, {
         reportNotes: formValues.notes,
         actualDuration: formValues.duration
       });
+      
       toast.success("Rapport d'intervention exporté avec succès");
     } catch (error) {
       console.error("Erreur lors de l'export du PDF:", error);

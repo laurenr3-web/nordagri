@@ -1,10 +1,11 @@
+
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Intervention } from '@/types/Intervention';
 import { toast } from 'sonner';
-import { exportInterventionToPDF } from '@/utils/pdf-export/intervention-report';
+import { exportInterventionToPDF } from '@/utils/pdf-export'; // Updated import path
 
 // Define a schema for the form values
 const reportFormSchema = z.object({
