@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -9,6 +8,11 @@ import { TimeEntry } from './types';
 import { TaskTypeDistribution } from './useTaskTypeDistribution';
 import { TopEquipment } from './useTopEquipment';
 import { exportTimeReportToPDF, exportTimeEntriesToPDF } from '@/utils/pdf-export/time-tracking-export';
+
+interface EquipmentData {
+  id: number;
+  name: string;
+}
 
 interface ExportData {
   summary: {
@@ -98,9 +102,10 @@ export function useExportReport(month: Date) {
         taskTypeMap.set(taskType, (taskTypeMap.get(taskType) || 0) + duration);
         
         // Equipment usage - store ID along with name and hours
-        if (entry.equipment_id && entry.equipment) {
-          // Fixed: Access equipment name properly
-          const equipmentName = typeof entry.equipment === 'object' ? (entry.equipment as any).name || 'Équipement inconnu' : 'Équipement inconnu';
+        if (entry.equipment_id) {
+          // Properly type equipment and extract data safely
+          const equipment = entry.equipment as EquipmentData | null;
+          const equipmentName = equipment?.name || 'Équipement inconnu';
           const equipmentId = entry.equipment_id;
           const currentEntry = equipmentMap.get(equipmentId) || { name: equipmentName, hours: 0 };
           currentEntry.hours += duration;
@@ -111,19 +116,22 @@ export function useExportReport(month: Date) {
         const dateString = format(new Date(entry.start_time), 'yyyy-MM-dd');
         dailyHoursMap.set(dateString, (dailyHoursMap.get(dateString) || 0) + duration);
         
+        // Use safer user name concatenation
+        const userName = [userData?.first_name, userData?.last_name].filter(Boolean).join(' ') || "Utilisateur";
+        
         // Return TimeEntry object
         return {
           id: entry.id,
           user_id: entry.user_id,
-          owner_name: userData?.first_name + " " + userData?.last_name || "Utilisateur",
-          user_name: userData?.first_name + " " + userData?.last_name || "Utilisateur",
+          owner_name: userName,
+          user_name: userName,
           equipment_id: entry.equipment_id,
           custom_task_type: entry.custom_task_type,
           start_time: entry.start_time,
           end_time: entry.end_time,
           status: entry.status,
-          // Fixed: Access equipment name properly
-          equipment_name: typeof entry.equipment === 'object' ? (entry.equipment as any).name || "Équipement non spécifié" : "Équipement non spécifié",
+          // Properly access equipment name with safe fallback
+          equipment_name: entry.equipment ? (entry.equipment as EquipmentData).name || "Équipement non spécifié" : "Équipement non spécifié",
           notes: entry.notes,
           task_type: entry.custom_task_type || "Non spécifié"
         } as TimeEntry;
@@ -206,7 +214,17 @@ export function useExportReport(month: Date) {
       console.log("Distribution des tâches avec pourcentages calculés:", taskDistributionWithPercentage);
       
       try {
-        console.log("Appel à exportTimeReportToPDF");
+        console.log("Appel à exportTimeReportToPDF avec les données:", {
+          month: formattedMonth,
+          summary: {
+            daily: dailyHours,
+            weekly: weeklyHours,
+            monthly: monthlyHours
+          },
+          taskDistributionCount: taskDistributionWithPercentage.length,
+          topEquipmentCount: data.summary.topEquipment.length
+        });
+        
         await exportTimeReportToPDF(
           formattedMonth,
           {
@@ -221,8 +239,37 @@ export function useExportReport(month: Date) {
         console.log("PDF exporté avec succès");
         toast.success("Rapport PDF exporté avec succès");
       } catch (error) {
-        console.error("Erreur lors de l'appel à exportTimeReportToPDF:", error);
-        toast.error("Erreur lors de la génération du PDF");
+        console.error("Erreur détaillée lors de l'appel à exportTimeReportToPDF:", error);
+        
+        // Fallback en cas d'échec de la génération PDF
+        try {
+          console.log("Tentative d'export au format texte en fallback");
+          const textContent = `
+            Rapport de temps - ${formattedMonth}
+            -----------------------------
+            Heures quotidiennes: ${dailyHours.toFixed(2)}h
+            Heures hebdomadaires: ${weeklyHours.toFixed(2)}h
+            Heures mensuelles: ${monthlyHours.toFixed(2)}h
+            
+            Distribution des tâches:
+            ${taskDistributionWithPercentage.map(t => `${t.type}: ${t.hours.toFixed(2)}h (${t.percentage.toFixed(1)}%)`).join('\n')}
+            
+            Équipements les plus utilisés:
+            ${data.summary.topEquipment.map(e => `${e.name}: ${e.hours.toFixed(2)}h`).join('\n')}
+          `.trim();
+          
+          const blob = new Blob([textContent], { type: 'text/plain' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `rapport-temps-${format(month, 'yyyy-MM')}.txt`;
+          link.click();
+          
+          toast.success("Rapport exporté en format texte (fallback)");
+        } catch (fallbackError) {
+          console.error("Échec également du fallback texte:", fallbackError);
+          toast.error("Impossible d'exporter le rapport");
+        }
       }
     } catch (error) {
       console.error("Erreur lors de l'export PDF:", error);

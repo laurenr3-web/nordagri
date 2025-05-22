@@ -29,6 +29,11 @@ export const exportTimeReportToPDF = async (
   filename = 'time-report'
 ): Promise<void> => {
   try {
+    // Verify that component exists
+    if (!TimeReportPDF) {
+      throw new Error('Composant TimeReportPDF non trouvé');
+    }
+    
     console.log("Création du rapport PDF avec les données:", {
       month,
       summary,
@@ -46,6 +51,11 @@ export const exportTimeReportToPDF = async (
       />
     ).toBlob();
 
+    // Verify blob is valid
+    if (!blob || blob.size === 0) {
+      throw new Error('Le PDF généré est vide');
+    }
+
     console.log(`Blob PDF créé, taille: ${blob.size}`);
 
     // Télécharger le fichier PDF en utilisant file-saver
@@ -54,7 +64,8 @@ export const exportTimeReportToPDF = async (
 
     return Promise.resolve();
   } catch (error) {
-    console.error("Erreur lors de la génération du rapport PDF:", error);
+    console.error("Erreur détaillée lors de la génération du rapport PDF:", error);
+    console.error("Stack trace:", error instanceof Error ? error.stack : "Pas de stack disponible");
     throw error;
   }
 };
@@ -77,7 +88,17 @@ export const exportTimeEntriesToPDF = async (
   filename = 'time-entries'
 ): Promise<void> => {
   try {
-    console.log("Création du PDF des entrées de temps");
+    // Verify that component exists
+    if (!TimeEntriesPDF) {
+      throw new Error('Composant TimeEntriesPDF non trouvé');
+    }
+    
+    console.log("Création du PDF des entrées de temps avec les données:", {
+      title: props.title,
+      subtitle: props.subtitle,
+      tableHeaders: props.tableData.headers.length,
+      tableRows: props.tableData.rows.length
+    });
 
     // Generate PDF blob
     const blob = await pdf(
@@ -88,6 +109,11 @@ export const exportTimeEntriesToPDF = async (
       />
     ).toBlob();
 
+    // Verify blob is valid
+    if (!blob || blob.size === 0) {
+      throw new Error('Le PDF généré est vide');
+    }
+
     console.log(`Blob PDF créé, taille: ${blob.size}`);
 
     // Télécharger le fichier PDF
@@ -96,7 +122,8 @@ export const exportTimeEntriesToPDF = async (
 
     return Promise.resolve();
   } catch (error) {
-    console.error("Erreur lors de la génération du PDF des entrées:", error);
+    console.error("Erreur détaillée lors de la génération du PDF des entrées:", error);
+    console.error("Stack trace:", error instanceof Error ? error.stack : "Pas de stack disponible");
     throw error;
   }
 };
@@ -109,7 +136,21 @@ export const createPDF = async (
   filename = 'document'
 ): Promise<PDFGenerationResult> => {
   try {
+    console.log(`Création du PDF: ${filename}`);
+    
+    if (!documentElement) {
+      throw new Error('Élément React non fourni pour la génération PDF');
+    }
+    
     const blob = await pdf(documentElement).toBlob();
+    
+    // Verify blob is valid
+    if (!blob || blob.size === 0) {
+      throw new Error('Le PDF généré est vide');
+    }
+    
+    console.log(`PDF généré avec succès, taille: ${blob.size} octets`);
+    
     const url = URL.createObjectURL(blob);
     
     return {
@@ -118,11 +159,13 @@ export const createPDF = async (
       filename: `${filename}.pdf`,
       contentType: 'application/pdf',
       download: () => {
+        console.log(`Téléchargement du PDF: ${filename}.pdf`);
         saveAs(blob, `${filename}.pdf`);
       }
     };
   } catch (error) {
-    console.error("Erreur lors de la création du PDF:", error);
+    console.error("Erreur détaillée lors de la création du PDF:", error);
+    console.error("Stack trace:", error instanceof Error ? error.stack : "Pas de stack disponible");
     throw error;
   }
 };

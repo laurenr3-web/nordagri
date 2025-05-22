@@ -71,23 +71,37 @@ export async function exportTimeReportToPDF(
     groupByTask?: boolean;
   }
 ): Promise<PDFGenerationResult> {
-  // Create a blob URL for the PDF
-  const blob = new Blob(['PDF content would be generated here'], { type: 'application/pdf' });
-  const url = URL.createObjectURL(blob);
-  const filename = `time-report-${new Date().toISOString().substr(0, 10)}.pdf`;
-
-  return {
-    url,
-    blob,
-    filename,
-    contentType: 'application/pdf',
-    download: () => {
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      link.click();
+  try {
+    console.log("Création du rapport PDF avec les options:", options);
+    
+    // Create a blob URL for the PDF
+    const blob = new Blob(['PDF content would be generated here'], { type: 'application/pdf' });
+    if (!blob || blob.size === 0) {
+      throw new Error('Le PDF généré est vide');
     }
-  };
+    
+    const url = URL.createObjectURL(blob);
+    const filename = `time-report-${new Date().toISOString().substr(0, 10)}.pdf`;
+    
+    console.log(`Génération PDF terminée, fichier: ${filename}, taille: ${blob.size}`);
+
+    return {
+      url,
+      blob,
+      filename,
+      contentType: 'application/pdf',
+      download: () => {
+        console.log(`Téléchargement PDF: ${filename}`);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.click();
+      }
+    };
+  } catch (error) {
+    console.error("Erreur lors de la génération du rapport PDF:", error);
+    throw error;
+  }
 }
 
 // Create a helper function to calculate total duration from time entries
