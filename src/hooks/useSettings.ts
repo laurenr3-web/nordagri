@@ -9,6 +9,7 @@ import {
 } from '@/services/settings';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/utils/logger';
 
 interface NotificationSettingsType {
   email_enabled: boolean;
@@ -35,21 +36,23 @@ export function useSettings() {
     stock_low_enabled: true
   });
 
-  // Chargement initial des données
+  // Initial data loading
   useEffect(() => {
     if (!user?.id) return;
+    
+    let isMounted = true;
     
     const loadSettings = async () => {
       setLoading(true);
       try {
-        // Récupérer le profil
+        // Get profile
         const { data: profileData } = await supabase
           .from('profiles')
           .select('first_name, last_name, farm_id')
           .eq('id', user.id)
           .single();
         
-        if (profileData) {
+        if (profileData && isMounted) {
           setProfile({
             full_name: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim(),
             email: user.email || ''
@@ -57,16 +60,18 @@ export function useSettings() {
           
           setFarmId(profileData.farm_id);
           
-          // Charger les modules si on a un farm_id
+          // Load modules if we have a farm_id
           if (profileData.farm_id) {
             const modules = await farmModulesService.getFarmModules(profileData.farm_id);
-            setEnabledModules(modules);
+            if (isMounted) {
+              setEnabledModules(modules);
+            }
           }
         }
         
-        // Récupérer les paramètres de notification
+        // Get notification settings
         const notificationData = await notificationService.getNotificationSettings(user.id);
-        if (notificationData) {
+        if (notificationData && isMounted) {
           setNotificationSettings({
             email_enabled: notificationData.email_enabled,
             sms_enabled: notificationData.sms_enabled,
@@ -76,22 +81,28 @@ export function useSettings() {
           });
         }
       } catch (error) {
-        console.error('Erreur lors du chargement des paramètres:', error);
+        logger.error('Error loading settings:', error);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
     
     loadSettings();
+    
+    return () => {
+      isMounted = false;
+    };
   }, [user]);
 
-  // Mettre à jour le profil
+  // Update profile
   const updateProfile = useCallback(async (fullName: string, email: string) => {
     if (!user?.id) return false;
     
     const result = await profileService.updateProfile(user.id, {
       full_name: fullName,
-      email: email !== user.email ? email : undefined // Mettre à jour l'email seulement si modifié
+      email: email !== user.email ? email : undefined // Only update email if changed
     });
     
     if (result) {
@@ -102,7 +113,7 @@ export function useSettings() {
     return result;
   }, [user]);
 
-  // Mettre à jour le mot de passe
+  // Update password
   const updatePassword = useCallback(async (password: string) => {
     const result = await profileService.updatePassword(password);
     
@@ -113,7 +124,7 @@ export function useSettings() {
     return result;
   }, []);
 
-  // Mettre à jour les modules activés
+  // Update enabled modules
   const updateModules = useCallback(async (modules: string[]) => {
     if (!farmId) return false;
     
@@ -127,7 +138,7 @@ export function useSettings() {
     return result;
   }, [farmId]);
 
-  // Basculer un module (activer/désactiver)
+  // Toggle a module (enable/disable)
   const toggleModule = useCallback(async (module: string, enabled: boolean) => {
     let newModules: string[];
     
@@ -140,7 +151,7 @@ export function useSettings() {
     return await updateModules(newModules);
   }, [enabledModules, updateModules]);
 
-  // Mettre à jour les paramètres de notification
+  // Update notification settings
   const updateNotifications = useCallback(async (settings: {
     email_enabled?: boolean;
     sms_enabled?: boolean;
@@ -165,12 +176,12 @@ export function useSettings() {
     return result;
   }, [user, notificationSettings]);
 
-  // Créer une session Stripe pour gérer l'abonnement
+  // Create a Stripe session to manage subscription
   const manageSubscription = useCallback(async () => {
     const url = await subscriptionService.createStripePortalSession();
     
     if (url) {
-      window.location.href = url;
+      window.open(url, '_blank');
       return true;
     }
     

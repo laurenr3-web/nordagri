@@ -11,10 +11,11 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { useFarmId } from "@/hooks/useFarmId";
 import NoFarmAccess from "@/components/common/NoFarmAccess";
 import EquipmentDialogs from '@/components/equipment/dialogs/EquipmentDialogs';
+import { logger } from "@/utils/logger";
 
 const Equipment = () => {
   const { t } = useTranslation();
-  const { isLoading: farmLoading, noAccess } = useFarmId(); // Removed unused farmId variable
+  const { isLoading: farmLoading, noAccess } = useFarmId();
   const equipmentQuery = useEquipmentData();
   const { isLoading } = equipmentQuery;
   const equipmentData = equipmentQuery.data || [];
@@ -57,7 +58,7 @@ const Equipment = () => {
       <MainLayout>
         <LayoutWrapper>
           <div className="flex items-center justify-center min-h-[80vh]">
-            <p>{t("equipment.loading", "Chargement des équipements...")}</p>
+            <p>{t("equipment.loading")}</p>
           </div>
         </LayoutWrapper>
       </MainLayout>
@@ -85,7 +86,7 @@ const Equipment = () => {
           equipment={transformedEquipment} 
           isLoading={isLoading} 
         />
-        {/* Ajout du composant EquipmentDialogs pour les dialogues d'ajout et de détail */}
+        {/* Add the EquipmentDialogs component for adding and details dialogs */}
         <EquipmentDialogs />
       </LayoutWrapper>
     </MainLayout>

@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from "react";
+import { logger } from "@/utils/logger";
 
 /**
  * A hook for persisting state in localStorage with cross-tab synchronization.
@@ -23,7 +24,7 @@ export function useLocalStorage<T>(
       const item = window.localStorage.getItem(key);
       return item ? (JSON.parse(item) as T) : initialValue instanceof Function ? initialValue() : initialValue;
     } catch (error) {
-      console.warn(`Error reading localStorage key "${key}":`, error);
+      logger.warn(`Error reading localStorage key "${key}":`, error);
       return initialValue instanceof Function ? initialValue() : initialValue;
     }
   };
@@ -46,7 +47,7 @@ export function useLocalStorage<T>(
         window.localStorage.setItem(key, JSON.stringify(valueToStore));
       }
     } catch (error) {
-      console.warn(`Error setting localStorage key "${key}":`, error);
+      logger.warn(`Error setting localStorage key "${key}":`, error);
     }
   };
 
@@ -59,7 +60,7 @@ export function useLocalStorage<T>(
           const newValue = JSON.parse(event.newValue) as T;
           setStoredValue(newValue);
         } catch (error) {
-          console.warn(`Error parsing localStorage value from other tab:`, error);
+          logger.warn(`Error parsing localStorage value from other tab:`, error);
         }
       }
     };

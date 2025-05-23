@@ -1,16 +1,18 @@
+
 import { useState, useEffect } from 'react';
 import { formatDuration } from '@/utils/dateHelpers';
 import { TimeEntry } from './types';
 import { useGlobalStore } from '@/store';
+import { logger } from '@/utils/logger';
 
 /**
- * Hook pour gérer l'affichage du chronomètre pour une entrée de temps active
+ * Hook to manage timer display for an active time entry
  * 
- * Calcule et met à jour la durée écoulée pour une entrée de temps active,
- * avec gestion des pauses et reprises.
+ * Calculates and updates the elapsed duration for an active time entry,
+ * handling pauses and resumptions.
  * 
- * @param {TimeEntry | null} activeTimeEntry - L'entrée de temps active à chronométrer
- * @returns {string} Durée formatée (HH:MM:SS)
+ * @param {TimeEntry | null} activeTimeEntry - The active time entry to time
+ * @returns {string} Formatted duration (HH:MM:SS)
  */
 export function useTimer(activeTimeEntry: TimeEntry | null) {
   const [duration, setDuration] = useState<string>('00:00:00');

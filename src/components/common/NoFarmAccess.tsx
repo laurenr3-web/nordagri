@@ -3,11 +3,18 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { LucideLock, MailPlus, HelpCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { logger } from '@/utils/logger';
 
 const NoFarmAccess: React.FC = () => {
   const navigate = useNavigate();
+
+  const handleEmailClick = () => {
+    const subject = encodeURIComponent("Demande d'accès à une ferme");
+    const mailto = `mailto:support@nordagri.com?subject=${subject}`;
+    window.open(mailto, '_blank');
+  };
 
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
@@ -39,7 +46,7 @@ const NoFarmAccess: React.FC = () => {
               <div className="flex flex-col items-center space-y-2">
                 <Button 
                   variant="outline" 
-                  onClick={() => window.location.href = "mailto:support@nordagri.com?subject=Demande%20d'accès%20à%20une%20ferme"} 
+                  onClick={handleEmailClick} 
                   className="flex items-center"
                 >
                   <MailPlus className="h-4 w-4 mr-2" />
@@ -64,7 +71,7 @@ const NoFarmAccess: React.FC = () => {
               <div className="flex justify-center mt-4">
                 <Button 
                   variant="ghost" 
-                  onClick={() => navigate("/profile")} 
+                  onClick={() => navigate("/settings")} 
                   className="flex items-center"
                 >
                   <HelpCircle className="h-4 w-4 mr-2" />
@@ -76,7 +83,7 @@ const NoFarmAccess: React.FC = () => {
         </Tabs>
         
         <CardFooter className="flex justify-center pt-0 pb-4">
-          <Button variant="outline" onClick={() => navigate("/profile")}>
+          <Button variant="outline" onClick={() => navigate("/settings")}>
             Consulter mon profil
           </Button>
         </CardFooter>

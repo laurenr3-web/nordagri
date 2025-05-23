@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import StatsSection from './StatsSection';
 import EquipmentSection from './EquipmentSection';
 import MaintenanceSection from './MaintenanceSection';
@@ -11,7 +12,7 @@ import { StockAlerts } from '@/components/dashboard/StockAlerts';
 import { WeeklyCalendar } from '@/components/dashboard/WeeklyCalendar';
 import { SearchBar } from '@/components/dashboard/SearchBar';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
+import { logger } from '@/utils/logger';
 
 interface EnhancedDashboardProps {
   statsData: any[];
@@ -51,7 +52,7 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
   const navigate = useNavigate();
 
   // Log the equipment data for debugging
-  console.log('EnhancedDashboard received equipmentData:', equipmentData?.length || 0);
+  logger.log('EnhancedDashboard received equipmentData:', equipmentData?.length || 0);
 
   // Generate search items from all available data
   const searchItems = [
@@ -124,9 +125,15 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
             onEquipmentClick={handleEquipmentClick} 
           />
 
-          <DashboardSection title="Interventions urgentes" subtitle="Interventions critiques en attente" action={<Button variant="outline" size="sm" onClick={() => navigate('/interventions')}>
-                Toutes les interventions
-              </Button>}>
+          <DashboardSection 
+            title="Interventions urgentes" 
+            subtitle="Interventions critiques en attente" 
+            action={
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/interventions">Toutes les interventions</Link>
+              </Button>
+            }
+          >
             <UrgentInterventionsTable interventions={urgentInterventions} onViewDetails={handleViewIntervention} />
           </DashboardSection>
           
@@ -138,9 +145,15 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({
         <div className="space-y-8">
           <AlertsSection alerts={alertItems} onViewAllClick={handleAlertsViewAllClick} />
 
-          <DashboardSection title="Stock faible" subtitle="Pièces à réapprovisionner" action={<Button variant="outline" size="sm" onClick={handleViewParts}>
-                Gérer le stock
-              </Button>}>
+          <DashboardSection 
+            title="Stock faible" 
+            subtitle="Pièces à réapprovisionner" 
+            action={
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/parts">Gérer le stock</Link>
+              </Button>
+            }
+          >
             <StockAlerts alerts={stockAlerts} onViewParts={handleViewParts} />
           </DashboardSection>
           

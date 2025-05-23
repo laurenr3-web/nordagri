@@ -1,8 +1,9 @@
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/utils/logger';
 
 // Valid Supabase realtime event types
 type SupabaseEventType = 'INSERT' | 'UPDATE' | 'DELETE' | '*';
@@ -40,6 +41,11 @@ export function useRealtimeSubscription<T extends Record<string, any>>({
   const reconnectAttempts = useRef(0);
   const maxReconnectAttempts = 5;
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Memoize callbacks to prevent unnecessary resubscriptions
+  const memoizedOnInsert = useCallback(onInsert || (() => {}), [onInsert]);
+  const memoizedOnUpdate = useCallback(onUpdate || (() => {}), [onUpdate]);
+  const memoizedOnDelete = useCallback(onDelete || (() => {}), [onDelete]);
 
   useEffect(() => {
     // Create a new channel
@@ -65,11 +71,11 @@ export function useRealtimeSubscription<T extends Record<string, any>>({
         'postgres_changes' as any, 
         filterConfig,
         (payload: RealtimePostgresChangesPayload<T>) => {
-          console.log(`Received ${payload.eventType} event for ${tableName}:`, payload);
+          logger.log(`Received ${payload.eventType} event for ${tableName}:`, payload);
           
           // Process based on event type
           if (payload.eventType === 'INSERT') {
-            if (onInsert) onInsert(payload);
+            memoizedOnInsert(payload);
             if (showNotifications) {
               toast({
                 title: `Nouvel élément ajouté`,
@@ -77,7 +83,7 @@ export function useRealtimeSubscription<T extends Record<string, any>>({
               });
             }
           } else if (payload.eventType === 'UPDATE') {
-            if (onUpdate) onUpdate(payload);
+            memoizedOnUpdate(payload);
             if (showNotifications) {
               toast({
                 title: `Élément mis à jour`,
@@ -85,7 +91,7 @@ export function useRealtimeSubscription<T extends Record<string, any>>({
               });
             }
           } else if (payload.eventType === 'DELETE') {
-            if (onDelete) onDelete(payload);
+            memoizedOnDelete(payload);
             if (showNotifications) {
               toast({
                 title: `Élément supprimé`,
@@ -106,14 +112,14 @@ export function useRealtimeSubscription<T extends Record<string, any>>({
 
       if (reconnectAttempts.current < maxReconnectAttempts) {
         const backoffTime = Math.min(1000 * (2 ** reconnectAttempts.current), 30000);
-        console.log(`Attempting to reconnect to ${tableName} in ${backoffTime}ms (attempt ${reconnectAttempts.current + 1}/${maxReconnectAttempts})`);
+        logger.log(`Attempting to reconnect to ${tableName} in ${backoffTime}ms (attempt ${reconnectAttempts.current + 1}/${maxReconnectAttempts})`);
         
         reconnectTimeoutRef.current = setTimeout(() => {
           reconnectAttempts.current += 1;
           subscription.subscribe();
         }, backoffTime);
       } else {
-        console.error(`Failed to reconnect to ${tableName} after ${maxReconnectAttempts} attempts`);
+        logger.error(`Failed to reconnect to ${tableName} after ${maxReconnectAttempts} attempts`);
         setError(new Error(`Failed to maintain connection to ${tableName} after multiple attempts`));
       }
     };
@@ -124,21 +130,21 @@ export function useRealtimeSubscription<T extends Record<string, any>>({
         reconnectAttempts.current = 0;
         setIsSubscribed(true);
         setError(null);
-        console.log(`Successfully subscribed to ${tableName} table changes`);
+        logger.log(`Successfully subscribed to ${tableName} table changes`);
       } else if (status === 'CHANNEL_ERROR') {
-        console.error(`Subscription error for ${tableName}: ${status}`);
+        logger.error(`Subscription error for ${tableName}: ${status}`);
         setIsSubscribed(false);
         setError(new Error(`Failed to subscribe to ${tableName}`));
         attemptReconnect();
       } else if (status === 'TIMED_OUT') {
-        console.warn(`Subscription timed out for ${tableName}`);
+        logger.warn(`Subscription timed out for ${tableName}`);
         setIsSubscribed(false);
         attemptReconnect();
       } else if (status === 'CLOSED') {
-        console.log(`Subscription closed for ${tableName}`);
+        logger.log(`Subscription closed for ${tableName}`);
         setIsSubscribed(false);
       } else {
-        console.log(`Subscription status for ${tableName}: ${status}`);
+        logger.log(`Subscription status for ${tableName}: ${status}`);
       }
     });
 
@@ -147,14 +153,24 @@ export function useRealtimeSubscription<T extends Record<string, any>>({
 
     // Clean up on component unmount
     return () => {
-      console.log(`Unsubscribing from ${tableName} table changes`);
+      logger.log(`Unsubscribing from ${tableName} table changes`);
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
         reconnectTimeoutRef.current = null;
       }
       supabase.removeChannel(subscription);
     };
-  }, [tableName, JSON.stringify(eventTypes), schema, filter, showNotifications, toast]);
+  }, [
+    tableName, 
+    JSON.stringify(eventTypes), 
+    schema, 
+    filter, 
+    showNotifications, 
+    toast, 
+    memoizedOnInsert, 
+    memoizedOnUpdate, 
+    memoizedOnDelete
+  ]);
 
   return { channel, isSubscribed, error };
 }

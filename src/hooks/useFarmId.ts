@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/utils/logger';
 
 export const useFarmId = (equipmentId?: number) => {
   const [farmId, setFarmId] = useState<string | null>(null);
@@ -13,7 +14,7 @@ export const useFarmId = (equipmentId?: number) => {
       try {
         // First attempt: Try to get farm_id from equipment if available
         if (equipmentId) {
-          console.log('Tentative de récupération du farm_id depuis l\'équipement:', equipmentId);
+          logger.log('Tentative de récupération du farm_id depuis l\'équipement:', equipmentId);
           const { data: equipmentData, error: equipmentError } = await supabase
             .from('equipment')
             .select('farm_id')
@@ -21,7 +22,7 @@ export const useFarmId = (equipmentId?: number) => {
             .single();
 
           if (!equipmentError && equipmentData?.farm_id) {
-            // Vérifier que l'utilisateur a accès à cette ferme via farm_members
+            // Verify user has access to this farm via farm_members
             const { data: memberData, error: memberError } = await supabase
               .from('farm_members')
               .select('id')
@@ -30,12 +31,12 @@ export const useFarmId = (equipmentId?: number) => {
               .single();
               
             if (!memberError && memberData) {
-              console.log('Farm ID trouvé via equipment et accès confirmé:', equipmentData.farm_id);
+              logger.log('Farm ID trouvé via equipment et accès confirmé:', equipmentData.farm_id);
               setFarmId(equipmentData.farm_id);
               setIsLoading(false);
               return;
             } else {
-              console.log('Accès à la ferme refusé pour cet équipement');
+              logger.log('Accès à la ferme refusé pour cet équipement');
             }
           }
         }
@@ -44,14 +45,14 @@ export const useFarmId = (equipmentId?: number) => {
         const { data: { user }, error: authError } = await supabase.auth.getUser();
         
         if (authError || !user) {
-          console.error('Erreur auth:', authError);
+          logger.error('Erreur auth:', authError);
           toast.error("Erreur d'authentification");
           setIsLoading(false);
           return;
         }
 
         // Second attempt: Check if user is a farm owner
-        console.log('Vérification si l\'utilisateur est propriétaire d\'une ferme');
+        logger.log('Vérification si l\'utilisateur est propriétaire d\'une ferme');
         const { data: ownedFarms, error: ownerError } = await supabase
           .from('farms')
           .select('id')
@@ -59,7 +60,7 @@ export const useFarmId = (equipmentId?: number) => {
 
         if (!ownerError && ownedFarms && ownedFarms.length > 0) {
           // User owns at least one farm
-          console.log('Fermes possédées trouvées:', ownedFarms.length);
+          logger.log('Fermes possédées trouvées:', ownedFarms.length);
           const firstOwnedFarmId = ownedFarms[0].id;
           setFarmId(firstOwnedFarmId);
           setIsLoading(false);
@@ -67,43 +68,42 @@ export const useFarmId = (equipmentId?: number) => {
         }
 
         // Third attempt: Try to get accessible farms via farm_members
-        console.log('Recherche des fermes accessibles via farm_members');
+        logger.log('Recherche des fermes accessibles via farm_members');
         const { data: farmMembers, error: membersError } = await supabase
           .from('farm_members')
           .select('farm_id')
           .eq('user_id', user.id);
 
         if (membersError) {
-          console.error('Erreur lors de la récupération des fermes accessibles:', membersError);
+          logger.error('Erreur lors de la récupération des fermes accessibles:', membersError);
           toast.error("Erreur lors de la vérification des accès");
           setIsLoading(false);
           return;
         }
 
         if (farmMembers && farmMembers.length > 0) {
-          // Utilisateur a accès à au moins une ferme
-          console.log('Fermes accessibles trouvées:', farmMembers.length);
+          // User has access to at least one farm
+          logger.log('Fermes accessibles trouvées:', farmMembers.length);
           
-          // On prend la première ferme accessible
+          // Take the first accessible farm
           const firstFarmId = farmMembers[0].farm_id;
           setFarmId(firstFarmId);
           setIsLoading(false);
           
-          // Si plusieurs fermes sont accessibles, on pourrait ajouter une UI pour sélectionner
+          // If multiple farms are accessible, we could add a UI to select
           if (farmMembers.length > 1) {
-            console.info('Utilisateur a accès à plusieurs fermes:', farmMembers.length);
-            // Cette information pourrait être utilisée pour afficher un sélecteur de ferme
+            logger.info('Utilisateur a accès à plusieurs fermes:', farmMembers.length);
           }
           
           return;
         }
 
-        // Aucune ferme accessible - l'utilisateur doit être invité
-        console.log('Aucune ferme accessible trouvée pour cet utilisateur');
+        // No accessible farm - user must be invited
+        logger.log('Aucune ferme accessible trouvée pour cet utilisateur');
         setNoAccess(true);
         setIsLoading(false);
       } catch (error) {
-        console.error('Erreur lors de la récupération du farm_id:', error);
+        logger.error('Erreur lors de la récupération du farm_id:', error);
         toast.error("Une erreur inattendue s'est produite");
         setIsLoading(false);
       }
@@ -113,7 +113,7 @@ export const useFarmId = (equipmentId?: number) => {
     if (isLoading) {
       fetchFarmId();
     }
-  }, [equipmentId]); // Remove isLoading from the dependencies to prevent infinite loop
+  }, [equipmentId]); // Remove isLoading from dependencies to prevent infinite loop
 
   return { farmId, isLoading, noAccess };
 };

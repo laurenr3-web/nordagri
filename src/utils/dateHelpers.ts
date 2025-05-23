@@ -56,19 +56,12 @@ export function calculateDuration(startTime: string | Date, endTime?: string | D
   
   // Validation
   if (isNaN(start.getTime()) || (endTime && isNaN(end.getTime()))) {
-    console.error('Invalid date provided');
+    logger.error('Invalid date provided');
     return 0;
   }
   
   const duration = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
   
-  // Limiter à 24h max et ne pas accepter de valeurs négatives
+  // Limit to 24h max and don't accept negative values
   return Math.max(0, Math.min(duration, 24));
-}
-
-/**
- * Check if a number is even
- */
-export function isEven(number: number): boolean {
-  return number % 2 === 0;
 }

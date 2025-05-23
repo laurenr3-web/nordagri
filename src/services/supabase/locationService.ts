@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/logger';
 
 export interface Location {
   id: number;
@@ -33,7 +34,7 @@ export const locationService = {
       
       return data || [];
     } catch (error) {
-      console.error('Error fetching locations:', error);
+      logger.error('Error fetching locations:', error);
       
       // Return hardcoded default locations as fallback
       return [
@@ -63,7 +64,7 @@ export const locationService = {
       
       return data;
     } catch (error) {
-      console.error('Error creating location:', error);
+      logger.error('Error creating location:', error);
       throw error;
     }
   },
@@ -87,7 +88,7 @@ export const locationService = {
       
       return data;
     } catch (error) {
-      console.error('Error updating location:', error);
+      logger.error('Error updating location:', error);
       throw error;
     }
   },
@@ -106,7 +107,7 @@ export const locationService = {
         
       if (error) throw error;
     } catch (error) {
-      console.error('Error deleting location:', error);
+      logger.error('Error deleting location:', error);
       throw error;
     }
   }

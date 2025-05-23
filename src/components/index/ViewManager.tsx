@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import Dashboard from './Dashboard';
 import CalendarView from './CalendarView';
@@ -14,6 +15,8 @@ import {
 } from '@/hooks/dashboard/adapters';
 import { useFarmId } from '@/hooks/useFarmId';
 import NoFarmAccess from '@/components/common/NoFarmAccess';
+import LoadingState from '@/components/common/LoadingState';
+import { logger } from '@/utils/logger';
 
 interface ViewManagerProps {
   currentView: 'main' | 'calendar' | 'alerts';
@@ -82,10 +85,10 @@ const ViewManager: React.FC<ViewManagerProps> = ({ currentView, currentMonth }) 
   };
 
   if (farmLoading || loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading dashboard data...</div>;
+    return <LoadingState message="Chargement des données du tableau de bord..." />;
   }
 
-  // Si l'utilisateur n'a pas accès à une ferme, afficher le composant NoFarmAccess
+  // If the user doesn't have access to a farm, display the NoFarmAccess component
   if (noAccess) {
     return <NoFarmAccess />;
   }

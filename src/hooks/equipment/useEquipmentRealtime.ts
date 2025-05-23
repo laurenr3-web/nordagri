@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
+import { logger } from '@/utils/logger';
 
 /**
  * Hook to subscribe to real-time updates for equipment
@@ -24,11 +25,11 @@ export function useEquipmentRealtime() {
           table: 'equipment'
         },
         (payload) => {
-          console.log('Realtime update for equipment:', payload);
+          logger.log('Realtime update for equipment:', payload);
           
           // Handle DELETE event specifically
           if (payload.eventType === 'DELETE' && typeof payload.old === 'object' && 'id' in payload.old) {
-            console.log('Equipment deleted via realtime:', payload.old.id);
+            logger.log('Equipment deleted via realtime:', payload.old.id);
             // Remove the deleted equipment from cache
             queryClient.setQueryData(['equipment', payload.old.id], undefined);
             // Force a refetch of all equipment-related queries
@@ -56,12 +57,12 @@ export function useEquipmentRealtime() {
         }
       )
       .subscribe((status) => {
-        console.log('Equipment realtime subscription status:', status);
+        logger.log('Equipment realtime subscription status:', status);
         if (status === 'SUBSCRIBED') {
           setIsSubscribed(true);
           setError(null);
         } else if (status === 'CHANNEL_ERROR') {
-          console.error('Error subscribing to equipment realtime updates');
+          logger.error('Error subscribing to equipment realtime updates');
           setIsSubscribed(false);
           setError(new Error('Failed to subscribe to equipment updates'));
         } else {
@@ -71,7 +72,7 @@ export function useEquipmentRealtime() {
 
     // Clean up the subscription when the component unmounts
     return () => {
-      console.log('Unsubscribing from equipment realtime updates');
+      logger.log('Unsubscribing from equipment realtime updates');
       supabase.removeChannel(channel);
     };
   }, [queryClient]);

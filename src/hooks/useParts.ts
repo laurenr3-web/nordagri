@@ -9,7 +9,7 @@ import { usePartsActions } from './parts/usePartsActions';
 import { useCreatePart, useUpdatePart, useDeletePart } from './usePartsMutations';
 import { usePartsRealtime } from './parts/usePartsRealtime';
 import { usePartsWithdrawal } from './parts/usePartsWithdrawal';
-import { convertToPart } from '@/utils/partTypeConverters';
+import { logger } from '@/utils/logger';
 
 // Define a more strictly typed version of Part for internal use
 export interface SafePart extends Omit<Part, 'compatibility'> {
@@ -26,14 +26,14 @@ export const useParts = () => {
   const partsWithdrawal = usePartsWithdrawal();
   
   // Get the parts data from the query result and convert to SafePart
-  const data: SafePart[] = (partsQuery.data || []).map(part => ({
+  const data: SafePart[] = (partsQuery.data as Part[] || []).map(part => ({
     ...part,
     compatibility: Array.isArray(part.compatibility) 
       ? part.compatibility.map(id => Number(id)) 
       : []
   }));
   
-  const partsCategories = usePartsCategories(data as Part[]);
+  const partsCategories = usePartsCategories(data as unknown as Part[]);
   const partsActions = usePartsActions(partsDialogs, orderParts);
   
   // Get mutation hooks
@@ -45,7 +45,7 @@ export const useParts = () => {
   const realtimeStatus = usePartsRealtime();
   
   // Apply filters to get filtered parts
-  const filteredParts = partsFilter.filterParts(data as Part[]);
+  const filteredParts = partsFilter.filterParts(data as unknown as Part[]);
   
   // Part mutation handlers
   const handleAddPart = (part: Omit<Part, 'id'>) => {
@@ -67,8 +67,8 @@ export const useParts = () => {
     return deletePartMutation.mutate(partId);
   };
 
-  // Log current state for debugging
-  console.log('useParts hook state:', {
+  // Log current state for debugging (only in dev mode)
+  logger.log('useParts hook state:', {
     partsCount: data.length,
     filteredPartsCount: filteredParts.length,
     isLoading: partsQuery.isLoading,
