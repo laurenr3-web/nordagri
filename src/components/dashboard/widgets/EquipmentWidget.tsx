@@ -41,11 +41,15 @@ export const EquipmentWidget = ({ data, loading, size }: EquipmentWidgetProps) =
       </div>
       
       <div className="space-y-2">
-        {equipmentToShow.map((equipment) => (
+        {equipmentToShow.map((item) => (
           <EquipmentCard
-            key={equipment.id}
-            equipment={equipment}
-            onClick={() => navigate(`/equipment/${equipment.id}`)}
+            key={item.id}
+            id={item.id}
+            name={item.name}
+            type={item.type}
+            status={item.status}
+            image={item.image}
+            onClick={() => navigate(`/equipment/${item.id}`)}
             compact={size === 'small'}
           />
         ))}

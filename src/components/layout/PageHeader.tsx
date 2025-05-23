@@ -5,15 +5,17 @@ interface PageHeaderProps {
   title: string;
   description?: string;
   action?: React.ReactNode;
+  className?: string;
 }
 
 export const PageHeader: React.FC<PageHeaderProps> = ({ 
   title, 
   description,
-  action 
+  action,
+  className = ""
 }) => {
   return (
-    <div className="mb-6">
+    <div className={`mb-6 ${className}`}>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
         <h1 className="text-2xl sm:text-3xl font-bold">{title}</h1>
         {action && <div>{action}</div>}
