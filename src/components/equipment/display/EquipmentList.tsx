@@ -14,18 +14,14 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
   equipment,
   onEquipmentClick
 }) => {
-  const getEquipmentAge = (date: string) => {
-    if (!date) return 'N/A';
-    const purchaseDate = new Date(date);
-    const now = new Date();
-    const diffYears = now.getFullYear() - purchaseDate.getFullYear();
+  const getEquipmentHours = (item: any) => {
+    // Try to get hours from multiple possible sources
+    const hours = item.usage?.hours || item.valeur_actuelle || 0;
     
-    if (diffYears < 1) {
-      const diffMonths = now.getMonth() - purchaseDate.getMonth();
-      return `${diffMonths} mois`;
-    }
+    if (hours === 0) return 'N/A';
     
-    return `${diffYears} ans`;
+    // Format hours with proper separator for readability
+    return `${hours.toLocaleString()}h`;
   };
   
   return (
@@ -37,7 +33,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
             <TableHead>Statut</TableHead>
             <TableHead className="hidden md:table-cell">Marque/Modèle</TableHead>
             <TableHead className="hidden lg:table-cell">Localisation</TableHead>
-            <TableHead className="hidden sm:table-cell">Âge</TableHead>
+            <TableHead className="hidden sm:table-cell">Heures</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -88,7 +84,9 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
                 {item.location || 'N/A'}
               </TableCell>
               <TableCell className="hidden sm:table-cell">
-                {getEquipmentAge(item.purchaseDate)}
+                <span className="font-medium text-agri-900">
+                  {getEquipmentHours(item)}
+                </span>
               </TableCell>
             </motion.tr>
           ))}
