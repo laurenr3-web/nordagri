@@ -1,4 +1,6 @@
 
+import { logger } from '@/utils/logger';
+
 /**
  * Format a duration in milliseconds into a string with hours, minutes, and seconds
  */
@@ -42,6 +44,15 @@ export function formatTime(date: Date | string): string {
 export function formatDateTime(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date;
   return `${formatDate(d)} ${formatTime(d)}`;
+}
+
+/**
+ * Check if a number is even
+ * @param number The number to check
+ * @returns true if number is even, false otherwise
+ */
+export function isEven(number: number): boolean {
+  return number % 2 === 0;
 }
 
 /**
