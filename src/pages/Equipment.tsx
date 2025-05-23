@@ -14,7 +14,7 @@ import EquipmentDialogs from '@/components/equipment/dialogs/EquipmentDialogs';
 
 const Equipment = () => {
   const { t } = useTranslation();
-  const { farmId, isLoading: farmLoading, noAccess } = useFarmId();
+  const { isLoading: farmLoading, noAccess } = useFarmId(); // Removed unused farmId variable
   const equipmentQuery = useEquipmentData();
   const { isLoading } = equipmentQuery;
   const equipmentData = equipmentQuery.data || [];
@@ -57,7 +57,7 @@ const Equipment = () => {
       <MainLayout>
         <LayoutWrapper>
           <div className="flex items-center justify-center min-h-[80vh]">
-            <p>Chargement des équipements...</p>
+            <p>{t("equipment.loading", "Chargement des équipements...")}</p>
           </div>
         </LayoutWrapper>
       </MainLayout>

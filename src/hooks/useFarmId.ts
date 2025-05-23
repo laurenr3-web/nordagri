@@ -109,10 +109,11 @@ export const useFarmId = (equipmentId?: number) => {
       }
     };
 
+    // Only fetch if we're in a loading state
     if (isLoading) {
       fetchFarmId();
     }
-  }, [equipmentId, isLoading]);
+  }, [equipmentId]); // Remove isLoading from the dependencies to prevent infinite loop
 
   return { farmId, isLoading, noAccess };
 };

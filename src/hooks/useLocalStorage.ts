@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 
 /**
- * A hook for persisting state in localStorage.
+ * A hook for persisting state in localStorage with cross-tab synchronization.
  * 
  * @param key The localStorage key to store the value under
  * @param initialValue The initial value (or a function that returns the initial value)
@@ -50,9 +50,30 @@ export function useLocalStorage<T>(
     }
   };
 
+  // Listen for changes to this localStorage key in other tabs/windows
   useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === key && event.newValue !== null) {
+        try {
+          // When localStorage changes in another tab, update state
+          const newValue = JSON.parse(event.newValue) as T;
+          setStoredValue(newValue);
+        } catch (error) {
+          console.warn(`Error parsing localStorage value from other tab:`, error);
+        }
+      }
+    };
+    
+    // Add event listener for storage changes
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Re-read from localStorage when the key changes
     setStoredValue(readValue());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, [key]);
 
   return [storedValue, setValue];

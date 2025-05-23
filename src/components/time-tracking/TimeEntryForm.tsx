@@ -112,6 +112,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
   
   const loadTaskTypes = async () => {
     try {
+      setIsLoading(true);
       const types = await timeTrackingService.getTaskTypes();
       setTaskTypes(types || []);  // Ensure we always have an array
       if (types && types.length > 0 && !formData.task_type_id) {
@@ -121,11 +122,14 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
       console.error('Error loading task types:', error);
       toast.error('Impossible de charger les types de tâches');
       setTaskTypes([]); // Set to empty array on error
+    } finally {
+      setIsLoading(false); // Always set loading to false in finally block
     }
   };
   
   const loadEquipments = async () => {
     try {
+      setIsLoading(true); // Set loading state when starting request
       const { data, error } = await supabase
         .from('equipment')
         .select('id, name')
@@ -133,12 +137,12 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
       
       if (error) throw error;
       setEquipments(data || []);
-      setIsLoading(false);
     } catch (error) {
       console.error('Error loading equipment:', error);
       toast.error('Impossible de charger la liste des équipements');
       setEquipments([]); // Set to empty array on error
-      setIsLoading(false);
+    } finally {
+      setIsLoading(false); // Always set loading to false in finally block
     }
   };
   
