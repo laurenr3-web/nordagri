@@ -67,8 +67,12 @@ export function OfflineProvider({
   useEffect(() => {
     const updatePendingCount = async () => {
       if (isInitialized) {
-        const stats = await syncService.getSyncStats();
-        setPendingOperationsCount(stats.pending + stats.failed);
+        try {
+          const stats = await syncService.getSyncStats();
+          setPendingOperationsCount(stats.pending + stats.failed);
+        } catch (error) {
+          console.error('Error updating pending count:', error);
+        }
       }
     };
 

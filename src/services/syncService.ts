@@ -94,7 +94,7 @@ export class SyncService {
       status: 'pending'
     };
 
-    const id = await IndexedDBService.addToStore('sync_queue', queueEntry) as number;
+    const id = await IndexedDBService.addToStore('syncQueue', queueEntry) as number;
     await this.updatePendingCount();
     return id;
   }
@@ -104,7 +104,7 @@ export class SyncService {
    */
   public async getPendingOperations(): Promise<SyncQueueEntry[]> {
     try {
-      const operations = await IndexedDBService.getAllFromStore<SyncQueueEntry>('sync_queue') || [];
+      const operations = await IndexedDBService.getAllFromStore<SyncQueueEntry>('syncQueue') || [];
       return operations;
     } catch (error) {
       console.error('Error getting pending operations:', error);
@@ -187,11 +187,23 @@ export class SyncService {
             throw new Error('Operation missing ID field');
           }
           
-          // Mock processing for now - would be replaced with actual API calls
-          await new Promise(resolve => setTimeout(resolve, 200));
+          // Implement real sync logic instead of mock
+          const { supabase } = await import('@/integrations/supabase/client');
+          
+          switch (operation.type) {
+            case 'add':
+              await supabase.from(operation.entity).insert(operation.data);
+              break;
+            case 'update':
+              await supabase.from(operation.entity).update(operation.data).eq('id', operation.data.id);
+              break;
+            case 'delete':
+              await supabase.from(operation.entity).delete().eq('id', operation.data.id);
+              break;
+          }
           
           // Mark as processed
-          await IndexedDBService.updateInStore('sync_queue', {
+          await IndexedDBService.updateInStore('syncQueue', {
             id: operation.id,
             status: 'success',
             processedAt: Date.now()
@@ -207,7 +219,7 @@ export class SyncService {
           const retryCount = operation.retryCount || 0;
           
           // Mark as failed
-          await IndexedDBService.updateInStore('sync_queue', {
+          await IndexedDBService.updateInStore('syncQueue', {
             id: operation.id,
             status: 'failed',
             error: String(error),
@@ -215,6 +227,16 @@ export class SyncService {
           });
           
           results.push({ id: operation.id, success: false, error });
+        }
+      }
+
+      // Clean up successful operations
+      if (results.every(r => r.success)) {
+        const successfulOps = operations.filter(op => op.status === 'success');
+        for (const op of successfulOps) {
+          if (op.id) {
+            await IndexedDBService.deleteFromStore('syncQueue', op.id);
+          }
         }
       }
 

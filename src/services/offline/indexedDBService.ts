@@ -3,6 +3,19 @@
 export class IndexedDBService {
   static DB_NAME = 'agri-erp-offline-db';
   static DB_VERSION = 1;
+  private static dbConnection: IDBDatabase | null = null;
+  
+  /**
+   * Get database connection (singleton pattern)
+   * @returns Promise<IDBDatabase>
+   */
+  static async getDB(): Promise<IDBDatabase> {
+    if (this.dbConnection && !this.dbConnection.closePending) {
+      return this.dbConnection;
+    }
+    this.dbConnection = await this.openDB();
+    return this.dbConnection;
+  }
   
   /**
    * Check if the database exists
@@ -116,7 +129,7 @@ export class IndexedDBService {
    * @returns Promise<any> with the generated ID
    */
   static async addToStore(storeName: string, data: any): Promise<any> {
-    const db = await this.openDB();
+    const db = await this.getDB();
     
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([storeName], 'readwrite');
@@ -132,7 +145,7 @@ export class IndexedDBService {
       };
       
       transaction.oncomplete = () => {
-        db.close();
+        // Don't close the connection since we're using a singleton
       };
     });
   }
@@ -144,7 +157,7 @@ export class IndexedDBService {
    * @returns Promise<void>
    */
   static async updateInStore(storeName: string, data: any): Promise<void> {
-    const db = await this.openDB();
+    const db = await this.getDB();
     
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([storeName], 'readwrite');
@@ -160,7 +173,7 @@ export class IndexedDBService {
       };
       
       transaction.oncomplete = () => {
-        db.close();
+        // Don't close the connection since we're using a singleton
       };
     });
   }
@@ -173,7 +186,7 @@ export class IndexedDBService {
    * @returns Promise<void>
    */
   static async updateById(storeName: string, id: string | number, data: any): Promise<void> {
-    const db = await this.openDB();
+    const db = await this.getDB();
     
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([storeName], 'readwrite');
@@ -209,7 +222,7 @@ export class IndexedDBService {
       };
       
       transaction.oncomplete = () => {
-        db.close();
+        // Don't close the connection since we're using a singleton
       };
     });
   }
@@ -221,7 +234,7 @@ export class IndexedDBService {
    * @returns Promise<T | undefined>
    */
   static async getFromStore<T>(storeName: string, id: string | number): Promise<T | undefined> {
-    const db = await this.openDB();
+    const db = await this.getDB();
     
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([storeName], 'readonly');
@@ -237,7 +250,7 @@ export class IndexedDBService {
       };
       
       transaction.oncomplete = () => {
-        db.close();
+        // Don't close the connection since we're using a singleton
       };
     });
   }
@@ -249,7 +262,7 @@ export class IndexedDBService {
    * @returns Promise<T | undefined>
    */
   static async getByKey<T>(storeName: string, key: string): Promise<T | undefined> {
-    const db = await this.openDB();
+    const db = await this.getDB();
     
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([storeName], 'readonly');
@@ -265,7 +278,7 @@ export class IndexedDBService {
       };
       
       transaction.oncomplete = () => {
-        db.close();
+        // Don't close the connection since we're using a singleton
       };
     });
   }
@@ -278,7 +291,7 @@ export class IndexedDBService {
    * @returns Promise<T | undefined>
    */
   static async getByIndex<T>(storeName: string, indexName: string, value: any): Promise<T | undefined> {
-    const db = await this.openDB();
+    const db = await this.getDB();
     
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([storeName], 'readonly');
@@ -295,7 +308,7 @@ export class IndexedDBService {
       };
       
       transaction.oncomplete = () => {
-        db.close();
+        // Don't close the connection since we're using a singleton
       };
     });
   }
@@ -307,7 +320,7 @@ export class IndexedDBService {
    * @returns Promise<void>
    */
   static async deleteFromStore(storeName: string, id: string | number): Promise<void> {
-    const db = await this.openDB();
+    const db = await this.getDB();
     
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([storeName], 'readwrite');
@@ -323,7 +336,7 @@ export class IndexedDBService {
       };
       
       transaction.oncomplete = () => {
-        db.close();
+        // Don't close the connection since we're using a singleton
       };
     });
   }
@@ -334,7 +347,7 @@ export class IndexedDBService {
    * @returns Promise<T[]>
    */
   static async getAllFromStore<T>(storeName: string): Promise<T[]> {
-    const db = await this.openDB();
+    const db = await this.getDB();
     
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([storeName], 'readonly');
@@ -350,7 +363,7 @@ export class IndexedDBService {
       };
       
       transaction.oncomplete = () => {
-        db.close();
+        // Don't close the connection since we're using a singleton
       };
     });
   }
@@ -361,7 +374,7 @@ export class IndexedDBService {
    * @returns Promise<void>
    */
   static async clearStore(storeName: string): Promise<void> {
-    const db = await this.openDB();
+    const db = await this.getDB();
     
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([storeName], 'readwrite');
@@ -377,8 +390,31 @@ export class IndexedDBService {
       };
       
       transaction.oncomplete = () => {
-        db.close();
+        // Don't close the connection since we're using a singleton
       };
     });
+  }
+
+  /**
+   * Clean up old data from stores
+   * @param daysToKeep Number of days to keep data (default: 30)
+   * @returns Promise<void>
+   */
+  static async cleanupOldData(daysToKeep = 30): Promise<void> {
+    const cutoffDate = Date.now() - (daysToKeep * 24 * 60 * 60 * 1000);
+    
+    const stores = ['syncQueue', 'offline_cache'];
+    for (const storeName of stores) {
+      try {
+        const items = await this.getAllFromStore(storeName);
+        for (const item of items) {
+          if (item.createdAt && item.createdAt < cutoffDate) {
+            await this.deleteFromStore(storeName, item.id || item.key);
+          }
+        }
+      } catch (error) {
+        console.error(`Error cleaning up old data from ${storeName}:`, error);
+      }
+    }
   }
 }

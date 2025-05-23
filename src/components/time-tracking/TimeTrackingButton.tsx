@@ -9,7 +9,6 @@ import { TimerDisplay } from './components/TimerDisplay';
 import { TimeTrackingControls } from './components/TimeTrackingControls';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { useGlobalStore } from '@/store';
 
 interface TimeTrackingButtonProps {
   className?: string;
@@ -25,7 +24,6 @@ export function TimeTrackingButton({
   position = 'fixed' 
 }: TimeTrackingButtonProps) {
   const navigate = useNavigate();
-  const timeTracking = useGlobalStore(state => state.timeTracking);
   const { 
     activeTimeEntry, 
     isLoading, 
@@ -40,14 +38,16 @@ export function TimeTrackingButton({
 
   // Periodically check for active sessions to ensure synchronization
   useEffect(() => {
+    if (!activeTimeEntry) return; // Only check if there's an active session
+    
     const checkInterval = setInterval(() => {
-      if (!isLoading) {
+      if (!isLoading && document.visibilityState === 'visible') {
         refreshActiveTimeEntry();
       }
     }, 30000); // Check every 30 seconds
     
     return () => clearInterval(checkInterval);
-  }, [isLoading, refreshActiveTimeEntry]);
+  }, [isLoading, refreshActiveTimeEntry, activeTimeEntry]);
   
   // Use useCallback to prevent unnecessary re-renders
   const handleMainButtonClick = useCallback(() => {
