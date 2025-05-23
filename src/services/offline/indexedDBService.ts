@@ -1,4 +1,3 @@
-
 // Define basic IndexedDB service for storing and retrieving data offline
 export class IndexedDBService {
   static DB_NAME = 'agri-erp-offline-db';
@@ -10,7 +9,8 @@ export class IndexedDBService {
    * @returns Promise<IDBDatabase>
    */
   static async getDB(): Promise<IDBDatabase> {
-    if (this.dbConnection && !this.dbConnection.closePending) {
+    if (this.dbConnection) {
+      // Remove closePending check as this property doesn't exist on IDBDatabase
       return this.dbConnection;
     }
     this.dbConnection = await this.openDB();
@@ -408,8 +408,19 @@ export class IndexedDBService {
       try {
         const items = await this.getAllFromStore(storeName);
         for (const item of items) {
-          if (item.createdAt && item.createdAt < cutoffDate) {
-            await this.deleteFromStore(storeName, item.id || item.key);
+          // Add type guard to check if item has the required properties
+          if (
+            item && 
+            typeof item === 'object' && 
+            'createdAt' in item && 
+            typeof item.createdAt === 'number' && 
+            item.createdAt < cutoffDate
+          ) {
+            // Use type assertion with type guards to safely access id or key
+            const itemId = 'id' in item ? item.id : ('key' in item ? item.key : undefined);
+            if (itemId !== undefined) {
+              await this.deleteFromStore(storeName, itemId);
+            }
           }
         }
       } catch (error) {
