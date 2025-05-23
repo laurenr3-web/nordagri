@@ -23,7 +23,9 @@ export interface TimeEntry {
   updated_at: string;
   current_duration?: string;
   journee_id?: string;
-  duration?: number; // Add this property for completed sessions
+  duration?: number; // Duration in hours for completed sessions
+  pauses?: { start: string; end?: string }[]; // Adding the pauses property
+  last_resume?: string; // Adding the last_resume property
 }
 
 export interface ActiveTimeEntry extends TimeEntry {
