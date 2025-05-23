@@ -68,8 +68,8 @@ export function useUserInvitation() {
       
       console.log("Sending invitation with params:", { email, role, farmId });
       
-      // Call the Edge function to invite the user
-      const { data, error } = await supabase.functions.invoke<InviteUserResponse>('invite-user', {
+      // Call the Edge function to invite the user - fix typing issue
+      const { data, error } = await supabase.functions.invoke('invite-user', {
         body: { 
           email,
           role,
@@ -88,9 +88,12 @@ export function useUserInvitation() {
         throw new Error("Aucune réponse reçue de la fonction d'invitation");
       }
       
+      // Type guard for the response
+      const response = data as InviteUserResponse;
+      
       // Handle function-level errors (validation, business logic, etc.)
-      if (!data.success) {
-        const errorMessage = data.error || "Une erreur est survenue lors de l'invitation";
+      if (!response.success) {
+        const errorMessage = response.error || "Une erreur est survenue lors de l'invitation";
         console.error('Invitation failed:', errorMessage);
         throw new Error(errorMessage);
       }

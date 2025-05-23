@@ -95,8 +95,8 @@ export function useValidateCompatibility() {
         
         console.log('Equipment IDs for validation:', equipments);
         
-        // Create a Set for O(1) lookup
-        const validIds = new Set(equipments.map((eq: any) => eq.id));
+        // Create a Set for O(1) lookup with proper typing
+        const validIds = new Set<number>(equipments.map((eq: { id: number }) => eq.id));
         console.log('Valid equipment IDs set:', Array.from(validIds));
         
         return validIds;
@@ -110,7 +110,7 @@ export function useValidateCompatibility() {
           return new Set(cachedData.map(eq => parseInt(eq.value)));
         }
         
-        return new Set();
+        return new Set<number>();
       }
     },
     staleTime: 10 * 60 * 1000, // 10 minutes

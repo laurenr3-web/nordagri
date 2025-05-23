@@ -34,7 +34,7 @@ const createSupabaseClient = () => {
         detectSessionInUrl: true,
       },
       global: {
-        fetch: (...args) => {
+        fetch: (...args: Parameters<typeof fetch>) => {
           // Ajouter un timeout pour éviter les attentes infinies
           const controller = new AbortController();
           const { signal } = controller;
