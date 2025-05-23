@@ -1,3 +1,4 @@
+
 // Define basic IndexedDB service for storing and retrieving data offline
 export class IndexedDBService {
   static DB_NAME = 'agri-erp-offline-db';
@@ -419,7 +420,10 @@ export class IndexedDBService {
             // Use type assertion with type guards to safely access id or key
             const itemId = 'id' in item ? item.id : ('key' in item ? item.key : undefined);
             if (itemId !== undefined) {
-              await this.deleteFromStore(storeName, itemId);
+              // Ensure itemId is either string or number before passing to deleteFromStore
+              if (typeof itemId === 'string' || typeof itemId === 'number') {
+                await this.deleteFromStore(storeName, itemId);
+              }
             }
           }
         }
