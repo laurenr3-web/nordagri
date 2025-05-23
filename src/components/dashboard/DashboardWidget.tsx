@@ -51,27 +51,34 @@ export const DashboardWidget = ({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "relative group",
-        isDragging && "opacity-50 z-50"
+        "relative group animate-fade-in",
+        isDragging && "opacity-50 z-50 rotate-2 scale-105"
       )}
       {...attributes}
     >
       <Card className={cn(
-        "h-full transition-all",
-        isCustomizing && "ring-2 ring-primary/20 ring-offset-2"
+        "h-full transition-all duration-300 border-0 shadow-md hover:shadow-xl",
+        "bg-gradient-to-br from-white via-white to-agri-25",
+        "border border-agri-100/50",
+        isCustomizing && "ring-2 ring-agri-300 ring-offset-2 shadow-lg scale-[1.02]"
       )}>
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-4 bg-gradient-to-r from-agri-50 to-transparent">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {isCustomizing && (
                 <button
                   {...listeners}
-                  className="p-1 hover:bg-muted rounded cursor-move"
+                  className="p-2 hover:bg-agri-100 rounded-lg cursor-move transition-colors duration-200 group-hover:bg-agri-50"
                 >
-                  <GripVertical className="h-4 w-4 text-muted-foreground" />
+                  <GripVertical className="h-4 w-4 text-agri-500" />
                 </button>
               )}
-              <CardTitle className="text-base font-medium">{title}</CardTitle>
+              <div>
+                <CardTitle className="text-lg font-semibold text-agri-900 tracking-tight">
+                  {title}
+                </CardTitle>
+                <div className="h-1 w-12 bg-gradient-to-r from-agri-400 to-agri-600 rounded-full mt-1"></div>
+              </div>
             </div>
             
             {isCustomizing && (
@@ -80,30 +87,42 @@ export const DashboardWidget = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0"
+                    className="h-8 w-8 p-0 hover:bg-agri-100 transition-colors duration-200"
                   >
-                    <MoreVertical className="h-4 w-4" />
+                    <MoreVertical className="h-4 w-4 text-agri-600" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="bg-white border border-agri-200 shadow-lg">
                   {onResize && (
                     <>
-                      <DropdownMenuItem onClick={() => onResize('small')}>
-                        <Minimize2 className="h-4 w-4 mr-2" />
+                      <DropdownMenuItem 
+                        onClick={() => onResize('small')}
+                        className="hover:bg-agri-50 focus:bg-agri-50"
+                      >
+                        <Minimize2 className="h-4 w-4 mr-2 text-agri-600" />
                         Petit
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onResize('medium')}>
-                        <Maximize2 className="h-4 w-4 mr-2" />
+                      <DropdownMenuItem 
+                        onClick={() => onResize('medium')}
+                        className="hover:bg-agri-50 focus:bg-agri-50"
+                      >
+                        <Maximize2 className="h-4 w-4 mr-2 text-agri-600" />
                         Moyen
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onResize('large')}>
-                        <Maximize2 className="h-4 w-4 mr-2" />
+                      <DropdownMenuItem 
+                        onClick={() => onResize('large')}
+                        className="hover:bg-agri-50 focus:bg-agri-50"
+                      >
+                        <Maximize2 className="h-4 w-4 mr-2 text-agri-600" />
                         Grand
                       </DropdownMenuItem>
                     </>
                   )}
                   {onRemove && (
-                    <DropdownMenuItem onClick={onRemove} className="text-destructive">
+                    <DropdownMenuItem 
+                      onClick={onRemove} 
+                      className="text-red-600 hover:bg-red-50 focus:bg-red-50"
+                    >
                       <X className="h-4 w-4 mr-2" />
                       Retirer
                     </DropdownMenuItem>
@@ -113,8 +132,10 @@ export const DashboardWidget = ({
             )}
           </div>
         </CardHeader>
-        <CardContent className="pb-4">
-          {children}
+        <CardContent className="pb-6">
+          <div className="relative">
+            {children}
+          </div>
         </CardContent>
       </Card>
     </div>
