@@ -1,7 +1,7 @@
 
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, checkSupabaseConnection } from '@/integrations/supabase/client';
 import { fetchUserProfile } from './useProfileData';
 import { toast } from 'sonner';
 
@@ -20,17 +20,54 @@ export function useSessionCheck(
   const location = useLocation();
 
   useEffect(() => {
+    // Variable pour suivre si le composant est monté
+    let isMounted = true;
+    
     // Fonction pour vérifier l'état de la session
     const checkSession = async () => {
+      if (!isMounted) return;
       setLoading(true);
       
       try {
-        // Récupérer la session actuelle
-        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        // Vérifier d'abord la connexion à Supabase
+        const isConnected = await checkSupabaseConnection();
+        
+        if (!isConnected && isMounted) {
+          console.error('Connexion à Supabase impossible');
+          if (location.pathname !== '/auth') {
+            toast.error('Problème de connexion au serveur', {
+              description: 'Tentative de reconnexion en cours...',
+              duration: 5000
+            });
+          }
+          
+          // On définit une valeur de session et d'utilisateur null
+          // mais on ne redirige pas, pour permettre au site de fonctionner en mode hors ligne
+          setSession(null);
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+        
+        // Récupérer la session actuelle avec un timeout
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout dépassé')), 10000)
+        );
+        
+        const { data: { session: currentSession }, error } = await Promise.race([
+          sessionPromise,
+          timeoutPromise
+        ]);
+        
+        if (!isMounted) return;
         
         if (error) {
           console.error('Erreur lors de la vérification de la session:', error);
-          throw error;
+          setSession(null);
+          setUser(null);
+          setLoading(false);
+          return;
         }
         
         // Mettre à jour l'état
@@ -39,26 +76,28 @@ export function useSessionCheck(
         
         // Si l'utilisateur est connecté, récupérer ses données de profil
         if (currentSession?.user) {
-          // Utilisez setTimeout pour éviter les blocages potentiels
-          setTimeout(() => {
-            fetchUserProfile(currentSession.user.id).then(data => {
-              if (data) {
-                setProfileData(data);
+          try {
+            const profileData = await fetchUserProfile(currentSession.user.id);
+            if (isMounted) {
+              if (profileData) {
+                setProfileData(profileData);
               } else {
                 console.log('Profil non trouvé, création en cours...');
                 // Si le profil n'existe pas, on le crée
-                createUserProfile(currentSession.user.id, currentSession.user.user_metadata)
-                  .then(newProfile => {
-                    if (newProfile) {
-                      setProfileData(newProfile);
-                    } else {
-                      console.error("Erreur lors de la création du profil");
-                    }
-                  });
+                const newProfile = await createUserProfile(currentSession.user.id, currentSession.user.user_metadata);
+                if (newProfile && isMounted) {
+                  setProfileData(newProfile);
+                } else if (isMounted) {
+                  console.error("Erreur lors de la création du profil");
+                }
               }
-            });
-          }, 0);
+            }
+          } catch (profileError) {
+            console.error("Erreur lors du chargement du profil:", profileError);
+          }
         }
+        
+        if (!isMounted) return;
         
         // Ne pas rediriger si nous sommes sur une page spéciale d'authentification
         const isSpecialAuthPath = 
@@ -87,14 +126,31 @@ export function useSessionCheck(
           navigate('/dashboard', { replace: true });
         }
       } catch (error) {
-        console.error('Erreur lors de la vérification de la session:', error);
+        if (isMounted) {
+          console.error('Erreur lors de la vérification de la session:', error);
+          setLoading(false);
+          
+          if (location.pathname !== '/auth') {
+            toast.error('Problème de connexion au serveur', {
+              description: 'Veuillez rafraîchir la page ou réessayer plus tard',
+              duration: 8000
+            });
+          }
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
     
     // Vérifier la session immédiatement
     checkSession();
+    
+    // Nettoyer
+    return () => {
+      isMounted = false;
+    };
     
   }, [navigate, location, requireAuth, redirectTo, setUser, setSession, setProfileData, setLoading]);
 }
