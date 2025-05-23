@@ -41,7 +41,11 @@ const createSupabaseClient = () => {
           
           const timeoutId = setTimeout(() => controller.abort(), 30000);
           
-          return fetch(...args, { signal })
+          // Fix: Properly handle the fetch arguments
+          // The spread operator already includes all arguments, so we just need to add the signal
+          // to the init object of the second argument if it exists, or create it if it doesn't
+          const [url, init = {}] = args;
+          return fetch(url, { ...init, signal })
             .finally(() => clearTimeout(timeoutId));
         }
       }
