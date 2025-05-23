@@ -22,6 +22,19 @@ const initializeTheme = () => {
   }
 };
 
+// Enregistrer le service worker
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then((registration) => {
+        console.log('Service Worker enregistré:', registration);
+      })
+      .catch((error) => {
+        console.error('Erreur Service Worker:', error);
+      });
+  });
+}
+
 // Run theme initialization
 initializeTheme();
 
