@@ -1,10 +1,10 @@
 
-import React, { useState } from 'react';
-import { SettingsSection } from '../SettingsSection';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from 'react';
+import { SettingsSectionWrapper } from '../SettingsSectionWrapper';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, Save, Loader2 } from 'lucide-react';
+import { User } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface ProfileSectionProps {
   firstName: string;
@@ -12,6 +12,7 @@ interface ProfileSectionProps {
   email: string;
   loading: boolean;
   onUpdateProfile: (firstName: string, lastName: string) => Promise<boolean>;
+  onFieldChange?: () => void;
 }
 
 export function ProfileSection({ 
@@ -19,45 +20,69 @@ export function ProfileSection({
   lastName, 
   email, 
   loading, 
-  onUpdateProfile 
+  onUpdateProfile,
+  onFieldChange 
 }: ProfileSectionProps) {
   const [localFirstName, setLocalFirstName] = useState(firstName);
   const [localLastName, setLocalLastName] = useState(lastName);
-  const [localEmail, setLocalEmail] = useState(email);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  useEffect(() => {
+    setLocalFirstName(firstName);
+    setLocalLastName(lastName);
+  }, [firstName, lastName]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (isSubmitting) return;
-    
-    setIsSubmitting(true);
-    try {
-      await onUpdateProfile(localFirstName, localLastName);
-    } finally {
-      setIsSubmitting(false);
-    }
+  const hasChanges = localFirstName !== firstName || localLastName !== lastName;
+
+  const handleFieldChange = () => {
+    if (onFieldChange) onFieldChange();
   };
 
-  const hasChanges = localFirstName !== firstName || 
-                     localLastName !== lastName || 
-                     localEmail !== email;
+  const handleSave = async () => {
+    await onUpdateProfile(localFirstName, localLastName);
+  };
+
+  const getInitials = () => {
+    const first = localFirstName.charAt(0).toUpperCase();
+    const last = localLastName.charAt(0).toUpperCase();
+    return first + last || 'U';
+  };
 
   return (
-    <SettingsSection 
+    <SettingsSectionWrapper 
       title="Profil utilisateur" 
-      description="Mettez à jour vos informations personnelles"
-      icon={<User className="h-5 w-5" />}
+      description="Gérez vos informations personnelles"
+      icon={<User className="h-5 w-5 text-primary" />}
+      onSave={handleSave}
+      hasChanges={hasChanges}
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-6">
+        {/* Avatar section */}
+        <div className="flex items-center gap-6">
+          <Avatar className="h-20 w-20">
+            <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${localFirstName} ${localLastName}`} />
+            <AvatarFallback>{getInitials()}</AvatarFallback>
+          </Avatar>
+          <div>
+            <p className="text-sm text-muted-foreground">Photo de profil</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Les initiales sont générées automatiquement
+            </p>
+          </div>
+        </div>
+
+        {/* Form fields */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="first-name">Prénom</Label>
             <Input
               id="first-name"
               value={localFirstName}
-              onChange={(e) => setLocalFirstName(e.target.value)}
-              disabled={loading || isSubmitting}
+              onChange={(e) => {
+                setLocalFirstName(e.target.value);
+                handleFieldChange();
+              }}
+              disabled={loading}
+              placeholder="Votre prénom"
             />
           </div>
           
@@ -66,43 +91,35 @@ export function ProfileSection({
             <Input
               id="last-name"
               value={localLastName}
-              onChange={(e) => setLocalLastName(e.target.value)}
-              disabled={loading || isSubmitting}
+              onChange={(e) => {
+                setLocalLastName(e.target.value);
+                handleFieldChange();
+              }}
+              disabled={loading}
+              placeholder="Votre nom"
             />
           </div>
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            value={localEmail}
-            onChange={(e) => setLocalEmail(e.target.value)}
-            disabled={true}
-            type="email"
-          />
+          <Label htmlFor="email">Adresse email</Label>
+          <div className="relative">
+            <Input
+              id="email"
+              value={email}
+              disabled={true}
+              type="email"
+              className="pr-20"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+              Non modifiable
+            </span>
+          </div>
           <p className="text-xs text-muted-foreground">
-            L'email est utilisé pour la connexion et ne peut pas être modifié dans cette version
+            L'email est utilisé pour la connexion et ne peut pas être modifié
           </p>
         </div>
-        
-        <Button 
-          type="submit" 
-          disabled={!hasChanges || loading || isSubmitting}
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Mise à jour...
-            </>
-          ) : (
-            <>
-              <Save className="mr-2 h-4 w-4" />
-              Enregistrer les modifications
-            </>
-          )}
-        </Button>
-      </form>
-    </SettingsSection>
+      </div>
+    </SettingsSectionWrapper>
   );
 }
