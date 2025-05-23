@@ -59,7 +59,6 @@ export const EquipmentWidget = ({ data, loading, size }: EquipmentWidgetProps) =
             status={item.status}
             image={item.image}
             onClick={() => navigate(`/equipment/${item.id}`)}
-            compact={size === 'small'}
             className="hover:shadow-lg hover:scale-[1.02] transition-all duration-300 border-0 bg-gradient-to-br from-white to-agri-50"
           />
         ))}
