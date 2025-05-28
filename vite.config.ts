@@ -24,7 +24,7 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          'vendor': ['react', 'react-dom', 'react-router-dom', 'react-i18next', 'i18next'],
+          'react-vendor': ['react', 'react-dom'],
         }
       }
     },
@@ -37,6 +37,6 @@ export default defineConfig(({ mode }) => ({
     }
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', '@supabase/supabase-js', '@tanstack/react-query', 'react-i18next', 'i18next']
+    include: ['react', 'react-dom']
   }
 }));
