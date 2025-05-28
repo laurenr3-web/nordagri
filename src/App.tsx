@@ -9,9 +9,6 @@ import { AuthProvider } from '@/providers/AuthProvider';
 import { OfflineProvider } from '@/providers/OfflineProvider';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import MobileMenu from '@/components/layout/MobileMenu';
-import '@/i18n'; // i18n setup
-import { I18nextProvider } from "react-i18next";
-import i18n from "@/i18n";
 import Footer from "@/components/layout/Footer";
 
 // Composant de chargement
@@ -51,85 +48,83 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
-    <I18nextProvider i18n={i18n}>
-      <ThemeProvider defaultTheme="light" storageKey="agri-erp-theme">
-        <QueryClientProvider client={queryClient}>
-          <RealtimeCacheProvider>
-            <Router>
-              <AuthProvider>
-                <OfflineProvider autoSyncInterval={60000} showOfflineIndicator={true}>
-                  <Suspense fallback={<LoadingSpinner />}>
-                    <Routes>
-                      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                      <Route path="/auth" element={<Auth />} />
-                      <Route path="/auth/callback" element={<AuthCallback />} />
-                      <Route path="/dashboard" element={
-                        <ProtectedRoute>
-                          <Dashboard />
-                        </ProtectedRoute>
-                      } />
-                      <Route path="/equipment" element={
-                        <ProtectedRoute>
-                          <Equipment />
-                        </ProtectedRoute>
-                      } />
-                      <Route path="/equipment/:id" element={
-                        <ProtectedRoute>
-                          <EquipmentDetail />
-                        </ProtectedRoute>
-                      } />
-                      <Route path="/maintenance" element={
-                        <ProtectedRoute>
-                          <Maintenance />
-                        </ProtectedRoute>
-                      } />
-                      <Route path="/parts" element={
-                        <ProtectedRoute>
-                          <Parts />
-                        </ProtectedRoute>
-                      } />
-                      <Route path="/interventions" element={
-                        <ProtectedRoute>
-                          <Interventions />
-                        </ProtectedRoute>
-                      } />
-                      <Route path="/settings" element={
-                        <ProtectedRoute>
-                          <Settings />
-                        </ProtectedRoute>
-                      } />
-                      <Route path="/time-tracking" element={
-                        <ProtectedRoute>
-                          <TimeTracking />
-                        </ProtectedRoute>
-                      } />
-                      <Route path="/time-tracking/detail/:id" element={
-                        <ProtectedRoute>
-                          <TimeEntryDetail />
-                        </ProtectedRoute>
-                      } />
-                      <Route path="/time-tracking/statistics" element={
-                        <ProtectedRoute>
-                          <TimeTrackingStatistics />
-                        </ProtectedRoute>
-                      } />
-                      <Route path="/scan/:id" element={<ScanRedirect />} />
-                      <Route path="/bento-demo" element={<BentoDemo />} />
-                      <Route path="/legal" element={<LegalPage />} />
-                      <Route path="/pricing" element={<Pricing />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </Suspense>
-                  <MobileMenu />
-                  <Toaster />
-                  <Footer />
-                </OfflineProvider>
-              </AuthProvider>
-            </Router>
-          </RealtimeCacheProvider>
-        </QueryClientProvider>
-      </ThemeProvider>
-    </I18nextProvider>
+    <ThemeProvider defaultTheme="light" storageKey="agri-erp-theme">
+      <QueryClientProvider client={queryClient}>
+        <RealtimeCacheProvider>
+          <Router>
+            <AuthProvider>
+              <OfflineProvider autoSyncInterval={60000} showOfflineIndicator={true}>
+                <Suspense fallback={<LoadingSpinner />}>
+                  <Routes>
+                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/auth/callback" element={<AuthCallback />} />
+                    <Route path="/dashboard" element={
+                      <ProtectedRoute>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/equipment" element={
+                      <ProtectedRoute>
+                        <Equipment />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/equipment/:id" element={
+                      <ProtectedRoute>
+                        <EquipmentDetail />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/maintenance" element={
+                      <ProtectedRoute>
+                        <Maintenance />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/parts" element={
+                      <ProtectedRoute>
+                        <Parts />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/interventions" element={
+                      <ProtectedRoute>
+                        <Interventions />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/settings" element={
+                      <ProtectedRoute>
+                        <Settings />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/time-tracking" element={
+                      <ProtectedRoute>
+                        <TimeTracking />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/time-tracking/detail/:id" element={
+                      <ProtectedRoute>
+                        <TimeEntryDetail />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/time-tracking/statistics" element={
+                      <ProtectedRoute>
+                        <TimeTrackingStatistics />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/scan/:id" element={<ScanRedirect />} />
+                    <Route path="/bento-demo" element={<BentoDemo />} />
+                    <Route path="/legal" element={<LegalPage />} />
+                    <Route path="/pricing" element={<Pricing />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
+                <MobileMenu />
+                <Toaster />
+                <Footer />
+              </OfflineProvider>
+            </AuthProvider>
+          </Router>
+        </RealtimeCacheProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 

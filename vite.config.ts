@@ -24,10 +24,7 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          'vendor': ['react', 'react-dom'],
-          'router': ['react-router-dom'],
-          'query': ['@tanstack/react-query'],
-          'ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
+          'vendor': ['react', 'react-dom', 'react-router-dom', 'react-i18next', 'i18next'],
         }
       }
     },
@@ -40,6 +37,6 @@ export default defineConfig(({ mode }) => ({
     }
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', '@supabase/supabase-js', '@tanstack/react-query']
+    include: ['react', 'react-dom', '@supabase/supabase-js', '@tanstack/react-query', 'react-i18next', 'i18next']
   }
 }));
