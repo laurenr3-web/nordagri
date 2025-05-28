@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -100,7 +99,7 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
     } else {
       return (
         <>
-          <ScrollArea className={isMobile ? "h-[60vh]" : ""}>
+          <ScrollArea className={isMobile ? "h-[70vh]" : ""}>
             <MaintenanceQuote 
               maintenance={maintenanceData} 
               onPrint={handlePrintQuote}
@@ -134,13 +133,13 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
   if (isMobile) {
     return (
       <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <SheetContent side="bottom" className="h-[90vh] overflow-y-auto">
+        <SheetContent side="bottom" className="h-[90vh]">
           <SheetHeader className="mb-4">
             <SheetTitle>
               {step === 'form' ? 'Nouvelle maintenance' : 'Devis de maintenance'}
             </SheetTitle>
           </SheetHeader>
-          <div className="flex flex-col flex-1 overflow-hidden">
+          <div className="flex flex-col flex-1">
             {renderContent()}
           </div>
         </SheetContent>
