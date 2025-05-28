@@ -1,8 +1,6 @@
-
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { usePartsData } from '@/hooks/parts/usePartsData';
-import { renderHook } from '@testing-library/react';
-import { waitFor } from '@testing-library/dom';
+import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as React from 'react';
 

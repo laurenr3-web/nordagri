@@ -1,4 +1,3 @@
-
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useDashboardData } from '@/hooks/dashboard/useDashboardData';
 import { useStatsData } from '@/hooks/dashboard/useStatsData';
@@ -6,8 +5,7 @@ import { useEquipmentData } from '@/hooks/dashboard/useEquipmentData';
 import { useMaintenanceData } from '@/hooks/dashboard/useMaintenanceData';
 import { useAlertsData } from '@/hooks/dashboard/useAlertsData';
 import { useTasksData } from '@/hooks/dashboard/useTasksData';
-import { renderHook } from '@testing-library/react';
-import { waitFor } from '@testing-library/dom';
+import { renderHook, waitFor } from '@testing-library/react';
 import { useInterventionsData } from '@/hooks/interventions/useInterventionsData';
 import { usePartsData } from '@/hooks/parts/usePartsData';
 import { StatsCardData, EquipmentItem, MaintenanceEvent, AlertItem, UpcomingTask } from '@/hooks/dashboard/types/dashboardTypes';
