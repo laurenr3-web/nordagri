@@ -104,15 +104,28 @@ export class MaintenanceTasksService {
   }
 
   async updateTaskStatus(taskId: number, status: MaintenanceStatus): Promise<void> {
+    console.log(`Updating task ${taskId} status to ${status}`);
+    
+    // Préparer les données à mettre à jour
+    const updateData: any = { status };
+    
+    // Si le statut est "completed", ajouter automatiquement la date de complétion
+    if (status === 'completed') {
+      updateData.completed_date = new Date().toISOString();
+      console.log('Adding completion date for completed task:', updateData.completed_date);
+    }
+    
     const { error } = await supabase
       .from('maintenance_tasks')
-      .update({ status })
+      .update(updateData)
       .eq('id', taskId);
 
     if (error) {
       console.error('Error updating task status:', error);
       throw new Error('Failed to update task status');
     }
+    
+    console.log('Task status updated successfully with completion date if applicable');
   }
 
   async updateTaskPriority(taskId: number, priority: MaintenancePriority): Promise<void> {
@@ -161,7 +174,7 @@ export class MaintenanceTasksService {
       priority: task.priority as MaintenancePriority,
       dueDate: new Date(task.due_date),
       completedDate: task.completed_date ? new Date(task.completed_date) : undefined,
-      engineHours: task.estimated_duration || 0,
+      engineHours: data.estimated_duration || 0,
       actualDuration: task.actual_duration,
       assignedTo: task.assigned_to || '',
       notes: task.notes || '',
