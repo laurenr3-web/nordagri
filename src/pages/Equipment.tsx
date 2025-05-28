@@ -1,7 +1,6 @@
 
 import React, { useMemo } from "react";
 import MainLayout from "@/ui/layouts/MainLayout";
-import { useTranslation } from "react-i18next";
 import EquipmentPageContent from '@/components/equipment/page/EquipmentPageContent';
 import { useEquipmentData } from '@/hooks/equipment/useEquipmentData';
 import { EquipmentItem } from '@/components/equipment/hooks/useEquipmentFilters';
@@ -14,7 +13,6 @@ import EquipmentDialogs from '@/components/equipment/dialogs/EquipmentDialogs';
 import { logger } from "@/utils/logger";
 
 const Equipment = () => {
-  const { t } = useTranslation();
   const { isLoading: farmLoading, noAccess } = useFarmId();
   const equipmentQuery = useEquipmentData();
   const { isLoading } = equipmentQuery;
@@ -58,7 +56,7 @@ const Equipment = () => {
       <MainLayout>
         <LayoutWrapper>
           <div className="flex items-center justify-center min-h-[80vh]">
-            <p>{t("equipment.loading")}</p>
+            <p>Chargement des équipements...</p>
           </div>
         </LayoutWrapper>
       </MainLayout>
