@@ -13,7 +13,6 @@ import {
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { TimeTracker } from '@/components/time-tracking/TimeTracker';
-import { useTranslation } from "react-i18next";
 import { NetworkStatus } from './NetworkStatus';
 
 // NavLink now supports ARIA for accessibility
@@ -46,7 +45,6 @@ const NavLink = ({ path, icon, label, isActive }: {
 const Navbar = () => {
   const location = useLocation();
   const isMobile = useIsMobile();
-  const { t } = useTranslation();
 
   const isActive = (path: string) => {
     if (path === '/dashboard') {
@@ -59,37 +57,37 @@ const Navbar = () => {
     {
       path: '/dashboard',
       icon: <PieChart className="h-5 w-5" aria-hidden="true" />,
-      label: t("navbar.dashboard"),
+      label: "Tableau de bord",
     },
     {
       path: '/equipment',
       icon: <Tractor className="h-5 w-5" aria-hidden="true" />,
-      label: t("navbar.equipment"),
+      label: "Équipements",
     },
     {
       path: '/maintenance',
       icon: <Wrench className="h-5 w-5" aria-hidden="true" />,
-      label: t("navbar.maintenance"),
+      label: "Maintenance",
     },
     {
       path: '/parts',
       icon: <Folder className="h-5 w-5" aria-hidden="true" />,
-      label: t("navbar.parts"),
+      label: "Pièces",
     },
     {
       path: '/interventions',
       icon: <MessageSquare className="h-5 w-5" aria-hidden="true" />,
-      label: t("navbar.interventions"),
+      label: "Interventions",
     },
     {
       path: '/time-tracking',
       icon: <Clock className="h-5 w-5" aria-hidden="true" />,
-      label: t("navbar.time"),
+      label: "Temps",
     },
     {
       path: '/settings',
       icon: <Settings className="h-5 w-5" aria-hidden="true" />,
-      label: t("navbar.settings"),
+      label: "Paramètres",
     },
   ];
 
