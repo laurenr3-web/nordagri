@@ -4,8 +4,8 @@ import { TabsContent } from '@/components/ui/tabs';
 import { CalendarWidget } from '@/components/dashboard/widgets/CalendarWidget';
 
 interface DashboardCalendarViewProps {
-  data: any;
-  loading: boolean;
+  data: Record<string, any>;
+  loading: Record<string, boolean>;
 }
 
 export const DashboardCalendarView: React.FC<DashboardCalendarViewProps> = ({
@@ -16,7 +16,7 @@ export const DashboardCalendarView: React.FC<DashboardCalendarViewProps> = ({
     <TabsContent value="calendar" className="mt-0">
       <CalendarWidget 
         data={data?.calendar} 
-        loading={loading?.calendar}
+        loading={loading?.calendar || false}
         size="full"
         view="month"
       />

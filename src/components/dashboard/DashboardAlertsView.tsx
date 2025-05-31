@@ -4,8 +4,8 @@ import { TabsContent } from '@/components/ui/tabs';
 import { AlertsWidget } from '@/components/dashboard/widgets/AlertsWidget';
 
 interface DashboardAlertsViewProps {
-  data: any;
-  loading: boolean;
+  data: Record<string, any>;
+  loading: Record<string, boolean>;
 }
 
 export const DashboardAlertsView: React.FC<DashboardAlertsViewProps> = ({
@@ -16,7 +16,7 @@ export const DashboardAlertsView: React.FC<DashboardAlertsViewProps> = ({
     <TabsContent value="alerts" className="mt-0">
       <AlertsWidget 
         data={data?.alerts} 
-        loading={loading?.alerts}
+        loading={loading?.alerts || false}
         size="full"
         view="detailed"
       />
