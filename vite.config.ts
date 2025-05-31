@@ -24,8 +24,7 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          'react-core': ['react', 'react-dom', 'react-router-dom'],
-          'ui-libs': ['@radix-ui/react-dialog', '@radix-ui/react-tabs', '@radix-ui/react-button'],
+          'vendor': ['react', 'react-dom', 'react-router-dom'],
         }
       }
     },

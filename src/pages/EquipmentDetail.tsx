@@ -10,24 +10,18 @@ import { LayoutWrapper } from '@/components/layout/LayoutWrapper';
 
 const EquipmentDetail = () => {
   const navigate = useNavigate();
-  
-  // Add defensive check for params
-  let id: string | undefined;
-  try {
-    const params = useParams<{ id: string }>();
-    id = params.id;
-  } catch (error) {
-    console.error('Error getting params:', error);
-    // Fallback: try to get id from URL manually
-    const urlParts = window.location.pathname.split('/');
-    id = urlParts[urlParts.length - 1];
-  }
+  const params = useParams<{ id: string }>();
+  const id = params.id;
 
-  // If we still can't get an ID, redirect to equipment list
-  if (!id) {
-    React.useEffect(() => {
+  // If no ID is found, redirect to equipment list
+  React.useEffect(() => {
+    if (!id) {
       navigate('/equipment');
-    }, [navigate]);
+    }
+  }, [id, navigate]);
+
+  // Don't render anything if no ID
+  if (!id) {
     return null;
   }
 
