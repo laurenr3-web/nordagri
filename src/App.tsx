@@ -18,24 +18,126 @@ const LoadingSpinner = () => (
   </div>
 );
 
-// Pages chargées de manière asynchrone
-const Dashboard = lazy(() => import('@/pages/Dashboard'));
-const Equipment = lazy(() => import('@/pages/Equipment'));
-const EquipmentDetail = lazy(() => import('@/pages/EquipmentDetail'));
-const Maintenance = lazy(() => import('@/pages/Maintenance'));
-const Parts = lazy(() => import('@/pages/Parts'));
-const Interventions = lazy(() => import('@/pages/Interventions'));
-const Settings = lazy(() => import('@/pages/Settings'));
-const TimeTracking = lazy(() => import('@/pages/TimeTracking'));
-const TimeEntryDetail = lazy(() => import('@/pages/TimeEntryDetail'));
-const TimeTrackingStatistics = lazy(() => import('@/pages/TimeTrackingStatistics'));
-const Auth = lazy(() => import('@/pages/Auth'));
-const AuthCallback = lazy(() => import('@/pages/Auth/Callback'));
-const ScanRedirect = lazy(() => import('@/pages/ScanRedirect'));
-const LegalPage = lazy(() => import('@/pages/Legal'));
-const Pricing = lazy(() => import('@/pages/Pricing'));
-const BentoDemo = lazy(() => import('@/pages/BentoDemo'));
-const NotFound = lazy(() => import('@/pages/NotFound'));
+// Error boundary pour les imports qui échouent
+const ErrorFallback = ({ error }: { error?: Error }) => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="text-center">
+      <h2 className="text-xl font-semibold mb-2">Erreur de chargement</h2>
+      <p className="text-muted-foreground mb-4">
+        Une erreur s'est produite lors du chargement de la page.
+      </p>
+      <button 
+        onClick={() => window.location.reload()} 
+        className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
+      >
+        Recharger la page
+      </button>
+    </div>
+  </div>
+);
+
+// Pages chargées de manière asynchrone avec gestion d'erreur
+const Dashboard = lazy(() => 
+  import('@/pages/Dashboard').catch(() => ({ 
+    default: () => <ErrorFallback /> 
+  }))
+);
+
+const Equipment = lazy(() => 
+  import('@/pages/Equipment').catch(() => ({ 
+    default: () => <ErrorFallback /> 
+  }))
+);
+
+const EquipmentDetail = lazy(() => 
+  import('@/pages/EquipmentDetail').catch(() => ({ 
+    default: () => <ErrorFallback /> 
+  }))
+);
+
+const Maintenance = lazy(() => 
+  import('@/pages/Maintenance').catch(() => ({ 
+    default: () => <ErrorFallback /> 
+  }))
+);
+
+const Parts = lazy(() => 
+  import('@/pages/Parts').catch(() => ({ 
+    default: () => <ErrorFallback /> 
+  }))
+);
+
+const Interventions = lazy(() => 
+  import('@/pages/Interventions').catch(() => ({ 
+    default: () => <ErrorFallback /> 
+  }))
+);
+
+const Settings = lazy(() => 
+  import('@/pages/Settings').catch(() => ({ 
+    default: () => <ErrorFallback /> 
+  }))
+);
+
+const TimeTracking = lazy(() => 
+  import('@/pages/TimeTracking').catch(() => ({ 
+    default: () => <ErrorFallback /> 
+  }))
+);
+
+const TimeEntryDetail = lazy(() => 
+  import('@/pages/TimeEntryDetail').catch(() => ({ 
+    default: () => <ErrorFallback /> 
+  }))
+);
+
+const TimeTrackingStatistics = lazy(() => 
+  import('@/pages/TimeTrackingStatistics').catch(() => ({ 
+    default: () => <ErrorFallback /> 
+  }))
+);
+
+const Auth = lazy(() => 
+  import('@/pages/Auth').catch(() => ({ 
+    default: () => <ErrorFallback /> 
+  }))
+);
+
+const AuthCallback = lazy(() => 
+  import('@/pages/Auth/Callback').catch(() => ({ 
+    default: () => <ErrorFallback /> 
+  }))
+);
+
+const ScanRedirect = lazy(() => 
+  import('@/pages/ScanRedirect').catch(() => ({ 
+    default: () => <ErrorFallback /> 
+  }))
+);
+
+const LegalPage = lazy(() => 
+  import('@/pages/Legal').catch(() => ({ 
+    default: () => <ErrorFallback /> 
+  }))
+);
+
+const Pricing = lazy(() => 
+  import('@/pages/Pricing').catch(() => ({ 
+    default: () => <ErrorFallback /> 
+  }))
+);
+
+const BentoDemo = lazy(() => 
+  import('@/pages/BentoDemo').catch(() => ({ 
+    default: () => <ErrorFallback /> 
+  }))
+);
+
+const NotFound = lazy(() => 
+  import('@/pages/NotFound').catch(() => ({ 
+    default: () => <ErrorFallback /> 
+  }))
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
