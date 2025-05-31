@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import MainLayout from '@/ui/layouts/MainLayout';
 import { LayoutWrapper } from '@/components/layout/LayoutWrapper';
@@ -36,7 +35,7 @@ const DEFAULT_WIDGETS: WidgetConfig[] = [
   { id: 'calendar', type: 'calendar', title: 'Calendrier', size: 'large', enabled: true },
 ];
 
-const Dashboard = () => {
+const Dashboard: React.FC = () => {
   const [activeView, setActiveView] = useState<'main' | 'calendar' | 'alerts'>('main');
   const [isCustomizing, setIsCustomizing] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
