@@ -4,8 +4,8 @@ import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import EquipmentHeader from '../display/EquipmentHeader';
 import SearchToolbar from '../filter/SearchToolbar';
 import CategoryTabs from '../display/CategoryTabs';
-import EquipmentGrid from '../display/EquipmentGrid';
-import EquipmentList from '../display/EquipmentList';
+import OptimizedEquipmentGrid from '../display/OptimizedEquipmentGrid';
+import OptimizedEquipmentList from '../display/OptimizedEquipmentList';
 import NoEquipmentFound from '../display/NoEquipmentFound';
 import { getStatusColor, getStatusText } from '../utils/statusUtils';
 
@@ -58,11 +58,8 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
 
   const handleEquipmentItemClick = (item: EquipmentItem) => {
     console.log('Equipment item clicked:', item);
-    // Dispatch custom event to open the equipment details dialog
     const event = new CustomEvent('equipment-selected', { detail: item });
     window.dispatchEvent(event);
-    
-    // Also call the passed handler
     handleEquipmentClick(item);
   };
 
@@ -102,12 +99,12 @@ const EquipmentContentSection: React.FC<EquipmentContentSectionProps> = ({
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
       ) : currentView === 'grid' ? (
-        <EquipmentGrid
+        <OptimizedEquipmentGrid
           equipment={filteredEquipment}
           onEquipmentClick={handleEquipmentItemClick}
         />
       ) : (
-        <EquipmentList 
+        <OptimizedEquipmentList 
           equipment={filteredEquipment}
           onEquipmentClick={handleEquipmentItemClick}
         />
