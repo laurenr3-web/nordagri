@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, memo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -32,7 +31,7 @@ interface OptimizedEquipmentCardProps {
   index?: number;
 }
 
-const OptimizedEquipmentCard: React.FC<OptimizedEquipmentCardProps> = memo(({ 
+const OptimizedEquipmentCardComponent: React.FC<OptimizedEquipmentCardProps> = ({ 
   name, 
   type, 
   category,
@@ -46,11 +45,11 @@ const OptimizedEquipmentCard: React.FC<OptimizedEquipmentCardProps> = memo(({
   compact = false,
   index = 0
 }) => {
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
-  const [imageMetadata, setImageMetadata] = useState<ImageMetadata>();
-  const [isRetrying, setIsRetrying] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState<boolean>(false);
+  const [imageError, setImageError] = useState<boolean>(false);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [imageMetadata, setImageMetadata] = useState<ImageMetadata | undefined>();
+  const [isRetrying, setIsRetrying] = useState<boolean>(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   // Intersection Observer for lazy loading
@@ -318,8 +317,7 @@ const OptimizedEquipmentCard: React.FC<OptimizedEquipmentCardProps> = memo(({
       </div>
     </Card>
   );
-});
+};
 
-OptimizedEquipmentCard.displayName = 'OptimizedEquipmentCard';
-
-export { OptimizedEquipmentCard };
+// Export the memoized component
+export const OptimizedEquipmentCard = memo(OptimizedEquipmentCardComponent);
