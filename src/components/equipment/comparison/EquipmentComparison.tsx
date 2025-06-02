@@ -58,24 +58,26 @@ export const EquipmentComparison: React.FC<EquipmentComparisonProps> = ({
       );
     }
     
-    if (fieldKey === 'purchaseDate' && value instanceof Date) {
-      return value.toLocaleDateString('fr-FR');
+    if (fieldKey === 'purchaseDate') {
+      if (value instanceof Date) {
+        return value.toLocaleDateString('fr-FR');
+      }
+      if (typeof value === 'string') {
+        return new Date(value).toLocaleDateString('fr-FR');
+      }
     }
     
-    if (fieldKey === 'purchaseDate' && typeof value === 'string') {
-      return new Date(value).toLocaleDateString('fr-FR');
-    }
-    
-    // Handle complex objects that shouldn't be displayed as strings
-    if (typeof value === 'object' && value !== null && !(value instanceof Date)) {
-      return 'N/A';
-    }
-    
-    // Only convert primitive values to string
+    // Handle null, undefined, or complex objects
     if (value === null || value === undefined) {
       return 'N/A';
     }
     
+    // If it's an object (but not a Date), don't try to render it
+    if (typeof value === 'object' && !(value instanceof Date)) {
+      return 'N/A';
+    }
+    
+    // For primitive values (string, number, boolean), convert to string
     return String(value);
   };
 
