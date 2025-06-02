@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -63,14 +62,20 @@ export const EquipmentComparison: React.FC<EquipmentComparisonProps> = ({
     
     // Handle usage field (object with hours and target)
     if (fieldKey === 'usage') {
-      const usage = value as { hours: number; target: number } | undefined;
-      return usage ? `${usage.hours}h` : 'N/A';
+      if (value && typeof value === 'object' && 'hours' in value) {
+        const usage = value as { hours: number; target: number };
+        return `${usage.hours}h`;
+      }
+      return 'N/A';
     }
     
     // Handle nextService field (object with type and due)
     if (fieldKey === 'nextService') {
-      const nextService = value as { type: string; due: string } | undefined;
-      return nextService ? nextService.due : 'N/A';
+      if (value && typeof value === 'object' && 'due' in value) {
+        const nextService = value as { type: string; due: string };
+        return nextService.due;
+      }
+      return 'N/A';
     }
     
     // Handle purchase date
@@ -81,19 +86,20 @@ export const EquipmentComparison: React.FC<EquipmentComparisonProps> = ({
       if (typeof value === 'string') {
         return new Date(value).toLocaleDateString('fr-FR');
       }
+      return 'N/A';
     }
     
-    // Handle null, undefined
+    // Handle null, undefined, or complex objects
     if (value === null || value === undefined) {
       return 'N/A';
     }
     
-    // Handle primitive types
+    // Handle primitive types only
     if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
       return String(value);
     }
     
-    // For any other type, return N/A
+    // For any other type (objects, arrays, functions, etc.), return N/A
     return 'N/A';
   };
 
@@ -218,4 +224,3 @@ export const EquipmentComparison: React.FC<EquipmentComparisonProps> = ({
     </Dialog>
   );
 };
-
