@@ -56,18 +56,7 @@ export const useWidgetData = (widgets: WidgetConfig[], activeView: string) => {
           widgetData[widget.id] = dashboardData.stockAlerts;
           break;
         case 'calendar':
-          // Transform maintenance events to calendar format
-          const calendarEvents = dashboardData.maintenanceEvents?.map(event => ({
-            id: event.id,
-            title: event.title,
-            date: event.date,
-            equipment: event.equipment,
-            status: event.status,
-            priority: event.priority,
-            assignedTo: event.assignedTo,
-            duration: event.duration
-          })) || [];
-          widgetData[widget.id] = calendarEvents;
+          widgetData[widget.id] = dashboardData.weeklyCalendarEvents;
           break;
         default:
           widgetData[widget.id] = null;

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import MainLayout from '@/ui/layouts/MainLayout';
 import { useEquipmentDetail } from '@/hooks/equipment/useEquipmentDetail';
 import EquipmentDetailLoading from '@/components/equipment/detail/EquipmentDetailLoading';
@@ -9,22 +9,7 @@ import EquipmentDetailContent from '@/components/equipment/detail/EquipmentDetai
 import { LayoutWrapper } from '@/components/layout/LayoutWrapper';
 
 const EquipmentDetail = () => {
-  const navigate = useNavigate();
-  const params = useParams<{ id: string }>();
-  const id = params.id;
-
-  // If no ID is found, redirect to equipment list
-  React.useEffect(() => {
-    if (!id) {
-      navigate('/equipment');
-    }
-  }, [id, navigate]);
-
-  // Don't render anything if no ID
-  if (!id) {
-    return null;
-  }
-
+  const { id } = useParams<{ id: string }>();
   const { equipment, loading, error, handleEquipmentUpdate } = useEquipmentDetail(id);
   
   return (
