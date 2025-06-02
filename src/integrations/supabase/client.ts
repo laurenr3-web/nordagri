@@ -51,7 +51,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   }
 }
 
-// Créer le client Supabase avec gestion d'erreurs améliorée
+// Créer le client Supabase avec gestion d'erreurs améliorée et sécurité renforcée
 const createSupabaseClient = () => {
   try {
     if (!supabaseUrl || !supabaseAnonKey) {
@@ -63,6 +63,9 @@ const createSupabaseClient = () => {
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
+        // Enhanced security settings
+        flowType: 'pkce',
+        storageKey: 'sb-auth-token',
       },
       global: {
         fetch: (...args: Parameters<typeof fetch>) => {
@@ -73,12 +76,25 @@ const createSupabaseClient = () => {
           const timeoutId = setTimeout(() => controller.abort(), 30000);
           
           const [url, init = {}] = args;
-          return fetch(url, { ...init, signal })
+          return fetch(url, { 
+            ...init, 
+            signal,
+            // Add security headers
+            headers: {
+              ...init.headers,
+              'X-Requested-With': 'XMLHttpRequest',
+            }
+          })
             .finally(() => clearTimeout(timeoutId))
             .catch((error) => {
               console.error('Erreur de connexion Supabase:', error);
               throw error;
             });
+        }
+      },
+      realtime: {
+        params: {
+          eventsPerSecond: 10
         }
       }
     });
@@ -107,7 +123,7 @@ const createSupabaseClient = () => {
 // Exporter le client
 export const supabase = createSupabaseClient();
 
-// Helper pour obtenir l'ID utilisateur actuel
+// Helper pour obtenir l'ID utilisateur actuel de manière sécurisée
 export const getCurrentUserId = async () => {
   try {
     const { data: { user }, error } = await supabase.auth.getUser();
@@ -119,12 +135,13 @@ export const getCurrentUserId = async () => {
   }
 };
 
-// Helper pour obtenir l'ID de la ferme associée à l'utilisateur actuel
+// Helper pour obtenir l'ID de la ferme associée à l'utilisateur actuel (avec RLS)
 export const getCurrentFarmId = async () => {
   try {
     const userId = await getCurrentUserId();
     if (!userId) return null;
 
+    // This query will be protected by RLS policies
     const { data, error } = await supabase
       .from('profiles')
       .select('farm_id')
@@ -142,10 +159,10 @@ export const getCurrentFarmId = async () => {
 // Vérifier la connexion à Supabase avec diagnostic amélioré
 export const checkSupabaseConnection = async () => {
   try {
-    // Tentative simple pour vérifier la connexion
+    // Tentative simple pour vérifier la connexion (protected by RLS)
     const { error } = await supabase.from('profiles').select('count').limit(1);
     
-    if (error) {
+    if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows" which is OK
       console.error('Erreur de connexion Supabase:', error);
       return false;
     }
@@ -157,13 +174,17 @@ export const checkSupabaseConnection = async () => {
   }
 };
 
-// Fonction de diagnostic public
+// Fonction de diagnostic public (consolidated from supabaseClient.ts)
 export const diagnoseSupabaseConfiguration = () => {
   return {
     hasUrl: !!supabaseUrl,
     hasKey: !!supabaseAnonKey,
     urlValid: supabaseUrl?.startsWith('https://') && supabaseUrl?.includes('.supabase.co'),
     keyValid: supabaseAnonKey?.length > 100,
-    issues: diagnoseEnvironment()
+    issues: diagnoseEnvironment(),
+    url: !!supabaseUrl,
+    key: !!supabaseAnonKey,
+    urlFormat: supabaseUrl ? supabaseUrl.startsWith('https://') && supabaseUrl.includes('.supabase.co') : false,
+    client: !!supabase
   };
 };
