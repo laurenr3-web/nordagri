@@ -43,19 +43,17 @@ export const ErrorDiagnostic = ({
   };
 
   const clearCache = () => {
-    if (typeof window !== 'undefined') {
-      if ('caches' in window) {
-        caches.keys().then(names => {
-          names.forEach(name => {
-            caches.delete(name);
-          });
-          if (window.location) {
-            window.location.reload();
-          }
+    if (typeof window === 'undefined') return;
+    
+    if ('caches' in window) {
+      caches.keys().then(names => {
+        names.forEach(name => {
+          caches.delete(name);
         });
-      } else if (window.location) {
-        window.location.reload();
-      }
+        window.location?.reload();
+      });
+    } else {
+      window.location?.reload();
     }
   };
 
