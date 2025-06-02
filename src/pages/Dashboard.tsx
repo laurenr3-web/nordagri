@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import MainLayout from '@/ui/layouts/MainLayout';
 import { LayoutWrapper } from '@/components/layout/LayoutWrapper';
 import { Tabs } from '@/components/ui/tabs';
@@ -42,7 +42,7 @@ const Dashboard: React.FC = () => {
   const { refresh } = useAutoRefresh(5 * 60 * 1000);
 
   // Filtrer les widgets actifs avec sécurité renforcée
-  const activeWidgets = React.useMemo(() => {
+  const activeWidgets = useMemo(() => {
     if (!widgets || !Array.isArray(widgets)) {
       console.warn('Widgets non disponibles, utilisation des valeurs par défaut');
       return DEFAULT_WIDGETS.filter(w => w.enabled);
