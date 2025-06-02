@@ -7,6 +7,7 @@ import { useAuthForm } from './hooks/useAuthForm';
 import LoginForm from './components/LoginForm';
 import SignupForm from './components/SignupForm';
 import ResetPasswordForm from './components/ResetPasswordForm';
+import DemoAccessButton from './components/DemoAccessButton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 
@@ -80,7 +81,10 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
         )}
         
         {authMode === 'login' ? (
-          <LoginForm onSuccess={onSuccess} />
+          <>
+            <LoginForm onSuccess={onSuccess} />
+            <DemoAccessButton onSuccess={onSuccess} />
+          </>
         ) : (
           <form onSubmit={handleSubmit}>
             <SignupForm
