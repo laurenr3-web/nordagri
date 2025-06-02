@@ -37,18 +37,20 @@ export const ErrorDiagnostic = ({
   ];
 
   const handleReload = () => {
-    window.location.reload();
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
   };
 
   const clearCache = () => {
-    if ('caches' in window) {
+    if (typeof window !== 'undefined' && 'caches' in window) {
       caches.keys().then(names => {
         names.forEach(name => {
           caches.delete(name);
         });
         window.location.reload();
       });
-    } else {
+    } else if (typeof window !== 'undefined') {
       window.location.reload();
     }
   };
