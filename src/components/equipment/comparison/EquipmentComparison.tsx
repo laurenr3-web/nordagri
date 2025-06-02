@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -45,7 +44,7 @@ export const EquipmentComparison: React.FC<EquipmentComparisonProps> = ({
     }
   };
 
-  const formatFieldValue = (item: EquipmentItem, fieldKey: string) => {
+  const formatFieldValue = (item: EquipmentItem, fieldKey: string): React.ReactNode => {
     const value = item[fieldKey as keyof EquipmentItem];
     
     if (fieldKey === 'status') {
