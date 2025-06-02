@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { toast } from 'sonner';
@@ -26,7 +25,6 @@ export function useSimpleAuth(): SimpleAuthReturn {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
-  const navigate = useNavigate();
 
   const isAuthenticated = Boolean(user && session);
 
@@ -37,7 +35,7 @@ export function useSimpleAuth(): SimpleAuthReturn {
       setSession(null);
       setProfileData(null);
       toast.success('Déconnexion réussie');
-      navigate('/auth');
+      // Note: Navigation sera gérée au niveau du composant qui appelle signOut
     } catch (error) {
       console.error('Erreur de déconnexion:', error);
       toast.error('Erreur lors de la déconnexion');
@@ -70,13 +68,15 @@ export function useSimpleAuth(): SimpleAuthReturn {
     // Vérifier la session initiale
     const getInitialSession = async () => {
       try {
+        console.log('🔍 Vérification session initiale...');
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         
         if (!isMounted) return;
 
         if (error) {
-          console.error('Erreur lors de la récupération de la session:', error);
+          console.error('❌ Erreur lors de la récupération de la session:', error);
         } else {
+          console.log('✅ Session récupérée:', currentSession ? 'connecté' : 'non connecté');
           setSession(currentSession);
           setUser(currentSession?.user || null);
           
@@ -88,10 +88,11 @@ export function useSimpleAuth(): SimpleAuthReturn {
           }
         }
       } catch (error) {
-        console.error('Erreur lors de la vérification de la session:', error);
+        console.error('❌ Erreur lors de la vérification de la session:', error);
       } finally {
         if (isMounted) {
           setLoading(false);
+          console.log('✅ Chargement auth terminé');
         }
       }
     };
@@ -101,7 +102,7 @@ export function useSimpleAuth(): SimpleAuthReturn {
     // Écouter les changements d'authentification
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
-        console.log('Auth state change:', event);
+        console.log('🔄 Auth state change:', event);
         
         if (!isMounted) return;
 
