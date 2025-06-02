@@ -1,7 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { toast } from 'sonner';
-import { productionConfig } from '@/config/productionConfig';
 
 // Récupérer les variables d'environnement
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -21,29 +20,6 @@ if (!supabaseUrl || !supabaseAnonKey) {
   }
 }
 
-// Configuration spécifique pour nordagri.ca
-const getAuthConfig = () => {
-  const { currentDomain, isDevelopment } = productionConfig;
-  
-  const baseConfig = {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-  };
-
-  // Configuration spécifique par domaine
-  if (currentDomain === 'nordagri.ca') {
-    return {
-      ...baseConfig,
-      flowType: 'pkce' as const,
-      storage: window.localStorage,
-      storageKey: 'nordagri-auth',
-    };
-  }
-
-  return baseConfig;
-};
-
 // Créer le client Supabase avec gestion d'erreurs améliorée
 const createSupabaseClient = () => {
   try {
@@ -52,28 +28,25 @@ const createSupabaseClient = () => {
     }
     
     return createClient(supabaseUrl, supabaseAnonKey, {
-      auth: getAuthConfig(),
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
       global: {
         fetch: (...args: Parameters<typeof fetch>) => {
-          // Timeout adapté au domaine
+          // Ajouter un timeout pour éviter les attentes infinies
           const controller = new AbortController();
           const { signal } = controller;
           
-          const timeoutId = setTimeout(() => {
-            controller.abort();
-            console.warn(`⚠️ Timeout de ${productionConfig.timeout}ms atteint pour ${args[0]}`);
-          }, productionConfig.timeout);
+          const timeoutId = setTimeout(() => controller.abort(), 30000);
           
+          // Fix: Properly handle the fetch arguments
+          // The spread operator already includes all arguments, so we just need to add the signal
+          // to the init object of the second argument if it exists, or create it if it doesn't
           const [url, init = {}] = args;
           return fetch(url, { ...init, signal })
-            .finally(() => clearTimeout(timeoutId))
-            .catch((error) => {
-              if (error.name === 'AbortError') {
-                console.error('❌ Requête annulée par timeout:', url);
-                throw new Error('Connexion trop lente. Veuillez réessayer.');
-              }
-              throw error;
-            });
+            .finally(() => clearTimeout(timeoutId));
         }
       }
     });
@@ -81,12 +54,12 @@ const createSupabaseClient = () => {
     console.error('Erreur lors de la création du client Supabase:', error);
     
     // Retourner un client factice qui ne fera rien mais évitera les plantages
+    // Important pour permettre au site de charger même si Supabase n'est pas disponible
     return {
       auth: {
         getUser: async () => ({ data: { user: null }, error: new Error('Client non initialisé') }),
         getSession: async () => ({ data: { session: null }, error: new Error('Client non initialisé') }),
         onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } }, error: null }),
-        signOut: async () => ({ error: new Error('Client non initialisé') }),
       },
       from: () => ({
         select: () => ({ data: null, error: new Error('Client non initialisé') }),
@@ -98,26 +71,16 @@ const createSupabaseClient = () => {
 // Exporter le client
 export const supabase = createSupabaseClient();
 
-// Helper pour obtenir l'ID utilisateur actuel avec retry
+// Helper pour obtenir l'ID utilisateur actuel
 export const getCurrentUserId = async () => {
-  let attempts = 0;
-  const maxAttempts = productionConfig.retryAttempts;
-  
-  while (attempts < maxAttempts) {
-    try {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error) throw error;
-      return user?.id;
-    } catch (error) {
-      attempts++;
-      console.error(`Erreur lors de la récupération de l'ID utilisateur (tentative ${attempts}/${maxAttempts}):`, error);
-      
-      if (attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, productionConfig.authRetryDelay));
-      }
-    }
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error) throw error;
+    return user?.id;
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l\'ID utilisateur:', error);
+    return null;
   }
-  return null;
 };
 
 // Helper pour obtenir l'ID de la ferme associée à l'utilisateur actuel
@@ -140,38 +103,13 @@ export const getCurrentFarmId = async () => {
   }
 };
 
-// Vérifier la connexion à Supabase avec retry
+// Vérifier la connexion à Supabase
 export const checkSupabaseConnection = async () => {
-  let attempts = 0;
-  const maxAttempts = productionConfig.retryAttempts;
-  
-  while (attempts < maxAttempts) {
-    try {
-      const { error } = await supabase.from('profiles').select('count').limit(1);
-      if (!error) return true;
-      
-      attempts++;
-      if (attempts < maxAttempts) {
-        console.warn(`Tentative de connexion ${attempts}/${maxAttempts} échouée, retry...`);
-        await new Promise(resolve => setTimeout(resolve, productionConfig.authRetryDelay));
-      }
-    } catch (error) {
-      attempts++;
-      if (attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, productionConfig.authRetryDelay));
-      }
-    }
+  try {
+    // Tentative simple pour vérifier la connexion
+    const { error } = await supabase.from('profiles').select('count').limit(1);
+    return !error;
+  } catch {
+    return false;
   }
-  
-  return false;
 };
-
-// Log de diagnostic pour nordagri.ca
-if (productionConfig.currentDomain === 'nordagri.ca') {
-  console.log('🔧 Configuration nordagri.ca:', {
-    domain: productionConfig.currentDomain,
-    timeout: productionConfig.timeout,
-    supabaseConfigured: !!(supabaseUrl && supabaseAnonKey),
-    timestamp: new Date().toISOString()
-  });
-}

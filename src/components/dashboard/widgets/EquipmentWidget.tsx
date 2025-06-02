@@ -3,7 +3,7 @@ import React from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { OptimizedEquipmentCard } from '@/components/equipment/display/OptimizedEquipmentCard';
+import { EquipmentCard } from '@/components/dashboard/EquipmentCard';
 import { ArrowRight } from 'lucide-react';
 
 interface EquipmentWidgetProps {
@@ -21,7 +21,7 @@ export const EquipmentWidget = ({ data, loading, size }: EquipmentWidgetProps) =
         {[...Array(2)].map((_, i) => (
           <div key={i} className="animate-pulse">
             <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-agri-50 to-agri-100 rounded-xl">
-              <div className="w-12 h-12 bg-agri-200 rounded-lg"></div>
+              <div className="w-8 h-8 bg-agri-200 rounded-full"></div>
               <div className="flex-1 space-y-2">
                 <div className="h-4 bg-agri-200 rounded w-3/4"></div>
                 <div className="h-3 bg-agri-150 rounded w-1/2"></div>
@@ -33,6 +33,7 @@ export const EquipmentWidget = ({ data, loading, size }: EquipmentWidgetProps) =
     );
   }
 
+  // Limite stricte à 2 équipements pour un affichage compact
   const displayLimit = 2;
   const equipmentToShow = data?.slice(0, displayLimit) || [];
 
@@ -55,18 +56,16 @@ export const EquipmentWidget = ({ data, loading, size }: EquipmentWidgetProps) =
       </div>
       
       <div className="space-y-3">
-        {equipmentToShow.map((item, index) => (
-          <OptimizedEquipmentCard
+        {equipmentToShow.map((item) => (
+          <EquipmentCard
             key={item.id}
             name={item.name}
             type={item.type}
-            category={item.category}
             status={item.status}
             image={item.image}
             nextService={item.nextService}
             onClick={() => navigate(`/equipment/${item.id}`)}
             compact={true}
-            index={index}
             className="transition-all duration-300 hover:bg-gradient-to-r hover:from-agri-25 hover:to-agri-50"
           />
         ))}

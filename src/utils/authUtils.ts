@@ -1,88 +1,67 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { checkSecureAuthStatus, validateFarmAccess, validateEquipmentAccess } from './secureAuthUtils';
 
 /**
- * Enhanced authentication utilities with security improvements
- * This file now uses the secure utilities for better protection
- */
-
-/**
- * Check the authentication status of the current user (secure version)
+ * Check the authentication status of the current user
  */
 export const checkAuthStatus = async () => {
-  return await checkSecureAuthStatus();
+  const { data, error } = await supabase.auth.getSession();
+  
+  if (error) {
+    console.error("Auth status check error:", error);
+    throw new Error("Authentication error: " + error.message);
+  }
+  
+  if (!data.session) {
+    throw new Error("No active session found");
+  }
+  
+  return {
+    authenticated: !!data.session,
+    userId: data.session?.user?.id,
+    email: data.session?.user?.email
+  };
 };
 
 /**
- * Check if the current user has permissions to access a table with enhanced security
+ * Check if the current user has permissions to access a table
  * @param tableName The name of the table to check permissions for
  * @param recordId Optional record ID to check for specific record permissions
- * @param farmId Optional farm ID for farm-scoped access control
  */
-export const checkTablePermissions = async (tableName: string, recordId?: string, farmId?: string) => {
+export const checkTablePermissions = async (tableName: string, recordId?: string) => {
   try {
-    const { authenticated, userId } = await checkSecureAuthStatus();
+    const { authenticated, userId } = await checkAuthStatus();
     
     if (!authenticated || !userId) {
       throw new Error("You must be logged in to access this resource");
     }
     
-    // Enhanced permission checking with farm-based access control
-    if (farmId) {
-      await validateFarmAccess(farmId, 'viewer'); // Minimum viewer access required
-    }
-    
-    // Table-specific permission checks
-    switch (tableName) {
-      case 'equipment':
-        if (recordId) {
-          await validateEquipmentAccess(parseInt(recordId), 'read');
-        }
-        break;
-        
-      case 'time_sessions':
-        if (recordId) {
-          const { data, error } = await supabase
-            .from(tableName)
-            .select('user_id, equipment_id')
-            .eq('id', recordId)
-            .single();
-            
-          if (error) {
-            throw new Error("Could not verify record permissions");
-          }
+    // For time tracking, we primarily check if the user is authenticated
+    // For specific record access, we could add additional checks here
+    if (recordId) {
+      // Example: Check if the user owns this record
+      // This is a simplified check - in a real app, you'd query the table
+      if (tableName === 'time_sessions') {
+        const { data, error } = await supabase
+          .from(tableName)
+          .select('user_id')
+          .eq('id', recordId)
+          .single();
           
-          // Users can access their own time sessions or if they have farm access
-          if (data?.user_id !== userId) {
-            if (data?.equipment_id) {
-              await validateEquipmentAccess(data.equipment_id, 'read');
-            } else {
-              throw new Error("You don't have permission to access this time entry");
-            }
-          }
+        if (error) {
+          console.error("Permission check error:", error);
+          throw new Error("Could not verify record permissions");
         }
-        break;
         
-      case 'maintenance_tasks':
-      case 'fuel_logs':
-      case 'parts_inventory':
-        // These require farm membership validation
-        if (farmId) {
-          await validateFarmAccess(farmId, 'viewer');
-        } else {
-          throw new Error("Farm access required for this resource");
+        if (data?.user_id !== userId) {
+          throw new Error("You don't have permission to modify this time entry");
         }
-        break;
-        
-      default:
-        // For other tables, basic authentication is sufficient
-        break;
+      }
     }
     
     return true;
   } catch (error) {
-    console.error("Enhanced permission check failed:", error);
+    console.error("Permission check failed:", error);
     throw error;
   }
 };

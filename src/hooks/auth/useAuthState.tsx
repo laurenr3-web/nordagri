@@ -1,30 +1,50 @@
 
-import React, { useState } from 'react';
-import type { User, Session } from '@supabase/supabase-js';
+import { useState } from 'react';
+import { User, Session } from '@supabase/supabase-js';
 
+/**
+ * Interface for profile data
+ */
 export interface ProfileData {
   id: string;
+  email: string;
   first_name?: string;
   last_name?: string;
   farm_id?: string;
   role?: string;
-  email?: string;
+  created_at: string;
+  updated_at: string;
+  [key: string]: any; // For other potential profile fields
 }
 
-export interface AuthStateReturn {
+/**
+ * Interface for auth state
+ */
+interface AuthState {
   user: User | null;
-  setUser: (user: User | null) => void;
   session: Session | null;
-  setSession: (session: Session | null) => void;
   loading: boolean;
-  setLoading: (loading: boolean) => void;
   profileData: ProfileData | null;
-  setProfileData: (profileData: ProfileData | null) => void;
   isAuthenticated: boolean;
 }
 
 /**
- * Hook to manage authentication state with proper React imports
+ * Interface for auth state handlers
+ */
+interface AuthStateHandlers {
+  setUser: (user: User | null) => void;
+  setSession: (session: Session | null) => void;
+  setLoading: (loading: boolean) => void;
+  setProfileData: (profileData: ProfileData | null) => void;
+}
+
+/**
+ * Combined interface for auth state and handlers
+ */
+export interface AuthStateReturn extends AuthState, AuthStateHandlers {}
+
+/**
+ * Hook to manage authentication state
  */
 export function useAuthState(): AuthStateReturn {
   const [user, setUser] = useState<User | null>(null);
@@ -32,17 +52,18 @@ export function useAuthState(): AuthStateReturn {
   const [loading, setLoading] = useState(true);
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
 
-  const isAuthenticated = !!user && !!session;
-
   return {
-    user,
-    setUser,
+    // State
+    user, 
     session,
-    setSession,
     loading,
-    setLoading,
     profileData,
-    setProfileData,
-    isAuthenticated,
+    isAuthenticated: !!user,
+    
+    // State updaters
+    setUser,
+    setSession,
+    setLoading,
+    setProfileData
   };
 }
