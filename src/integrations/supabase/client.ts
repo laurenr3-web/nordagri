@@ -6,15 +6,46 @@ import { toast } from 'sonner';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+// Fonction de diagnostic améliorée
+const diagnoseEnvironment = () => {
+  const issues = [];
+  
+  if (!supabaseUrl) {
+    issues.push('VITE_SUPABASE_URL est manquante');
+  } else if (!supabaseUrl.startsWith('https://')) {
+    issues.push('VITE_SUPABASE_URL doit commencer par https://');
+  } else if (!supabaseUrl.includes('.supabase.co')) {
+    issues.push('VITE_SUPABASE_URL doit contenir .supabase.co');
+  }
+  
+  if (!supabaseAnonKey) {
+    issues.push('VITE_SUPABASE_ANON_KEY est manquante');
+  } else if (supabaseAnonKey.length < 100) {
+    issues.push('VITE_SUPABASE_ANON_KEY semble invalide (trop courte)');
+  }
+  
+  return issues;
+};
+
 // Vérifier que les variables d'environnement sont définies
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Variables d\'environnement Supabase manquantes. Vérifiez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY');
+  const issues = diagnoseEnvironment();
+  console.error('Variables d\'environnement Supabase manquantes:', issues);
+  
+  // En production, afficher une erreur plus informative
+  if (import.meta.env.PROD) {
+    console.error('Configuration Supabase manquante en production. Variables requises:', {
+      VITE_SUPABASE_URL: !!supabaseUrl,
+      VITE_SUPABASE_ANON_KEY: !!supabaseAnonKey
+    });
+  }
   
   // Afficher un message utilisateur plus convivial
   if (typeof document !== 'undefined') {
     setTimeout(() => {
       toast.error('Erreur de configuration. Veuillez contacter l\'administrateur.', {
-        description: 'Les paramètres de connexion à la base de données sont manquants.'
+        description: `Problèmes détectés: ${issues.join(', ')}`,
+        duration: 10000
       });
     }, 2000);
   }
@@ -24,7 +55,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 const createSupabaseClient = () => {
   try {
     if (!supabaseUrl || !supabaseAnonKey) {
-      throw new Error('Variables d\'environnement Supabase manquantes');
+      throw new Error(`Variables d'environnement Supabase manquantes: ${diagnoseEnvironment().join(', ')}`);
     }
     
     return createClient(supabaseUrl, supabaseAnonKey, {
@@ -41,20 +72,25 @@ const createSupabaseClient = () => {
           
           const timeoutId = setTimeout(() => controller.abort(), 30000);
           
-          // Fix: Properly handle the fetch arguments
-          // The spread operator already includes all arguments, so we just need to add the signal
-          // to the init object of the second argument if it exists, or create it if it doesn't
           const [url, init = {}] = args;
           return fetch(url, { ...init, signal })
-            .finally(() => clearTimeout(timeoutId));
+            .finally(() => clearTimeout(timeoutId))
+            .catch((error) => {
+              console.error('Erreur de connexion Supabase:', error);
+              throw error;
+            });
         }
       }
     });
   } catch (error) {
     console.error('Erreur lors de la création du client Supabase:', error);
     
+    // En production, lancer une erreur plus explicite
+    if (import.meta.env.PROD) {
+      throw new Error(`Configuration Supabase invalide: ${error.message}`);
+    }
+    
     // Retourner un client factice qui ne fera rien mais évitera les plantages
-    // Important pour permettre au site de charger même si Supabase n'est pas disponible
     return {
       auth: {
         getUser: async () => ({ data: { user: null }, error: new Error('Client non initialisé') }),
@@ -103,13 +139,31 @@ export const getCurrentFarmId = async () => {
   }
 };
 
-// Vérifier la connexion à Supabase
+// Vérifier la connexion à Supabase avec diagnostic amélioré
 export const checkSupabaseConnection = async () => {
   try {
     // Tentative simple pour vérifier la connexion
     const { error } = await supabase.from('profiles').select('count').limit(1);
-    return !error;
-  } catch {
+    
+    if (error) {
+      console.error('Erreur de connexion Supabase:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Échec de la vérification de connexion Supabase:', error);
     return false;
   }
+};
+
+// Fonction de diagnostic public
+export const diagnoseSupabaseConfiguration = () => {
+  return {
+    hasUrl: !!supabaseUrl,
+    hasKey: !!supabaseAnonKey,
+    urlValid: supabaseUrl?.startsWith('https://') && supabaseUrl?.includes('.supabase.co'),
+    keyValid: supabaseAnonKey?.length > 100,
+    issues: diagnoseEnvironment()
+  };
 };
