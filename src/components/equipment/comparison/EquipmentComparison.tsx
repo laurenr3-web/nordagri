@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -48,6 +49,7 @@ export const EquipmentComparison: React.FC<EquipmentComparisonProps> = ({
   const formatFieldValue = (item: EquipmentItem, fieldKey: string): string | React.ReactElement => {
     const value = item[fieldKey as keyof EquipmentItem];
     
+    // Handle status field with Badge component
     if (fieldKey === 'status') {
       return (
         <Badge variant="outline" className={getStatusColor(value as string)}>
@@ -59,6 +61,19 @@ export const EquipmentComparison: React.FC<EquipmentComparisonProps> = ({
       );
     }
     
+    // Handle usage field (object with hours and target)
+    if (fieldKey === 'usage') {
+      const usage = value as { hours: number; target: number } | undefined;
+      return usage ? `${usage.hours}h` : 'N/A';
+    }
+    
+    // Handle nextService field (object with type and due)
+    if (fieldKey === 'nextService') {
+      const nextService = value as { type: string; due: string } | undefined;
+      return nextService ? nextService.due : 'N/A';
+    }
+    
+    // Handle purchase date
     if (fieldKey === 'purchaseDate') {
       if (value instanceof Date) {
         return value.toLocaleDateString('fr-FR');
@@ -78,7 +93,7 @@ export const EquipmentComparison: React.FC<EquipmentComparisonProps> = ({
       return String(value);
     }
     
-    // For any other type (objects, arrays, etc.), return N/A
+    // For any other type, return N/A
     return 'N/A';
   };
 
@@ -203,3 +218,4 @@ export const EquipmentComparison: React.FC<EquipmentComparisonProps> = ({
     </Dialog>
   );
 };
+
