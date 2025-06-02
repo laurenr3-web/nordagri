@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { useTasksManager } from './useTasksManager';
 import { useMaintenanceRealtime } from './useMaintenanceRealtime';
 import { MaintenanceFormValues, MaintenanceStatus, MaintenanceTask } from './maintenanceSlice';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useAuthContext } from '@/providers/AuthProvider';
+import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
 
 export const useMaintenancePage = () => {
   const [currentView, setCurrentView] = useState('upcoming');
@@ -17,12 +16,12 @@ export const useMaintenancePage = () => {
   const [isNewTaskDialogOpen, setIsNewTaskDialogOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
 
-  // Get user information from the auth context
+  // Get user information from the simple auth context
   const {
     user,
     profileData,
     isAuthenticated
-  } = useAuthContext();
+  } = useSimpleAuthContext();
   
   const {
     tasks,
