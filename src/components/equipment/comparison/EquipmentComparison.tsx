@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -44,7 +45,7 @@ export const EquipmentComparison: React.FC<EquipmentComparisonProps> = ({
     }
   };
 
-  const formatFieldValue = (item: EquipmentItem, fieldKey: string): React.ReactNode => {
+  const formatFieldValue = (item: EquipmentItem, fieldKey: string): string | React.ReactElement => {
     const value = item[fieldKey as keyof EquipmentItem];
     
     if (fieldKey === 'status') {
@@ -67,18 +68,18 @@ export const EquipmentComparison: React.FC<EquipmentComparisonProps> = ({
       }
     }
     
-    // Handle null, undefined, or complex objects
+    // Handle null, undefined
     if (value === null || value === undefined) {
       return 'N/A';
     }
     
-    // If it's an object (but not a Date), don't try to render it
-    if (typeof value === 'object' && !(value instanceof Date)) {
-      return 'N/A';
+    // Handle primitive types
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      return String(value);
     }
     
-    // For primitive values (string, number, boolean), convert to string
-    return String(value);
+    // For any other type (objects, arrays, etc.), return N/A
+    return 'N/A';
   };
 
   const comparisonFields = [
