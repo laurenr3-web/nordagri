@@ -1,7 +1,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { ErrorDiagnostic } from './ErrorDiagnostic';
-import { diagnoseSupabaseConfiguration } from '@/integrations/supabase/client';
+import { diagnoseSupabaseConfiguration } from '@/utils/supabaseClient';
 
 interface Props {
   children: ReactNode;

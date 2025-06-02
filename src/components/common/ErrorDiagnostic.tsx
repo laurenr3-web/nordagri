@@ -37,25 +37,27 @@ export const ErrorDiagnostic = ({
   ];
 
   const handleReload = () => {
-    if (typeof window !== 'undefined' && window.location) {
+    if (typeof window !== 'undefined' && window.location && typeof window.location.reload === 'function') {
       window.location.reload();
     }
   };
 
-  const clearCache = () => {
+  const clearCache = async () => {
     if (typeof window === 'undefined') return;
     
-    if ('caches' in window && window.caches) {
-      window.caches.keys().then(names => {
-        names.forEach(name => {
-          window.caches.delete(name);
-        });
-        if (window.location) {
-          window.location.reload();
-        }
-      });
-    } else if (window.location) {
-      window.location.reload();
+    try {
+      if ('caches' in window && window.caches && typeof window.caches.keys === 'function') {
+        const cacheNames = await window.caches.keys();
+        await Promise.all(
+          cacheNames.map(name => window.caches.delete(name))
+        );
+      }
+    } catch (error) {
+      console.warn('Erreur lors du nettoyage du cache:', error);
+    } finally {
+      if (window.location && typeof window.location.reload === 'function') {
+        window.location.reload();
+      }
     }
   };
 

@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { FileDown, Plus } from 'lucide-react';
 import ImportMaintenanceDialog from '@/components/maintenance/dialogs/ImportMaintenanceDialog';
 
-const Maintenance = () => {
+const Maintenance: React.FC = () => {
   const {
     currentView,
     setCurrentView,
