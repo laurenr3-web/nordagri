@@ -104,7 +104,6 @@ const Maintenance = () => {
           task={selectedTask} 
           onCompleted={() => {
             setIsCompletionDialogOpen(false);
-            // Refresh the task list
             refreshTasks();
           }} 
           userName={getUserDisplayName()} 
