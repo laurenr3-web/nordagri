@@ -1,13 +1,13 @@
 
 import { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { RealtimeCacheProvider } from '@/providers/RealtimeCacheProvider';
-import { SimpleAuthProvider } from '@/providers/SimpleAuthProvider';
+import { AuthProvider } from '@/providers/AuthProvider';
 import { OfflineProvider } from '@/providers/OfflineProvider';
-import { SimpleProtectedRoute } from '@/components/auth/SimpleProtectedRoute';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import MobileMenu from '@/components/layout/MobileMenu';
 import Footer from "@/components/layout/Footer";
 
@@ -37,12 +37,6 @@ const ErrorFallback = ({ error }: { error?: Error }) => (
 );
 
 // Pages chargées de manière asynchrone avec gestion d'erreur
-const Home = lazy(() => 
-  import('@/pages/Home').catch(() => ({ 
-    default: () => <ErrorFallback /> 
-  }))
-);
-
 const Dashboard = lazy(() => 
   import('@/pages/Dashboard').catch(() => ({ 
     default: () => <ErrorFallback /> 
@@ -159,63 +153,63 @@ function App() {
     <ThemeProvider defaultTheme="light" storageKey="agri-erp-theme">
       <QueryClientProvider client={queryClient}>
         <RealtimeCacheProvider>
-          <SimpleAuthProvider>
-            <Router>
+          <Router>
+            <AuthProvider>
               <OfflineProvider autoSyncInterval={60000} showOfflineIndicator={true}>
                 <Suspense fallback={<LoadingSpinner />}>
                   <Routes>
-                    <Route path="/" element={<Home />} />
+                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/auth/callback" element={<AuthCallback />} />
                     <Route path="/dashboard" element={
-                      <SimpleProtectedRoute>
+                      <ProtectedRoute>
                         <Dashboard />
-                      </SimpleProtectedRoute>
+                      </ProtectedRoute>
                     } />
                     <Route path="/equipment" element={
-                      <SimpleProtectedRoute>
+                      <ProtectedRoute>
                         <Equipment />
-                      </SimpleProtectedRoute>
+                      </ProtectedRoute>
                     } />
                     <Route path="/equipment/:id" element={
-                      <SimpleProtectedRoute>
+                      <ProtectedRoute>
                         <EquipmentDetail />
-                      </SimpleProtectedRoute>
+                      </ProtectedRoute>
                     } />
                     <Route path="/maintenance" element={
-                      <SimpleProtectedRoute>
+                      <ProtectedRoute>
                         <Maintenance />
-                      </SimpleProtectedRoute>
+                      </ProtectedRoute>
                     } />
                     <Route path="/parts" element={
-                      <SimpleProtectedRoute>
+                      <ProtectedRoute>
                         <Parts />
-                      </SimpleProtectedRoute>
+                      </ProtectedRoute>
                     } />
                     <Route path="/interventions" element={
-                      <SimpleProtectedRoute>
+                      <ProtectedRoute>
                         <Interventions />
-                      </SimpleProtectedRoute>
+                      </ProtectedRoute>
                     } />
                     <Route path="/settings" element={
-                      <SimpleProtectedRoute>
+                      <ProtectedRoute>
                         <Settings />
-                      </SimpleProtectedRoute>
+                      </ProtectedRoute>
                     } />
                     <Route path="/time-tracking" element={
-                      <SimpleProtectedRoute>
+                      <ProtectedRoute>
                         <TimeTracking />
-                      </SimpleProtectedRoute>
+                      </ProtectedRoute>
                     } />
                     <Route path="/time-tracking/detail/:id" element={
-                      <SimpleProtectedRoute>
+                      <ProtectedRoute>
                         <TimeEntryDetail />
-                      </SimpleProtectedRoute>
+                      </ProtectedRoute>
                     } />
                     <Route path="/time-tracking/statistics" element={
-                      <SimpleProtectedRoute>
+                      <ProtectedRoute>
                         <TimeTrackingStatistics />
-                      </SimpleProtectedRoute>
+                      </ProtectedRoute>
                     } />
                     <Route path="/scan/:id" element={<ScanRedirect />} />
                     <Route path="/bento-demo" element={<BentoDemo />} />
@@ -228,8 +222,8 @@ function App() {
                 <Toaster />
                 <Footer />
               </OfflineProvider>
-            </Router>
-          </SimpleAuthProvider>
+            </AuthProvider>
+          </Router>
         </RealtimeCacheProvider>
       </QueryClientProvider>
     </ThemeProvider>

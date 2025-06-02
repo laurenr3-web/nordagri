@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import MainLayout from '@/ui/layouts/MainLayout';
 import { LayoutWrapper } from '@/components/layout/LayoutWrapper';
 import { Tabs } from '@/components/ui/tabs';
@@ -41,12 +41,9 @@ const Dashboard: React.FC = () => {
   // Auto-refresh toutes les 5 minutes
   const { refresh } = useAutoRefresh(5 * 60 * 1000);
 
-  // Filtrer les widgets actifs avec sécurité renforcée
-  const activeWidgets = useMemo(() => {
-    if (!widgets || !Array.isArray(widgets)) {
-      console.warn('Widgets non disponibles, utilisation des valeurs par défaut');
-      return DEFAULT_WIDGETS.filter(w => w.enabled);
-    }
+  // Filtrer les widgets actifs de manière simple et sécurisée
+  const activeWidgets = React.useMemo(() => {
+    if (!widgets || !Array.isArray(widgets)) return [];
     return widgets.filter(w => w && w.enabled) || [];
   }, [widgets]);
   
@@ -68,9 +65,8 @@ const Dashboard: React.FC = () => {
   }, [isCustomizing]);
 
   const handleToggleWidget = useCallback((id: string) => {
-    const widgetsToSearch = widgets || DEFAULT_WIDGETS;
-    const widget = widgetsToSearch.find(w => w && w.id === id);
-    if (widget && updateWidget) {
+    const widget = widgets?.find(w => w.id === id);
+    if (widget) {
       updateWidget(id, { enabled: !widget.enabled });
     }
   }, [widgets, updateWidget]);
@@ -79,10 +75,9 @@ const Dashboard: React.FC = () => {
     setActiveView(view as 'main' | 'calendar' | 'alerts');
   }, []);
 
-  // Fournir des valeurs par défaut sécurisées
+  // Provide safe defaults for data and loading
   const safeData = data || {};
   const safeLoading = loading || {};
-  const safeWidgets = widgets || DEFAULT_WIDGETS;
 
   return (
     <MainLayout>
@@ -102,9 +97,9 @@ const Dashboard: React.FC = () => {
 
           <DashboardCustomization
             isCustomizing={isCustomizing}
-            widgets={safeWidgets}
+            widgets={widgets || []}
             onToggleWidget={handleToggleWidget}
-            onResetLayout={resetLayout || (() => {})}
+            onResetLayout={resetLayout}
           />
 
           <DashboardMainView
@@ -112,8 +107,8 @@ const Dashboard: React.FC = () => {
             data={safeData}
             loading={safeLoading}
             isCustomizing={isCustomizing}
-            onRemoveWidget={removeWidget || (() => {})}
-            onUpdateWidget={updateWidget || (() => {})}
+            onRemoveWidget={removeWidget}
+            onUpdateWidget={updateWidget}
           />
 
           <DashboardCalendarView

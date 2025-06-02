@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
+import { useAuthContext } from '@/providers/AuthProvider';
 import { toast } from "@/hooks/use-toast";
 
 // Import specialized hooks
@@ -29,7 +29,7 @@ export * from './types/dashboardTypes';
  */
 export const useDashboardData = () => {
   const [loading, setLoading] = useState(true);
-  const { user } = useSimpleAuthContext();
+  const { user } = useAuthContext();
 
   // Use specialized hooks
   const { statsData } = useStatsData(user);

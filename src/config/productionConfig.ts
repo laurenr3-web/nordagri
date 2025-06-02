@@ -12,12 +12,12 @@ const getProductionConfig = () => {
   const isDevelopment = import.meta.env.DEV;
   const currentDomain = window.location.hostname;
   
-  // Configuration par domaine avec timeouts plus généreux pour nordagri.ca
+  // Configuration par domaine
   const domainConfigs = {
     'nordagri.ca': {
-      timeout: 60000, // Timeout très généreux pour la production
-      retryAttempts: 5, // Plus de tentatives
-      authRetryDelay: 3000, // Délai plus long entre les tentatives
+      timeout: 45000, // Timeout plus long pour la production
+      retryAttempts: 3,
+      authRetryDelay: 2000,
     },
     'localhost': {
       timeout: 30000,
