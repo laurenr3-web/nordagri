@@ -41,15 +41,23 @@ const Dashboard: React.FC = () => {
   // Auto-refresh toutes les 5 minutes
   const { refresh } = useAutoRefresh(5 * 60 * 1000);
 
-  // Filtrer les widgets actifs de manière simple
-  const activeWidgets = widgets ? widgets.filter(w => w && w.enabled) : [];
+  // Filtrer les widgets actifs de manière simple et sécurisée
+  const activeWidgets = React.useMemo(() => {
+    if (!widgets || !Array.isArray(widgets)) return [];
+    return widgets.filter(w => w && w.enabled) || [];
+  }, [widgets]);
   
   const { data, loading, refetch } = useWidgetData(activeWidgets, activeView);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    await refetch();
-    setTimeout(() => setIsRefreshing(false), 1000);
+    try {
+      await refetch();
+    } catch (error) {
+      console.error('Error refreshing dashboard:', error);
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 1000);
+    }
   }, [refetch]);
 
   const handleToggleCustomizing = useCallback(() => {
@@ -57,12 +65,19 @@ const Dashboard: React.FC = () => {
   }, [isCustomizing]);
 
   const handleToggleWidget = useCallback((id: string) => {
-    updateWidget(id, { enabled: !widgets.find(w => w.id === id)?.enabled });
+    const widget = widgets?.find(w => w.id === id);
+    if (widget) {
+      updateWidget(id, { enabled: !widget.enabled });
+    }
   }, [widgets, updateWidget]);
 
   const handleViewChange = useCallback((view: string) => {
     setActiveView(view as 'main' | 'calendar' | 'alerts');
   }, []);
+
+  // Provide safe defaults for data and loading
+  const safeData = data || {};
+  const safeLoading = loading || {};
 
   return (
     <MainLayout>
@@ -82,28 +97,28 @@ const Dashboard: React.FC = () => {
 
           <DashboardCustomization
             isCustomizing={isCustomizing}
-            widgets={widgets}
+            widgets={widgets || []}
             onToggleWidget={handleToggleWidget}
             onResetLayout={resetLayout}
           />
 
           <DashboardMainView
             activeWidgets={activeWidgets}
-            data={data}
-            loading={loading}
+            data={safeData}
+            loading={safeLoading}
             isCustomizing={isCustomizing}
             onRemoveWidget={removeWidget}
             onUpdateWidget={updateWidget}
           />
 
           <DashboardCalendarView
-            data={data}
-            loading={loading}
+            data={safeData}
+            loading={safeLoading}
           />
 
           <DashboardAlertsView
-            data={data}
-            loading={loading}
+            data={safeData}
+            loading={safeLoading}
           />
         </Tabs>
       </LayoutWrapper>

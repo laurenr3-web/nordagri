@@ -59,6 +59,17 @@ export const DashboardMainView: React.FC<DashboardMainViewProps> = ({
     );
   }, [data, loading, isCustomizing, onRemoveWidget, onUpdateWidget]);
 
+  // Early return if no active widgets to prevent rendering issues
+  if (!activeWidgets || activeWidgets.length === 0) {
+    return (
+      <TabsContent value="main" className="mt-0">
+        <div className="flex items-center justify-center p-8">
+          <p className="text-muted-foreground">Aucun widget actif</p>
+        </div>
+      </TabsContent>
+    );
+  }
+
   return (
     <TabsContent value="main" className="mt-0">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
