@@ -1,3 +1,4 @@
+
 import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
@@ -158,8 +159,8 @@ function App() {
     <ThemeProvider defaultTheme="light" storageKey="agri-erp-theme">
       <QueryClientProvider client={queryClient}>
         <RealtimeCacheProvider>
-          <Router>
-            <SimpleAuthProvider>
+          <SimpleAuthProvider>
+            <Router>
               <OfflineProvider autoSyncInterval={60000} showOfflineIndicator={true}>
                 <Suspense fallback={<LoadingSpinner />}>
                   <Routes>
@@ -227,8 +228,8 @@ function App() {
                 <Toaster />
                 <Footer />
               </OfflineProvider>
-            </SimpleAuthProvider>
-          </Router>
+            </Router>
+          </SimpleAuthProvider>
         </RealtimeCacheProvider>
       </QueryClientProvider>
     </ThemeProvider>
