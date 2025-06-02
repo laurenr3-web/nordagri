@@ -45,6 +45,31 @@ export const EquipmentComparison: React.FC<EquipmentComparisonProps> = ({
     }
   };
 
+  const formatFieldValue = (item: EquipmentItem, fieldKey: string) => {
+    const value = item[fieldKey as keyof EquipmentItem];
+    
+    if (fieldKey === 'status') {
+      return (
+        <Badge variant="outline" className={getStatusColor(value as string)}>
+          {value === 'operational' ? 'Opérationnel' :
+           value === 'maintenance' ? 'Maintenance' :
+           value === 'repair' ? 'Réparation' :
+           value || 'Inconnu'}
+        </Badge>
+      );
+    }
+    
+    if (fieldKey === 'purchaseDate' && value instanceof Date) {
+      return value.toLocaleDateString('fr-FR');
+    }
+    
+    if (fieldKey === 'purchaseDate' && typeof value === 'string') {
+      return new Date(value).toLocaleDateString('fr-FR');
+    }
+    
+    return String(value || 'N/A');
+  };
+
   const comparisonFields = [
     { key: 'name', label: 'Nom' },
     { key: 'type', label: 'Type' },
@@ -132,18 +157,7 @@ export const EquipmentComparison: React.FC<EquipmentComparisonProps> = ({
                     </div>
                     {equipment.map((item) => (
                       <div key={item.id} className="text-sm">
-                        {field.key === 'status' ? (
-                          <Badge variant="outline" className={getStatusColor(item[field.key as keyof EquipmentItem] as string)}>
-                            {item.status === 'operational' ? 'Opérationnel' :
-                             item.status === 'maintenance' ? 'Maintenance' :
-                             item.status === 'repair' ? 'Réparation' :
-                             item.status || 'Inconnu'}
-                          </Badge>
-                        ) : field.key === 'purchaseDate' && item.purchaseDate ? (
-                          new Date(item.purchaseDate).toLocaleDateString('fr-FR')
-                        ) : (
-                          item[field.key as keyof EquipmentItem] || 'N/A'
-                        )}
+                        {formatFieldValue(item, field.key)}
                       </div>
                     ))}
                   </div>
