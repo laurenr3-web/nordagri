@@ -37,19 +37,25 @@ export const ErrorDiagnostic = ({
   ];
 
   const handleReload = () => {
-    window.location.reload();
+    if (typeof window !== 'undefined' && window.location) {
+      window.location.reload();
+    }
   };
 
   const clearCache = () => {
-    if ('caches' in window) {
-      caches.keys().then(names => {
-        names.forEach(name => {
-          caches.delete(name);
+    if (typeof window !== 'undefined') {
+      if ('caches' in window) {
+        caches.keys().then(names => {
+          names.forEach(name => {
+            caches.delete(name);
+          });
+          if (window.location) {
+            window.location.reload();
+          }
         });
+      } else if (window.location) {
         window.location.reload();
-      });
-    } else {
-      window.location.reload();
+      }
     }
   };
 
