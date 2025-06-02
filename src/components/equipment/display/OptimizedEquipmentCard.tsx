@@ -4,6 +4,8 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, AlertTriangle, Clock, Wrench, Tractor, Truck, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ImageService, ImageMetadata } from '@/services/imageService';
+import { ImageQualityIndicator } from '../images/ImageQualityIndicator';
 
 interface EquipmentUsage {
   hours: number;
@@ -47,7 +49,8 @@ const OptimizedEquipmentCard: React.FC<OptimizedEquipmentCardProps> = memo(({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
+  const [imageMetadata, setImageMetadata] = useState<ImageMetadata>();
+  const [isRetrying, setIsRetrying] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   // Intersection Observer for lazy loading
@@ -68,6 +71,34 @@ const OptimizedEquipmentCard: React.FC<OptimizedEquipmentCardProps> = memo(({
 
     return () => observer.disconnect();
   }, []);
+
+  // Load image with retry when visible
+  useEffect(() => {
+    if (isVisible && image && !imageError && !imageLoaded) {
+      loadImageWithRetry();
+    }
+  }, [isVisible, image, imageError, imageLoaded]);
+
+  const loadImageWithRetry = async () => {
+    if (!image) return;
+    
+    try {
+      setIsRetrying(true);
+      const metadata = await ImageService.loadImageWithRetry(image, {
+        maxRetries: 2,
+        baseDelay: 500
+      });
+      
+      setImageMetadata(metadata);
+      setImageLoaded(true);
+      setImageError(false);
+    } catch (error) {
+      console.error('Failed to load image after retries:', error);
+      setImageError(true);
+    } finally {
+      setIsRetrying(false);
+    }
+  };
 
   const getStatusIcon = () => {
     switch (status) {
@@ -104,24 +135,6 @@ const OptimizedEquipmentCard: React.FC<OptimizedEquipmentCardProps> = memo(({
     }
   };
 
-  const handleImageError = () => {
-    if (retryCount < 2) {
-      setRetryCount(prev => prev + 1);
-      setImageError(false);
-      // Small delay before retry
-      setTimeout(() => {
-        setImageError(false);
-      }, 1000);
-    } else {
-      setImageError(true);
-    }
-  };
-
-  const handleImageLoad = () => {
-    setImageLoaded(true);
-    setImageError(false);
-  };
-
   const isOverdue = nextService?.due.includes('retard') || nextService?.due.includes('Overdue');
   const isUpcoming = nextService?.due.includes('jours') || nextService?.due.includes('demain') || nextService?.due.includes('semaine');
 
@@ -142,19 +155,31 @@ const OptimizedEquipmentCard: React.FC<OptimizedEquipmentCardProps> = memo(({
       >
         <div className="p-4">
           <div className="flex items-center gap-3">
-            <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-100">
+            <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-100 relative">
               {isVisible && !imageError && image ? (
-                <img
-                  src={image}
-                  alt={name}
-                  className="w-full h-full object-cover"
-                  onLoad={handleImageLoad}
-                  onError={handleImageError}
-                  loading="lazy"
-                />
+                <>
+                  {isRetrying && (
+                    <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
+                      <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  )}
+                  {imageLoaded && (
+                    <img
+                      src={image}
+                      alt={name}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  )}
+                </>
               ) : (
                 <div className={cn("w-full h-full flex items-center justify-center", getCategoryColor())}>
                   {getCategoryIcon()}
+                </div>
+              )}
+              {imageMetadata && (
+                <div className="absolute top-1 right-1">
+                  <ImageQualityIndicator metadata={imageMetadata} compact />
                 </div>
               )}
             </div>
@@ -208,30 +233,27 @@ const OptimizedEquipmentCard: React.FC<OptimizedEquipmentCardProps> = memo(({
     >
       <div className="relative aspect-video overflow-hidden">
         {!isVisible ? (
-          // Skeleton while not visible
           <div className="w-full h-full bg-gray-200 animate-pulse" />
         ) : imageError || !image ? (
-          // Intelligent fallback
           <div className={cn("w-full h-full flex flex-col items-center justify-center", getCategoryColor())}>
             {getCategoryIcon()}
             <span className="text-xs font-medium mt-2 text-center px-2">{type}</span>
           </div>
         ) : (
           <>
-            {!imageLoaded && (
-              <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+            {(isRetrying || !imageLoaded) && (
+              <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+              </div>
             )}
-            <img 
-              src={image} 
-              alt={name} 
-              className={cn(
-                "w-full h-full object-cover transition-all duration-300 group-hover:scale-105",
-                imageLoaded ? 'opacity-100' : 'opacity-0'
-              )}
-              onLoad={handleImageLoad}
-              onError={handleImageError}
-              loading="lazy"
-            />
+            {imageLoaded && (
+              <img 
+                src={image} 
+                alt={name} 
+                className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
+                loading="lazy"
+              />
+            )}
           </>
         )}
         
@@ -243,6 +265,12 @@ const OptimizedEquipmentCard: React.FC<OptimizedEquipmentCardProps> = memo(({
             {status === 'inactive' && 'Inactif'}
           </Badge>
         </div>
+
+        {imageMetadata && (
+          <div className="absolute top-2 left-2">
+            <ImageQualityIndicator metadata={imageMetadata} compact />
+          </div>
+        )}
       </div>
       
       <div className="p-4">
@@ -279,6 +307,12 @@ const OptimizedEquipmentCard: React.FC<OptimizedEquipmentCardProps> = memo(({
             )}>
               {nextService.due}
             </span>
+          </div>
+        )}
+
+        {imageMetadata && !compact && (
+          <div className="mt-4 pt-3 border-t">
+            <ImageQualityIndicator metadata={imageMetadata} />
           </div>
         )}
       </div>
