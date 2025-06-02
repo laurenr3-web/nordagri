@@ -1,50 +1,30 @@
 
-import { useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import React, { useState } from 'react';
+import type { User, Session } from '@supabase/supabase-js';
 
-/**
- * Interface for profile data
- */
 export interface ProfileData {
   id: string;
-  email: string;
   first_name?: string;
   last_name?: string;
   farm_id?: string;
   role?: string;
-  created_at: string;
-  updated_at: string;
-  [key: string]: any; // For other potential profile fields
+  email?: string;
 }
 
-/**
- * Interface for auth state
- */
-interface AuthState {
+export interface AuthStateReturn {
   user: User | null;
+  setUser: (user: User | null) => void;
   session: Session | null;
+  setSession: (session: Session | null) => void;
   loading: boolean;
+  setLoading: (loading: boolean) => void;
   profileData: ProfileData | null;
+  setProfileData: (profileData: ProfileData | null) => void;
   isAuthenticated: boolean;
 }
 
 /**
- * Interface for auth state handlers
- */
-interface AuthStateHandlers {
-  setUser: (user: User | null) => void;
-  setSession: (session: Session | null) => void;
-  setLoading: (loading: boolean) => void;
-  setProfileData: (profileData: ProfileData | null) => void;
-}
-
-/**
- * Combined interface for auth state and handlers
- */
-export interface AuthStateReturn extends AuthState, AuthStateHandlers {}
-
-/**
- * Hook to manage authentication state
+ * Hook to manage authentication state with proper React imports
  */
 export function useAuthState(): AuthStateReturn {
   const [user, setUser] = useState<User | null>(null);
@@ -52,18 +32,17 @@ export function useAuthState(): AuthStateReturn {
   const [loading, setLoading] = useState(true);
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
 
+  const isAuthenticated = !!user && !!session;
+
   return {
-    // State
-    user, 
-    session,
-    loading,
-    profileData,
-    isAuthenticated: !!user,
-    
-    // State updaters
+    user,
     setUser,
+    session,
     setSession,
+    loading,
     setLoading,
-    setProfileData
+    profileData,
+    setProfileData,
+    isAuthenticated,
   };
 }

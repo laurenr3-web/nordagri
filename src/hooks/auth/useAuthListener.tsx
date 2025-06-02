@@ -1,74 +1,79 @@
 
-import { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { fetchUserProfile } from './useProfileData';
-import { toast } from 'sonner';
+import { productionConfig } from '@/config/productionConfig';
+import type { User, Session } from '@supabase/supabase-js';
+import type { ProfileData } from './useAuthState';
 
 /**
- * Hook to listen for authentication state changes
+ * Hook to listen for auth state changes with enhanced logging for nordagri.ca
  */
 export function useAuthListener(
-  setUser,
-  setSession,
-  setProfileData,
-  requireAuth = true,
+  setUser: (user: User | null) => void,
+  setSession: (session: Session | null) => void,
+  setProfileData: (profileData: ProfileData | null) => void,
+  requireAuth: boolean,
   redirectTo?: string
 ) {
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
-    console.log('Setting up auth listener');
+    console.log(`🔐 Initialisation listener auth sur ${productionConfig.currentDomain}`);
     
-    // Configurer l'abonnement aux changements d'état d'authentification
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log(`Auth state changed: ${event}`, session?.user?.id ? 'User is logged in' : 'No user');
-      
-      // Mise à jour synchrone de l'état
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      // Si l'utilisateur vient de se connecter, récupérer ses données de profil
-      if (session?.user && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
-        // Utilisez setTimeout pour éviter les blocages potentiels
-        setTimeout(() => {
-          fetchUserProfile(session.user.id).then(data => {
-            if (data) {
-              setProfileData(data);
-              toast.success(`Bienvenue ${data.first_name || ''}!`);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log(`🔐 Auth event: ${event}`, { 
+          hasSession: !!session, 
+          hasUser: !!session?.user,
+          domain: productionConfig.currentDomain 
+        });
+        
+        try {
+          if (session?.user) {
+            setUser(session.user);
+            setSession(session);
+            
+            // Récupérer le profil utilisateur
+            try {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+              
+              if (profile) {
+                setProfileData(profile);
+              }
+            } catch (profileError) {
+              console.warn('Erreur récupération profil lors du changement d\'état:', profileError);
             }
-          });
-        }, 0);
-        
-        // Ne pas rediriger si nous sommes sur une page spéciale d'authentification
-        const isSpecialAuthPath = 
-          location.pathname === '/auth/callback' || 
-          location.pathname.startsWith('/confirm') || 
-          (location.pathname === '/auth' && 
-           (location.hash || 
-            location.search.includes('reset=true') || 
-            location.search.includes('verification=true')));
-        
-        // Rediriger l'utilisateur si spécifié et sur la page d'auth (et pas sur une page spéciale)
-        if (location.pathname === '/auth' && !isSpecialAuthPath) {
-          const params = new URLSearchParams(location.search);
-          const returnPath = params.get('returnTo') || redirectTo || '/dashboard';
-          console.log(`Redirecting after ${event} to ${returnPath}`);
-          navigate(returnPath, { replace: true });
-        } 
-      } else if (requireAuth && !session && event === 'SIGNED_OUT') {
-        // L'utilisateur s'est déconnecté et cette route nécessite une authentification
-        console.log('User signed out, redirecting to auth page');
-        const returnPath = location.pathname === '/auth' ? '/dashboard' : location.pathname + location.search;
-        navigate(`/auth?returnTo=${encodeURIComponent(returnPath)}`, { replace: true });
+            
+            // Gestion de la redirection après connexion
+            if (event === 'SIGNED_IN') {
+              const urlParams = new URLSearchParams(window.location.search);
+              const redirectPath = urlParams.get('redirect') || redirectTo || '/dashboard';
+              navigate(redirectPath, { replace: true });
+            }
+          } else {
+            setUser(null);
+            setSession(null);
+            setProfileData(null);
+            
+            // Redirection vers auth si requis
+            if (event === 'SIGNED_OUT' && requireAuth && !window.location.pathname.includes('/auth')) {
+              navigate('/auth', { replace: true });
+            }
+          }
+        } catch (error) {
+          console.error('Erreur dans le listener auth:', error);
+        }
       }
-    });
-    
-    // Nettoyer l'abonnement lorsque le composant est démonté
+    );
+
     return () => {
-      console.log('Cleaning up auth listener');
-      authListener.subscription.unsubscribe();
+      console.log(`🔐 Nettoyage listener auth sur ${productionConfig.currentDomain}`);
+      subscription.unsubscribe();
     };
-  }, [navigate, location, requireAuth, redirectTo, setUser, setSession, setProfileData]);
+  }, [setUser, setSession, setProfileData, requireAuth, redirectTo, navigate]);
 }
