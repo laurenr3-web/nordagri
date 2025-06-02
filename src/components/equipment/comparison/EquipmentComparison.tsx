@@ -67,7 +67,17 @@ export const EquipmentComparison: React.FC<EquipmentComparisonProps> = ({
       return new Date(value).toLocaleDateString('fr-FR');
     }
     
-    return String(value || 'N/A');
+    // Handle complex objects that shouldn't be displayed as strings
+    if (typeof value === 'object' && value !== null && !(value instanceof Date)) {
+      return 'N/A';
+    }
+    
+    // Only convert primitive values to string
+    if (value === null || value === undefined) {
+      return 'N/A';
+    }
+    
+    return String(value);
   };
 
   const comparisonFields = [
