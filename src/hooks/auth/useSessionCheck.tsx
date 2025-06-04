@@ -55,12 +55,16 @@ export function useSessionCheck(
           setTimeout(() => reject(new Error('Timeout dépassé')), 10000)
         );
         
-        const { data: { session: currentSession }, error } = await Promise.race([
+        const sessionResult = await Promise.race([
           sessionPromise,
           timeoutPromise
         ]);
         
         if (!isMounted) return;
+        
+        // Handle the session result properly
+        const { data: sessionData, error } = sessionResult as { data: { session: any }, error: any };
+        const currentSession = sessionData?.session;
         
         if (error) {
           console.error('Erreur lors de la vérification de la session:', error);

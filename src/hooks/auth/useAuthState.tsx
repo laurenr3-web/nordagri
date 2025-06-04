@@ -2,25 +2,19 @@
 import { useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 
-/**
- * Interface for profile data
- */
 export interface ProfileData {
   id: string;
-  email: string;
   first_name?: string;
   last_name?: string;
+  avatar_url?: string;
   farm_id?: string;
-  role?: string;
+  has_seen_onboarding?: boolean;
   created_at: string;
   updated_at: string;
-  [key: string]: any; // For other potential profile fields
+  // Note: email is not stored in profiles table, it comes from auth.users
 }
 
-/**
- * Interface for auth state
- */
-interface AuthState {
+export interface AuthStateReturn {
   user: User | null;
   session: Session | null;
   loading: boolean;
@@ -29,41 +23,30 @@ interface AuthState {
 }
 
 /**
- * Interface for auth state handlers
+ * Hook to manage authentication state
  */
-interface AuthStateHandlers {
+export function useAuthState(): AuthStateReturn & {
   setUser: (user: User | null) => void;
   setSession: (session: Session | null) => void;
   setLoading: (loading: boolean) => void;
-  setProfileData: (profileData: ProfileData | null) => void;
-}
-
-/**
- * Combined interface for auth state and handlers
- */
-export interface AuthStateReturn extends AuthState, AuthStateHandlers {}
-
-/**
- * Hook to manage authentication state
- */
-export function useAuthState(): AuthStateReturn {
+  setProfileData: (data: ProfileData | null) => void;
+} {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
 
+  const isAuthenticated = !!user;
+
   return {
-    // State
-    user, 
-    session,
-    loading,
-    profileData,
-    isAuthenticated: !!user,
-    
-    // State updaters
+    user,
     setUser,
+    session,
     setSession,
+    loading,
     setLoading,
-    setProfileData
+    profileData,
+    setProfileData,
+    isAuthenticated,
   };
 }
