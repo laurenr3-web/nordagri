@@ -99,7 +99,7 @@ export class MaintenanceTasksService {
       notes: data.notes || '',
       trigger_unit: data.trigger_unit,
       trigger_hours: data.trigger_hours,
-      trigger_kilometers: data.trigger_kilometers,
+      trigger_kilometers: task.trigger_kilometers,
     };
   }
 
