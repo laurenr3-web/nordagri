@@ -8,10 +8,65 @@ interface SyncData {
   lastSync?: string;
 }
 
-/**
- * Service for offline/online data synchronization
- */
-export const syncService = {
+export interface SyncStatus {
+  isOnline: boolean;
+  isSyncing: boolean;
+  pendingSyncCount: number;
+  lastSyncTime?: Date;
+}
+
+interface SyncResult {
+  success: boolean;
+  error?: string;
+}
+
+interface SyncOperation {
+  id: string;
+  type: 'add' | 'update' | 'delete';
+  entity: string;
+  data: any;
+  createdAt: number;
+  priority: number;
+}
+
+class SyncServiceClass {
+  private listeners: ((status: SyncStatus) => void)[] = [];
+  private status: SyncStatus = {
+    isOnline: navigator.onLine,
+    isSyncing: false,
+    pendingSyncCount: 0
+  };
+
+  constructor() {
+    // Listen for online/offline events
+    window.addEventListener('online', () => {
+      this.updateStatus({ isOnline: true });
+    });
+    window.addEventListener('offline', () => {
+      this.updateStatus({ isOnline: false });
+    });
+  }
+
+  private updateStatus(updates: Partial<SyncStatus>) {
+    this.status = { ...this.status, ...updates };
+    this.listeners.forEach(listener => listener(this.status));
+  }
+
+  addEventListener(listener: (status: SyncStatus) => void) {
+    this.listeners.push(listener);
+  }
+
+  removeEventListener(listener: (status: SyncStatus) => void) {
+    const index = this.listeners.indexOf(listener);
+    if (index > -1) {
+      this.listeners.splice(index, 1);
+    }
+  }
+
+  getStatus(): SyncStatus {
+    return this.status;
+  }
+
   /**
    * Sync data from server
    */
@@ -59,7 +114,7 @@ export const syncService = {
       logger.error('Error during sync:', error);
       throw error;
     }
-  },
+  }
 
   /**
    * Sync data to server
@@ -87,7 +142,7 @@ export const syncService = {
       logger.error('Error syncing to server:', error);
       return false;
     }
-  },
+  }
 
   /**
    * Get last sync timestamp for a table
@@ -98,7 +153,7 @@ export const syncService = {
     } catch {
       return null;
     }
-  },
+  }
 
   /**
    * Set last sync timestamp for a table
@@ -109,7 +164,7 @@ export const syncService = {
     } catch (error) {
       logger.error('Error setting sync time:', error);
     }
-  },
+  }
 
   /**
    * Check if sync is needed
@@ -123,4 +178,78 @@ export const syncService = {
     
     return (now - lastSyncTime) > maxAge;
   }
-};
+
+  // Mock implementations for offline functionality
+  async addOperation(operation: { type: 'add' | 'update' | 'delete', data: any, entity: string }): Promise<void> {
+    // Mock implementation - in a real app, this would queue operations
+    console.log('Operation queued:', operation);
+  }
+
+  async addToSyncQueue(type: 'add' | 'update' | 'delete', data: any, entity: string): Promise<number> {
+    // Mock implementation
+    console.log('Added to sync queue:', { type, data, entity });
+    return Date.now();
+  }
+
+  async getSyncStats(): Promise<{ pending: number; failed: number }> {
+    // Mock implementation
+    return { pending: 0, failed: 0 };
+  }
+
+  async getPendingOperations(): Promise<SyncOperation[]> {
+    // Mock implementation
+    return [];
+  }
+
+  async sync(): Promise<SyncResult[]> {
+    // Mock implementation
+    this.updateStatus({ isSyncing: true });
+    try {
+      // Simulate sync
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return [{ success: true }];
+    } finally {
+      this.updateStatus({ isSyncing: false });
+    }
+  }
+
+  async cacheQueryResult(key: string, data: any, table: string): Promise<void> {
+    // Mock implementation
+    try {
+      localStorage.setItem(`cache_${key}`, JSON.stringify(data));
+    } catch (error) {
+      console.error('Cache error:', error);
+    }
+  }
+
+  async getCachedQueryResult<T>(key: string): Promise<T | null> {
+    // Mock implementation
+    try {
+      const cached = localStorage.getItem(`cache_${key}`);
+      return cached ? JSON.parse(cached) : null;
+    } catch (error) {
+      console.error('Cache retrieval error:', error);
+      return null;
+    }
+  }
+
+  async create(table: string, data: any): Promise<void> {
+    // Mock implementation for offline create
+    console.log('Offline create:', { table, data });
+  }
+
+  async update(table: string, id: string | number, data: any): Promise<void> {
+    // Mock implementation for offline update
+    console.log('Offline update:', { table, id, data });
+  }
+
+  async delete(table: string, id: string | number): Promise<void> {
+    // Mock implementation for offline delete
+    console.log('Offline delete:', { table, id });
+  }
+}
+
+/**
+ * Service for offline/online data synchronization
+ */
+export const syncService = new SyncServiceClass();
