@@ -72,6 +72,7 @@ export const interventionService = {
       const { data, error } = await supabase
         .from('interventions')
         .insert({
+          title: intervention.title || 'New Intervention', // Add required title
           description: intervention.description,
           equipment: intervention.equipment,
           location: intervention.location || "",
@@ -107,11 +108,23 @@ export const interventionService = {
    */
   async updateIntervention(id: number, updates: Partial<Intervention>): Promise<Intervention> {
     try {
-      // Convert date to string if it's a Date object
-      const processedUpdates = {
-        ...updates,
-        date: updates.date instanceof Date ? updates.date.toISOString() : updates.date
-      };
+      // Convert date to string if it's a Date object and remove incompatible fields
+      const processedUpdates: any = {};
+      
+      Object.keys(updates).forEach(key => {
+        const value = updates[key as keyof Intervention];
+        
+        // Skip fields that don't exist in the database schema
+        if (['startDate', 'endDate', 'partsUsed'].includes(key)) {
+          return;
+        }
+        
+        if (key === 'date' && value instanceof Date) {
+          processedUpdates[key] = value.toISOString();
+        } else if (value !== undefined) {
+          processedUpdates[key] = value;
+        }
+      });
 
       const { data, error } = await supabase
         .from('interventions')

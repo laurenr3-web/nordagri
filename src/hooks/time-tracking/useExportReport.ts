@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { TimeEntry } from './types';
 import * as XLSX from 'xlsx';
@@ -6,13 +5,25 @@ import { saveAs } from 'file-saver';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-export function useExportReport() {
+export function useExportReport(currentMonth?: Date) {
   const [isExporting, setIsExporting] = useState(false);
 
+  const exportToPdf = async () => {
+    setIsExporting(true);
+    try {
+      // Mock PDF export - you can implement with @react-pdf/renderer later
+      console.log('PDF export not implemented yet');
+    } catch (error) {
+      console.error('Erreur lors de l\'export PDF:', error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const exportToExcel = async (
-    timeEntries: TimeEntry[],
-    startDate: Date,
-    endDate: Date,
+    timeEntries: TimeEntry[] = [],
+    startDate: Date = new Date(),
+    endDate: Date = new Date(),
     format: 'detailed' | 'summary' = 'detailed'
   ) => {
     setIsExporting(true);
@@ -118,6 +129,7 @@ export function useExportReport() {
   };
 
   return {
+    exportToPdf,
     exportToExcel,
     isExporting
   };
