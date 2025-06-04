@@ -97,8 +97,8 @@ export class MaintenanceTasksService {
       actualDuration: data.actual_duration,
       assignedTo: data.assigned_to || '',
       notes: data.notes || '',
-      trigger_unit: data.trigger_unit,
-      trigger_hours: data.trigger_hours,
+      trigger_unit: task.trigger_unit,
+      trigger_hours: task.trigger_hours,
       trigger_kilometers: task.trigger_kilometers,
     };
   }
@@ -174,9 +174,9 @@ export class MaintenanceTasksService {
       priority: task.priority as MaintenancePriority,
       dueDate: new Date(task.due_date),
       completedDate: task.completed_date ? new Date(task.completed_date) : undefined,
-      engineHours: data.estimated_duration || 0,
-      actualDuration: data.actual_duration,
-      assignedTo: data.assigned_to || '',
+      engineHours: task.estimated_duration || 0,
+      actualDuration: task.actual_duration,
+      assignedTo: task.assigned_to || '',
       notes: task.notes || '',
       trigger_unit: task.trigger_unit,
       trigger_hours: task.trigger_hours,
