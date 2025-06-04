@@ -19,20 +19,32 @@ export const ErrorDiagnostic = ({
     {
       name: "Variables d'environnement Supabase",
       check: () => !!(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY),
-      message: "VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY doivent être configurées"
+      message: "VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY doivent être configurées",
+      status: import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY ? 'OK' : 'Configuration manquante'
     },
     {
       name: "URL Supabase valide",
       check: () => {
-        const url = import.meta.env.VITE_SUPABASE_URL;
+        const url = import.meta.env.VITE_SUPABASE_URL || "https://cagmgtmeljxykyngxxmj.supabase.co";
         return url && url.startsWith('https://') && url.includes('.supabase.co');
       },
-      message: "L'URL Supabase doit être au format https://xxx.supabase.co"
+      message: "L'URL Supabase doit être au format https://xxx.supabase.co",
+      status: (() => {
+        const url = import.meta.env.VITE_SUPABASE_URL || "https://cagmgtmeljxykyngxxmj.supabase.co";
+        return url && url.startsWith('https://') && url.includes('.supabase.co') ? 'OK' : 'Format invalide';
+      })()
     },
     {
-      name: "Mode de production",
+      name: "Mode de déploiement",
       check: () => import.meta.env.PROD,
-      message: "Application en mode développement"
+      message: "Application en mode développement",
+      status: import.meta.env.PROD ? 'Production' : 'Développement'
+    },
+    {
+      name: "Connexion réseau",
+      check: () => navigator.onLine,
+      message: "Vérifiez votre connexion internet",
+      status: navigator.onLine ? 'Connecté' : 'Hors ligne'
     }
   ];
 
@@ -51,6 +63,16 @@ export const ErrorDiagnostic = ({
         await Promise.all(
           cacheNames.map(name => window.caches.delete(name))
         );
+      }
+      
+      // Clear localStorage
+      if (window.localStorage) {
+        window.localStorage.clear();
+      }
+      
+      // Clear sessionStorage
+      if (window.sessionStorage) {
+        window.sessionStorage.clear();
       }
     } catch (error) {
       console.warn('Erreur lors du nettoyage du cache:', error);
@@ -79,12 +101,23 @@ export const ErrorDiagnostic = ({
                 <div className="flex items-center gap-2">
                   <span className={`h-2 w-2 rounded-full ${diagnostic.check() ? 'bg-green-500' : 'bg-red-500'}`} />
                   <span className={`text-sm ${diagnostic.check() ? 'text-green-600' : 'text-red-600'}`}>
-                    {diagnostic.check() ? 'OK' : diagnostic.message}
+                    {diagnostic.status}
                   </span>
                 </div>
               </div>
             ))}
           </div>
+          
+          {!import.meta.env.VITE_SUPABASE_URL && (
+            <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded">
+              <h4 className="font-semibold text-yellow-800 mb-2">Instructions de configuration :</h4>
+              <ol className="text-sm text-yellow-700 space-y-1">
+                <li>1. Ajoutez VITE_SUPABASE_URL dans vos variables d'environnement</li>
+                <li>2. Ajoutez VITE_SUPABASE_ANON_KEY dans vos variables d'environnement</li>
+                <li>3. Redéployez votre application</li>
+              </ol>
+            </div>
+          )}
         </div>
 
         {error && (
@@ -103,12 +136,12 @@ export const ErrorDiagnostic = ({
             Recharger la page
           </Button>
           <Button onClick={clearCache} variant="outline" className="flex-1">
-            Vider le cache
+            Vider le cache et recharger
           </Button>
         </div>
 
         <div className="text-center text-sm text-gray-600">
-          <p>Si le problème persiste, vérifiez que les variables d'environnement sont configurées sur votre plateforme d'hébergement.</p>
+          <p>Si le problème persiste, vérifiez que les variables d'environnement VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY sont configurées sur votre plateforme d'hébergement.</p>
         </div>
       </div>
     </div>

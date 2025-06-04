@@ -3,19 +3,32 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = "https://cagmgtmeljxykyngxxmj.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhZ21ndG1lbGp4eWt5bmd4eG1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI3NTAzNzksImV4cCI6MjA1ODMyNjM3OX0.3VFhuErdDDheXKX4djJvx4JzhSfpsApPu6hLl1bArUk";
+// Use environment variables with fallback to hardcoded values for backward compatibility
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://cagmgtmeljxykyngxxmj.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhZ21ndG1lbGp4eWt5bmd4eG1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI3NTAzNzksImV4cCI6MjA1ODMyNjM3OX0.3VFhuErdDDheXKX4djJvx4JzhSfpsApPu6hLl1bArUk";
+
+// Validate that we have the required configuration
+if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+  console.error('Missing Supabase configuration. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.');
+}
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  auth: {
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    persistSession: true,
+    autoRefreshToken: true,
+  }
+});
 
 /**
  * Check if Supabase connection is working
  */
 export const checkSupabaseConnection = async (): Promise<boolean> => {
   try {
+    // Simple health check that doesn't require authentication
     const { error } = await supabase.from('profiles').select('id').limit(1);
     return !error;
   } catch {
@@ -30,6 +43,8 @@ export const diagnoseSupabaseConfiguration = () => {
   return {
     url: SUPABASE_URL ? 'OK' : 'Missing',
     key: SUPABASE_PUBLISHABLE_KEY ? 'OK' : 'Missing',
+    envUrl: import.meta.env.VITE_SUPABASE_URL ? 'OK' : 'Missing',
+    envKey: import.meta.env.VITE_SUPABASE_ANON_KEY ? 'OK' : 'Missing',
     connection: 'Testing...'
   };
 };

@@ -27,15 +27,31 @@ export class AppErrorBoundary extends Component<Props, State> {
     // Diagnostic automatique
     const supabaseDiag = diagnoseSupabaseConfiguration();
     console.error('Diagnostic Supabase:', supabaseDiag);
+    
+    // Check if this is a configuration error
+    if (error.message?.includes('Configuration') || 
+        error.message?.includes('Variables') ||
+        error.message?.includes('VITE_SUPABASE') ||
+        !import.meta.env.VITE_SUPABASE_URL) {
+      console.error('Configuration error detected - showing diagnostic interface');
+    }
   }
 
   public render() {
     if (this.state.hasError) {
+      // Check if this is likely a configuration issue
+      const isConfigError = !import.meta.env.VITE_SUPABASE_URL || 
+                           !import.meta.env.VITE_SUPABASE_ANON_KEY ||
+                           this.state.error?.message?.includes('Configuration');
+      
       return (
         <ErrorDiagnostic 
           error={this.state.error}
-          title="Erreur de l'application"
-          description="Une erreur inattendue s'est produite. Voici le diagnostic automatique :"
+          title={isConfigError ? "Erreur de configuration" : "Erreur de l'application"}
+          description={isConfigError ? 
+            "Les variables d'environnement Supabase ne sont pas configurées correctement." :
+            "Une erreur inattendue s'est produite. Voici le diagnostic automatique :"
+          }
         />
       );
     }
