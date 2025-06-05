@@ -109,14 +109,34 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       // Réinitialiser le compteur de tentatives
       setLoginAttempts(0);
       
+      // Attendre que la session soit bien établie avant de continuer
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Vérifier que la session est toujours valide
+      const { data: sessionCheck } = await supabase.auth.getSession();
+      
+      if (!sessionCheck.session) {
+        console.warn('Session perdue après connexion, nouvelle tentative...');
+        setErrorMessage('Problème de session, veuillez réessayer.');
+        return;
+      }
+      
       // Afficher un message de succès
       toast.success('Connexion réussie');
+      
+      // Attendre encore un peu pour que l'état d'authentification se propage
+      await new Promise(resolve => setTimeout(resolve, 300));
       
       // Rediriger ou appeler le callback de succès
       if (onSuccess) {
         onSuccess();
       } else {
-        navigate('/dashboard', { replace: true });
+        // Obtenir le chemin de retour depuis l'URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const returnPath = urlParams.get('returnTo') || '/dashboard';
+        
+        console.log('Redirection vers:', returnPath);
+        navigate(returnPath, { replace: true });
       }
     } catch (error: any) {
       console.error('Erreur d\'authentification:', error);

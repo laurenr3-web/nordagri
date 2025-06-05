@@ -50,13 +50,13 @@ export function useAuthListener(
               const errorType = handleAuthError(error, 'profile fetch');
               if (errorType === 'token_malformed') {
                 await cleanCorruptedTokens();
-                setTimeout(() => window.location.reload(), 500);
+                // Pas de rechargement automatique agressif
               }
               logger.error('Erreur lors du chargement du profil:', error);
             }
-          }, 100);
+          }, 200); // Délai réduit
           
-          // Gestion des redirections pour SIGNED_IN seulement
+          // Gestion des redirections pour SIGNED_IN seulement - avec délai
           if (event === 'SIGNED_IN') {
             const isSpecialAuthPath = 
               location.pathname === '/auth/callback' || 
@@ -67,10 +67,13 @@ export function useAuthListener(
                 location.search.includes('verification=true')));
             
             if (location.pathname === '/auth' && !isSpecialAuthPath) {
-              const params = new URLSearchParams(location.search);
-              const returnPath = params.get('returnTo') || redirectTo || '/dashboard';
-              logger.log(`Redirection après ${event} vers ${returnPath}`);
-              navigate(returnPath, { replace: true });
+              // Ajouter un délai pour s'assurer que l'état est stable
+              setTimeout(() => {
+                const params = new URLSearchParams(location.search);
+                const returnPath = params.get('returnTo') || redirectTo || '/dashboard';
+                logger.log(`Redirection après ${event} vers ${returnPath}`);
+                navigate(returnPath, { replace: true });
+              }, 500); // Délai plus long pour la stabilité
             }
           }
         } else if (requireAuth && !session && event === 'SIGNED_OUT') {
@@ -78,8 +81,11 @@ export function useAuthListener(
           setProfileData(null);
           
           logger.log('Utilisateur déconnecté, redirection vers la page d\'authentification');
-          const returnPath = location.pathname === '/auth' ? '/dashboard' : location.pathname + location.search;
-          navigate(`/auth?returnTo=${encodeURIComponent(returnPath)}`, { replace: true });
+          // Ajouter un petit délai pour éviter les redirections trop rapides
+          setTimeout(() => {
+            const returnPath = location.pathname === '/auth' ? '/dashboard' : location.pathname + location.search;
+            navigate(`/auth?returnTo=${encodeURIComponent(returnPath)}`, { replace: true });
+          }, 200);
         }
         
       } catch (error) {
@@ -88,7 +94,7 @@ export function useAuthListener(
         
         if (errorType === 'token_malformed') {
           await cleanCorruptedTokens();
-          setTimeout(() => window.location.reload(), 500);
+          // Pas de rechargement automatique agressif
         } else {
           showUserFriendlyError(errorType, error);
         }
