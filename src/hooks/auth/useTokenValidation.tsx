@@ -13,8 +13,9 @@ export function useTokenValidation() {
     setIsValidating(true);
     
     try {
-      // Vérifier si nous avons un token en localStorage
-      const localStorageKey = `sb-${supabase.supabaseUrl.split('//')[1].split('.')[0]}-auth-token`;
+      // Utiliser l'URL Supabase depuis les variables d'environnement
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://cagmgtmeljxykyngxxmj.supabase.co";
+      const localStorageKey = `sb-${supabaseUrl.split('//')[1].split('.')[0]}-auth-token`;
       const storedSession = localStorage.getItem(localStorageKey);
       
       if (storedSession) {
