@@ -1,38 +1,66 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { ProfileData } from './useAuthState';
+import { logger } from '@/utils/logger';
 
 /**
- * Hook to fetch user profile data
+ * Fetch user profile data from Supabase
  */
 export async function fetchUserProfile(userId: string): Promise<ProfileData | null> {
   try {
+    logger.log(`Récupération du profil pour l'utilisateur: ${userId}`);
+    
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
-
+    
     if (error) {
-      console.error('Erreur lors de la récupération du profil:', error);
-      return null;
-    }
-
-    // Ensure the profile data has all required fields
-    if (data) {
-      // Ensure created_at and updated_at fields exist
-      if (!data.created_at) {
-        data.created_at = new Date().toISOString();
+      if (error.code === 'PGRST116') {
+        logger.warn('Profil non trouvé pour l\'utilisateur:', userId);
+        return null;
       }
-      
-      if (!data.updated_at) {
-        data.updated_at = new Date().toISOString();
-      }
+      throw error;
     }
-
+    
+    logger.log('Profil récupéré avec succès:', data);
     return data as ProfileData;
   } catch (error) {
-    console.error('Erreur lors de la récupération du profil:', error);
+    logger.error('Erreur lors de la récupération du profil:', error);
+    return null;
+  }
+}
+
+/**
+ * Create a new user profile
+ */
+export async function createUserProfile(userId: string, userMetadata: any): Promise<ProfileData | null> {
+  try {
+    logger.log(`Création du profil pour l'utilisateur: ${userId}`);
+    
+    const firstName = userMetadata?.first_name || '';
+    const lastName = userMetadata?.last_name || '';
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .insert({
+        id: userId,
+        first_name: firstName,
+        last_name: lastName
+      })
+      .select()
+      .single();
+      
+    if (error) {
+      logger.error('Erreur lors de la création du profil:', error);
+      return null;
+    }
+    
+    logger.log('Profil créé avec succès:', data);
+    return data as ProfileData;
+  } catch (error) {
+    logger.error('Erreur dans createUserProfile:', error);
     return null;
   }
 }

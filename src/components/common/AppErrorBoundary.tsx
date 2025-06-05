@@ -2,6 +2,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { ErrorDiagnostic } from './ErrorDiagnostic';
 import { diagnoseSupabaseConfiguration } from '@/integrations/supabase/client';
+import { logger } from '@/utils/logger';
 
 interface Props {
   children: ReactNode;
@@ -10,6 +11,7 @@ interface Props {
 interface State {
   hasError: boolean;
   error?: Error;
+  errorInfo?: ErrorInfo;
 }
 
 export class AppErrorBoundary extends Component<Props, State> {
@@ -22,36 +24,105 @@ export class AppErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Application Error Boundary:', error, errorInfo);
+    logger.error('Application Error Boundary:', error, errorInfo);
+    
+    this.setState({ errorInfo });
     
     // Diagnostic automatique
     const supabaseDiag = diagnoseSupabaseConfiguration();
-    console.error('Diagnostic Supabase:', supabaseDiag);
+    logger.error('Diagnostic Supabase:', supabaseDiag);
     
-    // Check if this is a configuration error
-    if (error.message?.includes('Configuration') || 
-        error.message?.includes('Variables') ||
-        error.message?.includes('VITE_SUPABASE') ||
-        !import.meta.env.VITE_SUPABASE_URL) {
-      console.error('Configuration error detected - showing diagnostic interface');
+    // Gestion spécifique des erreurs d'authentification
+    if (this.isAuthenticationError(error)) {
+      logger.error('Erreur d\'authentification détectée - nettoyage des tokens corrompus');
+      this.cleanAuthTokens();
+    }
+    
+    // Gestion des erreurs de configuration
+    if (this.isConfigurationError(error)) {
+      logger.error('Erreur de configuration détectée - affichage de l\'interface de diagnostic');
+    }
+    
+    // Gestion des erreurs React
+    if (this.isReactError(error)) {
+      logger.error('Erreur React détectée - problème de hook ou de rendu');
+    }
+  }
+
+  private isAuthenticationError(error: Error): boolean {
+    return error.message?.includes('JWT') || 
+           error.message?.includes('token') ||
+           error.message?.includes('auth') ||
+           error.message?.includes('session') ||
+           error.message?.includes('malformed') ||
+           error.message?.includes('segments');
+  }
+
+  private isConfigurationError(error: Error): boolean {
+    return error.message?.includes('Configuration') || 
+           error.message?.includes('Variables') ||
+           error.message?.includes('VITE_SUPABASE') ||
+           !import.meta.env.VITE_SUPABASE_URL;
+  }
+
+  private isReactError(error: Error): boolean {
+    return error.message?.includes('useState') ||
+           error.message?.includes('useEffect') ||
+           error.message?.includes('Cannot read properties of null') ||
+           error.stack?.includes('renderWithHooks');
+  }
+
+  private cleanAuthTokens() {
+    try {
+      // Nettoyer localStorage
+      const keysToRemove = Object.keys(localStorage).filter(key => 
+        key.includes('supabase') || key.includes('sb-') || key.includes('auth')
+      );
+      
+      keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+      });
+      
+      // Nettoyer sessionStorage
+      const sessionKeysToRemove = Object.keys(sessionStorage).filter(key => 
+        key.includes('supabase') || key.includes('sb-') || key.includes('auth')
+      );
+      
+      sessionKeysToRemove.forEach(key => {
+        sessionStorage.removeItem(key);
+      });
+      
+      logger.log('Tokens d\'authentification nettoyés');
+    } catch (cleanupError) {
+      logger.error('Erreur lors du nettoyage des tokens:', cleanupError);
     }
   }
 
   public render() {
     if (this.state.hasError) {
-      // Check if this is likely a configuration issue
-      const isConfigError = !import.meta.env.VITE_SUPABASE_URL || 
-                           !import.meta.env.VITE_SUPABASE_ANON_KEY ||
-                           this.state.error?.message?.includes('Configuration');
+      const isConfigError = this.isConfigurationError(this.state.error!);
+      const isAuthError = this.isAuthenticationError(this.state.error!);
+      const isReactError = this.isReactError(this.state.error!);
+      
+      let title = "Erreur de l'application";
+      let description = "Une erreur inattendue s'est produite.";
+      
+      if (isConfigError) {
+        title = "Erreur de configuration";
+        description = "Les variables d'environnement Supabase ne sont pas configurées correctement.";
+      } else if (isAuthError) {
+        title = "Erreur d'authentification";
+        description = "Un problème d'authentification s'est produit. Les tokens ont été nettoyés automatiquement.";
+      } else if (isReactError) {
+        title = "Erreur de rendu React";
+        description = "Un problème de composant React s'est produit. Essayez de recharger la page.";
+      }
       
       return (
         <ErrorDiagnostic 
           error={this.state.error}
-          title={isConfigError ? "Erreur de configuration" : "Erreur de l'application"}
-          description={isConfigError ? 
-            "Les variables d'environnement Supabase ne sont pas configurées correctement." :
-            "Une erreur inattendue s'est produite. Voici le diagnostic automatique :"
-          }
+          title={title}
+          description={description}
         />
       );
     }
