@@ -10,14 +10,17 @@ export function useAuthErrorHandler() {
   const handleAuthError = useCallback((error: any, context: string = 'authentication') => {
     logger.error(`Erreur d'authentification dans ${context}:`, error);
     
-    // Gérer les erreurs JWT spécifiques
+    // Gérer les erreurs JWT spécifiques avec plus de détails
     if (error?.message?.includes('JWT') || error?.message?.includes('token')) {
-      if (error.message.includes('malformed') || error.message.includes('invalid number of segments')) {
-        logger.warn('Token JWT malformé détecté, nettoyage recommandé');
+      if (error.message.includes('malformed') || 
+          error.message.includes('invalid number of segments') ||
+          error.message.includes('invalid signature') ||
+          error.message.includes('invalid algorithm')) {
+        logger.warn('Token JWT malformé ou invalide détecté, nettoyage recommandé');
         return 'token_malformed';
       }
       
-      if (error.message.includes('expired')) {
+      if (error.message.includes('expired') || error.message.includes('exp claim')) {
         logger.warn('Token expiré détecté');
         return 'token_expired';
       }
@@ -25,16 +28,32 @@ export function useAuthErrorHandler() {
       return 'token_error';
     }
     
+    // Gérer les erreurs Supabase spécifiques
+    if (error?.code === 'bad_jwt' || error?.error_code === 'bad_jwt') {
+      logger.warn('Erreur bad_jwt détectée');
+      return 'token_malformed';
+    }
+    
     // Gérer les erreurs de réseau
-    if (error?.message?.includes('Failed to fetch') || error?.message?.includes('Network')) {
+    if (error?.message?.includes('Failed to fetch') || 
+        error?.message?.includes('Network') ||
+        error?.message?.includes('fetch')) {
       logger.warn('Erreur de réseau détectée');
       return 'network_error';
     }
     
     // Gérer les erreurs de configuration
-    if (error?.message?.includes('Configuration') || error?.message?.includes('Variables')) {
+    if (error?.message?.includes('Configuration') || 
+        error?.message?.includes('Variables') ||
+        error?.message?.includes('VITE_SUPABASE')) {
       logger.error('Erreur de configuration détectée');
       return 'config_error';
+    }
+    
+    // Gérer les erreurs 403 spécifiquement
+    if (error?.status === 403 || error?.code === 403) {
+      logger.warn('Erreur 403 - Accès refusé, tokens probablement corrompus');
+      return 'token_malformed';
     }
     
     return 'unknown_error';
@@ -44,9 +63,13 @@ export function useAuthErrorHandler() {
     switch (errorType) {
       case 'token_malformed':
         toast.error('Session corrompue', {
-          description: 'Votre session a été réinitialisée. Veuillez vous reconnecter.',
+          description: 'Votre session a été automatiquement réinitialisée. La page va se recharger.',
           duration: 5000
         });
+        // Recharger automatiquement la page après nettoyage
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
         break;
       
       case 'token_expired':
@@ -71,7 +94,9 @@ export function useAuthErrorHandler() {
         break;
       
       default:
-        if (originalError?.message && !originalError.message.includes('AbortError')) {
+        if (originalError?.message && 
+            !originalError.message.includes('AbortError') &&
+            !originalError.message.includes('cancelled')) {
           toast.error('Erreur d\'authentification', {
             description: 'Une erreur inattendue s\'est produite.',
             duration: 4000

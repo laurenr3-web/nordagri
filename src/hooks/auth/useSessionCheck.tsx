@@ -27,7 +27,7 @@ export function useSessionCheck(
   useEffect(() => {
     let isMounted = true;
     let retryCount = 0;
-    const maxRetries = 3;
+    const maxRetries = 2; // Réduire les tentatives pour éviter les boucles
     
     const checkSession = async () => {
       if (!isMounted) return;
@@ -35,7 +35,7 @@ export function useSessionCheck(
       try {
         setLoading(true);
         
-        // Valider les tokens avant de continuer
+        // Valider et nettoyer les tokens avant toute opération
         const tokensValid = await validateAndCleanTokens();
         if (!tokensValid && isMounted) {
           logger.warn('Tokens invalidés, réinitialisation de la session');
@@ -43,13 +43,19 @@ export function useSessionCheck(
           setUser(null);
           setProfileData(null);
           setLoading(false);
+          
+          // Si on est sur une page protégée, rediriger vers auth
+          if (requireAuth && location.pathname !== '/auth') {
+            const returnPath = location.pathname === '/auth' ? '/dashboard' : location.pathname + location.search;
+            navigate(`/auth?returnTo=${encodeURIComponent(returnPath)}`, { replace: true });
+          }
           return;
         }
         
-        // Vérifier la connexion à Supabase avec timeout
+        // Vérifier la connexion à Supabase avec timeout réduit
         const connectionPromise = checkSupabaseConnection();
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout de connexion')), 10000)
+          setTimeout(() => reject(new Error('Timeout de connexion')), 5000)
         );
         
         const isConnected = await Promise.race([connectionPromise, timeoutPromise]) as boolean;
@@ -57,9 +63,9 @@ export function useSessionCheck(
         if (!isConnected && isMounted) {
           logger.error('Connexion à Supabase impossible');
           if (location.pathname !== '/auth') {
-            toast.error('Problème de connexion au serveur', {
-              description: 'Tentative de reconnexion en cours...',
-              duration: 5000
+            toast.error('Service temporairement indisponible', {
+              description: 'Tentative de reconnexion...',
+              duration: 3000
             });
           }
           
@@ -70,25 +76,32 @@ export function useSessionCheck(
           return;
         }
         
-        // Récupérer la session avec retry et timeout
+        // Récupérer la session avec retry et timeout réduit
         const getSessionWithRetry = async (): Promise<any> => {
           for (let i = 0; i <= maxRetries; i++) {
             try {
               const sessionPromise = supabase.auth.getSession();
               const timeoutPromise = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Timeout dépassé')), 8000)
+                setTimeout(() => reject(new Error('Timeout dépassé')), 5000)
               );
               
               return await Promise.race([sessionPromise, timeoutPromise]);
             } catch (error) {
               logger.warn(`Tentative ${i + 1}/${maxRetries + 1} échouée:`, error);
               
+              // Si c'est une erreur de token malformé, nettoyer immédiatement
+              const errorType = handleAuthError(error, 'session retry');
+              if (errorType === 'token_malformed') {
+                await cleanCorruptedTokens();
+                throw new Error('Token malformé, nettoyage effectué');
+              }
+              
               if (i === maxRetries) {
                 throw error;
               }
               
               // Attendre avant de réessayer
-              await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+              await new Promise(resolve => setTimeout(resolve, 500 * (i + 1)));
             }
           }
         };
@@ -110,6 +123,12 @@ export function useSessionCheck(
               setUser(null);
               setProfileData(null);
               showUserFriendlyError(errorType);
+              // Forcer un rechargement après nettoyage
+              setTimeout(() => {
+                if (isMounted) {
+                  window.location.reload();
+                }
+              }, 1000);
             }
           }
           
@@ -178,18 +197,25 @@ export function useSessionCheck(
             setSession(null);
             setUser(null);
             setProfileData(null);
+            // Recharger la page après nettoyage
+            setTimeout(() => {
+              if (isMounted) {
+                window.location.reload();
+              }
+            }, 500);
           }
           
           setLoading(false);
           
-          if (location.pathname !== '/auth' && retryCount < maxRetries) {
+          // Ne pas faire de retry en cas d'erreur de token malformé
+          if (errorType !== 'token_malformed' && location.pathname !== '/auth' && retryCount < maxRetries) {
             retryCount++;
             logger.warn(`Retry session check (${retryCount}/${maxRetries})`);
             setTimeout(() => {
               if (isMounted) {
                 checkSession();
               }
-            }, 2000 * retryCount);
+            }, 1000 * retryCount);
           } else {
             showUserFriendlyError(errorType, error);
           }

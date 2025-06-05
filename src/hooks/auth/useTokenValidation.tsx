@@ -30,6 +30,16 @@ export function useTokenValidation() {
               await cleanCorruptedTokens();
               return false;
             }
+            
+            // Vérifier le refresh token aussi
+            if (parsedSession.refresh_token) {
+              const refreshTokenParts = parsedSession.refresh_token.split('.');
+              if (refreshTokenParts.length !== 3) {
+                logger.warn('Refresh token JWT malformé détecté, nettoyage en cours...');
+                await cleanCorruptedTokens();
+                return false;
+              }
+            }
           }
         } catch (error) {
           logger.error('Erreur lors du parsing de la session stockée:', error);
@@ -52,32 +62,59 @@ export function useTokenValidation() {
     try {
       logger.log('Nettoyage des tokens corrompus...');
       
-      // Nettoyer localStorage
+      // Nettoyer localStorage - suppression ciblée des clés Supabase
       const keysToRemove = Object.keys(localStorage).filter(key => 
-        key.includes('supabase') || key.includes('sb-')
+        key.includes('supabase') || key.includes('sb-') || key.startsWith('supabase.')
       );
       
       keysToRemove.forEach(key => {
         localStorage.removeItem(key);
+        logger.log(`Suppression de la clé localStorage: ${key}`);
       });
       
       // Nettoyer sessionStorage
       const sessionKeysToRemove = Object.keys(sessionStorage).filter(key => 
-        key.includes('supabase') || key.includes('sb-')
+        key.includes('supabase') || key.includes('sb-') || key.startsWith('supabase.')
       );
       
       sessionKeysToRemove.forEach(key => {
         sessionStorage.removeItem(key);
+        logger.log(`Suppression de la clé sessionStorage: ${key}`);
       });
       
-      // Signaler à Supabase de nettoyer sa session
+      // Signaler à Supabase de nettoyer sa session locale uniquement
       await supabase.auth.signOut({ scope: 'local' });
+      
+      // Vider le cache du navigateur si possible
+      if ('caches' in window) {
+        try {
+          const cacheNames = await caches.keys();
+          await Promise.all(
+            cacheNames.map(cacheName => caches.delete(cacheName))
+          );
+          logger.log('Cache du navigateur nettoyé');
+        } catch (cacheError) {
+          logger.warn('Impossible de nettoyer le cache:', cacheError);
+        }
+      }
       
       logger.log('Tokens corrompus nettoyés avec succès');
     } catch (error) {
       logger.error('Erreur lors du nettoyage des tokens:', error);
     }
   };
+
+  // Nettoyage automatique au chargement si des tokens corrompus sont détectés
+  useEffect(() => {
+    const autoCleanOnLoad = async () => {
+      const isValid = await validateAndCleanTokens();
+      if (!isValid) {
+        logger.warn('Session corrompue détectée et nettoyée automatiquement');
+      }
+    };
+    
+    autoCleanOnLoad();
+  }, []);
 
   return {
     validateAndCleanTokens,

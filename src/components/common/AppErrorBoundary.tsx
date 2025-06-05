@@ -36,6 +36,11 @@ export class AppErrorBoundary extends Component<Props, State> {
     if (this.isAuthenticationError(error)) {
       logger.error('Erreur d\'authentification détectée - nettoyage des tokens corrompus');
       this.cleanAuthTokens();
+      
+      // Recharger automatiquement la page après nettoyage
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     }
     
     // Gestion des erreurs de configuration
@@ -55,7 +60,9 @@ export class AppErrorBoundary extends Component<Props, State> {
            error.message?.includes('auth') ||
            error.message?.includes('session') ||
            error.message?.includes('malformed') ||
-           error.message?.includes('segments');
+           error.message?.includes('segments') ||
+           error.message?.includes('bad_jwt') ||
+           error.message?.includes('invalid signature');
   }
 
   private isConfigurationError(error: Error): boolean {
@@ -74,25 +81,44 @@ export class AppErrorBoundary extends Component<Props, State> {
 
   private cleanAuthTokens() {
     try {
-      // Nettoyer localStorage
+      // Nettoyer localStorage - plus exhaustif
       const keysToRemove = Object.keys(localStorage).filter(key => 
-        key.includes('supabase') || key.includes('sb-') || key.includes('auth')
+        key.includes('supabase') || 
+        key.includes('sb-') || 
+        key.includes('auth') ||
+        key.startsWith('supabase.')
       );
       
       keysToRemove.forEach(key => {
         localStorage.removeItem(key);
+        logger.log(`Suppression de la clé localStorage: ${key}`);
       });
       
       // Nettoyer sessionStorage
       const sessionKeysToRemove = Object.keys(sessionStorage).filter(key => 
-        key.includes('supabase') || key.includes('sb-') || key.includes('auth')
+        key.includes('supabase') || 
+        key.includes('sb-') || 
+        key.includes('auth') ||
+        key.startsWith('supabase.')
       );
       
       sessionKeysToRemove.forEach(key => {
         sessionStorage.removeItem(key);
+        logger.log(`Suppression de la clé sessionStorage: ${key}`);
       });
       
-      logger.log('Tokens d\'authentification nettoyés');
+      // Nettoyer le cache si possible
+      if ('caches' in window) {
+        caches.keys().then(cacheNames => {
+          Promise.all(
+            cacheNames.map(cacheName => caches.delete(cacheName))
+          );
+        }).catch(err => {
+          logger.warn('Impossible de nettoyer le cache:', err);
+        });
+      }
+      
+      logger.log('Tokens d\'authentification nettoyés après erreur critique');
     } catch (cleanupError) {
       logger.error('Erreur lors du nettoyage des tokens:', cleanupError);
     }
@@ -112,7 +138,7 @@ export class AppErrorBoundary extends Component<Props, State> {
         description = "Les variables d'environnement Supabase ne sont pas configurées correctement.";
       } else if (isAuthError) {
         title = "Erreur d'authentification";
-        description = "Un problème d'authentification s'est produit. Les tokens ont été nettoyés automatiquement.";
+        description = "Un problème d'authentification s'est produit. La page va se recharger automatiquement pour corriger le problème.";
       } else if (isReactError) {
         title = "Erreur de rendu React";
         description = "Un problème de composant React s'est produit. Essayez de recharger la page.";
