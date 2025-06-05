@@ -27,7 +27,7 @@ export function useSessionCheck(
   useEffect(() => {
     let isMounted = true;
     let retryCount = 0;
-    const maxRetries = 1; // Réduire encore plus les tentatives
+    const maxRetries = 1;
     
     const checkSession = async () => {
       if (!isMounted) return;
@@ -54,11 +54,11 @@ export function useSessionCheck(
         
         // Vérifier la connexion à Supabase avec timeout plus court
         const connectionPromise = checkSupabaseConnection();
-        const timeoutPromise = new Promise((_, reject) => 
+        const connectionTimeoutPromise = new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Timeout de connexion')), 3000)
         );
         
-        const isConnected = await Promise.race([connectionPromise, timeoutPromise]) as boolean;
+        const isConnected = await Promise.race([connectionPromise, connectionTimeoutPromise]) as boolean;
         
         if (!isConnected && isMounted) {
           logger.error('Connexion à Supabase impossible');
@@ -78,11 +78,11 @@ export function useSessionCheck(
         
         // Récupérer la session avec un seul essai et timeout réduit
         const sessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise((_, reject) => 
+        const sessionTimeoutPromise = new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Timeout dépassé')), 3000)
         );
         
-        const sessionResult = await Promise.race([sessionPromise, timeoutPromise]) as any;
+        const sessionResult = await Promise.race([sessionPromise, sessionTimeoutPromise]) as any;
         
         if (!isMounted) return;
         
@@ -100,7 +100,6 @@ export function useSessionCheck(
               setUser(null);
               setProfileData(null);
               showUserFriendlyError(errorType);
-              // Pas de rechargement automatique, laisser l'utilisateur retry
             }
           }
           
@@ -157,7 +156,7 @@ export function useSessionCheck(
               const currentPath = location.pathname === '/auth' ? '/dashboard' : location.pathname + location.search;
               navigate(`/auth?returnTo=${encodeURIComponent(currentPath)}`, { replace: true });
             }
-          }, 300);
+          }, 500);
         } else if (currentSession && location.pathname === '/auth' && !location.hash && !location.search.includes('reset=true')) {
           const returnPath = new URLSearchParams(location.search).get('returnTo') || '/dashboard';
           // Ajouter un délai pour s'assurer que l'état d'auth est stable
@@ -165,7 +164,7 @@ export function useSessionCheck(
             if (isMounted) {
               navigate(returnPath, { replace: true });
             }
-          }, 200);
+          }, 300);
         } else if (currentSession && location.pathname === '/') {
           navigate('/dashboard', { replace: true });
         }
@@ -180,7 +179,6 @@ export function useSessionCheck(
             setSession(null);
             setUser(null);
             setProfileData(null);
-            // Pas de rechargement automatique
           }
           
           setLoading(false);
