@@ -4,7 +4,6 @@ import { AuthForm } from '@/components/ui/auth/AuthForm';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase, checkSupabaseConnection } from "@/integrations/supabase/client";
 import { Loader2, WifiOff, RefreshCw, AlertTriangle } from 'lucide-react';
-import { useAuthContext } from '@/providers/AuthProvider';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -15,7 +14,7 @@ const Auth = () => {
   const [loading, setLoading] = useState(true);
   const [connectionError, setConnectionError] = useState(false);
   const [connectionRetries, setConnectionRetries] = useState(0);
-  const { isAuthenticated } = useAuthContext();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   
   // Get return path from query params or default to dashboard
   const getReturnPath = () => {
@@ -51,8 +50,8 @@ const Auth = () => {
       toast.error("La connexion n'a pas pu être rétablie");
     }
   };
-  
-  // Vérifier l'authentification et la connexion au chargement
+
+  // Vérifier l'authentification au chargement
   useEffect(() => {
     const initAuth = async () => {
       // Vérifier d'abord la connexion à Supabase
@@ -64,9 +63,16 @@ const Auth = () => {
       }
       
       // Vérifier si l'utilisateur est déjà authentifié
-      if (isAuthenticated) {
-        const returnPath = getReturnPath();
-        navigate(returnPath, { replace: true });
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setIsAuthenticated(true);
+          const returnPath = getReturnPath();
+          navigate(returnPath, { replace: true });
+          return;
+        }
+      } catch (error) {
+        console.error("Erreur lors de la vérification de session:", error);
       }
       
       // Si nous avons un hash (confirmation d'email, reset mot de passe)
@@ -80,7 +86,26 @@ const Auth = () => {
     };
     
     initAuth();
-  }, [isAuthenticated, navigate, location.hash, location.pathname]);
+  }, [navigate, location.hash, location.pathname]);
+
+  // Écouter les changements d'état d'authentification
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session?.user) {
+          setIsAuthenticated(true);
+          if (event === 'SIGNED_IN') {
+            const returnPath = getReturnPath();
+            navigate(returnPath, { replace: true });
+          }
+        } else {
+          setIsAuthenticated(false);
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, [navigate, location.search]);
 
   // Afficher un indicateur de chargement
   if (loading) {

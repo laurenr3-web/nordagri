@@ -36,7 +36,7 @@ export const handleAuthRedirections = (
     }, 500);
   } else if (currentSession && location.pathname === '/auth' && !location.hash && !location.search.includes('reset=true')) {
     // Redirection après connexion réussie
-    const returnPath = new URLSearchParams(location.search).get('returnTo') || '/dashboard';
+    const returnPath = new URLSearchParams(location.search).get('returnTo') ?? '/dashboard';
     setTimeout(() => {
       if (isMounted()) {
         navigate(returnPath, { replace: true });
