@@ -9,7 +9,7 @@ export const isSpecialAuthPath = (location: Location): boolean => {
   return location.pathname === '/auth/callback' || 
          location.pathname.startsWith('/confirm') || 
          (location.pathname === '/auth' && 
-          (location.hash || 
+          (!!location.hash || 
            location.search.includes('reset=true') || 
            location.search.includes('verification=true')));
 };
