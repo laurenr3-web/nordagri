@@ -1,66 +1,75 @@
 
+import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ProfileData } from './useAuthState';
 import { logger } from '@/utils/logger';
 
 /**
- * Fetch user profile data from Supabase
+ * Hook pour gérer les données de profil utilisateur
+ */
+export function useProfileData() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  return {
+    loading,
+    error
+  };
+}
+
+/**
+ * Récupérer le profil d'un utilisateur
  */
 export async function fetchUserProfile(userId: string): Promise<ProfileData | null> {
   try {
-    logger.log(`Récupération du profil pour l'utilisateur: ${userId}`);
-    
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
-    
+
     if (error) {
       if (error.code === 'PGRST116') {
-        logger.warn('Profil non trouvé pour l\'utilisateur:', userId);
+        // Profil non trouvé
         return null;
       }
       throw error;
     }
-    
-    logger.log('Profil récupéré avec succès:', data);
-    return data as ProfileData;
+
+    return data;
   } catch (error) {
     logger.error('Erreur lors de la récupération du profil:', error);
-    return null;
+    throw error;
   }
 }
 
 /**
- * Create a new user profile
+ * Créer un nouveau profil utilisateur
  */
 export async function createUserProfile(userId: string, userMetadata: any): Promise<ProfileData | null> {
   try {
-    logger.log(`Création du profil pour l'utilisateur: ${userId}`);
-    
-    const firstName = userMetadata?.first_name || '';
-    const lastName = userMetadata?.last_name || '';
+    const profileData = {
+      id: userId,
+      first_name: userMetadata?.first_name || '',
+      last_name: userMetadata?.last_name || '',
+      avatar_url: userMetadata?.avatar_url || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
 
     const { data, error } = await supabase
       .from('profiles')
-      .insert({
-        id: userId,
-        first_name: firstName,
-        last_name: lastName
-      })
+      .insert([profileData])
       .select()
       .single();
-      
+
     if (error) {
-      logger.error('Erreur lors de la création du profil:', error);
-      return null;
+      throw error;
     }
-    
-    logger.log('Profil créé avec succès:', data);
-    return data as ProfileData;
+
+    return data;
   } catch (error) {
-    logger.error('Erreur dans createUserProfile:', error);
-    return null;
+    logger.error('Erreur lors de la création du profil:', error);
+    throw error;
   }
 }
