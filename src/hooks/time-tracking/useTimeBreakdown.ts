@@ -41,10 +41,10 @@ export function useTimeBreakdown() {
 
         // Process the data for the chart
         const groupedData = timeData.reduce((acc, session) => {
-          // Fixed: Access task name properly with type safety
+          // Fixed: Access task name properly
           const taskType = session.task_types && typeof session.task_types === 'object' ? 
             (session.task_types as any).name || 'other' : 'other';
-          const duration = typeof session.duration === 'number' ? session.duration : 0;
+          const duration = session.duration || 0;
           
           if (!acc[taskType]) {
             acc[taskType] = 0;
@@ -53,10 +53,10 @@ export function useTimeBreakdown() {
           return acc;
         }, {} as Record<string, number>);
 
-        // Convert to array format needed for the chart with proper typing
-        const chartData: TimeBreakdownData[] = Object.entries(groupedData).map(([task_type, minutes]) => ({
+        // Convert to array format needed for the chart
+        const chartData = Object.entries(groupedData).map(([task_type, minutes]) => ({
           task_type,
-          minutes: Number(minutes), // Ensure minutes is a number
+          minutes,
           color: TASK_COLORS[task_type as keyof typeof TASK_COLORS] || TASK_COLORS.other
         }));
 

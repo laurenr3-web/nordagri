@@ -1,51 +1,67 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { logger } from './logger';
 
 /**
- * Check authentication status and log details
+ * Check the authentication status of the current user
  */
 export const checkAuthStatus = async () => {
-  try {
-    const { data: { session }, error } = await supabase.auth.getSession();
-    
-    if (error) {
-      logger.error('Auth check error:', error);
-      return;
-    }
-    
-    if (session?.user) {
-      logger.log('User authenticated:', session.user.id);
-    } else {
-      logger.log('No authenticated user');
-    }
-  } catch (error) {
-    logger.error('Auth status check failed:', error);
+  const { data, error } = await supabase.auth.getSession();
+  
+  if (error) {
+    console.error("Auth status check error:", error);
+    throw new Error("Authentication error: " + error.message);
   }
+  
+  if (!data.session) {
+    throw new Error("No active session found");
+  }
+  
+  return {
+    authenticated: !!data.session,
+    userId: data.session?.user?.id,
+    email: data.session?.user?.email
+  };
 };
 
 /**
- * Check table permissions for debugging
+ * Check if the current user has permissions to access a table
+ * @param tableName The name of the table to check permissions for
+ * @param recordId Optional record ID to check for specific record permissions
  */
-export const checkTablePermissions = async (tableName: string, id?: string) => {
+export const checkTablePermissions = async (tableName: string, recordId?: string) => {
   try {
-    logger.log(`Checking permissions for table: ${tableName}${id ? ` (id: ${id})` : ''}`);
+    const { authenticated, userId } = await checkAuthStatus();
     
-    // Simple select query to test permissions
-    const query = supabase.from(tableName as any).select('id').limit(1);
-    
-    if (id) {
-      query.eq('id', id);
+    if (!authenticated || !userId) {
+      throw new Error("You must be logged in to access this resource");
     }
     
-    const { data, error } = await query;
-    
-    if (error) {
-      logger.error(`Permission check failed for ${tableName}:`, error);
-    } else {
-      logger.log(`Permission check passed for ${tableName}:`, data?.length || 0, 'rows accessible');
+    // For time tracking, we primarily check if the user is authenticated
+    // For specific record access, we could add additional checks here
+    if (recordId) {
+      // Example: Check if the user owns this record
+      // This is a simplified check - in a real app, you'd query the table
+      if (tableName === 'time_sessions') {
+        const { data, error } = await supabase
+          .from(tableName)
+          .select('user_id')
+          .eq('id', recordId)
+          .single();
+          
+        if (error) {
+          console.error("Permission check error:", error);
+          throw new Error("Could not verify record permissions");
+        }
+        
+        if (data?.user_id !== userId) {
+          throw new Error("You don't have permission to modify this time entry");
+        }
+      }
     }
+    
+    return true;
   } catch (error) {
-    logger.error(`Permission check error for ${tableName}:`, error);
+    console.error("Permission check failed:", error);
+    throw error;
   }
 };

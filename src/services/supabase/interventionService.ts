@@ -24,12 +24,7 @@ export const interventionService = {
         throw error;
       }
       
-      // Convert the data to match our Intervention interface
-      return (data || []).map(item => ({
-        ...item,
-        coordinates: item.coordinates as { lat: number; lng: number } | undefined,
-        date: item.date
-      })) as Intervention[];
+      return data as Intervention[] || [];
     } catch (err) {
       console.error('Exception lors du chargement des interventions:', err);
       throw err;
@@ -53,11 +48,7 @@ export const interventionService = {
         throw error;
       }
       
-      return {
-        ...data,
-        coordinates: data.coordinates as { lat: number; lng: number } | undefined,
-        date: data.date
-      } as Intervention;
+      return data as Intervention;
     } catch (err) {
       console.error('Exception lors du chargement de l\'intervention:', err);
       throw err;
@@ -72,15 +63,15 @@ export const interventionService = {
       const { data, error } = await supabase
         .from('interventions')
         .insert({
-          title: intervention.title || 'New Intervention', // Add required title
+          title: intervention.title,
           description: intervention.description,
           equipment: intervention.equipment,
           location: intervention.location || "",
           status: intervention.status || "scheduled",
           priority: intervention.priority,
           technician: intervention.technician || "",
-          date: intervention.date.toISOString(),
-          scheduled_duration: intervention.scheduledDuration || 1,
+          date: intervention.date,
+          scheduledDuration: intervention.scheduledDuration || 1,
           equipment_id: intervention.equipmentId
         })
         .select()
@@ -92,11 +83,7 @@ export const interventionService = {
         throw error;
       }
       
-      return {
-        ...data,
-        coordinates: data.coordinates as { lat: number; lng: number } | undefined,
-        date: data.date
-      } as Intervention;
+      return data as Intervention;
     } catch (err) {
       console.error('Exception lors de l\'ajout de l\'intervention:', err);
       throw err;
@@ -108,27 +95,9 @@ export const interventionService = {
    */
   async updateIntervention(id: number, updates: Partial<Intervention>): Promise<Intervention> {
     try {
-      // Convert date to string if it's a Date object and remove incompatible fields
-      const processedUpdates: any = {};
-      
-      Object.keys(updates).forEach(key => {
-        const value = updates[key as keyof Intervention];
-        
-        // Skip fields that don't exist in the database schema
-        if (['startDate', 'endDate', 'partsUsed'].includes(key)) {
-          return;
-        }
-        
-        if (key === 'date' && value instanceof Date) {
-          processedUpdates[key] = value.toISOString();
-        } else if (value !== undefined) {
-          processedUpdates[key] = value;
-        }
-      });
-
       const { data, error } = await supabase
         .from('interventions')
-        .update(processedUpdates)
+        .update(updates)
         .eq('id', id)
         .select()
         .single();
@@ -139,11 +108,7 @@ export const interventionService = {
         throw error;
       }
       
-      return {
-        ...data,
-        coordinates: data.coordinates as { lat: number; lng: number } | undefined,
-        date: data.date
-      } as Intervention;
+      return data as Intervention;
     } catch (err) {
       console.error('Exception lors de la mise à jour de l\'intervention:', err);
       throw err;

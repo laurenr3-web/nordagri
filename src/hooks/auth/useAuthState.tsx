@@ -2,19 +2,25 @@
 import { useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 
+/**
+ * Interface for profile data
+ */
 export interface ProfileData {
   id: string;
+  email: string;
   first_name?: string;
   last_name?: string;
-  avatar_url?: string;
   farm_id?: string;
-  has_seen_onboarding?: boolean;
+  role?: string;
   created_at: string;
   updated_at: string;
-  // Note: email is not stored in profiles table, it comes from auth.users
+  [key: string]: any; // For other potential profile fields
 }
 
-export interface AuthStateReturn {
+/**
+ * Interface for auth state
+ */
+interface AuthState {
   user: User | null;
   session: Session | null;
   loading: boolean;
@@ -23,30 +29,41 @@ export interface AuthStateReturn {
 }
 
 /**
- * Hook to manage authentication state
+ * Interface for auth state handlers
  */
-export function useAuthState(): AuthStateReturn & {
+interface AuthStateHandlers {
   setUser: (user: User | null) => void;
   setSession: (session: Session | null) => void;
   setLoading: (loading: boolean) => void;
-  setProfileData: (data: ProfileData | null) => void;
-} {
+  setProfileData: (profileData: ProfileData | null) => void;
+}
+
+/**
+ * Combined interface for auth state and handlers
+ */
+export interface AuthStateReturn extends AuthState, AuthStateHandlers {}
+
+/**
+ * Hook to manage authentication state
+ */
+export function useAuthState(): AuthStateReturn {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
 
-  const isAuthenticated = !!user;
-
   return {
-    user,
-    setUser,
+    // State
+    user, 
     session,
-    setSession,
     loading,
-    setLoading,
     profileData,
-    setProfileData,
-    isAuthenticated,
+    isAuthenticated: !!user,
+    
+    // State updaters
+    setUser,
+    setSession,
+    setLoading,
+    setProfileData
   };
 }

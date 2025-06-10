@@ -24,7 +24,11 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          'react-vendor': ['react', 'react-dom'],
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'supabase-vendor': ['@supabase/supabase-js'],
+          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
+          'utils': ['date-fns', 'zod', 'xlsx'],
+          'charts': ['recharts'],
         }
       }
     },
@@ -37,6 +41,6 @@ export default defineConfig(({ mode }) => ({
     }
   },
   optimizeDeps: {
-    include: ['react', 'react-dom']
+    include: ['react', 'react-dom', '@supabase/supabase-js', '@tanstack/react-query']
   }
 }));

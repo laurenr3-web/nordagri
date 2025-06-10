@@ -1,255 +1,306 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { logger } from '@/utils/logger';
-
-interface SyncData {
-  table: string;
-  data: any[];
-  lastSync?: string;
-}
+import { IndexedDBService } from './offline/indexedDBService';
 
 export interface SyncStatus {
-  isOnline: boolean;
-  isSyncing: boolean;
   pendingSyncCount: number;
-  lastSyncTime?: Date;
+  lastSyncTime: Date | null;
+  isSyncing: boolean;
+  isOnline: boolean;
 }
 
-interface SyncResult {
-  success: boolean;
-  error?: string;
-}
-
-interface SyncOperation {
-  id: string;
+export interface SyncQueueEntry {
+  id?: number;
   type: 'add' | 'update' | 'delete';
+  data: Record<string, any>;
   entity: string;
-  data: any;
   createdAt: number;
-  priority: number;
+  retryCount: number;
+  status: 'pending' | 'processing' | 'success' | 'failed';
+  error?: string;
+  processedAt?: number;
 }
 
-class SyncServiceClass {
+export class SyncService {
   private listeners: ((status: SyncStatus) => void)[] = [];
   private status: SyncStatus = {
-    isOnline: navigator.onLine,
+    pendingSyncCount: 0,
+    lastSyncTime: null,
     isSyncing: false,
-    pendingSyncCount: 0
+    isOnline: true
   };
 
-  constructor() {
-    // Listen for online/offline events
-    window.addEventListener('online', () => {
-      this.updateStatus({ isOnline: true });
+  /**
+   * Update an entity for offline first
+   */
+  public async update<T extends Record<string, any>>(storeName: string, id: string | number, data: T): Promise<void> {
+    await IndexedDBService.updateInStore(storeName, {
+      ...data,
+      id,
+      _updatedAt: Date.now(),
+      _isOffline: true
     });
-    window.addEventListener('offline', () => {
-      this.updateStatus({ isOnline: false });
-    });
-  }
-
-  private updateStatus(updates: Partial<SyncStatus>) {
-    this.status = { ...this.status, ...updates };
-    this.listeners.forEach(listener => listener(this.status));
-  }
-
-  addEventListener(listener: (status: SyncStatus) => void) {
-    this.listeners.push(listener);
-  }
-
-  removeEventListener(listener: (status: SyncStatus) => void) {
-    const index = this.listeners.indexOf(listener);
-    if (index > -1) {
-      this.listeners.splice(index, 1);
-    }
-  }
-
-  getStatus(): SyncStatus {
-    return this.status;
+    await this.addToSyncQueue('update', { id, ...data }, storeName);
   }
 
   /**
-   * Sync data from server
+   * Create an entity for offline first
    */
-  async syncFromServer(tables: string[] = []): Promise<{ [key: string]: any[] }> {
-    const syncedData: { [key: string]: any[] } = {};
-    
-    // Valid table names from the schema
-    const validTables = [
-      'equipment', 'farms', 'equipment_categories', 'equipment_documents', 
-      'equipment_logs', 'interventions', 'equipment_maintenance_schedule', 
-      'equipment_qrcodes', 'equipment_types', 'farm_members', 'farm_settings',
-      'fuel_logs', 'invitations', 'maintenance_plans', 'maintenance_records',
-      'maintenance_tasks', 'manufacturers', 'notification_settings', 'notifications',
-      'parts_inventory', 'profiles', 'regional_preferences', 'storage_locations',
-      'subscriptions', 'task_types', 'team_members', 'time_sessions', 'user_roles',
-      'user_settings', 'daily_time_summary'
-    ];
-    
+  public async create<T extends Record<string, any>>(storeName: string, data: T): Promise<any> {
+    const record = {
+      ...data,
+      _createdAt: Date.now(),
+      _updatedAt: Date.now(),
+      _isOffline: true
+    };
+    const id = await IndexedDBService.addToStore(storeName, record);
+    await this.addToSyncQueue('add', { ...record, id }, storeName);
+    return id;
+  }
+
+  /**
+   * Delete an entity for offline first
+   */
+  public async delete(storeName: string, id: string | number): Promise<void> {
+    await IndexedDBService.deleteFromStore(storeName, id);
+    await this.addToSyncQueue('delete', { id }, storeName);
+  }
+  
+  /**
+   * Add an operation to the sync queue for compatibility with existing code
+   */
+  public async addOperation(operation: { 
+    type: string,
+    entity: string,
+    data: Record<string, any>,
+    priority?: number
+  }): Promise<number> {
+    return this.addToSyncQueue(
+      operation.type as 'add' | 'update' | 'delete',
+      operation.data,
+      operation.entity
+    );
+  }
+
+  /**
+   * Add an operation to the sync queue
+   */
+  public async addToSyncQueue(type: 'add' | 'update' | 'delete', data: Record<string, any>, entity: string): Promise<number> {
+    const queueEntry: SyncQueueEntry = {
+      type,
+      data,
+      entity,
+      createdAt: Date.now(),
+      retryCount: 0,
+      status: 'pending'
+    };
+
+    const id = await IndexedDBService.addToStore('syncQueue', queueEntry) as number;
+    await this.updatePendingCount();
+    return id;
+  }
+
+  /**
+   * Get all pending operations from the sync queue
+   */
+  public async getPendingOperations(): Promise<SyncQueueEntry[]> {
     try {
-      for (const table of tables) {
-        if (!validTables.includes(table)) {
-          logger.warn(`Invalid table name: ${table}. Skipping.`);
-          continue;
-        }
-        
-        logger.log(`Syncing data from table: ${table}`);
-        
-        const { data, error } = await supabase
-          .from(table as any)
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(1000);
-        
-        if (error) {
-          logger.error(`Error syncing ${table}:`, error);
-          continue;
-        }
-        
-        syncedData[table] = data || [];
-        logger.log(`Synced ${data?.length || 0} records from ${table}`);
-      }
-      
-      return syncedData;
+      const operations = await IndexedDBService.getAllFromStore<SyncQueueEntry>('syncQueue') || [];
+      return operations;
     } catch (error) {
-      logger.error('Error during sync:', error);
+      console.error('Error getting pending operations:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Update the pending operations count
+   */
+  private async updatePendingCount(): Promise<void> {
+    const count = await this.getPendingOperationsCount();
+    this.status = {
+      ...this.status,
+      pendingSyncCount: count
+    };
+    this.notifyListeners();
+  }
+
+  /**
+   * Get the count of pending operations
+   */
+  private async getPendingOperationsCount(): Promise<number> {
+    const operations = await this.getPendingOperations();
+    return operations.length;
+  }
+
+  /**
+   * Notify all listeners of status changes
+   */
+  private notifyListeners(): void {
+    this.listeners.forEach(listener => {
+      listener(this.status);
+    });
+  }
+
+  /**
+   * Add a status change listener
+   */
+  public addEventListener(listener: (status: SyncStatus) => void): void {
+    this.listeners.push(listener);
+  }
+
+  /**
+   * Remove a status change listener
+   */
+  public removeEventListener(listener: (status: SyncStatus) => void): void {
+    this.listeners = this.listeners.filter(l => l !== listener);
+  }
+
+  /**
+   * Get the current sync status
+   */
+  public getStatus(): SyncStatus {
+    return { ...this.status };
+  }
+
+  /**
+   * Synchronize all pending operations
+   */
+  public async sync(): Promise<Array<{ id: number; success: boolean; error?: any }>> {
+    if (this.status.isSyncing || !this.status.isOnline) {
+      return [];
+    }
+
+    this.status = {
+      ...this.status,
+      isSyncing: true
+    };
+    this.notifyListeners();
+
+    try {
+      const operations = await this.getPendingOperations();
+      const results: Array<{ id: number; success: boolean; error?: any }> = [];
+
+      // Process operations in sequence
+      for (const operation of operations) {
+        try {
+          if (typeof operation.id !== 'number') {
+            throw new Error('Operation missing ID field');
+          }
+          
+          // Implement real sync logic instead of mock
+          const { supabase } = await import('@/integrations/supabase/client');
+          
+          switch (operation.type) {
+            case 'add':
+              await supabase.from(operation.entity).insert(operation.data);
+              break;
+            case 'update':
+              await supabase.from(operation.entity).update(operation.data).eq('id', operation.data.id);
+              break;
+            case 'delete':
+              await supabase.from(operation.entity).delete().eq('id', operation.data.id);
+              break;
+          }
+          
+          // Mark as processed
+          await IndexedDBService.updateInStore('syncQueue', {
+            id: operation.id,
+            status: 'success',
+            processedAt: Date.now()
+          });
+          
+          results.push({ id: operation.id, success: true });
+        } catch (error) {
+          if (typeof operation.id !== 'number') {
+            console.error('Cannot update operation without ID', operation);
+            continue;
+          }
+          
+          const retryCount = operation.retryCount || 0;
+          
+          // Mark as failed
+          await IndexedDBService.updateInStore('syncQueue', {
+            id: operation.id,
+            status: 'failed',
+            error: String(error),
+            retryCount: retryCount + 1
+          });
+          
+          results.push({ id: operation.id, success: false, error });
+        }
+      }
+
+      // Clean up successful operations
+      if (results.every(r => r.success)) {
+        const successfulOps = operations.filter(op => op.status === 'success');
+        for (const op of successfulOps) {
+          if (op.id) {
+            await IndexedDBService.deleteFromStore('syncQueue', op.id);
+          }
+        }
+      }
+
+      this.status = {
+        ...this.status,
+        lastSyncTime: new Date(),
+        isSyncing: false
+      };
+      
+      await this.updatePendingCount();
+      return results;
+    } catch (error) {
+      this.status = {
+        ...this.status,
+        isSyncing: false
+      };
+      
+      this.notifyListeners();
       throw error;
     }
   }
 
   /**
-   * Sync data to server
+   * Cache a query result for offline access
    */
-  async syncToServer(syncData: SyncData[]): Promise<boolean> {
+  public async cacheQueryResult<T>(key: string, data: T, tableName: string = 'offline_cache'): Promise<void> {
+    await IndexedDBService.updateInStore(tableName, {
+      key,
+      data,
+      timestamp: Date.now()
+    });
+  }
+
+  /**
+   * Get a cached query result
+   */
+  public async getCachedQueryResult<T>(key: string, tableName: string = 'offline_cache'): Promise<T | null> {
     try {
-      for (const { table, data } of syncData) {
-        if (!data || data.length === 0) continue;
-        
-        logger.log(`Syncing ${data.length} records to ${table}`);
-        
-        // Batch insert/update operations
-        const { error } = await supabase
-          .from(table as any)
-          .upsert(data, { onConflict: 'id' });
-        
-        if (error) {
-          logger.error(`Error syncing to ${table}:`, error);
-          return false;
-        }
-      }
+      const cached = await IndexedDBService.getByKey(tableName, key);
+      return cached && typeof cached === 'object' && 'data' in cached ? (cached as any).data as T : null;
+    } catch (error) {
+      console.error(`Error fetching cached query result for key ${key}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Get sync statistics
+   */
+  public async getSyncStats(): Promise<{ pending: number; failed: number; success: number; }> {
+    try {
+      const operations = await this.getPendingOperations();
       
-      return true;
+      const pending = operations.filter(op => op.status === 'pending').length;
+      const failed = operations.filter(op => op.status === 'failed').length;
+      const success = operations.filter(op => op.status === 'success').length;
+  
+      return { pending, failed, success };
     } catch (error) {
-      logger.error('Error syncing to server:', error);
-      return false;
+      console.error('Error getting sync stats:', error);
+      return { pending: 0, failed: 0, success: 0 };
     }
-  }
-
-  /**
-   * Get last sync timestamp for a table
-   */
-  getLastSyncTime(table: string): string | null {
-    try {
-      return localStorage.getItem(`lastSync_${table}`);
-    } catch {
-      return null;
-    }
-  }
-
-  /**
-   * Set last sync timestamp for a table
-   */
-  setLastSyncTime(table: string, timestamp: string): void {
-    try {
-      localStorage.setItem(`lastSync_${table}`, timestamp);
-    } catch (error) {
-      logger.error('Error setting sync time:', error);
-    }
-  }
-
-  /**
-   * Check if sync is needed
-   */
-  isSyncNeeded(table: string, maxAge: number = 300000): boolean {
-    const lastSync = this.getLastSyncTime(table);
-    if (!lastSync) return true;
-    
-    const lastSyncTime = new Date(lastSync).getTime();
-    const now = Date.now();
-    
-    return (now - lastSyncTime) > maxAge;
-  }
-
-  // Mock implementations for offline functionality
-  async addOperation(operation: { type: 'add' | 'update' | 'delete', data: any, entity: string }): Promise<void> {
-    // Mock implementation - in a real app, this would queue operations
-    console.log('Operation queued:', operation);
-  }
-
-  async addToSyncQueue(type: 'add' | 'update' | 'delete', data: any, entity: string): Promise<number> {
-    // Mock implementation
-    console.log('Added to sync queue:', { type, data, entity });
-    return Date.now();
-  }
-
-  async getSyncStats(): Promise<{ pending: number; failed: number }> {
-    // Mock implementation
-    return { pending: 0, failed: 0 };
-  }
-
-  async getPendingOperations(): Promise<SyncOperation[]> {
-    // Mock implementation
-    return [];
-  }
-
-  async sync(): Promise<SyncResult[]> {
-    // Mock implementation
-    this.updateStatus({ isSyncing: true });
-    try {
-      // Simulate sync
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return [{ success: true }];
-    } finally {
-      this.updateStatus({ isSyncing: false });
-    }
-  }
-
-  async cacheQueryResult(key: string, data: any, table: string): Promise<void> {
-    // Mock implementation
-    try {
-      localStorage.setItem(`cache_${key}`, JSON.stringify(data));
-    } catch (error) {
-      console.error('Cache error:', error);
-    }
-  }
-
-  async getCachedQueryResult<T>(key: string): Promise<T | null> {
-    // Mock implementation
-    try {
-      const cached = localStorage.getItem(`cache_${key}`);
-      return cached ? JSON.parse(cached) : null;
-    } catch (error) {
-      console.error('Cache retrieval error:', error);
-      return null;
-    }
-  }
-
-  async create(table: string, data: any): Promise<void> {
-    // Mock implementation for offline create
-    console.log('Offline create:', { table, data });
-  }
-
-  async update(table: string, id: string | number, data: any): Promise<void> {
-    // Mock implementation for offline update
-    console.log('Offline update:', { table, id, data });
-  }
-
-  async delete(table: string, id: string | number): Promise<void> {
-    // Mock implementation for offline delete
-    console.log('Offline delete:', { table, id });
   }
 }
 
-/**
- * Service for offline/online data synchronization
- */
-export const syncService = new SyncServiceClass();
+// Export a singleton instance
+export const syncService = new SyncService();

@@ -3,7 +3,6 @@ import { useAuthState, AuthStateReturn } from './useAuthState';
 import { useAuthHandlers } from './useAuthHandlers';
 import { useSessionCheck } from './useSessionCheck';
 import { useAuthListener } from './useAuthListener';
-import { useAuthErrorHandler } from './useAuthErrorHandler';
 
 /**
  * Interface for the auth hook return value
@@ -23,8 +22,6 @@ export interface AuthReturn {
  * @param redirectTo Page de redirection après authentification (défaut: page actuelle)
  */
 export function useAuth(requireAuth = true, redirectTo?: string): AuthReturn {
-  const { handleAuthError } = useAuthErrorHandler();
-  
   // Manage authentication state
   const { 
     user, setUser,
@@ -34,10 +31,10 @@ export function useAuth(requireAuth = true, redirectTo?: string): AuthReturn {
     isAuthenticated
   } = useAuthState();
 
-  // Authentication handlers with error handling
+  // Authentication handlers
   const { signOut } = useAuthHandlers();
 
-  // Check session on mount with improved error handling
+  // Check session on mount
   useSessionCheck(
     setUser,
     setSession,
@@ -47,7 +44,7 @@ export function useAuth(requireAuth = true, redirectTo?: string): AuthReturn {
     redirectTo
   );
 
-  // Listen for auth state changes with improved error handling
+  // Listen for auth state changes
   useAuthListener(
     setUser,
     setSession,

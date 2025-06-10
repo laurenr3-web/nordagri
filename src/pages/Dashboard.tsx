@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import MainLayout from '@/ui/layouts/MainLayout';
 import { LayoutWrapper } from '@/components/layout/LayoutWrapper';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -13,6 +13,21 @@ import {
   Settings
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  DndContext, 
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 
 // Import des widgets
 import { StatsWidget } from '@/components/dashboard/widgets/StatsWidget';
@@ -31,7 +46,7 @@ import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 
 const DEFAULT_WIDGETS: WidgetConfig[] = [
   { id: 'stats', type: 'stats', title: 'Statistiques', size: 'full', enabled: true },
-  { id: 'equipment', type: 'equipment', title: 'Équipements', size: 'medium', enabled: true },
+  { id: 'equipment', type: 'equipment', title: 'Équipements', size: 'large', enabled: true },
   { id: 'alerts', type: 'alerts', title: 'Alertes', size: 'medium', enabled: true },
   { id: 'calendar', type: 'calendar', title: 'Calendrier', size: 'large', enabled: true },
 ];
@@ -53,20 +68,39 @@ const Dashboard = () => {
   // Auto-refresh toutes les 5 minutes
   const { refresh } = useAutoRefresh(5 * 60 * 1000);
 
-  // Filtrer les widgets actifs de manière simple
-  const activeWidgets = widgets ? widgets.filter(w => w && w.enabled) : [];
+  // Chargement des données des widgets actifs uniquement
+  const activeWidgets = useMemo(
+    () => widgets.filter(w => w.enabled),
+    [widgets]
+  );
   
   const { data, loading, refetch } = useWidgetData(activeWidgets, activeView);
 
-  const handleRefresh = useCallback(async () => {
+  // Drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (over && active.id !== over.id) {
+      const oldIndex = widgets.findIndex((w) => w.id === active.id);
+      const newIndex = widgets.findIndex((w) => w.id === over.id);
+      reorderWidgets(arrayMove(widgets, oldIndex, newIndex));
+    }
+  };
+
+  const handleRefresh = async () => {
     setIsRefreshing(true);
     await refetch();
     setTimeout(() => setIsRefreshing(false), 1000);
-  }, [refetch]);
+  };
 
-  const renderWidget = useCallback((widget: WidgetConfig) => {
-    if (!widget || !data) return null;
-    
+  const renderWidget = (widget: WidgetConfig) => {
     const widgetData = data[widget.id];
     
     const widgetComponents: Record<string, React.ComponentType<any>> = {
@@ -96,7 +130,7 @@ const Dashboard = () => {
         />
       </DashboardWidget>
     );
-  }, [data, loading, isCustomizing, removeWidget, updateWidget]);
+  };
 
   return (
     <MainLayout>
@@ -171,30 +205,40 @@ const Dashboard = () => {
 
           {/* Contenu des vues */}
           <TabsContent value="main" className="mt-0">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-              {activeWidgets.map(widget => {
-                if (!widget) return null;
-                
-                const colSpan = {
-                  small: 'lg:col-span-3',
-                  medium: 'lg:col-span-6', 
-                  large: 'lg:col-span-8',
-                  full: 'lg:col-span-12'
-                }[widget.size] || 'lg:col-span-6';
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={activeWidgets.map(w => w.id)}
+                strategy={verticalListSortingStrategy}
+                disabled={!isCustomizing}
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                  {activeWidgets.map(widget => {
+                    const colSpan = {
+                      small: 'lg:col-span-3',
+                      medium: 'lg:col-span-6', 
+                      large: 'lg:col-span-8',
+                      full: 'lg:col-span-12'
+                    }[widget.size];
 
-                return (
-                  <div key={widget.id} className={colSpan}>
-                    {renderWidget(widget)}
-                  </div>
-                );
-              })}
-            </div>
+                    return (
+                      <div key={widget.id} className={colSpan}>
+                        {renderWidget(widget)}
+                      </div>
+                    );
+                  })}
+                </div>
+              </SortableContext>
+            </DndContext>
           </TabsContent>
 
           <TabsContent value="calendar" className="mt-0">
             <CalendarWidget 
-              data={data?.calendar} 
-              loading={loading?.calendar}
+              data={data.calendar} 
+              loading={loading.calendar}
               size="full"
               view="month"
             />
@@ -202,8 +246,8 @@ const Dashboard = () => {
 
           <TabsContent value="alerts" className="mt-0">
             <AlertsWidget 
-              data={data?.alerts} 
-              loading={loading?.alerts}
+              data={data.alerts} 
+              loading={loading.alerts}
               size="full"
               view="detailed"
             />

@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { FileDown, Plus } from 'lucide-react';
 import ImportMaintenanceDialog from '@/components/maintenance/dialogs/ImportMaintenanceDialog';
 
-const Maintenance: React.FC = () => {
+const Maintenance = () => {
   const {
     currentView,
     setCurrentView,
@@ -104,6 +104,7 @@ const Maintenance: React.FC = () => {
           task={selectedTask} 
           onCompleted={() => {
             setIsCompletionDialogOpen(false);
+            // Refresh the task list
             refreshTasks();
           }} 
           userName={getUserDisplayName()} 

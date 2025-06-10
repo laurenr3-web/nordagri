@@ -8,8 +8,10 @@ import { RealtimeCacheProvider } from '@/providers/RealtimeCacheProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { OfflineProvider } from '@/providers/OfflineProvider';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { AppErrorBoundary } from '@/components/common/AppErrorBoundary';
 import MobileMenu from '@/components/layout/MobileMenu';
+import '@/i18n'; // i18n setup
+import { I18nextProvider } from "react-i18next";
+import i18n from "@/i18n";
 import Footer from "@/components/layout/Footer";
 
 // Composant de chargement
@@ -43,20 +45,13 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
       gcTime: 1000 * 60 * 10, // 10 minutes (anciennement cacheTime)
-      retry: (failureCount, error) => {
-        // Ne pas réessayer si c'est une erreur de configuration
-        if (error?.message?.includes('Configuration') || error?.message?.includes('Variables')) {
-          return false;
-        }
-        return failureCount < 3;
-      }
     },
   },
 });
 
 function App() {
   return (
-    <AppErrorBoundary>
+    <I18nextProvider i18n={i18n}>
       <ThemeProvider defaultTheme="light" storageKey="agri-erp-theme">
         <QueryClientProvider client={queryClient}>
           <RealtimeCacheProvider>
@@ -134,7 +129,7 @@ function App() {
           </RealtimeCacheProvider>
         </QueryClientProvider>
       </ThemeProvider>
-    </AppErrorBoundary>
+    </I18nextProvider>
   );
 }
 

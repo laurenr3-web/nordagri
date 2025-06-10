@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { MaintenanceTask, MaintenancePriority, MaintenanceStatus, MaintenanceType } from './maintenanceSlice';
@@ -100,7 +101,7 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
     console.log(`Updating task ${taskId} status to ${newStatus}`);
     
     try {
-      // Mettre à jour le statut dans la base de données (avec date de complétion automatique)
+      // Mettre à jour le statut dans la base de données
       await maintenanceService.updateTaskStatus(taskId, newStatus);
       
       // Mettre à jour l'état local
@@ -110,7 +111,6 @@ export function useTasksManager(initialTasks?: MaintenanceTask[]) {
             ? { 
                 ...task, 
                 status: newStatus,
-                // Ajouter la date de complétion si le statut est "completed"
                 completedDate: newStatus === 'completed' ? new Date() : task.completedDate
               } 
             : task

@@ -1,7 +1,6 @@
 
 import { describe, it, expect, vi } from 'vitest';
-import { render } from '@testing-library/react';
-import { screen, fireEvent } from '@testing-library/dom';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { PartsUsedField } from '@/components/interventions/dialogs/report-dialog/form-fields/PartsUsedField';
 import { Form } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';

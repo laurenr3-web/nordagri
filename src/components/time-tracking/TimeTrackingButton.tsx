@@ -19,7 +19,7 @@ interface TimeTrackingButtonProps {
 const MemoizedTimerDisplay = memo(TimerDisplay);
 const MemoizedTimeTrackingControls = memo(TimeTrackingControls);
 
-function TimeTrackingButtonComponent({ 
+export function TimeTrackingButton({ 
   className, 
   position = 'fixed' 
 }: TimeTrackingButtonProps) {
@@ -143,5 +143,4 @@ function TimeTrackingButtonComponent({
 }
 
 // Export a memoized version
-export const TimeTrackingButton = memo(TimeTrackingButtonComponent);
-export const MemoizedTimeTrackingButton = memo(TimeTrackingButtonComponent);
+export const MemoizedTimeTrackingButton = memo(TimeTrackingButton);

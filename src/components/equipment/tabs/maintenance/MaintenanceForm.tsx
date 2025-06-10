@@ -54,7 +54,7 @@ export function MaintenanceForm({ onSubmit, defaultValues, isLoading, equipment,
   };
 
   const formContent = (
-    <div className="space-y-6 pb-6">
+    <div className="space-y-6">
       {/* Titre */}
       <FormField
         control={form.control}
@@ -160,7 +160,7 @@ export function MaintenanceForm({ onSubmit, defaultValues, isLoading, equipment,
         )}
       />
 
-      <div className="flex justify-between pt-4">
+      <div className="flex justify-between">
         {onCancel && (
           <Button type="button" variant="outline" onClick={onCancel}>
             Annuler
@@ -175,11 +175,11 @@ export function MaintenanceForm({ onSubmit, defaultValues, isLoading, equipment,
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className={isMobile ? "pb-4" : ""}>
         {isMobile ? (
-          <div className="h-[75vh] overflow-y-auto px-1">
+          <ScrollArea className="h-[60vh]">
             {formContent}
-          </div>
+          </ScrollArea>
         ) : (
           formContent
         )}

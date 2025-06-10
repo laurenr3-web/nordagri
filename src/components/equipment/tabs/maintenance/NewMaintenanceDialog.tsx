@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -6,7 +7,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import MaintenanceForm from './MaintenanceForm';
 import MaintenanceQuote from './MaintenanceQuote';
 import { Button } from '@/components/ui/button';
@@ -87,66 +87,6 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
     // Ici, vous pourriez implémenter la logique de téléchargement réelle
   };
 
-  const renderContent = () => {
-    if (step === 'form') {
-      return (
-        <MaintenanceForm 
-          equipment={equipment} 
-          onSubmit={handleFormSubmit} 
-          onCancel={onClose}
-        />
-      );
-    } else {
-      return (
-        <>
-          <ScrollArea className={isMobile ? "h-[70vh]" : ""}>
-            <MaintenanceQuote 
-              maintenance={maintenanceData} 
-              onPrint={handlePrintQuote}
-              onDownload={handleDownloadQuote}
-            />
-          </ScrollArea>
-          
-          <div className="flex justify-between mt-4">
-            <Button 
-              variant="outline" 
-              onClick={handleQuoteBack}
-              disabled={isSubmitting}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Retour
-            </Button>
-            
-            <Button 
-              onClick={handleSaveQuote}
-              disabled={isSubmitting}
-            >
-              <Save className="h-4 w-4 mr-2" />
-              {isSubmitting ? 'Enregistrement...' : 'Confirmer et enregistrer'}
-            </Button>
-          </div>
-        </>
-      );
-    }
-  };
-
-  if (isMobile) {
-    return (
-      <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <SheetContent side="bottom" className="h-[90vh]">
-          <SheetHeader className="mb-4">
-            <SheetTitle>
-              {step === 'form' ? 'Nouvelle maintenance' : 'Devis de maintenance'}
-            </SheetTitle>
-          </SheetHeader>
-          <div className="flex flex-col flex-1">
-            {renderContent()}
-          </div>
-        </SheetContent>
-      </Sheet>
-    );
-  }
-
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-3xl max-h-[95vh]">
@@ -161,8 +101,43 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col flex-1 overflow-hidden">
-          {renderContent()}
+        <div className={isMobile ? "flex flex-col flex-1 overflow-hidden" : ""}>
+          {step === 'form' ? (
+            <MaintenanceForm 
+              equipment={equipment} 
+              onSubmit={handleFormSubmit} 
+              onCancel={onClose}
+            />
+          ) : (
+            <>
+              <ScrollArea className={isMobile ? "h-[60vh]" : ""}>
+                <MaintenanceQuote 
+                  maintenance={maintenanceData} 
+                  onPrint={handlePrintQuote}
+                  onDownload={handleDownloadQuote}
+                />
+              </ScrollArea>
+              
+              <div className="flex justify-between mt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={handleQuoteBack}
+                  disabled={isSubmitting}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Retour
+                </Button>
+                
+                <Button 
+                  onClick={handleSaveQuote}
+                  disabled={isSubmitting}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {isSubmitting ? 'Enregistrement...' : 'Confirmer et enregistrer'}
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>

@@ -3,10 +3,7 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchUserProfile } from './useProfileData';
-import { useAuthErrorHandler } from './useAuthErrorHandler';
-import { useTokenValidation } from './useTokenValidation';
 import { toast } from 'sonner';
-import { logger } from '@/utils/logger';
 
 /**
  * Hook to listen for authentication state changes
@@ -20,89 +17,57 @@ export function useAuthListener(
 ) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { handleAuthError, showUserFriendlyError } = useAuthErrorHandler();
-  const { cleanCorruptedTokens } = useTokenValidation();
 
   useEffect(() => {
-    logger.log('Configuration du listener d\'authentification');
+    console.log('Setting up auth listener');
     
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      logger.log(`Changement d'état d'authentification: ${event}`, session?.user?.id ? 'Utilisateur connecté' : 'Aucun utilisateur');
+    // Configurer l'abonnement aux changements d'état d'authentification
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log(`Auth state changed: ${event}`, session?.user?.id ? 'User is logged in' : 'No user');
       
-      try {
-        // Mise à jour synchrone de l'état
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        // Gestion des événements spécifiques
-        if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
-          // Récupération du profil avec délai pour éviter les blocages
-          setTimeout(async () => {
-            try {
-              const data = await fetchUserProfile(session.user.id);
-              if (data) {
-                setProfileData(data);
-                if (event === 'SIGNED_IN') {
-                  toast.success(`Bienvenue ${data.first_name || ''}!`);
-                }
-              }
-            } catch (error) {
-              const errorType = handleAuthError(error, 'profile fetch');
-              if (errorType === 'token_malformed') {
-                await cleanCorruptedTokens();
-                // Pas de rechargement automatique agressif
-              }
-              logger.error('Erreur lors du chargement du profil:', error);
+      // Mise à jour synchrone de l'état
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      // Si l'utilisateur vient de se connecter, récupérer ses données de profil
+      if (session?.user && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
+        // Utilisez setTimeout pour éviter les blocages potentiels
+        setTimeout(() => {
+          fetchUserProfile(session.user.id).then(data => {
+            if (data) {
+              setProfileData(data);
+              toast.success(`Bienvenue ${data.first_name || ''}!`);
             }
-          }, 200); // Délai réduit
-          
-          // Gestion des redirections pour SIGNED_IN seulement - avec délai
-          if (event === 'SIGNED_IN') {
-            const isSpecialAuthPath = 
-              location.pathname === '/auth/callback' || 
-              location.pathname.startsWith('/confirm') || 
-              (location.pathname === '/auth' && 
-               (location.hash || 
-                location.search.includes('reset=true') || 
-                location.search.includes('verification=true')));
-            
-            if (location.pathname === '/auth' && !isSpecialAuthPath) {
-              // Ajouter un délai pour s'assurer que l'état est stable
-              setTimeout(() => {
-                const params = new URLSearchParams(location.search);
-                const returnPath = params.get('returnTo') || redirectTo || '/dashboard';
-                logger.log(`Redirection après ${event} vers ${returnPath}`);
-                navigate(returnPath, { replace: true });
-              }, 500); // Délai plus long pour la stabilité
-            }
-          }
-        } else if (requireAuth && !session && event === 'SIGNED_OUT') {
-          // Nettoyage du profil lors de la déconnexion
-          setProfileData(null);
-          
-          logger.log('Utilisateur déconnecté, redirection vers la page d\'authentification');
-          // Ajouter un petit délai pour éviter les redirections trop rapides
-          setTimeout(() => {
-            const returnPath = location.pathname === '/auth' ? '/dashboard' : location.pathname + location.search;
-            navigate(`/auth?returnTo=${encodeURIComponent(returnPath)}`, { replace: true });
-          }, 200);
-        }
+          });
+        }, 0);
         
-      } catch (error) {
-        const errorType = handleAuthError(error, 'auth state change');
-        logger.error('Erreur dans le listener d\'authentification:', error);
+        // Ne pas rediriger si nous sommes sur une page spéciale d'authentification
+        const isSpecialAuthPath = 
+          location.pathname === '/auth/callback' || 
+          location.pathname.startsWith('/confirm') || 
+          (location.pathname === '/auth' && 
+           (location.hash || 
+            location.search.includes('reset=true') || 
+            location.search.includes('verification=true')));
         
-        if (errorType === 'token_malformed') {
-          await cleanCorruptedTokens();
-          // Pas de rechargement automatique agressif
-        } else {
-          showUserFriendlyError(errorType, error);
-        }
+        // Rediriger l'utilisateur si spécifié et sur la page d'auth (et pas sur une page spéciale)
+        if (location.pathname === '/auth' && !isSpecialAuthPath) {
+          const params = new URLSearchParams(location.search);
+          const returnPath = params.get('returnTo') || redirectTo || '/dashboard';
+          console.log(`Redirecting after ${event} to ${returnPath}`);
+          navigate(returnPath, { replace: true });
+        } 
+      } else if (requireAuth && !session && event === 'SIGNED_OUT') {
+        // L'utilisateur s'est déconnecté et cette route nécessite une authentification
+        console.log('User signed out, redirecting to auth page');
+        const returnPath = location.pathname === '/auth' ? '/dashboard' : location.pathname + location.search;
+        navigate(`/auth?returnTo=${encodeURIComponent(returnPath)}`, { replace: true });
       }
     });
     
+    // Nettoyer l'abonnement lorsque le composant est démonté
     return () => {
-      logger.log('Nettoyage du listener d\'authentification');
+      console.log('Cleaning up auth listener');
       authListener.subscription.unsubscribe();
     };
   }, [navigate, location, requireAuth, redirectTo, setUser, setSession, setProfileData]);

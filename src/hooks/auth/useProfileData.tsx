@@ -1,24 +1,9 @@
 
-import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ProfileData } from './useAuthState';
-import { logger } from '@/utils/logger';
 
 /**
- * Hook pour gérer les données de profil utilisateur
- */
-export function useProfileData() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  return {
-    loading,
-    error
-  };
-}
-
-/**
- * Récupérer le profil d'un utilisateur
+ * Hook to fetch user profile data
  */
 export async function fetchUserProfile(userId: string): Promise<ProfileData | null> {
   try {
@@ -29,47 +14,34 @@ export async function fetchUserProfile(userId: string): Promise<ProfileData | nu
       .single();
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        // Profil non trouvé
-        return null;
+      console.error('Erreur lors de la récupération du profil:', error);
+      return null;
+    }
+
+    // Ensure the profile data has all required fields
+    if (data) {
+      // Make sure email is present (might come from auth.users instead)
+      if (!data.email) {
+        // Try to get email from the auth user
+        const { data: userData } = await supabase.auth.getUser(userId);
+        if (userData?.user?.email) {
+          data.email = userData.user.email;
+        }
       }
-      throw error;
+
+      // Ensure created_at and updated_at fields exist
+      if (!data.created_at) {
+        data.created_at = new Date().toISOString();
+      }
+      
+      if (!data.updated_at) {
+        data.updated_at = new Date().toISOString();
+      }
     }
 
-    return data;
+    return data as ProfileData;
   } catch (error) {
-    logger.error('Erreur lors de la récupération du profil:', error);
-    throw error;
-  }
-}
-
-/**
- * Créer un nouveau profil utilisateur
- */
-export async function createUserProfile(userId: string, userMetadata: any): Promise<ProfileData | null> {
-  try {
-    const profileData = {
-      id: userId,
-      first_name: userMetadata?.first_name || '',
-      last_name: userMetadata?.last_name || '',
-      avatar_url: userMetadata?.avatar_url || null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-
-    const { data, error } = await supabase
-      .from('profiles')
-      .insert([profileData])
-      .select()
-      .single();
-
-    if (error) {
-      throw error;
-    }
-
-    return data;
-  } catch (error) {
-    logger.error('Erreur lors de la création du profil:', error);
-    throw error;
+    console.error('Erreur lors de la récupération du profil:', error);
+    return null;
   }
 }
