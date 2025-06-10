@@ -1,15 +1,15 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Clock, Play } from 'lucide-react';
 import { TimeEntryCard } from '@/components/time-tracking/TimeEntryCard';
-import { timeTrackingService } from '@/services/supabase/timeTrackingService';
+import { timeTrackingService } from '@/services/supabase/time-tracking';
 import { TimeEntry } from '@/hooks/time-tracking/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { TimeEntryForm } from '@/components/time-tracking/TimeEntryForm';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useRealtimeSubscriptionManager } from '@/hooks/time-tracking/useRealtimeSubscriptionManager';
 
 interface EquipmentTimeTrackingProps {
   equipment: any;
@@ -21,6 +21,7 @@ const EquipmentTimeTracking: React.FC<EquipmentTimeTrackingProps> = ({ equipment
   const [userId, setUserId] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [totalHours, setTotalHours] = useState(0);
+  const { subscribe } = useRealtimeSubscriptionManager();
   
   // Get user ID on load
   useEffect(() => {
@@ -40,6 +41,25 @@ const EquipmentTimeTracking: React.FC<EquipmentTimeTrackingProps> = ({ equipment
       fetchTimeEntries();
     }
   }, [userId, equipment]);
+  
+  // Set up realtime subscription
+  useEffect(() => {
+    if (!userId || !equipment?.id) return;
+
+    const unsubscribe = subscribe({
+      table: 'time_sessions',
+      event: '*',
+      callback: (payload) => {
+        // Refresh entries when time sessions change
+        const equipmentId = typeof equipment.id === 'string' ? parseInt(equipment.id, 10) : equipment.id;
+        if (payload.new?.equipment_id === equipmentId || payload.old?.equipment_id === equipmentId) {
+          fetchTimeEntries();
+        }
+      }
+    });
+
+    return unsubscribe;
+  }, [userId, equipment?.id, subscribe]);
   
   // Fetch time entries
   const fetchTimeEntries = async () => {
