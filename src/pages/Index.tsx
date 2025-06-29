@@ -4,14 +4,21 @@ import MainLayout from '@/ui/layouts/MainLayout';
 import ViewManager from '@/components/index/ViewManager';
 import { LayoutWrapper } from '@/components/layout/LayoutWrapper';
 import { PageHeader } from '@/components/layout/PageHeader';
+import { ConfigurationDiagnostic } from '@/components/diagnostics/ConfigurationDiagnostic';
+import { Button } from '@/components/ui/button';
+import { Settings } from 'lucide-react';
 
 const Index = () => {
   const [currentMonth] = useState(new Date());
   const [currentView, setCurrentView] = useState<'main' | 'calendar' | 'alerts'>('main');
+  const [showDiagnostic, setShowDiagnostic] = useState(false);
 
   const handleViewChange = (view: 'main' | 'calendar' | 'alerts') => {
     setCurrentView(view);
   };
+
+  // Afficher le diagnostic automatiquement si on utilise les fallbacks
+  const usingFallbacks = !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
 
   return (
     <MainLayout>
@@ -20,6 +27,12 @@ const Index = () => {
           title="Tableau de bord"
           description="Vue d'ensemble de votre exploitation"
         />
+        
+        {(showDiagnostic || usingFallbacks) && (
+          <div className="mb-6">
+            <ConfigurationDiagnostic />
+          </div>
+        )}
         
         <div className="flex flex-wrap items-center gap-2 mb-6">
           <button 
@@ -40,6 +53,16 @@ const Index = () => {
           >
             Alertes
           </button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowDiagnostic(!showDiagnostic)}
+            className="ml-auto"
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Diagnostic
+          </Button>
         </div>
         
         <ViewManager 
