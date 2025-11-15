@@ -1,118 +1,191 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { useTimeTracking } from '@/hooks/time-tracking/useTimeTracking';
-import { useActiveTimeEntry } from '@/hooks/time-tracking/useActiveTimeEntry';
-import { useTimeEntryOperations } from '@/hooks/time-tracking/useTimeEntryOperations';
 import { renderHook, act } from '@testing-library/react';
-import { TimeEntryTaskType } from '@/hooks/time-tracking/types';
+import { useTimeTracking } from '@/hooks/time-tracking/useTimeTracking';
+import * as useActiveTimeEntryModule from '@/hooks/time-tracking/useActiveTimeEntry';
+import * as useTimeEntryOperationsModule from '@/hooks/time-tracking/useTimeEntryOperations';
 
-// Mock the dependent hooks
+// Mock dependencies
 vi.mock('@/hooks/time-tracking/useActiveTimeEntry');
 vi.mock('@/hooks/time-tracking/useTimeEntryOperations');
+vi.mock('sonner', () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn()
+  }
+}));
 
 describe('useTimeTracking', () => {
   const mockActiveTimeEntry = {
-    id: 'entry-1',
-    user_id: 'user-1',
-    task_type: 'maintenance' as TimeEntryTaskType,
-    start_time: '2025-05-12T10:00:00Z',
-    status: 'active' as const, // Using 'as const' to specify that this is a literal type
-    created_at: '2025-05-12T10:00:00Z',
-    updated_at: '2025-05-12T10:00:00Z'
+    id: 'test-id',
+    user_id: 'user-123',
+    task_type: 'maintenance' as const,
+    start_time: '2025-01-15T10:00:00Z',
+    status: 'active' as const,
+    created_at: '2025-01-15T10:00:00Z',
+    updated_at: '2025-01-15T10:00:00Z'
   };
 
+  const mockRefreshActiveTimeEntry = vi.fn();
+  const mockSetActiveTimeEntry = vi.fn();
+  const mockStartOperation = vi.fn();
+  const mockStopOperation = vi.fn();
+  const mockPauseOperation = vi.fn();
+  const mockResumeOperation = vi.fn();
+
   beforeEach(() => {
-    // Reset all mocks
-    vi.resetAllMocks();
+    vi.clearAllMocks();
     
-    // Setup default mock implementations
-    vi.mocked(useActiveTimeEntry).mockReturnValue({
+    // Mock useActiveTimeEntry
+    vi.mocked(useActiveTimeEntryModule.useActiveTimeEntry).mockReturnValue({
       activeTimeEntry: mockActiveTimeEntry,
-      setActiveTimeEntry: vi.fn(),
+      setActiveTimeEntry: mockSetActiveTimeEntry,
       isLoading: false,
       error: null,
-      refreshActiveTimeEntry: vi.fn().mockResolvedValue(undefined)
+      refreshActiveTimeEntry: mockRefreshActiveTimeEntry
     });
-    
-    vi.mocked(useTimeEntryOperations).mockReturnValue({
-      startTimeEntry: vi.fn().mockResolvedValue({ id: 'new-entry-1' }),
-      stopTimeEntry: vi.fn().mockResolvedValue(undefined),
-      pauseTimeEntry: vi.fn().mockResolvedValue(undefined),
-      resumeTimeEntry: vi.fn().mockResolvedValue(undefined)
+
+    // Mock useTimeEntryOperations
+    vi.mocked(useTimeEntryOperationsModule.useTimeEntryOperations).mockReturnValue({
+      startTimeEntry: mockStartOperation,
+      stopTimeEntry: mockStopOperation,
+      pauseTimeEntry: mockPauseOperation,
+      resumeTimeEntry: mockResumeOperation
     });
   });
 
-  it('should return activeTimeEntry from useActiveTimeEntry', () => {
+  it('should return active time entry data', () => {
     const { result } = renderHook(() => useTimeTracking());
-    
+
     expect(result.current.activeTimeEntry).toEqual(mockActiveTimeEntry);
     expect(result.current.isLoading).toBe(false);
-    expect(result.current.error).toBeNull();
+    expect(result.current.error).toBe(null);
   });
 
-  it('should call startTimeEntry and refreshActiveTimeEntry when startTimeEntry is called', async () => {
+  it('should start time entry successfully', async () => {
+    const newEntry = { ...mockActiveTimeEntry, id: 'new-id' };
+    mockStartOperation.mockResolvedValue(newEntry);
+
     const { result } = renderHook(() => useTimeTracking());
-    
-    const startParams = { task_type: 'repair' as TimeEntryTaskType };
-    
+
     await act(async () => {
-      await result.current.startTimeEntry(startParams);
+      const entry = await result.current.startTimeEntry({
+        task_type: 'maintenance',
+        equipment_id: 1,
+        location: 'Test Location'
+      });
+      expect(entry).toEqual(newEntry);
     });
-    
-    const startTimeEntryMock = vi.mocked(useTimeEntryOperations().startTimeEntry);
-    const refreshActiveTimeEntryMock = vi.mocked(useActiveTimeEntry().refreshActiveTimeEntry);
-    
-    expect(startTimeEntryMock).toHaveBeenCalledWith(startParams);
-    expect(refreshActiveTimeEntryMock).toHaveBeenCalledTimes(1);
+
+    expect(mockStartOperation).toHaveBeenCalledWith({
+      task_type: 'maintenance',
+      equipment_id: 1,
+      location: 'Test Location'
+    });
+    expect(mockRefreshActiveTimeEntry).toHaveBeenCalled();
   });
 
-  it('should call stopTimeEntry and update active entry when stopTimeEntry is called', async () => {
-    const setActiveTimeEntryMock = vi.fn();
-    vi.mocked(useActiveTimeEntry).mockReturnValue({
-      activeTimeEntry: mockActiveTimeEntry,
-      setActiveTimeEntry: setActiveTimeEntryMock,
-      isLoading: false,
-      error: null,
-      refreshActiveTimeEntry: vi.fn().mockResolvedValue(undefined)
-    });
-    
+  it('should handle start time entry errors', async () => {
+    const error = new Error('Failed to start');
+    mockStartOperation.mockRejectedValue(error);
+
     const { result } = renderHook(() => useTimeTracking());
-    
-    await act(async () => {
-      await result.current.stopTimeEntry('entry-1');
-    });
-    
-    const stopTimeEntryMock = vi.mocked(useTimeEntryOperations().stopTimeEntry);
-    
-    expect(stopTimeEntryMock).toHaveBeenCalledWith('entry-1');
-    expect(setActiveTimeEntryMock).toHaveBeenCalledWith(null);
+
+    await expect(
+      act(async () => {
+        await result.current.startTimeEntry({
+          task_type: 'maintenance'
+        });
+      })
+    ).rejects.toThrow('Failed to start');
   });
 
-  it('should call pauseTimeEntry and refreshActiveTimeEntry when pauseTimeEntry is called', async () => {
+  it('should stop time entry successfully', async () => {
+    mockStopOperation.mockResolvedValue(undefined);
+
     const { result } = renderHook(() => useTimeTracking());
-    
+
     await act(async () => {
-      await result.current.pauseTimeEntry('entry-1');
+      await result.current.stopTimeEntry('test-id');
     });
-    
-    const pauseTimeEntryMock = vi.mocked(useTimeEntryOperations().pauseTimeEntry);
-    const refreshActiveTimeEntryMock = vi.mocked(useActiveTimeEntry().refreshActiveTimeEntry);
-    
-    expect(pauseTimeEntryMock).toHaveBeenCalledWith('entry-1');
-    expect(refreshActiveTimeEntryMock).toHaveBeenCalledTimes(1);
+
+    expect(mockStopOperation).toHaveBeenCalledWith('test-id');
+    expect(mockSetActiveTimeEntry).toHaveBeenCalledWith(null);
   });
 
-  it('should call resumeTimeEntry and refreshActiveTimeEntry when resumeTimeEntry is called', async () => {
+  it('should handle stop time entry errors', async () => {
+    const error = new Error('Failed to stop');
+    mockStopOperation.mockRejectedValue(error);
+
     const { result } = renderHook(() => useTimeTracking());
-    
+
+    await expect(
+      act(async () => {
+        await result.current.stopTimeEntry('test-id');
+      })
+    ).rejects.toThrow('Failed to stop');
+  });
+
+  it('should pause time entry successfully', async () => {
+    mockPauseOperation.mockResolvedValue(undefined);
+
+    const { result } = renderHook(() => useTimeTracking());
+
     await act(async () => {
-      await result.current.resumeTimeEntry('entry-1');
+      await result.current.pauseTimeEntry('test-id');
     });
-    
-    const resumeTimeEntryMock = vi.mocked(useTimeEntryOperations().resumeTimeEntry);
-    const refreshActiveTimeEntryMock = vi.mocked(useActiveTimeEntry().refreshActiveTimeEntry);
-    
-    expect(resumeTimeEntryMock).toHaveBeenCalledWith('entry-1');
-    expect(refreshActiveTimeEntryMock).toHaveBeenCalledTimes(1);
+
+    expect(mockPauseOperation).toHaveBeenCalledWith('test-id');
+    expect(mockRefreshActiveTimeEntry).toHaveBeenCalled();
+  });
+
+  it('should handle pause time entry errors', async () => {
+    const error = new Error('Failed to pause');
+    mockPauseOperation.mockRejectedValue(error);
+
+    const { result } = renderHook(() => useTimeTracking());
+
+    await expect(
+      act(async () => {
+        await result.current.pauseTimeEntry('test-id');
+      })
+    ).rejects.toThrow('Failed to pause');
+  });
+
+  it('should resume time entry successfully', async () => {
+    mockResumeOperation.mockResolvedValue(undefined);
+
+    const { result } = renderHook(() => useTimeTracking());
+
+    await act(async () => {
+      await result.current.resumeTimeEntry('test-id');
+    });
+
+    expect(mockResumeOperation).toHaveBeenCalledWith('test-id');
+    expect(mockRefreshActiveTimeEntry).toHaveBeenCalled();
+  });
+
+  it('should handle resume time entry errors', async () => {
+    const error = new Error('Failed to resume');
+    mockResumeOperation.mockRejectedValue(error);
+
+    const { result } = renderHook(() => useTimeTracking());
+
+    await expect(
+      act(async () => {
+        await result.current.resumeTimeEntry('test-id');
+      })
+    ).rejects.toThrow('Failed to resume');
+  });
+
+  it('should refresh active time entry', async () => {
+    const { result } = renderHook(() => useTimeTracking());
+
+    await act(async () => {
+      await result.current.refreshActiveTimeEntry();
+    });
+
+    expect(mockRefreshActiveTimeEntry).toHaveBeenCalled();
   });
 });
+
