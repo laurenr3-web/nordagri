@@ -57,7 +57,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
                       <img
                         src={item.image}
                         alt={item.name}
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-contain bg-muted/30"
                       />
                     ) : (
                       <div className="h-full w-full flex items-center justify-center bg-primary/10">

@@ -37,12 +37,12 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({
             className="relative overflow-hidden transition-all duration-300 hover:shadow-md cursor-pointer"
             onClick={() => onEquipmentClick(item)}
           >
-            <div className="relative h-40">
+            <div className="relative h-40 bg-muted/30">
               {item.image ? (
                 <img
                   src={item.image}
                   alt={item.name}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-contain"
                 />
               ) : (
                 <EquipmentImageFallback item={item} />
