@@ -58,11 +58,11 @@ export const EquipmentCard: React.FC<EquipmentCardProps> = ({
       }}
       onClick={onClick}
     >
-      <div className="relative">
+      <div className="relative bg-muted/30">
         <img 
           src={image} 
           alt={name} 
-          className="w-full h-32 object-cover"
+          className="w-full h-32 object-contain"
           onError={(e) => {
             // Fallback image if the provided one fails to load
             e.currentTarget.src = "https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=500&auto=format&fit=crop";
