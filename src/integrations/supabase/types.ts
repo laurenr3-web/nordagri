@@ -258,6 +258,51 @@ export type Database = {
           },
         ]
       }
+      equipment_photos: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          equipment_id: number
+          id: string
+          is_primary: boolean | null
+          photo_url: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          equipment_id: number
+          id?: string
+          is_primary?: boolean | null
+          photo_url: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          equipment_id?: number
+          id?: string
+          is_primary?: boolean | null
+          photo_url?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_photos_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_equipment"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       equipment_qrcodes: {
         Row: {
           active: boolean

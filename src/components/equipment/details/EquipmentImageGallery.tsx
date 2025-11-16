@@ -4,8 +4,7 @@ import {
   CardContent, 
   CardHeader, 
   CardTitle,
-  CardDescription,
-  CardFooter
+  CardDescription
 } from '@/components/ui/card';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import { Button } from '@/components/ui/button';
@@ -13,6 +12,7 @@ import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { useEquipmentPhotos } from '@/hooks/equipment/useEquipmentPhotos';
 
 interface EquipmentImageGalleryProps {
   equipment: EquipmentItem;
@@ -23,21 +23,34 @@ const EquipmentImageGallery: React.FC<EquipmentImageGalleryProps> = ({ equipment
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isZoomOpen, setIsZoomOpen] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const { photos, loading } = useEquipmentPhotos(equipment.id);
   
   useEffect(() => {
-    const equipmentImages = [];
+    const equipmentImages: string[] = [];
     
-    if (equipment.image && equipment.image !== 'nul') {
+    // Utiliser les photos de la table equipment_photos
+    if (photos && photos.length > 0) {
+      // Trier par is_primary d'abord, puis par display_order
+      const sortedPhotos = [...photos].sort((a, b) => {
+        if (a.is_primary && !b.is_primary) return -1;
+        if (!a.is_primary && b.is_primary) return 1;
+        return a.display_order - b.display_order;
+      });
+      
+      sortedPhotos.forEach(photo => equipmentImages.push(photo.photo_url));
+    } else if (equipment.image && equipment.image !== 'nul') {
+      // Fallback sur l'ancienne image unique
       equipmentImages.push(equipment.image);
     }
     
+    // Image par défaut si aucune photo
     if (equipmentImages.length === 0) {
       equipmentImages.push("https://images.unsplash.com/photo-1585911171167-1f66ea3de00c?q=80&w=500&auto=format&fit=crop");
     }
     
     setImages(equipmentImages);
     setCurrentIndex(0);
-  }, [equipment]);
+  }, [equipment, photos]);
 
   return (
     <Card className="overflow-hidden">

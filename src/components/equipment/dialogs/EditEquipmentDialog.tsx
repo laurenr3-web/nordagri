@@ -13,6 +13,8 @@ import AddCategorySection from './form/AddCategorySection';
 import { equipmentFormSchema, type EquipmentFormValues, type EquipmentStatus } from '../form/equipmentFormTypes';
 import { Form } from '@/components/ui/form';
 import { WearUnitField } from '../form/WearUnitField';
+import MultiPhotoUploader from '../form/MultiPhotoUploader';
+import { Separator } from '@/components/ui/separator';
 
 interface EditEquipmentDialogProps {
   isOpen: boolean;
@@ -123,6 +125,17 @@ const EditEquipmentDialog: React.FC<EditEquipmentDialogProps> = ({
 
             <WearUnitField form={form} />
             <ImageField form={form} />
+            
+            <Separator className="my-4" />
+            
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium">Galerie de photos</h3>
+              <p className="text-sm text-muted-foreground">
+                Ajoutez plusieurs photos pour montrer différents angles de l'équipement
+              </p>
+              <MultiPhotoUploader equipmentId={equipment.id} />
+            </div>
+            
             <NotesField form={form} />
 
             <DialogFooter>
