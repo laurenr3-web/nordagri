@@ -2,6 +2,7 @@
 import React from 'react';
 import { Sidebar, SidebarProvider, SidebarContent } from '@/components/ui/sidebar';
 import Navbar from '@/components/layout/Navbar';
+import ScrollToTopButton from '@/components/layout/ScrollToTopButton';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -21,6 +22,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         <div className="flex-1 w-full">
           {children}
         </div>
+        <ScrollToTopButton />
       </div>
     </SidebarProvider>
   );
