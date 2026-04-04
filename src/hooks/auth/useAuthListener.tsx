@@ -12,6 +12,7 @@ export function useAuthListener(
   setUser,
   setSession,
   setProfileData,
+  setLoading,
   requireAuth = true,
   redirectTo?: string
 ) {
@@ -28,6 +29,7 @@ export function useAuthListener(
       // Mise à jour synchrone de l'état
       setSession(session);
       setUser(session?.user ?? null);
+      setLoading(false);
       
       // Si l'utilisateur vient de se connecter, récupérer ses données de profil
       if (session?.user && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
@@ -70,5 +72,5 @@ export function useAuthListener(
       console.log('Cleaning up auth listener');
       authListener.subscription.unsubscribe();
     };
-  }, [navigate, location, requireAuth, redirectTo, setUser, setSession, setProfileData]);
+  }, [navigate, location, requireAuth, redirectTo, setUser, setSession, setProfileData, setLoading]);
 }
