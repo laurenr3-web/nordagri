@@ -178,19 +178,6 @@ const MaintenanceTaskDetailDialog: React.FC<MaintenanceTaskDetailDialogProps> = 
                 </div>
               )}
 
-              {(task.triggerHours || task.triggerKilometers) && (
-                <div className="flex items-center gap-3">
-                  <Gauge className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Seuil de déclenchement</p>
-                    <p className="text-sm font-medium">
-                      {task.triggerHours ? `${task.triggerHours} heures` : ''}
-                      {task.triggerHours && task.triggerKilometers ? ' / ' : ''}
-                      {task.triggerKilometers ? `${task.triggerKilometers} km` : ''}
-                    </p>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Notes */}
