@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from 'lucide-react';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { toast } from 'sonner';
+import { withPreviewToken } from '@/utils/previewRouting';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -25,13 +26,13 @@ const Auth = () => {
     // Vérifier si l'utilisateur est déjà authentifié
     if (isAuthenticated) {
       const returnPath = getReturnPath();
-      navigate(returnPath, { replace: true });
+      navigate(withPreviewToken(returnPath, location.search), { replace: true });
     }
     
     // Si nous avons un hash (confirmation d'email, reset mot de passe)
     // et que nous ne sommes pas sur /auth/callback, on redirige
     if (location.hash && location.pathname === '/auth') {
-      navigate('/auth/callback' + location.hash, { replace: true });
+      navigate(withPreviewToken('/auth/callback' + location.hash, location.search), { replace: true });
       return;
     }
     
@@ -58,7 +59,7 @@ const Auth = () => {
       <AuthForm 
         onSuccess={() => {
           const returnPath = getReturnPath();
-          navigate(returnPath);
+          navigate(withPreviewToken(returnPath, location.search));
         }} 
       />
     </div>

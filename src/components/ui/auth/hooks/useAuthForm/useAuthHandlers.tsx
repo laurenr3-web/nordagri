@@ -74,7 +74,7 @@ export const useAuthHandlers = (onSuccess?: () => void) => {
   ) => {
     try {
       // First register the user
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -89,7 +89,10 @@ export const useAuthHandlers = (onSuccess?: () => void) => {
       if (signUpError) throw signUpError;
       
       toast.success('Account created! Please check your email to verify your account.');
-      onSuccess?.();
+
+      if (data.session) {
+        onSuccess?.();
+      }
     } catch (error: any) {
       console.error('Signup error:', error);
       toast.error(error.message || 'Registration failed');

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { withPreviewToken } from '@/utils/previewRouting';
 
 /**
  * Composant de callback pour gérer la redirection après confirmation d'email
@@ -49,12 +50,12 @@ const AuthCallback = () => {
             if (errorCode === 'otp_expired') {
               setError("Le lien de vérification a expiré. Veuillez demander un nouveau lien.");
               toast.error("Le lien de vérification a expiré. Veuillez demander un nouveau lien.");
-              setTimeout(() => navigate('/auth'), 3000);
+              setTimeout(() => navigate(withPreviewToken('/auth'), { replace: true }), 3000);
               return;
             } else {
               setError(`Erreur: ${errorDescription || error}`);
               toast.error(`Erreur: ${errorDescription || error}`);
-              setTimeout(() => navigate('/auth'), 3000);
+              setTimeout(() => navigate(withPreviewToken('/auth'), { replace: true }), 3000);
               return;
             }
           }
@@ -70,7 +71,7 @@ const AuthCallback = () => {
               console.error('Session verification error:', error);
               setError("Erreur lors de la vérification de votre session: " + error.message);
               toast.error("Erreur lors de la vérification de votre session: " + error.message);
-              setTimeout(() => navigate('/auth'), 3000);
+              setTimeout(() => navigate(withPreviewToken('/auth'), { replace: true }), 3000);
               return;
             }
             
@@ -85,15 +86,15 @@ const AuthCallback = () => {
               if (type === 'recovery') {
                 // Redirection vers la page de changement de mot de passe
                 toast.success("Vous pouvez maintenant définir votre nouveau mot de passe");
-                navigate('/settings?tab=security', { replace: true });
+                navigate(withPreviewToken('/settings?tab=security'), { replace: true });
               } else if (type === 'signup' || type === 'magiclink') {
                 // L'utilisateur a vérifié son email et est maintenant connecté
                 toast.success("Email vérifié avec succès! Vous êtes maintenant connecté.");
-                navigate('/dashboard', { replace: true });
+                navigate(withPreviewToken('/dashboard'), { replace: true });
               } else {
                 // Autre type de confirmation, rediriger vers le dashboard
                 toast.success("Authentification réussie!");
-                navigate('/dashboard', { replace: true });
+                navigate(withPreviewToken('/dashboard'), { replace: true });
               }
               return;
             }
@@ -102,11 +103,11 @@ const AuthCallback = () => {
 
         // Si on arrive ici, c'est qu'on n'a pas pu traiter les paramètres d'authentification
         setError("Paramètres d'authentification manquants ou invalides");
-        setTimeout(() => navigate('/auth'), 3000);
+        setTimeout(() => navigate(withPreviewToken('/auth'), { replace: true }), 3000);
       } catch (error: any) {
         console.error('Auth callback error:', error);
         setError("Une erreur est survenue: " + error.message);
-        setTimeout(() => navigate('/auth'), 3000);
+        setTimeout(() => navigate(withPreviewToken('/auth'), { replace: true }), 3000);
       } finally {
         setProcessingAuth(false);
       }

@@ -13,6 +13,7 @@ import '@/i18n'; // i18n setup
 import { I18nextProvider } from "react-i18next";
 import i18n from "@/i18n";
 import Footer from "@/components/layout/Footer";
+import { withPreviewToken } from '@/utils/previewRouting';
 
 // Composant de chargement
 const LoadingSpinner = () => (
@@ -60,7 +61,7 @@ function App() {
                 <OfflineProvider autoSyncInterval={60000} showOfflineIndicator={true}>
                   <Suspense fallback={<LoadingSpinner />}>
                     <Routes>
-                      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                      <Route path="/" element={<Navigate to={withPreviewToken('/dashboard')} replace />} />
                       <Route path="/auth" element={<Auth />} />
                       <Route path="/auth/callback" element={<AuthCallback />} />
                       <Route path="/dashboard" element={

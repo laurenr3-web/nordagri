@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import PasswordInput from './PasswordInput';
 import LoginWarning from './LoginWarning';
+import { withPreviewToken } from '@/utils/previewRouting';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -116,7 +117,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       if (onSuccess) {
         onSuccess();
       } else {
-        navigate('/dashboard', { replace: true });
+        navigate(withPreviewToken('/dashboard'), { replace: true });
       }
     } catch (error: any) {
       console.error('Erreur d\'authentification:', error);
@@ -127,7 +128,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   };
 
   const handleForgotPassword = () => {
-    navigate('/auth?mode=reset');
+    navigate(withPreviewToken('/auth?mode=reset'));
   };
 
   // Fonction pour envoyer à nouveau l'email de confirmation
