@@ -226,21 +226,21 @@ export const MaintenanceTable: React.FC<MaintenanceTableProps> = ({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[40px]">
+                  <TableHead className="w-[36px] px-2">
                     <Checkbox
                       checked={isAllSelected}
                       onCheckedChange={toggleAll}
                       aria-label="Tout sélectionner"
                     />
                   </TableHead>
-                  <TableHead>Équipement</TableHead>
-                  <TableHead>Tâche</TableHead>
-                  <TableHead className="hidden md:table-cell">Type</TableHead>
-                  <TableHead>Échéance</TableHead>
-                  <TableHead>Priorité</TableHead>
-                  <TableHead className="hidden md:table-cell">Statut</TableHead>
-                  <TableHead className="hidden lg:table-cell">Assigné à</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
+                  <TableHead className="px-2">Équipement</TableHead>
+                  <TableHead className="px-2">Tâche</TableHead>
+                  <TableHead className="hidden md:table-cell px-2">Type</TableHead>
+                  <TableHead className="px-2">Échéance</TableHead>
+                  <TableHead className="hidden sm:table-cell px-2">Priorité</TableHead>
+                  <TableHead className="hidden md:table-cell px-2">Statut</TableHead>
+                  <TableHead className="hidden lg:table-cell px-2">Assigné à</TableHead>
+                  <TableHead className="w-[40px] px-1"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -254,7 +254,7 @@ export const MaintenanceTable: React.FC<MaintenanceTableProps> = ({
                       } ${task.id === highlightedTaskId ? 'bg-primary/10 border-l-4 border-primary' : ''}`}
                       ref={task.id === highlightedTaskId ? highlightedRowRef : null}
                     >
-                      <TableCell onClick={(e) => e.stopPropagation()}>
+                      <TableCell className="px-2" onClick={(e) => e.stopPropagation()}>
                         <Checkbox
                           checked={isSelected}
                           onCheckedChange={() => toggleSelect(task.id)}
@@ -263,44 +263,44 @@ export const MaintenanceTable: React.FC<MaintenanceTableProps> = ({
                       </TableCell>
                       <TableCell 
                         onClick={() => { setSelectedTask(task); setIsTaskDetailsOpen(true); }}
-                        className="font-medium"
+                        className="font-medium px-2 text-sm"
                       >
                         {task.equipment}
                       </TableCell>
-                      <TableCell onClick={() => { setSelectedTask(task); setIsTaskDetailsOpen(true); }}>
+                      <TableCell className="px-2 text-sm" onClick={() => { setSelectedTask(task); setIsTaskDetailsOpen(true); }}>
                         {task.title}
                       </TableCell>
                       <TableCell 
-                        className="hidden md:table-cell"
+                        className="hidden md:table-cell px-2 text-sm"
                         onClick={() => { setSelectedTask(task); setIsTaskDetailsOpen(true); }}
                       >
                         {task.type === 'preventive' ? 'Préventive' : 
                          task.type === 'corrective' ? 'Corrective' : 
                          task.type === 'condition-based' ? 'Conditionnelle' : task.type}
                       </TableCell>
-                      <TableCell onClick={() => { setSelectedTask(task); setIsTaskDetailsOpen(true); }}>
+                      <TableCell className="px-2 text-sm whitespace-nowrap" onClick={() => { setSelectedTask(task); setIsTaskDetailsOpen(true); }}>
                         {task.trigger_unit === 'hours' && task.trigger_hours
                           ? `${task.trigger_hours} h`
                           : task.trigger_unit === 'kilometers' && task.trigger_kilometers
                           ? `${task.trigger_kilometers} km`
                           : format(task.dueDate, 'dd MMM yyyy', { locale: fr })}
                       </TableCell>
-                      <TableCell onClick={() => { setSelectedTask(task); setIsTaskDetailsOpen(true); }}>
+                      <TableCell className="hidden sm:table-cell px-2" onClick={() => { setSelectedTask(task); setIsTaskDetailsOpen(true); }}>
                         {getPriorityBadge(task.priority)}
                       </TableCell>
                       <TableCell 
-                        className="hidden md:table-cell"
+                        className="hidden md:table-cell px-2"
                         onClick={() => { setSelectedTask(task); setIsTaskDetailsOpen(true); }}
                       >
                         {getStatusBadge(task)}
                       </TableCell>
                       <TableCell 
-                        className="hidden lg:table-cell"
+                        className="hidden lg:table-cell px-2 text-sm"
                         onClick={() => { setSelectedTask(task); setIsTaskDetailsOpen(true); }}
                       >
                         {task.assignedTo || 'Non assigné'}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="px-1">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="h-8 w-8 p-0 focus-visible:ring-0">
