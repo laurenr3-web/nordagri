@@ -1,27 +1,23 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useMemo, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { WidgetConfig } from './useDashboardLayout';
 import { useDashboardData } from './useDashboardData';
 
 export const useWidgetData = (widgets: WidgetConfig[], activeView: string) => {
-  const [data, setData] = useState<Record<string, any>>({});
-  const [loading, setLoading] = useState<Record<string, boolean>>({});
-  
-  // Utilise le hook existant pour récupérer toutes les données
+  const queryClient = useQueryClient();
   const dashboardData = useDashboardData();
 
-  const refetch = useCallback(async () => {
-    // Force un refetch des données
-    window.location.reload();
-  }, []);
+  const refetch = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    queryClient.invalidateQueries({ queryKey: ['interventions'] });
+    queryClient.invalidateQueries({ queryKey: ['parts'] });
+  }, [queryClient]);
 
-  useEffect(() => {
+  const data = useMemo(() => {
     const widgetData: Record<string, any> = {};
-    const widgetLoading: Record<string, boolean> = {};
 
     widgets.forEach(widget => {
-      widgetLoading[widget.id] = dashboardData.loading;
-      
       switch (widget.type) {
         case 'stats':
           widgetData[widget.id] = {
@@ -63,9 +59,16 @@ export const useWidgetData = (widgets: WidgetConfig[], activeView: string) => {
       }
     });
 
-    setData(widgetData);
-    setLoading(widgetLoading);
-  }, [widgets, dashboardData, activeView]);
+    return widgetData;
+  }, [widgets, dashboardData]);
+
+  const loading = useMemo(() => {
+    const widgetLoading: Record<string, boolean> = {};
+    widgets.forEach(widget => {
+      widgetLoading[widget.id] = dashboardData.loading;
+    });
+    return widgetLoading;
+  }, [widgets, dashboardData.loading]);
 
   return { data, loading, refetch };
 };

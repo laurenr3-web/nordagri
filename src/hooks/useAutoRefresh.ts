@@ -1,29 +1,22 @@
 
-import { useEffect, useCallback, useRef } from 'react';
+import { useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const useAutoRefresh = (interval: number) => {
-  const intervalRef = useRef<NodeJS.Timeout>();
+  const queryClient = useQueryClient();
 
   const refresh = useCallback(() => {
-    // Force un refresh de la page - simplicité pour la première version
-    window.location.reload();
-  }, []);
+    queryClient.invalidateQueries();
+  }, [queryClient]);
 
-  useEffect(() => {
-    if (interval > 0) {
-      intervalRef.current = setInterval(refresh, interval);
-      
-      return () => {
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
-        }
-      };
-    }
-  }, [interval, refresh]);
+  // Auto-refresh disabled — rely on staleTime + manual refresh
+  // If needed, uncomment:
+  // useEffect(() => {
+  //   if (interval > 0) {
+  //     const id = setInterval(refresh, interval);
+  //     return () => clearInterval(id);
+  //   }
+  // }, [interval, refresh]);
 
-  const manualRefresh = useCallback(() => {
-    refresh();
-  }, [refresh]);
-
-  return { refresh: manualRefresh };
+  return { refresh };
 };

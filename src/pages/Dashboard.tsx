@@ -1,5 +1,6 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import MainLayout from '@/ui/layouts/MainLayout';
 import { LayoutWrapper } from '@/components/layout/LayoutWrapper';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -60,6 +61,7 @@ const Dashboard = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showCreateFarm, setShowCreateFarm] = useState(false);
   const { user, profileData } = useAuthContext();
+  const queryClient = useQueryClient();
   const hasFarm = !!profileData?.farm_id;
   
   // Gestion du layout personnalisé
@@ -103,7 +105,7 @@ const Dashboard = () => {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await refetch();
-    setTimeout(() => setIsRefreshing(false), 1000);
+    setTimeout(() => setIsRefreshing(false), 500);
   };
 
   const renderWidget = (widget: WidgetConfig) => {
@@ -160,7 +162,9 @@ const Dashboard = () => {
             open={showCreateFarm}
             onOpenChange={setShowCreateFarm}
             userId={user.id}
-            onFarmCreated={() => window.location.reload()}
+            onFarmCreated={() => {
+              queryClient.invalidateQueries();
+            }}
           />
         )}
 
