@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchUserProfile } from './useProfileData';
-import { toast } from 'sonner';
+import { buildReturnPath, withPreviewToken } from '@/utils/previewRouting';
 
 /**
  * Hook for authentication session check and redirects
@@ -75,16 +75,18 @@ export function useSessionCheck(
         // Gérer les redirections uniquement si nous ne sommes pas sur une page spéciale
         else if (requireAuth && !currentSession) {
           // Stocker l'URL actuelle pour rediriger l'utilisateur après connexion
-          const currentPath = location.pathname === '/auth' ? '/dashboard' : location.pathname + location.search;
-          navigate(`/auth?returnTo=${encodeURIComponent(currentPath)}`, { replace: true });
+          const currentPath = location.pathname === '/auth'
+            ? '/dashboard'
+            : buildReturnPath(location.pathname, location.search, location.hash);
+          navigate(withPreviewToken(`/auth?returnTo=${encodeURIComponent(currentPath)}`, location.search), { replace: true });
         } else if (currentSession && location.pathname === '/auth' && !location.hash && !location.search.includes('reset=true')) {
           // Rediriger depuis la page d'auth vers la destination spécifiée
           // Seulement si nous ne sommes pas sur une confirmation d'email ou réinitialisation
           const returnPath = new URLSearchParams(location.search).get('returnTo') || '/dashboard';
-          navigate(returnPath, { replace: true });
+          navigate(withPreviewToken(returnPath, location.search), { replace: true });
         } else if (currentSession && location.pathname === '/') {
           // Rediriger depuis la racine vers le dashboard
-          navigate('/dashboard', { replace: true });
+          navigate(withPreviewToken('/dashboard', location.search), { replace: true });
         }
       } catch (error) {
         console.error('Erreur lors de la vérification de la session:', error);

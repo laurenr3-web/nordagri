@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { Loader2 } from 'lucide-react';
+import { buildReturnPath, withPreviewToken } from '@/utils/previewRouting';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -33,9 +34,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   // Rediriger vers la page d'authentification si non authentifié
   if (!isAuthenticated) {
-    const returnPath = location.pathname + location.search;
+    const returnPath = buildReturnPath(location.pathname, location.search, location.hash);
     console.log(`Redirection vers /auth - utilisateur non authentifié, returnPath: ${returnPath}`);
-    return <Navigate to={`/auth?returnTo=${encodeURIComponent(returnPath)}`} replace />;
+    return <Navigate to={withPreviewToken(`/auth?returnTo=${encodeURIComponent(returnPath)}`, location.search)} replace />;
   }
 
   // Rendre les enfants si authentifié

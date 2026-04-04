@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchUserProfile } from './useProfileData';
 import { toast } from 'sonner';
+import { buildReturnPath, withPreviewToken } from '@/utils/previewRouting';
 
 /**
  * Hook to listen for authentication state changes
@@ -57,13 +58,15 @@ export function useAuthListener(
           const params = new URLSearchParams(location.search);
           const returnPath = params.get('returnTo') || redirectTo || '/dashboard';
           console.log(`Redirecting after ${event} to ${returnPath}`);
-          navigate(returnPath, { replace: true });
+          navigate(withPreviewToken(returnPath, location.search), { replace: true });
         } 
       } else if (requireAuth && !session && event === 'SIGNED_OUT') {
         // L'utilisateur s'est déconnecté et cette route nécessite une authentification
         console.log('User signed out, redirecting to auth page');
-        const returnPath = location.pathname === '/auth' ? '/dashboard' : location.pathname + location.search;
-        navigate(`/auth?returnTo=${encodeURIComponent(returnPath)}`, { replace: true });
+        const returnPath = location.pathname === '/auth'
+          ? '/dashboard'
+          : buildReturnPath(location.pathname, location.search, location.hash);
+        navigate(withPreviewToken(`/auth?returnTo=${encodeURIComponent(returnPath)}`, location.search), { replace: true });
       }
     });
     
