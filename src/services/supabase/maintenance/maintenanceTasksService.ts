@@ -25,14 +25,14 @@ export class MaintenanceTasksService {
       is_recurrent: task.is_recurrent || false,
       recurrence_interval: task.recurrence_interval,
       recurrence_unit: task.recurrence_unit,
-      equipment_current_value: task.equipment?.valeur_actuelle ?? undefined,
+      equipment_current_value: task.equipment_ref?.valeur_actuelle ?? undefined,
     };
   }
 
   async getTasks(): Promise<MaintenanceTask[]> {
     const { data, error } = await supabase
       .from('maintenance_tasks')
-      .select('*, equipment:equipment_id(valeur_actuelle)')
+      .select('*, equipment_ref:equipment_id(valeur_actuelle)')
       .order('due_date', { ascending: true });
 
     if (error) {
@@ -125,7 +125,7 @@ export class MaintenanceTasksService {
   async getTasksForEquipment(equipmentId: number): Promise<MaintenanceTask[]> {
     const { data, error } = await supabase
       .from('maintenance_tasks')
-      .select('*, equipment:equipment_id(valeur_actuelle)')
+      .select('*, equipment_ref:equipment_id(valeur_actuelle)')
       .eq('equipment_id', equipmentId)
       .order('due_date', { ascending: true });
 
