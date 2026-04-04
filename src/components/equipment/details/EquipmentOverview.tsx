@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { formatDate, getStatusColor, getStatusText } from '../utils/statusUtils';
-import { EquipmentWearDisplay } from '../wear/EquipmentWearDisplay';
+
 
 interface EquipmentDetailsProps {
   equipment: any;
@@ -120,10 +120,6 @@ export function EquipmentOverview({ equipment }: { equipment: any }) {
         </CardContent>
       </Card>
 
-      {/* Add the EquipmentWearDisplay component */}
-      {hasData(equipment.unite_d_usure) && (
-        <EquipmentWearDisplay equipment={equipment} />
-      )}
       
       {/* Only show notes card if notes exist */}
       {hasData(equipment.notes) && (
