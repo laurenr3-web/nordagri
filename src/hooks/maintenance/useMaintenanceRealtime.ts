@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -12,10 +12,9 @@ export const useMaintenanceRealtime = (
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    console.log("Setting up maintenance_tasks realtime subscription");
-    // Configure realtime subscription for the maintenance_tasks table
+    const channelName = `maintenance_changes_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const channel = supabase
-      .channel('maintenance_changes')
+      .channel(channelName)
       .on(
         'postgres_changes',
         { 
