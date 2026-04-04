@@ -12,7 +12,6 @@ import {
   LayoutDashboard, Wrench, History, Package, Fuel, BarChart3, Clock, QrCode 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 interface EquipmentTabsProps {
   equipment: any;
@@ -25,9 +24,9 @@ const tabs = [
   { value: 'history', label: 'Historique', icon: History },
   { value: 'parts', label: 'Pièces', icon: Package },
   { value: 'fuel', label: 'Carburant', icon: Fuel },
-  { value: 'performance', label: 'Performance', icon: BarChart3 },
+  { value: 'performance', label: 'Perf.', icon: BarChart3 },
   { value: 'timeTracking', label: 'Temps', icon: Clock },
-  { value: 'qrcode', label: 'QR Code', icon: QrCode },
+  { value: 'qrcode', label: 'QR', icon: QrCode },
 ];
 
 const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment }) => {
@@ -49,34 +48,29 @@ const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment }) => {
 
   return (
     <div className="w-full space-y-4">
-      {/* Scrollable tab bar */}
-      <ScrollArea className="w-full">
-        <div className="flex gap-1.5 pb-1 min-w-max">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.value;
-            return (
-              <button
-                key={tab.value}
-                onClick={() => setActiveTab(tab.value)}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap",
-                  "hover:bg-accent/60",
-                  isActive
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground"
-                )}
-              >
-                <Icon className="h-4 w-4 shrink-0" />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
-        <ScrollBar orientation="horizontal" className="h-1.5" />
-      </ScrollArea>
+      <div className="grid grid-cols-4 gap-1.5">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.value;
+          return (
+            <button
+              key={tab.value}
+              onClick={() => setActiveTab(tab.value)}
+              className={cn(
+                "flex flex-col items-center justify-center gap-1 rounded-lg py-2 px-1 text-xs font-medium transition-all",
+                "hover:bg-accent/60",
+                isActive
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground bg-muted/40"
+              )}
+            >
+              <Icon className="h-4 w-4 shrink-0" />
+              <span className="truncate max-w-full">{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
 
-      {/* Content */}
       <div>{renderContent()}</div>
     </div>
   );
