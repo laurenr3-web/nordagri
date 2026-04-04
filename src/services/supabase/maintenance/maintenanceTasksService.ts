@@ -156,6 +156,13 @@ import { MaintenanceTask, MaintenanceStatus, MaintenanceType, MaintenancePriorit
     completedAtHours?: number;
     completedAtKm?: number;
   }): Promise<void> {
+    // First, fetch the task to check recurrence
+    const { data: taskData } = await supabase
+      .from('maintenance_tasks')
+      .select('*')
+      .eq('id', taskId)
+      .single();
+
     const updateData: any = {
       status: 'completed',
       completed_date: completionData.completedDate ? completionData.completedDate.toISOString() : new Date().toISOString()
@@ -164,19 +171,15 @@ import { MaintenanceTask, MaintenanceStatus, MaintenanceType, MaintenancePriorit
     if (completionData.actualDuration !== undefined) {
       updateData.actual_duration = completionData.actualDuration;
     }
-
     if (completionData.notes) {
       updateData.notes = completionData.notes;
     }
-
     if (completionData.technician) {
       updateData.technician = completionData.technician;
     }
-
     if (completionData.completedAtHours !== undefined) {
       updateData.completed_at_hours = completionData.completedAtHours;
     }
-
     if (completionData.completedAtKm !== undefined) {
       updateData.completed_at_km = completionData.completedAtKm;
     }
@@ -189,6 +192,71 @@ import { MaintenanceTask, MaintenanceStatus, MaintenanceType, MaintenancePriorit
     if (error) {
       console.error('Error completing task:', error);
       throw new Error('Failed to complete maintenance task');
+    }
+
+    // If the task is recurrent, create the next one
+    if (taskData && taskData.is_recurrent && taskData.recurrence_interval) {
+      await this.createNextRecurringTask(taskData, completionData);
+    }
+  }
+
+  private async createNextRecurringTask(completedTask: any, completionData: {
+    completedAtHours?: number;
+    completedAtKm?: number;
+  }): Promise<void> {
+    const interval = completedTask.recurrence_interval;
+    const recurrenceUnit = completedTask.recurrence_unit || completedTask.trigger_unit;
+    
+    let newTriggerHours = completedTask.trigger_hours;
+    let newTriggerKm = completedTask.trigger_kilometers;
+    let newDueDate = new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 10); // far future default
+
+    if (recurrenceUnit === 'hours' || completedTask.trigger_unit === 'hours') {
+      // Use the completed hours as base, add interval
+      const baseHours = completionData.completedAtHours ?? completedTask.trigger_hours ?? 0;
+      newTriggerHours = baseHours + interval;
+    } else if (recurrenceUnit === 'kilometers' || completedTask.trigger_unit === 'kilometers') {
+      const baseKm = completionData.completedAtKm ?? completedTask.trigger_kilometers ?? 0;
+      newTriggerKm = baseKm + interval;
+    } else {
+      // Date-based recurrence
+      const baseDate = new Date();
+      baseDate.setDate(baseDate.getDate() + interval);
+      newDueDate = baseDate;
+    }
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const currentUserId = sessionData.session?.user?.id;
+    if (!currentUserId) return;
+
+    const newTask = {
+      title: completedTask.title,
+      equipment: completedTask.equipment,
+      equipment_id: completedTask.equipment_id,
+      type: completedTask.type,
+      status: 'scheduled',
+      priority: completedTask.priority,
+      due_date: newDueDate.toISOString(),
+      estimated_duration: completedTask.estimated_duration,
+      assigned_to: completedTask.assigned_to,
+      notes: `Tâche récurrente générée automatiquement`,
+      trigger_unit: completedTask.trigger_unit,
+      trigger_hours: newTriggerHours,
+      trigger_kilometers: newTriggerKm,
+      owner_id: currentUserId,
+      is_recurrent: true,
+      recurrence_interval: interval,
+      recurrence_unit: recurrenceUnit,
+    };
+
+    console.log('Creating next recurring maintenance task:', newTask);
+
+    const { error } = await supabase
+      .from('maintenance_tasks')
+      .insert(newTask);
+
+    if (error) {
+      console.error('Error creating next recurring task:', error);
     }
   }
 
