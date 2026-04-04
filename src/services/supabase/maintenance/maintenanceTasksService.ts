@@ -120,26 +120,7 @@ export class MaintenanceTasksService {
       throw new Error('Failed to fetch maintenance tasks for equipment');
     }
 
-    return data.map(task => ({
-      id: task.id,
-      title: task.title,
-      equipment: task.equipment,
-      equipmentId: task.equipment_id,
-      type: task.type as MaintenanceType,
-      status: task.status as MaintenanceStatus,
-      priority: task.priority as MaintenancePriority,
-      dueDate: new Date(task.due_date),
-      completedDate: task.completed_date ? new Date(task.completed_date) : undefined,
-      engineHours: task.estimated_duration || 0,
-      actualDuration: task.actual_duration,
-      assignedTo: task.assigned_to || '',
-      notes: task.notes || '',
-      trigger_unit: task.trigger_unit,
-      trigger_hours: task.trigger_hours,
-      trigger_kilometers: task.trigger_kilometers,
-      completed_at_hours: task.completed_at_hours,
-      completed_at_km: task.completed_at_km,
-    }));
+    return data.map(task => this.mapTaskFromDb(task));
   }
 
   async completeTask(taskId: number, completionData: {

@@ -23,6 +23,9 @@ export interface MaintenanceTask {
   trigger_kilometers?: number;
   completed_at_hours?: number;
   completed_at_km?: number;
+  is_recurrent?: boolean;
+  recurrence_interval?: number;
+  recurrence_unit?: string;
 }
 
 export interface MaintenanceFormValues {
