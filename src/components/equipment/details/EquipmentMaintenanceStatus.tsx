@@ -129,7 +129,7 @@ const EquipmentMaintenanceStatus: React.FC<EquipmentMaintenanceStatusProps> = ({
               return (
                 <button
                   key={task.id}
-                  onClick={() => navigate(`/equipment/${equipment.id}`, { state: { tab: 'maintenance-tab' } })}
+                  onClick={() => setSelectedTask(task)}
                   className={`w-full text-left rounded-lg border p-3 transition-colors hover:bg-accent/50 ${
                     overdue ? 'border-red-300 bg-red-50 dark:bg-red-950/20 dark:border-red-800' : ''
                   }`}
