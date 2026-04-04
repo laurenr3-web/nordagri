@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import AddMaintenanceDialog from '@/components/maintenance/dialogs/AddMaintenanceDialog';
 import { maintenanceService } from '@/services/supabase/maintenanceService';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import MaintenanceTaskDetailDialog from '@/components/maintenance/dialogs/MaintenanceTaskDetailDialog';
 
 interface EquipmentMaintenanceStatusProps {
   equipment: EquipmentItem;
