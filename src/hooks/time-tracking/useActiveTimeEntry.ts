@@ -12,6 +12,8 @@ export function useActiveTimeEntry() {
   const [error, setError] = useState<Error | null>(null);
   const setTimeTracking = useGlobalStore(state => state.setTimeTracking);
 
+  const [channelId] = useState(() => `time_sessions_changes_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`);
+
   const updateCurrentDuration = (entry: TimeEntry) => {
     if (entry && entry.start_time) {
       const start = new Date(entry.start_time);
@@ -83,7 +85,7 @@ export function useActiveTimeEntry() {
     // Set up a realtime subscription to listen for changes to time_sessions
     // We keep this subscription as it's critical for active time entries
     const channel = supabase
-      .channel('time_sessions_changes')
+      .channel(channelId)
       .on('postgres_changes', 
         {
           event: '*',
