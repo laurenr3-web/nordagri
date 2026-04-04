@@ -26,15 +26,18 @@ const MaintenanceTaskDetailDialog: React.FC<MaintenanceTaskDetailDialogProps> = 
 
   const dueDate = new Date(task.dueDate);
   const triggerUnit = task.trigger_unit || 'none';
-  
-  // Determine overdue based on trigger type
+  const rawTriggerHours = task.triggerHours ?? task.trigger_hours;
+  const rawTriggerKilometers = task.triggerKilometers ?? task.trigger_kilometers;
+  const triggerHours = rawTriggerHours != null ? Number(rawTriggerHours) : null;
+  const triggerKilometers = rawTriggerKilometers != null ? Number(rawTriggerKilometers) : null;
+  const hasHoursTrigger = triggerUnit === 'hours' && triggerHours !== null && Number.isFinite(triggerHours);
+  const hasKilometersTrigger = triggerUnit === 'kilometers' && triggerKilometers !== null && Number.isFinite(triggerKilometers);
+  const formatCounterTarget = (value: number) => Number.isInteger(value)
+    ? value.toString()
+    : value.toLocaleString('fr-CA', { maximumFractionDigits: 1 });
+
   let isOverdue = false;
-  if (triggerUnit === 'hours' && task.triggerHours) {
-    // We don't have equipment hours here, so check if task was flagged
-    isOverdue = false; // Will be shown via the card's logic
-  } else if (triggerUnit === 'kilometers' && task.triggerKilometers) {
-    isOverdue = false;
-  } else {
+  if (!hasHoursTrigger && !hasKilometersTrigger) {
     isOverdue = dueDate < new Date();
   }
 
@@ -139,23 +142,23 @@ const MaintenanceTaskDetailDialog: React.FC<MaintenanceTaskDetailDialogProps> = 
             {/* Info rows */}
             <div className="space-y-3 rounded-lg border p-3">
               {/* Show counter for hour/km tasks, date for date-based */}
-              {(task.trigger_unit === 'hours' && task.triggerHours) ? (
+              {hasHoursTrigger ? (
                 <div className="flex items-center gap-3">
                   <Gauge className="h-4 w-4 text-muted-foreground shrink-0" />
                   <div>
-                    <p className="text-xs text-muted-foreground">À effectuer au compteur</p>
+                    <p className="text-xs text-muted-foreground">Échéance</p>
                     <p className={`text-sm font-medium ${isOverdue ? 'text-destructive' : ''}`}>
-                      {task.triggerHours} heures
+                      {formatCounterTarget(triggerHours as number)} h moteur
                     </p>
                   </div>
                 </div>
-              ) : (task.trigger_unit === 'kilometers' && task.triggerKilometers) ? (
+              ) : hasKilometersTrigger ? (
                 <div className="flex items-center gap-3">
                   <Gauge className="h-4 w-4 text-muted-foreground shrink-0" />
                   <div>
-                    <p className="text-xs text-muted-foreground">À effectuer au compteur</p>
+                    <p className="text-xs text-muted-foreground">Échéance</p>
                     <p className={`text-sm font-medium ${isOverdue ? 'text-destructive' : ''}`}>
-                      {task.triggerKilometers} km
+                      {formatCounterTarget(triggerKilometers as number)} km
                     </p>
                   </div>
                 </div>
