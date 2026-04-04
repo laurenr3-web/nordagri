@@ -17,7 +17,7 @@ export function usePartsRealtime() {
     try {
       // Only react to real database changes instead of using refetchInterval
       const channel = supabase
-        .channel('parts-changes')
+        .channel(`parts-changes-${Date.now()}-${Math.random().toString(36).slice(2,7)}`)
         .on(
           'postgres_changes',
           {
