@@ -1,6 +1,7 @@
 
 import { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Location } from 'react-router-dom';
+import { useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchUserProfile } from './useProfileData';
 import { toast } from 'sonner';
@@ -19,54 +20,50 @@ export function useAuthListener(
 ) {
   const navigate = useNavigate();
   const location = useLocation();
+  const locationRef = useRef<Location>(location);
+  locationRef.current = location;
 
   useEffect(() => {
     console.log('Setting up auth listener');
     
     // Configurer l'abonnement aux changements d'état d'authentification
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log(`Auth state changed: ${event}`, session?.user?.id ? 'User is logged in' : 'No user');
-      
-      // Mise à jour synchrone de l'état
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
       
-      // Si l'utilisateur vient de se connecter, récupérer ses données de profil
       if (session?.user && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
-        // Utilisez setTimeout pour éviter les blocages potentiels
         setTimeout(() => {
           fetchUserProfile(session.user.id).then(data => {
             if (data) {
               setProfileData(data);
-              toast.success(`Bienvenue ${data.first_name || ''}!`);
+              if (event === 'SIGNED_IN') {
+                toast.success(`Bienvenue ${data.first_name || ''}!`);
+              }
             }
           });
         }, 0);
         
-        // Ne pas rediriger si nous sommes sur une page spéciale d'authentification
+        const loc = locationRef.current;
         const isSpecialAuthPath = 
-          location.pathname === '/auth/callback' || 
-          location.pathname.startsWith('/confirm') || 
-          (location.pathname === '/auth' && 
-           (location.hash || 
-            location.search.includes('reset=true') || 
-            location.search.includes('verification=true')));
+          loc.pathname === '/auth/callback' || 
+          loc.pathname.startsWith('/confirm') || 
+          (loc.pathname === '/auth' && 
+           (loc.hash || 
+            loc.search.includes('reset=true') || 
+            loc.search.includes('verification=true')));
         
-        // Rediriger l'utilisateur si spécifié et sur la page d'auth (et pas sur une page spéciale)
-        if (location.pathname === '/auth' && !isSpecialAuthPath) {
-          const params = new URLSearchParams(location.search);
+        if (loc.pathname === '/auth' && !isSpecialAuthPath) {
+          const params = new URLSearchParams(loc.search);
           const returnPath = params.get('returnTo') || redirectTo || '/dashboard';
-          console.log(`Redirecting after ${event} to ${returnPath}`);
-          navigate(withPreviewToken(returnPath, location.search), { replace: true });
+          navigate(withPreviewToken(returnPath, loc.search), { replace: true });
         } 
       } else if (requireAuth && !session && event === 'SIGNED_OUT') {
-        // L'utilisateur s'est déconnecté et cette route nécessite une authentification
-        console.log('User signed out, redirecting to auth page');
-        const returnPath = location.pathname === '/auth'
+        const loc = locationRef.current;
+        const returnPath = loc.pathname === '/auth'
           ? '/dashboard'
-          : buildReturnPath(location.pathname, location.search, location.hash);
-        navigate(withPreviewToken(`/auth?returnTo=${encodeURIComponent(returnPath)}`, location.search), { replace: true });
+          : buildReturnPath(loc.pathname, loc.search, loc.hash);
+        navigate(withPreviewToken(`/auth?returnTo=${encodeURIComponent(returnPath)}`, loc.search), { replace: true });
       }
     });
     
@@ -75,5 +72,5 @@ export function useAuthListener(
       console.log('Cleaning up auth listener');
       authListener.subscription.unsubscribe();
     };
-  }, [navigate, location, requireAuth, redirectTo, setUser, setSession, setProfileData, setLoading]);
+  }, []); // Run once — location accessed via ref
 }
