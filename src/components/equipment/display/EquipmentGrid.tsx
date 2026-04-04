@@ -40,10 +40,11 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({
           >
             <div className="relative h-40 bg-muted/30">
               {item.image ? (
-                <img
-                  src={item.image}
+                <SignedImage
+                  storagePath={item.image}
                   alt={item.name}
                   className="h-full w-full object-contain"
+                  fallback={<EquipmentImageFallback item={item} />}
                 />
               ) : (
                 <EquipmentImageFallback item={item} />
