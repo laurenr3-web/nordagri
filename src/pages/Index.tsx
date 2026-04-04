@@ -18,7 +18,7 @@ const Index = () => {
   };
 
   // Afficher le diagnostic automatiquement si on utilise les fallbacks
-  const usingFallbacks = !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const usingFallbacks = !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
   return (
     <MainLayout>
