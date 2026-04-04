@@ -255,10 +255,10 @@ export const MaintenanceTable: React.FC<MaintenanceTableProps> = ({
                          task.type === 'condition-based' ? 'Conditionnelle' : task.type}
                       </TableCell>
                       <TableCell onClick={() => { setSelectedTask(task); setIsTaskDetailsOpen(true); }}>
-                        {task.triggerUnit === 'hours' && task.triggerHours
-                          ? `${task.triggerHours} h`
-                          : task.triggerUnit === 'kilometers' && task.triggerKilometers
-                          ? `${task.triggerKilometers} km`
+                        {task.trigger_unit === 'hours' && task.trigger_hours
+                          ? `${task.trigger_hours} h`
+                          : task.trigger_unit === 'kilometers' && task.trigger_kilometers
+                          ? `${task.trigger_kilometers} km`
                           : format(task.dueDate, 'dd MMM yyyy', { locale: fr })}
                       </TableCell>
                       <TableCell onClick={() => { setSelectedTask(task); setIsTaskDetailsOpen(true); }}>
