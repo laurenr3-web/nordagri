@@ -8,8 +8,8 @@ export const ConfigurationDiagnostic: React.FC = () => {
   const isDev = import.meta.env.DEV;
   const mode = import.meta.env.MODE;
   const hasEnvUrl = !!import.meta.env.VITE_SUPABASE_URL;
-  const hasEnvKey = !!import.meta.env.VITE_SUPABASE_ANON_KEY;
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://cagmgtmeljxykyngxxmj.supabase.co';
+  const hasEnvKey = !!import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
   
   const isValidUrl = supabaseUrl && supabaseUrl.includes('supabase.co');
   const usingFallbacks = !hasEnvUrl || !hasEnvKey;
@@ -36,7 +36,7 @@ export const ConfigurationDiagnostic: React.FC = () => {
           Diagnostic de configuration
           {usingFallbacks && (
             <Badge variant="outline" className="text-yellow-600">
-              Utilise les valeurs par défaut
+              Configuration manquante
             </Badge>
           )}
         </CardTitle>
@@ -72,29 +72,7 @@ export const ConfigurationDiagnostic: React.FC = () => {
               <StatusIcon status={getStatus(isValidUrl)} />
             </div>
           </div>
-
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Configuration de fallback</span>
-            <div className="flex items-center gap-2">
-              <Badge variant={usingFallbacks ? "secondary" : "default"}>
-                {usingFallbacks ? "Active" : "Inactive"}
-              </Badge>
-              <StatusIcon status={usingFallbacks ? "warning" : "ok"} />
-            </div>
-          </div>
         </div>
-
-        {usingFallbacks && (
-          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-sm text-yellow-800">
-              <strong>Attention :</strong> L'application utilise des valeurs par défaut car les variables d'environnement 
-              VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY ne sont pas configurées sur votre plateforme de déploiement.
-            </p>
-            <p className="text-sm text-yellow-700 mt-2">
-              Pour résoudre ce problème en production, configurez ces variables sur votre plateforme de déploiement.
-            </p>
-          </div>
-        )}
 
         <div className="mt-4 text-xs text-gray-500 space-y-1">
           <p>Mode: {mode}</p>
