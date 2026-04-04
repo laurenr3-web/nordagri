@@ -714,9 +714,12 @@ export type Database = {
           equipment_id: number | null
           estimated_duration: number | null
           id: number
+          is_recurrent: boolean | null
           notes: string | null
           owner_id: string
           priority: string | null
+          recurrence_interval: number | null
+          recurrence_unit: string | null
           status: string | null
           technician: string | null
           title: string
@@ -738,9 +741,12 @@ export type Database = {
           equipment_id?: number | null
           estimated_duration?: number | null
           id?: number
+          is_recurrent?: boolean | null
           notes?: string | null
           owner_id: string
           priority?: string | null
+          recurrence_interval?: number | null
+          recurrence_unit?: string | null
           status?: string | null
           technician?: string | null
           title: string
@@ -762,9 +768,12 @@ export type Database = {
           equipment_id?: number | null
           estimated_duration?: number | null
           id?: number
+          is_recurrent?: boolean | null
           notes?: string | null
           owner_id?: string
           priority?: string | null
+          recurrence_interval?: number | null
+          recurrence_unit?: string | null
           status?: string | null
           technician?: string | null
           title?: string
