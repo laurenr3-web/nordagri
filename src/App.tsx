@@ -29,13 +29,14 @@ const LoadingSpinner = () => (
   </div>
 );
 
+import EquipmentDetail from '@/pages/EquipmentDetail';
+import Settings from '@/pages/Settings';
+import TimeEntryDetail from '@/pages/TimeEntryDetail';
+import TimeTrackingStatistics from '@/pages/TimeTrackingStatistics';
+
 // Pages principales chargées eagerly pour éviter les délais
 
 // Pages secondaires chargées de manière asynchrone
-const EquipmentDetail = lazy(() => import('@/pages/EquipmentDetail'));
-const Settings = lazy(() => import('@/pages/Settings'));
-const TimeEntryDetail = lazy(() => import('@/pages/TimeEntryDetail'));
-const TimeTrackingStatistics = lazy(() => import('@/pages/TimeTrackingStatistics'));
 const AuthCallback = lazy(() => import('@/pages/Auth/Callback'));
 const ScanRedirect = lazy(() => import('@/pages/ScanRedirect'));
 const LegalPage = lazy(() => import('@/pages/Legal'));
