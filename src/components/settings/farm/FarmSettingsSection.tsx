@@ -5,10 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Save, Download, FileDown } from 'lucide-react';
+import { Save, Download, FileDown, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuthContext } from '@/providers/AuthProvider';
+import { CreateFarmDialog } from '@/components/farm/CreateFarmDialog';
 
 /**
  * Composant pour la gestion des paramètres de la ferme
@@ -18,6 +19,8 @@ export function FarmSettingsSection() {
   const [farmName, setFarmName] = useState('');
   const [farmId, setFarmId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showCreateFarm, setShowCreateFarm] = useState(false);
+  const [noFarm, setNoFarm] = useState(false);
   
   // Modules toggle states
   const [moduleToggles, setModuleToggles] = useState({
@@ -42,7 +45,10 @@ export function FarmSettingsSection() {
           .single();
         
         if (profileError) throw profileError;
-        if (!profileData?.farm_id) return;
+        if (!profileData?.farm_id) {
+          setNoFarm(true);
+          return;
+        }
         
         setFarmId(profileData.farm_id);
         
@@ -140,12 +146,46 @@ export function FarmSettingsSection() {
     }));
   };
   
+  const handleFarmCreated = async (newFarmId: string) => {
+    setFarmId(newFarmId);
+    setNoFarm(false);
+    // Reload farm data
+    const { data: farmData } = await supabase
+      .from('farms')
+      .select('name')
+      .eq('id', newFarmId)
+      .single();
+    if (farmData) setFarmName(farmData.name || '');
+    window.location.reload();
+  };
+
   return (
     <SettingsSection 
       title="Paramètres de la ferme" 
       description="Configurez les paramètres liés à votre exploitation agricole"
     >
       <div className="space-y-6">
+        {noFarm && !farmId && (
+          <div className="rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 p-6 text-center space-y-3">
+            <p className="text-muted-foreground">
+              Vous n'avez pas encore de ferme. Créez-en une pour commencer à utiliser l'application.
+            </p>
+            <Button onClick={() => setShowCreateFarm(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Créer ma ferme
+            </Button>
+          </div>
+        )}
+
+        {user && (
+          <CreateFarmDialog
+            open={showCreateFarm}
+            onOpenChange={setShowCreateFarm}
+            userId={user.id}
+            onFarmCreated={handleFarmCreated}
+          />
+        )}
+
         {/* Nom de la ferme */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
