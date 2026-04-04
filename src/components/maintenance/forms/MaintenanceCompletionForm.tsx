@@ -1,14 +1,14 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { CalendarIcon, Clock, Gauge } from 'lucide-react';
+import { CalendarIcon, Clock, Gauge, Plus, X } from 'lucide-react';
 
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
@@ -17,7 +17,6 @@ import { MaintenanceTask } from '@/hooks/maintenance/maintenanceSlice';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 
-// Schéma de validation pour le formulaire de complétion de maintenance
 const maintenanceCompletionSchema = z.object({
   completedDate: z.date(),
   actualDuration: z.number().min(0, "La durée doit être positive"),
@@ -26,9 +25,9 @@ const maintenanceCompletionSchema = z.object({
   completedAtHours: z.number().min(0).optional(),
   completedAtKm: z.number().min(0).optional(),
   partsReplaced: z.array(z.object({
-    id: z.string().optional(),
-    name: z.string(),
-    quantity: z.number().min(1, "La quantité doit être d'au moins 1")
+    name: z.string().min(1),
+    quantity: z.number().min(1),
+    partNumber: z.string().optional(),
   })).optional()
 });
 
@@ -45,51 +44,55 @@ export default function MaintenanceCompletionForm({
   onSubmit, 
   isSubmitting = false 
 }: MaintenanceCompletionFormProps) {
-  // Définir les valeurs par défaut
   const triggerUnit = task.trigger_unit || 'none';
+  const [parts, setParts] = useState<{ name: string; quantity: number; partNumber: string }[]>([]);
   
   const defaultValues: Partial<MaintenanceCompletionFormValues> = {
     completedDate: new Date(),
     actualDuration: task.engineHours,
-    notes: `Maintenance "${task.title}" complétée pour l'équipement ${task.equipment}.`,
+    notes: '',
     technician: task.assignedTo || '',
     completedAtHours: triggerUnit === 'hours' ? (task.trigger_hours || 0) : undefined,
     completedAtKm: triggerUnit === 'kilometers' ? (task.trigger_kilometers || 0) : undefined,
     partsReplaced: []
   };
 
-  // Initialiser le formulaire avec les valeurs par défaut et le schéma de validation
   const form = useForm<MaintenanceCompletionFormValues>({
     resolver: zodResolver(maintenanceCompletionSchema),
     defaultValues,
   });
 
-  // Gestionnaire de soumission du formulaire
+  const addPart = () => {
+    setParts([...parts, { name: '', quantity: 1, partNumber: '' }]);
+  };
+
+  const removePart = (index: number) => {
+    setParts(parts.filter((_, i) => i !== index));
+  };
+
+  const updatePart = (index: number, field: string, value: string | number) => {
+    const updated = [...parts];
+    updated[index] = { ...updated[index], [field]: value };
+    setParts(updated);
+  };
+
   const handleSubmit = (values: MaintenanceCompletionFormValues) => {
-    onSubmit(values);
+    onSubmit({ ...values, partsReplaced: parts.length > 0 ? parts : undefined });
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <div className="bg-secondary/30 p-4 rounded-md mb-4">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
+        <div className="bg-secondary/30 p-3 rounded-md">
           <h3 className="text-sm font-medium mb-2">Détails de la tâche</h3>
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label className="text-xs text-muted-foreground">Titre</Label>
-              <p className="font-medium">{task.title}</p>
+              <p className="font-medium text-sm">{task.title}</p>
             </div>
             <div>
               <Label className="text-xs text-muted-foreground">Équipement</Label>
-              <p className="font-medium">{task.equipment}</p>
-            </div>
-            <div>
-              <Label className="text-xs text-muted-foreground">Type</Label>
-              <p className="font-medium capitalize">{task.type}</p>
-            </div>
-            <div>
-              <Label className="text-xs text-muted-foreground">Priorité</Label>
-              <p className="font-medium capitalize">{task.priority}</p>
+              <p className="font-medium text-sm">{task.equipment}</p>
             </div>
           </div>
         </div>
@@ -97,7 +100,6 @@ export default function MaintenanceCompletionForm({
         <Separator />
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {/* Date de complétion */}
           <FormField
             control={form.control}
             name="completedDate"
@@ -108,26 +110,16 @@ export default function MaintenanceCompletionForm({
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
-                        variant={"outline"}
+                        variant="outline"
                         className={`w-full pl-3 text-left font-normal flex justify-between items-center ${!field.value ? "text-muted-foreground" : ""}`}
                       >
-                        {field.value ? (
-                          format(field.value, "d MMMM yyyy", { locale: fr })
-                        ) : (
-                          <span>Choisir une date</span>
-                        )}
+                        {field.value ? format(field.value, "d MMMM yyyy", { locale: fr }) : <span>Choisir une date</span>}
                         <CalendarIcon className="h-4 w-4 ml-2" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      initialFocus
-                      locale={fr}
-                    />
+                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus locale={fr} />
                   </PopoverContent>
                 </Popover>
                 <FormMessage />
@@ -135,7 +127,6 @@ export default function MaintenanceCompletionForm({
             )}
           />
 
-          {/* Durée réelle */}
           <FormField
             control={form.control}
             name="actualDuration"
@@ -144,25 +135,15 @@ export default function MaintenanceCompletionForm({
                 <FormLabel>Durée réelle (heures)</FormLabel>
                 <FormControl>
                   <div className="flex items-center">
-                    <Input 
-                      type="number" 
-                      min="0" 
-                      step="0.5"
-                      {...field} 
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                    />
+                    <Input type="number" min="0" step="0.5" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)} />
                     <Clock className="w-4 h-4 text-muted-foreground ml-2" />
                   </div>
                 </FormControl>
-                <FormDescription>
-                  Durée réelle passée sur l'intervention
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Technicien */}
           <FormField
             control={form.control}
             name="technician"
@@ -170,14 +151,13 @@ export default function MaintenanceCompletionForm({
               <FormItem>
                 <FormLabel>Technicien</FormLabel>
                 <FormControl>
-                  <Input placeholder="Nom du technicien qui a réalisé la maintenance" {...field} />
+                  <Input placeholder="Nom du technicien" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Compteur heures */}
           {(triggerUnit === 'hours' || triggerUnit === 'none') && (
             <FormField
               control={form.control}
@@ -186,28 +166,21 @@ export default function MaintenanceCompletionForm({
                 <FormItem>
                   <FormLabel className="flex items-center gap-1.5">
                     <Gauge className="h-4 w-4 text-primary" />
-                    Compteur heures moteur
+                    Heures moteur à l'entretien
                   </FormLabel>
                   <FormControl>
                     <Input 
-                      type="number" 
-                      min="0" 
-                      step="1"
-                      placeholder="Ex: 1250"
+                      type="number" min="0" step="1" placeholder="Ex: 1250"
                       value={field.value ?? ''}
                       onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                     />
                   </FormControl>
-                  <FormDescription>
-                    Heures moteur au moment de la maintenance
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
           )}
 
-          {/* Compteur km */}
           {(triggerUnit === 'kilometers' || triggerUnit === 'none') && (
             <FormField
               control={form.control}
@@ -216,28 +189,21 @@ export default function MaintenanceCompletionForm({
                 <FormItem>
                   <FormLabel className="flex items-center gap-1.5">
                     <Gauge className="h-4 w-4 text-primary" />
-                    Compteur kilométrique
+                    Kilomètres à l'entretien
                   </FormLabel>
                   <FormControl>
                     <Input 
-                      type="number" 
-                      min="0" 
-                      step="1"
-                      placeholder="Ex: 45000"
+                      type="number" min="0" step="1" placeholder="Ex: 45000"
                       value={field.value ?? ''}
                       onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                     />
                   </FormControl>
-                  <FormDescription>
-                    Kilomètres au moment de la maintenance
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
           )}
 
-          {/* Notes */}
           <FormField
             control={form.control}
             name="notes"
@@ -245,11 +211,7 @@ export default function MaintenanceCompletionForm({
               <FormItem className="md:col-span-2">
                 <FormLabel>Notes</FormLabel>
                 <FormControl>
-                  <Textarea 
-                    placeholder="Observations, problèmes rencontrés, recommandations..."
-                    className="min-h-[100px]"
-                    {...field}
-                  />
+                  <Textarea placeholder="Observations, problèmes rencontrés..." className="min-h-[80px]" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -257,7 +219,54 @@ export default function MaintenanceCompletionForm({
           />
         </div>
 
-        {/* Boutons d'action */}
+        {/* Pièces utilisées */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">Pièces utilisées</Label>
+            <Button type="button" variant="outline" size="sm" onClick={addPart} className="flex items-center gap-1">
+              <Plus className="h-3.5 w-3.5" />
+              Ajouter une pièce
+            </Button>
+          </div>
+          
+          {parts.length === 0 && (
+            <p className="text-xs text-muted-foreground">Aucune pièce ajoutée. Cliquez sur « Ajouter une pièce » si des pièces ont été utilisées.</p>
+          )}
+
+          {parts.map((part, index) => (
+            <div key={index} className="flex items-start gap-2 rounded-lg border p-3">
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div>
+                  <Label className="text-xs text-muted-foreground">Nom de la pièce</Label>
+                  <Input
+                    placeholder="Ex: Filtre à huile"
+                    value={part.name}
+                    onChange={(e) => updatePart(index, 'name', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">N° de pièce</Label>
+                  <Input
+                    placeholder="Optionnel"
+                    value={part.partNumber}
+                    onChange={(e) => updatePart(index, 'partNumber', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Quantité</Label>
+                  <Input
+                    type="number" min="1" value={part.quantity}
+                    onChange={(e) => updatePart(index, 'quantity', parseInt(e.target.value) || 1)}
+                  />
+                </div>
+              </div>
+              <Button type="button" variant="ghost" size="icon" onClick={() => removePart(index)} className="shrink-0 mt-5">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+
         <div className="flex justify-end space-x-2">
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? "Enregistrement..." : "Valider la maintenance"}

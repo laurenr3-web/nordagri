@@ -179,6 +179,12 @@ const EquipmentMaintenanceStatus: React.FC<EquipmentMaintenanceStatusProps> = ({
         isOpen={!!selectedTask}
         onClose={() => setSelectedTask(null)}
         task={selectedTask}
+        onCompleted={async () => {
+          const tasks = await maintenanceService.getTasksForEquipment(Number(equipment.id));
+          const pending = tasks.filter((t: any) => t.status !== 'completed' && t.status !== 'cancelled')
+            .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+          setPendingTasks(pending);
+        }}
       />
     </Card>
   );
