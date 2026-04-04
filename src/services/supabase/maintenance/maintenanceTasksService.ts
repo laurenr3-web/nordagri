@@ -49,7 +49,7 @@ export class MaintenanceTasksService {
     }
     
     // Prepare the data for insertion into Supabase
-    const insertData = {
+    const insertData: any = {
       title: task.title,
       equipment: task.equipment,
       equipment_id: task.equipmentId,
@@ -63,7 +63,10 @@ export class MaintenanceTasksService {
       trigger_unit: task.trigger_unit,
       trigger_hours: task.trigger_hours,
       trigger_kilometers: task.trigger_kilometers,
-      owner_id: currentUserId // Assurer que l'owner_id est défini
+      owner_id: currentUserId,
+      is_recurrent: task.is_recurrent || false,
+      recurrence_interval: task.recurrence_interval || null,
+      recurrence_unit: task.recurrence_unit || null,
     };
     
     console.log('Prepared data for insertion with owner_id:', insertData);
