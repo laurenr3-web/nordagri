@@ -105,7 +105,7 @@ const Dashboard = () => {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await refetch();
-    setTimeout(() => setIsRefreshing(false), 1000);
+    setTimeout(() => setIsRefreshing(false), 500);
   };
 
   const renderWidget = (widget: WidgetConfig) => {
