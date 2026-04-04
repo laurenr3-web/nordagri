@@ -20,11 +20,11 @@ interface EquipmentTabsProps {
 
 const tabs = [
   { value: 'overview', label: 'Aperçu', icon: LayoutDashboard },
-  { value: 'maintenance', label: 'Maint.', icon: Wrench },
+  { value: 'maintenance', label: 'Maintenance', icon: Wrench },
   { value: 'history', label: 'Historique', icon: History },
   { value: 'parts', label: 'Pièces', icon: Package },
   { value: 'fuel', label: 'Carburant', icon: Fuel },
-  { value: 'performance', label: 'Perform.', icon: BarChart3 },
+  { value: 'performance', label: 'Performance', icon: BarChart3 },
   { value: 'timeTracking', label: 'Temps', icon: Clock },
   { value: 'qrcode', label: 'QR', icon: QrCode },
 ];
@@ -48,7 +48,7 @@ const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment }) => {
 
   return (
     <div className="w-full space-y-4">
-      <div className="grid grid-cols-4 sm:grid-cols-8 gap-1">
+      <div className="grid grid-cols-4 gap-1">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.value;
@@ -57,7 +57,7 @@ const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment }) => {
               key={tab.value}
               onClick={() => setActiveTab(tab.value)}
               className={cn(
-                "flex flex-col items-center justify-center gap-0.5 rounded-md py-1.5 px-1 text-[10px] sm:text-xs font-medium transition-all min-w-0",
+                "flex flex-col items-center justify-center gap-0.5 rounded-md py-1.5 px-0.5 text-[9px] sm:text-xs font-medium transition-all min-w-0",
                 "hover:bg-accent/60",
                 isActive
                   ? "bg-primary text-primary-foreground shadow-sm"
@@ -65,7 +65,7 @@ const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment }) => {
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
-              <span className="truncate w-full text-center">{tab.label}</span>
+              <span className="w-full text-center leading-tight">{tab.label}</span>
             </button>
           );
         })}
