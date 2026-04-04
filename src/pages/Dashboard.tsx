@@ -43,6 +43,9 @@ import { DashboardCustomizer } from '@/components/dashboard/DashboardCustomizer'
 import { useDashboardLayout, WidgetConfig } from '@/hooks/dashboard/useDashboardLayout';
 import { useWidgetData } from '@/hooks/dashboard/useWidgetData';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
+import { useAuthContext } from '@/providers/AuthProvider';
+import { CreateFarmDialog } from '@/components/farm/CreateFarmDialog';
+import { Plus } from 'lucide-react';
 
 const DEFAULT_WIDGETS: WidgetConfig[] = [
   { id: 'stats', type: 'stats', title: 'Statistiques', size: 'full', enabled: true },
@@ -55,6 +58,9 @@ const Dashboard = () => {
   const [activeView, setActiveView] = useState<'main' | 'calendar' | 'alerts'>('main');
   const [isCustomizing, setIsCustomizing] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showCreateFarm, setShowCreateFarm] = useState(false);
+  const { user, profileData } = useAuthContext();
+  const hasFarm = !!profileData?.farm_id;
   
   // Gestion du layout personnalisé
   const { 
@@ -135,6 +141,29 @@ const Dashboard = () => {
   return (
     <MainLayout>
       <LayoutWrapper>
+        {/* Banner si pas de ferme */}
+        {!hasFarm && user && (
+          <div className="rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 p-8 text-center space-y-3 mb-6">
+            <h2 className="text-xl font-semibold">Bienvenue sur NordAgri !</h2>
+            <p className="text-muted-foreground">
+              Pour commencer, créez votre ferme. Toutes vos données (équipements, maintenances, pièces) seront liées à votre exploitation.
+            </p>
+            <Button onClick={() => setShowCreateFarm(true)} size="lg">
+              <Plus className="mr-2 h-5 w-5" />
+              Créer ma ferme
+            </Button>
+          </div>
+        )}
+
+        {user && (
+          <CreateFarmDialog
+            open={showCreateFarm}
+            onOpenChange={setShowCreateFarm}
+            userId={user.id}
+            onFarmCreated={() => window.location.reload()}
+          />
+        )}
+
         {/* Header avec actions */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <PageHeader 
