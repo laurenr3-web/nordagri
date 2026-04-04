@@ -1,14 +1,15 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, Clock, AlertTriangle, Plus } from 'lucide-react';
+import { Calendar, Clock, AlertTriangle, Plus, ChevronRight, Wrench } from 'lucide-react';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { Badge } from '@/components/ui/badge';
 import AddMaintenanceDialog from '@/components/maintenance/dialogs/AddMaintenanceDialog';
 import { maintenanceService } from '@/services/supabase/maintenanceService';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 interface EquipmentMaintenanceStatusProps {
   equipment: EquipmentItem;
@@ -16,48 +17,75 @@ interface EquipmentMaintenanceStatusProps {
 
 const EquipmentMaintenanceStatus: React.FC<EquipmentMaintenanceStatusProps> = ({ equipment }) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
+  const [pendingTasks, setPendingTasks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-  // Utilisez la véritable prochaine maintenance si disponible via l'equipment.nextService
-  const nextMaintenance = equipment.nextService ? {
-    type: equipment.nextService.type,
-    dueDate: new Date(equipment.nextService.due)
-  } : {
-    type: 'Entretien régulier',
-    dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 15) // Dans 15 jours (fallback)
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        setLoading(true);
+        const tasks = await maintenanceService.getTasksForEquipment(Number(equipment.id));
+        // Keep only non-completed tasks
+        const pending = tasks.filter((t: any) => 
+          t.status !== 'completed' && t.status !== 'cancelled'
+        ).sort((a: any, b: any) => 
+          new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+        );
+        setPendingTasks(pending);
+      } catch (err) {
+        console.error('Error fetching maintenance tasks:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTasks();
+  }, [equipment.id]);
+
+  const getStatusBadge = (status: string) => {
+    const map: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+      'scheduled': { label: 'Planifiée', variant: 'secondary' },
+      'in-progress': { label: 'En cours', variant: 'default' },
+      'pending-parts': { label: 'En attente de pièces', variant: 'outline' },
+    };
+    const info = map[status] || { label: status, variant: 'secondary' as const };
+    return <Badge variant={info.variant}>{info.label}</Badge>;
   };
-  
-  const formatDueDate = (date: Date) => {
-    const now = new Date();
-    const diffDays = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 0) {
-      return `En retard de ${Math.abs(diffDays)} jours`;
-    } else if (diffDays === 0) {
-      return 'Aujourd\'hui';
-    } else if (diffDays === 1) {
-      return 'Demain';
-    } else if (diffDays < 30) {
-      return `Dans ${diffDays} jours`;
-    } else {
-      return format(date, 'd MMMM yyyy', { locale: fr });
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'urgent': return 'text-red-600';
+      case 'high': return 'text-orange-500';
+      case 'medium': return 'text-yellow-600';
+      default: return 'text-muted-foreground';
     }
   };
 
-  const isMaintenanceOverdue = () => {
+  const isOverdue = (dateStr: string) => {
+    return new Date(dateStr) < new Date();
+  };
+
+  const formatDueDate = (dateStr: string) => {
+    const date = new Date(dateStr);
     const now = new Date();
-    return nextMaintenance.dueDate < now;
+    const diffDays = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) return `En retard de ${Math.abs(diffDays)} j`;
+    if (diffDays === 0) return "Aujourd'hui";
+    if (diffDays === 1) return 'Demain';
+    if (diffDays < 7) return `Dans ${diffDays} j`;
+    return format(date, 'd MMM yyyy', { locale: fr });
   };
 
   const handleAddMaintenance = async (maintenanceData: any) => {
     try {
-      await maintenanceService.addTask({
-        ...maintenanceData,
-      });
-      
+      await maintenanceService.addTask({ ...maintenanceData });
       toast.success('Maintenance créée avec succès');
-      
-      // Recharger la page pour afficher la nouvelle maintenance
-      setTimeout(() => window.location.reload(), 1000);
+      // Refresh list
+      const tasks = await maintenanceService.getTasksForEquipment(Number(equipment.id));
+      const pending = tasks.filter((t: any) => t.status !== 'completed' && t.status !== 'cancelled')
+        .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+      setPendingTasks(pending);
     } catch (error) {
       console.error("Erreur lors de l'ajout de la maintenance:", error);
       toast.error("Impossible d'ajouter la maintenance");
@@ -68,8 +96,8 @@ const EquipmentMaintenanceStatus: React.FC<EquipmentMaintenanceStatusProps> = ({
     <Card>
       <CardHeader className="pb-3 flex flex-row justify-between items-start">
         <div>
-          <CardTitle>Maintenance</CardTitle>
-          <CardDescription>Statut de maintenance</CardDescription>
+          <CardTitle className="text-base">Maintenance</CardTitle>
+          <CardDescription>Tâches à compléter</CardDescription>
         </div>
         <Button 
           onClick={() => setIsAddDialogOpen(true)}
@@ -78,57 +106,64 @@ const EquipmentMaintenanceStatus: React.FC<EquipmentMaintenanceStatusProps> = ({
           className="flex items-center gap-1"
         >
           <Plus className="h-4 w-4" />
-          Nouvelle maintenance
+          Nouvelle
         </Button>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          <div className="flex items-start space-x-3">
-            <div className="bg-primary/10 p-2 rounded-full">
-              <Calendar className="h-5 w-5 text-primary" />
+        <div className="space-y-3">
+          {loading ? (
+            <div className="space-y-2">
+              {[1, 2].map(i => (
+                <div key={i} className="h-16 rounded-lg bg-muted animate-pulse" />
+              ))}
             </div>
-            <div>
-              <p className="font-medium">Prochaine maintenance</p>
-              <p className="text-sm text-muted-foreground">{nextMaintenance.type}</p>
+          ) : pendingTasks.length === 0 ? (
+            <div className="text-center py-6 text-muted-foreground">
+              <Wrench className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">Aucune maintenance en attente</p>
+              <p className="text-xs mt-1">Cet équipement est à jour</p>
             </div>
-          </div>
-          
-          <div className="flex items-start space-x-3">
-            <div className={`${isMaintenanceOverdue() ? 'bg-red-500/10' : 'bg-orange-500/10'} p-2 rounded-full`}>
-              <Clock className={`h-5 w-5 ${isMaintenanceOverdue() ? 'text-red-500' : 'text-orange-500'}`} />
-            </div>
-            <div>
-              <p className="font-medium">Échéance</p>
-              <p className={`text-sm ${isMaintenanceOverdue() ? 'text-red-500 font-semibold' : 'text-muted-foreground'}`}>
-                {formatDueDate(nextMaintenance.dueDate)}
-              </p>
-            </div>
-          </div>
-          
-          {isMaintenanceOverdue() && (
-            <div className="flex items-start space-x-3">
-              <div className="bg-red-500/10 p-2 rounded-full">
-                <AlertTriangle className="h-5 w-5 text-red-500" />
-              </div>
-              <div>
-                <p className="font-medium text-red-500">Maintenance en retard</p>
-                <p className="text-sm text-red-700">
-                  Une maintenance est requise pour cet équipement
-                </p>
-              </div>
-            </div>
-          )}
-          
-          {equipment.status === 'maintenance' && (
-            <div className="flex items-start space-x-3">
-              <div className="bg-amber-500/10 p-2 rounded-full">
-                <AlertTriangle className="h-5 w-5 text-amber-500" />
-              </div>
-              <div>
-                <p className="font-medium text-amber-700">Actuellement en maintenance</p>
-                <p className="text-sm text-muted-foreground">L'équipement n'est pas disponible</p>
-              </div>
-            </div>
+          ) : (
+            pendingTasks.map((task: any) => {
+              const overdue = isOverdue(task.dueDate);
+              return (
+                <button
+                  key={task.id}
+                  onClick={() => navigate(`/equipment/${equipment.id}`, { state: { tab: 'maintenance-tab' } })}
+                  className={`w-full text-left rounded-lg border p-3 transition-colors hover:bg-accent/50 ${
+                    overdue ? 'border-red-300 bg-red-50 dark:bg-red-950/20 dark:border-red-800' : ''
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        {overdue && <AlertTriangle className="h-3.5 w-3.5 text-red-500 shrink-0" />}
+                        <span className="font-medium text-sm truncate">{task.title}</span>
+                      </div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {getStatusBadge(task.status)}
+                        <span className={`text-xs ${overdue ? 'text-red-600 font-semibold' : 'text-muted-foreground'}`}>
+                          <Clock className="h-3 w-3 inline mr-1" />
+                          {formatDueDate(task.dueDate)}
+                        </span>
+                        {task.priority && task.priority !== 'medium' && (
+                          <span className={`text-xs font-medium ${getPriorityColor(task.priority)}`}>
+                            {task.priority === 'urgent' ? '🔴 Urgent' : task.priority === 'high' ? '🟠 Haute' : ''}
+                          </span>
+                        )}
+                      </div>
+                      {(task.triggerHours || task.triggerKilometers) && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {task.triggerHours ? `À ${task.triggerHours} h` : ''}
+                          {task.triggerKilometers ? `À ${task.triggerKilometers} km` : ''}
+                        </p>
+                      )}
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
+                  </div>
+                </button>
+              );
+            })
           )}
         </div>
       </CardContent>
