@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 export interface EquipmentPhoto {
   id: string;
   equipment_id: number;
-  photo_url: string;
+  photo_url: string; // Storage path (e.g. "1/uuid.jpg")
   display_order: number;
   is_primary: boolean;
   created_at: string;
@@ -12,11 +12,55 @@ export interface EquipmentPhoto {
 }
 
 /**
+ * Extracts the storage path from either a full public URL or a raw path.
+ * Handles both legacy (full URL) and new (path-only) formats.
+ */
+function extractStoragePath(photoUrl: string): string {
+  // If it's already a raw path (no http), return as-is
+  if (!photoUrl.startsWith('http')) return photoUrl;
+  
+  // Extract path from full Supabase storage URL
+  const marker = '/object/public/equipment_photos/';
+  const idx = photoUrl.indexOf(marker);
+  if (idx !== -1) return photoUrl.substring(idx + marker.length);
+  
+  // Try signed URL format
+  const signedMarker = '/object/sign/equipment_photos/';
+  const signedIdx = photoUrl.indexOf(signedMarker);
+  if (signedIdx !== -1) {
+    const pathWithQuery = photoUrl.substring(signedIdx + signedMarker.length);
+    return pathWithQuery.split('?')[0];
+  }
+  
+  return photoUrl;
+}
+
+/**
+ * Generate a signed URL for a storage path. Valid for 1 hour.
+ */
+async function getSignedUrl(storagePath: string): Promise<string> {
+  const path = extractStoragePath(storagePath);
+  const { data, error } = await supabase.storage
+    .from('equipment_photos')
+    .createSignedUrl(path, 3600); // 1 hour
+
+  if (error || !data?.signedUrl) {
+    console.error('Error creating signed URL:', error);
+    // Return empty string rather than throwing to avoid breaking UI
+    return '';
+  }
+  return data.signedUrl;
+}
+
+/**
  * Service pour gérer plusieurs photos d'équipements
  */
 export const equipmentMultiPhotoService = {
+  extractStoragePath,
+  getSignedUrl,
+
   /**
-   * Récupérer toutes les photos d'un équipement
+   * Récupérer toutes les photos d'un équipement avec URLs signées
    */
   async getEquipmentPhotos(equipmentId: number): Promise<EquipmentPhoto[]> {
     try {
@@ -35,35 +79,59 @@ export const equipmentMultiPhotoService = {
   },
 
   /**
-   * Upload une photo d'équipement
+   * Resolve signed URLs for a list of photos
+   */
+  async resolveSignedUrls(photos: EquipmentPhoto[]): Promise<Map<string, string>> {
+    const urlMap = new Map<string, string>();
+    
+    // Batch create signed URLs
+    const paths = photos.map(p => extractStoragePath(p.photo_url));
+    const { data, error } = await supabase.storage
+      .from('equipment_photos')
+      .createSignedUrls(paths, 3600);
+    
+    if (error || !data) {
+      console.error('Error creating signed URLs:', error);
+      // Fallback: try individual
+      for (const photo of photos) {
+        const url = await getSignedUrl(photo.photo_url);
+        urlMap.set(photo.id, url);
+      }
+      return urlMap;
+    }
+    
+    data.forEach((item, idx) => {
+      if (item.signedUrl) {
+        urlMap.set(photos[idx].id, item.signedUrl);
+      }
+    });
+    
+    return urlMap;
+  },
+
+  /**
+   * Upload une photo d'équipement - stores the storage path, not public URL
    */
   async uploadPhoto(file: File, equipmentId: number, displayOrder: number = 0, isPrimary: boolean = false): Promise<EquipmentPhoto> {
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${equipmentId}/${uuidv4()}.${fileExt}`;
-      const filePath = `${fileName}`;
 
-      // Upload vers Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('equipment_photos')
-        .upload(filePath, file, {
+        .upload(fileName, file, {
           cacheControl: '3600',
           upsert: false
         });
 
       if (uploadError) throw uploadError;
 
-      // Récupérer l'URL publique
-      const { data: urlData } = supabase.storage
-        .from('equipment_photos')
-        .getPublicUrl(filePath);
-
-      // Créer l'enregistrement dans la table
+      // Store the storage path (not public URL)
       const { data, error } = await supabase
         .from('equipment_photos')
         .insert({
           equipment_id: equipmentId,
-          photo_url: urlData.publicUrl,
+          photo_url: fileName, // Store path only
           display_order: displayOrder,
           is_primary: isPrimary
         })
@@ -102,18 +170,14 @@ export const equipmentMultiPhotoService = {
    */
   async deletePhoto(photoId: string, photoUrl: string): Promise<void> {
     try {
-      // Extraire le chemin du fichier de l'URL
-      const baseUrl = supabase.storage.from('equipment_photos').getPublicUrl('').data.publicUrl;
-      const filePath = photoUrl.replace(baseUrl, '');
+      const filePath = extractStoragePath(photoUrl);
 
-      // Supprimer du storage
       const { error: storageError } = await supabase.storage
         .from('equipment_photos')
         .remove([filePath]);
 
       if (storageError) throw storageError;
 
-      // Supprimer l'enregistrement
       const { error } = await supabase
         .from('equipment_photos')
         .delete()
@@ -148,13 +212,11 @@ export const equipmentMultiPhotoService = {
    */
   async setPrimaryPhoto(equipmentId: number, photoId: string): Promise<void> {
     try {
-      // Retirer le statut primaire de toutes les photos
       await supabase
         .from('equipment_photos')
         .update({ is_primary: false })
         .eq('equipment_id', equipmentId);
 
-      // Définir la nouvelle photo principale
       const { error } = await supabase
         .from('equipment_photos')
         .update({ is_primary: true })
