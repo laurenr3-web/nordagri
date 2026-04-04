@@ -87,7 +87,7 @@ export const equipmentAdapter = {
       // Insert the equipment
       const { data, error } = await supabase
         .from('equipment')
-        .insert(dbEquipment)
+        .insert(dbEquipment as any)
         .select()
         .single();
       

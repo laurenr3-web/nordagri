@@ -17,7 +17,6 @@ export const useFieldObservations = () => {
         const { data, error } = await supabase
           .from('interventions')
           .select('*')
-          .not('observation_type', 'is', null)
           .order('created_at', { ascending: false });
 
         if (error) {
@@ -26,7 +25,13 @@ export const useFieldObservations = () => {
           throw error;
         }
 
-        return data as FieldObservation[];
+        return (data || []).map((item: any) => ({
+          ...item,
+          observer_id: item.owner_id,
+          observation_type: item.type || 'general',
+          urgency_level: item.priority || 'low',
+          photos: [],
+        })) as FieldObservation[];
       } catch (err) {
         console.error('Exception lors du chargement des observations:', err);
         throw err;
@@ -42,7 +47,6 @@ export const useFieldObservations = () => {
       }
 
       try {
-        // Récupérer la session active pour s'assurer que l'utilisateur est bien authentifié
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError || !sessionData.session) {
@@ -53,35 +57,32 @@ export const useFieldObservations = () => {
 
         const userData = assertIsDefined(sessionData.session.user, 'Session user');
         
-        // Créer une nouvelle intervention à partir de l'observation
+        const insertData: any = {
+          equipment_id: values.equipment_id,
+          equipment: values.equipment,
+          location: values.location || 'Non spécifiée',
+          description: values.description || '',
+          status: 'pending',
+          priority: values.urgency_level === 'urgent' ? 'high' : (values.urgency_level === 'surveiller' ? 'medium' : 'low'),
+          date: new Date().toISOString(),
+          technician: 'À assigner',
+          title: `Observation: ${values.equipment} - ${values.observation_type}`,
+          owner_id: userData.id
+        };
+
         const { data, error } = await supabase
           .from('interventions')
-          .insert({
-            equipment_id: values.equipment_id,
-            equipment: values.equipment,
-            location: values.location || 'Non spécifiée',
-            description: values.description || '',
-            observation_type: values.observation_type,
-            urgency_level: values.urgency_level,
-            photos: values.photos || [],
-            observer_id: userData.id,
-            status: 'pending',
-            priority: values.urgency_level === 'urgent' ? 'high' : (values.urgency_level === 'surveiller' ? 'medium' : 'low'),
-            date: new Date().toISOString(),
-            technician: 'À assigner',
-            title: `Observation: ${values.equipment} - ${values.observation_type}`,
-            owner_id: userData.id // Ajouter explicitement owner_id qui est probablement requis par RLS
-          })
+          .insert(insertData)
           .select();
 
         if (error) {
-          console.error('Erreur de création de l\'observation:', error);
+          console.error("Erreur de création de l'observation:", error);
           throw error;
         }
 
         return data;
       } catch (error) {
-        console.error('Erreur lors de la création de l\'observation:', error);
+        console.error("Erreur lors de la création de l'observation:", error);
         throw error;
       }
     },
@@ -93,15 +94,12 @@ export const useFieldObservations = () => {
     onError: (error: Error) => {
       console.error('Erreur mutation:', error);
       
-      // Message d'erreur plus détaillé en fonction du type d'erreur
       if (error.message.includes('Session expired')) {
         toast.error('Votre session a expiré. Veuillez vous reconnecter.');
       } else if (error.message.includes('violates row-level security policy')) {
         toast.error("Vous n'avez pas les permissions nécessaires pour créer une observation.");
-      } else if (error.message.includes('not-authorized')) {
-        toast.error("Vous n'êtes pas autorisé à effectuer cette action.");
       } else {
-        toast.error('Erreur lors de la création de l\'observation. Veuillez réessayer.');
+        toast.error("Erreur lors de la création de l'observation. Veuillez réessayer.");
       }
     }
   });

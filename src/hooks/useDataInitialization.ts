@@ -4,7 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useEquipments } from '@/hooks/equipment/useEquipments';
 import { useParts } from '@/hooks/useParts';
-import { compatibilityToStrings } from '@/utils/compatibilityConverter';
 
 export const useDataInitialization = () => {
   const { toast } = useToast();
@@ -54,11 +53,15 @@ export const useDataInitialization = () => {
         return;
       }
       
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData.session?.user?.id;
+      if (!userId) return;
+
       console.log("Aucun équipement trouvé, initialisation...");
       const initialEquipments = [
-        { name: 'Tracteur John Deere 8R 410' },
-        { name: 'Moissonneuse-batteuse Case IH Axial-Flow' },
-        { name: 'Semoir New Holland P2080' }
+        { name: 'Tracteur John Deere 8R 410', owner_id: userId },
+        { name: 'Moissonneuse-batteuse Case IH Axial-Flow', owner_id: userId },
+        { name: 'Semoir New Holland P2080', owner_id: userId }
       ];
       
       const { error: insertError } = await supabase
@@ -72,7 +75,6 @@ export const useDataInitialization = () => {
     }
   };
 
-  // Find the specific function where the error is happening and update it to use our utility
   const initializeParts = async () => {
     try {
       const { data, error } = await supabase
@@ -86,6 +88,10 @@ export const useDataInitialization = () => {
         return;
       }
 
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData.session?.user?.id;
+      if (!userId) return;
+
       console.log("Aucune pièce trouvée, initialisation...");
       const initialParts = [
         { 
@@ -93,11 +99,12 @@ export const useDataInitialization = () => {
           part_number: 'AF-123', 
           category: 'Filtres', 
           supplier: 'John Deere', 
-          compatible_with: ['1', '2'], // Use strings here, not numbers
+          compatible_with: ['1', '2'],
           quantity: 10, 
           unit_price: 50, 
           location: 'A1',
-          reorder_threshold: 5
+          reorder_threshold: 5,
+          owner_id: userId
         },
         { 
           name: 'Huile moteur', 
@@ -108,7 +115,8 @@ export const useDataInitialization = () => {
           quantity: 5, 
           unit_price: 75, 
           location: 'B2',
-          reorder_threshold: 3
+          reorder_threshold: 3,
+          owner_id: userId
         },
         { 
           name: 'Pneus avant', 
@@ -119,11 +127,11 @@ export const useDataInitialization = () => {
           quantity: 3, 
           unit_price: 150, 
           location: 'C3',
-          reorder_threshold: 2
+          reorder_threshold: 2,
+          owner_id: userId
         }
       ];
 
-      // Now insert each part individually to avoid array insertion issues
       for (const part of initialParts) {
         await supabase.from('parts_inventory').insert(part);
       }

@@ -110,11 +110,11 @@ export function useExportReport(month: Date) {
         // Equipment usage - store ID along with name and hours
         if (entry.equipment_id) {
           // Use type guard to safely access equipment data
-          const equipment = entry.equipment;
+          const equipment = entry.equipment as any;
           const equipmentName = isEquipment(equipment) 
             ? equipment.name 
             : (typeof equipment === 'object' && equipment !== null && 'name' in equipment) 
-              ? String(equipment.name) 
+              ? String((equipment as any).name) 
               : 'Équipement inconnu';
           
           const equipmentId = entry.equipment_id;
