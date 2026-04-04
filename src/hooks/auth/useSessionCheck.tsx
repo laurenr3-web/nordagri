@@ -1,9 +1,10 @@
 
 import { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Location } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchUserProfile } from './useProfileData';
 import { buildReturnPath, withPreviewToken } from '@/utils/previewRouting';
+import { useRef } from 'react';
 
 /**
  * Hook for authentication session check and redirects
@@ -18,8 +19,14 @@ export function useSessionCheck(
 ) {
   const navigate = useNavigate();
   const location = useLocation();
+  const hasChecked = useRef(false);
+  const locationRef = useRef<Location>(location);
+  locationRef.current = location;
 
   useEffect(() => {
+    if (hasChecked.current) return;
+    hasChecked.current = true;
+
     // Fonction pour vérifier l'état de la session
     const checkSession = async () => {
       setLoading(true);
@@ -37,56 +44,44 @@ export function useSessionCheck(
         setSession(currentSession);
         setUser(currentSession?.user || null);
         
+        const loc = locationRef.current;
         // Si l'utilisateur est connecté, récupérer ses données de profil
         if (currentSession?.user) {
-          // Utilisez setTimeout pour éviter les blocages potentiels
-          setTimeout(() => {
-            fetchUserProfile(currentSession.user.id).then(data => {
-              if (data) {
-                setProfileData(data);
-              } else {
-                console.log('Profil non trouvé, création en cours...');
-                // Si le profil n'existe pas, on le crée
-                createUserProfile(currentSession.user.id, currentSession.user.user_metadata)
-                  .then(newProfile => {
-                    if (newProfile) {
-                      setProfileData(newProfile);
-                    } else {
-                      console.error("Erreur lors de la création du profil");
-                    }
-                  });
-              }
-            });
-          }, 0);
+          const profileData = await fetchUserProfile(currentSession.user.id);
+          if (profileData) {
+            setProfileData(profileData);
+          } else {
+            console.log('Profil non trouvé, création en cours...');
+            const newProfile = await createUserProfile(currentSession.user.id, currentSession.user.user_metadata);
+            if (newProfile) {
+              setProfileData(newProfile);
+            }
+          }
         }
         
         // Ne pas rediriger si nous sommes sur une page spéciale d'authentification
         const isSpecialAuthPath = 
-          location.pathname === '/auth/callback' || 
-          location.pathname.startsWith('/confirm') || 
-          (location.pathname === '/auth' && 
-           (location.hash || 
-            location.search.includes('reset=true') || 
-            location.search.includes('verification=true')));
+          loc.pathname === '/auth/callback' || 
+          loc.pathname.startsWith('/confirm') || 
+          (loc.pathname === '/auth' && 
+           (loc.hash || 
+            loc.search.includes('reset=true') || 
+            loc.search.includes('verification=true')));
         
         if (isSpecialAuthPath) {
           console.log('Sur une page spéciale d\'authentification, pas de redirection automatique');
         } 
         // Gérer les redirections uniquement si nous ne sommes pas sur une page spéciale
         else if (requireAuth && !currentSession) {
-          // Stocker l'URL actuelle pour rediriger l'utilisateur après connexion
-          const currentPath = location.pathname === '/auth'
+          const currentPath = loc.pathname === '/auth'
             ? '/dashboard'
-            : buildReturnPath(location.pathname, location.search, location.hash);
-          navigate(withPreviewToken(`/auth?returnTo=${encodeURIComponent(currentPath)}`, location.search), { replace: true });
-        } else if (currentSession && location.pathname === '/auth' && !location.hash && !location.search.includes('reset=true')) {
-          // Rediriger depuis la page d'auth vers la destination spécifiée
-          // Seulement si nous ne sommes pas sur une confirmation d'email ou réinitialisation
-          const returnPath = new URLSearchParams(location.search).get('returnTo') || '/dashboard';
-          navigate(withPreviewToken(returnPath, location.search), { replace: true });
-        } else if (currentSession && location.pathname === '/') {
-          // Rediriger depuis la racine vers le dashboard
-          navigate(withPreviewToken('/dashboard', location.search), { replace: true });
+            : buildReturnPath(loc.pathname, loc.search, loc.hash);
+          navigate(withPreviewToken(`/auth?returnTo=${encodeURIComponent(currentPath)}`, loc.search), { replace: true });
+        } else if (currentSession && loc.pathname === '/auth' && !loc.hash && !loc.search.includes('reset=true')) {
+          const returnPath = new URLSearchParams(loc.search).get('returnTo') || '/dashboard';
+          navigate(withPreviewToken(returnPath, loc.search), { replace: true });
+        } else if (currentSession && loc.pathname === '/') {
+          navigate(withPreviewToken('/dashboard', loc.search), { replace: true });
         }
       } catch (error) {
         console.error('Erreur lors de la vérification de la session:', error);
@@ -98,7 +93,7 @@ export function useSessionCheck(
     // Vérifier la session immédiatement
     checkSession();
     
-  }, [navigate, location, requireAuth, redirectTo, setUser, setSession, setProfileData, setLoading]);
+  }, []); // Run once on mount only
 }
 
 // Function to create a user profile if it doesn't exist
