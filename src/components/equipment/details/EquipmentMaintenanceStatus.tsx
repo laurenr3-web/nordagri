@@ -174,6 +174,12 @@ const EquipmentMaintenanceStatus: React.FC<EquipmentMaintenanceStatusProps> = ({
         onSubmit={handleAddMaintenance}
         equipment={equipment}
       />
+
+      <MaintenanceTaskDetailDialog
+        isOpen={!!selectedTask}
+        onClose={() => setSelectedTask(null)}
+        task={selectedTask}
+      />
     </Card>
   );
 };
