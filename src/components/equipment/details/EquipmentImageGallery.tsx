@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { useEquipmentPhotos } from '@/hooks/equipment/useEquipmentPhotos';
+import { equipmentMultiPhotoService } from '@/services/supabase/equipmentMultiPhotoService';
 
 interface EquipmentImageGalleryProps {
   equipment: EquipmentItem;
