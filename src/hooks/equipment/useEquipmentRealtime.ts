@@ -16,7 +16,7 @@ export function useEquipmentRealtime() {
   useEffect(() => {
     // Set up the realtime subscription
     const channel = supabase
-      .channel('equipment-changes')
+      .channel(`equipment-changes-${Date.now()}-${Math.random().toString(36).slice(2,7)}`)
       .on(
         'postgres_changes',
         {

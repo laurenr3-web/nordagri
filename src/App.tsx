@@ -17,6 +17,10 @@ import { withPreviewToken } from '@/utils/previewRouting';
 import Dashboard from '@/pages/Dashboard';
 import Auth from '@/pages/Auth';
 import Equipment from '@/pages/Equipment';
+import Maintenance from '@/pages/Maintenance';
+import Parts from '@/pages/Parts';
+import Interventions from '@/pages/Interventions';
+import TimeTracking from '@/pages/TimeTracking';
 
 // Composant de chargement
 const LoadingSpinner = () => (
@@ -29,11 +33,7 @@ const LoadingSpinner = () => (
 
 // Pages secondaires chargées de manière asynchrone
 const EquipmentDetail = lazy(() => import('@/pages/EquipmentDetail'));
-const Maintenance = lazy(() => import('@/pages/Maintenance'));
-const Parts = lazy(() => import('@/pages/Parts'));
-const Interventions = lazy(() => import('@/pages/Interventions'));
 const Settings = lazy(() => import('@/pages/Settings'));
-const TimeTracking = lazy(() => import('@/pages/TimeTracking'));
 const TimeEntryDetail = lazy(() => import('@/pages/TimeEntryDetail'));
 const TimeTrackingStatistics = lazy(() => import('@/pages/TimeTrackingStatistics'));
 const AuthCallback = lazy(() => import('@/pages/Auth/Callback'));

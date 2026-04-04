@@ -18,7 +18,7 @@ export function useInterventionsRealtime() {
     
     // Set up the realtime subscription
     const channel = supabase
-      .channel('interventions-changes')
+      .channel(`interventions-changes-${Date.now()}-${Math.random().toString(36).slice(2,7)}`)
       .on(
         'postgres_changes',
         {
