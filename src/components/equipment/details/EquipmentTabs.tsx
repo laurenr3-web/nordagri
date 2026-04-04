@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EquipmentOverview } from './EquipmentOverview';
 import EquipmentMaintenanceStatus from './EquipmentMaintenanceStatus';
 import EquipmentParts from '@/components/equipment/tabs/EquipmentParts';
@@ -9,153 +8,77 @@ import EquipmentPerformance from '@/components/equipment/tabs/EquipmentPerforman
 import EquipmentMaintenanceHistory from '@/components/equipment/tabs/EquipmentMaintenanceHistory';
 import EquipmentQRCode from '@/components/equipment/tabs/EquipmentQRCode';
 import EquipmentFuelLogs from '@/components/equipment/tabs/fuel/EquipmentFuelLogs';
-import { useIsMobile } from '@/hooks/use-mobile';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
-import { Menu } from 'lucide-react';
+import { 
+  LayoutDashboard, Wrench, History, Package, Fuel, BarChart3, Clock, QrCode 
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
-// Accept any equipment type (both Equipment and EquipmentItem)
 interface EquipmentTabsProps {
   equipment: any;
   forceDesktopTabs?: boolean;
 }
 
-const moreTabs = [
-  {
-    value: "parts",
-    label: "Pièces"
-  },
-  {
-    value: "fuel",
-    label: "Carburant"
-  },
-  {
-    value: "performance",
-    label: "Performance"
-  },
-  {
-    value: "timeTracking",
-    label: "Temps"
-  },
-  {
-    value: "qrcode",
-    label: "QR Code"
-  }
+const tabs = [
+  { value: 'overview', label: 'Aperçu', icon: LayoutDashboard },
+  { value: 'maintenance', label: 'Maintenance', icon: Wrench },
+  { value: 'history', label: 'Historique', icon: History },
+  { value: 'parts', label: 'Pièces', icon: Package },
+  { value: 'fuel', label: 'Carburant', icon: Fuel },
+  { value: 'performance', label: 'Performance', icon: BarChart3 },
+  { value: 'timeTracking', label: 'Temps', icon: Clock },
+  { value: 'qrcode', label: 'QR Code', icon: QrCode },
 ];
 
-const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment, forceDesktopTabs }) => {
-  const isMobile = useIsMobile();
-  const [tabValue, setTabValue] = useState("overview");
+const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment }) => {
+  const [activeTab, setActiveTab] = useState('overview');
 
-  const handleTabChange = (newValue: string) => {
-    setTabValue(newValue);
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'overview': return <EquipmentOverview equipment={equipment} />;
+      case 'maintenance': return <EquipmentMaintenanceStatus equipment={equipment} />;
+      case 'history': return <EquipmentMaintenanceHistory equipment={equipment} />;
+      case 'parts': return <EquipmentParts equipment={equipment} />;
+      case 'fuel': return <EquipmentFuelLogs equipment={equipment} />;
+      case 'performance': return <EquipmentPerformance equipment={equipment} />;
+      case 'timeTracking': return <EquipmentTimeTracking equipment={equipment} />;
+      case 'qrcode': return <EquipmentQRCode equipment={equipment} />;
+      default: return null;
+    }
   };
 
-  const showDropdownMenu = !forceDesktopTabs && isMobile;
-  
   return (
-    <Tabs value={tabValue} onValueChange={handleTabChange} className="w-full">
-      <div className="w-full overflow-x-auto pb-2">
-        <TabsList 
-          className={
-            isMobile && !forceDesktopTabs
-              ? "w-full flex gap-2 whitespace-nowrap items-center"
-              : "w-full flex gap-1 md:gap-2 whitespace-nowrap items-center bg-muted p-1 rounded-md flex-wrap"
-          }
-        >
-          <TabsTrigger 
-            value="overview" 
-            className={isMobile && !forceDesktopTabs ? "py-1 px-2 text-sm" : "py-1 px-3 text-sm md:py-2 md:px-4 md:text-base"}
-          >
-            Aperçu
-          </TabsTrigger>
-          <TabsTrigger 
-            value="maintenance" 
-            className={isMobile && !forceDesktopTabs ? "py-1 px-2 text-sm" : "py-1 px-3 text-sm md:py-2 md:px-4 md:text-base"}
-          >
-            Maintenance
-          </TabsTrigger>
-          <TabsTrigger 
-            value="history" 
-            className={isMobile && !forceDesktopTabs ? "py-1 px-2 text-sm" : "py-1 px-3 text-sm md:py-2 md:px-4 md:text-base"}
-          >
-            Historique
-          </TabsTrigger>
-          
-          {showDropdownMenu ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  aria-label="Plus d'onglets"
-                  className="ml-1 px-2 py-1 rounded hover:bg-muted/80 focus:bg-muted bg-background border border-input flex items-center"
-                  type="button"
-                  tabIndex={0}
-                >
-                  <Menu className="h-4 w-4" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" sideOffset={4} className="z-50 min-w-[7rem]">
-                {moreTabs.map(tab => (
-                  <DropdownMenuItem
-                    key={tab.value}
-                    onSelect={() => handleTabChange(tab.value)}
-                    className={[
-                      "cursor-pointer",
-                      tabValue === tab.value ? "bg-muted font-semibold" : ""
-                    ].join(" ")}
-                  >
-                    {tab.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <>
-              {moreTabs.map(tab => (
-                <TabsTrigger
-                  key={tab.value}
-                  value={tab.value}
-                  className="py-1 px-3 text-sm md:py-2 md:px-4 md:text-base"
-                >
-                  {tab.label}
-                </TabsTrigger>
-              ))}
-            </>
-          )}
-        </TabsList>
-      </div>
+    <div className="w-full space-y-4">
+      {/* Scrollable tab bar */}
+      <ScrollArea className="w-full">
+        <div className="flex gap-1.5 pb-1 min-w-max">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.value;
+            return (
+              <button
+                key={tab.value}
+                onClick={() => setActiveTab(tab.value)}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap",
+                  "hover:bg-accent/60",
+                  isActive
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground"
+                )}
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+        <ScrollBar orientation="horizontal" className="h-1.5" />
+      </ScrollArea>
 
-      <div className="mt-2">
-        <TabsContent value="overview">
-          <EquipmentOverview equipment={equipment} />
-        </TabsContent>
-        <TabsContent value="maintenance">
-          <EquipmentMaintenanceStatus equipment={equipment} />
-        </TabsContent>
-        <TabsContent value="history">
-          <EquipmentMaintenanceHistory equipment={equipment} />
-        </TabsContent>
-        <TabsContent value="parts">
-          <EquipmentParts equipment={equipment} />
-        </TabsContent>
-        <TabsContent value="fuel">
-          <EquipmentFuelLogs equipment={equipment} />
-        </TabsContent>
-        <TabsContent value="performance">
-          <EquipmentPerformance equipment={equipment} />
-        </TabsContent>
-        <TabsContent value="timeTracking">
-          <EquipmentTimeTracking equipment={equipment} />
-        </TabsContent>
-        <TabsContent value="qrcode">
-          <EquipmentQRCode equipment={equipment} />
-        </TabsContent>
-      </div>
-    </Tabs>
+      {/* Content */}
+      <div>{renderContent()}</div>
+    </div>
   );
 };
 
