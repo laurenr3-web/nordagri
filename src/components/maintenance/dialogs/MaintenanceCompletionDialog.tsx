@@ -46,7 +46,9 @@ const MaintenanceCompletionDialog: React.FC<MaintenanceCompletionDialogProps> = 
         completedDate: data.completedDate,
         actualDuration: data.actualDuration,
         notes: data.notes,
-        technician: data.technician
+        technician: data.technician,
+        completedAtHours: data.completedAtHours,
+        completedAtKm: data.completedAtKm,
       });
       
       toast({
