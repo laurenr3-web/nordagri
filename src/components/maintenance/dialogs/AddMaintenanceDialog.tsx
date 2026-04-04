@@ -102,6 +102,7 @@ const AddMaintenanceDialog: React.FC<AddMaintenanceDialogProps> = ({
         trigger_kilometers: values.triggerType === "kilometers" ? values.triggerKilometers : undefined,
         is_recurrent: values.isRecurrent,
         recurrence_interval: values.isRecurrent ? values.recurrenceInterval : undefined,
+        recurrence_unit: values.isRecurrent ? values.triggerType : undefined,
       };
 
       // Soumettre les données
