@@ -57,7 +57,7 @@ const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment }) => {
               key={tab.value}
               onClick={() => setActiveTab(tab.value)}
               className={cn(
-                "flex flex-col items-center justify-center gap-0.5 rounded-md py-1.5 px-1 text-[10px] sm:text-xs font-medium transition-all min-w-0",
+                "flex flex-col items-center justify-center gap-0.5 rounded-md py-1.5 px-0.5 text-[9px] sm:text-xs font-medium transition-all min-w-0",
                 "hover:bg-accent/60",
                 isActive
                   ? "bg-primary text-primary-foreground shadow-sm"
