@@ -69,24 +69,7 @@ export class MaintenanceTasksService {
 
     console.log('Task added successfully, returned data:', data);
 
-    return {
-      id: data.id,
-      title: data.title,
-      equipment: data.equipment,
-      equipmentId: data.equipment_id,
-      type: data.type as MaintenanceType,
-      status: data.status as MaintenanceStatus,
-      priority: data.priority as MaintenancePriority,
-      dueDate: new Date(data.due_date),
-      completedDate: data.completed_date ? new Date(data.completed_date) : undefined,
-      engineHours: data.estimated_duration || 0,
-      actualDuration: data.actual_duration,
-      assignedTo: data.assigned_to || '',
-      notes: data.notes || '',
-      trigger_unit: data.trigger_unit,
-      trigger_hours: data.trigger_hours,
-      trigger_kilometers: data.trigger_kilometers,
-    };
+    return this.mapTaskFromDb(data);
   }
 
   async updateTaskStatus(taskId: number, status: MaintenanceStatus): Promise<void> {
