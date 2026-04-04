@@ -66,7 +66,7 @@ const MobileMenu = () => {
         <TimeTracker />
       </div>
       <nav
-        className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t lg:hidden p-1.5"
+        className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t lg:hidden px-2 py-1 safe-area-bottom"
         role="navigation"
         aria-label="Menu principal mobile"
         ref={menuRef}
@@ -76,7 +76,7 @@ const MobileMenu = () => {
           activeColor="text-primary"
           currentPath={location.pathname}
           onTabClick={handleTabClick}
-          className="w-full justify-between overflow-x-auto flex-nowrap scrollbar-hide"
+          className="w-full justify-between border-0 shadow-none p-0 rounded-none"
         />
       </nav>
     </>

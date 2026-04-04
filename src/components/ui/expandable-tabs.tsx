@@ -127,13 +127,13 @@ export function ExpandableTabs({
     <div
       ref={outsideClickRef}
       className={cn(
-        "flex items-center gap-1 rounded-2xl border bg-background p-1 shadow-sm",
+        "flex items-center gap-0.5 rounded-2xl border bg-background p-1 shadow-sm",
         className
       )}
     >
       <div 
         ref={tabsContainerRef}
-        className="flex items-center overflow-x-auto scrollbar-hide"
+        className="flex items-center w-full justify-between"
       >
         {tabs.map((tab, index) => {
           if ('type' in tab && tab.type === "separator") {
@@ -155,7 +155,7 @@ export function ExpandableTabs({
                 onClick={() => handleSelect(index)}
                 transition={transition}
                 className={cn(
-                  "relative flex items-center rounded-xl px-3 py-1.5 text-sm font-medium transition-colors duration-300",
+                  "relative flex items-center justify-center rounded-xl px-2 py-1.5 text-xs font-medium transition-colors duration-300 min-w-0",
                   isActive
                     ? cn("bg-muted", activeColor)
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -170,7 +170,7 @@ export function ExpandableTabs({
                       animate="animate"
                       exit="exit"
                       transition={transition}
-                      className="overflow-hidden ml-1 text-xs sm:text-sm whitespace-nowrap"
+                      className="overflow-hidden ml-1 text-xs whitespace-nowrap"
                     >
                       {tab.title}
                     </motion.span>
@@ -180,7 +180,7 @@ export function ExpandableTabs({
             );
           }
 
-          return null; // This should never happen but it makes TypeScript happy
+          return null;
         })}
       </div>
     </div>
