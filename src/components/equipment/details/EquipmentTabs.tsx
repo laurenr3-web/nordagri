@@ -20,11 +20,11 @@ interface EquipmentTabsProps {
 
 const tabs = [
   { value: 'overview', label: 'Aperçu', icon: LayoutDashboard },
-  { value: 'maintenance', label: 'Maintenance', icon: Wrench },
+  { value: 'maintenance', label: 'Maint.', icon: Wrench },
   { value: 'history', label: 'Historique', icon: History },
   { value: 'parts', label: 'Pièces', icon: Package },
   { value: 'fuel', label: 'Carburant', icon: Fuel },
-  { value: 'performance', label: 'Perf.', icon: BarChart3 },
+  { value: 'performance', label: 'Perform.', icon: BarChart3 },
   { value: 'timeTracking', label: 'Temps', icon: Clock },
   { value: 'qrcode', label: 'QR', icon: QrCode },
 ];
