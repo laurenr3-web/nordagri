@@ -39,6 +39,12 @@ function extractStoragePath(photoUrl: string): string {
  * Generate a signed URL for a storage path. Valid for 1 hour.
  */
 async function getSignedUrl(storagePath: string): Promise<string> {
+  // Handle data URIs (base64) directly
+  if (storagePath.startsWith('data:')) return storagePath;
+  
+  // Handle external URLs that aren't from our storage
+  if (storagePath.startsWith('http') && !storagePath.includes('equipment_photos')) return storagePath;
+  
   const path = extractStoragePath(storagePath);
   const { data, error } = await supabase.storage
     .from('equipment_photos')

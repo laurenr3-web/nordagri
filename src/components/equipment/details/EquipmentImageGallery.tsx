@@ -44,15 +44,16 @@ const EquipmentImageGallery: React.FC<EquipmentImageGalleryProps> = ({ equipment
           if (url) equipmentImages.push(url);
         });
       } else if (equipment.image && equipment.image !== 'nul') {
-        // Legacy image - resolve signed URL if it's a storage path
-        if (equipment.image.startsWith('http') && !equipment.image.includes('equipment_photos')) {
+        // Legacy image - handle data URIs, external URLs, and storage paths
+        if (equipment.image.startsWith('data:')) {
+          equipmentImages.push(equipment.image);
+        } else if (equipment.image.startsWith('http') && !equipment.image.includes('equipment_photos')) {
           equipmentImages.push(equipment.image);
         } else {
           try {
             const signedUrl = await equipmentMultiPhotoService.getSignedUrl(equipment.image);
             if (signedUrl) equipmentImages.push(signedUrl);
           } catch {
-            // Fallback to original
             equipmentImages.push(equipment.image);
           }
         }
