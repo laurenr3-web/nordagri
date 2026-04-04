@@ -27,83 +27,52 @@ export const MaintenanceFilters: React.FC<MaintenanceFiltersProps> = ({
   filterOptions,
   userName = 'Utilisateur'
 }) => {
+  const views = [
+    { key: 'upcoming', label: 'À venir', icon: Calendar },
+    { key: 'today', label: "Aujourd'hui", icon: Clock },
+    { key: 'overdue', label: 'En retard', icon: AlertTriangle },
+    { key: 'completed', label: 'Terminées', icon: BadgeCheck },
+    { key: 'calendar', label: 'Calendrier', icon: CalendarDays },
+  ];
+
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row gap-2 sm:items-center justify-between">
-        <div />
+    <div className="space-y-3">
+      <div className="flex flex-col sm:flex-row gap-2">
+        <Input
+          placeholder="Rechercher une tâche..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full sm:flex-1"
+        />
         
-        <div className="flex flex-wrap items-center gap-2">
-          <Input
-            placeholder="Rechercher une tâche..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full sm:w-auto min-w-[200px]"
-          />
-          
-          <Select value={filterValue} onValueChange={setFilterValue}>
-            <SelectTrigger className="w-full sm:w-auto">
-              <SelectValue placeholder="Filtre" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous les types</SelectItem>
-              {filterOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <Select value={filterValue} onValueChange={setFilterValue}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Filtre" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les types</SelectItem>
+            {filterOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant={currentView === 'upcoming' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setCurrentView('upcoming')}
-        >
-          <Calendar className="h-4 w-4 mr-2" />
-          <span>À venir</span>
-        </Button>
-        
-        <Button
-          variant={currentView === 'today' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setCurrentView('today')}
-        >
-          <Clock className="h-4 w-4 mr-2" />
-          <span>Aujourd'hui</span>
-          <Badge variant="secondary" className="ml-1">
-            {/* Count of today's tasks would go here */}
-          </Badge>
-        </Button>
-        
-        <Button
-          variant={currentView === 'overdue' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setCurrentView('overdue')}
-        >
-          <AlertTriangle className="h-4 w-4 mr-2" />
-          <span>En retard</span>
-        </Button>
-        
-        <Button
-          variant={currentView === 'completed' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setCurrentView('completed')}
-        >
-          <BadgeCheck className="h-4 w-4 mr-2" />
-          <span>Terminées</span>
-        </Button>
-        
-        <Button
-          variant={currentView === 'calendar' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setCurrentView('calendar')}
-        >
-          <CalendarDays className="h-4 w-4 mr-2" />
-          <span>Calendrier</span>
-        </Button>
+      <div className="grid grid-cols-5 gap-1">
+        {views.map(({ key, label, icon: Icon }) => (
+          <Button
+            key={key}
+            variant={currentView === key ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setCurrentView(key)}
+            className="flex flex-col items-center gap-0.5 h-auto py-1.5 px-1 text-[10px] sm:text-xs sm:flex-row sm:gap-1.5 sm:py-2 sm:px-3"
+          >
+            <Icon className="h-4 w-4 shrink-0" />
+            <span className="leading-tight text-center">{label}</span>
+          </Button>
+        ))}
       </div>
     </div>
   );
