@@ -170,26 +170,6 @@ const MaintenanceTaskDetailDialog: React.FC<MaintenanceTaskDetailDialogProps> = 
                 </div>
               )}
 
-              {(task.triggerHours || task.triggerKilometers) ? (
-                <div className="flex items-center gap-3">
-                  <Gauge className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">À effectuer au compteur</p>
-                    <p className="text-sm font-medium">
-                      {task.triggerHours ? `${task.triggerHours} h` : ''}
-                      {task.triggerKilometers ? `${task.triggerKilometers} km` : ''}
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Type</p>
-                    <p className="text-sm font-medium">{typeMap[task.type] || task.type}</p>
-                  </div>
-                </div>
-              )}
 
               {task.assignedTo && (
                 <div className="flex items-center gap-3">
