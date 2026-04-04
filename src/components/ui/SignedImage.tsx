@@ -21,6 +21,12 @@ const SignedImage: React.FC<SignedImageProps> = ({ storagePath, fallback, alt, .
     const resolve = async () => {
       if (!storagePath) return;
       
+      // If it's a data URI (base64), use directly
+      if (storagePath.startsWith('data:')) {
+        setSignedUrl(storagePath);
+        return;
+      }
+      
       // If it's an external URL (not from our storage), use directly
       if (storagePath.startsWith('http') && !storagePath.includes('equipment_photos')) {
         setSignedUrl(storagePath);
