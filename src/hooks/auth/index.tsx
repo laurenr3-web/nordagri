@@ -49,6 +49,7 @@ export function useAuth(requireAuth = true, redirectTo?: string): AuthReturn {
     setUser,
     setSession,
     setProfileData,
+    setLoading,
     requireAuth,
     redirectTo
   );
