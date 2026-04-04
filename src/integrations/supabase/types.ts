@@ -1233,6 +1233,8 @@ export type Database = {
         Args: { p_part_id: number; p_quantity: number }
         Returns: undefined
       }
+      is_farm_member: { Args: { _farm_id: string }; Returns: boolean }
+      owns_equipment: { Args: { _equipment_id: number }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
