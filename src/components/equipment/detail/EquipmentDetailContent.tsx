@@ -9,10 +9,13 @@ import { equipmentService } from '@/services/supabase/equipmentService';
 import { useQueryClient } from '@tanstack/react-query';
 import EquipmentTabs from '../details/EquipmentTabs';
 import { Card, CardContent } from '@/components/ui/card';
-
 import EquipmentImageGallery from '../details/EquipmentImageGallery';
 import { Separator } from '@/components/ui/separator';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Pencil, Check, X } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface EquipmentDetailContentProps {
   equipment: EquipmentItem;
@@ -23,6 +26,9 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [localEquipment, setLocalEquipment] = useState(equipment);
+  const [isEditingHours, setIsEditingHours] = useState(false);
+  const [hoursInput, setHoursInput] = useState('');
+  const [isSavingHours, setIsSavingHours] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -34,17 +40,10 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
   const handleEquipmentUpdate = async (updatedData: EquipmentItem) => {
     try {
       console.log('Starting equipment update with data:', updatedData);
-      
-      // Mise à jour locale immédiate pour l'UI
       setLocalEquipment(updatedData);
-      
-      // Appel au service de mise à jour
       await onUpdate(updatedData);
-      
-      // Invalider le cache de requêtes pour rafraîchir les données
       queryClient.invalidateQueries({ queryKey: ['equipment'] });
       queryClient.invalidateQueries({ queryKey: ['equipment', updatedData.id] });
-      
       setIsEditDialogOpen(false);
       toast.success('Équipement mis à jour avec succès');
     } catch (error: any) {
@@ -58,24 +57,12 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
   const handleEquipmentDelete = async () => {
     try {
       setIsDeleting(true);
-      
-      // Convert ID to number if it's a string
       const equipmentId = typeof equipment.id === 'string' 
         ? parseInt(equipment.id, 10) 
         : equipment.id;
-      
-      console.log(`Attempting to delete equipment with ID: ${equipmentId}`);
-      
-      // Invalidate queries before deletion to prepare cache
       queryClient.invalidateQueries({ queryKey: ['equipment'] });
-      
-      // Call the delete service
       await equipmentService.deleteEquipment(equipmentId);
-      
-      // Show success toast
       toast.success(`L'équipement ${equipment.name} a été supprimé avec succès`);
-      
-      // Navigate back to equipment list after successful deletion
       navigate('/equipment');
     } catch (error: any) {
       console.error('Error deleting equipment:', error);
@@ -85,11 +72,53 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
     }
   };
 
-  // Format wear value with appropriate unit
+  const handleStartEditHours = () => {
+    setHoursInput(String(localEquipment.valeur_actuelle || 0));
+    setIsEditingHours(true);
+  };
+
+  const handleSaveHours = async () => {
+    const newValue = parseFloat(hoursInput);
+    if (isNaN(newValue) || newValue < 0) {
+      toast.error('Veuillez entrer une valeur valide');
+      return;
+    }
+
+    setIsSavingHours(true);
+    try {
+      const equipmentId = typeof localEquipment.id === 'string'
+        ? parseInt(localEquipment.id, 10)
+        : localEquipment.id;
+
+      const { error } = await supabase
+        .from('equipment')
+        .update({ 
+          valeur_actuelle: newValue, 
+          last_wear_update: new Date().toISOString() 
+        })
+        .eq('id', equipmentId);
+
+      if (error) throw error;
+
+      setLocalEquipment(prev => ({ ...prev, valeur_actuelle: newValue }));
+      queryClient.invalidateQueries({ queryKey: ['equipment'] });
+      queryClient.invalidateQueries({ queryKey: ['equipment', localEquipment.id] });
+      setIsEditingHours(false);
+      toast.success(`Compteur mis à jour: ${newValue} ${(localEquipment.unite_d_usure || 'heures') === 'heures' ? 'h' : 'km'}`);
+    } catch (error: any) {
+      console.error('Error updating hours:', error);
+      toast.error('Impossible de mettre à jour le compteur');
+    } finally {
+      setIsSavingHours(false);
+    }
+  };
+
   const formatWearValue = (value: number | null | undefined, unit: string) => {
     if (value === null || value === undefined) return 'Non disponible';
     return `${value} ${unit === 'heures' ? 'h' : unit === 'kilometres' ? 'km' : unit}`;
   };
+
+  const unitLabel = (localEquipment.unite_d_usure || 'heures') === 'heures' ? 'Heures moteur' : 'Kilomètres';
 
   return (
     <div className="flex flex-col w-full max-w-[500px] mx-auto p-4 pb-16">
@@ -111,10 +140,58 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
               />
               
               <div className="mt-4">
-                <h3 className="text-sm font-medium text-muted-foreground">Heures moteur</h3>
-                <p className="text-lg font-medium">
-                  {formatWearValue(localEquipment.valeur_actuelle, localEquipment.unite_d_usure || 'heures')}
-                </p>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium text-muted-foreground">{unitLabel}</h3>
+                  {!isEditingHours && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={handleStartEditHours}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
+                {isEditingHours ? (
+                  <div className="flex items-center gap-2 mt-1">
+                    <Input
+                      type="number"
+                      value={hoursInput}
+                      onChange={(e) => setHoursInput(e.target.value)}
+                      className="h-9 text-base"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSaveHours();
+                        if (e.key === 'Escape') setIsEditingHours(false);
+                      }}
+                    />
+                    <span className="text-sm text-muted-foreground shrink-0">
+                      {(localEquipment.unite_d_usure || 'heures') === 'heures' ? 'h' : 'km'}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-primary shrink-0"
+                      onClick={handleSaveHours}
+                      disabled={isSavingHours}
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground shrink-0"
+                      onClick={() => setIsEditingHours(false)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="text-lg font-medium">
+                    {formatWearValue(localEquipment.valeur_actuelle, localEquipment.unite_d_usure || 'heures')}
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>
