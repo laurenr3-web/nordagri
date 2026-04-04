@@ -65,7 +65,7 @@ const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment }) => {
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
-              <span className="truncate w-full text-center">{tab.label}</span>
+              <span className="w-full text-center leading-tight">{tab.label}</span>
             </button>
           );
         })}
