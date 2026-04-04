@@ -79,7 +79,7 @@ export const locationService = {
     try {
       const { data, error } = await supabase
         .from('locations')
-        .update(updates)
+        .update(updates as any)
         .eq('id', id)
         .select()
         .single();

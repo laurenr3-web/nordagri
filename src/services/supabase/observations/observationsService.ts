@@ -15,7 +15,7 @@ export const getObservationById = async (id: number): Promise<FieldObservation |
       throw error;
     }
 
-    return data as FieldObservation;
+    return data as unknown as FieldObservation;
   } catch (error) {
     console.error('Exception when fetching observation details:', error);
     throw error;

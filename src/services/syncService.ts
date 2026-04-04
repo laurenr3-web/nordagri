@@ -192,13 +192,13 @@ export class SyncService {
           
           switch (operation.type) {
             case 'add':
-              await supabase.from(operation.entity).insert(operation.data);
+              await supabase.from(operation.entity as any).insert(operation.data as any);
               break;
             case 'update':
-              await supabase.from(operation.entity).update(operation.data).eq('id', operation.data.id);
+              await supabase.from(operation.entity as any).update(operation.data as any).eq('id', operation.data.id);
               break;
             case 'delete':
-              await supabase.from(operation.entity).delete().eq('id', operation.data.id);
+              await supabase.from(operation.entity as any).delete().eq('id', operation.data.id);
               break;
           }
           
