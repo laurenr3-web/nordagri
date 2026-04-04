@@ -22,8 +22,11 @@ const LoadingSpinner = () => (
   </div>
 );
 
-// Pages chargées de manière asynchrone
-const Dashboard = lazy(() => import('@/pages/Dashboard'));
+// Pages principales chargées eagerly pour éviter les délais
+import Dashboard from '@/pages/Dashboard';
+import Auth from '@/pages/Auth';
+
+// Pages secondaires chargées de manière asynchrone
 const Equipment = lazy(() => import('@/pages/Equipment'));
 const EquipmentDetail = lazy(() => import('@/pages/EquipmentDetail'));
 const Maintenance = lazy(() => import('@/pages/Maintenance'));
@@ -33,7 +36,6 @@ const Settings = lazy(() => import('@/pages/Settings'));
 const TimeTracking = lazy(() => import('@/pages/TimeTracking'));
 const TimeEntryDetail = lazy(() => import('@/pages/TimeEntryDetail'));
 const TimeTrackingStatistics = lazy(() => import('@/pages/TimeTrackingStatistics'));
-const Auth = lazy(() => import('@/pages/Auth'));
 const AuthCallback = lazy(() => import('@/pages/Auth/Callback'));
 const ScanRedirect = lazy(() => import('@/pages/ScanRedirect'));
 const LegalPage = lazy(() => import('@/pages/Legal'));
