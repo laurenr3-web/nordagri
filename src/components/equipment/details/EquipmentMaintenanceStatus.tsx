@@ -64,48 +64,40 @@ const EquipmentMaintenanceStatus: React.FC<EquipmentMaintenanceStatusProps> = ({
   const currentHours = equipment.valeur_actuelle || 0;
   const wearUnit = equipment.unite_d_usure || 'heures';
 
+  // Normalize trigger fields (handle both camelCase and snake_case)
+  const getTaskTriggerHours = (task: any) => task.triggerHours ?? task.trigger_hours ?? null;
+  const getTaskTriggerKm = (task: any) => task.triggerKilometers ?? task.trigger_kilometers ?? null;
+  const hasHoursTrigger = (task: any) => task.trigger_unit === 'hours' && getTaskTriggerHours(task) != null;
+  const hasKmTrigger = (task: any) => task.trigger_unit === 'kilometers' && getTaskTriggerKm(task) != null;
+
   const isTaskOverdue = (task: any) => {
-    const triggerUnit = task.trigger_unit || 'none';
-    // Hour-based trigger
-    if (triggerUnit === 'hours' && task.triggerHours) {
-      return currentHours >= task.triggerHours;
-    }
-    // Km-based trigger
-    if (triggerUnit === 'kilometers' && task.triggerKilometers) {
-      return currentHours >= task.triggerKilometers; // valeur_actuelle stores current counter
-    }
-    // Date-based trigger
+    if (hasHoursTrigger(task)) return currentHours >= getTaskTriggerHours(task);
+    if (hasKmTrigger(task)) return currentHours >= getTaskTriggerKm(task);
     return new Date(task.dueDate) < new Date();
   };
 
   const isTaskApproaching = (task: any) => {
-    const triggerUnit = task.trigger_unit || 'none';
-    if (triggerUnit === 'hours' && task.triggerHours) {
-      const remaining = task.triggerHours - currentHours;
-      return remaining > 0 && remaining <= task.triggerHours * 0.1; // within 10%
+    if (hasHoursTrigger(task)) {
+      const th = getTaskTriggerHours(task);
+      const remaining = th - currentHours;
+      return remaining > 0 && remaining <= th * 0.1;
     }
-    if (triggerUnit === 'kilometers' && task.triggerKilometers) {
-      const remaining = task.triggerKilometers - currentHours;
-      return remaining > 0 && remaining <= task.triggerKilometers * 0.1;
+    if (hasKmTrigger(task)) {
+      const tk = getTaskTriggerKm(task);
+      const remaining = tk - currentHours;
+      return remaining > 0 && remaining <= tk * 0.1;
     }
-    // Date: within 7 days
     const diffDays = Math.ceil((new Date(task.dueDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
     return diffDays > 0 && diffDays <= 7;
   };
 
   const formatTaskDue = (task: any) => {
-    const triggerUnit = task.trigger_unit || 'none';
-    if (triggerUnit === 'hours' && task.triggerHours) {
-      const remaining = task.triggerHours - currentHours;
-      if (remaining <= 0) return `Dépassé de ${Math.abs(Math.round(remaining))} h`;
-      return `Dans ${Math.round(remaining)} h (à ${task.triggerHours} h)`;
+    if (hasHoursTrigger(task)) {
+      return `à ${getTaskTriggerHours(task)} h`;
     }
-    if (triggerUnit === 'kilometers' && task.triggerKilometers) {
-      const remaining = task.triggerKilometers - currentHours;
-      if (remaining <= 0) return `Dépassé de ${Math.abs(Math.round(remaining))} km`;
-      return `Dans ${Math.round(remaining)} km (à ${task.triggerKilometers} km)`;
+    if (hasKmTrigger(task)) {
+      return `à ${getTaskTriggerKm(task)} km`;
     }
-    // Date
     const date = new Date(task.dueDate);
     const now = new Date();
     const diffDays = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
@@ -183,7 +175,10 @@ const EquipmentMaintenanceStatus: React.FC<EquipmentMaintenanceStatusProps> = ({
                       <div className="flex items-center gap-2 flex-wrap">
                         {getStatusBadge(task.status)}
                         <span className={`text-xs ${overdue ? 'text-destructive font-semibold' : approaching ? 'text-orange-600 font-medium' : 'text-muted-foreground'}`}>
-                          <Clock className="h-3 w-3 inline mr-1" />
+                          {(hasHoursTrigger(task) || hasKmTrigger(task)) 
+                            ? <Wrench className="h-3 w-3 inline mr-1" />
+                            : <Clock className="h-3 w-3 inline mr-1" />
+                          }
                           {formatTaskDue(task)}
                         </span>
                         {task.priority && task.priority !== 'medium' && (
@@ -193,30 +188,30 @@ const EquipmentMaintenanceStatus: React.FC<EquipmentMaintenanceStatusProps> = ({
                         )}
                       </div>
                       {/* Show current counter vs trigger for hour/km tasks */}
-                      {task.trigger_unit === 'hours' && task.triggerHours && (
+                      {hasHoursTrigger(task) && (
                         <div className="mt-1.5">
                           <div className="flex justify-between text-xs text-muted-foreground mb-0.5">
                             <span>Compteur: {Math.round(currentHours)} h</span>
-                            <span>Seuil: {task.triggerHours} h</span>
+                            <span>Seuil: {getTaskTriggerHours(task)} h</span>
                           </div>
                           <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                             <div 
                               className={`h-full rounded-full transition-all ${overdue ? 'bg-destructive' : approaching ? 'bg-orange-500' : 'bg-primary'}`}
-                              style={{ width: `${Math.min((currentHours / task.triggerHours) * 100, 100)}%` }}
+                              style={{ width: `${Math.min((currentHours / getTaskTriggerHours(task)) * 100, 100)}%` }}
                             />
                           </div>
                         </div>
                       )}
-                      {task.trigger_unit === 'kilometers' && task.triggerKilometers && (
+                      {hasKmTrigger(task) && (
                         <div className="mt-1.5">
                           <div className="flex justify-between text-xs text-muted-foreground mb-0.5">
                             <span>Compteur: {Math.round(currentHours)} km</span>
-                            <span>Seuil: {task.triggerKilometers} km</span>
+                            <span>Seuil: {getTaskTriggerKm(task)} km</span>
                           </div>
                           <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                             <div 
                               className={`h-full rounded-full transition-all ${overdue ? 'bg-destructive' : approaching ? 'bg-orange-500' : 'bg-primary'}`}
-                              style={{ width: `${Math.min((currentHours / task.triggerKilometers) * 100, 100)}%` }}
+                              style={{ width: `${Math.min((currentHours / getTaskTriggerKm(task)) * 100, 100)}%` }}
                             />
                           </div>
                         </div>
