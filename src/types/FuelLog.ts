@@ -5,12 +5,13 @@ export interface FuelLog {
   date: string;
   fuel_quantity_liters: number;
   price_per_liter: number;
-  total_cost: number;
+  total_cost?: number;
   hours_at_fillup: number;
   notes: string;
   created_at: string;
   created_by: string;
   farm_id: string;
+  updated_at?: string;
 }
 
 export interface FuelLogFormValues {
