@@ -1,10 +1,9 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Location } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchUserProfile } from './useProfileData';
 import { buildReturnPath, withPreviewToken } from '@/utils/previewRouting';
-import { useRef } from 'react';
 
 /**
  * Hook for authentication session check and redirects
@@ -27,39 +26,56 @@ export function useSessionCheck(
     if (hasChecked.current) return;
     hasChecked.current = true;
 
-    // Fonction pour vérifier l'état de la session
+    let isActive = true;
+
+    const hydrateProfile = async (userId: string, email?: string, userMetadata?: any) => {
+      const profileData = await fetchUserProfile(userId, email ?? '');
+
+      if (!isActive) return;
+
+      if (profileData) {
+        setProfileData(profileData);
+        return;
+      }
+
+      console.log('Profil non trouvé, création en cours...');
+      const newProfile = await createUserProfile(userId, userMetadata, email ?? '');
+
+      if (isActive && newProfile) {
+        setProfileData(newProfile);
+      }
+    };
+
     const checkSession = async () => {
       setLoading(true);
       
       try {
-        // Récupérer la session actuelle
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('Erreur lors de la vérification de la session:', error);
           throw error;
         }
+
+        if (!isActive) return;
         
-        // Mettre à jour l'état
         setSession(currentSession);
         setUser(currentSession?.user || null);
-        
-        const loc = locationRef.current;
-        // Si l'utilisateur est connecté, récupérer ses données de profil
-        if (currentSession?.user) {
-          const profileData = await fetchUserProfile(currentSession.user.id);
-          if (profileData) {
-            setProfileData(profileData);
-          } else {
-            console.log('Profil non trouvé, création en cours...');
-            const newProfile = await createUserProfile(currentSession.user.id, currentSession.user.user_metadata);
-            if (newProfile) {
-              setProfileData(newProfile);
-            }
-          }
+
+        if (!currentSession) {
+          setProfileData(null);
         }
         
-        // Ne pas rediriger si nous sommes sur une page spéciale d'authentification
+        const loc = locationRef.current;
+
+        if (currentSession?.user) {
+          void hydrateProfile(
+            currentSession.user.id,
+            currentSession.user.email,
+            currentSession.user.user_metadata
+          );
+        }
+        
         const isSpecialAuthPath = 
           loc.pathname === '/auth/callback' || 
           loc.pathname.startsWith('/confirm') || 
@@ -70,9 +86,7 @@ export function useSessionCheck(
         
         if (isSpecialAuthPath) {
           console.log('Sur une page spéciale d\'authentification, pas de redirection automatique');
-        } 
-        // Gérer les redirections uniquement si nous ne sommes pas sur une page spéciale
-        else if (requireAuth && !currentSession) {
+        } else if (requireAuth && !currentSession) {
           const currentPath = loc.pathname === '/auth'
             ? '/dashboard'
             : buildReturnPath(loc.pathname, loc.search, loc.hash);
@@ -86,18 +100,21 @@ export function useSessionCheck(
       } catch (error) {
         console.error('Erreur lors de la vérification de la session:', error);
       } finally {
-        setLoading(false);
+        if (isActive) {
+          setLoading(false);
+        }
       }
     };
     
-    // Vérifier la session immédiatement
     checkSession();
-    
-  }, []); // Run once on mount only
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 }
 
-// Function to create a user profile if it doesn't exist
-async function createUserProfile(userId: string, userMetadata: any) {
+async function createUserProfile(userId: string, userMetadata: any, email = '') {
   try {
     const firstName = userMetadata?.first_name || '';
     const lastName = userMetadata?.last_name || '';
@@ -117,7 +134,12 @@ async function createUserProfile(userId: string, userMetadata: any) {
       return null;
     }
     
-    return data;
+    return data
+      ? {
+          ...data,
+          email,
+        }
+      : null;
   } catch (error) {
     console.error('Error in createUserProfile:', error);
     return null;
