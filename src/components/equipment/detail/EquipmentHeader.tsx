@@ -31,10 +31,10 @@ const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({
   isDeleting = false 
 }) => {
   return (
-    <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
+    <div className="flex flex-col gap-3 mb-4">
       <div>
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold tracking-tight">{equipment.name}</h1>
+        <div className="flex items-center gap-2 flex-wrap">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{equipment.name}</h1>
           <Badge variant="outline" className={equipment.status === 'operational' ? 'bg-green-100' : 
                                               equipment.status === 'maintenance' ? 'bg-yellow-100' : 
                                               equipment.status === 'broken' ? 'bg-red-100' : 'bg-gray-100'}>
@@ -42,7 +42,7 @@ const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({
           </Badge>
         </div>
         
-        <div className="text-muted-foreground mt-1">
+        <div className="text-sm text-muted-foreground mt-0.5">
           {equipment.manufacturer && equipment.model ? (
             <p>{equipment.manufacturer} {equipment.model} {equipment.year > 0 && `(${equipment.year})`}</p>
           ) : (
@@ -51,14 +51,14 @@ const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({
         </div>
       </div>
       
-      <div className="flex gap-2 self-start">
+      <div className="flex flex-wrap gap-2">
         <QRCodeGenerator 
           equipmentId={equipment.id} 
           equipmentName={equipment.name} 
         />
         
         <Button variant="outline" size="sm" onClick={onEdit} disabled={isDeleting}>
-          <Edit className="mr-2 h-4 w-4" />
+          <Edit className="mr-1.5 h-4 w-4" />
           Modifier
         </Button>
         
@@ -67,12 +67,13 @@ const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({
             <Button variant="destructive" size="sm" disabled={isDeleting}>
               {isDeleting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Suppression...
+                  <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                  <span className="hidden sm:inline">Suppression...</span>
+                  <span className="sm:hidden">...</span>
                 </>
               ) : (
                 <>
-                  <Trash2 className="mr-2 h-4 w-4" />
+                  <Trash2 className="mr-1.5 h-4 w-4" />
                   Supprimer
                 </>
               )}
