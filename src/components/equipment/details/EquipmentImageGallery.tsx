@@ -23,34 +23,33 @@ const EquipmentImageGallery: React.FC<EquipmentImageGalleryProps> = ({ equipment
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isZoomOpen, setIsZoomOpen] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
-  const { photos, loading } = useEquipmentPhotos(equipment.id);
+  const { photos, loading, getDisplayUrl } = useEquipmentPhotos(equipment.id);
   
   useEffect(() => {
     const equipmentImages: string[] = [];
     
-    // Utiliser les photos de la table equipment_photos
     if (photos && photos.length > 0) {
-      // Trier par is_primary d'abord, puis par display_order
       const sortedPhotos = [...photos].sort((a, b) => {
         if (a.is_primary && !b.is_primary) return -1;
         if (!a.is_primary && b.is_primary) return 1;
         return a.display_order - b.display_order;
       });
       
-      sortedPhotos.forEach(photo => equipmentImages.push(photo.photo_url));
+      sortedPhotos.forEach(photo => {
+        const url = getDisplayUrl(photo);
+        if (url) equipmentImages.push(url);
+      });
     } else if (equipment.image && equipment.image !== 'nul') {
-      // Fallback sur l'ancienne image unique
       equipmentImages.push(equipment.image);
     }
     
-    // Image par défaut si aucune photo
     if (equipmentImages.length === 0) {
       equipmentImages.push("https://images.unsplash.com/photo-1585911171167-1f66ea3de00c?q=80&w=500&auto=format&fit=crop");
     }
     
     setImages(equipmentImages);
     setCurrentIndex(0);
-  }, [equipment, photos]);
+  }, [equipment, photos, getDisplayUrl]);
 
   return (
     <Card className="overflow-hidden">
