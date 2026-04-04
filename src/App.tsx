@@ -14,6 +14,9 @@ import { I18nextProvider } from "react-i18next";
 import i18n from "@/i18n";
 import Footer from "@/components/layout/Footer";
 import { withPreviewToken } from '@/utils/previewRouting';
+import Dashboard from '@/pages/Dashboard';
+import Auth from '@/pages/Auth';
+import Equipment from '@/pages/Equipment';
 
 // Composant de chargement
 const LoadingSpinner = () => (
@@ -23,11 +26,8 @@ const LoadingSpinner = () => (
 );
 
 // Pages principales chargées eagerly pour éviter les délais
-import Dashboard from '@/pages/Dashboard';
-import Auth from '@/pages/Auth';
 
 // Pages secondaires chargées de manière asynchrone
-const Equipment = lazy(() => import('@/pages/Equipment'));
 const EquipmentDetail = lazy(() => import('@/pages/EquipmentDetail'));
 const Maintenance = lazy(() => import('@/pages/Maintenance'));
 const Parts = lazy(() => import('@/pages/Parts'));
