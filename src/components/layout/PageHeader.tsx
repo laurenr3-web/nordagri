@@ -15,13 +15,13 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   className = ""
 }) => {
   return (
-    <div className={`mb-6 ${className}`}>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
-        <h1 className="text-2xl sm:text-3xl font-bold">{title}</h1>
-        {action && <div>{action}</div>}
+    <div className={`mb-4 sm:mb-6 ${className}`}>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4 mb-1">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">{title}</h1>
+        {action && <div className="w-full sm:w-auto">{action}</div>}
       </div>
       {description && (
-        <p className="text-muted-foreground mt-1">{description}</p>
+        <p className="text-sm sm:text-base text-muted-foreground">{description}</p>
       )}
     </div>
   );

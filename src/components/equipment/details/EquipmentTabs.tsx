@@ -48,7 +48,7 @@ const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment }) => {
 
   return (
     <div className="w-full space-y-4">
-      <div className="grid grid-cols-4 gap-1.5">
+      <div className="flex overflow-x-auto scrollbar-hide gap-1.5 pb-1 -mx-1 px-1">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.value;
@@ -57,7 +57,7 @@ const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment }) => {
               key={tab.value}
               onClick={() => setActiveTab(tab.value)}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 rounded-lg py-2 px-1 text-xs font-medium transition-all",
+                "flex flex-col items-center justify-center gap-1 rounded-lg py-2 px-3 text-xs font-medium transition-all whitespace-nowrap min-w-[4.5rem] shrink-0",
                 "hover:bg-accent/60",
                 isActive
                   ? "bg-primary text-primary-foreground shadow-sm"
@@ -65,7 +65,7 @@ const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment }) => {
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
-              <span className="truncate max-w-full">{tab.label}</span>
+              <span>{tab.label}</span>
             </button>
           );
         })}

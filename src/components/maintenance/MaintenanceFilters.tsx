@@ -30,12 +30,7 @@ export const MaintenanceFilters: React.FC<MaintenanceFiltersProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-2 sm:items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold">Maintenance</h1>
-          <p className="text-sm text-muted-foreground">
-            Gérez les maintenances de vos équipements, {userName}
-          </p>
-        </div>
+        <div />
         
         <div className="flex flex-wrap items-center gap-2">
           <Input
