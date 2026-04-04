@@ -21,6 +21,8 @@ export interface MaintenanceTask {
   trigger_unit?: string;
   trigger_hours?: number;
   trigger_kilometers?: number;
+  completed_at_hours?: number;
+  completed_at_km?: number;
 }
 
 export interface MaintenanceFormValues {

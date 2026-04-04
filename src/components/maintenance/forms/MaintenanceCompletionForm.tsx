@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { CalendarIcon, Clock } from 'lucide-react';
+import { CalendarIcon, Clock, Gauge } from 'lucide-react';
 
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -23,6 +23,8 @@ const maintenanceCompletionSchema = z.object({
   actualDuration: z.number().min(0, "La durée doit être positive"),
   notes: z.string().optional(),
   technician: z.string().min(1, "Le nom du technicien est requis"),
+  completedAtHours: z.number().min(0).optional(),
+  completedAtKm: z.number().min(0).optional(),
   partsReplaced: z.array(z.object({
     id: z.string().optional(),
     name: z.string(),
@@ -44,11 +46,15 @@ export default function MaintenanceCompletionForm({
   isSubmitting = false 
 }: MaintenanceCompletionFormProps) {
   // Définir les valeurs par défaut
+  const triggerUnit = task.trigger_unit || 'none';
+  
   const defaultValues: Partial<MaintenanceCompletionFormValues> = {
     completedDate: new Date(),
     actualDuration: task.engineHours,
     notes: `Maintenance "${task.title}" complétée pour l'équipement ${task.equipment}.`,
     technician: task.assignedTo || '',
+    completedAtHours: triggerUnit === 'hours' ? (task.trigger_hours || 0) : undefined,
+    completedAtKm: triggerUnit === 'kilometers' ? (task.trigger_kilometers || 0) : undefined,
     partsReplaced: []
   };
 
@@ -170,6 +176,66 @@ export default function MaintenanceCompletionForm({
               </FormItem>
             )}
           />
+
+          {/* Compteur heures */}
+          {(triggerUnit === 'hours' || triggerUnit === 'none') && (
+            <FormField
+              control={form.control}
+              name="completedAtHours"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-1.5">
+                    <Gauge className="h-4 w-4 text-primary" />
+                    Compteur heures moteur
+                  </FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      min="0" 
+                      step="1"
+                      placeholder="Ex: 1250"
+                      value={field.value ?? ''}
+                      onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Heures moteur au moment de la maintenance
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {/* Compteur km */}
+          {(triggerUnit === 'kilometers' || triggerUnit === 'none') && (
+            <FormField
+              control={form.control}
+              name="completedAtKm"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-1.5">
+                    <Gauge className="h-4 w-4 text-primary" />
+                    Compteur kilométrique
+                  </FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      min="0" 
+                      step="1"
+                      placeholder="Ex: 45000"
+                      value={field.value ?? ''}
+                      onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Kilomètres au moment de la maintenance
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
           {/* Notes */}
           <FormField

@@ -31,6 +31,8 @@ export class MaintenanceTasksService {
       trigger_unit: task.trigger_unit,
       trigger_hours: task.trigger_hours,
       trigger_kilometers: task.trigger_kilometers,
+      completed_at_hours: task.completed_at_hours,
+      completed_at_km: task.completed_at_km,
     }));
   }
 
@@ -168,6 +170,8 @@ export class MaintenanceTasksService {
       trigger_unit: task.trigger_unit,
       trigger_hours: task.trigger_hours,
       trigger_kilometers: task.trigger_kilometers,
+      completed_at_hours: task.completed_at_hours,
+      completed_at_km: task.completed_at_km,
     }));
   }
 
@@ -176,6 +180,8 @@ export class MaintenanceTasksService {
     actualDuration?: number;
     notes?: string;
     technician?: string;
+    completedAtHours?: number;
+    completedAtKm?: number;
   }): Promise<void> {
     const updateData: any = {
       status: 'completed',
@@ -192,6 +198,14 @@ export class MaintenanceTasksService {
 
     if (completionData.technician) {
       updateData.technician = completionData.technician;
+    }
+
+    if (completionData.completedAtHours !== undefined) {
+      updateData.completed_at_hours = completionData.completedAtHours;
+    }
+
+    if (completionData.completedAtKm !== undefined) {
+      updateData.completed_at_km = completionData.completedAtKm;
     }
 
     const { error } = await supabase
@@ -270,6 +284,8 @@ export class MaintenanceTasksService {
       trigger_unit: task.trigger_unit,
       trigger_hours: task.trigger_hours,
       trigger_kilometers: task.trigger_kilometers,
+      completed_at_hours: task.completed_at_hours,
+      completed_at_km: task.completed_at_km,
     }));
   }
 }
