@@ -166,7 +166,6 @@ const Dashboard = () => {
               queryClient.invalidateQueries();
             }}
           />
-          />
         )}
 
         {/* Header avec actions */}
