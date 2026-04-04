@@ -127,15 +127,38 @@ const MaintenanceTaskDetailDialog: React.FC<MaintenanceTaskDetailDialogProps> = 
 
             {/* Info rows */}
             <div className="space-y-3 rounded-lg border p-3">
-              <div className="flex items-center gap-3">
-                <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Échéance</p>
-                  <p className={`text-sm font-medium ${isOverdue ? 'text-destructive' : ''}`}>
-                    {format(dueDate, 'd MMMM yyyy', { locale: fr })}
-                  </p>
+              {/* Show counter for hour/km tasks, date for date-based */}
+              {(task.trigger_unit === 'hours' && task.triggerHours) ? (
+                <div className="flex items-center gap-3">
+                  <Gauge className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">À effectuer au compteur</p>
+                    <p className={`text-sm font-medium ${isOverdue ? 'text-destructive' : ''}`}>
+                      {task.triggerHours} heures
+                    </p>
+                  </div>
                 </div>
-              </div>
+              ) : (task.trigger_unit === 'kilometers' && task.triggerKilometers) ? (
+                <div className="flex items-center gap-3">
+                  <Gauge className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">À effectuer au compteur</p>
+                    <p className={`text-sm font-medium ${isOverdue ? 'text-destructive' : ''}`}>
+                      {task.triggerKilometers} km
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Échéance</p>
+                    <p className={`text-sm font-medium ${isOverdue ? 'text-destructive' : ''}`}>
+                      {format(dueDate, 'd MMMM yyyy', { locale: fr })}
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {task.equipment && (
                 <div className="flex items-center gap-3">
