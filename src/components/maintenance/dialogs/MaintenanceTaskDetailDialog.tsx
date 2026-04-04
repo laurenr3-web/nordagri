@@ -25,7 +25,18 @@ const MaintenanceTaskDetailDialog: React.FC<MaintenanceTaskDetailDialogProps> = 
   if (!task) return null;
 
   const dueDate = new Date(task.dueDate);
-  const isOverdue = dueDate < new Date();
+  const triggerUnit = task.trigger_unit || 'none';
+  
+  // Determine overdue based on trigger type
+  let isOverdue = false;
+  if (triggerUnit === 'hours' && task.triggerHours) {
+    // We don't have equipment hours here, so check if task was flagged
+    isOverdue = false; // Will be shown via the card's logic
+  } else if (triggerUnit === 'kilometers' && task.triggerKilometers) {
+    isOverdue = false;
+  } else {
+    isOverdue = dueDate < new Date();
+  }
 
   const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
     'scheduled': { label: 'Planifiée', variant: 'secondary' },
@@ -127,15 +138,38 @@ const MaintenanceTaskDetailDialog: React.FC<MaintenanceTaskDetailDialogProps> = 
 
             {/* Info rows */}
             <div className="space-y-3 rounded-lg border p-3">
-              <div className="flex items-center gap-3">
-                <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Échéance</p>
-                  <p className={`text-sm font-medium ${isOverdue ? 'text-destructive' : ''}`}>
-                    {format(dueDate, 'd MMMM yyyy', { locale: fr })}
-                  </p>
+              {/* Show counter for hour/km tasks, date for date-based */}
+              {(task.trigger_unit === 'hours' && task.triggerHours) ? (
+                <div className="flex items-center gap-3">
+                  <Gauge className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">À effectuer au compteur</p>
+                    <p className={`text-sm font-medium ${isOverdue ? 'text-destructive' : ''}`}>
+                      {task.triggerHours} heures
+                    </p>
+                  </div>
                 </div>
-              </div>
+              ) : (task.trigger_unit === 'kilometers' && task.triggerKilometers) ? (
+                <div className="flex items-center gap-3">
+                  <Gauge className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">À effectuer au compteur</p>
+                    <p className={`text-sm font-medium ${isOverdue ? 'text-destructive' : ''}`}>
+                      {task.triggerKilometers} km
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Échéance</p>
+                    <p className={`text-sm font-medium ${isOverdue ? 'text-destructive' : ''}`}>
+                      {format(dueDate, 'd MMMM yyyy', { locale: fr })}
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {task.equipment && (
                 <div className="flex items-center gap-3">
@@ -147,26 +181,6 @@ const MaintenanceTaskDetailDialog: React.FC<MaintenanceTaskDetailDialogProps> = 
                 </div>
               )}
 
-              {(task.triggerHours || task.triggerKilometers) ? (
-                <div className="flex items-center gap-3">
-                  <Gauge className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">À effectuer au compteur</p>
-                    <p className="text-sm font-medium">
-                      {task.triggerHours ? `${task.triggerHours} h` : ''}
-                      {task.triggerKilometers ? `${task.triggerKilometers} km` : ''}
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Type</p>
-                    <p className="text-sm font-medium">{typeMap[task.type] || task.type}</p>
-                  </div>
-                </div>
-              )}
 
               {task.assignedTo && (
                 <div className="flex items-center gap-3">

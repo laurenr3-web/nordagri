@@ -91,7 +91,9 @@ const AddMaintenanceDialog: React.FC<AddMaintenanceDialogProps> = ({
         equipmentId: equipment.id,
         status: values.status,
         priority: "medium",
-        dueDate: values.triggerDate || new Date(),
+        dueDate: values.triggerType === 'date' 
+          ? (values.triggerDate || new Date()) 
+          : new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 10), // far future for counter-based
         engineHours: values.triggerHours || 0,
         assignedTo: profileData?.first_name ? `${profileData.first_name} ${profileData.last_name || ''}`.trim() : user?.email,
         notes: values.notes || '',
