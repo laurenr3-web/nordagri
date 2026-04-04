@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { CheckCircle2, FileText, History } from 'lucide-react';
+import { CheckCircle2, Clock, FileText, History } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
