@@ -26,6 +26,7 @@ export interface MaintenanceTask {
   is_recurrent?: boolean;
   recurrence_interval?: number;
   recurrence_unit?: string;
+  equipment_current_value?: number;
 }
 
 export interface MaintenanceFormValues {

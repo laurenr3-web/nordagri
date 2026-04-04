@@ -7,10 +7,31 @@ import { MaintenanceTask, MaintenanceStatus, MaintenancePriority } from '@/hooks
 import { useFilter } from '@/hooks/maintenance/useFilter';
 
 /**
+ * Determines if a counter-based task is overdue by comparing
+ * equipment current value against the trigger threshold.
+ */
+function isCounterOverdue(task: MaintenanceTask): boolean {
+  const currentValue = task.equipment_current_value;
+  if (currentValue == null) return false;
+
+  if (task.trigger_unit === 'hours' && task.trigger_hours != null) {
+    return currentValue >= task.trigger_hours;
+  }
+  if (task.trigger_unit === 'kilometers' && task.trigger_kilometers != null) {
+    return currentValue >= task.trigger_kilometers;
+  }
+  return false;
+}
+
+function isCounterBased(task: MaintenanceTask): boolean {
+  return (
+    (task.trigger_unit === 'hours' && task.trigger_hours != null) ||
+    (task.trigger_unit === 'kilometers' && task.trigger_kilometers != null)
+  );
+}
+
+/**
  * Regroupe la logique métier pour l'écran Maintenance (filtrage, vue, highlight, organisation des tâches)
- * @param tasks Toutes les tâches de maintenance à afficher
- * @param setCurrentView Callback pour changer la vue courante
- * @returns Objets pour le rendu, valeurs filtres, handlers, etc.
  */
 export function useMaintenanceContent(
   tasks: MaintenanceTask[],
@@ -38,11 +59,11 @@ export function useMaintenanceContent(
       if (task) {
         if (task.status === 'completed') {
           setCurrentView('completed');
-        } else if (isPast(task.dueDate) && !isToday(task.dueDate)) {
+        } else if (isCounterBased(task) ? isCounterOverdue(task) : (isPast(task.dueDate) && !isToday(task.dueDate))) {
           setCurrentView('overdue');
-        } else if (isToday(task.dueDate)) {
+        } else if (!isCounterBased(task) && isToday(task.dueDate)) {
           setCurrentView('today');
-        } else if (isFuture(task.dueDate)) {
+        } else {
           setCurrentView('upcoming');
         }
         toast.info(`Tâche sélectionnée : ${task.title}`, {
@@ -53,15 +74,24 @@ export function useMaintenanceContent(
   }, [highlightedTaskId, tasks, setCurrentView]);
 
   // Organise les tâches pour chaque vue
-  const upcomingTasks = filteredTasks.filter(task =>
-    task.status !== 'completed' && isFuture(task.dueDate)
-  );
-  const todayTasks = filteredTasks.filter(task =>
-    task.status !== 'completed' && isToday(task.dueDate)
-  );
-  const overdueTasks = filteredTasks.filter(task =>
-    task.status !== 'completed' && isPast(task.dueDate) && !isToday(task.dueDate)
-  );
+  const overdueTasks = filteredTasks.filter(task => {
+    if (task.status === 'completed') return false;
+    if (isCounterBased(task)) return isCounterOverdue(task);
+    return isPast(task.dueDate) && !isToday(task.dueDate);
+  });
+
+  const todayTasks = filteredTasks.filter(task => {
+    if (task.status === 'completed') return false;
+    if (isCounterBased(task)) return false; // counter tasks are either overdue or upcoming
+    return isToday(task.dueDate);
+  });
+
+  const upcomingTasks = filteredTasks.filter(task => {
+    if (task.status === 'completed') return false;
+    if (isCounterBased(task)) return !isCounterOverdue(task);
+    return isFuture(task.dueDate);
+  });
+
   const completedTasks = filteredTasks.filter(task =>
     task.status === 'completed'
   );
