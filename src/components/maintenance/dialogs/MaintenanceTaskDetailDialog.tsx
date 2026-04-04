@@ -25,7 +25,18 @@ const MaintenanceTaskDetailDialog: React.FC<MaintenanceTaskDetailDialogProps> = 
   if (!task) return null;
 
   const dueDate = new Date(task.dueDate);
-  const isOverdue = dueDate < new Date();
+  const triggerUnit = task.trigger_unit || 'none';
+  
+  // Determine overdue based on trigger type
+  let isOverdue = false;
+  if (triggerUnit === 'hours' && task.triggerHours) {
+    // We don't have equipment hours here, so check if task was flagged
+    isOverdue = false; // Will be shown via the card's logic
+  } else if (triggerUnit === 'kilometers' && task.triggerKilometers) {
+    isOverdue = false;
+  } else {
+    isOverdue = dueDate < new Date();
+  }
 
   const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
     'scheduled': { label: 'Planifiée', variant: 'secondary' },
