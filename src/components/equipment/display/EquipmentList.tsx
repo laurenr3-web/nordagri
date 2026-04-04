@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { motion } from 'framer-motion';
 import StatusBadge from '../details/StatusBadge';
 import MaintenanceAlert from '../details/MaintenanceAlert';
+import SignedImage from '@/components/ui/SignedImage';
 
 interface EquipmentListProps {
   equipment: Array<any>;
