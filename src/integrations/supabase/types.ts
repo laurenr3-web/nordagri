@@ -14,13 +14,1225 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      equipment: {
+        Row: {
+          category: string | null
+          created_at: string
+          farm_id: string | null
+          id: number
+          image: string | null
+          last_wear_update: string | null
+          location: string | null
+          manufacturer: string | null
+          model: string | null
+          name: string
+          notes: string | null
+          owner_id: string
+          purchase_date: string | null
+          serial_number: string | null
+          status: string | null
+          type: string | null
+          unite_d_usure: string | null
+          updated_at: string
+          valeur_actuelle: number | null
+          year: number | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          farm_id?: string | null
+          id?: number
+          image?: string | null
+          last_wear_update?: string | null
+          location?: string | null
+          manufacturer?: string | null
+          model?: string | null
+          name: string
+          notes?: string | null
+          owner_id: string
+          purchase_date?: string | null
+          serial_number?: string | null
+          status?: string | null
+          type?: string | null
+          unite_d_usure?: string | null
+          updated_at?: string
+          valeur_actuelle?: number | null
+          year?: number | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          farm_id?: string | null
+          id?: number
+          image?: string | null
+          last_wear_update?: string | null
+          location?: string | null
+          manufacturer?: string | null
+          model?: string | null
+          name?: string
+          notes?: string | null
+          owner_id?: string
+          purchase_date?: string | null
+          serial_number?: string | null
+          status?: string | null
+          type?: string | null
+          unite_d_usure?: string | null
+          updated_at?: string
+          valeur_actuelle?: number | null
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipment_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: number
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: number
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: number
+          name?: string
+        }
+        Relationships: []
+      }
+      equipment_logs: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          equipment_id: number
+          id: number
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          equipment_id: number
+          id?: number
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          equipment_id?: number
+          id?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_logs_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipment_maintenance_schedule: {
+        Row: {
+          completed_date: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          equipment_id: number
+          id: number
+          priority: string | null
+          status: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed_date?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          equipment_id: number
+          id?: number
+          priority?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed_date?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          equipment_id?: number
+          id?: number
+          priority?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_maintenance_schedule_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipment_photos: {
+        Row: {
+          caption: string | null
+          created_at: string
+          display_order: number | null
+          equipment_id: number
+          id: string
+          is_primary: boolean | null
+          photo_url: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          display_order?: number | null
+          equipment_id: number
+          id?: string
+          is_primary?: boolean | null
+          photo_url: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          display_order?: number | null
+          equipment_id?: number
+          id?: string
+          is_primary?: boolean | null
+          photo_url?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_photos_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipment_qrcodes: {
+        Row: {
+          active: boolean | null
+          created_at: string
+          equipment_id: number
+          id: string
+          last_scanned: string | null
+          qr_code_hash: string
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string
+          equipment_id: number
+          id?: string
+          last_scanned?: string | null
+          qr_code_hash: string
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string
+          equipment_id?: number
+          id?: string
+          last_scanned?: string | null
+          qr_code_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_qrcodes_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipment_types: {
+        Row: {
+          created_at: string
+          farm_id: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          farm_id?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          farm_id?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_types_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      farm_members: {
+        Row: {
+          created_at: string
+          farm_id: string
+          id: string
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          farm_id: string
+          id?: string
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          farm_id?: string
+          id?: string
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "farm_members_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      farm_settings: {
+        Row: {
+          created_at: string
+          farm_id: string
+          id: string
+          show_fuel_log: boolean | null
+          show_maintenance: boolean | null
+          show_parts: boolean | null
+          show_time_tracking: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          farm_id: string
+          id?: string
+          show_fuel_log?: boolean | null
+          show_maintenance?: boolean | null
+          show_parts?: boolean | null
+          show_time_tracking?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          farm_id?: string
+          id?: string
+          show_fuel_log?: boolean | null
+          show_maintenance?: boolean | null
+          show_parts?: boolean | null
+          show_time_tracking?: boolean | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "farm_settings_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: true
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      farms: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          location: string | null
+          name: string
+          owner_id: string
+          size: number | null
+          size_unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          name: string
+          owner_id: string
+          size?: number | null
+          size_unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          name?: string
+          owner_id?: string
+          size?: number | null
+          size_unit?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      fuel_logs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          date: string
+          equipment_id: number
+          farm_id: string | null
+          fuel_quantity_liters: number
+          hours_at_fillup: number | null
+          id: string
+          notes: string | null
+          price_per_liter: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          date: string
+          equipment_id: number
+          farm_id?: string | null
+          fuel_quantity_liters: number
+          hours_at_fillup?: number | null
+          id?: string
+          notes?: string | null
+          price_per_liter?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          equipment_id?: number
+          farm_id?: string | null
+          fuel_quantity_liters?: number
+          hours_at_fillup?: number | null
+          id?: string
+          notes?: string | null
+          price_per_liter?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fuel_logs_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fuel_logs_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interventions: {
+        Row: {
+          coordinates: Json | null
+          created_at: string
+          date: string | null
+          description: string | null
+          duration: number | null
+          equipment: string | null
+          equipment_id: number | null
+          id: number
+          location: string | null
+          notes: string | null
+          owner_id: string | null
+          priority: string | null
+          scheduledDuration: number | null
+          status: string | null
+          technician: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          coordinates?: Json | null
+          created_at?: string
+          date?: string | null
+          description?: string | null
+          duration?: number | null
+          equipment?: string | null
+          equipment_id?: number | null
+          id?: number
+          location?: string | null
+          notes?: string | null
+          owner_id?: string | null
+          priority?: string | null
+          scheduledDuration?: number | null
+          status?: string | null
+          technician?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          coordinates?: Json | null
+          created_at?: string
+          date?: string | null
+          description?: string | null
+          duration?: number | null
+          equipment?: string | null
+          equipment_id?: number | null
+          id?: number
+          location?: string | null
+          notes?: string | null
+          owner_id?: string | null
+          priority?: string | null
+          scheduledDuration?: number | null
+          status?: string | null
+          technician?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interventions_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invitations: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string | null
+          farm_id: string
+          id: string
+          invited_by: string | null
+          role: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at?: string | null
+          farm_id: string
+          id?: string
+          invited_by?: string | null
+          role?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string | null
+          farm_id?: string
+          id?: string
+          invited_by?: string | null
+          role?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitations_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      locations: {
+        Row: {
+          address: string | null
+          coordinates: Json | null
+          created_at: string
+          description: string | null
+          farm_id: string | null
+          id: number
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          coordinates?: Json | null
+          created_at?: string
+          description?: string | null
+          farm_id?: string | null
+          id?: number
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          coordinates?: Json | null
+          created_at?: string
+          description?: string | null
+          farm_id?: string | null
+          id?: number
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "locations_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_plans: {
+        Row: {
+          active: boolean | null
+          assigned_to: string | null
+          created_at: string
+          description: string | null
+          engine_hours: number | null
+          equipment_id: number | null
+          equipment_name: string | null
+          frequency: string | null
+          id: number
+          interval: number | null
+          last_performed_date: string | null
+          next_due_date: string
+          owner_id: string | null
+          priority: string | null
+          title: string
+          trigger_hours: number | null
+          trigger_kilometers: number | null
+          trigger_unit: string | null
+          type: string | null
+          unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean | null
+          assigned_to?: string | null
+          created_at?: string
+          description?: string | null
+          engine_hours?: number | null
+          equipment_id?: number | null
+          equipment_name?: string | null
+          frequency?: string | null
+          id?: number
+          interval?: number | null
+          last_performed_date?: string | null
+          next_due_date: string
+          owner_id?: string | null
+          priority?: string | null
+          title: string
+          trigger_hours?: number | null
+          trigger_kilometers?: number | null
+          trigger_unit?: string | null
+          type?: string | null
+          unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean | null
+          assigned_to?: string | null
+          created_at?: string
+          description?: string | null
+          engine_hours?: number | null
+          equipment_id?: number | null
+          equipment_name?: string | null
+          frequency?: string | null
+          id?: number
+          interval?: number | null
+          last_performed_date?: string | null
+          next_due_date?: string
+          owner_id?: string | null
+          priority?: string | null
+          title?: string
+          trigger_hours?: number | null
+          trigger_kilometers?: number | null
+          trigger_unit?: string | null
+          type?: string | null
+          unit?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_plans_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_tasks: {
+        Row: {
+          actual_duration: number | null
+          assigned_to: string | null
+          completed_date: string | null
+          created_at: string
+          due_date: string
+          equipment: string | null
+          equipment_id: number | null
+          estimated_duration: number | null
+          id: number
+          notes: string | null
+          owner_id: string
+          priority: string | null
+          status: string | null
+          technician: string | null
+          title: string
+          trigger_hours: number | null
+          trigger_kilometers: number | null
+          trigger_unit: string | null
+          type: string | null
+          updated_at: string
+        }
+        Insert: {
+          actual_duration?: number | null
+          assigned_to?: string | null
+          completed_date?: string | null
+          created_at?: string
+          due_date: string
+          equipment?: string | null
+          equipment_id?: number | null
+          estimated_duration?: number | null
+          id?: number
+          notes?: string | null
+          owner_id: string
+          priority?: string | null
+          status?: string | null
+          technician?: string | null
+          title: string
+          trigger_hours?: number | null
+          trigger_kilometers?: number | null
+          trigger_unit?: string | null
+          type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actual_duration?: number | null
+          assigned_to?: string | null
+          completed_date?: string | null
+          created_at?: string
+          due_date?: string
+          equipment?: string | null
+          equipment_id?: number | null
+          estimated_duration?: number | null
+          id?: number
+          notes?: string | null
+          owner_id?: string
+          priority?: string | null
+          status?: string | null
+          technician?: string | null
+          title?: string
+          trigger_hours?: number | null
+          trigger_kilometers?: number | null
+          trigger_unit?: string | null
+          type?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_tasks_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      manufacturers: {
+        Row: {
+          created_at: string
+          farm_id: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          farm_id?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          farm_id?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manufacturers_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_settings: {
+        Row: {
+          created_at: string
+          email_notifications: boolean | null
+          id: string
+          maintenance_reminder_enabled: boolean | null
+          notification_preferences: Json | null
+          push_notifications: boolean | null
+          sms_notifications: boolean | null
+          stock_low_enabled: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_notifications?: boolean | null
+          id?: string
+          maintenance_reminder_enabled?: boolean | null
+          notification_preferences?: Json | null
+          push_notifications?: boolean | null
+          sms_notifications?: boolean | null
+          stock_low_enabled?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_notifications?: boolean | null
+          id?: string
+          maintenance_reminder_enabled?: boolean | null
+          notification_preferences?: Json | null
+          push_notifications?: boolean | null
+          sms_notifications?: boolean | null
+          stock_low_enabled?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          data: Json | null
+          id: string
+          message: string | null
+          read: boolean | null
+          title: string
+          type: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json | null
+          id?: string
+          message?: string | null
+          read?: boolean | null
+          title: string
+          type?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json | null
+          id?: string
+          message?: string | null
+          read?: boolean | null
+          title?: string
+          type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      parts_inventory: {
+        Row: {
+          category: string | null
+          compatible_with: string[] | null
+          created_at: string
+          farm_id: string | null
+          id: number
+          image_url: string | null
+          location: string | null
+          name: string
+          owner_id: string
+          part_number: string | null
+          quantity: number | null
+          reorder_threshold: number | null
+          supplier: string | null
+          unit_price: number | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          compatible_with?: string[] | null
+          created_at?: string
+          farm_id?: string | null
+          id?: number
+          image_url?: string | null
+          location?: string | null
+          name: string
+          owner_id: string
+          part_number?: string | null
+          quantity?: number | null
+          reorder_threshold?: number | null
+          supplier?: string | null
+          unit_price?: number | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          compatible_with?: string[] | null
+          created_at?: string
+          farm_id?: string | null
+          id?: number
+          image_url?: string | null
+          location?: string | null
+          name?: string
+          owner_id?: string
+          part_number?: string | null
+          quantity?: number | null
+          reorder_threshold?: number | null
+          supplier?: string | null
+          unit_price?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parts_inventory_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parts_withdrawals: {
+        Row: {
+          comment: string | null
+          created_at: string
+          custom_reason: string | null
+          id: string
+          intervention_id: number | null
+          part_id: number
+          quantity: number
+          reason: string | null
+          user_id: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          custom_reason?: string | null
+          id?: string
+          intervention_id?: number | null
+          part_id: number
+          quantity: number
+          reason?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          custom_reason?: string | null
+          id?: string
+          intervention_id?: number | null
+          part_id?: number
+          quantity?: number
+          reason?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parts_withdrawals_intervention_id_fkey"
+            columns: ["intervention_id"]
+            isOneToOne: false
+            referencedRelation: "interventions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parts_withdrawals_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "parts_inventory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          farm_id: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          role: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          farm_id?: string | null
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          role?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          farm_id?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          role?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      storage_locations: {
+        Row: {
+          created_at: string
+          description: string | null
+          farm_id: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          farm_id?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          farm_id?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "storage_locations_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_types: {
+        Row: {
+          affecte_compteur: boolean | null
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          affecte_compteur?: boolean | null
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          affecte_compteur?: boolean | null
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      team_members: {
+        Row: {
+          created_at: string
+          email: string | null
+          farm_id: string
+          id: string
+          name: string
+          phone: string | null
+          role: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          farm_id: string
+          id?: string
+          name: string
+          phone?: string | null
+          role?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          farm_id?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          role?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      time_sessions: {
+        Row: {
+          coordinates: Json | null
+          created_at: string
+          custom_task_type: string | null
+          description: string | null
+          duration: number | null
+          end_time: string | null
+          equipment_id: number | null
+          id: string
+          intervention_id: number | null
+          journee_id: string | null
+          location: string | null
+          notes: string | null
+          poste_travail: string | null
+          start_time: string
+          status: string | null
+          task_type_id: string | null
+          technician: string | null
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          coordinates?: Json | null
+          created_at?: string
+          custom_task_type?: string | null
+          description?: string | null
+          duration?: number | null
+          end_time?: string | null
+          equipment_id?: number | null
+          id?: string
+          intervention_id?: number | null
+          journee_id?: string | null
+          location?: string | null
+          notes?: string | null
+          poste_travail?: string | null
+          start_time?: string
+          status?: string | null
+          task_type_id?: string | null
+          technician?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          coordinates?: Json | null
+          created_at?: string
+          custom_task_type?: string | null
+          description?: string | null
+          duration?: number | null
+          end_time?: string | null
+          equipment_id?: number | null
+          id?: string
+          intervention_id?: number | null
+          journee_id?: string | null
+          location?: string | null
+          notes?: string | null
+          poste_travail?: string | null
+          start_time?: string
+          status?: string | null
+          task_type_id?: string | null
+          technician?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_sessions_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_sessions_intervention_id_fkey"
+            columns: ["intervention_id"]
+            isOneToOne: false
+            referencedRelation: "interventions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_sessions_task_type_id_fkey"
+            columns: ["task_type_id"]
+            isOneToOne: false
+            referencedRelation: "task_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      decrement_part_stock: {
+        Args: { p_part_id: number; p_quantity: number }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
