@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import AddMaintenanceDialog from '@/components/maintenance/dialogs/AddMaintenanceDialog';
 import { maintenanceService } from '@/services/supabase/maintenanceService';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import MaintenanceTaskDetailDialog from '@/components/maintenance/dialogs/MaintenanceTaskDetailDialog';
 
 interface EquipmentMaintenanceStatusProps {
   equipment: EquipmentItem;
@@ -19,7 +19,7 @@ const EquipmentMaintenanceStatus: React.FC<EquipmentMaintenanceStatusProps> = ({
   const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
   const [pendingTasks, setPendingTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [selectedTask, setSelectedTask] = useState<any>(null);
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -129,7 +129,7 @@ const EquipmentMaintenanceStatus: React.FC<EquipmentMaintenanceStatusProps> = ({
               return (
                 <button
                   key={task.id}
-                  onClick={() => navigate(`/equipment/${equipment.id}`, { state: { tab: 'maintenance-tab' } })}
+                  onClick={() => setSelectedTask(task)}
                   className={`w-full text-left rounded-lg border p-3 transition-colors hover:bg-accent/50 ${
                     overdue ? 'border-red-300 bg-red-50 dark:bg-red-950/20 dark:border-red-800' : ''
                   }`}
@@ -173,6 +173,12 @@ const EquipmentMaintenanceStatus: React.FC<EquipmentMaintenanceStatusProps> = ({
         onClose={() => setIsAddDialogOpen(false)}
         onSubmit={handleAddMaintenance}
         equipment={equipment}
+      />
+
+      <MaintenanceTaskDetailDialog
+        isOpen={!!selectedTask}
+        onClose={() => setSelectedTask(null)}
+        task={selectedTask}
       />
     </Card>
   );
