@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import StatusBadge from '../details/StatusBadge';
 import MaintenanceAlert from '../details/MaintenanceAlert';
 import { EquipmentImageFallback } from './EquipmentImageFallback';
+import SignedImage from '@/components/ui/SignedImage';
 
 const variants = {
   hidden: { opacity: 0 },
