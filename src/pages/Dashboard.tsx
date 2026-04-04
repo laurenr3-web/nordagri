@@ -162,7 +162,10 @@ const Dashboard = () => {
             open={showCreateFarm}
             onOpenChange={setShowCreateFarm}
             userId={user.id}
-            onFarmCreated={() => window.location.reload()}
+            onFarmCreated={() => {
+              queryClient.invalidateQueries();
+            }}
+          />
           />
         )}
 
