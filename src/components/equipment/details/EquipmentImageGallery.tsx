@@ -27,29 +27,49 @@ const EquipmentImageGallery: React.FC<EquipmentImageGalleryProps> = ({ equipment
   const { photos, loading, getDisplayUrl } = useEquipmentPhotos(equipment.id);
   
   useEffect(() => {
-    const equipmentImages: string[] = [];
+    let cancelled = false;
     
-    if (photos && photos.length > 0) {
-      const sortedPhotos = [...photos].sort((a, b) => {
-        if (a.is_primary && !b.is_primary) return -1;
-        if (!a.is_primary && b.is_primary) return 1;
-        return a.display_order - b.display_order;
-      });
+    const resolveImages = async () => {
+      const equipmentImages: string[] = [];
       
-      sortedPhotos.forEach(photo => {
-        const url = getDisplayUrl(photo);
-        if (url) equipmentImages.push(url);
-      });
-    } else if (equipment.image && equipment.image !== 'nul') {
-      equipmentImages.push(equipment.image);
-    }
+      if (photos && photos.length > 0) {
+        const sortedPhotos = [...photos].sort((a, b) => {
+          if (a.is_primary && !b.is_primary) return -1;
+          if (!a.is_primary && b.is_primary) return 1;
+          return a.display_order - b.display_order;
+        });
+        
+        sortedPhotos.forEach(photo => {
+          const url = getDisplayUrl(photo);
+          if (url) equipmentImages.push(url);
+        });
+      } else if (equipment.image && equipment.image !== 'nul') {
+        // Legacy image - resolve signed URL if it's a storage path
+        if (equipment.image.startsWith('http') && !equipment.image.includes('equipment_photos')) {
+          equipmentImages.push(equipment.image);
+        } else {
+          try {
+            const signedUrl = await equipmentMultiPhotoService.getSignedUrl(equipment.image);
+            if (signedUrl) equipmentImages.push(signedUrl);
+          } catch {
+            // Fallback to original
+            equipmentImages.push(equipment.image);
+          }
+        }
+      }
+      
+      if (equipmentImages.length === 0) {
+        equipmentImages.push("https://images.unsplash.com/photo-1585911171167-1f66ea3de00c?q=80&w=500&auto=format&fit=crop");
+      }
+      
+      if (!cancelled) {
+        setImages(equipmentImages);
+        setCurrentIndex(0);
+      }
+    };
     
-    if (equipmentImages.length === 0) {
-      equipmentImages.push("https://images.unsplash.com/photo-1585911171167-1f66ea3de00c?q=80&w=500&auto=format&fit=crop");
-    }
-    
-    setImages(equipmentImages);
-    setCurrentIndex(0);
+    resolveImages();
+    return () => { cancelled = true; };
   }, [equipment, photos, getDisplayUrl]);
 
   return (
