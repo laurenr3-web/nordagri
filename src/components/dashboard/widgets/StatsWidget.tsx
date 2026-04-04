@@ -77,18 +77,14 @@ export const StatsWidget = ({ data, loading, size }: StatsWidgetProps) => {
       {stats.map((stat, index) => (
         <motion.div key={index} variants={item}>
           <div 
-            className="p-4 bg-card border rounded-lg cursor-pointer hover:bg-accent transition-colors"
+            className="p-4 bg-card border rounded-lg cursor-pointer hover:bg-accent transition-colors text-center"
             onClick={stat.onClick}
           >
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <stat.icon className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stat.value}</p>
-                <p className="text-sm text-muted-foreground">{stat.title}</p>
-              </div>
+            <div className="inline-flex items-center justify-center p-2 bg-primary/10 rounded-lg mb-2">
+              <stat.icon className="h-5 w-5 text-primary" />
             </div>
+            <p className="text-2xl font-bold leading-tight">{stat.value}</p>
+            <p className="text-xs text-muted-foreground mt-0.5 leading-tight">{stat.title}</p>
           </div>
         </motion.div>
       ))}
