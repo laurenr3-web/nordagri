@@ -1,7 +1,6 @@
 
-import { useEffect } from 'react';
-import { useNavigate, useLocation, Location } from 'react-router-dom';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
+import { NavigateFunction, useNavigate, useLocation, Location } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchUserProfile } from './useProfileData';
 import { toast } from 'sonner';
@@ -18,7 +17,7 @@ export function useAuthListener(
   requireAuth = true,
   redirectTo?: string
 ) {
-  const navigate = useNavigate();
+  const navigate: NavigateFunction = useNavigate();
   const location = useLocation();
   const locationRef = useRef<Location>(location);
   locationRef.current = location;
@@ -26,15 +25,18 @@ export function useAuthListener(
   useEffect(() => {
     console.log('Setting up auth listener');
     
-    // Configurer l'abonnement aux changements d'état d'authentification
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+
+      if (!session) {
+        setProfileData(null);
+      }
       
       if (session?.user && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
         setTimeout(() => {
-          fetchUserProfile(session.user.id).then(data => {
+          fetchUserProfile(session.user.id, session.user.email ?? '').then(data => {
             if (data) {
               setProfileData(data);
               if (event === 'SIGNED_IN') {
@@ -67,10 +69,9 @@ export function useAuthListener(
       }
     });
     
-    // Nettoyer l'abonnement lorsque le composant est démonté
     return () => {
       console.log('Cleaning up auth listener');
       authListener.subscription.unsubscribe();
     };
-  }, []); // Run once — location accessed via ref
+  }, []);
 }
