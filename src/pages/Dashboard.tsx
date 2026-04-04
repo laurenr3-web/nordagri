@@ -61,6 +61,7 @@ const Dashboard = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showCreateFarm, setShowCreateFarm] = useState(false);
   const { user, profileData } = useAuthContext();
+  const queryClient = useQueryClient();
   const hasFarm = !!profileData?.farm_id;
   
   // Gestion du layout personnalisé
