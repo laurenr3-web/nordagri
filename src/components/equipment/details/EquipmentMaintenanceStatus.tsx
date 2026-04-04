@@ -61,15 +61,54 @@ const EquipmentMaintenanceStatus: React.FC<EquipmentMaintenanceStatusProps> = ({
     }
   };
 
-  const isOverdue = (dateStr: string) => {
-    return new Date(dateStr) < new Date();
+  const currentHours = equipment.valeur_actuelle || 0;
+  const wearUnit = equipment.unite_d_usure || 'heures';
+
+  const isTaskOverdue = (task: any) => {
+    const triggerUnit = task.trigger_unit || 'none';
+    // Hour-based trigger
+    if (triggerUnit === 'hours' && task.triggerHours) {
+      return currentHours >= task.triggerHours;
+    }
+    // Km-based trigger
+    if (triggerUnit === 'kilometers' && task.triggerKilometers) {
+      return currentHours >= task.triggerKilometers; // valeur_actuelle stores current counter
+    }
+    // Date-based trigger
+    return new Date(task.dueDate) < new Date();
   };
 
-  const formatDueDate = (dateStr: string) => {
-    const date = new Date(dateStr);
+  const isTaskApproaching = (task: any) => {
+    const triggerUnit = task.trigger_unit || 'none';
+    if (triggerUnit === 'hours' && task.triggerHours) {
+      const remaining = task.triggerHours - currentHours;
+      return remaining > 0 && remaining <= task.triggerHours * 0.1; // within 10%
+    }
+    if (triggerUnit === 'kilometers' && task.triggerKilometers) {
+      const remaining = task.triggerKilometers - currentHours;
+      return remaining > 0 && remaining <= task.triggerKilometers * 0.1;
+    }
+    // Date: within 7 days
+    const diffDays = Math.ceil((new Date(task.dueDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    return diffDays > 0 && diffDays <= 7;
+  };
+
+  const formatTaskDue = (task: any) => {
+    const triggerUnit = task.trigger_unit || 'none';
+    if (triggerUnit === 'hours' && task.triggerHours) {
+      const remaining = task.triggerHours - currentHours;
+      if (remaining <= 0) return `Dépassé de ${Math.abs(Math.round(remaining))} h`;
+      return `Dans ${Math.round(remaining)} h (à ${task.triggerHours} h)`;
+    }
+    if (triggerUnit === 'kilometers' && task.triggerKilometers) {
+      const remaining = task.triggerKilometers - currentHours;
+      if (remaining <= 0) return `Dépassé de ${Math.abs(Math.round(remaining))} km`;
+      return `Dans ${Math.round(remaining)} km (à ${task.triggerKilometers} km)`;
+    }
+    // Date
+    const date = new Date(task.dueDate);
     const now = new Date();
     const diffDays = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    
     if (diffDays < 0) return `En retard de ${Math.abs(diffDays)} j`;
     if (diffDays === 0) return "Aujourd'hui";
     if (diffDays === 1) return 'Demain';
