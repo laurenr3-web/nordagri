@@ -60,6 +60,9 @@ const MaintenanceContent: React.FC<MaintenanceContentProps> = ({
             currentMonth={currentMonth}
             setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
             userName={userName}
+            updateTaskStatus={updateTaskStatus}
+            updateTaskPriority={updateTaskPriority}
+            deleteTask={deleteTask}
           />
         ) : (
           <Card>
