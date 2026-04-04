@@ -48,7 +48,7 @@ const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment }) => {
 
   return (
     <div className="w-full space-y-4">
-      <div className="grid grid-cols-4 sm:grid-cols-8 gap-1">
+      <div className="grid grid-cols-4 gap-1">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.value;
