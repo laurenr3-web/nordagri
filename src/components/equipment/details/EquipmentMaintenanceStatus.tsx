@@ -19,7 +19,7 @@ const EquipmentMaintenanceStatus: React.FC<EquipmentMaintenanceStatusProps> = ({
   const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
   const [pendingTasks, setPendingTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [selectedTask, setSelectedTask] = useState<any>(null);
 
   useEffect(() => {
     const fetchTasks = async () => {
