@@ -1,7 +1,6 @@
 
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { useAuthContext } from '@/providers/AuthProvider';
-import { toast } from "@/hooks/use-toast";
 
 // Import specialized hooks
 import { useStatsData } from './useStatsData';
@@ -28,23 +27,38 @@ export * from './types/dashboardTypes';
  * @returns {Object} Données agrégées pour le tableau de bord et état de chargement
  */
 export const useDashboardData = () => {
-  const [loading, setLoading] = useState(true);
   const { user } = useAuthContext();
 
   // Use specialized hooks
-  const { statsData } = useStatsData(user);
-  const { equipmentData } = useEquipmentData(user);
-  const { maintenanceEvents } = useMaintenanceData(user);
-  const { alertItems } = useAlertsData(user);
-  const { upcomingTasks } = useTasksData(user);
+  const { loading: statsLoading, statsData } = useStatsData(user);
+  const { loading: equipmentLoading, equipmentData } = useEquipmentData(user);
+  const { loading: maintenanceLoading, maintenanceEvents } = useMaintenanceData(user);
+  const { loading: alertsLoading, alertItems } = useAlertsData(user);
+  const { loading: tasksLoading, upcomingTasks } = useTasksData(user);
   
   // New data fetching for additional dashboard features
-  const interventionsResult = useInterventionsData();
-  const partsResult = usePartsData();
+  const { interventions = [], isLoading: interventionsLoading } = useInterventionsData();
+  const { data: parts = [], isLoading: partsLoading } = usePartsData();
   
-  // Get the actual data from the query results
-  const interventions = interventionsResult.interventions || [];
-  const parts = partsResult.data || [];
+  const loading = useMemo(() => {
+    return [
+      statsLoading,
+      equipmentLoading,
+      maintenanceLoading,
+      alertsLoading,
+      tasksLoading,
+      interventionsLoading,
+      partsLoading,
+    ].some(Boolean);
+  }, [
+    statsLoading,
+    equipmentLoading,
+    maintenanceLoading,
+    alertsLoading,
+    tasksLoading,
+    interventionsLoading,
+    partsLoading,
+  ]);
 
   // Derive urgent interventions from interventions data
   const urgentInterventions = deriveUrgentInterventions(interventions);
@@ -61,27 +75,6 @@ export const useDashboardData = () => {
 
   // Filter calendar events to show only this week's events
   const weeklyCalendarEvents = filterWeeklyCalendarEvents(calendarEvents);
-
-  useEffect(() => {
-    const isAllDataLoaded = 
-      statsData.length > 0 || 
-      equipmentData.length > 0 || 
-      maintenanceEvents.length > 0 || 
-      alertItems.length > 0 || 
-      upcomingTasks.length > 0 ||
-      interventions.length > 0 ||
-      parts.length > 0;
-
-    if (isAllDataLoaded) {
-      setLoading(false);
-    }
-  }, [statsData, equipmentData, maintenanceEvents, alertItems, upcomingTasks, interventions, parts]);
-
-  useEffect(() => {
-    if (!user && !loading) {
-      setLoading(false);
-    }
-  }, [user, loading]);
 
   return {
     loading,
