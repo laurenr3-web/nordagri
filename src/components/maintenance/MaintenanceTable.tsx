@@ -292,7 +292,7 @@ export const MaintenanceTable: React.FC<MaintenanceTableProps> = ({
                         className="hidden md:table-cell"
                         onClick={() => { setSelectedTask(task); setIsTaskDetailsOpen(true); }}
                       >
-                        {getStatusBadge(task.dueDate, task.status)}
+                        {getStatusBadge(task)}
                       </TableCell>
                       <TableCell 
                         className="hidden lg:table-cell"
