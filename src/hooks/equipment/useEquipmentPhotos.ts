@@ -1,16 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { equipmentMultiPhotoService, EquipmentPhoto } from '@/services/supabase/equipmentMultiPhotoService';
 import { toast } from 'sonner';
 
 export const useEquipmentPhotos = (equipmentId: number | undefined) => {
   const [photos, setPhotos] = useState<EquipmentPhoto[]>([]);
+  const [signedUrls, setSignedUrls] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
 
-  // Charger les photos
-  const loadPhotos = async () => {
+  // Charger les photos et résoudre les URLs signées
+  const loadPhotos = useCallback(async () => {
     if (!equipmentId) {
       setPhotos([]);
+      setSignedUrls(new Map());
       setLoading(false);
       return;
     }
@@ -19,17 +21,32 @@ export const useEquipmentPhotos = (equipmentId: number | undefined) => {
       setLoading(true);
       const data = await equipmentMultiPhotoService.getEquipmentPhotos(equipmentId);
       setPhotos(data);
+
+      // Resolve signed URLs for all photos
+      if (data.length > 0) {
+        const urls = await equipmentMultiPhotoService.resolveSignedUrls(data);
+        setSignedUrls(urls);
+      } else {
+        setSignedUrls(new Map());
+      }
     } catch (error) {
       console.error('Error loading photos:', error);
       toast.error('Erreur lors du chargement des photos');
     } finally {
       setLoading(false);
     }
-  };
+  }, [equipmentId]);
 
   useEffect(() => {
     loadPhotos();
-  }, [equipmentId]);
+  }, [loadPhotos]);
+
+  /**
+   * Get the display URL for a photo (signed URL or fallback)
+   */
+  const getDisplayUrl = useCallback((photo: EquipmentPhoto): string => {
+    return signedUrls.get(photo.id) || '';
+  }, [signedUrls]);
 
   // Upload de photos
   const uploadPhotos = async (files: File[]) => {
@@ -38,7 +55,17 @@ export const useEquipmentPhotos = (equipmentId: number | undefined) => {
     try {
       setUploading(true);
       const newPhotos = await equipmentMultiPhotoService.uploadMultiplePhotos(files, equipmentId);
-      setPhotos([...photos, ...newPhotos]);
+      
+      // Resolve signed URLs for new photos
+      const newUrls = await equipmentMultiPhotoService.resolveSignedUrls(newPhotos);
+      
+      setPhotos(prev => [...prev, ...newPhotos]);
+      setSignedUrls(prev => {
+        const updated = new Map(prev);
+        newUrls.forEach((url, id) => updated.set(id, url));
+        return updated;
+      });
+      
       toast.success(`${newPhotos.length} photo(s) ajoutée(s)`);
     } catch (error) {
       console.error('Error uploading photos:', error);
@@ -52,7 +79,12 @@ export const useEquipmentPhotos = (equipmentId: number | undefined) => {
   const deletePhoto = async (photoId: string, photoUrl: string) => {
     try {
       await equipmentMultiPhotoService.deletePhoto(photoId, photoUrl);
-      setPhotos(photos.filter(p => p.id !== photoId));
+      setPhotos(prev => prev.filter(p => p.id !== photoId));
+      setSignedUrls(prev => {
+        const updated = new Map(prev);
+        updated.delete(photoId);
+        return updated;
+      });
       toast.success('Photo supprimée');
     } catch (error) {
       console.error('Error deleting photo:', error);
@@ -66,7 +98,7 @@ export const useEquipmentPhotos = (equipmentId: number | undefined) => {
 
     try {
       await equipmentMultiPhotoService.setPrimaryPhoto(equipmentId, photoId);
-      setPhotos(photos.map(p => ({
+      setPhotos(prev => prev.map(p => ({
         ...p,
         is_primary: p.id === photoId
       })));
@@ -84,6 +116,7 @@ export const useEquipmentPhotos = (equipmentId: number | undefined) => {
     uploadPhotos,
     deletePhoto,
     setPrimaryPhoto,
+    getDisplayUrl,
     refreshPhotos: loadPhotos
   };
 };

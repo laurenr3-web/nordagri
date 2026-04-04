@@ -11,7 +11,7 @@ interface MultiPhotoUploaderProps {
 
 const MultiPhotoUploader: React.FC<MultiPhotoUploaderProps> = ({ equipmentId }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { photos, loading, uploading, uploadPhotos, deletePhoto, setPrimaryPhoto } = useEquipmentPhotos(equipmentId);
+  const { photos, loading, uploading, uploadPhotos, deletePhoto, setPrimaryPhoto, getDisplayUrl } = useEquipmentPhotos(equipmentId);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -20,7 +20,6 @@ const MultiPhotoUploader: React.FC<MultiPhotoUploaderProps> = ({ equipmentId }) 
     const fileArray = Array.from(files);
     await uploadPhotos(fileArray);
 
-    // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -75,45 +74,54 @@ const MultiPhotoUploader: React.FC<MultiPhotoUploaderProps> = ({ equipmentId }) 
           <div className="relative">
             <Carousel className="w-full">
               <CarouselContent>
-                {photos.map((photo) => (
-                  <CarouselItem key={photo.id} className="md:basis-1/2 lg:basis-1/3">
-                    <div className="relative group">
-                      <img
-                        src={photo.photo_url}
-                        alt={`Photo ${photo.display_order + 1}`}
-                        className="w-full h-48 object-contain bg-muted/30 rounded-lg"
-                      />
-                      <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          type="button"
-                          variant={photo.is_primary ? "default" : "secondary"}
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => setPrimaryPhoto(photo.id)}
-                          title={photo.is_primary ? "Photo principale" : "Définir comme principale"}
-                        >
-                          <Star className={`h-4 w-4 ${photo.is_primary ? 'fill-current' : ''}`} />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => deletePhoto(photo.id, photo.photo_url)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      {photo.is_primary && (
-                        <div className="absolute bottom-2 left-2">
-                          <span className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
-                            Principale
-                          </span>
+                {photos.map((photo) => {
+                  const displayUrl = getDisplayUrl(photo);
+                  return (
+                    <CarouselItem key={photo.id} className="md:basis-1/2 lg:basis-1/3">
+                      <div className="relative group">
+                        {displayUrl ? (
+                          <img
+                            src={displayUrl}
+                            alt={`Photo ${photo.display_order + 1}`}
+                            className="w-full h-48 object-contain bg-muted/30 rounded-lg"
+                          />
+                        ) : (
+                          <div className="w-full h-48 bg-muted/30 rounded-lg flex items-center justify-center">
+                            <span className="text-muted-foreground text-sm">Chargement...</span>
+                          </div>
+                        )}
+                        <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            type="button"
+                            variant={photo.is_primary ? "default" : "secondary"}
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => setPrimaryPhoto(photo.id)}
+                            title={photo.is_primary ? "Photo principale" : "Définir comme principale"}
+                          >
+                            <Star className={`h-4 w-4 ${photo.is_primary ? 'fill-current' : ''}`} />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => deletePhoto(photo.id, photo.photo_url)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
                         </div>
-                      )}
-                    </div>
-                  </CarouselItem>
-                ))}
+                        {photo.is_primary && (
+                          <div className="absolute bottom-2 left-2">
+                            <span className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
+                              Principale
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </CarouselItem>
+                  );
+                })}
               </CarouselContent>
               {photos.length > 3 && (
                 <>

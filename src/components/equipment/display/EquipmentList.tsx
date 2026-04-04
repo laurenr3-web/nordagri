@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { motion } from 'framer-motion';
 import StatusBadge from '../details/StatusBadge';
 import MaintenanceAlert from '../details/MaintenanceAlert';
+import SignedImage from '@/components/ui/SignedImage';
 
 interface EquipmentListProps {
   equipment: Array<any>;
@@ -54,10 +55,17 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded overflow-hidden bg-muted">
                     {item.image ? (
-                      <img
-                        src={item.image}
+                      <SignedImage
+                        storagePath={item.image}
                         alt={item.name}
                         className="h-full w-full object-contain bg-muted/30"
+                        fallback={
+                          <div className="h-full w-full flex items-center justify-center bg-primary/10">
+                            <span className="text-xs text-primary">
+                              {item.name.substring(0, 2).toUpperCase()}
+                            </span>
+                          </div>
+                        }
                       />
                     ) : (
                       <div className="h-full w-full flex items-center justify-center bg-primary/10">
