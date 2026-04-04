@@ -25,6 +25,7 @@ export class MaintenanceTasksService {
       is_recurrent: task.is_recurrent || false,
       recurrence_interval: task.recurrence_interval,
       recurrence_unit: task.recurrence_unit,
+      equipment_current_value: task.equipment?.valeur_actuelle ?? undefined,
     };
   }
 
