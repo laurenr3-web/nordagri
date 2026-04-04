@@ -9,7 +9,7 @@ import { equipmentService } from '@/services/supabase/equipmentService';
 import { useQueryClient } from '@tanstack/react-query';
 import EquipmentTabs from '../details/EquipmentTabs';
 import { Card, CardContent } from '@/components/ui/card';
-import { EquipmentWearDisplay } from '../wear/EquipmentWearDisplay';
+
 import EquipmentImageGallery from '../details/EquipmentImageGallery';
 import { Separator } from '@/components/ui/separator';
 import { useMediaQuery } from '@/hooks/useMediaQuery';

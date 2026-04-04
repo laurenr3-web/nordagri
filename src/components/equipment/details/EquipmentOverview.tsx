@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { formatDate, getStatusColor, getStatusText } from '../utils/statusUtils';
-import { EquipmentWearDisplay } from '../wear/EquipmentWearDisplay';
+
 
 interface EquipmentDetailsProps {
   equipment: any;
