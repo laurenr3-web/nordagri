@@ -177,6 +177,66 @@ export default function MaintenanceCompletionForm({
             )}
           />
 
+          {/* Compteur heures */}
+          {(triggerUnit === 'hours' || triggerUnit === 'none') && (
+            <FormField
+              control={form.control}
+              name="completedAtHours"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-1.5">
+                    <Gauge className="h-4 w-4 text-primary" />
+                    Compteur heures moteur
+                  </FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      min="0" 
+                      step="1"
+                      placeholder="Ex: 1250"
+                      value={field.value ?? ''}
+                      onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Heures moteur au moment de la maintenance
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {/* Compteur km */}
+          {(triggerUnit === 'kilometers' || triggerUnit === 'none') && (
+            <FormField
+              control={form.control}
+              name="completedAtKm"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-1.5">
+                    <Gauge className="h-4 w-4 text-primary" />
+                    Compteur kilométrique
+                  </FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      min="0" 
+                      step="1"
+                      placeholder="Ex: 45000"
+                      value={field.value ?? ''}
+                      onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Kilomètres au moment de la maintenance
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
           {/* Notes */}
           <FormField
             control={form.control}
