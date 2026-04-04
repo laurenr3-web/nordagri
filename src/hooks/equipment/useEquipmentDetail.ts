@@ -30,7 +30,7 @@ export function useEquipmentDetail(id: string | undefined) {
       hours: equipment.current_hours || 0,
       target: equipment.usage_target || 500
     };
-    equipment.nextService = getNextServiceInfo(maintenanceTasks);
+    equipment.nextService = getNextServiceInfo(maintenanceTasks, equipment);
   }
   
   return { 

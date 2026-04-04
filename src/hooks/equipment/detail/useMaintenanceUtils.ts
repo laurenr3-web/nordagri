@@ -1,13 +1,8 @@
 
-import { useState, useEffect } from 'react';
-
 export function useMaintenanceUtils() {
   
-  // Fonction pour obtenir la date de la dernière maintenance réalisée
   const getLastMaintenanceDate = (maintenanceTasks: any[]) => {
-    if (!maintenanceTasks || maintenanceTasks.length === 0) {
-      return null;
-    }
+    if (!maintenanceTasks || maintenanceTasks.length === 0) return null;
     
     const completedTasks = maintenanceTasks
       .filter(task => task.status === 'completed')
@@ -16,24 +11,19 @@ export function useMaintenanceUtils() {
     return completedTasks.length > 0 ? completedTasks[0].completedDate : null;
   };
   
-  // Fonction pour obtenir les informations sur la prochaine maintenance
-  const getNextServiceInfo = (maintenanceTasks: any[]) => {
-    if (!maintenanceTasks || maintenanceTasks.length === 0) {
-      return null;
-    }
+  const getNextServiceInfo = (maintenanceTasks: any[], equipment?: any) => {
+    if (!maintenanceTasks || maintenanceTasks.length === 0) return null;
     
-    // Trier les tâches par date d'échéance
+    const currentHours = equipment?.valeur_actuelle || 0;
+    
     const scheduledTasks = maintenanceTasks
       .filter(task => task.status === 'scheduled')
       .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
     
-    if (scheduledTasks.length === 0) {
-      return null;
-    }
+    if (scheduledTasks.length === 0) return null;
     
     const nextTask = scheduledTasks[0];
     
-    // Convertir le type de maintenance en texte lisible
     const getTypeText = (type: string) => {
       const typeMap: Record<string, string> = {
         'oil_change': 'Vidange',
@@ -44,34 +34,49 @@ export function useMaintenanceUtils() {
         'tire_change': 'Remplacement de pneus',
         'battery_change': 'Remplacement de batterie',
       };
-      
       return typeMap[type] || 'Maintenance';
     };
     
+    // Determine if overdue based on trigger type
+    const triggerUnit = nextTask.trigger_unit || 'none';
+    let overdue = false;
+    let dueLabel = nextTask.dueDate;
+    
+    if (triggerUnit === 'hours' && nextTask.triggerHours) {
+      overdue = currentHours >= nextTask.triggerHours;
+      const remaining = nextTask.triggerHours - currentHours;
+      dueLabel = overdue 
+        ? `Dépassé de ${Math.abs(Math.round(remaining))} h`
+        : `Dans ${Math.round(remaining)} h`;
+    } else if (triggerUnit === 'kilometers' && nextTask.triggerKilometers) {
+      overdue = currentHours >= nextTask.triggerKilometers;
+      const remaining = nextTask.triggerKilometers - currentHours;
+      dueLabel = overdue
+        ? `Dépassé de ${Math.abs(Math.round(remaining))} km`
+        : `Dans ${Math.round(remaining)} km`;
+    } else {
+      overdue = new Date(nextTask.dueDate) < new Date();
+    }
+    
     return {
       type: getTypeText(nextTask.type),
-      due: nextTask.dueDate,
+      due: dueLabel,
       id: nextTask.id,
       priority: nextTask.priority,
-      overdue: new Date(nextTask.dueDate) < new Date()
+      overdue
     };
   };
   
-  // Vérifier si une maintenance est en retard
   const isMaintenanceOverdue = (equipment: any) => {
     if (!equipment) return false;
     
-    // Vérifier si la maintenance prévue est en retard
+    if (equipment.nextService?.overdue) return true;
+    
     if (equipment.nextService && new Date(equipment.nextService.due) < new Date()) {
       return true;
     }
     
-    // Vérifier si l'équipement a dépassé ses heures d'utilisation prévues
-    if (
-      equipment.usage && 
-      equipment.usage.target && 
-      equipment.usage.hours >= equipment.usage.target
-    ) {
+    if (equipment.usage?.target && equipment.usage.hours >= equipment.usage.target) {
       return true;
     }
     
