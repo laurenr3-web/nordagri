@@ -78,11 +78,7 @@ const Equipment = () => {
   return (
     <MainLayout>
       <LayoutWrapper>
-        <PageHeader 
-          title="Équipements" 
-          description="Gérez votre parc matériel et son état"
-        />
-        <EquipmentPageContent 
+        <EquipmentPageContent
           equipment={transformedEquipment} 
           isLoading={isLoading} 
         />

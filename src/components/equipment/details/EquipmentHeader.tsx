@@ -26,13 +26,14 @@ const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({
           variant="ghost"
           size="sm"
           onClick={() => navigate('/equipment')}
-          className="flex items-center gap-1"
+          className="flex items-center gap-1 px-2"
         >
           <ArrowLeft className="h-4 w-4" />
-          <span>Retour aux équipements</span>
+          <span className="hidden sm:inline">Retour aux équipements</span>
+          <span className="sm:hidden">Retour</span>
         </Button>
 
-        <div className="flex space-x-2">
+        <div className="flex gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -54,15 +55,15 @@ const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">{equipment.name}</h1>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight truncate">{equipment.name}</h1>
           <MaintenanceAlert equipment={equipment} showLabel={true} />
         </div>
         <StatusBadge status={equipment.status} />
       </div>
 
-      <p className="text-muted-foreground">
+      <p className="text-sm sm:text-base text-muted-foreground">
         {equipment.brand} {equipment.model} {equipment.serialNumber ? `• ${equipment.serialNumber}` : ''}
       </p>
     </div>

@@ -50,13 +50,14 @@ const Maintenance = () => {
           title="Maintenance" 
           description="Suivez et planifiez l'entretien de vos équipements"
           action={
-            <div className="flex space-x-2">
-              <Button variant="outline" onClick={() => setIsImportDialogOpen(true)}>
-                <FileDown className="h-4 w-4 mr-2" />
-                <span>Import entretiens fabricant</span>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={() => setIsImportDialogOpen(true)}>
+                <FileDown className="h-4 w-4 mr-1.5" />
+                <span className="hidden sm:inline">Import entretiens fabricant</span>
+                <span className="sm:hidden">Import</span>
               </Button>
-              <Button onClick={() => setIsNewTaskDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
+              <Button size="sm" onClick={() => setIsNewTaskDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-1.5" />
                 <span>Nouvelle tâche</span>
               </Button>
             </div>
