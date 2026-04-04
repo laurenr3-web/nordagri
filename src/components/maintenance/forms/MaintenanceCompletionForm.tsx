@@ -46,11 +46,15 @@ export default function MaintenanceCompletionForm({
   isSubmitting = false 
 }: MaintenanceCompletionFormProps) {
   // Définir les valeurs par défaut
+  const triggerUnit = task.trigger_unit || 'none';
+  
   const defaultValues: Partial<MaintenanceCompletionFormValues> = {
     completedDate: new Date(),
     actualDuration: task.engineHours,
     notes: `Maintenance "${task.title}" complétée pour l'équipement ${task.equipment}.`,
     technician: task.assignedTo || '',
+    completedAtHours: triggerUnit === 'hours' ? (task.trigger_hours || 0) : undefined,
+    completedAtKm: triggerUnit === 'kilometers' ? (task.trigger_kilometers || 0) : undefined,
     partsReplaced: []
   };
 
