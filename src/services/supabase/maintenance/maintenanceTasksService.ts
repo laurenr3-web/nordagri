@@ -284,6 +284,8 @@ export class MaintenanceTasksService {
       trigger_unit: task.trigger_unit,
       trigger_hours: task.trigger_hours,
       trigger_kilometers: task.trigger_kilometers,
+      completed_at_hours: task.completed_at_hours,
+      completed_at_km: task.completed_at_km,
     }));
   }
 }

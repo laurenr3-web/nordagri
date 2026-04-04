@@ -170,7 +170,22 @@ const EquipmentMaintenanceHistory: React.FC<EquipmentMaintenanceHistoryProps> = 
                         
                         <Separator className="my-4" />
                         
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                          {(task.completed_at_hours != null || task.completed_at_km != null) && (
+                            <div className="sm:col-span-2 lg:col-span-4 bg-primary/5 border border-primary/20 rounded-lg p-3 flex items-center gap-3">
+                              <div className="bg-primary/10 p-2 rounded-full">
+                                <Clock className="h-5 w-5 text-primary" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-semibold text-primary">Compteur à la maintenance</p>
+                                <p className="text-lg font-bold">
+                                  {task.completed_at_hours != null && `${task.completed_at_hours} heures`}
+                                  {task.completed_at_hours != null && task.completed_at_km != null && ' · '}
+                                  {task.completed_at_km != null && `${task.completed_at_km} km`}
+                                </p>
+                              </div>
+                            </div>
+                          )}
                           <div>
                             <p className="text-sm text-muted-foreground mb-1">Durée</p>
                             <p className="font-medium">
