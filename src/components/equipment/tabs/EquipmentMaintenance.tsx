@@ -77,7 +77,12 @@ const EquipmentMaintenance: React.FC<EquipmentMaintenanceProps> = ({ equipment }
         engineHours: maintenance.engineHours,
         assignedTo: maintenance.assignedTo || '',
         notes: maintenance.notes || '',
-        partId: maintenance.partId || null
+        trigger_unit: maintenance.trigger_unit,
+        trigger_hours: maintenance.trigger_hours,
+        trigger_kilometers: maintenance.trigger_kilometers,
+        is_recurrent: maintenance.is_recurrent || false,
+        recurrence_interval: maintenance.recurrence_interval,
+        recurrence_unit: maintenance.recurrence_unit || maintenance.trigger_unit,
       };
       
       // Ajouter la tâche via le service

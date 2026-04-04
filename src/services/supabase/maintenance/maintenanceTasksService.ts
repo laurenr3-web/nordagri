@@ -2,19 +2,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { MaintenanceTask, MaintenanceStatus, MaintenanceType, MaintenancePriority } from '@/hooks/maintenance/maintenanceSlice';
 
 export class MaintenanceTasksService {
-  async getTasks(): Promise<MaintenanceTask[]> {
-    console.log('Fetching all maintenance tasks from Supabase');
-    const { data, error } = await supabase
-      .from('maintenance_tasks')
-      .select('*')
-      .order('due_date', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching tasks:', error);
-      throw new Error('Failed to fetch maintenance tasks');
-    }
-
-    return data.map(task => ({
+  private mapTaskFromDb(task: any): MaintenanceTask {
+    return {
       id: task.id,
       title: task.title,
       equipment: task.equipment,
@@ -33,23 +22,35 @@ export class MaintenanceTasksService {
       trigger_kilometers: task.trigger_kilometers,
       completed_at_hours: task.completed_at_hours,
       completed_at_km: task.completed_at_km,
-    }));
+      is_recurrent: task.is_recurrent || false,
+      recurrence_interval: task.recurrence_interval,
+      recurrence_unit: task.recurrence_unit,
+    };
+  }
+
+  async getTasks(): Promise<MaintenanceTask[]> {
+    const { data, error } = await supabase
+      .from('maintenance_tasks')
+      .select('*')
+      .order('due_date', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching tasks:', error);
+      throw new Error('Failed to fetch maintenance tasks');
+    }
+
+    return data.map(task => this.mapTaskFromDb(task));
   }
 
   async addTask(task: Omit<MaintenanceTask, 'id'>): Promise<MaintenanceTask> {
-    console.log('Adding maintenance task to Supabase:', task);
-    
-    // Récupérer l'utilisateur connecté
     const { data: sessionData } = await supabase.auth.getSession();
     const currentUserId = sessionData.session?.user?.id;
     
     if (!currentUserId) {
-      console.error('No authenticated user found when adding task');
       throw new Error('You must be logged in to add maintenance tasks');
     }
     
-    // Prepare the data for insertion into Supabase
-    const insertData = {
+    const insertData: any = {
       title: task.title,
       equipment: task.equipment,
       equipment_id: task.equipmentId,
@@ -63,10 +64,11 @@ export class MaintenanceTasksService {
       trigger_unit: task.trigger_unit,
       trigger_hours: task.trigger_hours,
       trigger_kilometers: task.trigger_kilometers,
-      owner_id: currentUserId // Assurer que l'owner_id est défini
+      owner_id: currentUserId,
+      is_recurrent: task.is_recurrent || false,
+      recurrence_interval: task.recurrence_interval || null,
+      recurrence_unit: task.recurrence_unit || null,
     };
-    
-    console.log('Prepared data for insertion with owner_id:', insertData);
 
     const { data, error } = await supabase
       .from('maintenance_tasks')
@@ -83,26 +85,7 @@ export class MaintenanceTasksService {
       throw new Error('No data returned after task creation');
     }
 
-    console.log('Task added successfully, returned data:', data);
-
-    return {
-      id: data.id,
-      title: data.title,
-      equipment: data.equipment,
-      equipmentId: data.equipment_id,
-      type: data.type as MaintenanceType,
-      status: data.status as MaintenanceStatus,
-      priority: data.priority as MaintenancePriority,
-      dueDate: new Date(data.due_date),
-      completedDate: data.completed_date ? new Date(data.completed_date) : undefined,
-      engineHours: data.estimated_duration || 0,
-      actualDuration: data.actual_duration,
-      assignedTo: data.assigned_to || '',
-      notes: data.notes || '',
-      trigger_unit: data.trigger_unit,
-      trigger_hours: data.trigger_hours,
-      trigger_kilometers: data.trigger_kilometers,
-    };
+    return this.mapTaskFromDb(data);
   }
 
   async updateTaskStatus(taskId: number, status: MaintenanceStatus): Promise<void> {
@@ -112,7 +95,6 @@ export class MaintenanceTasksService {
       .eq('id', taskId);
 
     if (error) {
-      console.error('Error updating task status:', error);
       throw new Error('Failed to update task status');
     }
   }
@@ -124,7 +106,6 @@ export class MaintenanceTasksService {
       .eq('id', taskId);
 
     if (error) {
-      console.error('Error updating task priority:', error);
       throw new Error('Failed to update task priority');
     }
   }
@@ -136,7 +117,6 @@ export class MaintenanceTasksService {
       .eq('id', taskId);
 
     if (error) {
-      console.error('Error deleting task:', error);
       throw new Error('Failed to delete task');
     }
   }
@@ -149,30 +129,10 @@ export class MaintenanceTasksService {
       .order('due_date', { ascending: true });
 
     if (error) {
-      console.error('Error fetching tasks for equipment:', error);
       throw new Error('Failed to fetch maintenance tasks for equipment');
     }
 
-    return data.map(task => ({
-      id: task.id,
-      title: task.title,
-      equipment: task.equipment,
-      equipmentId: task.equipment_id,
-      type: task.type as MaintenanceType,
-      status: task.status as MaintenanceStatus,
-      priority: task.priority as MaintenancePriority,
-      dueDate: new Date(task.due_date),
-      completedDate: task.completed_date ? new Date(task.completed_date) : undefined,
-      engineHours: task.estimated_duration || 0,
-      actualDuration: task.actual_duration,
-      assignedTo: task.assigned_to || '',
-      notes: task.notes || '',
-      trigger_unit: task.trigger_unit,
-      trigger_hours: task.trigger_hours,
-      trigger_kilometers: task.trigger_kilometers,
-      completed_at_hours: task.completed_at_hours,
-      completed_at_km: task.completed_at_km,
-    }));
+    return data.map(task => this.mapTaskFromDb(task));
   }
 
   async completeTask(taskId: number, completionData: {
@@ -183,6 +143,13 @@ export class MaintenanceTasksService {
     completedAtHours?: number;
     completedAtKm?: number;
   }): Promise<void> {
+    // Fetch the task to check recurrence info
+    const { data: taskData } = await supabase
+      .from('maintenance_tasks')
+      .select('*')
+      .eq('id', taskId)
+      .single();
+
     const updateData: any = {
       status: 'completed',
       completed_date: completionData.completedDate ? completionData.completedDate.toISOString() : new Date().toISOString()
@@ -191,19 +158,15 @@ export class MaintenanceTasksService {
     if (completionData.actualDuration !== undefined) {
       updateData.actual_duration = completionData.actualDuration;
     }
-
     if (completionData.notes) {
       updateData.notes = completionData.notes;
     }
-
     if (completionData.technician) {
       updateData.technician = completionData.technician;
     }
-
     if (completionData.completedAtHours !== undefined) {
       updateData.completed_at_hours = completionData.completedAtHours;
     }
-
     if (completionData.completedAtKm !== undefined) {
       updateData.completed_at_km = completionData.completedAtKm;
     }
@@ -217,25 +180,81 @@ export class MaintenanceTasksService {
       console.error('Error completing task:', error);
       throw new Error('Failed to complete maintenance task');
     }
+
+    // If the task is recurrent, automatically create the next one
+    if (taskData && taskData.is_recurrent && taskData.recurrence_interval) {
+      await this.createNextRecurringTask(taskData, completionData);
+    }
+  }
+
+  private async createNextRecurringTask(completedTask: any, completionData: {
+    completedAtHours?: number;
+    completedAtKm?: number;
+  }): Promise<void> {
+    const interval = completedTask.recurrence_interval;
+    const recurrenceUnit = completedTask.recurrence_unit || completedTask.trigger_unit;
+    
+    let newTriggerHours = completedTask.trigger_hours;
+    let newTriggerKm = completedTask.trigger_kilometers;
+    let newDueDate = new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 10);
+
+    if (recurrenceUnit === 'hours' || completedTask.trigger_unit === 'hours') {
+      const baseHours = completionData.completedAtHours ?? completedTask.trigger_hours ?? 0;
+      newTriggerHours = baseHours + interval;
+    } else if (recurrenceUnit === 'kilometers' || completedTask.trigger_unit === 'kilometers') {
+      const baseKm = completionData.completedAtKm ?? completedTask.trigger_kilometers ?? 0;
+      newTriggerKm = baseKm + interval;
+    } else {
+      const baseDate = new Date();
+      baseDate.setDate(baseDate.getDate() + interval);
+      newDueDate = baseDate;
+    }
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const currentUserId = sessionData.session?.user?.id;
+    if (!currentUserId) return;
+
+    const newTask = {
+      title: completedTask.title,
+      equipment: completedTask.equipment,
+      equipment_id: completedTask.equipment_id,
+      type: completedTask.type,
+      status: 'scheduled',
+      priority: completedTask.priority,
+      due_date: newDueDate.toISOString(),
+      estimated_duration: completedTask.estimated_duration,
+      assigned_to: completedTask.assigned_to,
+      notes: 'Tâche récurrente générée automatiquement',
+      trigger_unit: completedTask.trigger_unit,
+      trigger_hours: newTriggerHours,
+      trigger_kilometers: newTriggerKm,
+      owner_id: currentUserId,
+      is_recurrent: true,
+      recurrence_interval: interval,
+      recurrence_unit: recurrenceUnit,
+    };
+
+    console.log('Creating next recurring maintenance task:', newTask);
+
+    const { error } = await supabase
+      .from('maintenance_tasks')
+      .insert(newTask);
+
+    if (error) {
+      console.error('Error creating next recurring task:', error);
+    }
   }
 
   async bulkCreateMaintenance(tasks: Omit<MaintenanceTask, 'id'>[]): Promise<MaintenanceTask[]> {
-    console.log('Bulk creating maintenance tasks:', tasks);
+    if (tasks.length === 0) return [];
     
-    if (tasks.length === 0) {
-      return [];
-    }
-    
-    // Récupérer l'utilisateur connecté
     const { data: sessionData } = await supabase.auth.getSession();
     const currentUserId = sessionData.session?.user?.id;
     
     if (!currentUserId) {
-      console.error('No authenticated user found when adding task');
       throw new Error('You must be logged in to add maintenance tasks');
     }
     
-    // Préparer les données pour l'insertion en masse
     const insertData = tasks.map(task => ({
       title: task.title,
       equipment: task.equipment,
@@ -252,8 +271,6 @@ export class MaintenanceTasksService {
       trigger_kilometers: task.trigger_kilometers,
       owner_id: currentUserId
     }));
-    
-    console.log('Prepared data for bulk insertion:', insertData);
 
     const { data, error } = await supabase
       .from('maintenance_tasks')
@@ -261,32 +278,10 @@ export class MaintenanceTasksService {
       .select();
 
     if (error) {
-      console.error('Error bulk adding tasks:', error);
       throw new Error('Failed to add maintenance tasks: ' + error.message);
     }
 
-    console.log('Tasks added successfully, returned data:', data);
-
-    return data.map(task => ({
-      id: task.id,
-      title: task.title,
-      equipment: task.equipment,
-      equipmentId: task.equipment_id,
-      type: task.type as MaintenanceType,
-      status: task.status as MaintenanceStatus,
-      priority: task.priority as MaintenancePriority,
-      dueDate: new Date(task.due_date),
-      completedDate: task.completed_date ? new Date(task.completed_date) : undefined,
-      engineHours: task.estimated_duration || 0,
-      actualDuration: task.actual_duration,
-      assignedTo: task.assigned_to || '',
-      notes: task.notes || '',
-      trigger_unit: task.trigger_unit,
-      trigger_hours: task.trigger_hours,
-      trigger_kilometers: task.trigger_kilometers,
-      completed_at_hours: task.completed_at_hours,
-      completed_at_km: task.completed_at_km,
-    }));
+    return data.map(task => this.mapTaskFromDb(task));
   }
 }
 

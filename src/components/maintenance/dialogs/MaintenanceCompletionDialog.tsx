@@ -51,9 +51,13 @@ const MaintenanceCompletionDialog: React.FC<MaintenanceCompletionDialogProps> = 
         completedAtKm: data.completedAtKm,
       });
       
+      const isRecurrent = (task as any).is_recurrent;
+      
       toast({
         title: "Tâche complétée avec succès",
-        description: "La tâche de maintenance a été marquée comme terminée.",
+        description: isRecurrent 
+          ? "La prochaine tâche récurrente a été créée automatiquement."
+          : "La tâche de maintenance a été marquée comme terminée.",
       });
       
       onClose();
