@@ -23,6 +23,8 @@ const maintenanceCompletionSchema = z.object({
   actualDuration: z.number().min(0, "La durée doit être positive"),
   notes: z.string().optional(),
   technician: z.string().min(1, "Le nom du technicien est requis"),
+  completedAtHours: z.number().min(0).optional(),
+  completedAtKm: z.number().min(0).optional(),
   partsReplaced: z.array(z.object({
     id: z.string().optional(),
     name: z.string(),
