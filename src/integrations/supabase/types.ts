@@ -705,6 +705,8 @@ export type Database = {
         Row: {
           actual_duration: number | null
           assigned_to: string | null
+          completed_at_hours: number | null
+          completed_at_km: number | null
           completed_date: string | null
           created_at: string
           due_date: string
@@ -727,6 +729,8 @@ export type Database = {
         Insert: {
           actual_duration?: number | null
           assigned_to?: string | null
+          completed_at_hours?: number | null
+          completed_at_km?: number | null
           completed_date?: string | null
           created_at?: string
           due_date: string
@@ -749,6 +753,8 @@ export type Database = {
         Update: {
           actual_duration?: number | null
           assigned_to?: string | null
+          completed_at_hours?: number | null
+          completed_at_km?: number | null
           completed_date?: string | null
           created_at?: string
           due_date?: string
