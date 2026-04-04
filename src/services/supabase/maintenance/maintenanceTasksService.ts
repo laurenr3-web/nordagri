@@ -32,7 +32,7 @@ export class MaintenanceTasksService {
   async getTasks(): Promise<MaintenanceTask[]> {
     const { data, error } = await supabase
       .from('maintenance_tasks')
-      .select('*')
+      .select('*, equipment:equipment_id(valeur_actuelle)')
       .order('due_date', { ascending: true });
 
     if (error) {
