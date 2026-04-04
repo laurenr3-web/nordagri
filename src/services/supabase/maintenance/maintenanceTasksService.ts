@@ -125,7 +125,7 @@ export class MaintenanceTasksService {
   async getTasksForEquipment(equipmentId: number): Promise<MaintenanceTask[]> {
     const { data, error } = await supabase
       .from('maintenance_tasks')
-      .select('*')
+      .select('*, equipment:equipment_id(valeur_actuelle)')
       .eq('equipment_id', equipmentId)
       .order('due_date', { ascending: true });
 
