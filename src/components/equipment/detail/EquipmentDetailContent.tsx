@@ -110,14 +110,11 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
                 equipment={localEquipment} 
               />
               
-              <div className="grid grid-cols-1 gap-4 mt-4">
-                <div className="space-y-2">
-                  <h3 className="text-sm font-medium text-muted-foreground">Heures moteur</h3>
-                  <p className="text-lg font-medium">
-                    {formatWearValue(localEquipment.valeur_actuelle, localEquipment.unite_d_usure || 'heures')}
-                  </p>
-                </div>
-                <EquipmentWearDisplay equipment={localEquipment} />
+              <div className="mt-4">
+                <h3 className="text-sm font-medium text-muted-foreground">Heures moteur</h3>
+                <p className="text-lg font-medium">
+                  {formatWearValue(localEquipment.valeur_actuelle, localEquipment.unite_d_usure || 'heures')}
+                </p>
               </div>
             </div>
           </CardContent>

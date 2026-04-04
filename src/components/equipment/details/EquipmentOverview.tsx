@@ -120,10 +120,6 @@ export function EquipmentOverview({ equipment }: { equipment: any }) {
         </CardContent>
       </Card>
 
-      {/* Add the EquipmentWearDisplay component */}
-      {hasData(equipment.unite_d_usure) && (
-        <EquipmentWearDisplay equipment={equipment} />
-      )}
       
       {/* Only show notes card if notes exist */}
       {hasData(equipment.notes) && (
