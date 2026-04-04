@@ -1,7 +1,32 @@
 import { supabase } from '@/integrations/supabase/client';
 import { MaintenanceTask, MaintenanceStatus, MaintenanceType, MaintenancePriority } from '@/hooks/maintenance/maintenanceSlice';
 
-export class MaintenanceTasksService {
+  private mapTaskFromDb(task: any): MaintenanceTask {
+    return {
+      id: task.id,
+      title: task.title,
+      equipment: task.equipment,
+      equipmentId: task.equipment_id,
+      type: task.type as MaintenanceType,
+      status: task.status as MaintenanceStatus,
+      priority: task.priority as MaintenancePriority,
+      dueDate: new Date(task.due_date),
+      completedDate: task.completed_date ? new Date(task.completed_date) : undefined,
+      engineHours: task.estimated_duration || 0,
+      actualDuration: task.actual_duration,
+      assignedTo: task.assigned_to || '',
+      notes: task.notes || '',
+      trigger_unit: task.trigger_unit,
+      trigger_hours: task.trigger_hours,
+      trigger_kilometers: task.trigger_kilometers,
+      completed_at_hours: task.completed_at_hours,
+      completed_at_km: task.completed_at_km,
+      is_recurrent: task.is_recurrent || false,
+      recurrence_interval: task.recurrence_interval,
+      recurrence_unit: task.recurrence_unit,
+    };
+  }
+
   async getTasks(): Promise<MaintenanceTask[]> {
     console.log('Fetching all maintenance tasks from Supabase');
     const { data, error } = await supabase
