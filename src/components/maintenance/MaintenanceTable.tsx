@@ -107,7 +107,21 @@ export const MaintenanceTable: React.FC<MaintenanceTableProps> = ({
     setBulkAction(null);
   };
   
-  const getStatusBadge = (dueDate: Date, status: string) => {
+  const isCounterOverdue = (task: MaintenanceTask): boolean => {
+    const cv = task.equipment_current_value;
+    if (cv == null) return false;
+    if (task.trigger_unit === 'hours' && task.trigger_hours != null) return cv >= task.trigger_hours;
+    if (task.trigger_unit === 'kilometers' && task.trigger_kilometers != null) return cv >= task.trigger_kilometers;
+    return false;
+  };
+
+  const isCounterBased = (task: MaintenanceTask): boolean => {
+    return (task.trigger_unit === 'hours' && task.trigger_hours != null) ||
+           (task.trigger_unit === 'kilometers' && task.trigger_kilometers != null);
+  };
+
+  const getStatusBadge = (task: MaintenanceTask) => {
+    const { dueDate, status } = task;
     if (status === 'completed') {
       return (
         <Badge className="bg-green-500 hover:bg-green-600 flex items-center gap-1">
@@ -124,7 +138,8 @@ export const MaintenanceTable: React.FC<MaintenanceTableProps> = ({
         </Badge>
       );
     }
-    if (isPast(dueDate) && !isToday(dueDate)) {
+    // Counter-based overdue
+    if (isCounterBased(task) && isCounterOverdue(task)) {
       return (
         <Badge variant="destructive" className="flex items-center gap-1">
           <AlertTriangle className="w-3 h-3" />
@@ -132,7 +147,16 @@ export const MaintenanceTable: React.FC<MaintenanceTableProps> = ({
         </Badge>
       );
     }
-    if (isToday(dueDate)) {
+    // Date-based overdue
+    if (!isCounterBased(task) && isPast(dueDate) && !isToday(dueDate)) {
+      return (
+        <Badge variant="destructive" className="flex items-center gap-1">
+          <AlertTriangle className="w-3 h-3" />
+          <span>En retard</span>
+        </Badge>
+      );
+    }
+    if (!isCounterBased(task) && isToday(dueDate)) {
       return (
         <Badge variant="outline" className="bg-orange-100 text-orange-800 flex items-center gap-1">
           <Clock className="w-3 h-3" />
