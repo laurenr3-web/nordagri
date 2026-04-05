@@ -16,18 +16,14 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
   equipment,
   onEquipmentClick
 }) => {
-  const getEquipmentAge = (date: string) => {
-    if (!date) return 'N/A';
-    const purchaseDate = new Date(date);
-    const now = new Date();
-    const diffYears = now.getFullYear() - purchaseDate.getFullYear();
-    
-    if (diffYears < 1) {
-      const diffMonths = now.getMonth() - purchaseDate.getMonth();
-      return `${diffMonths} mois`;
+  const formatWearValue = (value: number, unit: string) => {
+    const formatted = value.toLocaleString('fr-FR');
+    switch (unit) {
+      case 'heures': return `${formatted} h`;
+      case 'kilometres': return `${formatted} km`;
+      case 'acres': return `${formatted} acres`;
+      default: return `${formatted} ${unit}`;
     }
-    
-    return `${diffYears} ans`;
   };
   
   return (
