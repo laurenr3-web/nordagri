@@ -93,7 +93,14 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
                 {item.location || 'N/A'}
               </TableCell>
               <TableCell className="hidden sm:table-cell">
-                {getEquipmentAge(item.purchaseDate)}
+                <div className="flex items-center gap-1.5 text-sm">
+                  {(item.unite_d_usure || 'heures') === 'kilometres' ? (
+                    <Gauge className="h-3.5 w-3.5 text-muted-foreground" />
+                  ) : (
+                    <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                  )}
+                  <span>{formatWearValue(item.valeur_actuelle || item.usage?.hours || 0, item.unite_d_usure || 'heures')}</span>
+                </div>
               </TableCell>
             </motion.tr>
           ))}
