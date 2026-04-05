@@ -21,7 +21,7 @@ function getDateStr(offset: number = 0) {
 export function PlanningContent() {
   const [showAddForm, setShowAddForm] = useState(false);
   const { farmId } = useFarmId();
-  const { user } = useAuth();
+  const { user } = useAuthContext();
 
   const todayStr = getDateStr(0);
   const tomorrowStr = getDateStr(1);
