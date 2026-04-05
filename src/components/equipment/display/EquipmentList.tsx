@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import StatusBadge from '../details/StatusBadge';
 import MaintenanceAlert from '../details/MaintenanceAlert';
 import SignedImage from '@/components/ui/SignedImage';
+import { Clock, Gauge } from 'lucide-react';
 
 interface EquipmentListProps {
   equipment: Array<any>;
