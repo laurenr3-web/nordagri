@@ -11,6 +11,7 @@ import { PasswordSection } from '@/components/settings/security/PasswordSection'
 import { SimpleNotificationSection } from '@/components/settings/notifications/SimpleNotificationSection';
 import { FarmSettingsSection } from '@/components/settings/farm/FarmSettingsSection';
 import { ModulesSection } from '@/components/settings/farm/ModulesSection';
+import { CategoryImportanceSection } from '@/components/settings/farm/CategoryImportanceSection';
 import { SubscriptionSection } from '@/components/settings/subscription/SubscriptionSection';
 import { NotificationSettingsSection } from '@/components/settings/notifications/NotificationSettingsSection';
 import { UserAccessSection } from '@/components/settings/security/UserAccessSection';
@@ -195,6 +196,7 @@ const Settings = () => {
                   onToggleModule={toggleModule}
                   loading={loading}
                 />
+                <CategoryImportanceSection />
               </TabsContent>
               
               <TabsContent value="security" className="space-y-6 mt-0">
