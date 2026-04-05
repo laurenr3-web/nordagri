@@ -41,6 +41,8 @@ const Equipment = () => {
            ? item.purchaseDate.toISOString() 
            : String(item.purchaseDate))
         : '',
+      unite_d_usure: item.unite_d_usure || 'heures',
+      valeur_actuelle: item.valeur_actuelle || 0,
       // Add the required properties that EquipmentItem needs
       usage: { 
         hours: item.valeur_actuelle || 0, 
