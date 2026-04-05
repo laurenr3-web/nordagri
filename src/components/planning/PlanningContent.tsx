@@ -7,7 +7,7 @@ import { DayView } from './DayView';
 import { WeekView } from './WeekView';
 import { AddTaskForm } from './AddTaskForm';
 import { useFarmId } from '@/hooks/useFarmId';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuthContext } from '@/providers/AuthProvider';
 import { usePlanningTasks } from '@/hooks/planning/usePlanningTasks';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
