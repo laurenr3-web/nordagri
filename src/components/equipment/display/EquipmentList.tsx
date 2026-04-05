@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import StatusBadge from '../details/StatusBadge';
 import MaintenanceAlert from '../details/MaintenanceAlert';
 import SignedImage from '@/components/ui/SignedImage';
+import { Clock, Gauge } from 'lucide-react';
 
 interface EquipmentListProps {
   equipment: Array<any>;
@@ -15,18 +16,14 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
   equipment,
   onEquipmentClick
 }) => {
-  const getEquipmentAge = (date: string) => {
-    if (!date) return 'N/A';
-    const purchaseDate = new Date(date);
-    const now = new Date();
-    const diffYears = now.getFullYear() - purchaseDate.getFullYear();
-    
-    if (diffYears < 1) {
-      const diffMonths = now.getMonth() - purchaseDate.getMonth();
-      return `${diffMonths} mois`;
+  const formatWearValue = (value: number, unit: string) => {
+    const formatted = value.toLocaleString('fr-FR');
+    switch (unit) {
+      case 'heures': return `${formatted} h`;
+      case 'kilometres': return `${formatted} km`;
+      case 'acres': return `${formatted} acres`;
+      default: return `${formatted} ${unit}`;
     }
-    
-    return `${diffYears} ans`;
   };
   
   return (
@@ -38,7 +35,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
             <TableHead>Statut</TableHead>
             <TableHead className="hidden md:table-cell">Marque/Modèle</TableHead>
             <TableHead className="hidden lg:table-cell">Localisation</TableHead>
-            <TableHead className="hidden sm:table-cell">Âge</TableHead>
+            <TableHead className="hidden sm:table-cell">Heures</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -96,7 +93,14 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
                 {item.location || 'N/A'}
               </TableCell>
               <TableCell className="hidden sm:table-cell">
-                {getEquipmentAge(item.purchaseDate)}
+                <div className="flex items-center gap-1.5 text-sm">
+                  {(item.unite_d_usure || 'heures') === 'kilometres' ? (
+                    <Gauge className="h-3.5 w-3.5 text-muted-foreground" />
+                  ) : (
+                    <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                  )}
+                  <span>{formatWearValue(item.valeur_actuelle || item.usage?.hours || 0, item.unite_d_usure || 'heures')}</span>
+                </div>
               </TableCell>
             </motion.tr>
           ))}
