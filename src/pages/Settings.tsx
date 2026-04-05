@@ -196,6 +196,7 @@ const Settings = () => {
                   onToggleModule={toggleModule}
                   loading={loading}
                 />
+                <CategoryImportanceSection />
               </TabsContent>
               
               <TabsContent value="security" className="space-y-6 mt-0">
