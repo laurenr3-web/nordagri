@@ -25,6 +25,7 @@ export function useCategoryImportance(farmId: string | null) {
       planningService.updateCategoryImportance(id, importance),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categoryImportance'] });
+      queryClient.invalidateQueries({ queryKey: ['planningTasks'] });
     },
   });
 
