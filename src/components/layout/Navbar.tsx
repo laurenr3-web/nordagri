@@ -8,7 +8,8 @@ import {
   Folder, 
   MessageSquare, 
   PieChart,
-  Clock 
+  Clock,
+  CalendarCheck
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
