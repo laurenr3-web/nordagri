@@ -35,7 +35,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
             <TableHead>Statut</TableHead>
             <TableHead className="hidden md:table-cell">Marque/Modèle</TableHead>
             <TableHead className="hidden lg:table-cell">Localisation</TableHead>
-            <TableHead className="hidden sm:table-cell">Âge</TableHead>
+            <TableHead className="hidden sm:table-cell">Heures</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
