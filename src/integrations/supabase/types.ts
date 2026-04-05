@@ -1007,6 +1007,123 @@ export type Database = {
           },
         ]
       }
+      planning_category_importance: {
+        Row: {
+          category: string
+          created_at: string
+          farm_id: string
+          id: string
+          importance: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          farm_id: string
+          id?: string
+          importance?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          farm_id?: string
+          id?: string
+          importance?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planning_category_importance_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planning_tasks: {
+        Row: {
+          animal_group: string | null
+          assigned_to: string | null
+          building_name: string | null
+          category: string
+          computed_priority: string
+          created_at: string
+          created_by: string
+          due_date: string
+          equipment_id: number | null
+          farm_id: string
+          field_name: string | null
+          id: string
+          manual_priority: string | null
+          notes: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          animal_group?: string | null
+          assigned_to?: string | null
+          building_name?: string | null
+          category?: string
+          computed_priority?: string
+          created_at?: string
+          created_by: string
+          due_date?: string
+          equipment_id?: number | null
+          farm_id: string
+          field_name?: string | null
+          id?: string
+          manual_priority?: string | null
+          notes?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          animal_group?: string | null
+          assigned_to?: string | null
+          building_name?: string | null
+          category?: string
+          computed_priority?: string
+          created_at?: string
+          created_by?: string
+          due_date?: string
+          equipment_id?: number | null
+          farm_id?: string
+          field_name?: string | null
+          id?: string
+          manual_priority?: string | null
+          notes?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planning_tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planning_tasks_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planning_tasks_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1246,6 +1363,10 @@ export type Database = {
     Functions: {
       decrement_part_stock: {
         Args: { p_part_id: number; p_quantity: number }
+        Returns: undefined
+      }
+      ensure_default_category_importance: {
+        Args: { _farm_id: string }
         Returns: undefined
       }
       is_farm_member: { Args: { _farm_id: string }; Returns: boolean }

@@ -8,7 +8,8 @@ import {
   Folder, 
   MessageSquare, 
   PieChart,
-  Clock 
+  Clock,
+  CalendarCheck
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
@@ -60,6 +61,11 @@ const Navbar = () => {
       path: '/dashboard',
       icon: <PieChart className="h-5 w-5" aria-hidden="true" />,
       label: t("navbar.dashboard"),
+    },
+    {
+      path: '/planning',
+      icon: <CalendarCheck className="h-5 w-5" aria-hidden="true" />,
+      label: t("navbar.planning"),
     },
     {
       path: '/equipment',

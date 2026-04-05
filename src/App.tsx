@@ -21,6 +21,7 @@ import Maintenance from '@/pages/Maintenance';
 import Parts from '@/pages/Parts';
 import Interventions from '@/pages/Interventions';
 import TimeTracking from '@/pages/TimeTracking';
+import Planning from '@/pages/Planning';
 
 // Composant de chargement
 const LoadingSpinner = () => (
@@ -70,6 +71,11 @@ function App() {
                       <Route path="/dashboard" element={
                         <ProtectedRoute>
                           <Dashboard />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/planning" element={
+                        <ProtectedRoute>
+                          <Planning />
                         </ProtectedRoute>
                       } />
                       <Route path="/equipment" element={
