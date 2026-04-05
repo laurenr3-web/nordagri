@@ -73,6 +73,11 @@ function App() {
                           <Dashboard />
                         </ProtectedRoute>
                       } />
+                      <Route path="/planning" element={
+                        <ProtectedRoute>
+                          <Planning />
+                        </ProtectedRoute>
+                      } />
                       <Route path="/equipment" element={
                         <ProtectedRoute>
                           <Equipment />

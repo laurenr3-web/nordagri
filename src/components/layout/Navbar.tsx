@@ -63,6 +63,11 @@ const Navbar = () => {
       label: t("navbar.dashboard"),
     },
     {
+      path: '/planning',
+      icon: <CalendarCheck className="h-5 w-5" aria-hidden="true" />,
+      label: t("navbar.planning"),
+    },
+    {
       path: '/equipment',
       icon: <Tractor className="h-5 w-5" aria-hidden="true" />,
       label: t("navbar.equipment"),

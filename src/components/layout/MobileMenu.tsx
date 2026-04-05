@@ -23,6 +23,11 @@ const MobileMenu = () => {
       path: '/dashboard',
     },
     {
+      title: t("mobilemenu.planning"),
+      icon: CalendarCheck,
+      path: '/planning',
+    },
+    {
       title: t("mobilemenu.equipment"),
       icon: Tractor,
       path: '/equipment',
