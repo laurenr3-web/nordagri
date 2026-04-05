@@ -83,15 +83,19 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
     return a.due_date.localeCompare(b.due_date);
   });
 
+  const activeTasks = sortedTasks.filter(t => t.status !== 'done');
+  const doneTasks = sortedTasks.filter(t => t.status === 'done');
+
   const groupedTasks = {
-    critical: sortedTasks.filter(t => (t.manual_priority || t.computed_priority) === 'critical'),
-    important: sortedTasks.filter(t => (t.manual_priority || t.computed_priority) === 'important'),
-    todo: sortedTasks.filter(t => (t.manual_priority || t.computed_priority) === 'todo'),
+    critical: activeTasks.filter(t => (t.manual_priority || t.computed_priority) === 'critical'),
+    important: activeTasks.filter(t => (t.manual_priority || t.computed_priority) === 'important'),
+    todo: activeTasks.filter(t => (t.manual_priority || t.computed_priority) === 'todo'),
   };
 
   return {
     tasks: sortedTasks,
     groupedTasks,
+    doneTasks,
     isLoading,
     addTask,
     updateStatus,
