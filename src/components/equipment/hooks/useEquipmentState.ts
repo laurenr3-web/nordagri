@@ -30,8 +30,10 @@ export const useEquipmentState = (equipment: Equipment[] | null) => {
            ? item.purchaseDate.toISOString() 
            : String(item.purchaseDate))
         : '',
+      unite_d_usure: item.unite_d_usure || 'heures',
+      valeur_actuelle: item.valeur_actuelle || 0,
       // Define default values for usage and nextService
-      usage: { hours: 0, target: 500 }, 
+      usage: { hours: item.valeur_actuelle || 0, target: 500 }, 
       nextService: { type: 'Regular maintenance', due: 'In 30 days' }
     }));
   }, [equipment]);
