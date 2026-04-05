@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Settings, Wrench, Tractor, Folder, PieChart, Clock, FileText } from 'lucide-react';
+import { Settings, Wrench, Tractor, Folder, PieChart, Clock, FileText, CalendarCheck } from 'lucide-react';
 import { TimeTracker } from '@/components/time-tracking/TimeTracker';
 import { useTranslation } from "react-i18next";
 import { ExpandableTabs } from '@/components/ui/expandable-tabs';
