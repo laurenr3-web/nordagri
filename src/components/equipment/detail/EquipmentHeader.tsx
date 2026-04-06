@@ -61,48 +61,52 @@ const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({
           equipmentName={equipment.name} 
         />
         
-        <Button variant="outline" size="sm" onClick={onEdit} disabled={isDeleting}>
-          <Edit className="mr-1.5 h-4 w-4" />
-          Modifier
-        </Button>
+        {canEdit && (
+          <Button variant="outline" size="sm" onClick={onEdit} disabled={isDeleting}>
+            <Edit className="mr-1.5 h-4 w-4" />
+            Modifier
+          </Button>
+        )}
         
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive" size="sm" disabled={isDeleting}>
-              {isDeleting ? (
-                <>
-                  <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-                  <span className="hidden sm:inline">Suppression...</span>
-                  <span className="sm:hidden">...</span>
-                </>
-              ) : (
-                <>
-                  <Trash2 className="mr-1.5 h-4 w-4" />
-                  Supprimer
-                </>
-              )}
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Cette action ne peut pas être annulée. Cela supprimera définitivement l'équipement 
-                "{equipment.name}" et toutes les données associées.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Annuler</AlertDialogCancel>
-              <AlertDialogAction 
-                onClick={onDelete}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                disabled={isDeleting}
-              >
-                {isDeleting ? 'Suppression...' : 'Supprimer'}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        {canDelete && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm" disabled={isDeleting}>
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                    <span className="hidden sm:inline">Suppression...</span>
+                    <span className="sm:hidden">...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="mr-1.5 h-4 w-4" />
+                    Supprimer
+                  </>
+                )}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Cette action ne peut pas être annulée. Cela supprimera définitivement l'équipement 
+                  "{equipment.name}" et toutes les données associées.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={onDelete}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? 'Suppression...' : 'Supprimer'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
     </div>
   );
