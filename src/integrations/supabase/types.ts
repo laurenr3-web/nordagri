@@ -1202,7 +1202,7 @@ export type Database = {
             foreignKeyName: "planning_tasks_assigned_to_fkey"
             columns: ["assigned_to"]
             isOneToOne: false
-            referencedRelation: "team_members"
+            referencedRelation: "farm_members"
             referencedColumns: ["id"]
           },
           {
