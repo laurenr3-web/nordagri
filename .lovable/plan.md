@@ -1,80 +1,48 @@
 
 
-# Plan — Flux complet d'invitation à une ferme
+# Plan — Corriger le flux d'acceptation d'invitation
 
-## Situation actuelle
+## Problemes identifies
 
-- Le dialog d'invitation existe (InviteUserDialog + InviteUserForm + edge function `invite-user`)
-- L'edge function crée une entrée dans la table `invitations` et ajoute directement l'utilisateur s'il existe déjà
-- **Aucun email réel n'est envoyé** — l'invitation est juste stockée en base
-- **Aucun flux d'acceptation** — un nouvel utilisateur qui s'inscrit ne voit pas ses invitations pendantes
-- La page `NoFarmAccess` dit "contactez le support" au lieu de montrer les invitations en attente
-- L'edge function a un bug : elle insère `created_by` dans `farm_members` mais cette colonne n'existe pas dans le schéma
+L'analyse du code revele plusieurs bugs qui empechent le flux d'invitation de fonctionner correctement :
 
-## Changements prévus
+1. **Erreur FK dans accept-invitation** : Les logs montrent `Key (user_id)=(...) is not present in table "users"`. La table `farm_members` a une FK vers `auth.users`, mais l'Edge Function `accept-invitation` utilise `getClaims()` pour extraire le `user_id` — si le profil/utilisateur est nouveau, cette reference peut echouer.
 
-### 1. Configurer l'envoi d'emails
+2. **Le profil n'est pas mis a jour apres acceptation** : Meme quand `farm_members` est correctement insere, plusieurs services (`FarmSettingsSection`, `useSettings`, `getParts`, `Dashboard`) verifient `profiles.farm_id` pour determiner la ferme active. Si `farm_id` n'est pas mis a jour dans le profil, l'utilisateur voit "Creer ma ferme" au lieu des donnees.
 
-Avant de pouvoir envoyer de vrais emails d'invitation, il faut configurer un domaine email. L'utilisateur devra passer par le dialog de configuration de domaine email dans Cloud.
+3. **`useFarmId` fonctionne bien** mais le Dashboard utilise `profileData?.farm_id` (ligne 65 de Dashboard.tsx) pour afficher le banner "Creer ma ferme", ce qui est redondant et incorrect pour les membres invites.
 
-### 2. Edge function `invite-user` — corrections
+4. **`NoFarmAccess` utilise `supabase.functions.invoke`** au lieu de `fetch`, ce qui ne parse pas correctement les erreurs.
 
-- Retirer le champ `created_by` de l'insert dans `farm_members` (n'existe pas dans le schéma)
-- Ajouter l'envoi d'un email transactionnel après la création de l'invitation (via `send-transactional-email`)
-- L'email contiendra un lien vers l'app avec l'ID d'invitation en paramètre
+5. **Page AcceptInvitation** : Le flux de redirection fonctionne (localStorage + returnTo), mais l'Edge Function echoue a inserer dans `farm_members`.
 
-### 3. Template email d'invitation
+## Changements prevus
 
-Créer un template transactionnel `farm-invitation` qui contient :
-- Nom de la ferme
-- Rôle attribué
-- Bouton "Rejoindre la ferme" pointant vers `/accept-invitation?id=XXX`
+### 1. Corriger l'Edge Function `accept-invitation` (bug critique)
+- Remplacer `getClaims()` par `getUser()` via le service-role client pour valider le token
+- Ajouter un fallback : si l'insert dans `farm_members` echoue avec une erreur FK, verifier que le `user_id` existe dans `auth.users` et retenter
+- S'assurer que `profiles.farm_id` est bien mis a jour apres l'insertion reussie
 
-### 4. Page `/accept-invitation` — nouvelle page
+### 2. Corriger le Dashboard pour les membres invites
+- Dans `Dashboard.tsx`, remplacer la verification `!!profileData?.farm_id` par l'utilisation de `useFarmId()` pour determiner si l'utilisateur a acces a une ferme (via `farm_members` OU `farms.owner_id`)
+- Supprimer le banner "Creer ma ferme" quand `useFarmId` retourne un `farmId` valide
 
-Page qui gère le flux d'acceptation :
-- Lit le paramètre `id` (invitation ID)
-- Vérifie l'invitation (existe, non expirée, statut pending)
-- Si l'utilisateur est connecté : accepte directement (ajoute dans `farm_members`, met à jour `profiles.farm_id`, passe l'invitation en `accepted`)
-- Si non connecté : redirige vers `/auth` avec un paramètre `redirect=/accept-invitation?id=XXX`
-- Affiche un message de succès et redirige vers le dashboard
+### 3. Corriger `NoFarmAccess` — utiliser `fetch` au lieu de `supabase.functions.invoke`
+- Aligner avec le pattern utilise dans `AcceptInvitation.tsx` pour un parsing correct des erreurs
 
-### 5. Edge function `accept-invitation` — nouvelle
+### 4. Mettre a jour `AcceptInvitation.tsx` — redirection vers la ferme invitee
+- Apres acceptation reussie, forcer un rechargement complet (`window.location.href = '/dashboard'`) pour que le profil soit recharge avec le nouveau `farm_id`
 
-Gère l'acceptation côté serveur :
-- Valide l'invitation (existe, pending, non expirée)
-- Vérifie que l'email de l'utilisateur connecté correspond à l'email de l'invitation
-- Ajoute l'utilisateur dans `farm_members` avec le rôle de l'invitation
-- Met à jour `profiles.farm_id`
-- Passe le statut de l'invitation à `accepted`
-- Retourne un succès
+### 5. Corriger `FarmSettingsSection` et `useSettings` pour les membres invites
+- Utiliser `useFarmId()` comme source de verite au lieu de `profiles.farm_id` pour determiner la ferme active
 
-### 6. Composant `NoFarmAccess` — amélioration
+## Fichiers modifies
 
-Au lieu de juste dire "contactez le support" :
-- Vérifier s'il existe des invitations pendantes pour l'email de l'utilisateur connecté
-- Si oui, afficher les invitations avec un bouton "Accepter" pour chacune
-- Si non, garder le message actuel
-
-### 7. Auth callback — gestion du redirect après signup
-
-Modifier le flux post-signup/login pour rediriger vers la page d'acceptation si un paramètre `redirect` est présent (stocké dans localStorage avant la redirection vers `/auth`).
-
-## Prérequis : domaine email
-
-Pour envoyer de vrais emails, il faut d'abord configurer un domaine. Je vais d'abord demander la configuration du domaine, puis mettre en place les templates et le flux.
-
-**Si vous ne souhaitez pas configurer d'email maintenant**, je peux implémenter tout le flux d'acceptation sans email : l'invitation serait créée en base, et l'utilisateur invité verrait l'invitation en se connectant (via la page NoFarmAccess ou la page accept-invitation partagée manuellement).
-
-## Fichiers créés/modifiés
-
-| Fichier | Action |
+| Fichier | Changement |
 |---|---|
-| `supabase/functions/invite-user/index.ts` | Corriger bugs, ajouter envoi email |
-| `supabase/functions/accept-invitation/index.ts` | **Nouveau** — logique d'acceptation |
-| `src/pages/AcceptInvitation.tsx` | **Nouveau** — page d'acceptation |
-| `src/components/common/NoFarmAccess.tsx` | Afficher invitations pendantes |
-| `src/components/ui/auth/hooks/useAuthHandlers.tsx` | Supporter redirect post-login |
-| `src/App.tsx` | Ajouter route `/accept-invitation` |
-| Template email (si domaine configuré) | Template d'invitation |
+| `supabase/functions/accept-invitation/index.ts` | Corriger auth + gestion erreur FK |
+| `src/pages/Dashboard.tsx` | Utiliser `useFarmId` au lieu de `profileData.farm_id` |
+| `src/pages/AcceptInvitation.tsx` | Forcer reload apres acceptation |
+| `src/components/common/NoFarmAccess.tsx` | Utiliser `fetch` au lieu de `invoke` |
+| `src/components/settings/farm/FarmSettingsSection.tsx` | Utiliser `useFarmId` |
 
