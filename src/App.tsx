@@ -130,6 +130,7 @@ function App() {
                       <Route path="/bento-demo" element={<BentoDemo />} />
                       <Route path="/legal" element={<LegalPage />} />
                       <Route path="/pricing" element={<Pricing />} />
+                      <Route path="/unsubscribe" element={<Unsubscribe />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </Suspense>
