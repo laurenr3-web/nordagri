@@ -23,7 +23,8 @@ export function UserAccessSection() {
     invitations, 
     loading, 
     handleCancelInvitation,
-    handleResendInvitation
+    handleResendInvitation,
+    refreshData
   } = useTeamMembers();
 
   const onCancelInvitation = async (invitationId: string) => {
@@ -82,7 +83,8 @@ export function UserAccessSection() {
             {/* Dialog pour inviter un utilisateur */}
             <InviteUserDialog 
               open={inviteDialogOpen} 
-              onOpenChange={setInviteDialogOpen} 
+              onOpenChange={setInviteDialogOpen}
+              onSuccess={refreshData}
             />
           </>
         )}
