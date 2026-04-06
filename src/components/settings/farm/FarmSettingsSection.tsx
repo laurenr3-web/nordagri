@@ -67,7 +67,7 @@ export function FarmSettingsSection() {
         const { data: settingsData, error: settingsError } = await supabase
           .from('farm_settings')
           .select('*')
-          .eq('farm_id', profileData.farm_id)
+          .eq('farm_id', activeFarmId)
           .maybeSingle();
           
         if (settingsError && settingsError.code !== 'PGRST116') throw settingsError;
