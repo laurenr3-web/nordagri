@@ -17,7 +17,16 @@ const Auth = () => {
   // Get return path from query params or default to dashboard
   const getReturnPath = () => {
     const searchParams = new URLSearchParams(location.search);
-    return searchParams.get('returnTo') || '/dashboard';
+    const returnTo = searchParams.get('returnTo');
+    if (returnTo) return returnTo;
+    
+    // Check for pending invitation
+    const pendingInvitation = localStorage.getItem('pendingInvitation');
+    if (pendingInvitation) {
+      return `/accept-invitation?id=${pendingInvitation}`;
+    }
+    
+    return '/dashboard';
   };
 
   // Si l'authentification nécessite une redirection vers la page de callback, 
