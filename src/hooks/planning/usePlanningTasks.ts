@@ -52,6 +52,14 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
     enabled: !!farmId,
   });
 
+  // Fetch overdue tasks (due_date < today, status != done)
+  const todayStr = new Date().toISOString().split('T')[0];
+  const { data: overdueTasks = [] } = useQuery({
+    queryKey: ['planningOverdue', farmId, todayStr],
+    queryFn: () => planningService.getOverdueTasks(farmId!, todayStr),
+    enabled: !!farmId,
+  });
+
   // Also fetch recurring tasks that were created before the date range
   const { data: recurringTasks = [] } = useQuery({
     queryKey: ['planningRecurring', farmId],
@@ -161,6 +169,7 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['planningTasks'] });
       queryClient.invalidateQueries({ queryKey: ['planningRecurring'] });
+      queryClient.invalidateQueries({ queryKey: ['planningOverdue'] });
       toast.success('Tâche ajoutée');
     },
     onError: (e: any) => toast.error(e.message),
@@ -184,6 +193,7 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
       queryClient.invalidateQueries({ queryKey: ['planningTasks'] });
       queryClient.invalidateQueries({ queryKey: ['planningCompletions'] });
       queryClient.invalidateQueries({ queryKey: ['planningRecurring'] });
+      queryClient.invalidateQueries({ queryKey: ['planningOverdue'] });
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -193,6 +203,7 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
       planningService.postponeTask(id, newDate),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['planningTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['planningOverdue'] });
       toast.success('Tâche reportée');
     },
     onError: (e: any) => toast.error(e.message),
@@ -203,6 +214,7 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['planningTasks'] });
       queryClient.invalidateQueries({ queryKey: ['planningRecurring'] });
+      queryClient.invalidateQueries({ queryKey: ['planningOverdue'] });
       toast.success('Tâche supprimée');
     },
     onError: (e: any) => toast.error(e.message),
@@ -214,6 +226,7 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['planningTasks'] });
       queryClient.invalidateQueries({ queryKey: ['planningRecurring'] });
+      queryClient.invalidateQueries({ queryKey: ['planningOverdue'] });
       toast.success('Tâche mise à jour');
     },
     onError: (e: any) => toast.error(e.message),
@@ -238,10 +251,16 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
     todo: activeTasks.filter(t => (t.manual_priority || t.computed_priority) === 'todo'),
   };
 
+  // Sort overdue by date ascending (oldest first)
+  const sortedOverdue = [...overdueTasks]
+    .filter(t => t.status !== 'done')
+    .sort((a, b) => a.due_date.localeCompare(b.due_date));
+
   return {
     tasks: sortedTasks,
     groupedTasks,
     doneTasks,
+    overdueTasks: sortedOverdue,
     isLoading,
     addTask,
     updateStatus,

@@ -9,7 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Separator } from '@/components/ui/separator';
-import { Play, CheckCircle2, AlertTriangle, Unlock, CalendarIcon, Trash2, Save } from 'lucide-react';
+import { Play, CheckCircle2, AlertTriangle, Unlock, CalendarIcon, Trash2, Save, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -90,6 +90,11 @@ export function TaskDetailDialog({
   tomorrowDate.setDate(tomorrowDate.getDate() + 1);
   const tomorrowStr = tomorrowDate.toISOString().split('T')[0];
 
+  const isOverdue = task.due_date < todayStr && task.status !== 'done';
+  const overdueDays = isOverdue
+    ? Math.floor((new Date(todayStr).getTime() - new Date(task.due_date).getTime()) / 86400000)
+    : 0;
+
   const handleAssignChange = (value: string) => {
     const newVal = value === 'none' ? null : value;
     setLocalAssignedTo(newVal);
@@ -137,6 +142,12 @@ export function TaskDetailDialog({
               <Badge variant="outline" className={cn("text-xs", priority.className)}>
                 {priority.label}
               </Badge>
+              {isOverdue && (
+                <Badge className="text-xs bg-orange-500 text-white border-0 gap-1">
+                  <Clock className="h-3 w-3" />
+                  {overdueDays}j en retard
+                </Badge>
+              )}
             </div>
 
             {task.notes && (
