@@ -1,18 +1,16 @@
 
 import React from 'react';
-import { PlanningTask, PlanningStatus } from '@/services/planning/planningService';
+import { PlanningTask } from '@/services/planning/planningService';
 import { TaskCard } from './TaskCard';
 
 interface TaskGroupProps {
   label: string;
   icon: string;
   tasks: PlanningTask[];
-  onStatusChange: (id: string, status: PlanningStatus) => void;
-  onPostpone: (id: string) => void;
-  onDelete: (id: string) => void;
+  onTaskClick?: (task: PlanningTask) => void;
 }
 
-export function TaskGroup({ label, icon, tasks, onStatusChange, onPostpone, onDelete }: TaskGroupProps) {
+export function TaskGroup({ label, icon, tasks, onTaskClick }: TaskGroupProps) {
   if (tasks.length === 0) return null;
 
   return (
@@ -26,9 +24,7 @@ export function TaskGroup({ label, icon, tasks, onStatusChange, onPostpone, onDe
           <TaskCard
             key={task.id}
             task={task}
-            onStatusChange={onStatusChange}
-            onPostpone={onPostpone}
-            onDelete={onDelete}
+            onClick={() => onTaskClick?.(task)}
           />
         ))}
       </div>

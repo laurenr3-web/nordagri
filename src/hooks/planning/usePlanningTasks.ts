@@ -109,6 +109,7 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
     isLoading,
     addTask,
     updateStatus,
+    updateTask,
     postponeTask,
     deleteTask,
     getComputedPriority,
