@@ -34,6 +34,9 @@ interface AddTaskFormProps {
     field_name?: string | null;
     building_name?: string | null;
     animal_group?: string | null;
+    is_recurring?: boolean;
+    recurrence_type?: string | null;
+    recurrence_days?: number[] | null;
   }) => void;
   teamMembers?: { id: string; name: string }[];
   equipment?: { id: number; name: string }[];
