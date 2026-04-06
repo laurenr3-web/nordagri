@@ -68,6 +68,7 @@ function App() {
                     <Routes>
                       <Route path="/" element={<Navigate to={withPreviewToken('/dashboard')} replace />} />
                       <Route path="/auth" element={<Auth />} />
+                      <Route path="/accept-invitation" element={<AcceptInvitation />} />
                       <Route path="/auth/callback" element={<AuthCallback />} />
                       <Route path="/dashboard" element={
                         <ProtectedRoute>
