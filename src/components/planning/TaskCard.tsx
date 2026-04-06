@@ -3,6 +3,7 @@ import React from 'react';
 import { PlanningTask } from '@/services/planning/planningService';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const categoryLabels: Record<string, string> = {
@@ -50,12 +51,17 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
       onClick={onClick}
     >
       <div className="flex items-start justify-between gap-2">
-        <h4 className={cn(
-          "font-semibold text-sm leading-tight flex-1",
-          task.status === 'done' && "line-through text-muted-foreground"
-        )}>
-          {task.title}
-        </h4>
+        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+          {task.is_recurring && (
+            <RefreshCw className="h-3.5 w-3.5 text-primary shrink-0" />
+          )}
+          <h4 className={cn(
+            "font-semibold text-sm leading-tight",
+            task.status === 'done' && "line-through text-muted-foreground"
+          )}>
+            {task.title}
+          </h4>
+        </div>
         <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 shrink-0", priority.className)}>
           {priority.label}
         </Badge>

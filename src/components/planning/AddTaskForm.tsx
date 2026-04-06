@@ -7,7 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { PlanningCategory, PlanningPriority } from '@/services/planning/planningService';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 const categories: { value: PlanningCategory; label: string; icon: string }[] = [
   { value: 'animaux', label: 'Animaux', icon: '🐄' },
@@ -33,6 +34,9 @@ interface AddTaskFormProps {
     field_name?: string | null;
     building_name?: string | null;
     animal_group?: string | null;
+    is_recurring?: boolean;
+    recurrence_type?: string | null;
+    recurrence_days?: number[] | null;
   }) => void;
   teamMembers?: { id: string; name: string }[];
   equipment?: { id: number; name: string }[];
@@ -57,6 +61,10 @@ export function AddTaskForm({ open, onClose, onSubmit, teamMembers = [], equipme
   const [fieldName, setFieldName] = useState('');
   const [buildingName, setBuildingName] = useState('');
   const [animalGroup, setAnimalGroup] = useState('');
+  const [recurrenceType, setRecurrenceType] = useState<string>('none');
+  const [recurrenceDays, setRecurrenceDays] = useState<number[]>([]);
+
+  const dayLabels = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
 
   const resetForm = () => {
     setTitle('');
@@ -71,12 +79,16 @@ export function AddTaskForm({ open, onClose, onSubmit, teamMembers = [], equipme
     setFieldName('');
     setBuildingName('');
     setAnimalGroup('');
+    setRecurrenceType('none');
+    setRecurrenceDays([]);
   };
 
   const handleSubmit = () => {
     if (!title.trim()) return;
 
     const due_date = dateChoice === 'today' ? getDateStr() : dateChoice === 'tomorrow' ? getDateStr(1) : customDate;
+
+    const isRecurring = recurrenceType !== 'none';
 
     onSubmit({
       title: title.trim(),
@@ -89,6 +101,9 @@ export function AddTaskForm({ open, onClose, onSubmit, teamMembers = [], equipme
       field_name: fieldName || null,
       building_name: buildingName || null,
       animal_group: animalGroup || null,
+      is_recurring: isRecurring,
+      recurrence_type: isRecurring ? recurrenceType : null,
+      recurrence_days: recurrenceType === 'custom' && recurrenceDays.length > 0 ? recurrenceDays : null,
     });
 
     resetForm();
@@ -179,6 +194,46 @@ export function AddTaskForm({ open, onClose, onSubmit, teamMembers = [], equipme
 
           {showMore && (
             <div className="space-y-3 border-t pt-3">
+              {/* Recurrence */}
+              <div>
+                <Label className="text-sm flex items-center gap-1.5">
+                  <RefreshCw className="h-3.5 w-3.5" /> Récurrence
+                </Label>
+                <Select value={recurrenceType} onValueChange={setRecurrenceType}>
+                  <SelectTrigger className="mt-1 h-11">
+                    <SelectValue placeholder="Aucune" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Aucune</SelectItem>
+                    <SelectItem value="daily">Tous les jours</SelectItem>
+                    <SelectItem value="weekly">Chaque semaine</SelectItem>
+                    <SelectItem value="custom">Certains jours</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {recurrenceType === 'custom' && (
+                <div>
+                  <Label className="text-sm">Jours de la semaine</Label>
+                  <div className="grid grid-cols-7 gap-1 mt-1">
+                    {dayLabels.map((label, i) => (
+                      <Button
+                        key={i}
+                        type="button"
+                        variant={recurrenceDays.includes(i) ? 'default' : 'outline'}
+                        className="h-10 px-0 text-xs"
+                        onClick={() => {
+                          setRecurrenceDays(prev =>
+                            prev.includes(i) ? prev.filter(d => d !== i) : [...prev, i]
+                          );
+                        }}
+                      >
+                        {label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div>
                 <Label className="text-sm">Note</Label>
                 <Textarea value={notes} onChange={e => setNotes(e.target.value)} className="mt-1" rows={2} placeholder="Détails..." />
