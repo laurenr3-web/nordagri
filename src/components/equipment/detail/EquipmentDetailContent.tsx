@@ -129,6 +129,8 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
         onEdit={handleEditEquipment} 
         onDelete={handleEquipmentDelete}
         isDeleting={isDeleting}
+        canEdit={canEdit}
+        canDelete={canDelete}
       />
       
       <Separator className="my-4" />
