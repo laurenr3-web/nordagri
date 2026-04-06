@@ -81,6 +81,7 @@ export function AddTaskForm({ open, onClose, onSubmit, teamMembers = [], equipme
     setAnimalGroup('');
     setRecurrenceType('none');
     setRecurrenceDays([]);
+  };
 
   const handleSubmit = () => {
     if (!title.trim()) return;
