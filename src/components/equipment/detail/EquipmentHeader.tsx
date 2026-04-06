@@ -22,6 +22,8 @@ interface EquipmentHeaderProps {
   onEdit: () => void;
   onDelete: () => void;
   isDeleting?: boolean;
+  canEdit?: boolean;
+  canDelete?: boolean;
 }
 
 const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({ 
