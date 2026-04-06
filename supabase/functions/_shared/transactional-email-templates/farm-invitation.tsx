@@ -23,7 +23,7 @@ const getRoleLabel = (role?: string) => {
 }
 
 const FarmInvitationEmail = ({ farmName, role, invitationId, inviterName }: FarmInvitationProps) => {
-  const acceptUrl = `https://nordagri.ca/accept-invitation?id=${invitationId || 'preview'}`
+  const acceptUrl = `https://nordagri.lovable.app/accept-invitation?id=${invitationId || 'preview'}`
 
   return (
     <Html lang="fr" dir="ltr">
