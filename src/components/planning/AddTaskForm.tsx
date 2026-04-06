@@ -87,6 +87,8 @@ export function AddTaskForm({ open, onClose, onSubmit, teamMembers = [], equipme
 
     const due_date = dateChoice === 'today' ? getDateStr() : dateChoice === 'tomorrow' ? getDateStr(1) : customDate;
 
+    const isRecurring = recurrenceType !== 'none';
+
     onSubmit({
       title: title.trim(),
       category,
@@ -98,6 +100,9 @@ export function AddTaskForm({ open, onClose, onSubmit, teamMembers = [], equipme
       field_name: fieldName || null,
       building_name: buildingName || null,
       animal_group: animalGroup || null,
+      is_recurring: isRecurring,
+      recurrence_type: isRecurring ? recurrenceType : null,
+      recurrence_days: recurrenceType === 'custom' && recurrenceDays.length > 0 ? recurrenceDays : null,
     });
 
     resetForm();
