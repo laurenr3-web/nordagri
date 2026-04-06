@@ -54,7 +54,7 @@ export function FarmSettingsSection() {
         const { data: farmData, error: farmError } = await supabase
           .from('farms')
           .select('name')
-          .eq('id', profileData.farm_id)
+          .eq('id', activeFarmId)
           .single();
         
         if (farmError) throw farmError;
