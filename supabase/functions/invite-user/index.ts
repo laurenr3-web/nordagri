@@ -153,29 +153,7 @@ serve(async (req) => {
       );
     }
 
-    // If user already exists, add them directly to the farm
-    if (existingUser) {
-      // Add to farm_members (no created_by - column doesn't exist)
-      await supabaseAdmin
-        .from('farm_members')
-        .insert({
-          user_id: existingUser.id,
-          farm_id: farmId,
-          role,
-        });
-
-      // Update profile farm_id
-      await supabaseAdmin
-        .from('profiles')
-        .update({ farm_id: farmId })
-        .eq('id', existingUser.id);
-
-      // Mark invitation as accepted
-      await supabaseAdmin
-        .from('invitations')
-        .update({ status: 'accepted' })
-        .eq('id', invitation.id);
-    }
+    // Invitation stays pending — user must accept via the link
 
     // Send invitation email via transactional email system
     try {
