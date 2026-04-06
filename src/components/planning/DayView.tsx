@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
-import { PlanningStatus } from '@/services/planning/planningService';
+import { PlanningTask, PlanningStatus } from '@/services/planning/planningService';
 import { TaskGroup } from './TaskGroup';
 import { TaskCard } from './TaskCard';
+import { TaskDetailDialog } from './TaskDetailDialog';
 import { usePlanningTasks } from '@/hooks/planning/usePlanningTasks';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
@@ -11,24 +12,28 @@ interface DayViewProps {
   farmId: string | null;
   date: string;
   label: string;
+  teamMembers: { id: string; name: string }[];
 }
 
-export function DayView({ farmId, date, label }: DayViewProps) {
-  const { groupedTasks, doneTasks, isLoading, updateStatus, postponeTask, deleteTask } = usePlanningTasks(farmId, date, date);
+export function DayView({ farmId, date, label, teamMembers }: DayViewProps) {
+  const { groupedTasks, doneTasks, isLoading, updateStatus, updateTask, postponeTask, deleteTask } = usePlanningTasks(farmId, date, date);
   const [doneOpen, setDoneOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<PlanningTask | null>(null);
 
   const handleStatusChange = (id: string, status: PlanningStatus) => {
     updateStatus.mutate({ id, status });
   };
 
-  const handlePostpone = (id: string) => {
-    const tomorrow = new Date(date);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    postponeTask.mutate({ id, newDate: tomorrow.toISOString().split('T')[0] });
+  const handlePostpone = (id: string, newDate: string) => {
+    postponeTask.mutate({ id, newDate });
   };
 
   const handleDelete = (id: string) => {
     deleteTask.mutate(id);
+  };
+
+  const handleUpdate = (id: string, updates: Partial<PlanningTask>) => {
+    updateTask.mutate({ id, updates });
   };
 
   if (isLoading) {
@@ -50,9 +55,9 @@ export function DayView({ farmId, date, label }: DayViewProps) {
         </div>
       ) : (
         <>
-          <TaskGroup label="Critique" icon="🔴" tasks={groupedTasks.critical} onStatusChange={handleStatusChange} onPostpone={handlePostpone} onDelete={handleDelete} />
-          <TaskGroup label="Important" icon="🟡" tasks={groupedTasks.important} onStatusChange={handleStatusChange} onPostpone={handlePostpone} onDelete={handleDelete} />
-          <TaskGroup label="À faire" icon="⚪" tasks={groupedTasks.todo} onStatusChange={handleStatusChange} onPostpone={handlePostpone} onDelete={handleDelete} />
+          <TaskGroup label="Critique" icon="🔴" tasks={groupedTasks.critical} onTaskClick={setSelectedTask} />
+          <TaskGroup label="Important" icon="🟡" tasks={groupedTasks.important} onTaskClick={setSelectedTask} />
+          <TaskGroup label="À faire" icon="⚪" tasks={groupedTasks.todo} onTaskClick={setSelectedTask} />
         </>
       )}
 
@@ -64,11 +69,22 @@ export function DayView({ farmId, date, label }: DayViewProps) {
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-2 mt-2">
             {doneTasks.map(task => (
-              <TaskCard key={task.id} task={task} onStatusChange={handleStatusChange} onPostpone={handlePostpone} onDelete={handleDelete} />
+              <TaskCard key={task.id} task={task} onClick={() => setSelectedTask(task)} />
             ))}
           </CollapsibleContent>
         </Collapsible>
       )}
+
+      <TaskDetailDialog
+        task={selectedTask}
+        open={!!selectedTask}
+        onOpenChange={(open) => { if (!open) setSelectedTask(null); }}
+        teamMembers={teamMembers}
+        onStatusChange={handleStatusChange}
+        onPostpone={handlePostpone}
+        onDelete={handleDelete}
+        onUpdate={handleUpdate}
+      />
     </div>
   );
 }
