@@ -59,7 +59,7 @@ export const planningService = {
   async getTasks(farmId: string, startDate?: string, endDate?: string): Promise<PlanningTask[]> {
     let query = supabase
       .from('planning_tasks')
-      .select('*, team_members(name)')
+      .select('*')
       .eq('farm_id', farmId)
       .order('due_date', { ascending: true });
 
@@ -71,8 +71,7 @@ export const planningService = {
 
     return ((data || []) as any[]).map(t => ({
       ...t,
-      team_member_name: t.team_members?.name || null,
-      team_members: undefined,
+      team_member_name: null,
     }));
   },
 
