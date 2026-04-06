@@ -1,65 +1,41 @@
 
 
-# Plan final — RBAC : réponses aux 3 points + migration
+# Plan — Afficher tous les membres liés à la ferme dans "Gestion des accès"
 
-## Point 1 : `planning_tasks` DELETE pour member
+## Problème
 
-Dans le plan précédent, la policy DELETE était :
-```sql
-has_farm_role(farm_id, 'admin') OR created_by = auth.uid()
-```
+La section affiche "Aucun membre d'équipe" car le service `teamService.ts` a deux bugs :
+1. `fetchFarmMembers` requête `profiles.email` qui n'existe pas — la requête échoue silencieusement
+2. `fetchTeamMembers` cherche les profils par `profiles.farm_id`, mais cette colonne ne reflète pas toujours la ferme active (surtout pour les membres invités)
 
-C'est **cohérent** avec la règle globale : un member ne peut supprimer que ses propres tâches (`created_by = auth.uid()`), un admin peut tout supprimer. Le owner est couvert car `has_farm_role` traite le owner comme admin+. **Aucun ajustement nécessaire.**
+La source de vérité pour les membres d'une ferme est : **`farms.owner_id`** (propriétaire) + **`farm_members`** (membres invités).
 
-## Point 2 : `fuel_logs` INSERT harmonisé
+## Solution
 
-La policy INSERT actuelle est :
-```sql
-(created_by = auth.uid()) AND ((farm_id IS NULL) OR is_farm_member(farm_id))
-```
+Réécrire `teamService.ts` avec une logique simple et fiable :
 
-Pour l'harmoniser avec le RBAC, elle devient :
-```sql
-(created_by = auth.uid()) AND ((farm_id IS NULL) OR has_farm_role(farm_id, 'member'))
-```
+1. **Récupérer le propriétaire** : requête `farms` par `id = farmId` pour obtenir `owner_id`, puis profil associé → rôle `owner`
+2. **Récupérer les membres** : requête `farm_members` par `farm_id`, puis profils associés (sans `email`) → rôle depuis `farm_members.role`
+3. **Combiner et dédupliquer** par `user_id`
 
-Cela bloque les viewers sur INSERT, ce qui est cohérent avec la règle globale. **Ajusté.**
-
-## Point 3 : Vérification de cohérence globale
-
-Voici la matrice complète après ajustements :
-
-```text
-Table                          | SELECT           | INSERT              | UPDATE              | DELETE
--------------------------------|------------------|---------------------|---------------------|---------------------
-equipment                      | owner/member(*)  | owner/member+       | owner/member+       | owner/admin+
-parts_inventory                | owner/member(*)  | owner/member+       | owner/member+       | owner/admin+
-fuel_logs                      | member(*)/creator| creator+member+     | creator+member+     | creator+admin+
-interventions                  | owner/member(*)  | owner/member+(equip)| owner/member+(equip)| owner/admin+(equip)
-maintenance_tasks              | owner/member(*)  | owner/member+(equip)| owner/member+(equip)| owner/admin+(equip)
-maintenance_plans              | owner/member(*)  | owner/member+       | owner/member+       | owner/admin+
-equipment_logs/photos/sched/qr | owns_equipment   | can_write(member)   | can_write(member)   | can_write(admin)
-planning_tasks                 | member(*)        | member++created_by  | member+             | admin+OR created_by
-planning_category_importance   | member(*)        | admin+              | admin+              | admin+
-
-(*) = inchangé   (+) = via has_farm_role, owner toujours inclus
-```
-
-**Tout est cohérent** : viewer = lecture seule, member = insert/update, admin = delete, owner = tout.
-
-## Migration SQL finale
-
-Une seule migration contenant :
-
-1. **Fonction `has_farm_role`** — owner via `farms.owner_id`, hiérarchie admin(3) > member(2) > viewer(1)
-2. **Fonction `can_write_equipment`** — pour les 4 tables liées à equipment_id
-3. **~30 DROP + CREATE POLICY** exactement comme détaillé dans le plan précédent, avec la correction fuel_logs INSERT
-
-## Fichiers frontend
+## Fichiers modifiés
 
 | Fichier | Changement |
 |---|---|
-| `src/hooks/useFarmRole.ts` (nouveau) | Hook retournant `role`, `canEdit`, `canDelete` |
-| `src/components/equipment/detail/EquipmentHeader.tsx` | Masquer Edit/Delete selon rôle |
-| `src/components/equipment/detail/EquipmentDetailContent.tsx` | Masquer édition compteur pour viewers |
+| `src/services/teamService.ts` | Réécrire `fetchTeamData` pour utiliser `farms.owner_id` + `farm_members` comme source de vérité. Supprimer `profiles.email` des requêtes. |
+
+## Détails techniques
+
+```text
+fetchTeamData(farmId)
+  ├── SELECT owner_id FROM farms WHERE id = farmId
+  │   └── SELECT first_name, last_name FROM profiles WHERE id = owner_id
+  │       → TeamMember { role: 'owner' }
+  ├── SELECT id, user_id, role, created_at FROM farm_members WHERE farm_id = farmId
+  │   └── Pour chaque: SELECT first_name, last_name FROM profiles WHERE id = user_id
+  │       → TeamMember { role: farm_members.role }
+  └── Dédupliquer par user_id (owner prioritaire)
+```
+
+Aucune migration SQL nécessaire.
 
