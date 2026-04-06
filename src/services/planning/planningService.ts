@@ -95,6 +95,9 @@ export const planningService = {
     field_name?: string | null;
     building_name?: string | null;
     animal_group?: string | null;
+    is_recurring?: boolean;
+    recurrence_type?: string | null;
+    recurrence_days?: number[] | null;
   }): Promise<PlanningTask> {
     const { data, error } = await supabase
       .from('planning_tasks')
@@ -103,6 +106,34 @@ export const planningService = {
       .single();
     if (error) throw error;
     return data as unknown as PlanningTask;
+  },
+
+  async getCompletions(taskIds: string[], startDate: string, endDate: string) {
+    if (taskIds.length === 0) return [];
+    const { data, error } = await supabase
+      .from('planning_task_completions')
+      .select('*')
+      .in('task_id', taskIds)
+      .gte('completion_date', startDate)
+      .lte('completion_date', endDate);
+    if (error) throw error;
+    return data || [];
+  },
+
+  async markRecurringComplete(taskId: string, date: string, userId: string) {
+    const { error } = await supabase
+      .from('planning_task_completions')
+      .upsert({ task_id: taskId, completion_date: date, completed_by: userId }, { onConflict: 'task_id,completion_date' });
+    if (error) throw error;
+  },
+
+  async unmarkRecurringComplete(taskId: string, date: string) {
+    const { error } = await supabase
+      .from('planning_task_completions')
+      .delete()
+      .eq('task_id', taskId)
+      .eq('completion_date', date);
+    if (error) throw error;
   },
 
   async updateTaskStatus(id: string, status: PlanningStatus) {
