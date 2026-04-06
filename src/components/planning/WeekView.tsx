@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
-import { PlanningStatus } from '@/services/planning/planningService';
+import { PlanningTask, PlanningStatus } from '@/services/planning/planningService';
 import { TaskCard } from './TaskCard';
+import { TaskDetailDialog } from './TaskDetailDialog';
 import { usePlanningTasks } from '@/hooks/planning/usePlanningTasks';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
@@ -10,6 +11,7 @@ import { Separator } from '@/components/ui/separator';
 
 interface WeekViewProps {
   farmId: string | null;
+  teamMembers: { id: string; name: string }[];
 }
 
 function getWeekRange() {
@@ -28,25 +30,26 @@ function getWeekRange() {
 const dayNames = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 const monthNames = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 
-export function WeekView({ farmId }: WeekViewProps) {
+export function WeekView({ farmId, teamMembers }: WeekViewProps) {
   const { start, end } = getWeekRange();
-  const { tasks, doneTasks, isLoading, updateStatus, postponeTask, deleteTask } = usePlanningTasks(farmId, start, end);
+  const { tasks, doneTasks, isLoading, updateStatus, updateTask, postponeTask, deleteTask } = usePlanningTasks(farmId, start, end);
   const [doneOpen, setDoneOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<PlanningTask | null>(null);
 
   const handleStatusChange = (id: string, status: PlanningStatus) => {
     updateStatus.mutate({ id, status });
   };
 
-  const handlePostpone = (id: string) => {
-    const task = tasks.find(t => t.id === id);
-    if (!task) return;
-    const nextDay = new Date(task.due_date);
-    nextDay.setDate(nextDay.getDate() + 1);
-    postponeTask.mutate({ id, newDate: nextDay.toISOString().split('T')[0] });
+  const handlePostpone = (id: string, newDate: string) => {
+    postponeTask.mutate({ id, newDate });
   };
 
   const handleDelete = (id: string) => {
     deleteTask.mutate(id);
+  };
+
+  const handleUpdate = (id: string, updates: Partial<PlanningTask>) => {
+    updateTask.mutate({ id, updates });
   };
 
   if (isLoading) {
@@ -74,13 +77,11 @@ export function WeekView({ farmId }: WeekViewProps) {
         const isToday = dateStr === todayStr;
         const isPast = dateStr < todayStr;
 
-        // Hide past days with no tasks
         if (isPast && dayTasks.length === 0) return null;
 
         const dateObj = new Date(dateStr + 'T12:00:00');
         const dayNum = dateObj.getDate();
         const monthName = monthNames[dateObj.getMonth()];
-        const label = `${dayNames[i]} ${dayNum} ${monthName}`;
 
         return (
           <React.Fragment key={dateStr}>
@@ -110,7 +111,7 @@ export function WeekView({ farmId }: WeekViewProps) {
               ) : (
                 <div className="space-y-2 pl-1">
                   {dayTasks.map(task => (
-                    <TaskCard key={task.id} task={task} onStatusChange={handleStatusChange} onPostpone={handlePostpone} onDelete={handleDelete} />
+                    <TaskCard key={task.id} task={task} onClick={() => setSelectedTask(task)} />
                   ))}
                 </div>
               )}
@@ -131,12 +132,23 @@ export function WeekView({ farmId }: WeekViewProps) {
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-2 mt-2 px-1">
               {doneTasks.map(task => (
-                <TaskCard key={task.id} task={task} onStatusChange={handleStatusChange} onPostpone={handlePostpone} onDelete={handleDelete} />
+                <TaskCard key={task.id} task={task} onClick={() => setSelectedTask(task)} />
               ))}
             </CollapsibleContent>
           </Collapsible>
         </>
       )}
+
+      <TaskDetailDialog
+        task={selectedTask}
+        open={!!selectedTask}
+        onOpenChange={(open) => { if (!open) setSelectedTask(null); }}
+        teamMembers={teamMembers}
+        onStatusChange={handleStatusChange}
+        onPostpone={handlePostpone}
+        onDelete={handleDelete}
+        onUpdate={handleUpdate}
+      />
     </div>
   );
 }

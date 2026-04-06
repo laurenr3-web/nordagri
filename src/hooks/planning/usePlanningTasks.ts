@@ -1,6 +1,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { planningService, PlanningStatus, PlanningCategory, PlanningPriority } from '@/services/planning/planningService';
+import { planningService, PlanningTask, PlanningStatus, PlanningCategory, PlanningPriority } from '@/services/planning/planningService';
 import { toast } from 'sonner';
 import { useCategoryImportance } from './useCategoryImportance';
 
