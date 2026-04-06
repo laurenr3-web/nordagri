@@ -33,6 +33,7 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const { canEdit, canDelete } = useFarmRole();
 
   const handleEditEquipment = () => {
     setIsEditDialogOpen(true);
