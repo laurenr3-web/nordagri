@@ -3,6 +3,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { User, UserPlus, Clock } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -21,14 +22,16 @@ interface TeamMembersListProps {
   teamMembers: TeamMember[];
   loading: boolean;
   onInviteClick: () => void;
+  onRoleChange?: (memberId: string, newRole: string) => void;
 }
 
-export function TeamMembersList({ teamMembers, loading, onInviteClick }: TeamMembersListProps) {
+export function TeamMembersList({ teamMembers, loading, onInviteClick, onRoleChange }: TeamMembersListProps) {
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case 'owner': return 'bg-red-500';
       case 'admin': return 'bg-blue-500';
       case 'editor': return 'bg-green-500';
+      case 'member': return 'bg-green-500';
       case 'viewer': return 'bg-gray-500';
       default: return 'bg-gray-500';
     }
@@ -39,6 +42,7 @@ export function TeamMembersList({ teamMembers, loading, onInviteClick }: TeamMem
       case 'owner': return 'Propriétaire';
       case 'admin': return 'Administrateur';
       case 'editor': return 'Éditeur';
+      case 'member': return 'Membre';
       case 'viewer': return 'Lecteur';
       default: return role;
     }
@@ -89,9 +93,25 @@ export function TeamMembersList({ teamMembers, loading, onInviteClick }: TeamMem
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge className={getRoleBadgeColor(member.role)}>
-                      {getFormattedRole(member.role)}
-                    </Badge>
+                    {member.role === 'owner' ? (
+                      <Badge className={getRoleBadgeColor(member.role)}>
+                        {getFormattedRole(member.role)}
+                      </Badge>
+                    ) : (
+                      <Select
+                        value={member.role}
+                        onValueChange={(value) => onRoleChange?.(member.id, value)}
+                      >
+                        <SelectTrigger className="w-[160px] h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="admin">Administrateur</SelectItem>
+                          <SelectItem value="member">Membre</SelectItem>
+                          <SelectItem value="viewer">Lecteur</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end">
