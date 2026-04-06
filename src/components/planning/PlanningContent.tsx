@@ -1,10 +1,12 @@
 
 import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, List, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { DayView } from './DayView';
 import { WeekView } from './WeekView';
+import { EmployeeView } from './EmployeeView';
 import { AddTaskForm } from './AddTaskForm';
 import { useFarmId } from '@/hooks/useFarmId';
 import { useAuthContext } from '@/providers/AuthProvider';
