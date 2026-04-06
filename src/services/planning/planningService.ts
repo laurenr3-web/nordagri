@@ -152,6 +152,19 @@ export const planningService = {
     if (error) throw error;
   },
 
+  async getOverdueTasks(farmId: string, today: string): Promise<PlanningTask[]> {
+    const { data, error } = await supabase
+      .from('planning_tasks')
+      .select('*')
+      .eq('farm_id', farmId)
+      .lt('due_date', today)
+      .neq('status', 'done')
+      .eq('is_recurring', false)
+      .order('due_date', { ascending: true });
+    if (error) throw error;
+    return ((data || []) as any[]).map(t => ({ ...t, team_member_name: null }));
+  },
+
   async deleteTask(id: string) {
     const { error } = await supabase
       .from('planning_tasks')

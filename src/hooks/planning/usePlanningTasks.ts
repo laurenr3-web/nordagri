@@ -246,10 +246,16 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
     todo: activeTasks.filter(t => (t.manual_priority || t.computed_priority) === 'todo'),
   };
 
+  // Sort overdue by date ascending (oldest first)
+  const sortedOverdue = [...overdueTasks]
+    .filter(t => t.status !== 'done')
+    .sort((a, b) => a.due_date.localeCompare(b.due_date));
+
   return {
     tasks: sortedTasks,
     groupedTasks,
     doneTasks,
+    overdueTasks: sortedOverdue,
     isLoading,
     addTask,
     updateStatus,
