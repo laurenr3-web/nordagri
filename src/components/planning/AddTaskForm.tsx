@@ -61,6 +61,10 @@ export function AddTaskForm({ open, onClose, onSubmit, teamMembers = [], equipme
   const [fieldName, setFieldName] = useState('');
   const [buildingName, setBuildingName] = useState('');
   const [animalGroup, setAnimalGroup] = useState('');
+  const [recurrenceType, setRecurrenceType] = useState<string>('none');
+  const [recurrenceDays, setRecurrenceDays] = useState<number[]>([]);
+
+  const dayLabels = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
 
   const resetForm = () => {
     setTitle('');
