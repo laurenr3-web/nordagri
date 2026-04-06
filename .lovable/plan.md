@@ -1,45 +1,52 @@
 
 
-# Plan — Séparer les tâches terminées (application effective)
+# Plan — Amélioration esthétique de la vue Semaine
 
-Le code n'a jamais été modifié malgré le plan approuvé. Voici les changements concrets à appliquer.
+## Problème
+La vue Semaine est visuellement plate : titres de jours simples, pas de séparation visuelle claire, les jours sans tâches prennent autant de place que les jours actifs, et les cartes sont enveloppées inutilement dans un `TaskGroup` avec label vide.
 
-## 1. `src/hooks/planning/usePlanningTasks.ts`
-- Filtrer les tâches actives (`status !== 'done'`) avant de les grouper en `critical`, `important`, `todo`
-- Ajouter `doneTasks` au retour du hook
+## Changements
 
-```typescript
-const activeTasks = sortedTasks.filter(t => t.status !== 'done');
-const doneTasks = sortedTasks.filter(t => t.status === 'done');
+### `src/components/planning/WeekView.tsx`
 
-const groupedTasks = {
-  critical: activeTasks.filter(...),
-  important: activeTasks.filter(...),
-  todo: activeTasks.filter(...),
-};
+1. **En-têtes de jours plus élégants** : remplacer le `h3` simple par une ligne avec un badge de date arrondi, le nom du jour complet en français, et une pastille pour le nombre de tâches. Le jour actuel aura un fond coloré (primary) pour ressortir.
 
-return { tasks: sortedTasks, groupedTasks, doneTasks, ... };
+2. **Jours sans tâches** : afficher une ligne discrète avec un tiret ou texte léger au lieu d'un bloc `Aucune tâche`, pour réduire l'espace vertical.
+
+3. **Jours passés sans tâches** : les masquer complètement pour épurer la vue (seuls les jours passés AVEC tâches restent visibles).
+
+4. **Rendu des tâches directement via `TaskCard`** au lieu d'un `TaskGroup` avec label vide — supprime le wrapper inutile.
+
+5. **Séparation visuelle entre jours** : ajouter un `Separator` ou un `border-b` subtil entre chaque jour.
+
+6. **Noms de jours complets** : utiliser `Lundi`, `Mardi`, etc. au lieu de `Lun`, `Mar` pour plus de lisibilité.
+
+### Résultat visuel attendu
+
+```text
+┌──────────────────────────────────┐
+│ 📍 Lundi 5 avril — Aujourd'hui  │  ← fond primary/10, badge primary
+│   ┌─ carte tâche ─────────────┐ │
+│   └────────────────────────────┘ │
+├──────────────────────────────────┤
+│   Mardi 6 avril                  │  ← pas de tâches, ligne discrète
+│   — Aucune tâche                 │
+├──────────────────────────────────┤
+│   Mercredi 7 avril         (2)   │
+│   ┌─ carte ───────────────────┐  │
+│   ┌─ carte ───────────────────┐  │
+├──────────────────────────────────┤
+│ ...                              │
+│                                  │
+│ ▶ ✅ Terminées (3)               │
+└──────────────────────────────────┘
 ```
 
-## 2. `src/components/planning/DayView.tsx`
-- Récupérer `doneTasks` du hook
-- Exclure les done du compteur `totalTasks` (déjà le cas avec le nouveau groupedTasks)
-- Ajouter en bas un `Collapsible` fermé par défaut : "✅ Terminées (N)"
-- Afficher les `TaskCard` des tâches terminées dedans
+### Fichiers modifiés
 
-## 3. `src/components/planning/WeekView.tsx`
-- Filtrer les `done` hors des tâches affichées par jour
-- Ajouter un `Collapsible` en bas avec les tâches terminées de la semaine
-
-## 4. `src/components/planning/TaskCard.tsx`
-- Quand `status === 'done'` : masquer les boutons Commencer, Bloqué, Reporter
-- Garder uniquement le bouton Supprimer
-
-## Fichiers modifiés
 | Fichier | Action |
 |---|---|
-| `src/hooks/planning/usePlanningTasks.ts` | Filtrer done, retourner `doneTasks` |
-| `src/components/planning/DayView.tsx` | Ajouter section collapsible terminées |
-| `src/components/planning/WeekView.tsx` | Idem pour vue semaine |
-| `src/components/planning/TaskCard.tsx` | Masquer actions inutiles si done |
+| `src/components/planning/WeekView.tsx` | Refonte esthétique de la vue semaine |
+
+Aucune modification de logique ou de données — changements purement visuels.
 
