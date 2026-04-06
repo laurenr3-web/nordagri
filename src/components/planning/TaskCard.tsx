@@ -3,7 +3,7 @@ import React from 'react';
 import { PlanningTask } from '@/services/planning/planningService';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const categoryLabels: Record<string, string> = {
