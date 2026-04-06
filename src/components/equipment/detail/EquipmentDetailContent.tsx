@@ -146,7 +146,7 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
               <div className="mt-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium text-muted-foreground">{unitLabel}</h3>
-                  {!isEditingHours && (
+                  {!isEditingHours && canEdit && (
                     <Button
                       variant="ghost"
                       size="icon"
