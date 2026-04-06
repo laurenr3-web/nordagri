@@ -1482,6 +1482,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_write_equipment: {
+        Args: { _equipment_id: number; _min_role: string }
+        Returns: boolean
+      }
       decrement_part_stock: {
         Args: { p_part_id: number; p_quantity: number }
         Returns: undefined
@@ -1497,6 +1501,10 @@ export type Database = {
       ensure_default_category_importance: {
         Args: { _farm_id: string }
         Returns: undefined
+      }
+      has_farm_role: {
+        Args: { _farm_id: string; _min_role: string }
+        Returns: boolean
       }
       is_farm_member: { Args: { _farm_id: string }; Returns: boolean }
       move_to_dlq: {
