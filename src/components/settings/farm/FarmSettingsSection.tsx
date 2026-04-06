@@ -35,24 +35,20 @@ export function FarmSettingsSection() {
   // Fetch farm data on component mount
   useEffect(() => {
     const fetchFarmData = async () => {
+      if (farmIdLoading) return;
       setLoading(true);
       try {
         if (!user?.id) return;
         
-        // Récupérer les données du profil utilisateur pour obtenir l'ID de ferme
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('farm_id')
-          .eq('id', user.id)
-          .single();
+        // Use resolved farm ID from useFarmId (supports both owners and invited members)
+        const activeFarmId = resolvedFarmId;
         
-        if (profileError) throw profileError;
-        if (!profileData?.farm_id) {
+        if (!activeFarmId) {
           setNoFarm(true);
           return;
         }
         
-        setFarmId(profileData.farm_id);
+        setFarmId(activeFarmId);
         
         // Récupérer les données de la ferme
         const { data: farmData, error: farmError } = await supabase
