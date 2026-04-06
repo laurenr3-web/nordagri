@@ -142,6 +142,12 @@ export function TaskDetailDialog({
               <Badge variant="outline" className={cn("text-xs", priority.className)}>
                 {priority.label}
               </Badge>
+              {isOverdue && (
+                <Badge className="text-xs bg-orange-500 text-white border-0 gap-1">
+                  <Clock className="h-3 w-3" />
+                  {overdueDays}j en retard
+                </Badge>
+              )}
             </div>
 
             {task.notes && (
