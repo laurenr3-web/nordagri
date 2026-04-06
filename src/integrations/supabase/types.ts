@@ -1139,6 +1139,38 @@ export type Database = {
           },
         ]
       }
+      planning_task_completions: {
+        Row: {
+          completed_by: string
+          completion_date: string
+          created_at: string
+          id: string
+          task_id: string
+        }
+        Insert: {
+          completed_by: string
+          completion_date: string
+          created_at?: string
+          id?: string
+          task_id: string
+        }
+        Update: {
+          completed_by?: string
+          completion_date?: string
+          created_at?: string
+          id?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planning_task_completions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "planning_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       planning_tasks: {
         Row: {
           animal_group: string | null
@@ -1153,8 +1185,11 @@ export type Database = {
           farm_id: string
           field_name: string | null
           id: string
+          is_recurring: boolean
           manual_priority: string | null
           notes: string | null
+          recurrence_days: number[] | null
+          recurrence_type: string | null
           status: string
           title: string
           updated_at: string
@@ -1172,8 +1207,11 @@ export type Database = {
           farm_id: string
           field_name?: string | null
           id?: string
+          is_recurring?: boolean
           manual_priority?: string | null
           notes?: string | null
+          recurrence_days?: number[] | null
+          recurrence_type?: string | null
           status?: string
           title: string
           updated_at?: string
@@ -1191,8 +1229,11 @@ export type Database = {
           farm_id?: string
           field_name?: string | null
           id?: string
+          is_recurring?: boolean
           manual_priority?: string | null
           notes?: string | null
+          recurrence_days?: number[] | null
+          recurrence_type?: string | null
           status?: string
           title?: string
           updated_at?: string
