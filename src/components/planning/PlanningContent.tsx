@@ -31,13 +31,47 @@ export function PlanningContent() {
 
   const { addTask, getComputedPriority } = usePlanningTasks(farmId, todayStr, todayStr);
 
-  // Fetch team members
+  // Fetch farm members (from farm_members + profiles + owner)
   const { data: teamMembers = [] } = useQuery({
-    queryKey: ['teamMembers', farmId],
+    queryKey: ['farmMembersForPlanning', farmId],
     queryFn: async () => {
       if (!farmId) return [];
-      const { data } = await supabase.from('team_members').select('id, name').eq('farm_id', farmId);
-      return data || [];
+
+      // Get farm owner
+      const { data: farm } = await supabase.from('farms').select('owner_id').eq('id', farmId).single();
+
+      // Get farm_members
+      const { data: members } = await supabase
+        .from('farm_members')
+        .select('id, user_id, role')
+        .eq('farm_id', farmId);
+
+      const userIds = new Set<string>();
+      const memberMap = new Map<string, { id: string; role: string }>();
+
+      if (farm?.owner_id) userIds.add(farm.owner_id);
+      for (const m of members || []) {
+        userIds.add(m.user_id);
+        memberMap.set(m.user_id, { id: m.id, role: m.role || 'member' });
+      }
+
+      if (userIds.size === 0) return [];
+
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name')
+        .in('id', Array.from(userIds));
+
+      return (profiles || []).map(p => {
+        const fm = memberMap.get(p.id);
+        // For owner without farm_members entry, use a synthetic id
+        const isOwner = farm?.owner_id === p.id;
+        return {
+          id: fm?.id || p.id, // farm_members.id for FK, or profile id for owner
+          name: [p.first_name, p.last_name].filter(Boolean).join(' ') || 'Sans nom',
+          isOwner,
+        };
+      });
     },
     enabled: !!farmId,
   });
