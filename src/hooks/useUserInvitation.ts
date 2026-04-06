@@ -80,7 +80,16 @@ export function useUserInvitation() {
       // Handle Supabase errors (network, auth, etc.)
       if (error) {
         console.error('Supabase function error:', error);
-        throw new Error(error.message || "Erreur lors de l'appel à la fonction d'invitation");
+        // Try to extract the JSON body from the error context (non-2xx responses)
+        let serverMessage: string | undefined;
+        try {
+          const context = (error as any).context;
+          if (context instanceof Response) {
+            const body = await context.json();
+            serverMessage = body?.error;
+          }
+        } catch { /* ignore parse errors */ }
+        throw new Error(serverMessage || error.message || "Erreur lors de l'appel à la fonction d'invitation");
       }
       
       // Check if we have a response and if it has an error
