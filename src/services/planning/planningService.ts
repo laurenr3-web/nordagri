@@ -23,8 +23,14 @@ export interface PlanningTask {
   created_by: string;
   created_at: string;
   updated_at: string;
-  // Joined
+  is_recurring: boolean;
+  recurrence_type: 'daily' | 'weekly' | 'custom' | null;
+  recurrence_days: number[] | null;
+  // Joined / computed
   team_member_name?: string;
+  // For recurring: virtual occurrence date & completion status
+  _occurrence_date?: string;
+  _is_completed_today?: boolean;
 }
 
 export interface CategoryImportance {
