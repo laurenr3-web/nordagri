@@ -1,11 +1,12 @@
 
 import React, { useState } from 'react';
 import { PlanningStatus } from '@/services/planning/planningService';
-import { TaskGroup } from './TaskGroup';
 import { TaskCard } from './TaskCard';
 import { usePlanningTasks } from '@/hooks/planning/usePlanningTasks';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 
 interface WeekViewProps {
   farmId: string | null;
@@ -24,7 +25,8 @@ function getWeekRange() {
   };
 }
 
-const dayNames = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+const dayNames = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+const monthNames = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 
 export function WeekView({ farmId }: WeekViewProps) {
   const { start, end } = getWeekRange();
@@ -56,6 +58,7 @@ export function WeekView({ farmId }: WeekViewProps) {
   }
 
   const monday = new Date(start);
+  const todayStr = new Date().toISOString().split('T')[0];
   const days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
@@ -65,43 +68,74 @@ export function WeekView({ farmId }: WeekViewProps) {
   const activeTasks = tasks.filter(t => t.status !== 'done');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-1">
       {days.map((dateStr, i) => {
         const dayTasks = activeTasks.filter(t => t.due_date === dateStr);
-        const isToday = dateStr === new Date().toISOString().split('T')[0];
-        const dateObj = new Date(dateStr);
-        const label = `${dayNames[i]} ${dateObj.getDate()}/${dateObj.getMonth() + 1}`;
+        const isToday = dateStr === todayStr;
+        const isPast = dateStr < todayStr;
+
+        // Hide past days with no tasks
+        if (isPast && dayTasks.length === 0) return null;
+
+        const dateObj = new Date(dateStr + 'T12:00:00');
+        const dayNum = dateObj.getDate();
+        const monthName = monthNames[dateObj.getMonth()];
+        const label = `${dayNames[i]} ${dayNum} ${monthName}`;
 
         return (
-          <div key={dateStr} className="space-y-2">
-            <h3 className={`text-sm font-bold ${isToday ? 'text-primary' : 'text-muted-foreground'}`}>
-              {isToday ? `📍 ${label} (Aujourd'hui)` : label}
-            </h3>
-            {dayTasks.length === 0 ? (
-              <p className="text-xs text-muted-foreground pl-2">Aucune tâche</p>
-            ) : (
-              <div className="space-y-2">
-                {dayTasks.map(task => (
-                  <TaskGroup key={task.id} label="" icon="" tasks={[task]} onStatusChange={handleStatusChange} onPostpone={handlePostpone} onDelete={handleDelete} />
-                ))}
+          <React.Fragment key={dateStr}>
+            <div className={`rounded-lg px-3 py-3 ${isToday ? 'bg-primary/10 border border-primary/20' : ''}`}>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
+                    isToday 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'bg-muted text-muted-foreground'
+                  }`}>
+                    {dayNum}
+                  </span>
+                  <span className={`text-sm font-semibold ${isToday ? 'text-primary' : 'text-foreground'}`}>
+                    {isToday ? `${dayNames[i]} — Aujourd'hui` : `${dayNames[i]} ${monthName}`}
+                  </span>
+                </div>
+                {dayTasks.length > 0 && (
+                  <Badge variant="secondary" className="text-xs">
+                    {dayTasks.length}
+                  </Badge>
+                )}
               </div>
-            )}
-          </div>
+
+              {dayTasks.length === 0 ? (
+                <p className="text-xs text-muted-foreground/60 pl-10 italic">— Aucune tâche</p>
+              ) : (
+                <div className="space-y-2 pl-1">
+                  {dayTasks.map(task => (
+                    <TaskCard key={task.id} task={task} onStatusChange={handleStatusChange} onPostpone={handlePostpone} onDelete={handleDelete} />
+                  ))}
+                </div>
+              )}
+            </div>
+            {i < 6 && <Separator className="my-1 opacity-40" />}
+          </React.Fragment>
         );
       })}
 
       {doneTasks.length > 0 && (
-        <Collapsible open={doneOpen} onOpenChange={setDoneOpen}>
-          <CollapsibleTrigger className="flex items-center gap-2 w-full py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            <ChevronDown className={`h-4 w-4 transition-transform ${doneOpen ? 'rotate-0' : '-rotate-90'}`} />
-            ✅ Terminées ({doneTasks.length})
-          </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-2 mt-2">
-            {doneTasks.map(task => (
-              <TaskCard key={task.id} task={task} onStatusChange={handleStatusChange} onPostpone={handlePostpone} onDelete={handleDelete} />
-            ))}
-          </CollapsibleContent>
-        </Collapsible>
+        <>
+          <Separator className="my-2" />
+          <Collapsible open={doneOpen} onOpenChange={setDoneOpen}>
+            <CollapsibleTrigger className="flex items-center gap-2 w-full py-2 px-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/50">
+              <ChevronDown className={`h-4 w-4 transition-transform ${doneOpen ? 'rotate-0' : '-rotate-90'}`} />
+              ✅ Terminées
+              <Badge variant="outline" className="ml-auto text-xs">{doneTasks.length}</Badge>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-2 mt-2 px-1">
+              {doneTasks.map(task => (
+                <TaskCard key={task.id} task={task} onStatusChange={handleStatusChange} onPostpone={handlePostpone} onDelete={handleDelete} />
+              ))}
+            </CollapsibleContent>
+          </Collapsible>
+        </>
       )}
     </div>
   );
