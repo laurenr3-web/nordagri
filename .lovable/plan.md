@@ -1,48 +1,53 @@
 
+Objectif: quand quelqu’un ouvre un lien d’invitation sans compte ou sans session valide, il doit être envoyé vers l’authentification, puis revenir automatiquement sur l’invitation après inscription/connexion, et enfin ouvrir la ferme invitée.
 
-# Plan — Corriger le flux d'acceptation d'invitation
+Constat
+1. `AcceptInvitation.tsx` s’appuie sur `isAuthenticated` sans attendre la fin du chargement auth. Une session locale invalide peut donc être traitée comme “connectée”.
+2. Le retour post-auth est perdu pendant l’inscription/vérification email :
+   - le lien d’invitation ne stocke que `pendingInvitation`
+   - `handleSignup` redirige vers `/auth/callback` sans conserver `returnTo`
+   - `AuthCallback` renvoie toujours vers `/dashboard`
+3. Le backend `accept-invitation` renvoie un 401 générique. Les logs montrent `user_not_found`, donc l’UI affiche “Non autorisé” au lieu de relancer proprement le flux.
 
-## Problemes identifies
+Plan
+1. Centraliser la cible post-auth
+   - Ajouter un helper dédié pour stocker/lire/vider la cible complète après auth (ex. `/accept-invitation?id=...`), pas seulement l’id.
+   - Réutiliser ce helper dans `AcceptInvitation`, `Auth`, `AuthCallback` et l’inscription.
 
-L'analyse du code revele plusieurs bugs qui empechent le flux d'invitation de fonctionner correctement :
+2. Corriger `src/pages/AcceptInvitation.tsx`
+   - Attendre `loading === false` avant de décider quoi faire.
+   - Si l’utilisateur n’a pas de session valide : mémoriser la cible d’invitation, puis rediriger vers `/auth` avec `returnTo` encodé et preview token conservé.
+   - Avant l’appel à la fonction backend, vérifier que la session utilisateur est réellement valide.
+   - Si l’API répond 401 / `Non autorisé` : déconnecter la session locale invalide, conserver la cible d’invitation, puis renvoyer vers `/auth` au lieu d’afficher une erreur finale.
 
-1. **Erreur FK dans accept-invitation** : Les logs montrent `Key (user_id)=(...) is not present in table "users"`. La table `farm_members` a une FK vers `auth.users`, mais l'Edge Function `accept-invitation` utilise `getClaims()` pour extraire le `user_id` — si le profil/utilisateur est nouveau, cette reference peut echouer.
+3. Corriger le flux login / signup / callback
+   - `src/pages/Auth.tsx` : utiliser d’abord `returnTo` ou la cible mémorisée, puis rediriger dessus après connexion.
+   - `src/components/ui/auth/hooks/useAuthHandlers.tsx` : inclure `returnTo` dans `emailRedirectTo` pour l’inscription, et ne plus appeler `onSuccess` tant qu’une vérification email est requise.
+   - `src/pages/Auth/Callback.tsx` : après `setSession`, renvoyer vers l’invitation mémorisée au lieu de toujours aller sur `/dashboard`.
+   - Ajouter un petit message contextuel sur la page Auth quand l’utilisateur vient d’un lien d’invitation.
 
-2. **Le profil n'est pas mis a jour apres acceptation** : Meme quand `farm_members` est correctement insere, plusieurs services (`FarmSettingsSection`, `useSettings`, `getParts`, `Dashboard`) verifient `profiles.farm_id` pour determiner la ferme active. Si `farm_id` n'est pas mis a jour dans le profil, l'utilisateur voit "Creer ma ferme" au lieu des donnees.
+4. Durcir `supabase/functions/accept-invitation/index.ts`
+   - Revenir au pattern cohérent du projet : valider le JWT avec `getClaims()`, puis vérifier explicitement l’existence de l’utilisateur côté admin.
+   - Transformer le cas `user_not_found` en message métier clair (session expirée / compte à créer ou reconnecter), pas en 401 opaque.
+   - Conserver la logique déjà utile : vérification email ↔ invitation, création/upsert du profil, ajout dans `farm_members`, mise à jour de `profiles.farm_id` pour basculer vers la ferme invitée.
 
-3. **`useFarmId` fonctionne bien** mais le Dashboard utilise `profileData?.farm_id` (ligne 65 de Dashboard.tsx) pour afficher le banner "Creer ma ferme", ce qui est redondant et incorrect pour les membres invites.
+5. Aligner `src/components/common/NoFarmAccess.tsx`
+   - Réutiliser la même gestion des sessions invalides et des retours vers `/auth` pour éviter le même blocage depuis la liste des invitations en attente.
 
-4. **`NoFarmAccess` utilise `supabase.functions.invoke`** au lieu de `fetch`, ce qui ne parse pas correctement les erreurs.
+Détails techniques
+- Fichiers à modifier :
+  - `src/pages/AcceptInvitation.tsx`
+  - `src/pages/Auth.tsx`
+  - `src/pages/Auth/Callback.tsx`
+  - `src/components/ui/auth/hooks/useAuthHandlers.tsx`
+  - `src/components/common/NoFarmAccess.tsx`
+  - `supabase/functions/accept-invitation/index.ts`
+  - probablement un nouveau helper du type `src/utils/authRedirect.ts`
+- Pas de migration base de données nécessaire.
+- Toutes les redirections de ce flux devront conserver `withPreviewToken(...)`.
 
-5. **Page AcceptInvitation** : Le flux de redirection fonctionne (localStorage + returnTo), mais l'Edge Function echoue a inserer dans `farm_members`.
-
-## Changements prevus
-
-### 1. Corriger l'Edge Function `accept-invitation` (bug critique)
-- Remplacer `getClaims()` par `getUser()` via le service-role client pour valider le token
-- Ajouter un fallback : si l'insert dans `farm_members` echoue avec une erreur FK, verifier que le `user_id` existe dans `auth.users` et retenter
-- S'assurer que `profiles.farm_id` est bien mis a jour apres l'insertion reussie
-
-### 2. Corriger le Dashboard pour les membres invites
-- Dans `Dashboard.tsx`, remplacer la verification `!!profileData?.farm_id` par l'utilisation de `useFarmId()` pour determiner si l'utilisateur a acces a une ferme (via `farm_members` OU `farms.owner_id`)
-- Supprimer le banner "Creer ma ferme" quand `useFarmId` retourne un `farmId` valide
-
-### 3. Corriger `NoFarmAccess` — utiliser `fetch` au lieu de `supabase.functions.invoke`
-- Aligner avec le pattern utilise dans `AcceptInvitation.tsx` pour un parsing correct des erreurs
-
-### 4. Mettre a jour `AcceptInvitation.tsx` — redirection vers la ferme invitee
-- Apres acceptation reussie, forcer un rechargement complet (`window.location.href = '/dashboard'`) pour que le profil soit recharge avec le nouveau `farm_id`
-
-### 5. Corriger `FarmSettingsSection` et `useSettings` pour les membres invites
-- Utiliser `useFarmId()` comme source de verite au lieu de `profiles.farm_id` pour determiner la ferme active
-
-## Fichiers modifies
-
-| Fichier | Changement |
-|---|---|
-| `supabase/functions/accept-invitation/index.ts` | Corriger auth + gestion erreur FK |
-| `src/pages/Dashboard.tsx` | Utiliser `useFarmId` au lieu de `profileData.farm_id` |
-| `src/pages/AcceptInvitation.tsx` | Forcer reload apres acceptation |
-| `src/components/common/NoFarmAccess.tsx` | Utiliser `fetch` au lieu de `invoke` |
-| `src/components/settings/farm/FarmSettingsSection.tsx` | Utiliser `useFarmId` |
-
+Validation prévue
+1. Clic sur un lien d’invitation sans compte → page Auth, sans erreur “Non autorisé”.
+2. Création de compte + validation email → retour automatique sur l’invitation → acceptation → ouverture de la ferme invitée.
+3. Connexion avec un compte existant invité → acceptation directe → ferme invitée active.
+4. Session locale cassée / stale → déconnexion forcée + retour vers Auth, sans écran d’erreur final.
