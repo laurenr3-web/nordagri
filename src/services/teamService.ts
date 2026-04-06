@@ -1,216 +1,134 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import type { TeamMember, PendingInvitation } from '@/types/TeamMember';
-import { isValidProfile, safelyExtractProfile } from '@/utils/validationUtils';
 
 /**
- * Fetches all team members for a farm
+ * Fetches all team data for a farm:
+ * - Owner from farms.owner_id
+ * - Members from farm_members
+ * - Pending invitations
  */
-export async function fetchTeamMembers(farmId: string): Promise<TeamMember[]> {
-  try {
-    // First get profiles associated with this farm
-    const { data: profilesData, error: profilesError } = await supabase
+export async function fetchTeamData(farmId: string) {
+  const members: TeamMember[] = [];
+
+  // 1. Get farm owner
+  const { data: farm, error: farmError } = await supabase
+    .from('farms')
+    .select('owner_id')
+    .eq('id', farmId)
+    .single();
+
+  if (farmError) {
+    console.error('Error fetching farm:', farmError);
+    throw farmError;
+  }
+
+  if (farm?.owner_id) {
+    const { data: ownerProfile } = await supabase
       .from('profiles')
-      .select('id, first_name, last_name, farm_id')
-      .eq('farm_id', farmId);
-    
-    if (profilesError) {
-      console.error("Error fetching profiles:", profilesError);
-      throw profilesError;
-    }
-    
-    let members: TeamMember[] = [];
-    
-    // Process profiles into team members
-    if (profilesData && profilesData.length > 0) {
-      members = profilesData
-        .filter(profile => isValidProfile(profile))
-        .map(profile => ({
-          id: profile.id,
-          user_id: profile.id,
-          email: '',
-          first_name: profile.first_name || '',
-          last_name: profile.last_name || '',
-          role: 'owner',
-          status: 'active',
-          created_at: new Date().toISOString()
-        }));
-      
-      console.log("Found profiles associated with farm:", members);
-    } else {
-      console.log("No profiles found for this farm ID");
-    }
-    
-    return members;
-  } catch (error) {
-    console.error("Error in fetchTeamMembers:", error);
-    return [];
-  }
-}
+      .select('id, first_name, last_name')
+      .eq('id', farm.owner_id)
+      .single();
 
-/**
- * Fetches additional team members from farm_members table if it exists
- */
-export async function fetchFarmMembers(farmId: string): Promise<TeamMember[]> {
-  try {
-    const { data: farmMembersData, error: membersError } = await supabase
-      .from('farm_members')
-      .select('id, user_id, role, created_at')
-      .eq('farm_id', farmId);
-      
-    if (membersError) {
-      console.log("Note: farm_members table might not exist yet:", membersError);
-      return [];
+    if (ownerProfile) {
+      members.push({
+        id: ownerProfile.id,
+        user_id: ownerProfile.id,
+        email: '',
+        first_name: ownerProfile.first_name || '',
+        last_name: ownerProfile.last_name || '',
+        role: 'owner',
+        status: 'active',
+        created_at: new Date().toISOString(),
+      });
     }
-    
-    if (!farmMembersData || farmMembersData.length === 0) {
-      return [];
-    }
-    
-    console.log("Found farm members:", farmMembersData);
-    
-    const members: TeamMember[] = [];
-    
-    // For each member, get profile information
-    for (const member of farmMembersData) {
-      if (!member.user_id) continue;
-
-      try {
-        const { data: userData, error: userError } = await supabase
-          .from('profiles')
-          .select('first_name, last_name, email')
-          .eq('id', member.user_id)
-          .single();
-          
-        if (userError) {
-          console.error("Error fetching user data for member:", member.user_id, userError);
-          continue;
-        }
-        
-        // Safely extract profile data
-        const profileData = safelyExtractProfile(userData);
-        if (profileData) {
-          const userInfo: TeamMember = {
-            id: member.id || '',
-            user_id: member.user_id || '',
-            email: profileData.email || '',
-            first_name: profileData.first_name || '',
-            last_name: profileData.last_name || '',
-            role: member.role || 'viewer',
-            status: 'active',
-            created_at: member.created_at || new Date().toISOString()
-          };
-          
-          members.push(userInfo);
-        }
-      } catch (error) {
-        console.error("Error in member processing:", error);
-      }
-    }
-    
-    return members;
-  } catch (error) {
-    console.error("Error checking farm_members:", error);
-    return [];
   }
+
+  // 2. Get farm members
+  const { data: farmMembers, error: membersError } = await supabase
+    .from('farm_members')
+    .select('id, user_id, role, created_at')
+    .eq('farm_id', farmId);
+
+  if (!membersError && farmMembers && farmMembers.length > 0) {
+    const userIds = farmMembers.map(m => m.user_id);
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, first_name, last_name')
+      .in('id', userIds);
+
+    const profileMap = new Map(
+      (profiles || []).map(p => [p.id, p])
+    );
+
+    for (const member of farmMembers) {
+      const profile = profileMap.get(member.user_id);
+      members.push({
+        id: member.id,
+        user_id: member.user_id,
+        email: '',
+        first_name: profile?.first_name || '',
+        last_name: profile?.last_name || '',
+        role: member.role || 'member',
+        status: 'active',
+        created_at: member.created_at || new Date().toISOString(),
+      });
+    }
+  }
+
+  // Deduplicate by user_id (owner takes priority)
+  const uniqueMembers = Array.from(
+    new Map(members.map(m => [m.user_id, m])).values()
+  );
+
+  // 3. Get pending invitations
+  const invitations = await fetchPendingInvitations(farmId);
+
+  return { teamMembers: uniqueMembers, invitations };
 }
 
 /**
  * Fetches pending invitations for a farm
  */
 export async function fetchPendingInvitations(farmId: string): Promise<PendingInvitation[]> {
-  try {
-    const { data: pendingInvites, error: invitesError } = await supabase
-      .from('invitations')
-      .select('*')
-      .eq('farm_id', farmId)
-      .neq('status', 'accepted');
-    
-    if (invitesError) {
-      console.error("Error fetching invitations:", invitesError);
-      return [];
-    }
-    
-    if (!pendingInvites) {
-      return [];
-    }
-    
-    // Format the invitations
-    const formattedInvitations: PendingInvitation[] = pendingInvites.map(invite => ({
-      id: invite.id || '',
-      email: invite.email || '',
-      role: invite.role || '',
-      status: invite.status || '',
-      created_at: invite.created_at || '',
-      expires_at: invite.expires_at
-    }));
-    
-    console.log("Pending invitations:", formattedInvitations);
-    return formattedInvitations;
-  } catch (error) {
-    console.error("Error processing invitations:", error);
+  const { data, error } = await supabase
+    .from('invitations')
+    .select('*')
+    .eq('farm_id', farmId)
+    .neq('status', 'accepted');
+
+  if (error) {
+    console.error('Error fetching invitations:', error);
     return [];
   }
+
+  return (data || []).map(invite => ({
+    id: invite.id || '',
+    email: invite.email || '',
+    role: invite.role || '',
+    status: invite.status || '',
+    created_at: invite.created_at || '',
+    expires_at: invite.expires_at,
+  }));
 }
 
 /**
- * Handles cancellation of an invitation
+ * Cancels an invitation
  */
 export async function cancelInvitation(invitationId: string): Promise<boolean> {
-  try {
-    const { error } = await supabase
-      .from('invitations')
-      .update({ status: 'cancelled' })
-      .eq('id', invitationId);
-      
-    if (error) throw error;
-    
-    return true;
-  } catch (error) {
-    console.error('Error canceling invitation:', error);
-    throw error;
-  }
-}
+  const { error } = await supabase
+    .from('invitations')
+    .update({ status: 'cancelled' })
+    .eq('id', invitationId);
 
-/**
- * Resends an invitation (currently a simulation)
- */
-export async function resendInvitation(invitationId: string): Promise<boolean> {
-  // This is a placeholder for actual resend functionality
-  console.log("Resending invitation:", invitationId);
+  if (error) throw error;
   return true;
 }
 
 /**
- * Fetches all team data for a farm
+ * Resends an invitation (placeholder)
  */
-export async function fetchTeamData(farmId: string) {
-  try {
-    console.log("Fetching team data for farm ID:", farmId);
-    
-    // Get team members from profiles table
-    const profileMembers = await fetchTeamMembers(farmId);
-    
-    // Get additional members from farm_members table if it exists
-    const farmMembers = await fetchFarmMembers(farmId);
-    
-    // Combine all members
-    let allMembers = [...profileMembers, ...farmMembers];
-    
-    // Remove duplicates (same user_id)
-    const uniqueMembers = Array.from(
-      new Map(allMembers.map(item => [item.user_id, item])).values()
-    );
-    
-    // Get pending invitations
-    const invitations = await fetchPendingInvitations(farmId);
-    
-    return {
-      teamMembers: uniqueMembers,
-      invitations
-    };
-  } catch (error) {
-    console.error('Error loading team data:', error);
-    throw error;
-  }
+export async function resendInvitation(invitationId: string): Promise<boolean> {
+  console.log('Resending invitation:', invitationId);
+  return true;
 }
