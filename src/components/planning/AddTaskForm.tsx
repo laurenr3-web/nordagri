@@ -193,6 +193,46 @@ export function AddTaskForm({ open, onClose, onSubmit, teamMembers = [], equipme
 
           {showMore && (
             <div className="space-y-3 border-t pt-3">
+              {/* Recurrence */}
+              <div>
+                <Label className="text-sm flex items-center gap-1.5">
+                  <RefreshCw className="h-3.5 w-3.5" /> Récurrence
+                </Label>
+                <Select value={recurrenceType} onValueChange={setRecurrenceType}>
+                  <SelectTrigger className="mt-1 h-11">
+                    <SelectValue placeholder="Aucune" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Aucune</SelectItem>
+                    <SelectItem value="daily">Tous les jours</SelectItem>
+                    <SelectItem value="weekly">Chaque semaine</SelectItem>
+                    <SelectItem value="custom">Certains jours</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {recurrenceType === 'custom' && (
+                <div>
+                  <Label className="text-sm">Jours de la semaine</Label>
+                  <div className="grid grid-cols-7 gap-1 mt-1">
+                    {dayLabels.map((label, i) => (
+                      <Button
+                        key={i}
+                        type="button"
+                        variant={recurrenceDays.includes(i) ? 'default' : 'outline'}
+                        className="h-10 px-0 text-xs"
+                        onClick={() => {
+                          setRecurrenceDays(prev =>
+                            prev.includes(i) ? prev.filter(d => d !== i) : [...prev, i]
+                          );
+                        }}
+                      >
+                        {label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div>
                 <Label className="text-sm">Note</Label>
                 <Textarea value={notes} onChange={e => setNotes(e.target.value)} className="mt-1" rows={2} placeholder="Détails..." />
