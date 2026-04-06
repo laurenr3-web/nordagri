@@ -17,6 +17,7 @@ import { useFarmId } from '@/hooks/useFarmId';
  */
 export function FarmSettingsSection() {
   const { user, profileData } = useAuthContext();
+  const { farmId: resolvedFarmId, isLoading: farmIdLoading, noAccess } = useFarmId();
   const [farmName, setFarmName] = useState('');
   const [farmId, setFarmId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
