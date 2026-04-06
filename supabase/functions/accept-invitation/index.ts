@@ -23,7 +23,6 @@ serve(async (req) => {
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     const authHeader = req.headers.get("Authorization");
@@ -34,23 +33,18 @@ serve(async (req) => {
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    // Verify authenticated user via getClaims
+    // Use service-role client with getUser() for reliable token validation
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
+
+    if (userError || !user) {
+      console.error("Auth error:", userError);
       return new Response(
         JSON.stringify({ success: false, error: "Non autorisé" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
       );
     }
-
-    const user = { id: claimsData.claims.sub as string, email: claimsData.claims.email as string };
-
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get the invitation
     const { data: invitation, error: invError } = await supabaseAdmin
@@ -93,6 +87,25 @@ serve(async (req) => {
       );
     }
 
+    // Ensure profile exists (might not exist yet for brand new users)
+    const { data: existingProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('id')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (!existingProfile) {
+      console.log("Creating profile for new user:", user.id);
+      await supabaseAdmin
+        .from('profiles')
+        .insert({
+          id: user.id,
+          first_name: user.user_metadata?.first_name || null,
+          last_name: user.user_metadata?.last_name || null,
+          farm_id: invitation.farm_id,
+        });
+    }
+
     // Check if already a member
     const { data: existingMember } = await supabaseAdmin
       .from('farm_members')
@@ -102,11 +115,16 @@ serve(async (req) => {
       .maybeSingle();
 
     if (existingMember) {
-      // Already a member, just mark invitation as accepted
+      // Already a member, just mark invitation as accepted and update profile farm_id
       await supabaseAdmin
         .from('invitations')
         .update({ status: 'accepted' })
         .eq('id', invitationId);
+
+      await supabaseAdmin
+        .from('profiles')
+        .update({ farm_id: invitation.farm_id })
+        .eq('id', user.id);
 
       return new Response(
         JSON.stringify({ success: true, message: "Vous êtes déjà membre de cette ferme" }),
@@ -126,12 +144,12 @@ serve(async (req) => {
     if (memberError) {
       console.error("Erreur ajout membre:", memberError);
       return new Response(
-        JSON.stringify({ success: false, error: "Erreur lors de l'ajout à la ferme" }),
+        JSON.stringify({ success: false, error: "Erreur lors de l'ajout à la ferme: " + memberError.message }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
       );
     }
 
-    // Update profile farm_id
+    // Update profile farm_id to switch to the invited farm
     await supabaseAdmin
       .from('profiles')
       .update({ farm_id: invitation.farm_id })

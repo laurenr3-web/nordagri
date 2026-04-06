@@ -89,7 +89,7 @@ export function FarmSettingsSection() {
     };
     
     fetchFarmData();
-  }, [user]);
+  }, [user, resolvedFarmId, farmIdLoading]);
   
   const handleSaveFarmSettings = async () => {
     if (!farmId) {
