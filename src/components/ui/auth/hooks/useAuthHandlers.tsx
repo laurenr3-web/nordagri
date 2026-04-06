@@ -82,7 +82,6 @@ export const useAuthHandlers = (onSuccess?: () => void) => {
     try {
       // Construct an absolute URL for redirection
       const redirectUrl = `${getBaseUrl()}/auth/callback`;
-      console.log("URL de redirection pour inscription:", redirectUrl);
       
       // First register the user
       const { error: signUpError } = await supabase.auth.signUp({
@@ -93,7 +92,6 @@ export const useAuthHandlers = (onSuccess?: () => void) => {
             first_name: firstName,
             last_name: lastName,
           },
-          // Utilisez l'URL complète absolue pour la redirection
           emailRedirectTo: redirectUrl,
         }
       });
