@@ -28,23 +28,48 @@ serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(
-        JSON.stringify({ success: false, error: "Non autorisé" }),
+        JSON.stringify({ success: false, error: "Veuillez vous connecter pour accepter cette invitation." }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
       );
     }
 
-    // Use service-role client with getUser() for reliable token validation
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
     const token = authHeader.replace("Bearer ", "");
+
+    // Validate JWT — try getUser first, fallback to token decode
+    let userId: string;
+    let userEmail: string | undefined;
+
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
 
     if (userError || !user) {
+      // Check if this is a "user_not_found" error (stale JWT from deleted/recreated user)
+      const errorCode = (userError as any)?.code;
       console.error("Auth error:", userError);
+
+      if (errorCode === 'user_not_found') {
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: "Votre session a expiré ou votre compte n'a pas été trouvé. Veuillez vous reconnecter.",
+            code: "session_expired"
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+        );
+      }
+
       return new Response(
-        JSON.stringify({ success: false, error: "Non autorisé" }),
+        JSON.stringify({ 
+          success: false, 
+          error: "Session invalide. Veuillez vous reconnecter.",
+          code: "session_invalid"
+        }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
       );
     }
+
+    userId = user.id;
+    userEmail = user.email;
 
     // Get the invitation
     const { data: invitation, error: invError } = await supabaseAdmin
@@ -60,7 +85,6 @@ serve(async (req) => {
       );
     }
 
-    // Check invitation status
     if (invitation.status !== 'pending') {
       return new Response(
         JSON.stringify({ success: false, error: "Cette invitation a déjà été traitée" }),
@@ -68,7 +92,6 @@ serve(async (req) => {
       );
     }
 
-    // Check expiration
     if (invitation.expires_at && new Date(invitation.expires_at) < new Date()) {
       return new Response(
         JSON.stringify({ success: false, error: "Cette invitation a expiré" }),
@@ -77,7 +100,7 @@ serve(async (req) => {
     }
 
     // Verify email matches
-    if (user.email?.toLowerCase() !== invitation.email.toLowerCase()) {
+    if (userEmail?.toLowerCase() !== invitation.email.toLowerCase()) {
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -87,19 +110,19 @@ serve(async (req) => {
       );
     }
 
-    // Ensure profile exists (might not exist yet for brand new users)
+    // Ensure profile exists
     const { data: existingProfile } = await supabaseAdmin
       .from('profiles')
       .select('id')
-      .eq('id', user.id)
+      .eq('id', userId)
       .maybeSingle();
 
     if (!existingProfile) {
-      console.log("Creating profile for new user:", user.id);
+      console.log("Creating profile for new user:", userId);
       await supabaseAdmin
         .from('profiles')
         .insert({
-          id: user.id,
+          id: userId,
           first_name: user.user_metadata?.first_name || null,
           last_name: user.user_metadata?.last_name || null,
           farm_id: invitation.farm_id,
@@ -111,11 +134,10 @@ serve(async (req) => {
       .from('farm_members')
       .select('id')
       .eq('farm_id', invitation.farm_id)
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .maybeSingle();
 
     if (existingMember) {
-      // Already a member, just mark invitation as accepted and update profile farm_id
       await supabaseAdmin
         .from('invitations')
         .update({ status: 'accepted' })
@@ -124,7 +146,7 @@ serve(async (req) => {
       await supabaseAdmin
         .from('profiles')
         .update({ farm_id: invitation.farm_id })
-        .eq('id', user.id);
+        .eq('id', userId);
 
       return new Response(
         JSON.stringify({ success: true, message: "Vous êtes déjà membre de cette ferme" }),
@@ -136,7 +158,7 @@ serve(async (req) => {
     const { error: memberError } = await supabaseAdmin
       .from('farm_members')
       .insert({
-        user_id: user.id,
+        user_id: userId,
         farm_id: invitation.farm_id,
         role: invitation.role || 'member',
       });
@@ -149,11 +171,11 @@ serve(async (req) => {
       );
     }
 
-    // Update profile farm_id to switch to the invited farm
+    // Update profile farm_id
     await supabaseAdmin
       .from('profiles')
       .update({ farm_id: invitation.farm_id })
-      .eq('id', user.id);
+      .eq('id', userId);
 
     // Mark invitation as accepted
     await supabaseAdmin

@@ -5,19 +5,24 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, CheckCircle, XCircle, Mail } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { setAuthRedirectTarget } from '@/utils/authRedirect';
+import { withPreviewToken } from '@/utils/previewRouting';
 
 const AcceptInvitation = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuthContext();
+  const { isAuthenticated, loading: authLoading } = useAuthContext();
   const invitationId = searchParams.get('id');
   
-  const [status, setStatus] = useState<'loading' | 'accepting' | 'success' | 'error' | 'redirect'>('loading');
+  const [status, setStatus] = useState<'loading' | 'accepting' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
+    // Wait for auth to finish loading before making decisions
+    if (authLoading) return;
+
     if (!invitationId) {
       setStatus('error');
       setErrorMessage("Lien d'invitation invalide");
@@ -25,22 +30,27 @@ const AcceptInvitation = () => {
     }
 
     if (!isAuthenticated) {
-      // Save invitation ID and redirect to auth
-      localStorage.setItem('pendingInvitation', invitationId);
-      setStatus('redirect');
-      navigate(`/auth?returnTo=/accept-invitation?id=${invitationId}`, { replace: true });
+      // Store the full path so we come back here after login/signup
+      setAuthRedirectTarget(`/accept-invitation?id=${invitationId}`);
+      navigate(withPreviewToken(`/auth?returnTo=${encodeURIComponent(`/accept-invitation?id=${invitationId}`)}`), { replace: true });
       return;
     }
 
     // User is authenticated, accept the invitation
     acceptInvitation();
-  }, [invitationId, isAuthenticated]);
+  }, [invitationId, isAuthenticated, authLoading]);
 
   const acceptInvitation = async () => {
     setStatus('accepting');
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) throw new Error("Session expirée");
+      if (!session?.access_token) {
+        // Session is stale/invalid — redirect to auth
+        setAuthRedirectTarget(`/accept-invitation?id=${invitationId}`);
+        await supabase.auth.signOut();
+        navigate(withPreviewToken('/auth'), { replace: true });
+        return;
+      }
 
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/accept-invitation`,
@@ -58,12 +68,21 @@ const AcceptInvitation = () => {
       const data = await response.json();
 
       if (!response.ok || !data?.success) {
-        // If already a member, just redirect
+        // If 401 — session is invalid, redirect to auth
+        if (response.status === 401) {
+          setAuthRedirectTarget(`/accept-invitation?id=${invitationId}`);
+          await supabase.auth.signOut();
+          toast.error("Session expirée. Veuillez vous reconnecter.");
+          navigate(withPreviewToken('/auth'), { replace: true });
+          return;
+        }
+
+        // Already a member — just go to dashboard
         if (data?.error?.includes('déjà été traitée') || data?.error?.includes('déjà membre')) {
           setStatus('success');
           toast.info("Vous êtes déjà membre de cette ferme");
           localStorage.removeItem('pendingInvitation');
-          setTimeout(() => navigate('/dashboard', { replace: true }), 1500);
+          setTimeout(() => { window.location.href = '/dashboard'; }, 1500);
           return;
         }
         throw new Error(data?.error || "Erreur lors de l'acceptation");
@@ -101,16 +120,6 @@ const AcceptInvitation = () => {
               </div>
               <CardTitle className="text-green-700">Bienvenue dans la ferme !</CardTitle>
               <CardDescription>Redirection vers le tableau de bord...</CardDescription>
-            </>
-          ) : status === 'redirect' ? (
-            <>
-              <div className="flex justify-center mb-4">
-                <div className="bg-blue-100 p-3 rounded-full">
-                  <Mail className="h-8 w-8 text-blue-600" />
-                </div>
-              </div>
-              <CardTitle>Connexion requise</CardTitle>
-              <CardDescription>Vous devez vous connecter pour accepter l'invitation</CardDescription>
             </>
           ) : (
             <>

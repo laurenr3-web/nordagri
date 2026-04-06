@@ -5,108 +5,96 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { withPreviewToken } from '@/utils/previewRouting';
+import { consumeAuthRedirectTarget } from '@/utils/authRedirect';
 
-/**
- * Composant de callback pour gérer la redirection après confirmation d'email
- * ou réinitialisation de mot de passe via Supabase
- */
 const AuthCallback = () => {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [processingAuth, setProcessingAuth] = useState(true);
 
+  const getPostAuthTarget = (type: string | null): string => {
+    // Check for stored invitation/redirect target first
+    const stored = consumeAuthRedirectTarget();
+    if (stored) return stored;
+
+    // Legacy
+    const pending = localStorage.getItem('pendingInvitation');
+    if (pending) {
+      localStorage.removeItem('pendingInvitation');
+      return `/accept-invitation?id=${pending}`;
+    }
+
+    if (type === 'recovery') return '/settings?tab=security';
+    return '/dashboard';
+  };
+
   useEffect(() => {
     async function handleAuthCallback() {
       try {
         setProcessingAuth(true);
-
         const url = window.location.href;
         
-        // On vérifie si on a un hash contenant des tokens
         if (url.includes('#')) {
           const hashParams = new URLSearchParams(window.location.hash.substring(1));
           const accessToken = hashParams.get('access_token');
           const refreshToken = hashParams.get('refresh_token');
           const type = hashParams.get('type');
-          const error = hashParams.get('error');
+          const hashError = hashParams.get('error');
           const errorCode = hashParams.get('error_code');
           const errorDescription = hashParams.get('error_description');
 
-          // Log limité pour débogage en dev uniquement
-          if (import.meta.env.DEV) {
-            console.log('Auth callback params:', { 
-              hasHash: true, 
-              type, 
-              hasAccessToken: !!accessToken,
-              hasRefreshToken: !!refreshToken,
-              error,
-              errorCode,
-              errorDescription
-            });
-          }
-
-          // Gérer les erreurs dans les paramètres
-          if (error) {
+          if (hashError) {
             if (errorCode === 'otp_expired') {
               setError("Le lien de vérification a expiré. Veuillez demander un nouveau lien.");
-              toast.error("Le lien de vérification a expiré. Veuillez demander un nouveau lien.");
-              setTimeout(() => navigate(withPreviewToken('/auth'), { replace: true }), 3000);
-              return;
+              toast.error("Le lien de vérification a expiré.");
             } else {
-              setError(`Erreur: ${errorDescription || error}`);
-              toast.error(`Erreur: ${errorDescription || error}`);
-              setTimeout(() => navigate(withPreviewToken('/auth'), { replace: true }), 3000);
-              return;
+              setError(`Erreur: ${errorDescription || hashError}`);
+              toast.error(`Erreur: ${errorDescription || hashError}`);
             }
+            setTimeout(() => navigate(withPreviewToken('/auth'), { replace: true }), 3000);
+            return;
           }
           
-          // Si nous avons un token valide, configurer la session
           if (accessToken && refreshToken) {
-            const { data, error } = await supabase.auth.setSession({
+            const { data, error: sessionError } = await supabase.auth.setSession({
               access_token: accessToken,
               refresh_token: refreshToken,
             });
             
-            if (error) {
-              console.error('Session verification error:', error);
-              setError("Erreur lors de la vérification de votre session: " + error.message);
-              toast.error("Erreur lors de la vérification de votre session: " + error.message);
+            if (sessionError) {
+              console.error('Session verification error:', sessionError);
+              setError("Erreur lors de la vérification de votre session: " + sessionError.message);
               setTimeout(() => navigate(withPreviewToken('/auth'), { replace: true }), 3000);
               return;
             }
             
             if (data.session) {
-              // Récupérer le profil utilisateur si besoin
-              const { data: profileData } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', data.session.user.id)
-                .single();
-                
+              const target = getPostAuthTarget(type);
+
               if (type === 'recovery') {
-                // Redirection vers la page de changement de mot de passe
                 toast.success("Vous pouvez maintenant définir votre nouveau mot de passe");
-                navigate(withPreviewToken('/settings?tab=security'), { replace: true });
               } else if (type === 'signup' || type === 'magiclink') {
-                // L'utilisateur a vérifié son email et est maintenant connecté
                 toast.success("Email vérifié avec succès! Vous êtes maintenant connecté.");
-                navigate(withPreviewToken('/dashboard'), { replace: true });
               } else {
-                // Autre type de confirmation, rediriger vers le dashboard
                 toast.success("Authentification réussie!");
-                navigate(withPreviewToken('/dashboard'), { replace: true });
+              }
+
+              // Use full page reload for invitation targets to refresh profile context
+              if (target.includes('accept-invitation')) {
+                window.location.href = target;
+              } else {
+                navigate(withPreviewToken(target), { replace: true });
               }
               return;
             }
           }
         }
 
-        // Si on arrive ici, c'est qu'on n'a pas pu traiter les paramètres d'authentification
         setError("Paramètres d'authentification manquants ou invalides");
         setTimeout(() => navigate(withPreviewToken('/auth'), { replace: true }), 3000);
-      } catch (error: any) {
-        console.error('Auth callback error:', error);
-        setError("Une erreur est survenue: " + error.message);
+      } catch (err: any) {
+        console.error('Auth callback error:', err);
+        setError("Une erreur est survenue: " + err.message);
         setTimeout(() => navigate(withPreviewToken('/auth'), { replace: true }), 3000);
       } finally {
         setProcessingAuth(false);
