@@ -6,9 +6,10 @@ import { InviteUserForm } from '@/components/users/InviteUserForm';
 interface InviteUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
 }
 
-export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) {
+export function InviteUserDialog({ open, onOpenChange, onSuccess }: InviteUserDialogProps) {
   return (
     <DialogWrapper
       title="Inviter un utilisateur"
@@ -16,7 +17,7 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
       open={open}
       onOpenChange={onOpenChange}
     >
-      <InviteUserForm onSuccess={() => onOpenChange(false)} onClose={() => onOpenChange(false)} />
+      <InviteUserForm onSuccess={() => { onOpenChange(false); onSuccess?.(); }} onClose={() => onOpenChange(false)} />
     </DialogWrapper>
   );
 }

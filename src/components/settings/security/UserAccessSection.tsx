@@ -23,7 +23,8 @@ export function UserAccessSection() {
     invitations, 
     loading, 
     handleCancelInvitation,
-    handleResendInvitation
+    handleResendInvitation,
+    refreshData
   } = useTeamMembers();
 
   const onCancelInvitation = async (invitationId: string) => {
