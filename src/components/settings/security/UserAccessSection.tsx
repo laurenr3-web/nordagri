@@ -83,7 +83,8 @@ export function UserAccessSection() {
             {/* Dialog pour inviter un utilisateur */}
             <InviteUserDialog 
               open={inviteDialogOpen} 
-              onOpenChange={setInviteDialogOpen} 
+              onOpenChange={setInviteDialogOpen}
+              onSuccess={refreshData}
             />
           </>
         )}
