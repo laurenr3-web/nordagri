@@ -73,6 +73,16 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
     onError: (e: any) => toast.error(e.message),
   });
 
+  const updateTask = useMutation({
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<PlanningTask> }) =>
+      planningService.updateTask(id, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['planningTasks'] });
+      toast.success('Tâche mise à jour');
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   // Sort tasks: priority order (critical > important > todo), then by date
   const priorityOrder: Record<string, number> = { critical: 0, important: 1, todo: 2 };
   const sortedTasks = [...tasks].sort((a, b) => {
