@@ -1,0 +1,118 @@
+
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuthContext } from '@/providers/AuthProvider';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Loader2, CheckCircle, XCircle, Mail } from 'lucide-react';
+import { toast } from 'sonner';
+
+const AcceptInvitation = () => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuthContext();
+  const invitationId = searchParams.get('id');
+  
+  const [status, setStatus] = useState<'loading' | 'accepting' | 'success' | 'error' | 'redirect'>('loading');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    if (!invitationId) {
+      setStatus('error');
+      setErrorMessage("Lien d'invitation invalide");
+      return;
+    }
+
+    if (!isAuthenticated) {
+      // Save invitation ID and redirect to auth
+      localStorage.setItem('pendingInvitation', invitationId);
+      setStatus('redirect');
+      navigate(`/auth?returnTo=/accept-invitation?id=${invitationId}`, { replace: true });
+      return;
+    }
+
+    // User is authenticated, accept the invitation
+    acceptInvitation();
+  }, [invitationId, isAuthenticated]);
+
+  const acceptInvitation = async () => {
+    setStatus('accepting');
+    try {
+      const { data, error } = await supabase.functions.invoke('accept-invitation', {
+        body: { invitationId },
+      });
+
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Erreur lors de l'acceptation");
+
+      setStatus('success');
+      toast.success(data.message || "Invitation acceptée !");
+      localStorage.removeItem('pendingInvitation');
+      
+      // Redirect to dashboard after 2 seconds
+      setTimeout(() => navigate('/dashboard', { replace: true }), 2000);
+    } catch (err: any) {
+      console.error("Erreur acceptation:", err);
+      setStatus('error');
+      setErrorMessage(err.message || "Une erreur est survenue");
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="max-w-md w-full">
+        <CardHeader className="text-center">
+          {status === 'loading' || status === 'accepting' ? (
+            <>
+              <div className="flex justify-center mb-4">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+              </div>
+              <CardTitle>Traitement en cours...</CardTitle>
+              <CardDescription>Nous validons votre invitation</CardDescription>
+            </>
+          ) : status === 'success' ? (
+            <>
+              <div className="flex justify-center mb-4">
+                <div className="bg-green-100 p-3 rounded-full">
+                  <CheckCircle className="h-8 w-8 text-green-600" />
+                </div>
+              </div>
+              <CardTitle className="text-green-700">Bienvenue dans la ferme !</CardTitle>
+              <CardDescription>Redirection vers le tableau de bord...</CardDescription>
+            </>
+          ) : status === 'redirect' ? (
+            <>
+              <div className="flex justify-center mb-4">
+                <div className="bg-blue-100 p-3 rounded-full">
+                  <Mail className="h-8 w-8 text-blue-600" />
+                </div>
+              </div>
+              <CardTitle>Connexion requise</CardTitle>
+              <CardDescription>Vous devez vous connecter pour accepter l'invitation</CardDescription>
+            </>
+          ) : (
+            <>
+              <div className="flex justify-center mb-4">
+                <div className="bg-red-100 p-3 rounded-full">
+                  <XCircle className="h-8 w-8 text-red-600" />
+                </div>
+              </div>
+              <CardTitle className="text-red-700">Erreur</CardTitle>
+              <CardDescription>{errorMessage}</CardDescription>
+            </>
+          )}
+        </CardHeader>
+        {status === 'error' && (
+          <CardContent className="flex flex-col items-center gap-3">
+            <Button onClick={() => navigate('/dashboard')} variant="outline">
+              Retour au tableau de bord
+            </Button>
+          </CardContent>
+        )}
+      </Card>
+    </div>
+  );
+};
+
+export default AcceptInvitation;
