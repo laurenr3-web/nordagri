@@ -717,6 +717,7 @@ export type Database = {
           engine_hours: number | null
           equipment_id: number | null
           equipment_name: string | null
+          farm_id: string | null
           frequency: string | null
           id: number
           interval: number | null
@@ -740,6 +741,7 @@ export type Database = {
           engine_hours?: number | null
           equipment_id?: number | null
           equipment_name?: string | null
+          farm_id?: string | null
           frequency?: string | null
           id?: number
           interval?: number | null
@@ -763,6 +765,7 @@ export type Database = {
           engine_hours?: number | null
           equipment_id?: number | null
           equipment_name?: string | null
+          farm_id?: string | null
           frequency?: string | null
           id?: number
           interval?: number | null
@@ -784,6 +787,13 @@ export type Database = {
             columns: ["equipment_id"]
             isOneToOne: false
             referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_plans_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
             referencedColumns: ["id"]
           },
         ]
