@@ -52,6 +52,14 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
     enabled: !!farmId,
   });
 
+  // Fetch overdue tasks (due_date < today, status != done)
+  const todayStr = new Date().toISOString().split('T')[0];
+  const { data: overdueTasks = [] } = useQuery({
+    queryKey: ['planningOverdue', farmId, todayStr],
+    queryFn: () => planningService.getOverdueTasks(farmId!, todayStr),
+    enabled: !!farmId,
+  });
+
   // Also fetch recurring tasks that were created before the date range
   const { data: recurringTasks = [] } = useQuery({
     queryKey: ['planningRecurring', farmId],
