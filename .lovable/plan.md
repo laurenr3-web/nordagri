@@ -13,71 +13,48 @@ const updateTask = useMutation({
   onError: (e: any) => toast.error(e.message),
 });
 ```
-Add `updateTask` to the return object.
+Add `updateTask` to the return object. Import `PlanningTask` type.
 
 ## 2. `src/components/planning/TaskDetailDialog.tsx` (NEW)
-Props: `task: PlanningTask | null`, `open`, `onOpenChange`, `teamMembers: {id:string, name:string}[]`, `onStatusChange`, `onPostpone`, `onDelete`, `onUpdate`.
+Props: `task: PlanningTask | null`, `open: boolean`, `onOpenChange`, `teamMembers: {id:string, name:string}[]`, `onStatusChange`, `onPostpone(id, newDate)`, `onDelete`, `onUpdate(id, updates)`.
 
-**Reset local state on open** — use `useEffect` watching `task` + `open` to reset `localAssignedTo` and `hasChanges` to false. On close without save, local state is discarded naturally.
+Use `useEffect` on `[task, open]` to reset `localAssignedTo` from `task.assigned_to` and `hasChanges=false`. When dialog closes without save, stale local state is discarded on next open.
 
-**Section 1 — Informations:**
-- Title (h3), category label+emoji, status badge, priority badge using `manual_priority ?? computed_priority` with colors (critical=red, important=yellow, todo=gray)
-- Notes, equipment, field, building, animal group if present
+**Section Informations**: title, category emoji+label, status badge, priority badge using `manual_priority ?? computed_priority` (critical=red, important=yellow, todo=gray). Show notes, equipment, field, building, animal_group if present.
 
-**Section 2 — Assignation et date:**
-- Select for team member (with "Non assigné" option), due_date display
-- "Enregistrer" button visible only when `hasChanges === true`, calls `onUpdate(id, { assigned_to })` then closes
+**Section Assignation et date**: Select with team members + "Non assigné" option. Due date displayed. Visible "Enregistrer" button, disabled until `hasChanges === true`. On save, call `onUpdate(task.id, { assigned_to })` and close.
 
-**Section 3 — Actions:**
-- Status buttons (contextual):
-  - `todo` → "Commencer" (→ in_progress)
-  - `in_progress` → "Terminer" (→ done)
-  - `blocked` → "Débloquer" (→ todo) — NO "Bloqué" button shown
-  - NOT blocked → "Bloqué" button (→ blocked) — NO "Débloquer" shown
-- Reporter: 3 buttons — "Aujourd'hui" (today), "Demain" (tomorrow), "Choisir une date" (Popover+Calendar with `pointer-events-auto`)
-- Supprimer: AlertDialog confirmation before executing `onDelete`
+**Section Actions**:
+- `todo` → "Commencer" button
+- `in_progress` → "Terminer" button (green)
+- `blocked` → "Débloquer" button — do NOT show "Bloqué"
+- NOT blocked → "Bloqué" button — do NOT show "Débloquer"
+- Reporter: 3 buttons — "Aujourd'hui", "Demain", "Choisir une date" (Popover+Calendar with `pointer-events-auto`)
+- Supprimer: AlertDialog confirmation → then `onDelete(task.id)` → close
 - All actions close the dialog after execution
 
 ## 3. `src/components/planning/TaskCard.tsx`
 - Add `onClick?: () => void` prop
-- Make Card clickable: `cursor-pointer` + `onClick` on the Card
+- Make Card clickable: `cursor-pointer` + `onClick`
 - Remove ALL action buttons (lines 71-111)
-- Keep: title, category label, status badge, team_member_name, priority badge
-- Add priority badge next to status badge:
-```tsx
-const priorityLabels = { critical: 'Critique', important: 'Important', todo: 'À faire' };
-const priorityColors = { critical: 'bg-red-100 text-red-700', important: 'bg-yellow-100 text-yellow-700', todo: 'bg-muted text-muted-foreground' };
-<Badge className={priorityColors[effectivePriority]}>{priorityLabels[effectivePriority]}</Badge>
-```
+- Keep: title, category, status badge, team_member_name, notes (line-clamp-2)
+- Add priority badge next to status badge (only for critical and important)
 
 ## 4. `src/components/planning/TaskGroup.tsx`
 - Add `onTaskClick?: (task: PlanningTask) => void` prop
 - Pass `onClick={() => onTaskClick?.(task)}` to each TaskCard
+- Remove `onStatusChange`, `onPostpone`, `onDelete` props
 
 ## 5. `src/components/planning/DayView.tsx`
-- Add props: `teamMembers: {id:string, name:string}[]`
-- Add state: `selectedTask`, `dialogOpen`
-- Get `updateTask` from `usePlanningTasks`
-- Pass `onTaskClick` to TaskGroup and done TaskCards to set selectedTask + open dialog
+- Add prop: `teamMembers: {id:string, name:string}[]`
+- Add state: `selectedTask`
+- Get `updateTask` from hook
+- Pass `onTaskClick={setSelectedTask}` to TaskGroup
 - Render `TaskDetailDialog` with all handlers
-- Handle update: `updateTask.mutate({ id, updates })`
 
 ## 6. `src/components/planning/WeekView.tsx`
-- Add props: `teamMembers: {id:string, name:string}[]`
-- Same integration as DayView: `selectedTask` state, dialog rendering
-- Add `onClick` to each TaskCard in day sections and done section
-- Get `updateTask` from hook
+- Add prop: `teamMembers: {id:string, name:string}[]`
+- Same pattern: `selectedTask` state, dialog rendering
 
 ## 7. `src/components/planning/PlanningContent.tsx`
-- Pass `teamMembers` prop to `DayView` and `WeekView`
-
-## Files
-| File | Action |
-|---|---|
-| `src/hooks/planning/usePlanningTasks.ts` | Add `updateTask` mutation |
-| `src/components/planning/TaskDetailDialog.tsx` | **Create** |
-| `src/components/planning/TaskCard.tsx` | Simplify, add onClick, add priority badge |
-| `src/components/planning/TaskGroup.tsx` | Add onTaskClick prop |
-| `src/components/planning/DayView.tsx` | Add teamMembers prop, dialog integration |
-| `src/components/planning/WeekView.tsx` | Add teamMembers prop, dialog integration |
-| `src/components/planning/PlanningContent.tsx` | Pass teamMembers to views |
+- Pass `teamMembers` to DayView and WeekView
