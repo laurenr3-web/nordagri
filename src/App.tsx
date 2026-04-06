@@ -45,6 +45,7 @@ const Pricing = lazy(() => import('@/pages/Pricing'));
 const BentoDemo = lazy(() => import('@/pages/BentoDemo'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 const AcceptInvitation = lazy(() => import('@/pages/AcceptInvitation'));
+const Unsubscribe = lazy(() => import('@/pages/Unsubscribe'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -129,6 +130,7 @@ function App() {
                       <Route path="/bento-demo" element={<BentoDemo />} />
                       <Route path="/legal" element={<LegalPage />} />
                       <Route path="/pricing" element={<Pricing />} />
+                      <Route path="/unsubscribe" element={<Unsubscribe />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </Suspense>

@@ -177,22 +177,38 @@ serve(async (req) => {
         .eq('id', invitation.id);
     }
 
-    // Try to send invitation email (best effort)
+    // Send invitation email via transactional email system
     try {
-      await supabase.functions.invoke('send-transactional-email', {
-        body: {
-          templateName: 'farm-invitation',
-          recipientEmail: email,
-          idempotencyKey: `farm-invite-${invitation.id}`,
-          templateData: {
-            farmName: farm.name,
-            role,
-            invitationId: invitation.id,
-          },
+      const emailPayload = {
+        templateName: 'farm-invitation',
+        recipientEmail: email,
+        idempotencyKey: `farm-invite-${invitation.id}`,
+        templateData: {
+          farmName: farm.name,
+          role,
+          invitationId: invitation.id,
+          inviterName: user.email,
         },
+      };
+
+      const emailResponse = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseServiceKey}`,
+          'apikey': supabaseAnonKey,
+        },
+        body: JSON.stringify(emailPayload),
       });
+
+      if (!emailResponse.ok) {
+        const errBody = await emailResponse.text();
+        console.error("Email send failed:", emailResponse.status, errBody);
+      } else {
+        console.log("Invitation email enqueued for", email);
+      }
     } catch (emailError) {
-      console.log("Email non envoyé (infrastructure pas encore configurée):", emailError);
+      console.log("Email non envoyé:", emailError);
       // Continue - email is best-effort
     }
 
