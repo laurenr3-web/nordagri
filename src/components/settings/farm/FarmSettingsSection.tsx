@@ -10,12 +10,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { CreateFarmDialog } from '@/components/farm/CreateFarmDialog';
+import { useFarmId } from '@/hooks/useFarmId';
 
 /**
  * Composant pour la gestion des paramètres de la ferme
  */
 export function FarmSettingsSection() {
   const { user, profileData } = useAuthContext();
+  const { farmId: resolvedFarmId, isLoading: farmIdLoading, noAccess } = useFarmId();
   const [farmName, setFarmName] = useState('');
   const [farmId, setFarmId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -33,30 +35,26 @@ export function FarmSettingsSection() {
   // Fetch farm data on component mount
   useEffect(() => {
     const fetchFarmData = async () => {
+      if (farmIdLoading) return;
       setLoading(true);
       try {
         if (!user?.id) return;
         
-        // Récupérer les données du profil utilisateur pour obtenir l'ID de ferme
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('farm_id')
-          .eq('id', user.id)
-          .single();
+        // Use resolved farm ID from useFarmId (supports both owners and invited members)
+        const activeFarmId = resolvedFarmId;
         
-        if (profileError) throw profileError;
-        if (!profileData?.farm_id) {
+        if (!activeFarmId) {
           setNoFarm(true);
           return;
         }
         
-        setFarmId(profileData.farm_id);
+        setFarmId(activeFarmId);
         
         // Récupérer les données de la ferme
         const { data: farmData, error: farmError } = await supabase
           .from('farms')
           .select('name')
-          .eq('id', profileData.farm_id)
+          .eq('id', activeFarmId)
           .single();
         
         if (farmError) throw farmError;
@@ -69,7 +67,7 @@ export function FarmSettingsSection() {
         const { data: settingsData, error: settingsError } = await supabase
           .from('farm_settings')
           .select('*')
-          .eq('farm_id', profileData.farm_id)
+          .eq('farm_id', activeFarmId)
           .maybeSingle();
           
         if (settingsError && settingsError.code !== 'PGRST116') throw settingsError;
@@ -91,7 +89,7 @@ export function FarmSettingsSection() {
     };
     
     fetchFarmData();
-  }, [user]);
+  }, [user, resolvedFarmId, farmIdLoading]);
   
   const handleSaveFarmSettings = async () => {
     if (!farmId) {

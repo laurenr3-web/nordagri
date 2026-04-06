@@ -47,6 +47,7 @@ import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { CreateFarmDialog } from '@/components/farm/CreateFarmDialog';
 import { Plus } from 'lucide-react';
+import { useFarmId } from '@/hooks/useFarmId';
 
 const DEFAULT_WIDGETS: WidgetConfig[] = [
   { id: 'stats', type: 'stats', title: 'Statistiques', size: 'full', enabled: true },
@@ -62,7 +63,8 @@ const Dashboard = () => {
   const [showCreateFarm, setShowCreateFarm] = useState(false);
   const { user, profileData } = useAuthContext();
   const queryClient = useQueryClient();
-  const hasFarm = !!profileData?.farm_id;
+  const { farmId: resolvedFarmId, isLoading: farmLoading, noAccess } = useFarmId();
+  const hasFarm = !!resolvedFarmId;
   
   // Gestion du layout personnalisé
   const { 

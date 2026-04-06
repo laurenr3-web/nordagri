@@ -68,16 +68,35 @@ const NoFarmAccess: React.FC = () => {
   const handleAcceptInvitation = async (invitationId: string) => {
     setAcceptingId(invitationId);
     try {
-      const { data, error } = await supabase.functions.invoke('accept-invitation', {
-        body: { invitationId },
-      });
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Session expirée");
 
-      if (error) throw error;
-      if (!data?.success) throw new Error(data?.error);
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/accept-invitation`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({ invitationId }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data?.success) {
+        if (data?.error?.includes('déjà été traitée') || data?.error?.includes('déjà membre')) {
+          toast.info("Vous êtes déjà membre de cette ferme");
+          window.location.href = '/dashboard';
+          return;
+        }
+        throw new Error(data?.error || "Erreur lors de l'acceptation");
+      }
 
       toast.success("Invitation acceptée ! Bienvenue dans la ferme.");
-      // Reload page to refresh auth context
-      window.location.reload();
+      window.location.href = '/dashboard';
     } catch (err: any) {
       console.error("Erreur acceptation:", err);
       toast.error(err.message || "Erreur lors de l'acceptation de l'invitation");

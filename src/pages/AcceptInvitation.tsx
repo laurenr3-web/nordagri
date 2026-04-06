@@ -72,7 +72,7 @@ const AcceptInvitation = () => {
       setStatus('success');
       toast.success(data.message || "Invitation acceptée !");
       localStorage.removeItem('pendingInvitation');
-      setTimeout(() => navigate('/dashboard', { replace: true }), 2000);
+      setTimeout(() => { window.location.href = '/dashboard'; }, 2000);
     } catch (err: any) {
       console.error("Erreur acceptation:", err);
       setStatus('error');
