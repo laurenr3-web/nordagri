@@ -30,7 +30,9 @@ const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({
   equipment, 
   onEdit, 
   onDelete,
-  isDeleting = false 
+  isDeleting = false,
+  canEdit = true,
+  canDelete = true,
 }) => {
   return (
     <div className="flex flex-col gap-3 mb-4">
