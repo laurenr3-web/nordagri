@@ -45,9 +45,20 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
   const effectivePriority = task.manual_priority || task.computed_priority;
   const priority = priorityConfig[effectivePriority] || priorityConfig.todo;
 
+  // Calculate overdue days
+  const todayStr = new Date().toISOString().split('T')[0];
+  const isOverdue = task.due_date < todayStr && task.status !== 'done';
+  const overdueDays = isOverdue
+    ? Math.floor((new Date(todayStr).getTime() - new Date(task.due_date).getTime()) / 86400000)
+    : 0;
+
   return (
     <Card
-      className={cn("p-3 space-y-2 cursor-pointer hover:shadow-md transition-shadow", task.status === 'done' && "opacity-60")}
+      className={cn(
+        "p-3 space-y-2 cursor-pointer hover:shadow-md transition-shadow",
+        task.status === 'done' && "opacity-60",
+        isOverdue && "border-orange-400 dark:border-orange-600"
+      )}
       onClick={onClick}
     >
       <div className="flex items-start justify-between gap-2">
@@ -72,6 +83,12 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
         <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", statusColors[task.status])}>
           {statusLabels[task.status]}
         </Badge>
+        {isOverdue && (
+          <Badge className="text-[10px] px-1.5 py-0 bg-orange-500 text-white border-0 gap-1">
+            <Clock className="h-2.5 w-2.5" />
+            {overdueDays}j en retard
+          </Badge>
+        )}
       </div>
 
       {task.team_member_name && (

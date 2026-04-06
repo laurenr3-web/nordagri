@@ -16,7 +16,7 @@ interface DayViewProps {
 }
 
 export function DayView({ farmId, date, label, teamMembers }: DayViewProps) {
-  const { groupedTasks, doneTasks, isLoading, updateStatus, updateTask, postponeTask, deleteTask } = usePlanningTasks(farmId, date, date);
+  const { groupedTasks, doneTasks, overdueTasks, isLoading, updateStatus, updateTask, postponeTask, deleteTask } = usePlanningTasks(farmId, date, date);
   const [doneOpen, setDoneOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<PlanningTask | null>(null);
 
@@ -45,10 +45,17 @@ export function DayView({ farmId, date, label, teamMembers }: DayViewProps) {
   }
 
   const totalTasks = groupedTasks.critical.length + groupedTasks.important.length + groupedTasks.todo.length;
+  const todayStr = new Date().toISOString().split('T')[0];
+  const isToday = date === todayStr;
 
   return (
     <div className="space-y-4">
-      {totalTasks === 0 ? (
+      {/* Overdue section — only on Today view */}
+      {isToday && overdueTasks.length > 0 && (
+        <TaskGroup label="En retard" icon="⏰" tasks={overdueTasks} onTaskClick={setSelectedTask} />
+      )}
+
+      {totalTasks === 0 && (!isToday || overdueTasks.length === 0) ? (
         <div className="text-center py-12 text-muted-foreground">
           <p className="text-lg">🎉</p>
           <p className="text-sm mt-2">Aucune tâche pour {label.toLowerCase()}</p>
