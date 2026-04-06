@@ -66,25 +66,44 @@ export function PlanningContent() {
 
   return (
     <div className="space-y-4">
-      <Tabs defaultValue="today" className="w-full">
-        <TabsList className="grid grid-cols-3 w-full h-11">
-          <TabsTrigger value="today" className="text-sm font-medium">Aujourd'hui</TabsTrigger>
-          <TabsTrigger value="tomorrow" className="text-sm font-medium">Demain</TabsTrigger>
-          <TabsTrigger value="week" className="text-sm font-medium">Semaine</TabsTrigger>
-        </TabsList>
+      {/* View toggle */}
+      <ToggleGroup
+        type="single"
+        value={viewMode}
+        onValueChange={(v) => { if (v) setViewMode(v as 'global' | 'employee'); }}
+        className="w-full"
+      >
+        <ToggleGroupItem value="global" className="flex-1 gap-1.5 text-sm">
+          <List className="h-4 w-4" /> Globale
+        </ToggleGroupItem>
+        <ToggleGroupItem value="employee" className="flex-1 gap-1.5 text-sm">
+          <Users className="h-4 w-4" /> Par employé
+        </ToggleGroupItem>
+      </ToggleGroup>
 
-        <div className="mt-4">
-          <TabsContent value="today" className="mt-0">
-            <DayView farmId={farmId} date={todayStr} label="Aujourd'hui" teamMembers={teamMembers as any[]} />
-          </TabsContent>
-          <TabsContent value="tomorrow" className="mt-0">
-            <DayView farmId={farmId} date={tomorrowStr} label="Demain" teamMembers={teamMembers as any[]} />
-          </TabsContent>
-          <TabsContent value="week" className="mt-0">
-            <WeekView farmId={farmId} teamMembers={teamMembers as any[]} />
-          </TabsContent>
-        </div>
-      </Tabs>
+      {viewMode === 'global' ? (
+        <Tabs defaultValue="today" className="w-full">
+          <TabsList className="grid grid-cols-3 w-full h-11">
+            <TabsTrigger value="today" className="text-sm font-medium">Aujourd'hui</TabsTrigger>
+            <TabsTrigger value="tomorrow" className="text-sm font-medium">Demain</TabsTrigger>
+            <TabsTrigger value="week" className="text-sm font-medium">Semaine</TabsTrigger>
+          </TabsList>
+
+          <div className="mt-4">
+            <TabsContent value="today" className="mt-0">
+              <DayView farmId={farmId} date={todayStr} label="Aujourd'hui" teamMembers={teamMembers as any[]} />
+            </TabsContent>
+            <TabsContent value="tomorrow" className="mt-0">
+              <DayView farmId={farmId} date={tomorrowStr} label="Demain" teamMembers={teamMembers as any[]} />
+            </TabsContent>
+            <TabsContent value="week" className="mt-0">
+              <WeekView farmId={farmId} teamMembers={teamMembers as any[]} />
+            </TabsContent>
+          </div>
+        </Tabs>
+      ) : (
+        <EmployeeView farmId={farmId} date={todayStr} teamMembers={teamMembers as any[]} />
+      )}
 
       {/* FAB */}
       <Button
