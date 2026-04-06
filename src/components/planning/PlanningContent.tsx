@@ -22,6 +22,7 @@ function getDateStr(offset: number = 0) {
 
 export function PlanningContent() {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [viewMode, setViewMode] = useState<'global' | 'employee'>('global');
   const { farmId } = useFarmId();
   const { user } = useAuthContext();
 
