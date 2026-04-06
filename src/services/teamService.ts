@@ -132,3 +132,16 @@ export async function resendInvitation(invitationId: string): Promise<boolean> {
   console.log('Resending invitation:', invitationId);
   return true;
 }
+
+/**
+ * Updates a farm member's role
+ */
+export async function updateMemberRole(memberId: string, newRole: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('farm_members')
+    .update({ role: newRole })
+    .eq('id', memberId);
+
+  if (error) throw error;
+  return true;
+}

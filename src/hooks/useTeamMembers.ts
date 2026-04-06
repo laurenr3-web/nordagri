@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useFarmId } from '@/hooks/useFarmId';
-import { fetchTeamData, cancelInvitation, resendInvitation } from '@/services/teamService';
+import { fetchTeamData, cancelInvitation, resendInvitation, updateMemberRole } from '@/services/teamService';
 import type { TeamMember, PendingInvitation } from '@/types/TeamMember';
 
 /**
