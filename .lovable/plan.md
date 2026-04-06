@@ -1,60 +1,46 @@
-# Plan — Dialog détail de tâche + assignation
 
-## 1. `src/hooks/planning/usePlanningTasks.ts`
-Add `updateTask` mutation after `deleteTask`:
-```typescript
-const updateTask = useMutation({
-  mutationFn: ({ id, updates }: { id: string; updates: Partial<PlanningTask> }) =>
-    planningService.updateTask(id, updates),
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['planningTasks'] });
-    toast.success('Tâche mise à jour');
-  },
-  onError: (e: any) => toast.error(e.message),
-});
-```
-Add `updateTask` to the return object. Import `PlanningTask` type.
+# Plan — Dialog détail de tâche + assignation (avec précisions finales)
 
-## 2. `src/components/planning/TaskDetailDialog.tsx` (NEW)
-Props: `task: PlanningTask | null`, `open: boolean`, `onOpenChange`, `teamMembers: {id:string, name:string}[]`, `onStatusChange`, `onPostpone(id, newDate)`, `onDelete`, `onUpdate(id, updates)`.
+## Fichiers modifiés/créés
 
-Use `useEffect` on `[task, open]` to reset `localAssignedTo` from `task.assigned_to` and `hasChanges=false`. When dialog closes without save, stale local state is discarded on next open.
+| Fichier | Action |
+|---|---|
+| `src/hooks/planning/usePlanningTasks.ts` | Ajouter mutation `updateTask` |
+| `src/components/planning/TaskDetailDialog.tsx` | **Créer** — dialog détail complet |
+| `src/components/planning/TaskCard.tsx` | Simplifier, ajouter `onClick`, badge priorité |
+| `src/components/planning/TaskGroup.tsx` | Ajouter prop `onTaskClick` |
+| `src/components/planning/DayView.tsx` | Ajouter prop `teamMembers`, intégrer dialog |
+| `src/components/planning/WeekView.tsx` | Ajouter prop `teamMembers`, intégrer dialog |
+| `src/components/planning/PlanningContent.tsx` | Passer `teamMembers` aux vues |
 
-**Section Informations**: title, category emoji+label, status badge, priority badge using `manual_priority ?? computed_priority` (critical=red, important=yellow, todo=gray). Show notes, equipment, field, building, animal_group if present.
+## Détails techniques
 
-**Section Assignation et date**: Select with team members + "Non assigné" option. Due date displayed. Visible "Enregistrer" button, disabled until `hasChanges === true`. On save, call `onUpdate(task.id, { assigned_to })` and close.
+### 1. Hook — `usePlanningTasks.ts`
+Ajouter mutation `updateTask` utilisant `planningService.updateTask(id, updates)`. Importer le type `PlanningTask`. Ajouter au return.
 
-**Section Actions**:
-- `todo` → "Commencer" button
-- `in_progress` → "Terminer" button (green)
-- `blocked` → "Débloquer" button — do NOT show "Bloqué"
-- NOT blocked → "Bloqué" button — do NOT show "Débloquer"
-- Reporter: 3 buttons — "Aujourd'hui", "Demain", "Choisir une date" (Popover+Calendar with `pointer-events-auto`)
-- Supprimer: AlertDialog confirmation → then `onDelete(task.id)` → close
-- All actions close the dialog after execution
+### 2. TaskDetailDialog (nouveau)
+- **Reset propre** : `useEffect([task, open])` réinitialise `localAssignedTo` et `hasChanges=false` à chaque ouverture. Fermeture sans save = état ignoré.
+- **Priorité affichée** : toujours `manual_priority ?? computed_priority`
+- **Section Informations** : titre, catégorie (emoji+label), badges statut + priorité effective (critical=rouge, important=jaune, todo=gris), notes si présentes
+- **Section Assignation et date** : Select membres d'équipe + "Non assigné", date affichée, bouton "Enregistrer" visible uniquement si `hasChanges === true`
+- **Section Actions** :
+  - Boutons statut contextuels : todo→Commencer, in_progress→Terminer, blocked→Débloquer. Jamais les deux (Bloqué/Débloquer) en même temps.
+  - Reporter : 3 boutons — "Aujourd'hui", "Demain", "Choisir une date" (Popover+Calendar avec `pointer-events-auto`)
+  - Supprimer : AlertDialog de confirmation avant exécution
+  - Toutes les actions ferment le dialog après exécution
 
-## 3. `src/components/planning/TaskCard.tsx`
-- Add `onClick?: () => void` prop
-- Make Card clickable: `cursor-pointer` + `onClick`
-- Remove ALL action buttons (lines 71-111)
-- Keep: title, category, status badge, team_member_name, notes (line-clamp-2)
-- Add priority badge next to status badge (only for critical and important)
+### 3. TaskCard — simplification
+- Ajouter `onClick` prop, rendre cliquable (`cursor-pointer`)
+- Supprimer tous les boutons d'action (déplacés dans le dialog)
+- Garder : titre, catégorie, badge statut, badge priorité effective, personne assignée, notes (line-clamp-2)
 
-## 4. `src/components/planning/TaskGroup.tsx`
-- Add `onTaskClick?: (task: PlanningTask) => void` prop
-- Pass `onClick={() => onTaskClick?.(task)}` to each TaskCard
-- Remove `onStatusChange`, `onPostpone`, `onDelete` props
+### 4. TaskGroup
+- Ajouter `onTaskClick` prop, passer aux TaskCard. Retirer les props d'action.
 
-## 5. `src/components/planning/DayView.tsx`
-- Add prop: `teamMembers: {id:string, name:string}[]`
-- Add state: `selectedTask`
-- Get `updateTask` from hook
-- Pass `onTaskClick={setSelectedTask}` to TaskGroup
-- Render `TaskDetailDialog` with all handlers
+### 5-6. DayView et WeekView
+- Recevoir `teamMembers` en prop
+- État `selectedTask` pour ouvrir/fermer le dialog
+- Rendre `TaskDetailDialog` avec mutations du hook
 
-## 6. `src/components/planning/WeekView.tsx`
-- Add prop: `teamMembers: {id:string, name:string}[]`
-- Same pattern: `selectedTask` state, dialog rendering
-
-## 7. `src/components/planning/PlanningContent.tsx`
-- Pass `teamMembers` to DayView and WeekView
+### 7. PlanningContent
+- Passer `teamMembers` à `DayView` et `WeekView`
