@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { CreateFarmDialog } from '@/components/farm/CreateFarmDialog';
+import { useFarmId } from '@/hooks/useFarmId';
 
 /**
  * Composant pour la gestion des paramètres de la ferme
