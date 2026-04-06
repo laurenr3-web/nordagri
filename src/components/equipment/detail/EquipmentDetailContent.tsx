@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Pencil, Check, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useFarmRole } from '@/hooks/useFarmRole';
 
 interface EquipmentDetailContentProps {
   equipment: EquipmentItem;
