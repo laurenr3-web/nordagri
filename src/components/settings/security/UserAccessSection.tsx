@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { SettingsSection } from '../SettingsSection';
-import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useFarmId } from '@/hooks/useFarmId';
@@ -12,9 +11,6 @@ import { InviteUserDialog } from '../users/InviteUserDialog';
 import { toast } from 'sonner';
 import { useTeamMembers } from '@/hooks/useTeamMembers';
 
-/**
- * Composant pour afficher et gérer les accès utilisateurs et techniciens
- */
 export function UserAccessSection() {
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const { farmId, isLoading: farmIdLoading } = useFarmId();
@@ -24,6 +20,7 @@ export function UserAccessSection() {
     loading, 
     handleCancelInvitation,
     handleResendInvitation,
+    handleUpdateMemberRole,
     refreshData
   } = useTeamMembers();
 
@@ -42,6 +39,15 @@ export function UserAccessSection() {
       toast.info("Fonctionnalité de renvoi en cours de développement");
     } catch (error) {
       toast.error('Erreur lors du renvoi de l\'invitation');
+    }
+  };
+
+  const onRoleChange = async (memberId: string, newRole: string) => {
+    try {
+      await handleUpdateMemberRole(memberId, newRole);
+      toast.success('Rôle mis à jour');
+    } catch (error) {
+      toast.error('Impossible de modifier le rôle');
     }
   };
   
@@ -64,14 +70,13 @@ export function UserAccessSection() {
           </Alert>
         ) : (
           <>
-            {/* Section des membres de l'équipe */}
             <TeamMembersList 
               loading={loading}
               teamMembers={teamMembers}
-              onInviteClick={() => setInviteDialogOpen(true)} 
+              onInviteClick={() => setInviteDialogOpen(true)}
+              onRoleChange={onRoleChange}
             />
             
-            {/* Section des invitations en attente */}
             {invitations.length > 0 && (
               <PendingInvitationsList 
                 invitations={invitations}
@@ -80,7 +85,6 @@ export function UserAccessSection() {
               />
             )}
 
-            {/* Dialog pour inviter un utilisateur */}
             <InviteUserDialog 
               open={inviteDialogOpen} 
               onOpenChange={setInviteDialogOpen}
@@ -89,7 +93,6 @@ export function UserAccessSection() {
           </>
         )}
         
-        {/* Description des rôles */}
         <RoleDescriptions />
       </div>
     </SettingsSection>
