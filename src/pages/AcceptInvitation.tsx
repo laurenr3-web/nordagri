@@ -39,18 +39,39 @@ const AcceptInvitation = () => {
   const acceptInvitation = async () => {
     setStatus('accepting');
     try {
-      const { data, error } = await supabase.functions.invoke('accept-invitation', {
-        body: { invitationId },
-      });
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Session expirée");
 
-      if (error) throw error;
-      if (!data?.success) throw new Error(data?.error || "Erreur lors de l'acceptation");
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/accept-invitation`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({ invitationId }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data?.success) {
+        // If already a member, just redirect
+        if (data?.error?.includes('déjà été traitée') || data?.error?.includes('déjà membre')) {
+          setStatus('success');
+          toast.info("Vous êtes déjà membre de cette ferme");
+          localStorage.removeItem('pendingInvitation');
+          setTimeout(() => navigate('/dashboard', { replace: true }), 1500);
+          return;
+        }
+        throw new Error(data?.error || "Erreur lors de l'acceptation");
+      }
 
       setStatus('success');
       toast.success(data.message || "Invitation acceptée !");
       localStorage.removeItem('pendingInvitation');
-      
-      // Redirect to dashboard after 2 seconds
       setTimeout(() => navigate('/dashboard', { replace: true }), 2000);
     } catch (err: any) {
       console.error("Erreur acceptation:", err);
