@@ -90,6 +90,11 @@ export function TaskDetailDialog({
   tomorrowDate.setDate(tomorrowDate.getDate() + 1);
   const tomorrowStr = tomorrowDate.toISOString().split('T')[0];
 
+  const isOverdue = task.due_date < todayStr && task.status !== 'done';
+  const overdueDays = isOverdue
+    ? Math.floor((new Date(todayStr).getTime() - new Date(task.due_date).getTime()) / 86400000)
+    : 0;
+
   const handleAssignChange = (value: string) => {
     const newVal = value === 'none' ? null : value;
     setLocalAssignedTo(newVal);
