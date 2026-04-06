@@ -203,6 +203,7 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
       planningService.postponeTask(id, newDate),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['planningTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['planningOverdue'] });
       toast.success('Tâche reportée');
     },
     onError: (e: any) => toast.error(e.message),
