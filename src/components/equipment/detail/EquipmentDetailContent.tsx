@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Pencil, Check, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useFarmRole } from '@/hooks/useFarmRole';
 
 interface EquipmentDetailContentProps {
   equipment: EquipmentItem;
@@ -32,6 +33,7 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const { canEdit, canDelete } = useFarmRole();
 
   const handleEditEquipment = () => {
     setIsEditDialogOpen(true);
@@ -127,6 +129,8 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
         onEdit={handleEditEquipment} 
         onDelete={handleEquipmentDelete}
         isDeleting={isDeleting}
+        canEdit={canEdit}
+        canDelete={canDelete}
       />
       
       <Separator className="my-4" />
@@ -142,7 +146,7 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
               <div className="mt-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium text-muted-foreground">{unitLabel}</h3>
-                  {!isEditingHours && (
+                  {!isEditingHours && canEdit && (
                     <Button
                       variant="ghost"
                       size="icon"
