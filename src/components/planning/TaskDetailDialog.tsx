@@ -9,7 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Separator } from '@/components/ui/separator';
-import { Play, CheckCircle2, AlertTriangle, Unlock, CalendarIcon, Trash2, Save } from 'lucide-react';
+import { Play, CheckCircle2, AlertTriangle, Unlock, CalendarIcon, Trash2, Save, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
