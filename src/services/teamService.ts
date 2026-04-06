@@ -11,7 +11,7 @@ export async function fetchTeamMembers(farmId: string): Promise<TeamMember[]> {
     // First get profiles associated with this farm
     const { data: profilesData, error: profilesError } = await supabase
       .from('profiles')
-      .select('id, first_name, last_name, email, farm_id')
+      .select('id, first_name, last_name, farm_id')
       .eq('farm_id', farmId);
     
     if (profilesError) {
@@ -28,10 +28,10 @@ export async function fetchTeamMembers(farmId: string): Promise<TeamMember[]> {
         .map(profile => ({
           id: profile.id,
           user_id: profile.id,
-          email: profile.email,
+          email: '',
           first_name: profile.first_name || '',
           last_name: profile.last_name || '',
-          role: 'owner', // Default role
+          role: 'owner',
           status: 'active',
           created_at: new Date().toISOString()
         }));
