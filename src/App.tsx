@@ -44,6 +44,7 @@ const LegalPage = lazy(() => import('@/pages/Legal'));
 const Pricing = lazy(() => import('@/pages/Pricing'));
 const BentoDemo = lazy(() => import('@/pages/BentoDemo'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
+const AcceptInvitation = lazy(() => import('@/pages/AcceptInvitation'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
