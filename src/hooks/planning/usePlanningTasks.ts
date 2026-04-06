@@ -193,6 +193,7 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
       queryClient.invalidateQueries({ queryKey: ['planningTasks'] });
       queryClient.invalidateQueries({ queryKey: ['planningCompletions'] });
       queryClient.invalidateQueries({ queryKey: ['planningRecurring'] });
+      queryClient.invalidateQueries({ queryKey: ['planningOverdue'] });
     },
     onError: (e: any) => toast.error(e.message),
   });
