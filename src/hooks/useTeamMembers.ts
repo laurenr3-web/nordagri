@@ -63,12 +63,26 @@ export function useTeamMembers() {
     }
   };
 
+  const handleUpdateMemberRole = async (memberId: string, newRole: string) => {
+    try {
+      const success = await updateMemberRole(memberId, newRole);
+      if (success && farmId) {
+        await loadTeamData(farmId);
+      }
+      return success;
+    } catch (error) {
+      console.error('Error updating member role:', error);
+      throw error;
+    }
+  };
+
   return {
     teamMembers,
     invitations,
     loading,
     handleCancelInvitation,
     handleResendInvitation,
+    handleUpdateMemberRole,
     refreshData: () => farmId ? loadTeamData(farmId) : Promise.resolve()
   };
 }
