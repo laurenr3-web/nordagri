@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 interface WeekViewProps {
   farmId: string | null;
   teamMembers: { id: string; name: string }[];
+  taskFilter?: (task: PlanningTask) => boolean;
 }
 
 function getWeekRange() {
@@ -30,11 +31,13 @@ function getWeekRange() {
 const dayNames = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 const monthNames = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 
-export function WeekView({ farmId, teamMembers }: WeekViewProps) {
+export function WeekView({ farmId, teamMembers, taskFilter }: WeekViewProps) {
   const { start, end } = getWeekRange();
   const { tasks, doneTasks, isLoading, updateStatus, updateTask, postponeTask, deleteTask } = usePlanningTasks(farmId, start, end);
   const [doneOpen, setDoneOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<PlanningTask | null>(null);
+
+  const applyFilter = (list: PlanningTask[]) => taskFilter ? list.filter(taskFilter) : list;
 
   const handleStatusChange = (id: string, status: PlanningStatus) => {
     updateStatus.mutate({ id, status });
@@ -68,7 +71,8 @@ export function WeekView({ farmId, teamMembers }: WeekViewProps) {
     return d.toISOString().split('T')[0];
   });
 
-  const activeTasks = tasks.filter(t => t.status !== 'done');
+  const activeTasks = applyFilter(tasks.filter(t => t.status !== 'done'));
+  const filteredDone = applyFilter(doneTasks);
 
   return (
     <div className="space-y-1">
@@ -121,17 +125,17 @@ export function WeekView({ farmId, teamMembers }: WeekViewProps) {
         );
       })}
 
-      {doneTasks.length > 0 && (
+      {filteredDone.length > 0 && (
         <>
           <Separator className="my-2" />
           <Collapsible open={doneOpen} onOpenChange={setDoneOpen}>
             <CollapsibleTrigger className="flex items-center gap-2 w-full py-2 px-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/50">
               <ChevronDown className={`h-4 w-4 transition-transform ${doneOpen ? 'rotate-0' : '-rotate-90'}`} />
               ✅ Terminées
-              <Badge variant="outline" className="ml-auto text-xs">{doneTasks.length}</Badge>
+              <Badge variant="outline" className="ml-auto text-xs">{filteredDone.length}</Badge>
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-2 mt-2 px-1">
-              {doneTasks.map(task => (
+              {filteredDone.map(task => (
                 <TaskCard key={task.id} task={task} onClick={() => setSelectedTask(task)} />
               ))}
             </CollapsibleContent>
