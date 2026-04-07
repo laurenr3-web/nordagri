@@ -260,8 +260,36 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
   };
 
   // Sort overdue by date ascending (oldest first)
-  const sortedOverdue = [...overdueTasks]
-    .filter(t => t.status !== 'done')
+  // Include non-recurring overdue tasks
+  const overdueNonRecurring = [...overdueTasks]
+    .filter(t => t.status !== 'done');
+
+  // Build overdue recurring occurrences (past 7 days, not completed)
+  const overdueRecurring: PlanningTask[] = [];
+  const yesterdayStr = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return d.toISOString().split('T')[0];
+  })();
+  const overdueDates = getDatesInRange(overdueStartStr, yesterdayStr);
+  for (const task of recurringTasks) {
+    for (const date of overdueDates) {
+      if (shouldAppearOnDate(task, date)) {
+        const key = `${task.id}_${date}`;
+        if (!completionSet.has(key)) {
+          overdueRecurring.push({
+            ...task,
+            due_date: date,
+            _occurrence_date: date,
+            _is_completed_today: false,
+            status: 'todo',
+          });
+        }
+      }
+    }
+  }
+
+  const sortedOverdue = [...overdueNonRecurring, ...overdueRecurring]
     .sort((a, b) => a.due_date.localeCompare(b.due_date));
 
   return {
