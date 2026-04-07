@@ -148,7 +148,7 @@ export const planningService = {
     if (error) throw error;
   },
 
-  async updateTask(id: string, updates: Partial<PlanningTask>) {
+  async updateTask(id: string, updates: Partial<Omit<PlanningTask, 'team_member_name' | '_occurrence_date' | '_is_completed_today'>>) {
     const { error } = await supabase
       .from('planning_tasks')
       .update(updates)

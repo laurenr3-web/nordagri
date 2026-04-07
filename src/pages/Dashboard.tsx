@@ -35,6 +35,7 @@ import { StatsWidget } from '@/components/dashboard/widgets/StatsWidget';
 import { EquipmentWidget } from '@/components/dashboard/widgets/EquipmentWidget';
 import { AlertsWidget } from '@/components/dashboard/widgets/AlertsWidget';
 import { CalendarWidget } from '@/components/dashboard/widgets/CalendarWidget';
+import { PlanningTodayWidget } from '@/components/dashboard/widgets/PlanningTodayWidget';
 
 // Import du système de widgets
 import { DashboardWidget } from '@/components/dashboard/DashboardWidget';
@@ -51,6 +52,7 @@ import { useFarmId } from '@/hooks/useFarmId';
 
 const DEFAULT_WIDGETS: WidgetConfig[] = [
   { id: 'stats', type: 'stats', title: 'Statistiques', size: 'full', enabled: true },
+  { id: 'planning', type: 'planning', title: 'Planification du jour', size: 'full', enabled: true },
   { id: 'equipment', type: 'equipment', title: 'Équipements', size: 'large', enabled: true },
   { id: 'alerts', type: 'alerts', title: 'Alertes', size: 'medium', enabled: true },
   { id: 'calendar', type: 'calendar', title: 'Calendrier', size: 'large', enabled: true },
@@ -115,6 +117,7 @@ const Dashboard = () => {
     
     const widgetComponents: Record<string, React.ComponentType<any>> = {
       stats: StatsWidget,
+      planning: PlanningTodayWidget,
       equipment: EquipmentWidget,
       alerts: AlertsWidget,
       calendar: CalendarWidget,
