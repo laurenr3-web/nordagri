@@ -1,41 +1,63 @@
 
 
-# Plan — Afficher tous les membres liés à la ferme dans "Gestion des accès"
+# Plan — Suggestions de maintenance dans le module Planification
 
-## Problème
+## Vue d'ensemble
 
-La section affiche "Aucun membre d'équipe" car le service `teamService.ts` a deux bugs :
-1. `fetchFarmMembers` requête `profiles.email` qui n'existe pas — la requête échoue silencieusement
-2. `fetchTeamMembers` cherche les profils par `profiles.farm_id`, mais cette colonne ne reflète pas toujours la ferme active (surtout pour les membres invités)
+Intégrer une section "Maintenances dues" dans la vue Aujourd'hui qui affiche les maintenances en retard ou dues, avec un bouton pour créer une tâche de planification. La section est masquée si aucune suggestion actionnable n'existe.
 
-La source de vérité pour les membres d'une ferme est : **`farms.owner_id`** (propriétaire) + **`farm_members`** (membres invités).
+## 1. Migration SQL
 
-## Solution
+Ajouter `source_module` et `source_id` à `planning_tasks` :
 
-Réécrire `teamService.ts` avec une logique simple et fiable :
-
-1. **Récupérer le propriétaire** : requête `farms` par `id = farmId` pour obtenir `owner_id`, puis profil associé → rôle `owner`
-2. **Récupérer les membres** : requête `farm_members` par `farm_id`, puis profils associés (sans `email`) → rôle depuis `farm_members.role`
-3. **Combiner et dédupliquer** par `user_id`
-
-## Fichiers modifiés
-
-| Fichier | Changement |
-|---|---|
-| `src/services/teamService.ts` | Réécrire `fetchTeamData` pour utiliser `farms.owner_id` + `farm_members` comme source de vérité. Supprimer `profiles.email` des requêtes. |
-
-## Détails techniques
-
-```text
-fetchTeamData(farmId)
-  ├── SELECT owner_id FROM farms WHERE id = farmId
-  │   └── SELECT first_name, last_name FROM profiles WHERE id = owner_id
-  │       → TeamMember { role: 'owner' }
-  ├── SELECT id, user_id, role, created_at FROM farm_members WHERE farm_id = farmId
-  │   └── Pour chaque: SELECT first_name, last_name FROM profiles WHERE id = user_id
-  │       → TeamMember { role: farm_members.role }
-  └── Dédupliquer par user_id (owner prioritaire)
+```sql
+ALTER TABLE public.planning_tasks
+  ADD COLUMN source_module text DEFAULT NULL,
+  ADD COLUMN source_id text DEFAULT NULL;
 ```
 
-Aucune migration SQL nécessaire.
+## 2. Fichiers modifiés/créés
+
+| Fichier | Action |
+|---|---|
+| Migration SQL | `source_module`, `source_id` sur `planning_tasks` |
+| `src/hooks/planning/useMaintenanceSuggestions.ts` | **Nouveau** — hook qui fetch les maintenances dues et expose `createTaskFromMaintenance` |
+| `src/components/planning/MaintenanceSuggestions.tsx` | **Nouveau** — composant UI de la section suggestions |
+| `src/components/planning/DayView.tsx` | Intégrer `MaintenanceSuggestions` entre "En retard" et les tâches, uniquement si `isToday` |
+| `src/services/planning/planningService.ts` | Ajouter `source_module`/`source_id` au type `PlanningTask` et aux params de `addTask` |
+
+## 3. Hook `useMaintenanceSuggestions`
+
+- Query `maintenance_tasks` avec jointure `equipment_ref:equipment_id(valeur_actuelle, farm_id, name)`, filtrée par `equipment.farm_id = farmId`
+- Filtre : `status NOT IN ('completed', 'cancelled')`
+- Détection "due" :
+  - Date-based (`trigger_unit` = 'none'/null) : `due_date <= today`
+  - Counter-based : `equipment.valeur_actuelle >= trigger_hours` ou `trigger_kilometers`
+- Anti-doublon : query `planning_tasks` avec `source_module = 'maintenance'` et `status IN ('todo', 'in_progress', 'blocked')` → set de `source_id` déjà planifiés
+- Chaque suggestion retourne : titre, nom équipement, `isOverdue`, `daysLate`, `alreadyPlanned`, info compteur
+- Mutation `createTaskFromMaintenance` :
+  - Priorité : en retard → `critical`, due aujourd'hui → `important`
+  - Notes préremplies : "Maintenance : {titre} — Équipement : {nom}. {détail compteur ou date}"
+  - `source_module = 'maintenance'`, `source_id = String(maintenance.id)`
+  - Invalide queries `planningTasks`, `maintenanceSuggestions`, `planningOverdue`
+
+## 4. Composant `MaintenanceSuggestions`
+
+- **Masquage complet** si aucune maintenance due
+- **Masquage complet** si toutes les suggestions ont `alreadyPlanned = true` (pas de section visible, zéro bruit)
+- Si certaines sont planifiées et d'autres non : afficher uniquement les non-planifiées
+- Section avec icône 🔧 et titre "Maintenances dues"
+- Cartes avec bordure amber :
+  - Badge : "En retard de X jours" ou "Due aujourd'hui" ou "Seuil d'entretien dépassé"
+  - Bouton "Créer une tâche"
+- Style distinct des tâches normales
+
+## 5. Intégration DayView
+
+- Afficher `MaintenanceSuggestions` entre la section "En retard" et les tâches normales, uniquement quand `isToday = true`
+- Passer `farmId` et le user courant
+
+## 6. Mise à jour planningService
+
+- Ajouter `source_module?: string | null` et `source_id?: string | null` au type `PlanningTask` et aux params de `addTask`
 
