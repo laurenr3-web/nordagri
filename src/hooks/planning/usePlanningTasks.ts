@@ -185,13 +185,16 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
 
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: PlanningStatus }) => {
-      // Check if this is a recurring task
       const task = tasks.find(t => t.id === id);
       if (task?.is_recurring && task._occurrence_date && user) {
         if (status === 'done') {
           await planningService.markRecurringComplete(id, task._occurrence_date, user.id);
-        } else {
+        } else if (status === 'todo') {
           await planningService.unmarkRecurringComplete(id, task._occurrence_date);
+        }
+        // Also update base task status for in_progress/blocked so it's reflected
+        if (status !== 'done') {
+          await planningService.updateTaskStatus(id, status);
         }
       } else {
         await planningService.updateTaskStatus(id, status);
