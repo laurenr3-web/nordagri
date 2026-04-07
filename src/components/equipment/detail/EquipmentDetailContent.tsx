@@ -17,6 +17,8 @@ import { Input } from '@/components/ui/input';
 import { Pencil, Check, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useFarmRole } from '@/hooks/useFarmRole';
+import QuickActions from './QuickActions';
+import UpdateHoursDialog from './UpdateHoursDialog';
 
 interface EquipmentDetailContentProps {
   equipment: EquipmentItem;
@@ -30,6 +32,7 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
   const [isEditingHours, setIsEditingHours] = useState(false);
   const [hoursInput, setHoursInput] = useState('');
   const [isSavingHours, setIsSavingHours] = useState(false);
+  const [isUpdateHoursOpen, setIsUpdateHoursOpen] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -133,8 +136,18 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
         canDelete={canDelete}
       />
       
-      <Separator className="my-4" />
-      
+      {canEdit && (
+        <>
+          <QuickActions
+            onUpdateHours={() => setIsUpdateHoursOpen(true)}
+            onMaintenance={() => navigate(`/maintenance?equipment=${localEquipment.id}`)}
+            onObservation={() => navigate(`/observations/new?equipment=${localEquipment.id}`)}
+            unitLabel={unitLabel}
+          />
+          <Separator className="my-4" />
+        </>
+      )}
+
       <div className="space-y-4">
         <Card className="overflow-hidden rounded-xl">
           <CardContent className="p-4">
@@ -216,6 +229,17 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
           onSubmit={handleEquipmentUpdate}
         />
       )}
+
+      <UpdateHoursDialog
+        open={isUpdateHoursOpen}
+        onOpenChange={setIsUpdateHoursOpen}
+        equipmentId={localEquipment.id}
+        currentValue={localEquipment.valeur_actuelle}
+        unit={localEquipment.unite_d_usure || 'heures'}
+        onUpdated={(newValue) => {
+          setLocalEquipment(prev => ({ ...prev, valeur_actuelle: newValue }));
+        }}
+      />
     </div>
   );
 };
