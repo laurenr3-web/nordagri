@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Plus, List, Users } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Plus, User, List, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -13,6 +13,7 @@ import { useAuthContext } from '@/providers/AuthProvider';
 import { usePlanningTasks } from '@/hooks/planning/usePlanningTasks';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { PlanningTask } from '@/services/planning/planningService';
 
 function getDateStr(offset: number = 0) {
   const d = new Date();
@@ -20,9 +21,11 @@ function getDateStr(offset: number = 0) {
   return d.toISOString().split('T')[0];
 }
 
+type ViewMode = 'mine' | 'all' | 'employee';
+
 export function PlanningContent() {
   const [showAddForm, setShowAddForm] = useState(false);
-  const [viewMode, setViewMode] = useState<'global' | 'employee'>('global');
+  const [viewMode, setViewMode] = useState<ViewMode>('mine');
   const { farmId } = useFarmId();
   const { user } = useAuthContext();
 
@@ -64,12 +67,12 @@ export function PlanningContent() {
 
       return (profiles || []).map(p => {
         const fm = memberMap.get(p.id);
-        // For owner without farm_members entry, use a synthetic id
         const isOwner = farm?.owner_id === p.id;
         return {
-          id: fm?.id || p.id, // farm_members.id for FK, or profile id for owner
+          id: fm?.id || p.id,
           name: [p.first_name, p.last_name].filter(Boolean).join(' ') || 'Sans nom',
           isOwner,
+          userId: p.id,
         };
       });
     },
@@ -86,6 +89,19 @@ export function PlanningContent() {
     },
     enabled: !!farmId,
   });
+
+  // Find the current user's farm_member id for filtering
+  const currentUserMemberId = useMemo(() => {
+    if (!user) return null;
+    const member = teamMembers.find(m => m.userId === user.id);
+    return member?.id ?? null;
+  }, [user, teamMembers]);
+
+  // Task filter for "mine" view: show unassigned + assigned to me
+  const taskFilter = useMemo(() => {
+    if (viewMode !== 'mine' || !currentUserMemberId) return undefined;
+    return (task: PlanningTask) => !task.assigned_to || task.assigned_to === currentUserMemberId;
+  }, [viewMode, currentUserMemberId]);
 
   const handleAddTask = (task: any) => {
     if (!user) return;
@@ -104,18 +120,23 @@ export function PlanningContent() {
       <ToggleGroup
         type="single"
         value={viewMode}
-        onValueChange={(v) => { if (v) setViewMode(v as 'global' | 'employee'); }}
+        onValueChange={(v) => { if (v) setViewMode(v as ViewMode); }}
         className="w-full"
       >
-        <ToggleGroupItem value="global" className="flex-1 gap-1.5 text-sm">
-          <List className="h-4 w-4" /> Globale
+        <ToggleGroupItem value="mine" className="flex-1 gap-1.5 text-sm">
+          <User className="h-4 w-4" /> Mes tâches
+        </ToggleGroupItem>
+        <ToggleGroupItem value="all" className="flex-1 gap-1.5 text-sm">
+          <List className="h-4 w-4" /> Toutes
         </ToggleGroupItem>
         <ToggleGroupItem value="employee" className="flex-1 gap-1.5 text-sm">
           <Users className="h-4 w-4" /> Par employé
         </ToggleGroupItem>
       </ToggleGroup>
 
-      {viewMode === 'global' ? (
+      {viewMode === 'employee' ? (
+        <EmployeeView farmId={farmId} date={todayStr} teamMembers={teamMembers as any[]} />
+      ) : (
         <Tabs defaultValue="today" className="w-full">
           <TabsList className="grid grid-cols-3 w-full h-11">
             <TabsTrigger value="today" className="text-sm font-medium">Aujourd'hui</TabsTrigger>
@@ -125,18 +146,16 @@ export function PlanningContent() {
 
           <div className="mt-4">
             <TabsContent value="today" className="mt-0">
-              <DayView farmId={farmId} date={todayStr} label="Aujourd'hui" teamMembers={teamMembers as any[]} userId={user?.id ?? null} />
+              <DayView farmId={farmId} date={todayStr} label="Aujourd'hui" teamMembers={teamMembers as any[]} userId={user?.id ?? null} taskFilter={taskFilter} />
             </TabsContent>
             <TabsContent value="tomorrow" className="mt-0">
-              <DayView farmId={farmId} date={tomorrowStr} label="Demain" teamMembers={teamMembers as any[]} />
+              <DayView farmId={farmId} date={tomorrowStr} label="Demain" teamMembers={teamMembers as any[]} taskFilter={taskFilter} />
             </TabsContent>
             <TabsContent value="week" className="mt-0">
-              <WeekView farmId={farmId} teamMembers={teamMembers as any[]} />
+              <WeekView farmId={farmId} teamMembers={teamMembers as any[]} taskFilter={taskFilter} />
             </TabsContent>
           </div>
         </Tabs>
-      ) : (
-        <EmployeeView farmId={farmId} date={todayStr} teamMembers={teamMembers as any[]} />
       )}
 
       {/* FAB */}
