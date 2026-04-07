@@ -99,6 +99,11 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
     return importanceMap[category] || 'todo';
   };
 
+  const getRecurringStatus = (task: PlanningTask, isCompleted: boolean): PlanningStatus => {
+    if (isCompleted) return 'done';
+    return task.status === 'done' ? 'todo' : task.status;
+  };
+
   // Build the final task list: regular tasks + recurring occurrences
   const buildTaskList = (): PlanningTask[] => {
     const result: PlanningTask[] = [];
@@ -118,7 +123,7 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
             ...t,
             _occurrence_date: t.due_date,
             _is_completed_today: isCompleted,
-            status: isCompleted ? 'done' : t.status === 'done' ? 'todo' : t.status,
+            status: getRecurringStatus(t, isCompleted),
           });
         }
       }
@@ -140,7 +145,7 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
               due_date: date,
               _occurrence_date: date,
               _is_completed_today: isCompleted,
-              status: isCompleted ? 'done' : 'todo',
+              status: getRecurringStatus(task, isCompleted),
             });
           }
         }
@@ -189,11 +194,11 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
       if (task?.is_recurring && task._occurrence_date && user) {
         if (status === 'done') {
           await planningService.markRecurringComplete(id, task._occurrence_date, user.id);
+          await planningService.updateTaskStatus(id, 'todo');
         } else if (status === 'todo') {
           await planningService.unmarkRecurringComplete(id, task._occurrence_date);
-        }
-        // Also update base task status for in_progress/blocked so it's reflected
-        if (status !== 'done') {
+          await planningService.updateTaskStatus(id, status);
+        } else {
           await planningService.updateTaskStatus(id, status);
         }
       } else {
@@ -285,7 +290,7 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
             due_date: date,
             _occurrence_date: date,
             _is_completed_today: false,
-            status: 'todo',
+            status: getRecurringStatus(task, false),
           });
         }
       }
