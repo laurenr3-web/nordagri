@@ -54,6 +54,9 @@ export function WeekView({ farmId, teamMembers, taskFilter }: WeekViewProps) {
   const handleAssign = (taskId: string, memberId: string | null) => {
     updateTask.mutate({ id: taskId, updates: { assigned_to: memberId } });
   };
+  const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+  const handleSwipeComplete = (id: string) => { updateStatus.mutate({ id, status: 'done' }); };
+  const handleSwipePostpone = (id: string) => { postponeTask.mutate({ id, newDate: tomorrowStr }); };
 
   if (isLoading) {
     return (
