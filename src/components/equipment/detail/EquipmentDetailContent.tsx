@@ -136,8 +136,18 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
         canDelete={canDelete}
       />
       
-      <Separator className="my-4" />
-      
+      {canEdit && (
+        <>
+          <QuickActions
+            onUpdateHours={() => setIsUpdateHoursOpen(true)}
+            onMaintenance={() => navigate(`/maintenance?equipment=${localEquipment.id}`)}
+            onObservation={() => navigate(`/observations/new?equipment=${localEquipment.id}`)}
+            unitLabel={unitLabel}
+          />
+          <Separator className="my-4" />
+        </>
+      )}
+
       <div className="space-y-4">
         <Card className="overflow-hidden rounded-xl">
           <CardContent className="p-4">
