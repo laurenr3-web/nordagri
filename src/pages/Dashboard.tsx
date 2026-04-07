@@ -117,6 +117,7 @@ const Dashboard = () => {
     
     const widgetComponents: Record<string, React.ComponentType<any>> = {
       stats: StatsWidget,
+      planning: PlanningTodayWidget,
       equipment: EquipmentWidget,
       alerts: AlertsWidget,
       calendar: CalendarWidget,
