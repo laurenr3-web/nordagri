@@ -11,7 +11,8 @@ import { logger } from "@/utils/logger";
  */
 export function useLocalStorage<T>(
   key: string,
-  initialValue: T | (() => T)
+  initialValue: T | (() => T),
+  migrate?: (saved: T) => T
 ): [T, (value: T | ((val: T) => T)) => void] {
   // Get from local storage then parse stored json or return initialValue
   const readValue = (): T => {
@@ -22,7 +23,11 @@ export function useLocalStorage<T>(
 
     try {
       const item = window.localStorage.getItem(key);
-      return item ? (JSON.parse(item) as T) : initialValue instanceof Function ? initialValue() : initialValue;
+      if (item) {
+        const parsed = JSON.parse(item) as T;
+        return migrate ? migrate(parsed) : parsed;
+      }
+      return initialValue instanceof Function ? initialValue() : initialValue;
     } catch (error) {
       logger.warn(`Error reading localStorage key "${key}":`, error);
       return initialValue instanceof Function ? initialValue() : initialValue;
