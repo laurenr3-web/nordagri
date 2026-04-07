@@ -111,9 +111,10 @@ export function useMaintenanceSuggestions(farmId: string | null, userId: string 
   });
 
   const createTask = useMutation({
-    mutationFn: async (suggestion: MaintenanceSuggestion) => {
+    mutationFn: async ({ suggestion, date }: { suggestion: MaintenanceSuggestion; date?: string }) => {
       if (!farmId || !userId) throw new Error('Missing farm or user');
 
+      const targetDate = date || todayStr;
       const priority = suggestion.isOverdue ? 'critical' : 'important';
       const notesLines = [`Maintenance : ${suggestion.title}`, `Équipement : ${suggestion.equipmentName}`];
       if (suggestion.isCounterBased) {
@@ -126,7 +127,7 @@ export function useMaintenanceSuggestions(farmId: string | null, userId: string 
         farm_id: farmId,
         title: `Maintenance : ${suggestion.title}`,
         category: 'equipement',
-        due_date: todayStr,
+        due_date: targetDate,
         computed_priority: priority,
         manual_priority: priority,
         created_by: userId,
