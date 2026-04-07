@@ -32,6 +32,7 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
   const [isEditingHours, setIsEditingHours] = useState(false);
   const [hoursInput, setHoursInput] = useState('');
   const [isSavingHours, setIsSavingHours] = useState(false);
+  const [isUpdateHoursOpen, setIsUpdateHoursOpen] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const isMobile = useMediaQuery('(max-width: 768px)');
