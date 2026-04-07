@@ -1190,6 +1190,8 @@ export type Database = {
           notes: string | null
           recurrence_days: number[] | null
           recurrence_type: string | null
+          source_id: string | null
+          source_module: string | null
           status: string
           title: string
           updated_at: string
@@ -1212,6 +1214,8 @@ export type Database = {
           notes?: string | null
           recurrence_days?: number[] | null
           recurrence_type?: string | null
+          source_id?: string | null
+          source_module?: string | null
           status?: string
           title: string
           updated_at?: string
@@ -1234,6 +1238,8 @@ export type Database = {
           notes?: string | null
           recurrence_days?: number[] | null
           recurrence_type?: string | null
+          source_id?: string | null
+          source_module?: string | null
           status?: string
           title?: string
           updated_at?: string
