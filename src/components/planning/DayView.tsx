@@ -66,12 +66,18 @@ export function DayView({ farmId, date, label, teamMembers, userId, taskFilter }
   const todayStr = new Date().toISOString().split('T')[0];
   const isToday = date === todayStr;
 
-  const assignProps = { teamMembers, currentUserMemberId, onAssign: handleAssign };
+  const sharedProps = {
+    teamMembers,
+    currentUserMemberId,
+    onAssign: handleAssign,
+    onStatusChange: handleStatusChange,
+    onPostpone: handlePostpone,
+  };
 
   return (
     <div className="space-y-4">
       {isToday && filteredOverdue.length > 0 && (
-        <TaskGroup label="En retard" icon="⏰" tasks={filteredOverdue} onTaskClick={setSelectedTask} {...assignProps} />
+        <TaskGroup label="En retard" icon="⏰" tasks={filteredOverdue} onTaskClick={setSelectedTask} {...sharedProps} />
       )}
 
       {isToday && <MaintenanceSuggestions farmId={farmId} userId={userId ?? null} />}
@@ -83,9 +89,9 @@ export function DayView({ farmId, date, label, teamMembers, userId, taskFilter }
         </div>
       ) : (
         <>
-          <TaskGroup label="Critique" icon="🔴" tasks={filteredGrouped.critical} onTaskClick={setSelectedTask} {...assignProps} />
-          <TaskGroup label="Important" icon="🟡" tasks={filteredGrouped.important} onTaskClick={setSelectedTask} {...assignProps} />
-          <TaskGroup label="À faire" icon="⚪" tasks={filteredGrouped.todo} onTaskClick={setSelectedTask} {...assignProps} />
+          <TaskGroup label="Critique" icon="🔴" tasks={filteredGrouped.critical} onTaskClick={setSelectedTask} {...sharedProps} />
+          <TaskGroup label="Important" icon="🟠" tasks={filteredGrouped.important} onTaskClick={setSelectedTask} {...sharedProps} />
+          <TaskGroup label="À faire" icon="⚪" tasks={filteredGrouped.todo} onTaskClick={setSelectedTask} {...sharedProps} />
         </>
       )}
 
