@@ -229,6 +229,17 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
           onSubmit={handleEquipmentUpdate}
         />
       )}
+
+      <UpdateHoursDialog
+        open={isUpdateHoursOpen}
+        onOpenChange={setIsUpdateHoursOpen}
+        equipmentId={localEquipment.id}
+        currentValue={localEquipment.valeur_actuelle}
+        unit={localEquipment.unite_d_usure || 'heures'}
+        onUpdated={(newValue) => {
+          setLocalEquipment(prev => ({ ...prev, valeur_actuelle: newValue }));
+        }}
+      />
     </div>
   );
 };
