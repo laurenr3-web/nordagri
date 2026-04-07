@@ -7,12 +7,14 @@ import { TaskDetailDialog } from './TaskDetailDialog';
 import { usePlanningTasks } from '@/hooks/planning/usePlanningTasks';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
+import { MaintenanceSuggestions } from './MaintenanceSuggestions';
 
 interface DayViewProps {
   farmId: string | null;
   date: string;
   label: string;
   teamMembers: { id: string; name: string }[];
+  userId?: string | null;
 }
 
 export function DayView({ farmId, date, label, teamMembers }: DayViewProps) {
