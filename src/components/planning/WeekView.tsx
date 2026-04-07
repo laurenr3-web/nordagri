@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { PlanningTask, PlanningStatus } from '@/services/planning/planningService';
+import { SwipeableTaskCard } from './SwipeableTaskCard';
 import { TaskCard } from './TaskCard';
 import { TaskDetailDialog } from './TaskDetailDialog';
 import { usePlanningTasks } from '@/hooks/planning/usePlanningTasks';
@@ -53,6 +54,9 @@ export function WeekView({ farmId, teamMembers, taskFilter }: WeekViewProps) {
   const handleAssign = (taskId: string, memberId: string | null) => {
     updateTask.mutate({ id: taskId, updates: { assigned_to: memberId } });
   };
+  const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+  const handleSwipeComplete = (id: string) => { updateStatus.mutate({ id, status: 'done' }); };
+  const handleSwipePostpone = (id: string) => { postponeTask.mutate({ id, newDate: tomorrowStr }); };
 
   if (isLoading) {
     return (
@@ -114,13 +118,15 @@ export function WeekView({ farmId, teamMembers, taskFilter }: WeekViewProps) {
               ) : (
                 <div className="space-y-2 pl-1">
                   {dayTasks.map(task => (
-                    <TaskCard
+                    <SwipeableTaskCard
                       key={task.id}
                       task={task}
                       onClick={() => setSelectedTask(task)}
                       teamMembers={teamMembers}
                       currentUserMemberId={currentUserMemberId}
                       onAssign={handleAssign}
+                      onComplete={handleSwipeComplete}
+                      onPostpone={handleSwipePostpone}
                     />
                   ))}
                 </div>

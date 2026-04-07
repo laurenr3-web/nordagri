@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { PlanningTask } from '@/services/planning/planningService';
-import { TaskCard } from './TaskCard';
+import { SwipeableTaskCard } from './SwipeableTaskCard';
 
 interface TaskGroupProps {
   label: string;
@@ -11,9 +11,11 @@ interface TaskGroupProps {
   teamMembers?: { id: string; name: string }[];
   currentUserMemberId?: string | null;
   onAssign?: (taskId: string, memberId: string | null) => void;
+  onComplete?: (taskId: string) => void;
+  onPostpone?: (taskId: string) => void;
 }
 
-export function TaskGroup({ label, icon, tasks, onTaskClick, teamMembers, currentUserMemberId, onAssign }: TaskGroupProps) {
+export function TaskGroup({ label, icon, tasks, onTaskClick, teamMembers, currentUserMemberId, onAssign, onComplete, onPostpone }: TaskGroupProps) {
   if (tasks.length === 0) return null;
 
   return (
@@ -24,13 +26,15 @@ export function TaskGroup({ label, icon, tasks, onTaskClick, teamMembers, curren
       </h3>
       <div className="space-y-2">
         {tasks.map(task => (
-          <TaskCard
+          <SwipeableTaskCard
             key={task.id}
             task={task}
             onClick={() => onTaskClick?.(task)}
             teamMembers={teamMembers}
             currentUserMemberId={currentUserMemberId}
             onAssign={onAssign}
+            onComplete={onComplete}
+            onPostpone={onPostpone}
           />
         ))}
       </div>

@@ -66,7 +66,16 @@ export function DayView({ farmId, date, label, teamMembers, userId, taskFilter }
   const todayStr = new Date().toISOString().split('T')[0];
   const isToday = date === todayStr;
 
-  const assignProps = { teamMembers, currentUserMemberId, onAssign: handleAssign };
+  const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+
+  const handleSwipeComplete = (id: string) => {
+    updateStatus.mutate({ id, status: 'done' });
+  };
+  const handleSwipePostpone = (id: string) => {
+    postponeTask.mutate({ id, newDate: tomorrowStr });
+  };
+
+  const assignProps = { teamMembers, currentUserMemberId, onAssign: handleAssign, onComplete: handleSwipeComplete, onPostpone: handleSwipePostpone };
 
   return (
     <div className="space-y-4">
