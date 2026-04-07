@@ -125,7 +125,7 @@ export function PlanningContent() {
 
           <div className="mt-4">
             <TabsContent value="today" className="mt-0">
-              <DayView farmId={farmId} date={todayStr} label="Aujourd'hui" teamMembers={teamMembers as any[]} />
+              <DayView farmId={farmId} date={todayStr} label="Aujourd'hui" teamMembers={teamMembers as any[]} userId={user?.id ?? null} />
             </TabsContent>
             <TabsContent value="tomorrow" className="mt-0">
               <DayView farmId={farmId} date={tomorrowStr} label="Demain" teamMembers={teamMembers as any[]} />
