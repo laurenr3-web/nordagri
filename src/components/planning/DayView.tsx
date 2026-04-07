@@ -57,6 +57,9 @@ export function DayView({ farmId, date, label, teamMembers, userId }: DayViewPro
         <TaskGroup label="En retard" icon="⏰" tasks={overdueTasks} onTaskClick={setSelectedTask} />
       )}
 
+      {/* Maintenance suggestions — only on Today view */}
+      {isToday && <MaintenanceSuggestions farmId={farmId} userId={userId ?? null} />}
+
       {totalTasks === 0 && (!isToday || overdueTasks.length === 0) ? (
         <div className="text-center py-12 text-muted-foreground">
           <p className="text-lg">🎉</p>
