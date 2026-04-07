@@ -35,6 +35,7 @@ import { StatsWidget } from '@/components/dashboard/widgets/StatsWidget';
 import { EquipmentWidget } from '@/components/dashboard/widgets/EquipmentWidget';
 import { AlertsWidget } from '@/components/dashboard/widgets/AlertsWidget';
 import { CalendarWidget } from '@/components/dashboard/widgets/CalendarWidget';
+import { PlanningTodayWidget } from '@/components/dashboard/widgets/PlanningTodayWidget';
 
 // Import du système de widgets
 import { DashboardWidget } from '@/components/dashboard/DashboardWidget';
