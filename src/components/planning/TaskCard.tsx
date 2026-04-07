@@ -3,7 +3,7 @@ import React from 'react';
 import { PlanningTask } from '@/services/planning/planningService';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { RefreshCw, Clock } from 'lucide-react';
+import { RefreshCw, Clock, Wrench } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const categoryLabels: Record<string, string> = {
@@ -87,6 +87,12 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
           <Badge className="text-[10px] px-1.5 py-0 bg-orange-500 text-white border-0 gap-1">
             <Clock className="h-2.5 w-2.5" />
             {overdueDays}j en retard
+          </Badge>
+        )}
+        {task.source_module === 'maintenance' && (
+          <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border-amber-300 dark:border-amber-700 gap-1">
+            <Wrench className="h-2.5 w-2.5" />
+            Maintenance
           </Badge>
         )}
       </div>
