@@ -52,6 +52,7 @@ import { useFarmId } from '@/hooks/useFarmId';
 
 const DEFAULT_WIDGETS: WidgetConfig[] = [
   { id: 'stats', type: 'stats', title: 'Statistiques', size: 'full', enabled: true },
+  { id: 'planning', type: 'planning', title: 'Planification du jour', size: 'full', enabled: true },
   { id: 'equipment', type: 'equipment', title: 'Équipements', size: 'large', enabled: true },
   { id: 'alerts', type: 'alerts', title: 'Alertes', size: 'medium', enabled: true },
   { id: 'calendar', type: 'calendar', title: 'Calendrier', size: 'large', enabled: true },
