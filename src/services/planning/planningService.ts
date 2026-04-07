@@ -26,6 +26,8 @@ export interface PlanningTask {
   is_recurring: boolean;
   recurrence_type: 'daily' | 'weekly' | 'custom' | null;
   recurrence_days: number[] | null;
+  source_module: string | null;
+  source_id: string | null;
   // Joined / computed
   team_member_name?: string;
   // For recurring: virtual occurrence date & completion status
@@ -98,6 +100,8 @@ export const planningService = {
     is_recurring?: boolean;
     recurrence_type?: string | null;
     recurrence_days?: number[] | null;
+    source_module?: string | null;
+    source_id?: string | null;
   }): Promise<PlanningTask> {
     const { data, error } = await supabase
       .from('planning_tasks')

@@ -7,15 +7,17 @@ import { TaskDetailDialog } from './TaskDetailDialog';
 import { usePlanningTasks } from '@/hooks/planning/usePlanningTasks';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
+import { MaintenanceSuggestions } from './MaintenanceSuggestions';
 
 interface DayViewProps {
   farmId: string | null;
   date: string;
   label: string;
   teamMembers: { id: string; name: string }[];
+  userId?: string | null;
 }
 
-export function DayView({ farmId, date, label, teamMembers }: DayViewProps) {
+export function DayView({ farmId, date, label, teamMembers, userId }: DayViewProps) {
   const { groupedTasks, doneTasks, overdueTasks, isLoading, updateStatus, updateTask, postponeTask, deleteTask } = usePlanningTasks(farmId, date, date);
   const [doneOpen, setDoneOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<PlanningTask | null>(null);
@@ -54,6 +56,9 @@ export function DayView({ farmId, date, label, teamMembers }: DayViewProps) {
       {isToday && overdueTasks.length > 0 && (
         <TaskGroup label="En retard" icon="⏰" tasks={overdueTasks} onTaskClick={setSelectedTask} />
       )}
+
+      {/* Maintenance suggestions — only on Today view */}
+      {isToday && <MaintenanceSuggestions farmId={farmId} userId={userId ?? null} />}
 
       {totalTasks === 0 && (!isToday || overdueTasks.length === 0) ? (
         <div className="text-center py-12 text-muted-foreground">
