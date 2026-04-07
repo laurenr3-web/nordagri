@@ -17,7 +17,7 @@ interface DayViewProps {
   userId?: string | null;
 }
 
-export function DayView({ farmId, date, label, teamMembers }: DayViewProps) {
+export function DayView({ farmId, date, label, teamMembers, userId }: DayViewProps) {
   const { groupedTasks, doneTasks, overdueTasks, isLoading, updateStatus, updateTask, postponeTask, deleteTask } = usePlanningTasks(farmId, date, date);
   const [doneOpen, setDoneOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<PlanningTask | null>(null);
