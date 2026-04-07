@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { PlanningTask, PlanningStatus } from '@/services/planning/planningService';
-import { TaskCard } from './TaskCard';
+import { SwipeableTaskCard } from './SwipeableTaskCard';
 import { TaskDetailDialog } from './TaskDetailDialog';
 import { usePlanningTasks } from '@/hooks/planning/usePlanningTasks';
 import { useAuthContext } from '@/providers/AuthProvider';
