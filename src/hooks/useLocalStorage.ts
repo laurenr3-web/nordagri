@@ -23,7 +23,11 @@ export function useLocalStorage<T>(
 
     try {
       const item = window.localStorage.getItem(key);
-      return item ? (JSON.parse(item) as T) : initialValue instanceof Function ? initialValue() : initialValue;
+      if (item) {
+        const parsed = JSON.parse(item) as T;
+        return migrate ? migrate(parsed) : parsed;
+      }
+      return initialValue instanceof Function ? initialValue() : initialValue;
     } catch (error) {
       logger.warn(`Error reading localStorage key "${key}":`, error);
       return initialValue instanceof Function ? initialValue() : initialValue;
