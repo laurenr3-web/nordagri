@@ -1,15 +1,16 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { PlanningTask, PlanningStatus } from '@/services/planning/planningService';
 import { TaskCard } from './TaskCard';
 import { TaskDetailDialog } from './TaskDetailDialog';
 import { usePlanningTasks } from '@/hooks/planning/usePlanningTasks';
+import { useAuthContext } from '@/providers/AuthProvider';
 import { User, Users } from 'lucide-react';
 
 interface EmployeeViewProps {
   farmId: string | null;
   date: string;
-  teamMembers: { id: string; name: string }[];
+  teamMembers: { id: string; name: string; userId?: string }[];
 }
 
 interface EmployeeGroup {
@@ -22,10 +23,15 @@ export function EmployeeView({ farmId, date, teamMembers }: EmployeeViewProps) {
   const [selectedTask, setSelectedTask] = useState<PlanningTask | null>(null);
   const { tasks, isLoading, updateStatus, postponeTask, deleteTask, updateTask } =
     usePlanningTasks(farmId, date, date);
+  const { user } = useAuthContext();
+
+  const currentUserMemberId = useMemo(() => {
+    if (!user) return null;
+    return teamMembers.find(m => (m as any).userId === user.id)?.id ?? null;
+  }, [user, teamMembers]);
 
   const activeTasks = tasks.filter(t => t.status !== 'done');
 
-  // Group by assigned_to
   const priorityOrder: Record<string, number> = { critical: 0, important: 1, todo: 2 };
 
   const groupMap = new Map<string | null, PlanningTask[]>();
@@ -35,14 +41,12 @@ export function EmployeeView({ farmId, date, teamMembers }: EmployeeViewProps) {
     groupMap.get(key)!.push(task);
   }
 
-  // Sort tasks within each group by priority
   const sortByPriority = (a: PlanningTask, b: PlanningTask) => {
     const pa = a.manual_priority || a.computed_priority;
     const pb = b.manual_priority || b.computed_priority;
     return (priorityOrder[pa] ?? 2) - (priorityOrder[pb] ?? 2);
   };
 
-  // Build employee groups: assigned first, unassigned last
   const groups: EmployeeGroup[] = [];
 
   for (const member of teamMembers) {
@@ -56,7 +60,6 @@ export function EmployeeView({ farmId, date, teamMembers }: EmployeeViewProps) {
     }
   }
 
-  // Unassigned
   const unassigned = groupMap.get(null);
   if (unassigned && unassigned.length > 0) {
     groups.push({
@@ -78,6 +81,9 @@ export function EmployeeView({ farmId, date, teamMembers }: EmployeeViewProps) {
   };
   const handleUpdate = (id: string, updates: Partial<PlanningTask>) => {
     updateTask.mutate({ id, updates });
+  };
+  const handleAssign = (taskId: string, memberId: string | null) => {
+    updateTask.mutate({ id: taskId, updates: { assigned_to: memberId } });
   };
 
   if (isLoading) {
@@ -119,6 +125,9 @@ export function EmployeeView({ farmId, date, teamMembers }: EmployeeViewProps) {
                 key={task.id}
                 task={task}
                 onClick={() => setSelectedTask(task)}
+                teamMembers={teamMembers}
+                currentUserMemberId={currentUserMemberId}
+                onAssign={handleAssign}
               />
             ))}
           </div>
