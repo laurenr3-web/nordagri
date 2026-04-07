@@ -9,7 +9,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Separator } from '@/components/ui/separator';
-import { Play, CheckCircle2, AlertTriangle, Unlock, CalendarIcon, Trash2, Save, Clock } from 'lucide-react';
+import { Play, CheckCircle2, AlertTriangle, Unlock, CalendarIcon, Trash2, Save, Clock, Wrench, ExternalLink } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -65,6 +66,7 @@ export function TaskDetailDialog({
   onDelete,
   onUpdate,
 }: TaskDetailDialogProps) {
+  const navigate = useNavigate();
   const [localAssignedTo, setLocalAssignedTo] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -151,7 +153,22 @@ export function TaskDetailDialog({
             </div>
 
             {task.notes && (
-              <p className="text-sm text-muted-foreground">{task.notes}</p>
+              <p className="text-sm text-muted-foreground whitespace-pre-line">{task.notes}</p>
+            )}
+
+            {/* Source maintenance indicator */}
+            {task.source_module === 'maintenance' && task.equipment_id && (
+              <button
+                onClick={() => {
+                  onOpenChange(false);
+                  navigate(`/equipment/${task.equipment_id}`);
+                }}
+                className="flex items-center gap-2 w-full p-2 rounded-md border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 text-sm text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-950/50 transition-colors"
+              >
+                <Wrench className="h-4 w-4 shrink-0" />
+                <span className="flex-1 text-left">Créée depuis une maintenance</span>
+                <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+              </button>
             )}
 
             {(task.field_name || task.building_name || task.animal_group) && (
