@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { PlanningTask, PlanningStatus } from '@/services/planning/planningService';
 import { TaskCard } from './TaskCard';
 import { TaskDetailDialog } from './TaskDetailDialog';
@@ -8,10 +8,11 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { ChevronDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { useAuthContext } from '@/providers/AuthProvider';
 
 interface WeekViewProps {
   farmId: string | null;
-  teamMembers: { id: string; name: string }[];
+  teamMembers: { id: string; name: string; userId?: string }[];
   taskFilter?: (task: PlanningTask) => boolean;
 }
 
@@ -36,23 +37,21 @@ export function WeekView({ farmId, teamMembers, taskFilter }: WeekViewProps) {
   const { tasks, doneTasks, isLoading, updateStatus, updateTask, postponeTask, deleteTask } = usePlanningTasks(farmId, start, end);
   const [doneOpen, setDoneOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<PlanningTask | null>(null);
+  const { user } = useAuthContext();
+
+  const currentUserMemberId = useMemo(() => {
+    if (!user) return null;
+    return teamMembers.find(m => (m as any).userId === user.id)?.id ?? null;
+  }, [user, teamMembers]);
 
   const applyFilter = (list: PlanningTask[]) => taskFilter ? list.filter(taskFilter) : list;
 
-  const handleStatusChange = (id: string, status: PlanningStatus) => {
-    updateStatus.mutate({ id, status });
-  };
-
-  const handlePostpone = (id: string, newDate: string) => {
-    postponeTask.mutate({ id, newDate });
-  };
-
-  const handleDelete = (id: string) => {
-    deleteTask.mutate(id);
-  };
-
-  const handleUpdate = (id: string, updates: Partial<PlanningTask>) => {
-    updateTask.mutate({ id, updates });
+  const handleStatusChange = (id: string, status: PlanningStatus) => { updateStatus.mutate({ id, status }); };
+  const handlePostpone = (id: string, newDate: string) => { postponeTask.mutate({ id, newDate }); };
+  const handleDelete = (id: string) => { deleteTask.mutate(id); };
+  const handleUpdate = (id: string, updates: Partial<PlanningTask>) => { updateTask.mutate({ id, updates }); };
+  const handleAssign = (taskId: string, memberId: string | null) => {
+    updateTask.mutate({ id: taskId, updates: { assigned_to: memberId } });
   };
 
   if (isLoading) {
@@ -115,7 +114,14 @@ export function WeekView({ farmId, teamMembers, taskFilter }: WeekViewProps) {
               ) : (
                 <div className="space-y-2 pl-1">
                   {dayTasks.map(task => (
-                    <TaskCard key={task.id} task={task} onClick={() => setSelectedTask(task)} />
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      onClick={() => setSelectedTask(task)}
+                      teamMembers={teamMembers}
+                      currentUserMemberId={currentUserMemberId}
+                      onAssign={handleAssign}
+                    />
                   ))}
                 </div>
               )}
@@ -136,7 +142,7 @@ export function WeekView({ farmId, teamMembers, taskFilter }: WeekViewProps) {
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-2 mt-2 px-1">
               {filteredDone.map(task => (
-                <TaskCard key={task.id} task={task} onClick={() => setSelectedTask(task)} />
+                <TaskCard key={task.id} task={task} onClick={() => setSelectedTask(task)} teamMembers={teamMembers} />
               ))}
             </CollapsibleContent>
           </Collapsible>

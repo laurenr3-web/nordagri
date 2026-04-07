@@ -149,7 +149,7 @@ export function PlanningContent() {
               <DayView farmId={farmId} date={todayStr} label="Aujourd'hui" teamMembers={teamMembers as any[]} userId={user?.id ?? null} taskFilter={taskFilter} />
             </TabsContent>
             <TabsContent value="tomorrow" className="mt-0">
-              <DayView farmId={farmId} date={tomorrowStr} label="Demain" teamMembers={teamMembers as any[]} taskFilter={taskFilter} />
+              <DayView farmId={farmId} date={tomorrowStr} label="Demain" teamMembers={teamMembers as any[]} userId={user?.id ?? null} taskFilter={taskFilter} />
             </TabsContent>
             <TabsContent value="week" className="mt-0">
               <WeekView farmId={farmId} teamMembers={teamMembers as any[]} taskFilter={taskFilter} />

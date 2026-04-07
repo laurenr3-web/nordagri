@@ -1,9 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { PlanningTask } from '@/services/planning/planningService';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { RefreshCw, Clock, Wrench } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { RefreshCw, Clock, Wrench, User, Hand } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const categoryLabels: Record<string, string> = {
@@ -39,18 +41,40 @@ const priorityConfig: Record<string, { label: string; className: string }> = {
 interface TaskCardProps {
   task: PlanningTask;
   onClick?: () => void;
+  teamMembers?: { id: string; name: string }[];
+  currentUserMemberId?: string | null;
+  onAssign?: (taskId: string, memberId: string | null) => void;
 }
 
-export function TaskCard({ task, onClick }: TaskCardProps) {
+export function TaskCard({ task, onClick, teamMembers, currentUserMemberId, onAssign }: TaskCardProps) {
+  const [popoverOpen, setPopoverOpen] = useState(false);
   const effectivePriority = task.manual_priority || task.computed_priority;
   const priority = priorityConfig[effectivePriority] || priorityConfig.todo;
 
-  // Calculate overdue days
   const todayStr = new Date().toISOString().split('T')[0];
   const isOverdue = task.due_date < todayStr && task.status !== 'done';
   const overdueDays = isOverdue
     ? Math.floor((new Date(todayStr).getTime() - new Date(task.due_date).getTime()) / 86400000)
     : 0;
+
+  const assignedMemberName = task.assigned_to && teamMembers
+    ? teamMembers.find(m => m.id === task.assigned_to)?.name
+    : task.team_member_name;
+
+  const isUnassigned = !task.assigned_to;
+  const canAssign = !!onAssign && !!teamMembers && task.status !== 'done';
+
+  const handleAssign = (memberId: string | null) => {
+    onAssign?.(task.id, memberId);
+    setPopoverOpen(false);
+  };
+
+  const handleTake = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (currentUserMemberId) {
+      onAssign?.(task.id, currentUserMemberId);
+    }
+  };
 
   return (
     <Card
@@ -97,9 +121,71 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
         )}
       </div>
 
-      {task.team_member_name && (
-        <p className="text-xs text-muted-foreground">👤 {task.team_member_name}</p>
-      )}
+      {/* Assignment row */}
+      <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+        {canAssign ? (
+          <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+            <PopoverTrigger asChild>
+              <button
+                className={cn(
+                  "flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-colors",
+                  isUnassigned
+                    ? "text-muted-foreground bg-muted/50 hover:bg-muted"
+                    : "text-foreground bg-primary/10 hover:bg-primary/20"
+                )}
+              >
+                <User className="h-3 w-3" />
+                {isUnassigned ? 'Non assigné' : assignedMemberName || 'Assigné'}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-48 p-1" align="start">
+              <div className="space-y-0.5">
+                <button
+                  className={cn(
+                    "w-full text-left text-sm px-3 py-2 rounded-md hover:bg-muted transition-colors",
+                    isUnassigned && "bg-muted font-medium"
+                  )}
+                  onClick={() => handleAssign(null)}
+                >
+                  Non assigné
+                </button>
+                {teamMembers.map(member => (
+                  <button
+                    key={member.id}
+                    className={cn(
+                      "w-full text-left text-sm px-3 py-2 rounded-md hover:bg-muted transition-colors",
+                      task.assigned_to === member.id && "bg-primary/10 font-medium text-primary"
+                    )}
+                    onClick={() => handleAssign(member.id)}
+                  >
+                    {member.name}
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+        ) : (
+          (assignedMemberName || isUnassigned) && (
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <User className="h-3 w-3" />
+              {isUnassigned ? 'Non assigné' : assignedMemberName}
+            </span>
+          )
+        )}
+
+        {/* "Prendre" button for unassigned tasks */}
+        {canAssign && isUnassigned && currentUserMemberId && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-6 text-xs px-2 gap-1"
+            onClick={handleTake}
+          >
+            <Hand className="h-3 w-3" />
+            Prendre
+          </Button>
+        )}
+      </div>
 
       {task.notes && (
         <p className="text-xs text-muted-foreground line-clamp-2">{task.notes}</p>

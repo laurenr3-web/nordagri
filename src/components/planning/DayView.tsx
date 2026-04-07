@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { PlanningTask, PlanningStatus } from '@/services/planning/planningService';
 import { TaskGroup } from './TaskGroup';
 import { TaskCard } from './TaskCard';
@@ -13,7 +13,7 @@ interface DayViewProps {
   farmId: string | null;
   date: string;
   label: string;
-  teamMembers: { id: string; name: string }[];
+  teamMembers: { id: string; name: string; userId?: string }[];
   userId?: string | null;
   taskFilter?: (task: PlanningTask) => boolean;
 }
@@ -23,22 +23,27 @@ export function DayView({ farmId, date, label, teamMembers, userId, taskFilter }
   const [doneOpen, setDoneOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<PlanningTask | null>(null);
 
+  const currentUserMemberId = useMemo(() => {
+    if (!userId) return null;
+    return teamMembers.find(m => (m as any).userId === userId)?.id ?? null;
+  }, [userId, teamMembers]);
+
   const applyFilter = (tasks: PlanningTask[]) => taskFilter ? tasks.filter(taskFilter) : tasks;
 
   const handleStatusChange = (id: string, status: PlanningStatus) => {
     updateStatus.mutate({ id, status });
   };
-
   const handlePostpone = (id: string, newDate: string) => {
     postponeTask.mutate({ id, newDate });
   };
-
   const handleDelete = (id: string) => {
     deleteTask.mutate(id);
   };
-
   const handleUpdate = (id: string, updates: Partial<PlanningTask>) => {
     updateTask.mutate({ id, updates });
+  };
+  const handleAssign = (taskId: string, memberId: string | null) => {
+    updateTask.mutate({ id: taskId, updates: { assigned_to: memberId } });
   };
 
   if (isLoading) {
@@ -61,14 +66,14 @@ export function DayView({ farmId, date, label, teamMembers, userId, taskFilter }
   const todayStr = new Date().toISOString().split('T')[0];
   const isToday = date === todayStr;
 
+  const assignProps = { teamMembers, currentUserMemberId, onAssign: handleAssign };
+
   return (
     <div className="space-y-4">
-      {/* Overdue section — only on Today view */}
       {isToday && filteredOverdue.length > 0 && (
-        <TaskGroup label="En retard" icon="⏰" tasks={filteredOverdue} onTaskClick={setSelectedTask} />
+        <TaskGroup label="En retard" icon="⏰" tasks={filteredOverdue} onTaskClick={setSelectedTask} {...assignProps} />
       )}
 
-      {/* Maintenance suggestions — only on Today view */}
       {isToday && <MaintenanceSuggestions farmId={farmId} userId={userId ?? null} />}
 
       {totalTasks === 0 && (!isToday || filteredOverdue.length === 0) ? (
@@ -78,9 +83,9 @@ export function DayView({ farmId, date, label, teamMembers, userId, taskFilter }
         </div>
       ) : (
         <>
-          <TaskGroup label="Critique" icon="🔴" tasks={filteredGrouped.critical} onTaskClick={setSelectedTask} />
-          <TaskGroup label="Important" icon="🟡" tasks={filteredGrouped.important} onTaskClick={setSelectedTask} />
-          <TaskGroup label="À faire" icon="⚪" tasks={filteredGrouped.todo} onTaskClick={setSelectedTask} />
+          <TaskGroup label="Critique" icon="🔴" tasks={filteredGrouped.critical} onTaskClick={setSelectedTask} {...assignProps} />
+          <TaskGroup label="Important" icon="🟡" tasks={filteredGrouped.important} onTaskClick={setSelectedTask} {...assignProps} />
+          <TaskGroup label="À faire" icon="⚪" tasks={filteredGrouped.todo} onTaskClick={setSelectedTask} {...assignProps} />
         </>
       )}
 
@@ -92,7 +97,7 @@ export function DayView({ farmId, date, label, teamMembers, userId, taskFilter }
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-2 mt-2">
             {filteredDone.map(task => (
-              <TaskCard key={task.id} task={task} onClick={() => setSelectedTask(task)} />
+              <TaskCard key={task.id} task={task} onClick={() => setSelectedTask(task)} teamMembers={teamMembers} />
             ))}
           </CollapsibleContent>
         </Collapsible>

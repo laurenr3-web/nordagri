@@ -8,9 +8,12 @@ interface TaskGroupProps {
   icon: string;
   tasks: PlanningTask[];
   onTaskClick?: (task: PlanningTask) => void;
+  teamMembers?: { id: string; name: string }[];
+  currentUserMemberId?: string | null;
+  onAssign?: (taskId: string, memberId: string | null) => void;
 }
 
-export function TaskGroup({ label, icon, tasks, onTaskClick }: TaskGroupProps) {
+export function TaskGroup({ label, icon, tasks, onTaskClick, teamMembers, currentUserMemberId, onAssign }: TaskGroupProps) {
   if (tasks.length === 0) return null;
 
   return (
@@ -25,6 +28,9 @@ export function TaskGroup({ label, icon, tasks, onTaskClick }: TaskGroupProps) {
             key={task.id}
             task={task}
             onClick={() => onTaskClick?.(task)}
+            teamMembers={teamMembers}
+            currentUserMemberId={currentUserMemberId}
+            onAssign={onAssign}
           />
         ))}
       </div>
