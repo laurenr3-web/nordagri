@@ -77,12 +77,20 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
     enabled: !!farmId,
   });
 
-  // Fetch completions for the date range
+  // Fetch completions for the date range + overdue window (past 7 days)
   const allRecurringIds = recurringTasks.map(t => t.id);
+  const overdueStartStr = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    return d.toISOString().split('T')[0];
+  })();
+  const completionsStart = startDate && startDate < overdueStartStr ? startDate : overdueStartStr;
+  const completionsEnd = endDate && endDate > todayStr ? endDate : todayStr;
+
   const { data: completions = [] } = useQuery({
-    queryKey: ['planningCompletions', farmId, startDate, endDate, allRecurringIds.length],
-    queryFn: () => planningService.getCompletions(allRecurringIds, startDate || '', endDate || ''),
-    enabled: !!farmId && allRecurringIds.length > 0 && !!startDate && !!endDate,
+    queryKey: ['planningCompletions', farmId, completionsStart, completionsEnd, allRecurringIds.length],
+    queryFn: () => planningService.getCompletions(allRecurringIds, completionsStart, completionsEnd),
+    enabled: !!farmId && allRecurringIds.length > 0,
   });
 
   const completionSet = new Set(completions.map((c: any) => `${c.task_id}_${c.completion_date}`));
@@ -252,8 +260,36 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
   };
 
   // Sort overdue by date ascending (oldest first)
-  const sortedOverdue = [...overdueTasks]
-    .filter(t => t.status !== 'done')
+  // Include non-recurring overdue tasks
+  const overdueNonRecurring = [...overdueTasks]
+    .filter(t => t.status !== 'done');
+
+  // Build overdue recurring occurrences (past 7 days, not completed)
+  const overdueRecurring: PlanningTask[] = [];
+  const yesterdayStr = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return d.toISOString().split('T')[0];
+  })();
+  const overdueDates = getDatesInRange(overdueStartStr, yesterdayStr);
+  for (const task of recurringTasks) {
+    for (const date of overdueDates) {
+      if (shouldAppearOnDate(task, date)) {
+        const key = `${task.id}_${date}`;
+        if (!completionSet.has(key)) {
+          overdueRecurring.push({
+            ...task,
+            due_date: date,
+            _occurrence_date: date,
+            _is_completed_today: false,
+            status: 'todo',
+          });
+        }
+      }
+    }
+  }
+
+  const sortedOverdue = [...overdueNonRecurring, ...overdueRecurring]
     .sort((a, b) => a.due_date.localeCompare(b.due_date));
 
   return {
