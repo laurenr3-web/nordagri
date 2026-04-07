@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { PlanningTask, PlanningStatus } from '@/services/planning/planningService';
+import { PlanningTask } from '@/services/planning/planningService';
 import { TaskCard } from './TaskCard';
 
 interface TaskGroupProps {
@@ -11,11 +11,9 @@ interface TaskGroupProps {
   teamMembers?: { id: string; name: string }[];
   currentUserMemberId?: string | null;
   onAssign?: (taskId: string, memberId: string | null) => void;
-  onStatusChange?: (taskId: string, status: PlanningStatus) => void;
-  onPostpone?: (taskId: string, newDate: string) => void;
 }
 
-export function TaskGroup({ label, icon, tasks, onTaskClick, teamMembers, currentUserMemberId, onAssign, onStatusChange, onPostpone }: TaskGroupProps) {
+export function TaskGroup({ label, icon, tasks, onTaskClick, teamMembers, currentUserMemberId, onAssign }: TaskGroupProps) {
   if (tasks.length === 0) return null;
 
   return (
@@ -33,8 +31,6 @@ export function TaskGroup({ label, icon, tasks, onTaskClick, teamMembers, curren
             teamMembers={teamMembers}
             currentUserMemberId={currentUserMemberId}
             onAssign={onAssign}
-            onStatusChange={onStatusChange}
-            onPostpone={onPostpone}
           />
         ))}
       </div>
