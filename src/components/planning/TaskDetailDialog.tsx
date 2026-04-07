@@ -66,6 +66,7 @@ export function TaskDetailDialog({
   onDelete,
   onUpdate,
 }: TaskDetailDialogProps) {
+  const navigate = useNavigate();
   const [localAssignedTo, setLocalAssignedTo] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
