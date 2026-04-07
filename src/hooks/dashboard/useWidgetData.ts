@@ -13,11 +13,43 @@ import { supabase } from '@/integrations/supabase/client';
 export const useWidgetData = (widgets: WidgetConfig[], activeView: string) => {
   const queryClient = useQueryClient();
   const dashboardData = useDashboardData();
+  const { user } = useAuthContext();
+  const { farmId } = useFarmId();
+
+  // Planning data for today
+  const todayStr = new Date().toISOString().split('T')[0];
+  const hasPlanningWidget = widgets.some(w => w.type === 'planning' && w.enabled);
+
+  const { groupedTasks, isLoading: planningLoading } = usePlanningTasks(
+    hasPlanningWidget ? farmId : null,
+    todayStr,
+    todayStr
+  );
+
+  const { suggestions: maintenanceSuggestions, isLoading: suggestionsLoading } = useMaintenanceSuggestions(
+    hasPlanningWidget ? farmId : null,
+    user?.id || null
+  );
+
+  // Team members for display
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ['teamMembersDashboard', farmId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('team_members')
+        .select('id, name')
+        .eq('farm_id', farmId!);
+      return data || [];
+    },
+    enabled: !!farmId && hasPlanningWidget,
+  });
 
   const refetch = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     queryClient.invalidateQueries({ queryKey: ['interventions'] });
     queryClient.invalidateQueries({ queryKey: ['parts'] });
+    queryClient.invalidateQueries({ queryKey: ['planningTasks'] });
+    queryClient.invalidateQueries({ queryKey: ['maintenanceSuggestions'] });
   }, [queryClient]);
 
   const data = useMemo(() => {
@@ -60,21 +92,34 @@ export const useWidgetData = (widgets: WidgetConfig[], activeView: string) => {
         case 'calendar':
           widgetData[widget.id] = dashboardData.weeklyCalendarEvents;
           break;
+        case 'planning':
+          widgetData[widget.id] = {
+            critical: groupedTasks.critical || [],
+            important: groupedTasks.important || [],
+            todo: groupedTasks.todo || [],
+            maintenanceDueCount: maintenanceSuggestions.length,
+            teamMembers,
+          };
+          break;
         default:
           widgetData[widget.id] = null;
       }
     });
 
     return widgetData;
-  }, [widgets, dashboardData]);
+  }, [widgets, dashboardData, groupedTasks, maintenanceSuggestions, teamMembers]);
 
   const loading = useMemo(() => {
     const widgetLoading: Record<string, boolean> = {};
     widgets.forEach(widget => {
-      widgetLoading[widget.id] = dashboardData.loading;
+      if (widget.type === 'planning') {
+        widgetLoading[widget.id] = planningLoading || suggestionsLoading;
+      } else {
+        widgetLoading[widget.id] = dashboardData.loading;
+      }
     });
     return widgetLoading;
-  }, [widgets, dashboardData.loading]);
+  }, [widgets, dashboardData.loading, planningLoading, suggestionsLoading]);
 
   return { data, loading, refetch };
 };
