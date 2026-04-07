@@ -3,6 +3,12 @@ import { useMemo, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { WidgetConfig } from './useDashboardLayout';
 import { useDashboardData } from './useDashboardData';
+import { usePlanningTasks } from '@/hooks/planning/usePlanningTasks';
+import { useMaintenanceSuggestions } from '@/hooks/planning/useMaintenanceSuggestions';
+import { useFarmId } from '@/hooks/useFarmId';
+import { useAuthContext } from '@/providers/AuthProvider';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useWidgetData = (widgets: WidgetConfig[], activeView: string) => {
   const queryClient = useQueryClient();
