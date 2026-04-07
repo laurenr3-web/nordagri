@@ -11,7 +11,8 @@ import { logger } from "@/utils/logger";
  */
 export function useLocalStorage<T>(
   key: string,
-  initialValue: T | (() => T)
+  initialValue: T | (() => T),
+  migrate?: (saved: T) => T
 ): [T, (value: T | ((val: T) => T)) => void] {
   // Get from local storage then parse stored json or return initialValue
   const readValue = (): T => {
