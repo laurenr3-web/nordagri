@@ -89,6 +89,12 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
             {overdueDays}j en retard
           </Badge>
         )}
+        {task.source_module === 'maintenance' && (
+          <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border-amber-300 dark:border-amber-700 gap-1">
+            <Wrench className="h-2.5 w-2.5" />
+            Maintenance
+          </Badge>
+        )}
       </div>
 
       {task.team_member_name && (
