@@ -13,7 +13,19 @@ export interface WidgetConfig {
 export const useDashboardLayout = (defaultWidgets: WidgetConfig[]) => {
   const [widgets, setWidgets] = useLocalStorage<WidgetConfig[]>(
     'dashboard-layout',
-    defaultWidgets
+    defaultWidgets,
+    // Merge: inject any new default widgets missing from saved layout
+    (saved) => {
+      const savedIds = new Set(saved.map(w => w.id));
+      const missing = defaultWidgets.filter(w => !savedIds.has(w.id));
+      if (missing.length === 0) return saved;
+      // Insert missing widgets after 'stats' (index 0) or at the start
+      const statsIdx = saved.findIndex(w => w.id === 'stats');
+      const insertIdx = statsIdx >= 0 ? statsIdx + 1 : 0;
+      const merged = [...saved];
+      merged.splice(insertIdx, 0, ...missing);
+      return merged;
+    }
   );
 
   const updateWidget = useCallback((id: string, updates: Partial<WidgetConfig>) => {
