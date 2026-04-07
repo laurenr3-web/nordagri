@@ -28,12 +28,16 @@ const PRIORITY_CONFIG = {
 } as const;
 
 const TaskRow = ({ task, teamMembers }: { task: PlanningTask; teamMembers: Array<{ id: string; name: string }> }) => {
+  const navigate = useNavigate();
   const assigneeName = task.assigned_to
     ? teamMembers.find(m => m.id === task.assigned_to)?.name
     : null;
 
   return (
-    <div className="flex items-center gap-3 py-1.5 min-w-0">
+    <button
+      onClick={() => navigate(`/planning?taskId=${task.id}`)}
+      className="w-full flex items-center gap-3 py-1.5 min-w-0 text-left hover:bg-accent/50 rounded-md px-1.5 -mx-1.5 transition-colors"
+    >
       <span className="text-sm text-foreground truncate flex-1">{task.title}</span>
       {assigneeName && (
         <span className="flex items-center gap-1 text-xs text-muted-foreground shrink-0">
@@ -41,7 +45,7 @@ const TaskRow = ({ task, teamMembers }: { task: PlanningTask; teamMembers: Array
           {assigneeName}
         </span>
       )}
-    </div>
+    </button>
   );
 };
 
