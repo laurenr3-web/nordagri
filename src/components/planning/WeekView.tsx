@@ -118,13 +118,15 @@ export function WeekView({ farmId, teamMembers, taskFilter }: WeekViewProps) {
               ) : (
                 <div className="space-y-2 pl-1">
                   {dayTasks.map(task => (
-                    <TaskCard
+                    <SwipeableTaskCard
                       key={task.id}
                       task={task}
                       onClick={() => setSelectedTask(task)}
                       teamMembers={teamMembers}
                       currentUserMemberId={currentUserMemberId}
                       onAssign={handleAssign}
+                      onComplete={handleSwipeComplete}
+                      onPostpone={handleSwipePostpone}
                     />
                   ))}
                 </div>

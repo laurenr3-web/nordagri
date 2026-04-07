@@ -124,13 +124,15 @@ export function EmployeeView({ farmId, date, teamMembers }: EmployeeViewProps) {
           </div>
           <div className="space-y-2">
             {group.tasks.map(task => (
-              <TaskCard
+              <SwipeableTaskCard
                 key={task.id}
                 task={task}
                 onClick={() => setSelectedTask(task)}
                 teamMembers={teamMembers}
                 currentUserMemberId={currentUserMemberId}
                 onAssign={handleAssign}
+                onComplete={handleSwipeComplete}
+                onPostpone={handleSwipePostpone}
               />
             ))}
           </div>
