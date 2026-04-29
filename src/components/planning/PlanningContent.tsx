@@ -76,6 +76,7 @@ export function PlanningContent() {
           name: [p.first_name, p.last_name].filter(Boolean).join(' ') || 'Sans nom',
           isOwner,
           userId: p.id,
+          legacyMemberId: fm?.id,
         };
       });
     },
