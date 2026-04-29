@@ -65,13 +65,11 @@ export function EmployeeView({ farmId, date, teamMembers }: EmployeeViewProps) {
 
   for (const member of teamMembers) {
     const memberTasks = groupMap.get(member.id);
-    if (memberTasks && memberTasks.length > 0) {
-      groups.push({
-        id: member.id,
-        name: member.name,
-        tasks: memberTasks.sort(sortByPriority),
-      });
-    }
+    groups.push({
+      id: member.id,
+      name: member.name,
+      tasks: (memberTasks ?? []).sort(sortByPriority),
+    });
   }
 
   const unassigned = groupMap.get(null);
@@ -114,7 +112,7 @@ export function EmployeeView({ farmId, date, teamMembers }: EmployeeViewProps) {
   if (groups.length === 0) {
     return (
       <p className="text-center text-muted-foreground py-8 text-sm">
-        Aucune tâche active pour aujourd'hui
+        Aucun membre dans la ferme
       </p>
     );
   }
@@ -136,20 +134,26 @@ export function EmployeeView({ farmId, date, teamMembers }: EmployeeViewProps) {
               ({group.tasks.length} tâche{group.tasks.length > 1 ? 's' : ''})
             </span>
           </div>
-          <div className="space-y-2">
-            {group.tasks.map(task => (
-              <SwipeableTaskCard
-                key={task.id}
-                task={task}
-                onClick={() => setSelectedTask(task)}
-                teamMembers={teamMembers}
-                currentUserMemberId={currentUserMemberId}
-                onAssign={handleAssign}
-                onComplete={handleSwipeComplete}
-                onPostpone={handleSwipePostpone}
-              />
-            ))}
-          </div>
+          {group.tasks.length === 0 ? (
+            <p className="text-xs text-muted-foreground italic pl-6 py-1">
+              Aucune tâche assignée
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {group.tasks.map(task => (
+                <SwipeableTaskCard
+                  key={task.id}
+                  task={task}
+                  onClick={() => setSelectedTask(task)}
+                  teamMembers={teamMembers}
+                  currentUserMemberId={currentUserMemberId}
+                  onAssign={handleAssign}
+                  onComplete={handleSwipeComplete}
+                  onPostpone={handleSwipePostpone}
+                />
+              ))}
+            </div>
+          )}
         </div>
       ))}
 
