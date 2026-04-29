@@ -1252,13 +1252,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "planning_tasks_assigned_to_fkey"
-            columns: ["assigned_to"]
-            isOneToOne: false
-            referencedRelation: "farm_members"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "planning_tasks_equipment_id_fkey"
             columns: ["equipment_id"]
             isOneToOne: false

@@ -76,6 +76,7 @@ export function PlanningContent() {
           name: [p.first_name, p.last_name].filter(Boolean).join(' ') || 'Sans nom',
           isOwner,
           userId: p.id,
+          legacyMemberId: fm?.id,
         };
       });
     },
@@ -138,7 +139,7 @@ export function PlanningContent() {
       </ToggleGroup>
 
       {viewMode === 'employee' ? (
-        <EmployeeView farmId={farmId} date={todayStr} teamMembers={teamMembers as any[]} />
+        <EmployeeView farmId={farmId} teamMembers={teamMembers as any[]} />
       ) : (
         <Tabs defaultValue="today" className="w-full">
           <TabsList className="grid grid-cols-4 w-full h-11">

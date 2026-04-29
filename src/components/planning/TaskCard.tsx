@@ -41,7 +41,7 @@ const priorityConfig: Record<string, { label: string; className: string }> = {
 interface TaskCardProps {
   task: PlanningTask;
   onClick?: () => void;
-  teamMembers?: { id: string; name: string }[];
+  teamMembers?: { id: string; name: string; userId?: string; legacyMemberId?: string }[];
   currentUserMemberId?: string | null;
   onAssign?: (taskId: string, memberId: string | null) => void;
 }
@@ -58,7 +58,7 @@ export function TaskCard({ task, onClick, teamMembers, currentUserMemberId, onAs
     : 0;
 
   const assignedMemberName = task.assigned_to && teamMembers
-    ? teamMembers.find(m => m.id === task.assigned_to)?.name
+    ? teamMembers.find(m => m.id === task.assigned_to || m.userId === task.assigned_to || m.legacyMemberId === task.assigned_to)?.name
     : task.team_member_name;
 
   const isUnassigned = !task.assigned_to;
