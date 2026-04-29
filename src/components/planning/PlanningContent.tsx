@@ -140,10 +140,10 @@ export function PlanningContent() {
       ) : (
         <Tabs defaultValue="today" className="w-full">
           <TabsList className="grid grid-cols-4 w-full h-11">
-            <TabsTrigger value="today" className="text-sm font-medium">Aujourd'hui</TabsTrigger>
-            <TabsTrigger value="tomorrow" className="text-sm font-medium">Demain</TabsTrigger>
-            <TabsTrigger value="week" className="text-sm font-medium">Semaine</TabsTrigger>
-            <TabsTrigger value="completed" className="text-sm font-medium">Terminées</TabsTrigger>
+            <TabsTrigger value="today" className="text-xs sm:text-sm font-medium px-1">Aujourd'hui</TabsTrigger>
+            <TabsTrigger value="tomorrow" className="text-xs sm:text-sm font-medium px-1">Demain</TabsTrigger>
+            <TabsTrigger value="week" className="text-xs sm:text-sm font-medium px-1">Semaine</TabsTrigger>
+            <TabsTrigger value="completed" className="text-xs sm:text-sm font-medium px-1">Terminées</TabsTrigger>
           </TabsList>
 
           <div className="mt-4">
