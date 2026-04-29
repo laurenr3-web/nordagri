@@ -119,3 +119,47 @@ export function useDeletePoint() {
     onError: (e: any) => toast.error(e.message ?? 'Erreur'),
   });
 }
+
+export function useUpdatePointEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      point_id,
+      note,
+      event_type,
+    }: {
+      id: string;
+      point_id: string;
+      note: string | null;
+      event_type: PointEventType;
+    }) => {
+      const { error } = await supabase
+        .from('point_events')
+        .update({ note, event_type })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ['point-events', vars.point_id] });
+      toast.success('Événement modifié');
+    },
+    onError: (e: any) => toast.error(e.message ?? 'Erreur'),
+  });
+}
+
+export function useDeletePointEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, point_id: _p }: { id: string; point_id: string }) => {
+      const { error } = await supabase.from('point_events').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ['point-events', vars.point_id] });
+      qc.invalidateQueries({ queryKey: ['points'] });
+      toast.success('Événement supprimé');
+    },
+    onError: (e: any) => toast.error(e.message ?? 'Erreur'),
+  });
+}
