@@ -475,6 +475,17 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
                               <Badge className="text-[9px] h-4 px-1.5 bg-orange-500 text-white border-0">retard</Badge>
                             )}
                           </div>
+                          {item.assignedToName && item.assignedToName !== item.completedByName && (
+                            <div className="flex items-center gap-1">
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-primary/30 gap-1"
+                              >
+                                <UserIcon className="h-2.5 w-2.5" />
+                                Assigné à {item.assignedToName}
+                              </Badge>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </Card>
