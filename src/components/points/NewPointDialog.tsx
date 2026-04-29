@@ -9,7 +9,7 @@ import { PointPriority, PointType } from '@/types/Point';
 import { PRIORITY_LABELS, TYPE_EMOJI, TYPE_LABELS } from './pointHelpers';
 import { useCreatePoint } from '@/hooks/points/usePointMutations';
 import { uploadPointPhoto } from './uploadPointPhoto';
-import { Camera, Loader2 } from 'lucide-react';
+import { Camera, Loader2, X } from 'lucide-react';
 
 interface Props {
   open: boolean;
@@ -67,8 +67,18 @@ export const NewPointDialog: React.FC<Props> = ({ open, onOpenChange, farmId }) 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-[92vh] overflow-y-auto">
-        <SheetHeader className="mb-4">
+        <SheetHeader className="mb-4 flex-row items-center justify-between space-y-0">
           <SheetTitle>Nouveau point à surveiller</SheetTitle>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 -mr-2"
+            onClick={() => onOpenChange(false)}
+            aria-label="Fermer"
+          >
+            <X className="h-5 w-5" />
+          </Button>
         </SheetHeader>
 
         <div className="space-y-4">
