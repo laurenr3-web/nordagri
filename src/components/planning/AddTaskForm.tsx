@@ -1,12 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { PlanningCategory, PlanningPriority } from '@/services/planning/planningService';
+import { PlanningCategory, PlanningPriority, PlanningTask } from '@/services/planning/planningService';
 import { ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
@@ -40,6 +40,7 @@ interface AddTaskFormProps {
   }) => void;
   teamMembers?: { id: string; name: string }[];
   equipment?: { id: number; name: string }[];
+  task?: PlanningTask | null;
 }
 
 function getDateStr(offset: number = 0) {
@@ -48,7 +49,8 @@ function getDateStr(offset: number = 0) {
   return d.toISOString().split('T')[0];
 }
 
-export function AddTaskForm({ open, onClose, onSubmit, teamMembers = [], equipment = [] }: AddTaskFormProps) {
+export function AddTaskForm({ open, onClose, onSubmit, teamMembers = [], equipment = [], task = null }: AddTaskFormProps) {
+  const isEditMode = !!task;
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<PlanningCategory>('autre');
   const [dateChoice, setDateChoice] = useState<'today' | 'tomorrow' | 'custom'>('today');
@@ -83,6 +85,36 @@ export function AddTaskForm({ open, onClose, onSubmit, teamMembers = [], equipme
     setRecurrenceDays([]);
   };
 
+  // Pre-fill form when editing
+  useEffect(() => {
+    if (open && task) {
+      setTitle(task.title || '');
+      setCategory(task.category || 'autre');
+      const today = getDateStr();
+      const tomorrow = getDateStr(1);
+      const taskDate = (task as any)._occurrence_date || task.due_date;
+      if (taskDate === today) setDateChoice('today');
+      else if (taskDate === tomorrow) setDateChoice('tomorrow');
+      else { setDateChoice('custom'); setCustomDate(taskDate); }
+      setAssignedTo(task.assigned_to || '');
+      setNotes(task.notes || '');
+      setManualPriority(task.manual_priority || '');
+      setEquipmentId(task.equipment_id ? String(task.equipment_id) : '');
+      setFieldName(task.field_name || '');
+      setBuildingName(task.building_name || '');
+      setAnimalGroup(task.animal_group || '');
+      setRecurrenceType(task.is_recurring && task.recurrence_type ? task.recurrence_type : 'none');
+      setRecurrenceDays(task.recurrence_days || []);
+      // Open advanced section if any advanced field is set
+      if (task.is_recurring || task.notes || task.manual_priority || task.equipment_id ||
+          task.field_name || task.building_name || task.animal_group) {
+        setShowMore(true);
+      }
+    } else if (open && !task) {
+      resetForm();
+    }
+  }, [open, task]);
+
   const handleSubmit = () => {
     if (!title.trim()) return;
 
@@ -114,7 +146,7 @@ export function AddTaskForm({ open, onClose, onSubmit, teamMembers = [], equipme
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-lg">Ajouter une tâche</DialogTitle>
+          <DialogTitle className="text-lg">{isEditMode ? 'Modifier la tâche' : 'Ajouter une tâche'}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 mt-2">
@@ -285,7 +317,7 @@ export function AddTaskForm({ open, onClose, onSubmit, teamMembers = [], equipme
 
           {/* Submit */}
           <Button className="w-full h-12 text-base font-semibold" onClick={handleSubmit} disabled={!title.trim()}>
-            Ajouter la tâche
+            {isEditMode ? 'Enregistrer les modifications' : 'Ajouter la tâche'}
           </Button>
         </div>
       </DialogContent>

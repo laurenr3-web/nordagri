@@ -1,63 +1,42 @@
+# Modifier une tâche existante en planification
 
+Aujourd'hui, `TaskDetailDialog` permet seulement de changer l'assigné, le statut, et la date de report. Tous les autres champs (titre, catégorie, notes, priorité, récurrence, équipement, champ, bâtiment, groupe d'animaux) ne sont pas éditables après création. On va ajouter un vrai mode édition.
 
-# Plan — Suggestions de maintenance dans le module Planification
+## Approche
 
-## Vue d'ensemble
+Réutiliser le formulaire existant `AddTaskForm` en le transformant en formulaire double-usage (création + édition), pour rester cohérent visuellement et éviter de dupliquer ~290 lignes de code.
 
-Intégrer une section "Maintenances dues" dans la vue Aujourd'hui qui affiche les maintenances en retard ou dues, avec un bouton pour créer une tâche de planification. La section est masquée si aucune suggestion actionnable n'existe.
+## Changements
 
-## 1. Migration SQL
+### 1. `src/components/planning/AddTaskForm.tsx`
+- Ajouter une prop optionnelle `task?: PlanningTask` (la tâche à modifier).
+- Quand `task` est fourni :
+  - Pré-remplir tous les champs depuis la tâche via `useEffect` à l'ouverture.
+  - Changer le titre du dialogue en "Modifier la tâche".
+  - Changer le libellé du bouton en "Enregistrer les modifications".
+- Le `onSubmit` reste identique côté signature ; le parent décide s'il appelle `addTask` ou `updateTask`.
 
-Ajouter `source_module` et `source_id` à `planning_tasks` :
+### 2. `src/components/planning/TaskDetailDialog.tsx`
+- Ajouter un bouton "Modifier" dans la section Actions (à côté de Commencer/Terminer/Bloqué).
+- Au clic, fermer le dialogue de détail et ouvrir le formulaire d'édition (géré au niveau parent via une nouvelle prop `onEdit(task)`).
+- Pour les tâches récurrentes virtuelles (avec `_occurrence_date`), l'édition s'applique à la tâche modèle (toutes les occurrences futures).
 
-```sql
-ALTER TABLE public.planning_tasks
-  ADD COLUMN source_module text DEFAULT NULL,
-  ADD COLUMN source_id text DEFAULT NULL;
-```
+### 3. `src/components/planning/PlanningContent.tsx`
+- Ajouter un état `editingTask: PlanningTask | null`.
+- Brancher `onEdit` du `TaskDetailDialog` pour définir cet état.
+- Réutiliser `AddTaskForm` en mode édition : `<AddTaskForm task={editingTask} onSubmit={...}>`.
+- Dans le `onSubmit` d'édition, appeler `updateTask.mutate({ id, updates })` (déjà présent dans `usePlanningTasks`).
 
-## 2. Fichiers modifiés/créés
+### 4. Aucun changement DB
+La mutation `updateTask` et `planningService.updateTask` existent déjà et acceptent un `Partial<PlanningTask>`. Aucune migration requise.
 
-| Fichier | Action |
-|---|---|
-| Migration SQL | `source_module`, `source_id` sur `planning_tasks` |
-| `src/hooks/planning/useMaintenanceSuggestions.ts` | **Nouveau** — hook qui fetch les maintenances dues et expose `createTaskFromMaintenance` |
-| `src/components/planning/MaintenanceSuggestions.tsx` | **Nouveau** — composant UI de la section suggestions |
-| `src/components/planning/DayView.tsx` | Intégrer `MaintenanceSuggestions` entre "En retard" et les tâches, uniquement si `isToday` |
-| `src/services/planning/planningService.ts` | Ajouter `source_module`/`source_id` au type `PlanningTask` et aux params de `addTask` |
+## Détails techniques
 
-## 3. Hook `useMaintenanceSuggestions`
+- Pour la récurrence : si l'utilisateur change `recurrence_type` ou `recurrence_days`, on met à jour les colonnes correspondantes ; les complétions passées (`planning_task_completions`) restent intactes.
+- Le `due_date` reste éditable, mais pour une récurrence virtuelle, modifier la date du modèle est volontaire (cohérent avec l'attente de l'utilisateur de modifier "la tâche").
+- Pas d'ajout de bouton dans le swipe ; l'édition reste accessible depuis le détail (clic sur la carte).
 
-- Query `maintenance_tasks` avec jointure `equipment_ref:equipment_id(valeur_actuelle, farm_id, name)`, filtrée par `equipment.farm_id = farmId`
-- Filtre : `status NOT IN ('completed', 'cancelled')`
-- Détection "due" :
-  - Date-based (`trigger_unit` = 'none'/null) : `due_date <= today`
-  - Counter-based : `equipment.valeur_actuelle >= trigger_hours` ou `trigger_kilometers`
-- Anti-doublon : query `planning_tasks` avec `source_module = 'maintenance'` et `status IN ('todo', 'in_progress', 'blocked')` → set de `source_id` déjà planifiés
-- Chaque suggestion retourne : titre, nom équipement, `isOverdue`, `daysLate`, `alreadyPlanned`, info compteur
-- Mutation `createTaskFromMaintenance` :
-  - Priorité : en retard → `critical`, due aujourd'hui → `important`
-  - Notes préremplies : "Maintenance : {titre} — Équipement : {nom}. {détail compteur ou date}"
-  - `source_module = 'maintenance'`, `source_id = String(maintenance.id)`
-  - Invalide queries `planningTasks`, `maintenanceSuggestions`, `planningOverdue`
-
-## 4. Composant `MaintenanceSuggestions`
-
-- **Masquage complet** si aucune maintenance due
-- **Masquage complet** si toutes les suggestions ont `alreadyPlanned = true` (pas de section visible, zéro bruit)
-- Si certaines sont planifiées et d'autres non : afficher uniquement les non-planifiées
-- Section avec icône 🔧 et titre "Maintenances dues"
-- Cartes avec bordure amber :
-  - Badge : "En retard de X jours" ou "Due aujourd'hui" ou "Seuil d'entretien dépassé"
-  - Bouton "Créer une tâche"
-- Style distinct des tâches normales
-
-## 5. Intégration DayView
-
-- Afficher `MaintenanceSuggestions` entre la section "En retard" et les tâches normales, uniquement quand `isToday = true`
-- Passer `farmId` et le user courant
-
-## 6. Mise à jour planningService
-
-- Ajouter `source_module?: string | null` et `source_id?: string | null` au type `PlanningTask` et aux params de `addTask`
-
+## Résumé fichiers modifiés
+- `src/components/planning/AddTaskForm.tsx` — support mode édition
+- `src/components/planning/TaskDetailDialog.tsx` — bouton Modifier + prop `onEdit`
+- `src/components/planning/PlanningContent.tsx` — orchestration édition
