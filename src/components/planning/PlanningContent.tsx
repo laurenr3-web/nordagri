@@ -8,6 +8,7 @@ import { DayView } from './DayView';
 import { WeekView } from './WeekView';
 import { EmployeeView } from './EmployeeView';
 import { AddTaskForm } from './AddTaskForm';
+import { CompletedTasksView } from './CompletedTasksView';
 import { useFarmId } from '@/hooks/useFarmId';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { usePlanningTasks } from '@/hooks/planning/usePlanningTasks';
@@ -138,10 +139,11 @@ export function PlanningContent() {
         <EmployeeView farmId={farmId} date={todayStr} teamMembers={teamMembers as any[]} />
       ) : (
         <Tabs defaultValue="today" className="w-full">
-          <TabsList className="grid grid-cols-3 w-full h-11">
-            <TabsTrigger value="today" className="text-sm font-medium">Aujourd'hui</TabsTrigger>
-            <TabsTrigger value="tomorrow" className="text-sm font-medium">Demain</TabsTrigger>
-            <TabsTrigger value="week" className="text-sm font-medium">Semaine</TabsTrigger>
+          <TabsList className="grid grid-cols-4 w-full h-11">
+            <TabsTrigger value="today" className="text-xs sm:text-sm font-medium px-1">Aujourd'hui</TabsTrigger>
+            <TabsTrigger value="tomorrow" className="text-xs sm:text-sm font-medium px-1">Demain</TabsTrigger>
+            <TabsTrigger value="week" className="text-xs sm:text-sm font-medium px-1">Semaine</TabsTrigger>
+            <TabsTrigger value="completed" className="text-xs sm:text-sm font-medium px-1">Terminées</TabsTrigger>
           </TabsList>
 
           <div className="mt-4">
@@ -153,6 +155,9 @@ export function PlanningContent() {
             </TabsContent>
             <TabsContent value="week" className="mt-0">
               <WeekView farmId={farmId} teamMembers={teamMembers as any[]} taskFilter={taskFilter} />
+            </TabsContent>
+            <TabsContent value="completed" className="mt-0">
+              <CompletedTasksView farmId={farmId} teamMembers={teamMembers as any[]} currentUserId={user?.id ?? null} />
             </TabsContent>
           </div>
         </Tabs>
