@@ -9,7 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Separator } from '@/components/ui/separator';
-import { Play, CheckCircle2, AlertTriangle, Unlock, CalendarIcon, Trash2, Save, Clock, Wrench, ExternalLink } from 'lucide-react';
+import { Play, CheckCircle2, AlertTriangle, Unlock, CalendarIcon, Trash2, Save, Clock, Wrench, ExternalLink, Pencil } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -54,6 +54,7 @@ interface TaskDetailDialogProps {
   onPostpone: (id: string, newDate: string) => void;
   onDelete: (id: string) => void;
   onUpdate: (id: string, updates: Partial<PlanningTask>) => void;
+  onEdit?: (task: PlanningTask) => void;
 }
 
 export function TaskDetailDialog({
@@ -65,6 +66,7 @@ export function TaskDetailDialog({
   onPostpone,
   onDelete,
   onUpdate,
+  onEdit,
 }: TaskDetailDialogProps) {
   const navigate = useNavigate();
   const [localAssignedTo, setLocalAssignedTo] = useState<string | null>(null);
@@ -279,14 +281,29 @@ export function TaskDetailDialog({
 
                 <Separator />
 
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="w-full text-destructive hover:text-destructive gap-1.5"
-                  onClick={() => setShowDeleteConfirm(true)}
-                >
-                  <Trash2 className="h-3.5 w-3.5" /> Supprimer cette tâche
-                </Button>
+                <div className="flex gap-2">
+                  {onEdit && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 gap-1.5"
+                      onClick={() => {
+                        onEdit(task);
+                        onOpenChange(false);
+                      }}
+                    >
+                      <Pencil className="h-3.5 w-3.5" /> Modifier
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="flex-1 text-destructive hover:text-destructive gap-1.5"
+                    onClick={() => setShowDeleteConfirm(true)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" /> Supprimer
+                  </Button>
+                </div>
               </div>
             </>
           )}
@@ -294,14 +311,29 @@ export function TaskDetailDialog({
           {task.status === 'done' && (
             <>
               <Separator />
-              <Button
-                size="sm"
-                variant="ghost"
-                className="w-full text-destructive hover:text-destructive gap-1.5"
-                onClick={() => setShowDeleteConfirm(true)}
-              >
-                <Trash2 className="h-3.5 w-3.5" /> Supprimer cette tâche
-              </Button>
+              <div className="flex gap-2">
+                {onEdit && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 gap-1.5"
+                    onClick={() => {
+                      onEdit(task);
+                      onOpenChange(false);
+                    }}
+                  >
+                    <Pencil className="h-3.5 w-3.5" /> Modifier
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="flex-1 text-destructive hover:text-destructive gap-1.5"
+                  onClick={() => setShowDeleteConfirm(true)}
+                >
+                  <Trash2 className="h-3.5 w-3.5" /> Supprimer
+                </Button>
+              </div>
             </>
           )}
         </DialogContent>
