@@ -74,12 +74,39 @@ export const equipmentAdapter = {
     try {
       // Get the current user session
       const { data: sessionData } = await supabase.auth.getSession();
-      
+      const userId = sessionData.session?.user.id;
+
+      // Résoudre le farm_id du créateur pour que tous les membres de la ferme voient l'équipement.
+      // (Le trigger DB equipment_set_farm_id le fait aussi côté serveur en filet de sécurité.)
+      let resolvedFarmId: string | null = null;
+      if (userId) {
+        const { data: ownedFarm } = await supabase
+          .from('farms')
+          .select('id')
+          .eq('owner_id', userId)
+          .order('created_at', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        if (ownedFarm?.id) {
+          resolvedFarmId = ownedFarm.id;
+        } else {
+          const { data: membership } = await supabase
+            .from('farm_members')
+            .select('farm_id')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: true })
+            .limit(1)
+            .maybeSingle();
+          if (membership?.farm_id) resolvedFarmId = membership.farm_id;
+        }
+      }
+
       // Prepare equipment data with dates converted to ISO strings
       const equipmentData = mapEquipmentToDb(equipment);
       const dbEquipment = convertDatesToISOStrings({
         ...equipmentData,
-        owner_id: sessionData.session?.user.id,
+        owner_id: userId,
+        farm_id: resolvedFarmId,
         created_at: new Date(),
         updated_at: new Date()
       }) as EquipmentRecord;

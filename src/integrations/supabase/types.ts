@@ -1539,6 +1539,7 @@ export type Database = {
         Args: { _equipment_id: number; _min_role: string }
         Returns: boolean
       }
+      current_user_farm_id: { Args: never; Returns: string }
       decrement_part_stock: {
         Args: { p_part_id: number; p_quantity: number }
         Returns: undefined

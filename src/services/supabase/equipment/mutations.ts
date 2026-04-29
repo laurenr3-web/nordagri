@@ -18,11 +18,39 @@ export async function addEquipment(equipment: Omit<Equipment, 'id'>): Promise<Eq
     if (!sessionData.session) {
       throw new Error('Utilisateur non authentifié');
     }
-    
+
+    const userId = sessionData.session.user.id;
+
+    // Résoudre le farm_id du créateur : ferme possédée d'abord, puis première adhésion.
+    // Cela garantit que TOUS les membres de la ferme voient l'équipement immédiatement.
+    let resolvedFarmId: string | null = null;
+    const { data: ownedFarm } = await supabase
+      .from('farms')
+      .select('id')
+      .eq('owner_id', userId)
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (ownedFarm?.id) {
+      resolvedFarmId = ownedFarm.id;
+    } else {
+      const { data: membership } = await supabase
+        .from('farm_members')
+        .select('farm_id')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (membership?.farm_id) {
+        resolvedFarmId = membership.farm_id;
+      }
+    }
+
     // Préparation des données pour la base de données
     const dbEquipment = {
       ...mapEquipmentToDatabase(equipment),
-      owner_id: sessionData.session.user.id,
+      owner_id: userId,
+      farm_id: resolvedFarmId,
       created_at: new Date(),
       updated_at: new Date()
     };
