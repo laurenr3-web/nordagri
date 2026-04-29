@@ -189,7 +189,7 @@ export function TaskDetailDialog({
             <h4 className="text-sm font-semibold">Assignation et date</h4>
 
             <div className="space-y-2">
-              <label className="text-xs text-muted-foreground">Assigné à</label>
+              <label className="text-xs text-muted-foreground">Assignée à</label>
               <Select value={localAssignedTo || 'none'} onValueChange={handleAssignChange}>
                 <SelectTrigger className="h-10">
                   <SelectValue placeholder="Non assignée" />

@@ -541,7 +541,7 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
                                 className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-primary/30 gap-1"
                               >
                                 <UserIcon className="h-2.5 w-2.5" />
-                                Assigné à {item.assignedToName}
+                                Assignée à {item.assignedToName}
                               </Badge>
                             </div>
                           )}
