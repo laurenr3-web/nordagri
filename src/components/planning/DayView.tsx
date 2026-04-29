@@ -70,7 +70,6 @@ export function DayView({ farmId, date, label, teamMembers, userId, taskFilter }
     important: applyFilter(groupedTasks.important),
     todo: applyFilter(groupedTasks.todo),
   };
-  const filteredDone = applyFilter(doneTasks);
   const filteredOverdue = applyFilter(overdueTasks);
 
   const totalTasks = filteredGrouped.critical.length + filteredGrouped.important.length + filteredGrouped.todo.length;
