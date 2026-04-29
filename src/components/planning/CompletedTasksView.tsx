@@ -591,8 +591,10 @@ interface StatCardProps {
   label: string;
   value: number;
   tone: 'default' | 'critical' | 'important' | 'overdue';
+  active?: boolean;
+  onClick?: () => void;
 }
-function StatCard({ icon, label, value, tone }: StatCardProps) {
+function StatCard({ icon, label, value, tone, active, onClick }: StatCardProps) {
   const toneClass: Record<StatCardProps['tone'], string> = {
     default: 'bg-card',
     critical: 'bg-red-50 dark:bg-red-950/30 border-red-100 dark:border-red-900/50',
@@ -605,13 +607,37 @@ function StatCard({ icon, label, value, tone }: StatCardProps) {
     important: 'text-yellow-600 dark:text-yellow-400',
     overdue: 'text-orange-600 dark:text-orange-400',
   };
-  return (
-    <Card className={cn('p-3 flex flex-col gap-1', toneClass[tone])}>
+  const activeRing: Record<StatCardProps['tone'], string> = {
+    default: 'ring-2 ring-primary ring-offset-1',
+    critical: 'ring-2 ring-red-500 ring-offset-1',
+    important: 'ring-2 ring-yellow-500 ring-offset-1',
+    overdue: 'ring-2 ring-orange-500 ring-offset-1',
+  };
+  const content = (
+    <Card
+      className={cn(
+        'p-3 flex flex-col gap-1 text-left transition-all',
+        toneClass[tone],
+        onClick && 'cursor-pointer hover:shadow-md active:scale-[0.98]',
+        active && activeRing[tone],
+      )}
+    >
       <div className={cn('flex items-center gap-1.5 text-xs font-medium', iconClass[tone])}>
         {icon}
         <span>{label}</span>
       </div>
       <div className="text-2xl font-bold leading-none">{value}</div>
     </Card>
+  );
+  if (!onClick) return content;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className="w-full rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+    >
+      {content}
+    </button>
   );
 }
