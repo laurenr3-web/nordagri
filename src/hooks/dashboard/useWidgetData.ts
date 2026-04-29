@@ -9,6 +9,9 @@ import { useFarmId } from '@/hooks/useFarmId';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { usePointsWatchData } from './usePointsWatchData';
+import { useCheckTodayData } from './useCheckTodayData';
+import { useRecentActivityData } from './useRecentActivityData';
 
 export const useWidgetData = (widgets: WidgetConfig[], activeView: string) => {
   const queryClient = useQueryClient();
@@ -19,6 +22,9 @@ export const useWidgetData = (widgets: WidgetConfig[], activeView: string) => {
   // Planning data for today
   const todayStr = new Date().toISOString().split('T')[0];
   const hasPlanningWidget = widgets.some(w => w.type === 'planning' && w.enabled);
+  const hasPointsWatchWidget = widgets.some(w => w.type === 'points_watch' && w.enabled);
+  const hasCheckTodayWidget = widgets.some(w => w.type === 'check_today' && w.enabled);
+  const hasRecentActivityWidget = widgets.some(w => w.type === 'recent_activity' && w.enabled);
 
   const { groupedTasks, isLoading: planningLoading } = usePlanningTasks(
     hasPlanningWidget ? farmId : null,
@@ -27,7 +33,7 @@ export const useWidgetData = (widgets: WidgetConfig[], activeView: string) => {
   );
 
   const { suggestions: maintenanceSuggestions, isLoading: suggestionsLoading } = useMaintenanceSuggestions(
-    hasPlanningWidget ? farmId : null,
+    (hasPlanningWidget || hasCheckTodayWidget) ? farmId : null,
     user?.id || null
   );
 
@@ -43,6 +49,20 @@ export const useWidgetData = (widgets: WidgetConfig[], activeView: string) => {
     },
     enabled: !!farmId && hasPlanningWidget,
   });
+
+  // New action-oriented widgets
+  const { data: pointsWatchData, isLoading: pointsWatchLoading } = usePointsWatchData(
+    farmId,
+    hasPointsWatchWidget
+  );
+  const { data: checkTodayRaw, isLoading: checkTodayLoading } = useCheckTodayData(
+    farmId,
+    hasCheckTodayWidget
+  );
+  const { data: recentActivityData, isLoading: recentActivityLoading } = useRecentActivityData(
+    farmId,
+    hasRecentActivityWidget
+  );
 
   const refetch = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['dashboard'] });
@@ -101,25 +121,42 @@ export const useWidgetData = (widgets: WidgetConfig[], activeView: string) => {
             teamMembers,
           };
           break;
+        case 'points_watch':
+          widgetData[widget.id] = pointsWatchData ?? null;
+          break;
+        case 'check_today':
+          widgetData[widget.id] = checkTodayRaw
+            ? { ...checkTodayRaw, maintenanceDueCount: maintenanceSuggestions.length }
+            : null;
+          break;
+        case 'recent_activity':
+          widgetData[widget.id] = recentActivityData ?? null;
+          break;
         default:
           widgetData[widget.id] = null;
       }
     });
 
     return widgetData;
-  }, [widgets, dashboardData, groupedTasks, maintenanceSuggestions, teamMembers]);
+  }, [widgets, dashboardData, groupedTasks, maintenanceSuggestions, teamMembers, pointsWatchData, checkTodayRaw, recentActivityData]);
 
   const loading = useMemo(() => {
     const widgetLoading: Record<string, boolean> = {};
     widgets.forEach(widget => {
       if (widget.type === 'planning') {
         widgetLoading[widget.id] = planningLoading || suggestionsLoading;
+      } else if (widget.type === 'points_watch') {
+        widgetLoading[widget.id] = pointsWatchLoading;
+      } else if (widget.type === 'check_today') {
+        widgetLoading[widget.id] = checkTodayLoading || suggestionsLoading;
+      } else if (widget.type === 'recent_activity') {
+        widgetLoading[widget.id] = recentActivityLoading;
       } else {
         widgetLoading[widget.id] = dashboardData.loading;
       }
     });
     return widgetLoading;
-  }, [widgets, dashboardData.loading, planningLoading, suggestionsLoading]);
+  }, [widgets, dashboardData.loading, planningLoading, suggestionsLoading, pointsWatchLoading, checkTodayLoading, recentActivityLoading]);
 
   return { data, loading, refetch };
 };
