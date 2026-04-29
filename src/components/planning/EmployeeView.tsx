@@ -12,7 +12,6 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface EmployeeViewProps {
   farmId: string | null;
-  date: string;
   teamMembers: { id: string; name: string; userId?: string; legacyMemberId?: string }[];
 }
 
@@ -22,7 +21,7 @@ interface EmployeeGroup {
   tasks: PlanningTask[];
 }
 
-export function EmployeeView({ farmId, date, teamMembers }: EmployeeViewProps) {
+export function EmployeeView({ farmId, teamMembers }: EmployeeViewProps) {
   const [selectedTask, setSelectedTask] = useState<PlanningTask | null>(null);
   const [editingTask, setEditingTask] = useState<PlanningTask | null>(null);
   const { tasks, isLoading, updateStatus, postponeTask, deleteTask, updateTask } =
