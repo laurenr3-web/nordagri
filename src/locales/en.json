@@ -15,7 +15,7 @@
   "navbar.equipment": "Equipment",
   "navbar.maintenance": "Maintenance",
   "navbar.parts": "Parts",
-  "navbar.interventions": "Interventions",
+  "navbar.points": "Watch points",
   "navbar.time": "Time Tracking",
   "navbar.settings": "Settings",
   "mobilemenu.dashboard": "Dashboard",
@@ -23,7 +23,7 @@
   "mobilemenu.equipment": "Equipment",
   "mobilemenu.maintenance": "Maintenance",
   "mobilemenu.parts": "Parts",
-  "mobilemenu.interventions": "Interventions",
+  "mobilemenu.points": "Points",
   "mobilemenu.time": "Time",
   "mobilemenu.settings": "Settings",
   "equipment.loading": "Loading equipment..."

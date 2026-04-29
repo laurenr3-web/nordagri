@@ -1,12 +1,12 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  Settings, 
-  Wrench, 
-  Tractor, 
-  Folder, 
-  MessageSquare, 
+import {
+  Settings,
+  Wrench,
+  Tractor,
+  Folder,
+  Eye,
   PieChart,
   Clock,
   CalendarCheck
@@ -83,9 +83,9 @@ const Navbar = () => {
       label: t("navbar.parts"),
     },
     {
-      path: '/interventions',
-      icon: <MessageSquare className="h-5 w-5" aria-hidden="true" />,
-      label: t("navbar.interventions"),
+      path: '/points',
+      icon: <Eye className="h-5 w-5" aria-hidden="true" />,
+      label: t("navbar.points"),
     },
     {
       path: '/time-tracking',

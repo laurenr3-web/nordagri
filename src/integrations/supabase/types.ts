@@ -1267,6 +1267,92 @@ export type Database = {
           },
         ]
       }
+      point_events: {
+        Row: {
+          created_at: string
+          created_by: string
+          event_type: string
+          id: string
+          note: string | null
+          photo_urls: string[]
+          point_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          event_type?: string
+          id?: string
+          note?: string | null
+          photo_urls?: string[]
+          point_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          event_type?: string
+          id?: string
+          note?: string | null
+          photo_urls?: string[]
+          point_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "point_events_point_id_fkey"
+            columns: ["point_id"]
+            isOneToOne: false
+            referencedRelation: "points"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      points: {
+        Row: {
+          created_at: string
+          created_by: string
+          entity_id: string | null
+          entity_label: string | null
+          farm_id: string
+          id: string
+          last_event_at: string
+          priority: string
+          resolved_at: string | null
+          status: string
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          entity_id?: string | null
+          entity_label?: string | null
+          farm_id: string
+          id?: string
+          last_event_at?: string
+          priority?: string
+          resolved_at?: string | null
+          status?: string
+          title: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          entity_id?: string | null
+          entity_label?: string | null
+          farm_id?: string
+          id?: string
+          last_event_at?: string
+          priority?: string
+          resolved_at?: string | null
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
