@@ -272,7 +272,7 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({
 
         {/* Assigned To Field */}
         <div className="space-y-2">
-          <Label htmlFor="assignedTo">Assigné à</Label>
+          <Label htmlFor="assignedTo">Assignée à</Label>
           <div className="flex space-x-2">
             <Select
               value={assignedTo}
