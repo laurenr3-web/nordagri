@@ -154,7 +154,6 @@ export function DayView({ farmId, date, label, teamMembers, userId, taskFilter }
               equipment_id: updates.equipment_id && (updates.equipment_id as any) !== 'none' ? updates.equipment_id : null,
               manual_priority: updates.manual_priority === ('auto' as any) ? null : updates.manual_priority,
             } as any,
-            },
           });
           setEditingTask(null);
         }}
