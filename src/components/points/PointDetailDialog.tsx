@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Plus, Trash2, ListPlus, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, ListPlus, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { Point, PointStatus } from '@/types/Point';
 import { STATUS_LABELS, TYPE_EMOJI, TYPE_LABELS, daysOpen } from './pointHelpers';
 import { PointStatusBadge } from './StatusBadge';
@@ -41,6 +41,11 @@ export const PointDetailDialog: React.FC<Props> = ({ point, open, onOpenChange }
   const handleDelete = async () => {
     if (!confirm('Supprimer ce point et tous ses événements ?')) return;
     await deletePoint.mutateAsync(point.id);
+    onOpenChange(false);
+  };
+
+  const handleResolveAndClose = async () => {
+    await updateStatus.mutateAsync({ id: point.id, status: 'resolved' });
     onOpenChange(false);
   };
 
@@ -142,14 +147,25 @@ export const PointDetailDialog: React.FC<Props> = ({ point, open, onOpenChange }
             </button>
           </div>
 
-          {/* FAB */}
-          <Button
-            onClick={() => setAddOpen(true)}
-            className="absolute bottom-4 right-4 rounded-full h-12 px-5 shadow-lg"
-            size="lg"
-          >
-            <Plus className="h-5 w-5 mr-1" /> Ajouter
-          </Button>
+          {/* Footer actions */}
+          <div className="border-t bg-background p-3 flex gap-2 sticky bottom-0">
+            <Button
+              onClick={() => setAddOpen(true)}
+              variant="outline"
+              className="flex-1"
+            >
+              <Plus className="h-4 w-4 mr-1" /> Ajouter
+            </Button>
+            {point.status !== 'resolved' && (
+              <Button
+                onClick={handleResolveAndClose}
+                disabled={updateStatus.isPending}
+                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+              >
+                <CheckCircle2 className="h-4 w-4 mr-1" /> Terminer
+              </Button>
+            )}
+          </div>
         </SheetContent>
       </Sheet>
 
