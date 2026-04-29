@@ -19,7 +19,7 @@ import Auth from '@/pages/Auth';
 import Equipment from '@/pages/Equipment';
 import Maintenance from '@/pages/Maintenance';
 import Parts from '@/pages/Parts';
-import Interventions from '@/pages/Interventions';
+import Points from '@/pages/Points';
 import TimeTracking from '@/pages/TimeTracking';
 import Planning from '@/pages/Planning';
 
@@ -101,11 +101,12 @@ function App() {
                           <Parts />
                         </ProtectedRoute>
                       } />
-                      <Route path="/interventions" element={
+                      <Route path="/points" element={
                         <ProtectedRoute>
-                          <Interventions />
+                          <Points />
                         </ProtectedRoute>
                       } />
+                      <Route path="/interventions" element={<Navigate to="/points" replace />} />
                       <Route path="/settings" element={
                         <ProtectedRoute>
                           <Settings />
