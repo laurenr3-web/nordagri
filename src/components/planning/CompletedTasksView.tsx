@@ -291,7 +291,12 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
   const groupedByDay = useMemo(() => {
     const groups: { label: string; items: CompletedItem[] }[] = [];
     const map = new Map<string, CompletedItem[]>();
-    for (const i of filtered) {
+    const displayed = priorityFilter === 'all'
+      ? filtered
+      : priorityFilter === 'overdue'
+        ? filtered.filter(i => i.wasOverdue)
+        : filtered.filter(i => i.priority === priorityFilter);
+    for (const i of displayed) {
       const k = i.completedAt.toISOString().split('T')[0];
       if (!map.has(k)) map.set(k, []);
       map.get(k)!.push(i);
@@ -306,7 +311,7 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
       groups.push({ label: label.charAt(0).toUpperCase() + label.slice(1), items: map.get(k)! });
     }
     return groups;
-  }, [filtered]);
+  }, [filtered, priorityFilter]);
 
   const isLoading = loadingDone || loadingRec;
 
