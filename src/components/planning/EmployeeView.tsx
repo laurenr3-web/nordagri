@@ -26,7 +26,7 @@ export function EmployeeView({ farmId, date, teamMembers }: EmployeeViewProps) {
   const [selectedTask, setSelectedTask] = useState<PlanningTask | null>(null);
   const [editingTask, setEditingTask] = useState<PlanningTask | null>(null);
   const { tasks, isLoading, updateStatus, postponeTask, deleteTask, updateTask } =
-    usePlanningTasks(farmId, date, date);
+    usePlanningTasks(farmId);
   const { user } = useAuthContext();
 
   const { data: equipment = [] } = useQuery({
