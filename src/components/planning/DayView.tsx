@@ -148,6 +148,7 @@ export function DayView({ farmId, date, label, teamMembers, userId, taskFilter }
           if (!editingTask) return;
           updateTask.mutate({
             id: editingTask.id,
+              updates: undefined as any,
             updates: {
               ...updates,
               assigned_to: (updates.assigned_to === 'none' || !updates.assigned_to) ? null : updates.assigned_to,
