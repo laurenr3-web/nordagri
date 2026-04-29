@@ -12,6 +12,7 @@ import { SimpleNotificationSection } from '@/components/settings/notifications/S
 import { FarmSettingsSection } from '@/components/settings/farm/FarmSettingsSection';
 import { ModulesSection } from '@/components/settings/farm/ModulesSection';
 import { CategoryImportanceSection } from '@/components/settings/farm/CategoryImportanceSection';
+import { AssignmentDiagnostic } from '@/components/settings/farm/AssignmentDiagnostic';
 import { SubscriptionSection } from '@/components/settings/subscription/SubscriptionSection';
 import { NotificationSettingsSection } from '@/components/settings/notifications/NotificationSettingsSection';
 import { UserAccessSection } from '@/components/settings/security/UserAccessSection';
@@ -197,6 +198,7 @@ const Settings = () => {
                   loading={loading}
                 />
                 <CategoryImportanceSection />
+                <AssignmentDiagnostic />
               </TabsContent>
               
               <TabsContent value="security" className="space-y-6 mt-0">
