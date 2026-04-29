@@ -3,9 +3,12 @@ import React, { useState, useMemo } from 'react';
 import { PlanningTask, PlanningStatus } from '@/services/planning/planningService';
 import { SwipeableTaskCard } from './SwipeableTaskCard';
 import { TaskDetailDialog } from './TaskDetailDialog';
+import { AddTaskForm } from './AddTaskForm';
 import { usePlanningTasks } from '@/hooks/planning/usePlanningTasks';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { User, Users } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface EmployeeViewProps {
   farmId: string | null;
@@ -21,9 +24,20 @@ interface EmployeeGroup {
 
 export function EmployeeView({ farmId, date, teamMembers }: EmployeeViewProps) {
   const [selectedTask, setSelectedTask] = useState<PlanningTask | null>(null);
+  const [editingTask, setEditingTask] = useState<PlanningTask | null>(null);
   const { tasks, isLoading, updateStatus, postponeTask, deleteTask, updateTask } =
     usePlanningTasks(farmId, date, date);
   const { user } = useAuthContext();
+
+  const { data: equipment = [] } = useQuery({
+    queryKey: ['equipmentList', farmId],
+    queryFn: async () => {
+      if (!farmId) return [];
+      const { data } = await supabase.from('equipment').select('id, name').eq('farm_id', farmId);
+      return data || [];
+    },
+    enabled: !!farmId,
+  });
 
   const currentUserMemberId = useMemo(() => {
     if (!user) return null;
@@ -148,6 +162,28 @@ export function EmployeeView({ farmId, date, teamMembers }: EmployeeViewProps) {
         onPostpone={handlePostpone}
         onDelete={handleDelete}
         onUpdate={handleUpdate}
+        onEdit={(t) => setEditingTask(t)}
+      />
+
+      <AddTaskForm
+        open={!!editingTask}
+        onClose={() => setEditingTask(null)}
+        task={editingTask}
+        teamMembers={teamMembers}
+        equipment={equipment as any[]}
+        onSubmit={(updates) => {
+          if (!editingTask) return;
+          updateTask.mutate({
+            id: editingTask.id,
+            updates: {
+              ...updates,
+              assigned_to: (updates.assigned_to === 'none' || !updates.assigned_to) ? null : updates.assigned_to,
+              equipment_id: updates.equipment_id && (updates.equipment_id as any) !== 'none' ? updates.equipment_id : null,
+              manual_priority: updates.manual_priority === ('auto' as any) ? null : updates.manual_priority,
+            },
+          });
+          setEditingTask(null);
+        }}
       />
     </div>
   );

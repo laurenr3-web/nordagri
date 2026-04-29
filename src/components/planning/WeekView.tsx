@@ -4,12 +4,15 @@ import { PlanningTask, PlanningStatus } from '@/services/planning/planningServic
 import { SwipeableTaskCard } from './SwipeableTaskCard';
 import { TaskCard } from './TaskCard';
 import { TaskDetailDialog } from './TaskDetailDialog';
+import { AddTaskForm } from './AddTaskForm';
 import { usePlanningTasks } from '@/hooks/planning/usePlanningTasks';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useAuthContext } from '@/providers/AuthProvider';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface WeekViewProps {
   farmId: string | null;
@@ -38,7 +41,18 @@ export function WeekView({ farmId, teamMembers, taskFilter }: WeekViewProps) {
   const { tasks, doneTasks, isLoading, updateStatus, updateTask, postponeTask, deleteTask } = usePlanningTasks(farmId, start, end);
   const [doneOpen, setDoneOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<PlanningTask | null>(null);
+  const [editingTask, setEditingTask] = useState<PlanningTask | null>(null);
   const { user } = useAuthContext();
+
+  const { data: equipment = [] } = useQuery({
+    queryKey: ['equipmentList', farmId],
+    queryFn: async () => {
+      if (!farmId) return [];
+      const { data } = await supabase.from('equipment').select('id, name').eq('farm_id', farmId);
+      return data || [];
+    },
+    enabled: !!farmId,
+  });
 
   const currentUserMemberId = useMemo(() => {
     if (!user) return null;
@@ -164,6 +178,28 @@ export function WeekView({ farmId, teamMembers, taskFilter }: WeekViewProps) {
         onPostpone={handlePostpone}
         onDelete={handleDelete}
         onUpdate={handleUpdate}
+        onEdit={(t) => setEditingTask(t)}
+      />
+
+      <AddTaskForm
+        open={!!editingTask}
+        onClose={() => setEditingTask(null)}
+        task={editingTask}
+        teamMembers={teamMembers}
+        equipment={equipment as any[]}
+        onSubmit={(updates) => {
+          if (!editingTask) return;
+          updateTask.mutate({
+            id: editingTask.id,
+            updates: {
+              ...updates,
+              assigned_to: (updates.assigned_to === 'none' || !updates.assigned_to) ? null : updates.assigned_to,
+              equipment_id: updates.equipment_id && (updates.equipment_id as any) !== 'none' ? updates.equipment_id : null,
+              manual_priority: updates.manual_priority === ('auto' as any) ? null : updates.manual_priority,
+            },
+          });
+          setEditingTask(null);
+        }}
       />
     </div>
   );
