@@ -139,7 +139,7 @@ export function TaskCard({ task, onClick, teamMembers, currentUserMemberId, onAs
               <PopoverTrigger asChild>
                 <button className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-colors text-muted-foreground bg-muted/50 hover:bg-muted">
                   <User className="h-3 w-3" />
-                  Non assigné
+                  Non assignée
                 </button>
               </PopoverTrigger>
               <PopoverContent className="w-48 p-1" align="start">
@@ -148,7 +148,7 @@ export function TaskCard({ task, onClick, teamMembers, currentUserMemberId, onAs
                     className="w-full text-left text-sm px-3 py-2 rounded-md hover:bg-muted transition-colors bg-muted font-medium"
                     onClick={() => handleAssign(null)}
                   >
-                    Non assigné
+                    Non assignée
                   </button>
                   {teamMembers!.map(member => (
                     <button
@@ -165,7 +165,7 @@ export function TaskCard({ task, onClick, teamMembers, currentUserMemberId, onAs
           ) : (
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <User className="h-3 w-3" />
-              Non assigné
+              Non assignée
             </span>
           )}
 

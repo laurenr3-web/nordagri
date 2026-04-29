@@ -192,10 +192,10 @@ export function TaskDetailDialog({
               <label className="text-xs text-muted-foreground">Assigné à</label>
               <Select value={localAssignedTo || 'none'} onValueChange={handleAssignChange}>
                 <SelectTrigger className="h-10">
-                  <SelectValue placeholder="Non assigné" />
+                  <SelectValue placeholder="Non assignée" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Non assigné</SelectItem>
+                  <SelectItem value="none">Non assignée</SelectItem>
                   {teamMembers.map(m => (
                     <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
                   ))}

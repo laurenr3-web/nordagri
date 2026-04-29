@@ -78,7 +78,7 @@ export function EmployeeView({ farmId, teamMembers }: EmployeeViewProps) {
   if (unassigned && unassigned.length > 0) {
     groups.push({
       id: null,
-      name: 'Non assigné',
+      name: 'Non assignée',
       tasks: unassigned.sort(sortByPriority),
     });
   }
