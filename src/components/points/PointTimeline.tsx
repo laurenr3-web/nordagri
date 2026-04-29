@@ -52,7 +52,7 @@ export const PointTimeline = ({ pointId }: { pointId: string }) => {
   const [editing, setEditing] = useState(false);
   const [editNote, setEditNote] = useState('');
   const [editType, setEditType] = useState<PointEventType>('note');
-  const { user } = useAuth();
+  const { user } = useAuth(false);
   const updateEv = useUpdatePointEvent();
   const deleteEv = useDeletePointEvent();
 
