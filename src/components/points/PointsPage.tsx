@@ -10,9 +10,14 @@ import { PointDetailDialog } from './PointDetailDialog';
 import { STATUS_LABELS } from './pointHelpers';
 import { LayoutWrapper } from '@/components/layout/LayoutWrapper';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { cn } from '@/lib/utils';
 
 const ORDER: PointStatus[] = ['open', 'watch', 'resolved'];
+
+const EMPTY_MESSAGES: Record<PointStatus, string> = {
+  open: 'Aucun point en cours 👍\nTout est sous contrôle.',
+  watch: 'Rien à surveiller pour le moment.',
+  resolved: 'Aucun point réglé pour l’instant.',
+};
 
 export const PointsPage = () => {
   const { farmId, isLoading: farmLoading } = useFarmId();
@@ -38,13 +43,6 @@ export const PointsPage = () => {
       <PageHeader
         title="Points à surveiller"
         description="Suivez les problèmes du terrain dans le temps."
-        action={
-          farmId && (
-            <Button onClick={() => setNewOpen(true)} size="sm">
-              <Plus className="h-4 w-4 mr-1" /> Ajouter un point
-            </Button>
-          )
-        }
       />
 
       {farmLoading || isLoading ? (
@@ -52,7 +50,7 @@ export const PointsPage = () => {
       ) : !farmId ? (
         <p className="text-sm text-muted-foreground">Aucune ferme accessible.</p>
       ) : (
-        <div className="space-y-5 pb-24">
+        <div className="space-y-3 pb-24">
           {ORDER.map((status) => {
             const list = grouped[status];
             const isCollapsed = collapsed[status];
@@ -61,7 +59,7 @@ export const PointsPage = () => {
                 <button
                   type="button"
                   onClick={() => toggle(status)}
-                  className="w-full flex items-center gap-2 mb-2 text-sm font-semibold"
+                  className="w-full flex items-center gap-2 mb-1.5 text-sm font-semibold hover:text-primary transition-colors"
                 >
                   {isCollapsed ? (
                     <ChevronRightIcon className="h-4 w-4" />
@@ -69,12 +67,16 @@ export const PointsPage = () => {
                     <ChevronDown className="h-4 w-4" />
                   )}
                   <span>{STATUS_LABELS[status]}</span>
-                  <span className="text-muted-foreground font-normal">({list.length})</span>
+                  <span className="text-[11px] font-medium text-muted-foreground bg-muted rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center">
+                    {list.length}
+                  </span>
                 </button>
                 {!isCollapsed && (
-                  <div className={cn('space-y-2', list.length === 0 && 'pl-6')}>
+                  <div className="space-y-1.5">
                     {list.length === 0 ? (
-                      <p className="text-xs text-muted-foreground italic">Aucun point.</p>
+                      <p className="text-xs text-muted-foreground italic whitespace-pre-line py-2 pl-6">
+                        {EMPTY_MESSAGES[status]}
+                      </p>
                     ) : (
                       list.map((p) => (
                         <PointCard key={p.id} point={p} onClick={() => setSelected(p)} />
@@ -88,11 +90,11 @@ export const PointsPage = () => {
         </div>
       )}
 
-      {/* Mobile FAB */}
+      {/* Floating Action Button — primary entry point for adding a point */}
       {farmId && (
         <Button
           onClick={() => setNewOpen(true)}
-          className="lg:hidden fixed bottom-20 right-4 rounded-full h-14 px-5 shadow-xl z-40"
+          className="fixed bottom-20 right-4 lg:bottom-6 rounded-full h-14 px-5 shadow-xl z-40"
           size="lg"
         >
           <Plus className="h-5 w-5 mr-1" /> Point
