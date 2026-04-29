@@ -2,12 +2,9 @@
 import React, { useState, useMemo } from 'react';
 import { PlanningTask, PlanningStatus } from '@/services/planning/planningService';
 import { TaskGroup } from './TaskGroup';
-import { TaskCard } from './TaskCard';
 import { TaskDetailDialog } from './TaskDetailDialog';
 import { AddTaskForm } from './AddTaskForm';
 import { usePlanningTasks } from '@/hooks/planning/usePlanningTasks';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown } from 'lucide-react';
 import { MaintenanceSuggestions } from './MaintenanceSuggestions';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,8 +19,7 @@ interface DayViewProps {
 }
 
 export function DayView({ farmId, date, label, teamMembers, userId, taskFilter }: DayViewProps) {
-  const { groupedTasks, doneTasks, overdueTasks, isLoading, updateStatus, updateTask, postponeTask, deleteTask } = usePlanningTasks(farmId, date, date);
-  const [doneOpen, setDoneOpen] = useState(false);
+  const { groupedTasks, overdueTasks, isLoading, updateStatus, updateTask, postponeTask, deleteTask } = usePlanningTasks(farmId, date, date);
   const [selectedTask, setSelectedTask] = useState<PlanningTask | null>(null);
   const [editingTask, setEditingTask] = useState<PlanningTask | null>(null);
 
@@ -73,7 +69,6 @@ export function DayView({ farmId, date, label, teamMembers, userId, taskFilter }
     important: applyFilter(groupedTasks.important),
     todo: applyFilter(groupedTasks.todo),
   };
-  const filteredDone = applyFilter(doneTasks);
   const filteredOverdue = applyFilter(overdueTasks);
 
   const totalTasks = filteredGrouped.critical.length + filteredGrouped.important.length + filteredGrouped.todo.length;
@@ -110,20 +105,6 @@ export function DayView({ farmId, date, label, teamMembers, userId, taskFilter }
           <TaskGroup label="Important" icon="🟡" tasks={filteredGrouped.important} onTaskClick={setSelectedTask} {...assignProps} />
           <TaskGroup label="À faire" icon="⚪" tasks={filteredGrouped.todo} onTaskClick={setSelectedTask} {...assignProps} />
         </>
-      )}
-
-      {filteredDone.length > 0 && (
-        <Collapsible open={doneOpen} onOpenChange={setDoneOpen}>
-          <CollapsibleTrigger className="flex items-center gap-2 w-full py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            <ChevronDown className={`h-4 w-4 transition-transform ${doneOpen ? 'rotate-0' : '-rotate-90'}`} />
-            ✅ Terminées ({filteredDone.length})
-          </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-2 mt-2">
-            {filteredDone.map(task => (
-              <TaskCard key={task.id} task={task} onClick={() => setSelectedTask(task)} teamMembers={teamMembers} />
-            ))}
-          </CollapsibleContent>
-        </Collapsible>
       )}
 
       <TaskDetailDialog
