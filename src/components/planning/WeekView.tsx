@@ -2,12 +2,9 @@
 import React, { useState, useMemo } from 'react';
 import { PlanningTask, PlanningStatus } from '@/services/planning/planningService';
 import { SwipeableTaskCard } from './SwipeableTaskCard';
-import { TaskCard } from './TaskCard';
 import { TaskDetailDialog } from './TaskDetailDialog';
 import { AddTaskForm } from './AddTaskForm';
 import { usePlanningTasks } from '@/hooks/planning/usePlanningTasks';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useAuthContext } from '@/providers/AuthProvider';
@@ -38,8 +35,7 @@ const monthNames = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juil
 
 export function WeekView({ farmId, teamMembers, taskFilter }: WeekViewProps) {
   const { start, end } = getWeekRange();
-  const { tasks, doneTasks, isLoading, updateStatus, updateTask, postponeTask, deleteTask } = usePlanningTasks(farmId, start, end);
-  const [doneOpen, setDoneOpen] = useState(false);
+  const { tasks, isLoading, updateStatus, updateTask, postponeTask, deleteTask } = usePlanningTasks(farmId, start, end);
   const [selectedTask, setSelectedTask] = useState<PlanningTask | null>(null);
   const [editingTask, setEditingTask] = useState<PlanningTask | null>(null);
   const { user } = useAuthContext();
@@ -89,7 +85,6 @@ export function WeekView({ farmId, teamMembers, taskFilter }: WeekViewProps) {
   });
 
   const activeTasks = applyFilter(tasks.filter(t => t.status !== 'done'));
-  const filteredDone = applyFilter(doneTasks);
 
   return (
     <div className="space-y-1">
