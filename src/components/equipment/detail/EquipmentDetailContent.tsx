@@ -67,6 +67,13 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
         : equipment.id;
       queryClient.invalidateQueries({ queryKey: ['equipment'] });
       await equipmentService.deleteEquipment(equipmentId);
+      // Invalider les caches dépendants pour refléter la suppression partout
+      queryClient.invalidateQueries({ queryKey: ['maintenance_tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['maintenanceTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['planningTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['planning-tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['interventions'] });
+      queryClient.invalidateQueries({ queryKey: ['equipment_photos'] });
       toast.success(`L'équipement ${equipment.name} a été supprimé avec succès`);
       navigate('/equipment');
     } catch (error: any) {
