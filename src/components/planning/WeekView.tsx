@@ -151,24 +151,6 @@ export function WeekView({ farmId, teamMembers, taskFilter }: WeekViewProps) {
         );
       })}
 
-      {filteredDone.length > 0 && (
-        <>
-          <Separator className="my-2" />
-          <Collapsible open={doneOpen} onOpenChange={setDoneOpen}>
-            <CollapsibleTrigger className="flex items-center gap-2 w-full py-2 px-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/50">
-              <ChevronDown className={`h-4 w-4 transition-transform ${doneOpen ? 'rotate-0' : '-rotate-90'}`} />
-              ✅ Terminées
-              <Badge variant="outline" className="ml-auto text-xs">{filteredDone.length}</Badge>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-2 mt-2 px-1">
-              {filteredDone.map(task => (
-                <TaskCard key={task.id} task={task} onClick={() => setSelectedTask(task)} teamMembers={teamMembers} />
-              ))}
-            </CollapsibleContent>
-          </Collapsible>
-        </>
-      )}
-
       <TaskDetailDialog
         task={selectedTask}
         open={!!selectedTask}
