@@ -8,7 +8,6 @@ import {
   EVENT_LABELS,
   FRESHNESS_DOT,
   TYPE_EMOJI,
-  daysOpen,
   freshnessOf,
   relativeFromNow,
 } from './pointHelpers';
@@ -21,6 +20,14 @@ interface Props {
   onClick: () => void;
 }
 
+/**
+ * Compact point card — max 5 visible lines:
+ * 1. type emoji + entity_label (bold)
+ * 2. title
+ * 3. badges (priority + status)
+ * 4. last event icon + label (1 line)
+ * 5. relative time (discreet)
+ */
 export const PointCard: React.FC<Props> = ({ point, onClick }) => {
   const fresh = freshnessOf(point.last_event_at);
   const evt = point.last_event_type;
@@ -36,32 +43,60 @@ export const PointCard: React.FC<Props> = ({ point, onClick }) => {
     <Card
       role="button"
       onClick={onClick}
-      className="p-3 cursor-pointer hover:bg-accent/40 active:scale-[0.99] transition-all"
+      className="px-3 py-2.5 cursor-pointer hover:bg-accent/40 active:scale-[0.99] transition-all"
     >
-      <div className="flex items-start gap-3">
-        <div className="text-2xl leading-none mt-0.5">{TYPE_EMOJI[point.type]}</div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className={cn('inline-block w-2 h-2 rounded-full flex-shrink-0', FRESHNESS_DOT[fresh])} aria-hidden />
-            {point.entity_label && (
-              <span className="font-semibold text-sm truncate">{point.entity_label}</span>
-            )}
+      <div className="flex items-start gap-2.5">
+        <div className="relative flex-shrink-0">
+          <div className="text-xl leading-none mt-0.5" aria-hidden>
+            {TYPE_EMOJI[point.type]}
           </div>
-          <p className="text-sm text-foreground line-clamp-2 mb-1.5">{point.title}</p>
-          <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+          <span
+            className={cn(
+              'absolute -top-0.5 -right-1 w-2 h-2 rounded-full ring-2 ring-card',
+              FRESHNESS_DOT[fresh]
+            )}
+            aria-label={`Fraîcheur: ${fresh}`}
+          />
+        </div>
+
+        <div className="flex-1 min-w-0">
+          {/* Line 1: entity label */}
+          {point.entity_label ? (
+            <p className="font-semibold text-sm leading-tight truncate">
+              {point.entity_label}
+            </p>
+          ) : (
+            <p className="font-semibold text-sm leading-tight truncate text-muted-foreground">
+              Sans cible
+            </p>
+          )}
+
+          {/* Line 2: title */}
+          <p className="text-sm text-foreground/90 line-clamp-1 mt-0.5">
+            {point.title}
+          </p>
+
+          {/* Line 3: badges */}
+          <div className="flex items-center gap-1.5 mt-1.5">
             <PointPriorityBadge priority={point.priority} />
             <PointStatusBadge status={point.status} />
           </div>
-          <div className="text-[11px] text-muted-foreground flex items-center gap-1.5">
-            {evt && <span>{EVENT_EMOJI[evt]} {EVENT_LABELS[evt]}</span>}
-            {evt && <span>·</span>}
-            <span className="truncate">Activité {relativeFromNow(point.last_event_at)}</span>
-            <span>·</span>
-            <span className="whitespace-nowrap">{daysOpen(point.created_at)} j</span>
-          </div>
-          {point.last_event_note && (
-            <p className="text-[11px] text-muted-foreground italic line-clamp-1 mt-1">"{point.last_event_note}"</p>
+
+          {/* Line 4: last event */}
+          {evt && (
+            <p className="text-[11px] text-muted-foreground line-clamp-1 mt-1.5 flex items-center gap-1">
+              <span aria-hidden>{EVENT_EMOJI[evt]}</span>
+              <span className="truncate">
+                {point.last_event_note?.trim() || EVENT_LABELS[evt]}
+              </span>
+            </p>
           )}
+
+          {/* Line 5: relative time */}
+          <p className="text-[10px] text-muted-foreground/70 mt-0.5">
+            {relativeFromNow(point.last_event_at)}
+          </p>
+
           {isResolved && (
             <div className="flex gap-1.5 mt-2 pt-2 border-t">
               <Button
