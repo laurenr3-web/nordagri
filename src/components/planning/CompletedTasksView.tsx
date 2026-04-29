@@ -76,6 +76,7 @@ interface CompletedTasksViewProps {
 export function CompletedTasksView({ farmId, teamMembers, currentUserId }: CompletedTasksViewProps) {
   const [period, setPeriod] = useState<Period>('today');
   const [employeeFilter, setEmployeeFilter] = useState<string | 'all' | 'me'>('all');
+  const [priorityFilter, setPriorityFilter] = useState<'all' | 'critical' | 'important' | 'overdue'>('all');
   const [selected, setSelected] = useState<CompletedItem | null>(null);
 
   const { start, end } = useMemo(() => getRangeFromPeriod(period), [period]);

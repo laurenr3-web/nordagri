@@ -1,42 +1,40 @@
-# Modifier une tâche existante en planification
+## Objectif
 
-Aujourd'hui, `TaskDetailDialog` permet seulement de changer l'assigné, le statut, et la date de report. Tous les autres champs (titre, catégorie, notes, priorité, récurrence, équipement, champ, bâtiment, groupe d'animaux) ne sont pas éditables après création. On va ajouter un vrai mode édition.
+Dans l'onglet **Tâches terminées**, rendre les cartes de stats **Critiques**, **Importantes** et **En retard** cliquables pour filtrer la liste, et garder **Terminées** comme bouton "tout voir" (réinitialise le filtre).
 
-## Approche
+## Comportement
 
-Réutiliser le formulaire existant `AddTaskForm` en le transformant en formulaire double-usage (création + édition), pour rester cohérent visuellement et éviter de dupliquer ~290 lignes de code.
+- Clic sur **Critiques** → seules les tâches de priorité `critical` apparaissent dans la liste groupée par jour.
+- Clic sur **Importantes** → seules les tâches `important`.
+- Clic sur **En retard** → seules les tâches avec `wasOverdue = true` (toutes priorités).
+- Clic sur **Terminées** (ou re-clic sur le filtre actif) → désactive le filtre, retour à toutes les tâches.
+- Le filtre se combine avec ceux déjà existants : période (Aujourd'hui / 7 j / 30 j) et employé.
+- Les compteurs des `StatCard` continuent d'afficher les totaux **avant** filtre par priorité (sinon la carte active tomberait à son propre nombre, mais les autres deviendraient 0). Ils restent calculés sur `filtered` (période + employé).
+- Indicateur visuel : la carte active reçoit une bordure / ring de la couleur de sa tonalité + un focus ring; les autres restent en aspect normal.
+- Quand un filtre est actif, afficher un petit lien **"Effacer le filtre"** au-dessus de la liste.
+- Si aucune tâche ne correspond, le message "Aucune tâche terminée…" est adapté en "Aucune tâche correspondant à ce filtre."
 
-## Changements
+## Changements techniques
 
-### 1. `src/components/planning/AddTaskForm.tsx`
-- Ajouter une prop optionnelle `task?: PlanningTask` (la tâche à modifier).
-- Quand `task` est fourni :
-  - Pré-remplir tous les champs depuis la tâche via `useEffect` à l'ouverture.
-  - Changer le titre du dialogue en "Modifier la tâche".
-  - Changer le libellé du bouton en "Enregistrer les modifications".
-- Le `onSubmit` reste identique côté signature ; le parent décide s'il appelle `addTask` ou `updateTask`.
+Fichier touché : `src/components/planning/CompletedTasksView.tsx`
 
-### 2. `src/components/planning/TaskDetailDialog.tsx`
-- Ajouter un bouton "Modifier" dans la section Actions (à côté de Commencer/Terminer/Bloqué).
-- Au clic, fermer le dialogue de détail et ouvrir le formulaire d'édition (géré au niveau parent via une nouvelle prop `onEdit(task)`).
-- Pour les tâches récurrentes virtuelles (avec `_occurrence_date`), l'édition s'applique à la tâche modèle (toutes les occurrences futures).
+1. Ajouter un état `priorityFilter: 'all' | 'critical' | 'important' | 'overdue'` (par défaut `'all'`).
+2. Dériver `displayed = filtered` filtré par `priorityFilter` (overdue ⇒ `i.wasOverdue`, sinon `i.priority === priorityFilter`).
+3. Remplacer `filtered` par `displayed` dans `groupedByDay` uniquement (les `stats` restent basées sur `filtered`).
+4. Convertir `StatCard` en bouton :
+   - Ajouter props optionnelles `active?: boolean` et `onClick?: () => void`.
+   - Wrapper interne en `<button type="button">` quand `onClick` fourni; ajouter `ring-2 ring-offset-1` à la couleur de la tonalité quand `active`.
+   - Garder le rendu actuel (icône, label, valeur) inchangé visuellement à l'état non-actif.
+5. Câbler dans le rendu des 4 cartes :
+   - **Terminées** → `onClick = () => setPriorityFilter('all')`, `active = priorityFilter === 'all'`.
+   - **Critiques** → `setPriorityFilter(prev => prev === 'critical' ? 'all' : 'critical')`.
+   - **Importantes** → idem `'important'`.
+   - **En retard** → idem `'overdue'`.
+6. Ajouter, juste avant la liste groupée, un petit bouton "Effacer le filtre" visible uniquement si `priorityFilter !== 'all'`.
+7. Adapter le message d'état vide quand `priorityFilter !== 'all'`.
 
-### 3. `src/components/planning/PlanningContent.tsx`
-- Ajouter un état `editingTask: PlanningTask | null`.
-- Brancher `onEdit` du `TaskDetailDialog` pour définir cet état.
-- Réutiliser `AddTaskForm` en mode édition : `<AddTaskForm task={editingTask} onSubmit={...}>`.
-- Dans le `onSubmit` d'édition, appeler `updateTask.mutate({ id, updates })` (déjà présent dans `usePlanningTasks`).
+## Hors scope
 
-### 4. Aucun changement DB
-La mutation `updateTask` et `planningService.updateTask` existent déjà et acceptent un `Partial<PlanningTask>`. Aucune migration requise.
-
-## Détails techniques
-
-- Pour la récurrence : si l'utilisateur change `recurrence_type` ou `recurrence_days`, on met à jour les colonnes correspondantes ; les complétions passées (`planning_task_completions`) restent intactes.
-- Le `due_date` reste éditable, mais pour une récurrence virtuelle, modifier la date du modèle est volontaire (cohérent avec l'attente de l'utilisateur de modifier "la tâche").
-- Pas d'ajout de bouton dans le swipe ; l'édition reste accessible depuis le détail (clic sur la carte).
-
-## Résumé fichiers modifiés
-- `src/components/planning/AddTaskForm.tsx` — support mode édition
-- `src/components/planning/TaskDetailDialog.tsx` — bouton Modifier + prop `onEdit`
-- `src/components/planning/PlanningContent.tsx` — orchestration édition
+- Pas de changement à la logique de données / requêtes Supabase.
+- Pas de modification du dialog de détail ni du résumé "Par employé".
+- Pas de filtre multi-priorité (un seul à la fois, comportement toggle).
