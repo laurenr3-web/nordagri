@@ -107,6 +107,15 @@ export function TaskCard({ task, onClick, teamMembers, currentUserMemberId, onAs
         <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", statusColors[task.status])}>
           {statusLabels[task.status]}
         </Badge>
+        {assignedMemberName && (
+          <Badge
+            variant="outline"
+            className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-primary/30 gap-1"
+          >
+            <User className="h-2.5 w-2.5" />
+            {assignedMemberName}
+          </Badge>
+        )}
         {isOverdue && (
           <Badge className="text-[10px] px-1.5 py-0 bg-orange-500 text-white border-0 gap-1">
             <Clock className="h-2.5 w-2.5" />
