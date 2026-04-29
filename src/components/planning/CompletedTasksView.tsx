@@ -13,7 +13,7 @@ import { fr } from 'date-fns/locale';
 
 type Period = 'today' | 'week' | 'month';
 
-interface TeamMember { id: string; name: string; userId?: string }
+interface TeamMember { id: string; name: string; userId?: string; isOwner?: boolean }
 
 interface CompletedItem {
   key: string;
@@ -131,6 +131,25 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
     enabled: !!farmId,
   });
 
+  // Fetch tasks ASSIGNED in the same period (open tasks per employee)
+  const { data: assignedOpenTasks = [] } = useQuery({
+    queryKey: ['assigned-open-planning-tasks', farmId, startDate, endDate],
+    queryFn: async () => {
+      if (!farmId) return [];
+      const { data, error } = await supabase
+        .from('planning_tasks')
+        .select('id, assigned_to, status, due_date, manual_priority, computed_priority')
+        .eq('farm_id', farmId)
+        .not('assigned_to', 'is', null)
+        .neq('status', 'done')
+        .gte('due_date', startDate)
+        .lte('due_date', endDate);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!farmId,
+  });
+
   const memberByUserId = useMemo(() => {
     const m = new Map<string, TeamMember>();
     teamMembers.forEach(tm => { if (tm.userId) m.set(tm.userId, tm); });
@@ -212,18 +231,60 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
   }, [filtered]);
 
   // Per-employee stats
+  // Per-employee stats — includes ALL team members, even with 0 done tasks
   const perEmployee = useMemo(() => {
-    const map = new Map<string, { name: string; total: number; critical: number }>();
-    for (const i of filtered) {
+    type Row = { key: string; name: string; isMe: boolean; total: number; critical: number; assigned: number };
+    const map = new Map<string, Row>();
+
+    // Seed with every team member so they all appear
+    for (const tm of teamMembers) {
+      const key = tm.userId || tm.id;
+      map.set(key, {
+        key,
+        name: tm.name,
+        isMe: !!tm.userId && tm.userId === currentUserId,
+        total: 0,
+        critical: 0,
+        assigned: 0,
+      });
+    }
+
+    // Count completed (filtered by period + employee filter for the cards above,
+    // but the per-employee card should reflect the period regardless of employee filter)
+    for (const i of items) {
       const key = i.completedByUserId || 'unknown';
-      const name = i.completedByName;
-      const cur = map.get(key) || { name, total: 0, critical: 0 };
+      const cur = map.get(key) || {
+        key,
+        name: i.completedByName,
+        isMe: i.completedByUserId === currentUserId,
+        total: 0,
+        critical: 0,
+        assigned: 0,
+      };
       cur.total++;
       if (i.priority === 'critical') cur.critical++;
       map.set(key, cur);
     }
-    return Array.from(map.values()).sort((a, b) => b.total - a.total);
-  }, [filtered]);
+
+    // Count assigned-but-not-done open tasks in the period (assigned_to is a farm_members.id)
+    const memberIdToUserId = new Map<string, string | undefined>();
+    teamMembers.forEach(tm => memberIdToUserId.set(tm.id, tm.userId));
+    for (const t of assignedOpenTasks) {
+      const userId = memberIdToUserId.get(t.assigned_to as string);
+      const key = userId || (t.assigned_to as string);
+      const cur = map.get(key);
+      if (cur) {
+        cur.assigned++;
+      }
+    }
+
+    return Array.from(map.values()).sort((a, b) => {
+      // Me first, then by total done desc, then by name
+      if (a.isMe !== b.isMe) return a.isMe ? -1 : 1;
+      if (b.total !== a.total) return b.total - a.total;
+      return a.name.localeCompare(b.name);
+    });
+  }, [items, teamMembers, currentUserId, assignedOpenTasks]);
 
   // Group by day for the list
   const groupedByDay = useMemo(() => {
@@ -319,19 +380,49 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
       {/* Per-employee compact list */}
       {perEmployee.length > 0 && (
         <Card className="p-3">
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Par employé</h3>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Par employé</h3>
+            <span className="text-[10px] text-muted-foreground">terminées · en cours</span>
+          </div>
           <ul className="space-y-1.5">
-            {perEmployee.map((e, i) => (
-              <li key={i} className="flex items-center justify-between text-sm">
+            {perEmployee.map((e) => (
+              <li
+                key={e.key}
+                className={cn(
+                  'flex items-center justify-between text-sm rounded-md px-1.5 py-1 cursor-pointer transition-colors',
+                  employeeFilter === (e.isMe ? 'me' : e.key)
+                    ? 'bg-accent'
+                    : 'hover:bg-accent/50'
+                )}
+                onClick={() => setEmployeeFilter(e.isMe ? 'me' : e.key as any)}
+              >
                 <span className="flex items-center gap-2 min-w-0">
                   <UserIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span className="truncate">{e.name}</span>
+                  <span className="truncate">
+                    {e.name}
+                    {e.isMe && <span className="text-muted-foreground text-xs"> (moi)</span>}
+                  </span>
                 </span>
-                <span className="flex items-center gap-2 shrink-0">
-                  <Badge variant="secondary" className="text-xs">{e.total}</Badge>
+                <span className="flex items-center gap-1.5 shrink-0">
+                  <Badge
+                    variant={e.total > 0 ? 'secondary' : 'outline'}
+                    className={cn(
+                      'text-xs gap-1',
+                      e.total === 0 && 'text-muted-foreground'
+                    )}
+                  >
+                    <CheckCircle2 className="h-3 w-3" />
+                    {e.total}
+                  </Badge>
+                  {e.assigned > 0 && (
+                    <Badge variant="outline" className="text-xs gap-1 border-blue-200 text-blue-700 dark:text-blue-300 dark:border-blue-900/50">
+                      <Clock className="h-3 w-3" />
+                      {e.assigned}
+                    </Badge>
+                  )}
                   {e.critical > 0 && (
                     <Badge className={cn('text-xs', priorityConfig.critical.className)} variant="outline">
-                      {e.critical} critique{e.critical > 1 ? 's' : ''}
+                      {e.critical} crit.
                     </Badge>
                   )}
                 </span>
