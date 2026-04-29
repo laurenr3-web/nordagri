@@ -103,7 +103,7 @@ export const PointDetailDialog: React.FC<Props> = ({ point, open, onOpenChange }
             </div>
           </SheetHeader>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-24">
+          <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-4">
             {/* Linked tasks */}
             {linkedTasks && linkedTasks.length > 0 && (
               <section>
