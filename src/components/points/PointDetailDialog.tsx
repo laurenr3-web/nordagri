@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Plus, Trash2, ListPlus, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { Plus, Trash2, ListPlus, ChevronRight, CheckCircle2, X } from 'lucide-react';
 import { Point, PointStatus } from '@/types/Point';
 import { STATUS_LABELS, TYPE_EMOJI, TYPE_LABELS, daysOpen } from './pointHelpers';
 import { PointStatusBadge } from './StatusBadge';
@@ -56,7 +56,7 @@ export const PointDetailDialog: React.FC<Props> = ({ point, open, onOpenChange }
           <SheetHeader className="p-4 border-b sticky top-0 bg-background z-10">
             <div className="flex items-start gap-3">
               <span className="text-2xl">{TYPE_EMOJI[point.type]}</span>
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 pr-10">
                 <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
                   {TYPE_LABELS[point.type]}
                 </p>
@@ -72,6 +72,16 @@ export const PointDetailDialog: React.FC<Props> = ({ point, open, onOpenChange }
                   </span>
                 </div>
               </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => onOpenChange(false)}
+                aria-label="Fermer"
+                className="absolute right-2 top-2 h-9 w-9 z-20"
+              >
+                <X className="h-5 w-5" />
+              </Button>
             </div>
 
             <div className="flex gap-2 mt-3">
