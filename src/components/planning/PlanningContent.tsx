@@ -70,7 +70,9 @@ export function PlanningContent() {
         const fm = memberMap.get(p.id);
         const isOwner = farm?.owner_id === p.id;
         return {
-          id: fm?.id || p.id,
+          // Always use auth user id as the canonical member id so it matches
+          // planning_tasks.assigned_to (which stores user_id).
+          id: p.id,
           name: [p.first_name, p.last_name].filter(Boolean).join(' ') || 'Sans nom',
           isOwner,
           userId: p.id,
