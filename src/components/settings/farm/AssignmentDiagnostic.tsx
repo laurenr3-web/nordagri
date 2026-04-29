@@ -1,13 +1,51 @@
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useFarmId } from '@/hooks/useFarmId';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { CheckCircle2, AlertTriangle, RefreshCw, ShieldCheck, User, Loader2 } from 'lucide-react';
+import {
+  CheckCircle2,
+  AlertTriangle,
+  RefreshCw,
+  ShieldCheck,
+  User,
+  Loader2,
+  Wand2,
+} from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+
+const UNASSIGN_VALUE = '__unassign__';
+
+interface MemberRow {
+  memberId: string;
+  userId: string;
+  role: string;
+  name: string;
+  profileOk: boolean;
+  taskCount: number;
+  isOwner: boolean;
+}
+
+interface OrphanTask {
+  id: string;
+  title: string;
+  assigned_to: string;
+  due_date: string;
+  status: string;
+}
 
 /**
  * Diagnostic d'intégrité des assignations de tâches.
@@ -21,7 +59,13 @@ import { cn } from '@/lib/utils';
  */
 export function AssignmentDiagnostic() {
   const { farmId } = useFarmId();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [showDetails, setShowDetails] = useState(false);
+  const [reassignOpen, setReassignOpen] = useState(false);
+  // Map taskId -> selected farm_members.id OR UNASSIGN_VALUE
+  const [decisions, setDecisions] = useState<Record<string, string>>({});
+  const [applying, setApplying] = useState(false);
 
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['assignment-diagnostic', farmId],
@@ -84,6 +128,7 @@ export function AssignmentDiagnostic() {
           name,
           profileOk: !!p,
           taskCount,
+          isOwner: m.user_id === farm?.owner_id,
         };
       });
 
@@ -100,6 +145,88 @@ export function AssignmentDiagnostic() {
     },
     enabled: !!farmId,
   });
+
+  // Suggested default: the owner's farm_member.id if it exists, otherwise the first member with a profile,
+  // otherwise unassign.
+  const suggestedMemberId: string = useMemo(() => {
+    if (!data) return UNASSIGN_VALUE;
+    const ownerMember = data.memberRows.find((m) => m.isOwner && m.profileOk);
+    if (ownerMember) return ownerMember.memberId;
+    const firstOk = data.memberRows.find((m) => m.profileOk);
+    if (firstOk) return firstOk.memberId;
+    return UNASSIGN_VALUE;
+  }, [data]);
+
+  // Pre-fill decisions whenever the dialog opens or data changes
+  useEffect(() => {
+    if (!reassignOpen || !data) return;
+    setDecisions((prev) => {
+      const next: Record<string, string> = { ...prev };
+      for (const t of data.orphanTasks) {
+        if (!next[t.id]) next[t.id] = suggestedMemberId;
+      }
+      // Drop entries for tasks that no longer exist
+      const orphanIds = new Set(data.orphanTasks.map((t) => t.id));
+      Object.keys(next).forEach((k) => {
+        if (!orphanIds.has(k)) delete next[k];
+      });
+      return next;
+    });
+  }, [reassignOpen, data, suggestedMemberId]);
+
+  const handleApply = async () => {
+    if (!data) return;
+    setApplying(true);
+    let success = 0;
+    let failed = 0;
+    try {
+      for (const t of data.orphanTasks) {
+        const choice = decisions[t.id] ?? suggestedMemberId;
+        const newAssignee = choice === UNASSIGN_VALUE ? null : choice;
+        const { error } = await supabase
+          .from('planning_tasks')
+          .update({ assigned_to: newAssignee })
+          .eq('id', t.id);
+        if (error) {
+          console.error('Reassignment failed for task', t.id, error);
+          failed++;
+        } else {
+          success++;
+        }
+      }
+      if (success > 0) {
+        toast({
+          title: 'Réassignation effectuée',
+          description: `${success} tâche${success > 1 ? 's' : ''} mise${success > 1 ? 's' : ''} à jour${
+            failed > 0 ? `, ${failed} échec(s)` : ''
+          }.`,
+        });
+      }
+      if (failed > 0 && success === 0) {
+        toast({
+          title: 'Échec de la réassignation',
+          description: `Impossible de mettre à jour ${failed} tâche${failed > 1 ? 's' : ''}.`,
+          variant: 'destructive',
+        });
+      }
+      // Refresh diagnostic + planning views
+      await Promise.all([
+        refetch(),
+        queryClient.invalidateQueries({ queryKey: ['planningTasks'] }),
+        queryClient.invalidateQueries({ queryKey: ['planning-tasks'] }),
+        queryClient.invalidateQueries({ queryKey: ['assigned-open-planning-tasks'] }),
+      ]);
+      setReassignOpen(false);
+    } finally {
+      setApplying(false);
+    }
+  };
+
+  const memberById = useMemo(() => {
+    const m = new Map<string, MemberRow>();
+    (data?.memberRows || []).forEach((row) => m.set(row.memberId, row));
+    return m;
+  }, [data]);
 
   if (!farmId) {
     return (
@@ -256,9 +383,20 @@ export function AssignmentDiagnostic() {
         {/* Tâches orphelines */}
         {data.orphanCount > 0 && (
           <div className="space-y-2">
-            <h4 className="text-sm font-semibold text-amber-700 dark:text-amber-400">
-              Tâches assignées à un membre inconnu
-            </h4>
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <h4 className="text-sm font-semibold text-amber-700 dark:text-amber-400">
+                Tâches assignées à un membre inconnu
+              </h4>
+              <Button
+                size="sm"
+                onClick={() => setReassignOpen(true)}
+                className="gap-1.5"
+                disabled={data.memberRows.length === 0}
+              >
+                <Wand2 className="h-3.5 w-3.5" />
+                Proposer une réassignation
+              </Button>
+            </div>
             <div className="border rounded-md divide-y">
               {data.orphanTasks.map((t) => (
                 <div key={t.id} className="p-2.5 text-sm">
@@ -271,11 +409,130 @@ export function AssignmentDiagnostic() {
             </div>
             <p className="text-xs text-muted-foreground">
               Ces tâches ont été assignées à un membre qui a depuis quitté la ferme.
-              Réassigne-les ou retire l'assignation depuis le module Planification.
+              Utilise « Proposer une réassignation » pour les corriger en lot.
             </p>
           </div>
         )}
       </CardContent>
+
+      {/* Reassignment dialog */}
+      <Dialog open={reassignOpen} onOpenChange={(o) => !applying && setReassignOpen(o)}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Wand2 className="h-4 w-4" />
+              Proposer une réassignation
+            </DialogTitle>
+            <DialogDescription>
+              Choisis un nouveau membre pour chaque tâche orpheline ou retire l'assignation.
+              Les choix sont appliqués uniquement après confirmation.
+            </DialogDescription>
+          </DialogHeader>
+
+          {data && (
+            <div className="space-y-3">
+              {/* Bulk action helper */}
+              <div className="flex items-center justify-between gap-2 flex-wrap p-2.5 rounded-md bg-muted/50 text-xs">
+                <span className="text-muted-foreground">
+                  Suggestion : {suggestedMemberId === UNASSIGN_VALUE
+                    ? 'retirer l\'assignation'
+                    : memberById.get(suggestedMemberId)?.name || 'membre'}
+                </span>
+                <div className="flex gap-1.5">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => {
+                      const next: Record<string, string> = {};
+                      data.orphanTasks.forEach((t) => { next[t.id] = suggestedMemberId; });
+                      setDecisions(next);
+                    }}
+                  >
+                    Tout suggérer
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => {
+                      const next: Record<string, string> = {};
+                      data.orphanTasks.forEach((t) => { next[t.id] = UNASSIGN_VALUE; });
+                      setDecisions(next);
+                    }}
+                  >
+                    Tout retirer
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                {data.orphanTasks.map((t) => {
+                  const value = decisions[t.id] ?? suggestedMemberId;
+                  return (
+                    <div key={t.id} className="border rounded-md p-2.5 space-y-2">
+                      <div className="text-sm font-medium leading-snug">{t.title}</div>
+                      <div className="text-[10px] text-muted-foreground font-mono">
+                        due: {t.due_date} · status: {t.status}
+                      </div>
+                      <Select
+                        value={value}
+                        onValueChange={(v) => setDecisions((d) => ({ ...d, [t.id]: v }))}
+                      >
+                        <SelectTrigger className="h-9 text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={UNASSIGN_VALUE}>
+                            <span className="text-muted-foreground">— Retirer l'assignation —</span>
+                          </SelectItem>
+                          {data.memberRows.map((m) => (
+                            <SelectItem key={m.memberId} value={m.memberId} disabled={!m.profileOk}>
+                              {m.name}
+                              {m.isOwner ? ' (propriétaire)' : ''}
+                              {!m.profileOk ? ' — profil manquant' : ''}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  );
+                })}
+
+                {data.orphanTasks.length === 0 && (
+                  <div className="text-sm text-muted-foreground text-center py-6">
+                    Aucune tâche orpheline à réassigner.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setReassignOpen(false)}
+              disabled={applying}
+            >
+              Annuler
+            </Button>
+            <Button
+              onClick={handleApply}
+              disabled={applying || !data || data.orphanTasks.length === 0}
+              className="gap-1.5"
+            >
+              {applying ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <CheckCircle2 className="h-3.5 w-3.5" />
+              )}
+              Appliquer ({data?.orphanTasks.length || 0})
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
