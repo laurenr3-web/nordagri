@@ -1,21 +1,11 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Edit, Loader2, Trash2 } from 'lucide-react';
+import { Edit } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import QRCodeGenerator from '../qr/QRCodeGenerator';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import DeleteEquipmentDialog from './DeleteEquipmentDialog';
 
 interface EquipmentHeaderProps {
   equipment: EquipmentItem;
@@ -69,43 +59,12 @@ const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({
         )}
         
         {canDelete && (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" size="sm" disabled={isDeleting}>
-                {isDeleting ? (
-                  <>
-                    <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-                    <span className="hidden sm:inline">Suppression...</span>
-                    <span className="sm:hidden">...</span>
-                  </>
-                ) : (
-                  <>
-                    <Trash2 className="mr-1.5 h-4 w-4" />
-                    Supprimer
-                  </>
-                )}
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Cette action ne peut pas être annulée. Cela supprimera définitivement l'équipement 
-                  "{equipment.name}" et toutes les données associées.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Annuler</AlertDialogCancel>
-                <AlertDialogAction 
-                  onClick={onDelete}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  disabled={isDeleting}
-                >
-                  {isDeleting ? 'Suppression...' : 'Supprimer'}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <DeleteEquipmentDialog
+            equipmentId={equipment.id}
+            equipmentName={equipment.name}
+            isDeleting={isDeleting}
+            onConfirm={onDelete}
+          />
         )}
       </div>
     </div>
