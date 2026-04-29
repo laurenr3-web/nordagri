@@ -33,7 +33,7 @@ export const adaptMaintenanceEvents = (data: any[]): MaintenanceEvent[] => {
       equipment: event.equipment || 'Équipement non spécifié',
       status: event.status || 'scheduled',
       priority: priority,
-      assignedTo: event.assignedTo || 'Non assigné',
+      assignedTo: event.assignedTo || 'Non assignée',
       duration: event.estimatedDuration || 0 
     };
   });
@@ -63,6 +63,6 @@ export const adaptUpcomingTasks = (data: any[]): UpcomingTask[] => {
     dueDate: task.dueDate ? new Date(task.dueDate) : new Date(),
     status: task.status || 'pending',
     priority: task.priority || 'medium',
-    assignedTo: task.assignedTo || 'Non assigné'
+    assignedTo: task.assignedTo || 'Non assignée'
   }));
 };

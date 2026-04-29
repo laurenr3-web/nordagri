@@ -73,7 +73,7 @@ const TaskTabs: React.FC<TaskTabsProps> = ({
     priority: task.priority === 'critical' ? 'high' : 
              task.priority === 'low' ? 'low' : 
              'medium' as 'high' | 'medium' | 'low',
-    assignedTo: task.assignedTo || 'Non assigné',
+    assignedTo: task.assignedTo || 'Non assignée',
     duration: task.engineHours || 0
   }));
 

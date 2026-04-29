@@ -298,7 +298,7 @@ export const MaintenanceTable: React.FC<MaintenanceTableProps> = ({
                         className="hidden lg:table-cell px-2 text-sm"
                         onClick={() => { setSelectedTask(task); setIsTaskDetailsOpen(true); }}
                       >
-                        {task.assignedTo || 'Non assigné'}
+                        {task.assignedTo || 'Non assignée'}
                       </TableCell>
                       <TableCell className="px-1">
                         <DropdownMenu>

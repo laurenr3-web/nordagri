@@ -32,7 +32,7 @@ export const useTasksData = (user: any) => {
         dueDate: new Date(item.due_date),
         status: item.status,
         priority: item.priority,
-        assignedTo: item.assigned_to || 'Non assigné',
+        assignedTo: item.assigned_to || 'Non assignée',
       }));
     },
     enabled: !!user,
