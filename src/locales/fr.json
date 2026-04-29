@@ -15,7 +15,7 @@
   "navbar.equipment": "Équipement",
   "navbar.maintenance": "Maintenance",
   "navbar.parts": "Pièces",
-  "navbar.interventions": "Interventions",
+  "navbar.points": "Points à surveiller",
   "navbar.time": "Suivi du temps",
   "navbar.settings": "Paramètres",
   "mobilemenu.dashboard": "Dashboard",
@@ -23,7 +23,7 @@
   "mobilemenu.equipment": "Équipement",
   "mobilemenu.maintenance": "Maintenance",
   "mobilemenu.parts": "Pièces",
-  "mobilemenu.interventions": "Interventions",
+  "mobilemenu.points": "Points",
   "mobilemenu.time": "Temps",
   "mobilemenu.settings": "Paramètres",
   "equipment.loading": "Chargement des équipements..."
