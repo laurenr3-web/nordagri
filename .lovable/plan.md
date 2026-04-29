@@ -1,152 +1,126 @@
-# Module "Points à surveiller" — Plan unifié (création + raffinements)
+# Dashboard orienté action — version raffinée
 
-Le module n'existe pas encore en base ni en code. Ce plan intègre directement vos raffinements : champs simplifiés, statuts traduits, timeline immuable avec corrections, trigger SQL automatique, indicateur de fraîcheur, création de tâches liées, bucket dédié.
+## Contexte
+La refonte précédente (3 nouveaux widgets + réorganisation) n'a pas encore été implémentée dans le code. Ce plan **fusionne la refonte initiale avec les raffinements demandés** pour livrer directement la bonne version, sans étape intermédiaire.
 
-## 1. Base de données (migration unique)
-
-### Table `points`
-- `id` uuid PK
-- `farm_id` uuid NOT NULL
-- `type` text — `animal` / `equipement` / `champ` / `batiment` / `autre`
-- `entity_id` uuid NULLABLE (réservé V2, non utilisé en V1)
-- `entity_label` text — texte libre, ex. "Vache #142"
-- `title` text NOT NULL — **description du problème** (champ unique, pas de `description` séparée)
-- `priority` text DEFAULT `'normal'` — `critical` / `important` / `normal`
-- `status` text DEFAULT `'open'` — `open` / `watch` / `resolved`
-- `created_by` uuid NOT NULL
-- `created_at`, `updated_at` timestamptz DEFAULT now()
-- `last_event_at` timestamptz — mis à jour par trigger
-- `resolved_at` timestamptz NULLABLE
-
-### Table `point_events`
-- `id` uuid PK
-- `point_id` uuid NOT NULL
-- `event_type` text — `observation` / `action` / `verification` / `note` / **`correction`**
-- `note` text
-- `photo_urls` text[] DEFAULT `{}`
-- `created_by` uuid NOT NULL
-- `created_at` timestamptz DEFAULT now()
-
-Pas d'UPDATE/DELETE possible sur `point_events` (timeline immuable). Les corrections passent par un nouvel événement `correction`.
-
-### Trigger SQL automatique
-```
-on insert into point_events
-  → update points set updated_at = now(), last_event_at = now() where id = NEW.point_id
-```
-Aucune logique de date côté client.
-
-### RLS (pattern existant `is_farm_member` / `has_farm_role`)
-- **points** : SELECT si `is_farm_member(farm_id)` ; INSERT/UPDATE si `has_farm_role(farm_id, 'member')` ; DELETE si admin OU créateur.
-- **point_events** : SELECT/INSERT via membership de la ferme du point parent ; pas d'UPDATE/DELETE.
-
-## 2. Storage
-- Nouveau bucket privé **`point_photos`** (séparé d'`equipment_photos`).
-- Politiques storage : lecture/écriture aux membres de la ferme propriétaire du point. URLs signées 1h côté client (pattern existant).
-
-## 3. Renommage du module Interventions
-- Routes : `/interventions` → `/points` (avec redirect pour compat).
-- Navigation (`Navbar.tsx`, `MobileMenu.tsx`) : "Interventions" → **"Points à surveiller"**.
-- Traductions `fr.json` / `en.json`.
-- Suppression de `src/components/interventions/`, `src/hooks/interventions/`, `src/pages/Interventions.tsx`, `src/types/Intervention.ts` (aucune dépendance externe critique).
-- **Aucune migration des données** de la table `interventions` (repart à zéro).
-
-## 4. Nouveau front
-
-### Arborescence
-```
-src/pages/Points.tsx
-src/components/points/
-  PointsPage.tsx           — 3 sections empilées
-  PointCard.tsx            — carte mobile-first
-  NewPointDialog.tsx       — création (Sheet sur mobile)
-  PointDetailDialog.tsx    — header + timeline + tâches liées
-  PointTimeline.tsx
-  AddEventDialog.tsx       — ajout d'événement (5 types)
-  CreateLinkedTaskDialog.tsx — créer tâche liée au point
-  StatusBadge.tsx, PriorityBadge.tsx
-  pointHelpers.ts          — labels FR, icônes type, freshness
-src/hooks/points/
-  usePoints.ts, usePointEvents.ts, usePointMutations.ts, usePointLinkedTasks.ts
-src/types/Point.ts
+## Ordre final des widgets
+```text
+0. Message d'accueil           ← NOUVEAU bandeau (pas un widget)
+1. Points à surveiller         ← NOUVEAU widget
+2. Tâches du jour              ← existant, simplifié + tri urgence
+3. À vérifier aujourd'hui      ← NOUVEAU widget
+4. Activité récente            ← NOUVEAU widget (filtré)
+5. Équipements / Stats / Calendrier ← descendus
 ```
 
-### Page principale (mobile-first)
-- Bouton primaire **+ Ajouter un point** (gros, visible).
-- 3 sections empilées avec compteurs :
-  1. **En cours** (`open`) — dépliée
-  2. **À surveiller** (`watch`)
-  3. **Réglés** (`resolved`) — repliée
-- Cartes triées par `last_event_at` desc.
+## 0. Message d'accueil
 
-### Carte d'un point
-- Icône selon **type** (🐄 / 🚜 / 🌾 / 🏠 / autre).
-- `entity_label` en gras + `title` sous-titre.
-- Badges : priorité (couleur) + statut traduit.
-- **Icône du dernier event_type** : 👀 observation / 🔧 action / ✅ vérification / 📝 note / ⚠️ correction.
-- **Pastille fraîcheur** basée sur `last_event_at` :
-  - 🟢 aujourd'hui
-  - 🟡 2-3 jours
-  - 🔴 > 3 jours
-- "Dernière activité : il y a X j" (1 ligne).
-- "Ouvert depuis X jours".
+Bandeau statique au-dessus de la grille de widgets, dans `src/pages/Dashboard.tsx` (sous le `PageHeader`):
 
-### Création (NewPointDialog) — < 10 s
-- Type (5 chips icônes)
-- Élément concerné (input texte → `entity_label`)
-- **Description du problème** (textarea → `title`)
-- Priorité (3 chips, défaut "normal")
-- Note initiale optionnelle
-- Photo optionnelle (bucket `point_photos`)
+```text
+Bonjour {prénom} 👋
+Voici ce qui demande ton attention aujourd'hui
+```
 
-À la création : insert `points`, puis si note → insert `point_events` (type `note`). Le trigger met à jour `last_event_at` automatiquement.
+- Prénom: `profileData?.first_name` via `useAuthContext()`. Fallback: "Bonjour 👋".
+- Une seule carte sobre, padding réduit, masquée si `!hasFarm` (banner ferme déjà affiché).
 
-### Détail (PointDetailDialog)
-- Header sticky : icône type, `entity_label`, titre, badges statut+priorité.
-- Bouton **Changer statut** (popover : En cours / À surveiller / Réglé). Si `resolved` → set `resolved_at = now()`.
-- **Timeline** chronologique inverse : pastille couleur par event_type, date relative, note, photos thumbnails. Événements `correction` mis en évidence (bordure ambre).
-- FAB **+ Ajouter une note / action** → AddEventDialog (5 types : observation, action, vérification, note, correction).
-- **Section "Tâches liées"** : query sur `planning_tasks` où `source_module='points' AND source_id=point.id`. Affiche titre, statut (À faire/Fait), date assignée. Tap → navigation vers Planning.
-- Bouton **+ Créer une tâche** → CreateLinkedTaskDialog.
+## 1. Widget Points à surveiller (avec niveau de priorité)
 
-### CreateLinkedTaskDialog
-Champs minimaux :
-- Titre (pré-rempli avec `title` du point)
-- Assigné à (membres de la ferme)
-- Date (défaut aujourd'hui)
-- Priorité (héritée du point)
-- Note optionnelle
+Fichier: `src/components/dashboard/widgets/PointsWatchWidget.tsx`
+Hook: `src/hooks/dashboard/usePointsWatchData.ts`
 
-Insert dans `planning_tasks` avec :
-- `source_module = 'points'`
-- `source_id = point.id` (cast text de l'uuid — colonne déjà text)
-- `farm_id`, `created_by`, `category = 'autre'`
+Requête: `points where farm_id=? and status in ('open','watch') order by priority desc, last_event_at desc limit 5`.
 
-## 5. Statuts — règle stricte UI
-Jamais afficher `open` / `watch` / `resolved` à l'utilisateur. Mapping centralisé dans `pointHelpers.ts` :
-- `open` → "En cours"
-- `watch` → "À surveiller"
-- `resolved` → "Réglé"
+Affichage compact (≤ 4 lignes):
+- "⚠️ X points à surveiller — Y important(s)"
+- 1 à 2 exemples au format **`→ {entity_label || title} ({priorité})`**
+  - `critical` → "critique" (texte rouge)
+  - `important` → "important" (texte ambre)
+  - `normal` → "normal" (gris) — omis si la phrase devient trop longue
+- Clic carte → `/points`. Vide → "Aucun point à surveiller ✓".
 
-## 6. Sécurité & multi-tenant
-- Toutes les requêtes filtrent par `farm_id` via `useFarmId`.
-- Insertions injectent `farm_id` + `created_by = auth.uid()`.
-- RLS empêche tout accès cross-ferme.
+## 2. Tâches du jour — tri par urgence
 
-## 7. Hors scope V1
-- `entity_id` (lien typé vers équipement/animal) — gardé NULL.
-- Édition/suppression d'événements (timeline immuable, corrections via type `correction`).
-- Récurrence, notifications push, auto-assignation.
-- Migration des `interventions` existantes.
+Fichier modifié: `src/components/dashboard/widgets/PlanningTodayWidget.tsx`
 
-## 8. QA
-- `/interventions` redirige vers `/points`.
-- RLS : user d'une autre ferme ne voit rien.
-- Trigger : `last_event_at` se met à jour à chaque insert event.
-- Carte : icône dernier event + pastille fraîcheur correctes.
-- Tâche liée visible côté Point ET côté Planning.
-- Création point < 10 s, ajout événement < 5 s sur mobile 390px.
+Nouveau tri pour le top 2 affiché (le reste passe par "Voir toutes les tâches"):
 
----
+```text
+1. due_date < aujourd'hui                (en retard)
+2. due_date == aujourd'hui                (du jour)
+3. priorité (critical > important > todo)
+4. created_at asc                         (tie-break)
+```
 
-Prêt à implémenter. Approuvez pour lancer la migration SQL + le code front.
+Implémentation: tri client sur la liste fusionnée des 3 groupes déjà fournis par `usePlanningTasks`, badge "En retard" (rouge) si `due_date < today`. Compteur "X complétées / Y total" inchangé. Bouton "Voir toutes les tâches" en bas.
+
+## 3. À vérifier aujourd'hui — sentiment d'urgence
+
+Fichier: `src/components/dashboard/widgets/CheckTodayWidget.tsx`
+Hook: `src/hooks/dashboard/useCheckTodayData.ts`
+
+3 lignes (n'affiche que les non-zéro):
+- **Points oubliés**: format `"X point(s) oublié(s) depuis N jours"` où **N = max** des `floor((now - last_event_at) / 1 day)` parmi les points oubliés (>3 jours sans événement). Si X > 1, on affiche la valeur max ("depuis jusqu'à 8 jours" optionnellement, ou simplement "depuis 8 jours" — choisi: max simple).
+- **Tâches en retard**: `"X tâche(s) en retard"`
+- **Maintenances dues**: `"X maintenance(s) due(s)"` (réutilise `maintenanceSuggestions`)
+
+Tout à zéro → "Tout est à jour ✓". Chaque ligne cliquable → page concernée.
+
+## 4. Activité récente — filtrée
+
+Fichier: `src/components/dashboard/widgets/RecentActivityWidget.tsx`
+Hook: `src/hooks/dashboard/useRecentActivityData.ts`
+
+**Sources strictes** (3 requêtes parallèles, limit 5 chacune, fusion + tri desc, slice 5):
+- Tâches **complétées** uniquement: `planning_tasks where farm_id=? and status='done'` triées par `completed_at desc`
+- Points **créés** uniquement: `points where farm_id=?` triés par `created_at desc`
+- **Événements ajoutés** sur un point: `point_events` joint à `points.farm_id=?` triés par `created_at desc`
+
+**Exclus**: updates de tâches, changements de statut intermédiaires, modifications de profil, etc. — on n'interroge pas ces sources.
+
+Format: `{icône} {phrase courte} — {temps relatif fr}`
+- `✓ Tâche "Traite" complétée`
+- `⚠️ Point ajouté: patte 48`
+- `📝 Observation sur Tracteur JD`
+
+Clic → page concernée. Vide → "Aucune activité récente".
+
+## 5. Sections descendues
+
+Réordonner `DEFAULT_WIDGETS` dans `Dashboard.tsx`. Bump de la version dans `useDashboardLayout` pour réinitialiser une fois le layout stocké en localStorage des utilisateurs existants.
+
+## 6. Cohérence terrain (langage)
+
+- Phrases ≤ 6-8 mots, verbes simples
+- Pas de jargon ("entity", "metadata"…)
+- Mêmes étiquettes de priorité partout: **critique / important / normal**
+- Icônes Lucide cohérentes: `AlertCircle` (points), `CalendarCheck` (tâches), `Clock` (vérifications), `Activity` (activité)
+
+## Détails techniques
+
+### Fichiers créés
+- `src/components/dashboard/widgets/PointsWatchWidget.tsx`
+- `src/components/dashboard/widgets/CheckTodayWidget.tsx`
+- `src/components/dashboard/widgets/RecentActivityWidget.tsx`
+- `src/hooks/dashboard/usePointsWatchData.ts`
+- `src/hooks/dashboard/useCheckTodayData.ts`
+- `src/hooks/dashboard/useRecentActivityData.ts`
+
+### Fichiers modifiés
+- `src/pages/Dashboard.tsx` — bandeau d'accueil, `DEFAULT_WIDGETS` réordonné, branchement des 3 nouveaux types
+- `src/hooks/dashboard/useDashboardLayout.ts` — bump version layout
+- `src/hooks/dashboard/useWidgetData.ts` — branche les 3 nouveaux hooks
+- `src/components/dashboard/widgets/PlanningTodayWidget.tsx` — tri urgence + compteur complétées + bouton "Voir toutes les tâches" + badge "En retard"
+
+### Données / RLS
+Aucune migration. Toutes les tables (`points`, `point_events`, `planning_tasks`) ont déjà des RLS scopées `farm_id` qui couvrent les lectures par membre.
+
+### Performance
+- Toutes les queries: `staleTime: 5 min` (règle projet), invalidées par le bouton "Actualiser" et l'autoRefresh existant
+- Pas de realtime ajouté sur ces widgets (pas nécessaire pour un dashboard d'ouverture)
+
+### Hors scope
+- Pas de nouveau widget au-delà des 3 prévus
+- Pas de refonte visuelle de Stats/Equipment/Calendar — uniquement déplacés
+- Pas de personnalisation par utilisateur du message d'accueil
