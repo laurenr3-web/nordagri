@@ -6,8 +6,6 @@ import { TaskCard } from './TaskCard';
 import { TaskDetailDialog } from './TaskDetailDialog';
 import { AddTaskForm } from './AddTaskForm';
 import { usePlanningTasks } from '@/hooks/planning/usePlanningTasks';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown } from 'lucide-react';
 import { MaintenanceSuggestions } from './MaintenanceSuggestions';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,8 +20,7 @@ interface DayViewProps {
 }
 
 export function DayView({ farmId, date, label, teamMembers, userId, taskFilter }: DayViewProps) {
-  const { groupedTasks, doneTasks, overdueTasks, isLoading, updateStatus, updateTask, postponeTask, deleteTask } = usePlanningTasks(farmId, date, date);
-  const [doneOpen, setDoneOpen] = useState(false);
+  const { groupedTasks, overdueTasks, isLoading, updateStatus, updateTask, postponeTask, deleteTask } = usePlanningTasks(farmId, date, date);
   const [selectedTask, setSelectedTask] = useState<PlanningTask | null>(null);
   const [editingTask, setEditingTask] = useState<PlanningTask | null>(null);
 
