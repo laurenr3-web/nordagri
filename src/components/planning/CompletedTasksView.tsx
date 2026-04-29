@@ -377,10 +377,38 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
 
       {/* Stats — 4 cards */}
       <div className="grid grid-cols-2 gap-2">
-        <StatCard icon={<ListChecks className="h-4 w-4" />} label="Terminées" value={stats.total} tone="default" />
-        <StatCard icon={<Flame className="h-4 w-4" />} label="Critiques" value={stats.critical} tone="critical" />
-        <StatCard icon={<CheckCircle2 className="h-4 w-4" />} label="Importantes" value={stats.important} tone="important" />
-        <StatCard icon={<AlertOctagon className="h-4 w-4" />} label="En retard" value={stats.overdue} tone="overdue" />
+        <StatCard
+          icon={<ListChecks className="h-4 w-4" />}
+          label="Terminées"
+          value={stats.total}
+          tone="default"
+          active={priorityFilter === 'all'}
+          onClick={() => setPriorityFilter('all')}
+        />
+        <StatCard
+          icon={<Flame className="h-4 w-4" />}
+          label="Critiques"
+          value={stats.critical}
+          tone="critical"
+          active={priorityFilter === 'critical'}
+          onClick={() => setPriorityFilter(p => p === 'critical' ? 'all' : 'critical')}
+        />
+        <StatCard
+          icon={<CheckCircle2 className="h-4 w-4" />}
+          label="Importantes"
+          value={stats.important}
+          tone="important"
+          active={priorityFilter === 'important'}
+          onClick={() => setPriorityFilter(p => p === 'important' ? 'all' : 'important')}
+        />
+        <StatCard
+          icon={<AlertOctagon className="h-4 w-4" />}
+          label="En retard"
+          value={stats.overdue}
+          tone="overdue"
+          active={priorityFilter === 'overdue'}
+          onClick={() => setPriorityFilter(p => p === 'overdue' ? 'all' : 'overdue')}
+        />
       </div>
 
       {/* Per-employee compact list */}
