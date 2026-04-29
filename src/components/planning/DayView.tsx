@@ -2,7 +2,6 @@
 import React, { useState, useMemo } from 'react';
 import { PlanningTask, PlanningStatus } from '@/services/planning/planningService';
 import { TaskGroup } from './TaskGroup';
-import { TaskCard } from './TaskCard';
 import { TaskDetailDialog } from './TaskDetailDialog';
 import { AddTaskForm } from './AddTaskForm';
 import { usePlanningTasks } from '@/hooks/planning/usePlanningTasks';
