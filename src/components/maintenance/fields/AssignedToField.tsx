@@ -24,7 +24,7 @@ const AssignedToField: React.FC<AssignedToFieldProps> = ({
 }) => {
   return (
     <FormFieldGroup>
-      <Label htmlFor="assignedTo">Assigné à</Label>
+      <Label htmlFor="assignedTo">Assignée à</Label>
       <div className="flex items-center gap-2">
         <div className="flex-1">
           {isLoadingStaff ? (

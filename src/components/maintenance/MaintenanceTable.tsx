@@ -239,7 +239,7 @@ export const MaintenanceTable: React.FC<MaintenanceTableProps> = ({
                   <TableHead className="px-2">Échéance</TableHead>
                   <TableHead className="hidden sm:table-cell px-2">Priorité</TableHead>
                   <TableHead className="hidden md:table-cell px-2">Statut</TableHead>
-                  <TableHead className="hidden lg:table-cell px-2">Assigné à</TableHead>
+                  <TableHead className="hidden lg:table-cell px-2">Assignée à</TableHead>
                   <TableHead className="w-[40px] px-1"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -298,7 +298,7 @@ export const MaintenanceTable: React.FC<MaintenanceTableProps> = ({
                         className="hidden lg:table-cell px-2 text-sm"
                         onClick={() => { setSelectedTask(task); setIsTaskDetailsOpen(true); }}
                       >
-                        {task.assignedTo || 'Non assigné'}
+                        {task.assignedTo || 'Non assignée'}
                       </TableCell>
                       <TableCell className="px-1">
                         <DropdownMenu>

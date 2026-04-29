@@ -23,7 +23,7 @@ export const deriveUrgentInterventions = (interventions: any[]): UrgentIntervent
       priority: item.priority,
       date: new Date(item.date),
       status: item.status,
-      technician: item.technician || 'Non assigné',
+      technician: item.technician || 'Non assignée',
       location: item.location || 'Inconnu'
     }));
 };
@@ -111,7 +111,7 @@ export const createCalendarEvents = (
       type: 'intervention' as const,
       priority: normalizePriority(item.priority),
       status: item.status,
-      assignedTo: item.technician || 'Non assigné'
+      assignedTo: item.technician || 'Non assignée'
     })),
     ...safeUpcomingTasks.map(task => ({
       id: task.id,
@@ -121,7 +121,7 @@ export const createCalendarEvents = (
       type: 'task' as const,
       priority: normalizePriority(task.priority),
       status: task.status,
-      assignedTo: task.assignedTo || 'Non assigné'
+      assignedTo: task.assignedTo || 'Non assignée'
     }))
   ];
 };

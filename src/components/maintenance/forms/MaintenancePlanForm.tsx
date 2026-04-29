@@ -422,13 +422,13 @@ export default function MaintenancePlanForm({
             )}
           />
 
-          {/* Assigné à */}
+          {/* Assignée à */}
           <FormField
             control={form.control}
             name="assignedTo"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Assigné à (optionnel)</FormLabel>
+                <FormLabel>Assignée à (optionnel)</FormLabel>
                 <FormControl>
                   <Input placeholder="Nom du technicien ou de l'équipe" {...field} />
                 </FormControl>

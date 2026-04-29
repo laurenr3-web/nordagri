@@ -202,7 +202,7 @@ export function AddTaskForm({ open, onClose, onSubmit, teamMembers = [], equipme
           {/* Assigned to */}
           {teamMembers.length > 0 && (
             <div>
-              <Label className="text-sm font-medium">Assigné à</Label>
+              <Label className="text-sm font-medium">Assignée à</Label>
               <Select value={assignedTo} onValueChange={setAssignedTo}>
                 <SelectTrigger className="mt-1 h-11">
                   <SelectValue placeholder="Optionnel" />

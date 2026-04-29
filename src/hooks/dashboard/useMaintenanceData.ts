@@ -29,7 +29,7 @@ export const useMaintenanceData = (user: any) => {
           equipment: item.equipment,
           status: item.status,
           priority,
-          assignedTo: item.assigned_to || 'Non assigné',
+          assignedTo: item.assigned_to || 'Non assignée',
           duration: item.estimated_duration || 0,
         };
       });

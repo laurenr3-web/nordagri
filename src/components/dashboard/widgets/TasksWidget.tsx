@@ -96,7 +96,7 @@ export const TasksWidget = ({ data, loading, size }: TasksWidgetProps) => {
                   </div>
                   <div className="flex items-center gap-1 text-agri-500">
                     <User className="h-3 w-3" />
-                    <span>{task.assignee || 'Non assigné'}</span>
+                    <span>{task.assignee || 'Non assignée'}</span>
                   </div>
                 </div>
                 

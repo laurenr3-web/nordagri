@@ -73,7 +73,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onViewDetails }) => {
               </span>
             )}
             {task.assignedTo && (
-              <span>Assigné à: {task.assignedTo}</span>
+              <span>Assignée à: {task.assignedTo}</span>
             )}
           </div>
         </div>

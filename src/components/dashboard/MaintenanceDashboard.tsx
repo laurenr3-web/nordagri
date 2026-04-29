@@ -310,7 +310,7 @@ const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({
                         {task.assignedTo ? (
                           <span>Assignée à: <span className="font-medium">{task.assignedTo}</span></span>
                         ) : (
-                          <span className="text-muted-foreground">Non assignée</span>
+                          <span className="text-muted-foreground">Non assignéee</span>
                         )}
                       </div>
                     </div>
