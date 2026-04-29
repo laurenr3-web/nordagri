@@ -1177,6 +1177,8 @@ export type Database = {
           assigned_to: string | null
           building_name: string | null
           category: string
+          completed_at: string | null
+          completed_by: string | null
           computed_priority: string
           created_at: string
           created_by: string
@@ -1201,6 +1203,8 @@ export type Database = {
           assigned_to?: string | null
           building_name?: string | null
           category?: string
+          completed_at?: string | null
+          completed_by?: string | null
           computed_priority?: string
           created_at?: string
           created_by: string
@@ -1225,6 +1229,8 @@ export type Database = {
           assigned_to?: string | null
           building_name?: string | null
           category?: string
+          completed_at?: string | null
+          completed_by?: string | null
           computed_priority?: string
           created_at?: string
           created_by?: string
