@@ -468,12 +468,37 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
 
       {/* List grouped by day */}
       <div className="space-y-4">
+        {priorityFilter !== 'all' && (
+          <div className="flex items-center justify-between text-xs px-1">
+            <span className="text-muted-foreground">
+              Filtre actif :{' '}
+              <span className="font-medium text-foreground">
+                {priorityFilter === 'critical' && 'Critiques'}
+                {priorityFilter === 'important' && 'Importantes'}
+                {priorityFilter === 'overdue' && 'En retard'}
+              </span>
+            </span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs"
+              onClick={() => setPriorityFilter('all')}
+            >
+              Effacer le filtre
+            </Button>
+          </div>
+        )}
         {isLoading ? (
           <Card className="p-6 text-center text-sm text-muted-foreground">Chargement…</Card>
         ) : groupedByDay.length === 0 ? (
           <Card className="p-8 text-center">
             <CheckCircle2 className="h-10 w-10 text-muted-foreground/50 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">Aucune tâche terminée sur cette période.</p>
+            <p className="text-sm text-muted-foreground">
+              {priorityFilter === 'all'
+                ? 'Aucune tâche terminée sur cette période.'
+                : 'Aucune tâche correspondant à ce filtre.'}
+            </p>
           </Card>
         ) : (
           groupedByDay.map(group => (
