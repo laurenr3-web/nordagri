@@ -76,6 +76,7 @@ interface CompletedTasksViewProps {
 export function CompletedTasksView({ farmId, teamMembers, currentUserId }: CompletedTasksViewProps) {
   const [period, setPeriod] = useState<Period>('today');
   const [employeeFilter, setEmployeeFilter] = useState<string | 'all' | 'me'>('all');
+  const [priorityFilter, setPriorityFilter] = useState<'all' | 'critical' | 'important' | 'overdue'>('all');
   const [selected, setSelected] = useState<CompletedItem | null>(null);
 
   const { start, end } = useMemo(() => getRangeFromPeriod(period), [period]);
@@ -290,7 +291,12 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
   const groupedByDay = useMemo(() => {
     const groups: { label: string; items: CompletedItem[] }[] = [];
     const map = new Map<string, CompletedItem[]>();
-    for (const i of filtered) {
+    const displayed = priorityFilter === 'all'
+      ? filtered
+      : priorityFilter === 'overdue'
+        ? filtered.filter(i => i.wasOverdue)
+        : filtered.filter(i => i.priority === priorityFilter);
+    for (const i of displayed) {
       const k = i.completedAt.toISOString().split('T')[0];
       if (!map.has(k)) map.set(k, []);
       map.get(k)!.push(i);
@@ -305,7 +311,7 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
       groups.push({ label: label.charAt(0).toUpperCase() + label.slice(1), items: map.get(k)! });
     }
     return groups;
-  }, [filtered]);
+  }, [filtered, priorityFilter]);
 
   const isLoading = loadingDone || loadingRec;
 
@@ -371,10 +377,38 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
 
       {/* Stats — 4 cards */}
       <div className="grid grid-cols-2 gap-2">
-        <StatCard icon={<ListChecks className="h-4 w-4" />} label="Terminées" value={stats.total} tone="default" />
-        <StatCard icon={<Flame className="h-4 w-4" />} label="Critiques" value={stats.critical} tone="critical" />
-        <StatCard icon={<CheckCircle2 className="h-4 w-4" />} label="Importantes" value={stats.important} tone="important" />
-        <StatCard icon={<AlertOctagon className="h-4 w-4" />} label="En retard" value={stats.overdue} tone="overdue" />
+        <StatCard
+          icon={<ListChecks className="h-4 w-4" />}
+          label="Terminées"
+          value={stats.total}
+          tone="default"
+          active={priorityFilter === 'all'}
+          onClick={() => setPriorityFilter('all')}
+        />
+        <StatCard
+          icon={<Flame className="h-4 w-4" />}
+          label="Critiques"
+          value={stats.critical}
+          tone="critical"
+          active={priorityFilter === 'critical'}
+          onClick={() => setPriorityFilter(p => p === 'critical' ? 'all' : 'critical')}
+        />
+        <StatCard
+          icon={<CheckCircle2 className="h-4 w-4" />}
+          label="Importantes"
+          value={stats.important}
+          tone="important"
+          active={priorityFilter === 'important'}
+          onClick={() => setPriorityFilter(p => p === 'important' ? 'all' : 'important')}
+        />
+        <StatCard
+          icon={<AlertOctagon className="h-4 w-4" />}
+          label="En retard"
+          value={stats.overdue}
+          tone="overdue"
+          active={priorityFilter === 'overdue'}
+          onClick={() => setPriorityFilter(p => p === 'overdue' ? 'all' : 'overdue')}
+        />
       </div>
 
       {/* Per-employee compact list */}
@@ -434,12 +468,37 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
 
       {/* List grouped by day */}
       <div className="space-y-4">
+        {priorityFilter !== 'all' && (
+          <div className="flex items-center justify-between text-xs px-1">
+            <span className="text-muted-foreground">
+              Filtre actif :{' '}
+              <span className="font-medium text-foreground">
+                {priorityFilter === 'critical' && 'Critiques'}
+                {priorityFilter === 'important' && 'Importantes'}
+                {priorityFilter === 'overdue' && 'En retard'}
+              </span>
+            </span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs"
+              onClick={() => setPriorityFilter('all')}
+            >
+              Effacer le filtre
+            </Button>
+          </div>
+        )}
         {isLoading ? (
           <Card className="p-6 text-center text-sm text-muted-foreground">Chargement…</Card>
         ) : groupedByDay.length === 0 ? (
           <Card className="p-8 text-center">
             <CheckCircle2 className="h-10 w-10 text-muted-foreground/50 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">Aucune tâche terminée sur cette période.</p>
+            <p className="text-sm text-muted-foreground">
+              {priorityFilter === 'all'
+                ? 'Aucune tâche terminée sur cette période.'
+                : 'Aucune tâche correspondant à ce filtre.'}
+            </p>
           </Card>
         ) : (
           groupedByDay.map(group => (
@@ -557,8 +616,10 @@ interface StatCardProps {
   label: string;
   value: number;
   tone: 'default' | 'critical' | 'important' | 'overdue';
+  active?: boolean;
+  onClick?: () => void;
 }
-function StatCard({ icon, label, value, tone }: StatCardProps) {
+function StatCard({ icon, label, value, tone, active, onClick }: StatCardProps) {
   const toneClass: Record<StatCardProps['tone'], string> = {
     default: 'bg-card',
     critical: 'bg-red-50 dark:bg-red-950/30 border-red-100 dark:border-red-900/50',
@@ -571,13 +632,37 @@ function StatCard({ icon, label, value, tone }: StatCardProps) {
     important: 'text-yellow-600 dark:text-yellow-400',
     overdue: 'text-orange-600 dark:text-orange-400',
   };
-  return (
-    <Card className={cn('p-3 flex flex-col gap-1', toneClass[tone])}>
+  const activeRing: Record<StatCardProps['tone'], string> = {
+    default: 'ring-2 ring-primary ring-offset-1',
+    critical: 'ring-2 ring-red-500 ring-offset-1',
+    important: 'ring-2 ring-yellow-500 ring-offset-1',
+    overdue: 'ring-2 ring-orange-500 ring-offset-1',
+  };
+  const content = (
+    <Card
+      className={cn(
+        'p-3 flex flex-col gap-1 text-left transition-all',
+        toneClass[tone],
+        onClick && 'cursor-pointer hover:shadow-md active:scale-[0.98]',
+        active && activeRing[tone],
+      )}
+    >
       <div className={cn('flex items-center gap-1.5 text-xs font-medium', iconClass[tone])}>
         {icon}
         <span>{label}</span>
       </div>
       <div className="text-2xl font-bold leading-none">{value}</div>
     </Card>
+  );
+  if (!onClick) return content;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className="w-full rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+    >
+      {content}
+    </button>
   );
 }
