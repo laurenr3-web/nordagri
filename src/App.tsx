@@ -22,6 +22,7 @@ import Parts from '@/pages/Parts';
 import Points from '@/pages/Points';
 import TimeTracking from '@/pages/TimeTracking';
 import Planning from '@/pages/Planning';
+import { OnboardingProvider } from '@/components/onboarding/OnboardingProvider';
 
 // Composant de chargement
 const LoadingSpinner = () => (
@@ -64,7 +65,8 @@ function App() {
           <RealtimeCacheProvider>
             <Router>
               <AuthProvider>
-                <OfflineProvider autoSyncInterval={60000} showOfflineIndicator={true}>
+                <OnboardingProvider>
+                  <OfflineProvider autoSyncInterval={60000} showOfflineIndicator={true}>
                   <Suspense fallback={<LoadingSpinner />}>
                     <Routes>
                       <Route path="/" element={<Navigate to={withPreviewToken('/dashboard')} replace />} />
@@ -138,7 +140,8 @@ function App() {
                   <MobileMenu />
                   <Toaster />
                   <Footer />
-                </OfflineProvider>
+                  </OfflineProvider>
+                </OnboardingProvider>
               </AuthProvider>
             </Router>
           </RealtimeCacheProvider>

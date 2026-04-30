@@ -1615,6 +1615,33 @@ export type Database = {
           },
         ]
       }
+      user_preferences: {
+        Row: {
+          completed_tours: Json
+          created_at: string
+          id: string
+          onboarding_skipped: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_tours?: Json
+          created_at?: string
+          id?: string
+          onboarding_skipped?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_tours?: Json
+          created_at?: string
+          id?: string
+          onboarding_skipped?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
