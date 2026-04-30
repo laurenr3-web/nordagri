@@ -82,15 +82,7 @@ export function useOperationalStats(farmId: string | null, period: StatsPeriod) 
         (t) => t.status === 'done' && t.completed_at && t.completed_at >= fromIso && t.completed_at <= toIso,
       );
       const overdue = allTasks.filter((t) => t.status !== 'done' && t.due_date && t.due_date < todayStr).length;
-      const inProgress = allTasks.filter(
-        (t) =>
-          t.status !== 'done' &&
-          t.due_date &&
-          t.due_date >= toDate.slice(0, 10) // not used; replaced below
-            ? false
-            : false,
-      ).length;
-      // Recompute inProgress properly: tasks active whose due_date falls in [from..to]
+      // tasks active whose due_date falls in [from..to]
       const fromDateOnly = fromIso.slice(0, 10);
       const toDateOnly = toIso.slice(0, 10);
       const inProgressCount = allTasks.filter(
