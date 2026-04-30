@@ -66,7 +66,7 @@ export function useOperationalStats(farmId: string | null, period: StatsPeriod) 
     enabled: !!farmId,
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      const { fromIso, toIso, toDate } = getRange(period);
+      const { fromIso, toIso } = getRange(period);
       const todayStr = new Date().toISOString().split('T')[0];
       const threeDaysAgoIso = new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString();
 
