@@ -194,11 +194,13 @@ const Dashboard = () => {
 
         {/* Header avec actions */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-          <PageHeader 
-            title="Tableau de bord" 
-            description="Vue d'ensemble de vos opérations"
-            className="mb-0"
-          />
+          <div data-onboarding="dashboard">
+            <PageHeader 
+              title="Tableau de bord" 
+              description="Vue d'ensemble de vos opérations"
+              className="mb-0"
+            />
+          </div>
           
           <div className="flex items-center gap-2">
             <Button
