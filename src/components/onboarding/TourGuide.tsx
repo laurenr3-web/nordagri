@@ -1,10 +1,5 @@
-/**
- * Stub component for Message 1.
- * The full <Joyride>-powered implementation lands in Message 2.
- * Kept as an empty render to keep the provider tree stable.
- */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import Joyride, { CallBackProps, STATUS, type Step } from 'react-joyride';
+import { useJoyride, EVENTS, STATUS, type Step, type EventData } from 'react-joyride';
 import { useLocation } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useOnboarding } from '@/contexts/OnboardingContext';
@@ -41,8 +36,75 @@ export function TourGuide() {
 
   // Tour effectivement actif (peut être différé si dialog ouvert)
   const [activeTour, setActiveTour] = useState<TourName | null>(null);
-  const [run, setRun] = useState(false);
   const observerRef = useRef<MutationObserver | null>(null);
+
+  const steps = useMemo<Step[]>(() => {
+    if (!activeTour) return [];
+    return getStepsForTour(activeTour, isMobile);
+  }, [activeTour, isMobile]);
+
+  // Hook joyride — toujours monté tant que TourGuide est rendu
+  const { controls, on, Tour } = useJoyride({
+    steps,
+    continuous: true,
+    locale: {
+      back: 'Précédent',
+      close: 'Fermer',
+      last: 'Terminer',
+      next: 'Suivant',
+      nextWithProgress: 'Suivant ({current}/{total})',
+      open: 'Ouvrir',
+      skip: 'Passer',
+    },
+    options: {
+      showProgress: true,
+      skipBeacon: true,
+      disableFocusTrap: true,
+      overlayClickAction: false,
+      buttons: ['back', 'skip', 'primary'],
+      primaryColor: 'hsl(var(--primary))',
+      backgroundColor: 'hsl(var(--card))',
+      textColor: 'hsl(var(--card-foreground))',
+      arrowColor: 'hsl(var(--card))',
+      overlayColor: 'hsl(220 14% 8% / 0.55)',
+      zIndex: 10000,
+    },
+    styles: {
+      tooltip: {
+        borderRadius: 12,
+        padding: 16,
+        boxShadow: '0 10px 30px -10px hsl(220 14% 8% / 0.35)',
+      },
+      tooltipTitle: {
+        fontSize: 16,
+        fontWeight: 600,
+      },
+      tooltipContent: {
+        fontSize: 14,
+        lineHeight: 1.5,
+        padding: '8px 0 0',
+      },
+      buttonPrimary: {
+        backgroundColor: 'hsl(var(--primary))',
+        color: 'hsl(var(--primary-foreground))',
+        borderRadius: 8,
+        fontSize: 14,
+        padding: '8px 14px',
+      },
+      buttonBack: {
+        color: 'hsl(var(--muted-foreground))',
+        fontSize: 14,
+        marginRight: 8,
+      },
+      buttonSkip: {
+        color: 'hsl(var(--muted-foreground))',
+        fontSize: 13,
+      },
+      buttonClose: {
+        color: 'hsl(var(--muted-foreground))',
+      },
+    },
+  });
 
   // Cleanup observer on unmount + route change
   useEffect(() => {
@@ -66,7 +128,7 @@ export function TourGuide() {
   useEffect(() => {
     if (currentTour === null) {
       setActiveTour(null);
-      setRun(false);
+      controls.reset();
       if (observerRef.current) {
         observerRef.current.disconnect();
         observerRef.current = null;
@@ -82,7 +144,6 @@ export function TourGuide() {
           observer.disconnect();
           observerRef.current = null;
           setActiveTour(currentTour);
-          setRun(true);
         }
       });
       observer.observe(document.body, {
@@ -96,101 +157,44 @@ export function TourGuide() {
     }
 
     setActiveTour(currentTour);
-    setRun(true);
-  }, [currentTour]);
+  }, [currentTour, controls]);
 
-  const steps = useMemo<Step[]>(() => {
-    if (!activeTour) return [];
-    return getStepsForTour(activeTour, isMobile);
-  }, [activeTour, isMobile]);
-
-  // Si le tour actif n'a aucune step valide (cibles absentes), on l'arrête proprement.
+  // Démarre/arrête joyride en réponse à activeTour + steps
   useEffect(() => {
-    if (activeTour && run && steps.length === 0) {
+    if (!activeTour) return;
+    if (steps.length === 0) {
+      // Aucune cible disponible : on marque comme terminé pour ne pas re-déclencher
       logger.info('[onboarding] no valid steps for tour, skipping', activeTour);
       void markTourCompleted(activeTour).finally(() => stopTour());
-    }
-  }, [activeTour, run, steps.length, markTourCompleted, stopTour]);
-
-  const handleCallback = (data: CallBackProps) => {
-    const { status, type } = data;
-    const finished = status === STATUS.FINISHED || status === STATUS.SKIPPED;
-    if (finished && activeTour) {
-      void markTourCompleted(activeTour);
-      stopTour();
       return;
     }
-    if (type === 'error:target_not_found' && activeTour) {
+    controls.start(0);
+    // Cleanup : si le composant change de tour, on remet à zéro
+    return () => {
+      controls.reset();
+    };
+  }, [activeTour, steps, controls, markTourCompleted, stopTour]);
+
+  // Souscriptions aux événements Joyride pour terminer/skipper
+  useEffect(() => {
+    const offEnd = on(EVENTS.TOUR_END, (data: EventData) => {
+      if (!activeTour) return;
+      const status = data.status;
+      if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
+        void markTourCompleted(activeTour);
+        stopTour();
+      }
+    });
+    const offErr = on(EVENTS.TARGET_NOT_FOUND, () => {
+      if (!activeTour) return;
       logger.warn('[onboarding] target not found, ending tour', activeTour);
       stopTour();
-    }
-  };
+    });
+    return () => {
+      offEnd();
+      offErr();
+    };
+  }, [on, activeTour, markTourCompleted, stopTour]);
 
-  if (!activeTour || steps.length === 0) return null;
-
-  return (
-    <Joyride
-      steps={steps}
-      run={run}
-      stepIndex={undefined as unknown as number /* let joyride manage */}
-      continuous
-      showProgress
-      showSkipButton
-      disableScrolling={false}
-      disableOverlayClose
-      callback={handleCallback}
-      locale={{
-        back: 'Précédent',
-        close: 'Fermer',
-        last: 'Terminer',
-        next: 'Suivant',
-        nextLabelWithProgress: 'Suivant ({step} / {steps})',
-        open: 'Ouvrir',
-        skip: 'Passer',
-      }}
-      styles={{
-        options: {
-          primaryColor: 'hsl(var(--primary))',
-          backgroundColor: 'hsl(var(--card))',
-          textColor: 'hsl(var(--card-foreground))',
-          arrowColor: 'hsl(var(--card))',
-          overlayColor: 'hsl(var(--foreground) / 0.55)',
-          zIndex: 10000,
-        },
-        tooltip: {
-          borderRadius: 12,
-          padding: 16,
-          boxShadow: '0 10px 30px -10px hsl(var(--foreground) / 0.35)',
-        },
-        tooltipTitle: {
-          fontSize: 16,
-          fontWeight: 600,
-        },
-        tooltipContent: {
-          fontSize: 14,
-          lineHeight: 1.5,
-          padding: '8px 0 0',
-        },
-        buttonNext: {
-          backgroundColor: 'hsl(var(--primary))',
-          color: 'hsl(var(--primary-foreground))',
-          borderRadius: 8,
-          fontSize: 14,
-          padding: '8px 14px',
-        },
-        buttonBack: {
-          color: 'hsl(var(--muted-foreground))',
-          fontSize: 14,
-          marginRight: 8,
-        },
-        buttonSkip: {
-          color: 'hsl(var(--muted-foreground))',
-          fontSize: 13,
-        },
-        buttonClose: {
-          color: 'hsl(var(--muted-foreground))',
-        },
-      }}
-    />
-  );
+  return Tour;
 }
