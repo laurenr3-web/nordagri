@@ -1635,6 +1635,10 @@ export type Database = {
         Args: { _farm_id: string }
         Returns: undefined
       }
+      get_operational_stats: {
+        Args: { _employee_id?: string; _farm_id: string; _period?: string }
+        Returns: Json
+      }
       has_farm_role: {
         Args: { _farm_id: string; _min_role: string }
         Returns: boolean
