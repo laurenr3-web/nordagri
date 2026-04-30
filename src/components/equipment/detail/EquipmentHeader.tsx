@@ -46,10 +46,12 @@ const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({
       </div>
       
       <div className="flex flex-wrap gap-2">
-        <QRCodeGenerator 
-          equipmentId={equipment.id} 
-          equipmentName={equipment.name} 
-        />
+        <span data-tour="equipment-qr">
+          <QRCodeGenerator 
+            equipmentId={equipment.id} 
+            equipmentName={equipment.name} 
+          />
+        </span>
         
         {canEdit && (
           <Button variant="outline" size="sm" onClick={onEdit} disabled={isDeleting}>
