@@ -122,16 +122,18 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     });
   }, [location.pathname, navigate, persistSeen]);
 
-  const markStepDone = useCallback((id: OnboardingStepId) => {
-    setCompletedIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
-    setCurrentIndex((i) => {
+  const markStepDone = useCallback(
+    (id: OnboardingStepId) => {
+      if (!isActive) return;
+      setCompletedIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
       const stepIdx = ONBOARDING_STEPS.findIndex((s) => s.id === id);
-      if (stepIdx === i) {
-        // advance after a small delay (handled via next())
+      if (stepIdx === currentIndex) {
+        // auto-advance after a short delay so the user can see the action took effect
+        window.setTimeout(() => next(), 600);
       }
-      return i;
-    });
-  }, []);
+    },
+    [isActive, currentIndex, next],
+  );
 
   const value = useMemo<OnboardingContextValue>(
     () => ({ isActive, currentIndex, completedIds, start, next, skip, complete, markStepDone }),
