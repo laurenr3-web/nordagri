@@ -17,7 +17,12 @@
   "navbar.parts": "Pièces",
   "navbar.points": "Points à surveiller",
   "navbar.time": "Suivi du temps",
+  "navbar.statistics": "Statistiques",
   "navbar.settings": "Paramètres",
+  "nav.group.daily": "Travail quotidien",
+  "nav.group.equipment": "Gestion matériel",
+  "nav.group.analysis": "Analyse",
+  "nav.group.account": "Compte",
   "mobilemenu.dashboard": "Dashboard",
   "mobilemenu.planning": "Planifier",
   "mobilemenu.equipment": "Équipement",
@@ -25,6 +30,8 @@
   "mobilemenu.parts": "Pièces",
   "mobilemenu.points": "Points",
   "mobilemenu.time": "Temps",
+  "mobilemenu.statistics": "Stats",
+  "mobilemenu.more": "Plus",
   "mobilemenu.settings": "Paramètres",
   "equipment.loading": "Chargement des équipements..."
 }
