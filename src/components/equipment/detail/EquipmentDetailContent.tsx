@@ -165,7 +165,10 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
               
               <div className="mt-4" data-tour="equipment-counters">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium text-muted-foreground">{unitLabel}</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground inline-flex items-center gap-1">
+                    {unitLabel}
+                    <HelpTooltip contentKey="equipment.counters" />
+                  </h3>
                   {!isEditingHours && canEdit && (
                     <Button
                       variant="ghost"
