@@ -20,6 +20,9 @@ import { useFarmRole } from '@/hooks/useFarmRole';
 import QuickActions from './QuickActions';
 import { HelpTooltip } from '@/components/help/HelpTooltip';
 import UpdateHoursDialog from './UpdateHoursDialog';
+import { NewPointDialog } from '@/components/points/NewPointDialog';
+import { useFarmId } from '@/hooks/useFarmId';
+import { logger } from '@/utils/logger';
 
 interface EquipmentDetailContentProps {
   equipment: EquipmentItem;
@@ -34,10 +37,12 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
   const [hoursInput, setHoursInput] = useState('');
   const [isSavingHours, setIsSavingHours] = useState(false);
   const [isUpdateHoursOpen, setIsUpdateHoursOpen] = useState(false);
+  const [isObservationOpen, setIsObservationOpen] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const { canEdit, canDelete } = useFarmRole();
+  const { farmId } = useFarmId();
 
   const handleEditEquipment = () => {
     setIsEditDialogOpen(true);
@@ -133,6 +138,23 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
 
   const unitLabel = (localEquipment.unite_d_usure || 'heures') === 'heures' ? 'Heures moteur' : 'Kilomètres';
 
+  const observationEntityLabel = (() => {
+    const parts: string[] = [];
+    if (localEquipment.name) parts.push(localEquipment.name);
+    if (localEquipment.model) parts.push(localEquipment.model);
+    if (localEquipment.year) parts.push(`(${localEquipment.year})`);
+    return parts.join(' ');
+  })();
+
+  const handleOpenObservation = () => {
+    if (!farmId) {
+      logger.error('[Equipment] Could not open surveillance form: no farmId');
+      toast.error('Une erreur est survenue, réessayez');
+      return;
+    }
+    setIsObservationOpen(true);
+  };
+
   return (
     <div className="flex flex-col w-full max-w-[500px] mx-auto p-4 pb-16">
       <EquipmentHeader 
@@ -149,7 +171,7 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
           <QuickActions
             onUpdateHours={() => setIsUpdateHoursOpen(true)}
             onMaintenance={() => navigate(`/maintenance?equipment=${localEquipment.id}`)}
-            onObservation={() => navigate(`/observations/new?equipment=${localEquipment.id}`)}
+            onObservation={handleOpenObservation}
             unitLabel={unitLabel}
           />
           <Separator className="my-4" />
@@ -253,6 +275,18 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
           setLocalEquipment(prev => ({ ...prev, valeur_actuelle: newValue }));
         }}
       />
+
+      {farmId && (
+        <NewPointDialog
+          open={isObservationOpen}
+          onOpenChange={setIsObservationOpen}
+          farmId={farmId}
+          defaultValues={{
+            type: 'equipement',
+            entityLabel: observationEntityLabel,
+          }}
+        />
+      )}
     </div>
   );
 };

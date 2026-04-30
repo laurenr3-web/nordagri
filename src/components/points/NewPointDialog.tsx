@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,24 +11,47 @@ import { useCreatePoint } from '@/hooks/points/usePointMutations';
 import { uploadPointPhoto } from './uploadPointPhoto';
 import { Camera, Loader2, X } from 'lucide-react';
 
+export interface NewPointDialogDefaults {
+  type?: PointType;
+  entityLabel?: string;
+  priority?: PointPriority;
+  title?: string;
+}
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   farmId: string;
+  defaultValues?: NewPointDialogDefaults;
 }
 
 const TYPES: PointType[] = ['animal', 'equipement', 'champ', 'batiment', 'autre'];
 const PRIORITIES: PointPriority[] = ['critical', 'important', 'normal'];
 
-export const NewPointDialog: React.FC<Props> = ({ open, onOpenChange, farmId }) => {
-  const [type, setType] = useState<PointType>('autre');
-  const [entityLabel, setEntityLabel] = useState('');
-  const [title, setTitle] = useState('');
-  const [priority, setPriority] = useState<PointPriority>('normal');
+export const NewPointDialog: React.FC<Props> = ({ open, onOpenChange, farmId, defaultValues }) => {
+  const [type, setType] = useState<PointType>(defaultValues?.type ?? 'autre');
+  const [entityLabel, setEntityLabel] = useState(defaultValues?.entityLabel ?? '');
+  const [title, setTitle] = useState(defaultValues?.title ?? '');
+  const [priority, setPriority] = useState<PointPriority>(defaultValues?.priority ?? 'normal');
   const [note, setNote] = useState('');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const create = useCreatePoint();
+
+  // Re-apply defaultValues only on the false → true transition of `open`,
+  // so that user-typed values are not wiped on parent rerenders.
+  const wasOpenRef = useRef(false);
+  useEffect(() => {
+    if (open && !wasOpenRef.current) {
+      setType(defaultValues?.type ?? 'autre');
+      setEntityLabel(defaultValues?.entityLabel ?? '');
+      setPriority(defaultValues?.priority ?? 'normal');
+      setTitle(defaultValues?.title ?? '');
+      setNote('');
+      setPhotoFile(null);
+    }
+    wasOpenRef.current = open;
+  }, [open, defaultValues]);
 
   const reset = () => {
     setType('autre');
