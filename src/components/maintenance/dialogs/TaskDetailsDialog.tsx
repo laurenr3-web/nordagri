@@ -19,7 +19,7 @@ import { TaskDetailsBadges } from './components/TaskDetailsBadges';
 import { TaskMetadata } from './components/TaskMetadata';
 import { TaskControls } from './components/TaskControls';
 import { DeleteTaskAlert } from './components/DeleteTaskAlert';
-import { Clock } from 'lucide-react';
+import { Clock, X } from 'lucide-react';
 
 interface TaskDetailsDialogProps {
   task: MaintenanceTask | null;
@@ -106,10 +106,27 @@ const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogContent
+          className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto"
+          onOpenAutoFocus={(e) => {
+            e.preventDefault();
+            const btn = document.getElementById('task-details-close-top');
+            btn?.focus();
+          }}
+        >
           <DialogHeader>
-            <DialogTitle className="text-xl pr-8">{task.title}</DialogTitle>
+            <DialogTitle className="text-xl pr-10">{task.title}</DialogTitle>
           </DialogHeader>
+          <DialogClose asChild>
+            <button
+              id="task-details-close-top"
+              type="button"
+              aria-label="Fermer"
+              className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-background border shadow-sm hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </DialogClose>
           
           <div className="py-4">
             <TaskDetailsBadges 
@@ -129,7 +146,7 @@ const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
           
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">Close</Button>
+              <Button variant="outline">Fermer (Échap)</Button>
             </DialogClose>
           </DialogFooter>
         </DialogContent>
