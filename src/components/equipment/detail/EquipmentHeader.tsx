@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import QRCodeGenerator from '../qr/QRCodeGenerator';
 import DeleteEquipmentDialog from './DeleteEquipmentDialog';
+import { HelpTooltip } from '@/components/help/HelpTooltip';
 
 interface EquipmentHeaderProps {
   equipment: EquipmentItem;
@@ -34,6 +35,7 @@ const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({
                                               equipment.status === 'broken' ? 'bg-red-100' : 'bg-gray-100'}>
             {equipment.status}
           </Badge>
+          <HelpTooltip contentKey="equipment.status" />
         </div>
         
         <div className="text-sm text-muted-foreground mt-0.5">
@@ -46,11 +48,12 @@ const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({
       </div>
       
       <div className="flex flex-wrap gap-2">
-        <span data-tour="equipment-qr">
+        <span data-tour="equipment-qr" className="inline-flex items-center gap-1">
           <QRCodeGenerator 
             equipmentId={equipment.id} 
             equipmentName={equipment.name} 
           />
+          <HelpTooltip contentKey="equipment.qr" />
         </span>
         
         {canEdit && (
