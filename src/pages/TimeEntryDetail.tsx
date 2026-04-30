@@ -1,8 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
-import Navbar from '@/components/layout/Navbar';
 import { SessionTimer } from '@/components/time-tracking/detail/SessionTimer';
 import { SessionInfo } from '@/components/time-tracking/detail/SessionInfo';
 import { SessionNotes } from '@/components/time-tracking/detail/SessionNotes';
@@ -75,14 +73,9 @@ const TimeEntryDetail = () => {
   const displayName = entry.user_name || entry.owner_name || 'Utilisateur';
   
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
-        <Sidebar className="border-r">
-          <Navbar />
-        </Sidebar>
-        
-        <div className="flex-1">
-          <div className="p-6">
+    <>
+      <div className="min-h-screen w-full bg-background">
+        <div className="p-6">
             <div className="max-w-5xl mx-auto space-y-6">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div className="flex-1 w-full md:w-auto">
@@ -151,7 +144,6 @@ const TimeEntryDetail = () => {
                 </div>
               )}
             </div>
-          </div>
         </div>
       </div>
       
@@ -181,7 +173,7 @@ const TimeEntryDetail = () => {
           title: `Suite: ${entry.task_type} - ${new Date().toLocaleString()}`
         } : undefined}
       />
-    </SidebarProvider>
+    </>
   );
 };
 
