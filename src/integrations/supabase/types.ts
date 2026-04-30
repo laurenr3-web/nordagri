@@ -1359,6 +1359,7 @@ export type Database = {
           created_at: string
           farm_id: string | null
           first_name: string | null
+          has_seen_onboarding: boolean
           id: string
           last_name: string | null
           role: string | null
@@ -1369,6 +1370,7 @@ export type Database = {
           created_at?: string
           farm_id?: string | null
           first_name?: string | null
+          has_seen_onboarding?: boolean
           id: string
           last_name?: string | null
           role?: string | null
@@ -1379,6 +1381,7 @@ export type Database = {
           created_at?: string
           farm_id?: string | null
           first_name?: string | null
+          has_seen_onboarding?: boolean
           id?: string
           last_name?: string | null
           role?: string | null
