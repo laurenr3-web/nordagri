@@ -20,21 +20,33 @@ export function useEquipmentWear(equipment: EquipmentWearData): WearInfo {
   return useMemo(() => {
     const unite = equipment.unite_d_usure || 'heures';
     const valeur = equipment.valeur_actuelle || 0;
-    
-    // Format the value based on the unit type
-    let formattedValue = `${valeur.toLocaleString('fr-FR')} `;
-    switch (unite) {
-      case 'heures':
-        formattedValue += 'h';
-        break;
-      case 'kilometres':
-        formattedValue += 'km';
-        break;
-      case 'acres':
-        formattedValue += 'acres';
-        break;
-      default:
-        formattedValue += unite;
+
+    // For time-based equipment ("jours"), the wear value is derived from
+    // the date of the last maintenance/update, not from a manual counter.
+    let formattedValue: string;
+    if (unite === 'jours') {
+      if (equipment.last_wear_update) {
+        const last = new Date(equipment.last_wear_update).getTime();
+        const days = Math.max(0, Math.floor((Date.now() - last) / 86400000));
+        formattedValue = `${days.toLocaleString('fr-FR')} jour${days > 1 ? 's' : ''}`;
+      } else {
+        formattedValue = '— jours';
+      }
+    } else {
+      formattedValue = `${valeur.toLocaleString('fr-FR')} `;
+      switch (unite) {
+        case 'heures':
+          formattedValue += 'h';
+          break;
+        case 'kilometres':
+          formattedValue += 'km';
+          break;
+        case 'acres':
+          formattedValue += 'acres';
+          break;
+        default:
+          formattedValue += unite;
+      }
     }
 
     // Format last update date
