@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Filter, SlidersHorizontal, Plus, MinusCircle } from 'lucide-react';
+import { Search, Filter, SlidersHorizontal } from 'lucide-react';
 import { PartsView } from '@/hooks/parts/usePartsFilter';
 import { BlurContainer } from '@/components/ui/blur-container';
 
@@ -20,8 +20,6 @@ interface PartsToolbarProps {
   onDeleteSelected?: () => void;
   totalParts: number;
   filteredParts: number;
-  onAddPart?: () => void;
-  onWithdrawPart?: () => void;
 }
 
 export const PartsToolbar: React.FC<PartsToolbarProps> = ({
@@ -37,8 +35,6 @@ export const PartsToolbar: React.FC<PartsToolbarProps> = ({
   onDeleteSelected,
   totalParts,
   filteredParts,
-  onAddPart,
-  onWithdrawPart
 }) => {
   // Save view preference when changed
   const handleViewChange = (newView: PartsView) => {
@@ -68,29 +64,6 @@ export const PartsToolbar: React.FC<PartsToolbarProps> = ({
               className="gap-1"
             >
               Supprimer ({selectedCount})
-            </Button>
-          )}
-          
-          {onWithdrawPart && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={onWithdrawPart}
-              className="gap-1"
-            >
-              <MinusCircle size={16} />
-              Retirer une pièce
-            </Button>
-          )}
-          
-          {onAddPart && (
-            <Button 
-              size="sm"
-              onClick={onAddPart}
-              className="gap-1"
-            >
-              <Plus size={16} />
-              Ajouter une pièce
             </Button>
           )}
           
