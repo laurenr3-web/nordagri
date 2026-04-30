@@ -6,9 +6,11 @@ import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { PointEventType } from '@/types/Point';
 import { EVENT_EMOJI, EVENT_LABELS } from './pointHelpers';
-import { useAddPointEvent } from '@/hooks/points/usePointMutations';
+import { useAddPointEvent, useUpdatePointNextCheck } from '@/hooks/points/usePointMutations';
 import { uploadPointPhoto } from './uploadPointPhoto';
-import { Camera, Loader2, X } from 'lucide-react';
+import { Camera, Clock, Loader2, X } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 
 const TYPES: PointEventType[] = ['observation', 'action', 'verification', 'note', 'correction'];
 
@@ -24,12 +26,17 @@ export const AddEventDialog: React.FC<Props> = ({ open, onOpenChange, pointId, f
   const [note, setNote] = useState('');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [scheduleCheck, setScheduleCheck] = useState(false);
+  const [days, setDays] = useState<number>(3);
   const add = useAddPointEvent();
+  const updateNextCheck = useUpdatePointNextCheck();
 
   const reset = () => {
     setType('note');
     setNote('');
     setPhotoFile(null);
+    setScheduleCheck(false);
+    setDays(3);
   };
 
   const handleSubmit = async () => {
@@ -49,6 +56,9 @@ export const AddEventDialog: React.FC<Props> = ({ open, onOpenChange, pointId, f
       note: note.trim() || null,
       photo_urls: urls,
     });
+    if (scheduleCheck && days > 0) {
+      await updateNextCheck.mutateAsync({ id: pointId, days });
+    }
     reset();
     onOpenChange(false);
   };
@@ -119,6 +129,56 @@ export const AddEventDialog: React.FC<Props> = ({ open, onOpenChange, pointId, f
                 onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
               />
             </label>
+          </div>
+
+          <div className="rounded-lg border p-3 space-y-3">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <Checkbox
+                checked={scheduleCheck}
+                onCheckedChange={(v) => setScheduleCheck(v === true)}
+              />
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">À revoir dans…</span>
+            </label>
+            {scheduleCheck && (
+              <div className="space-y-2">
+                <div className="grid grid-cols-4 gap-1.5">
+                  {[1, 3, 7, 14].map((d) => (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => setDays(d)}
+                      className={cn(
+                        'py-2 rounded-md border text-sm transition',
+                        days === d
+                          ? 'border-primary bg-primary/10 text-primary font-medium'
+                          : 'border-border hover:bg-accent'
+                      )}
+                    >
+                      {d} j
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="custom-days" className="text-xs text-muted-foreground">
+                    ou
+                  </Label>
+                  <Input
+                    id="custom-days"
+                    type="number"
+                    min={1}
+                    max={60}
+                    value={days}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value, 10);
+                      if (!Number.isNaN(v)) setDays(Math.min(60, Math.max(1, v)));
+                    }}
+                    className="h-9 w-20"
+                  />
+                  <span className="text-xs text-muted-foreground">jours</span>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex gap-2 pt-2">

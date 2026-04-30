@@ -43,8 +43,15 @@ export const CheckTodayWidget = ({ data, loading }: Props) => {
 
   if (!data) return null;
 
-  const { forgottenPointsCount, forgottenPointsMaxDays, overdueTasksCount, maintenanceDueCount } = data;
-  const total = forgottenPointsCount + overdueTasksCount + maintenanceDueCount;
+  const {
+    forgottenPointsCount,
+    forgottenPointsMaxDays,
+    overdueTasksCount,
+    maintenanceDueCount,
+    dueChecksCount,
+  } = data;
+  const total =
+    forgottenPointsCount + overdueTasksCount + maintenanceDueCount + (dueChecksCount ?? 0);
 
   if (total === 0) {
     return (
@@ -57,6 +64,13 @@ export const CheckTodayWidget = ({ data, loading }: Props) => {
 
   return (
     <div className="space-y-1">
+      {dueChecksCount > 0 && (
+        <Row
+          icon={<Clock className="h-4 w-4 text-destructive shrink-0" />}
+          label={`${dueChecksCount} point${dueChecksCount > 1 ? 's' : ''} à vérifier aujourd'hui`}
+          onClick={() => navigate('/points')}
+        />
+      )}
       {forgottenPointsCount > 0 && (
         <Row
           icon={<AlertTriangle className="h-4 w-4 text-destructive shrink-0" />}

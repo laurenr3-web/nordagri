@@ -5,6 +5,7 @@ export interface CheckTodayData {
   forgottenPointsCount: number;
   forgottenPointsMaxDays: number;
   overdueTasksCount: number;
+  dueChecksCount: number;
 }
 
 export function useCheckTodayData(farmId: string | null, enabled: boolean) {
@@ -17,8 +18,11 @@ export function useCheckTodayData(farmId: string | null, enabled: boolean) {
       const threeDaysAgo = new Date();
       threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
       const threeDaysAgoIso = threeDaysAgo.toISOString();
+      const endOfToday = new Date();
+      endOfToday.setHours(23, 59, 59, 999);
+      const endOfTodayIso = endOfToday.toISOString();
 
-      const [pointsRes, tasksRes] = await Promise.all([
+      const [pointsRes, tasksRes, dueChecksRes] = await Promise.all([
         supabase
           .from('points')
           .select('id, last_event_at')
@@ -31,6 +35,13 @@ export function useCheckTodayData(farmId: string | null, enabled: boolean) {
           .eq('farm_id', farmId!)
           .lt('due_date', todayStr)
           .neq('status', 'done'),
+        supabase
+          .from('points')
+          .select('id', { count: 'exact', head: true })
+          .eq('farm_id', farmId!)
+          .in('status', ['open', 'watch'])
+          .not('next_check_at', 'is', null)
+          .lte('next_check_at', endOfTodayIso),
       ]);
 
       const forgotten = pointsRes.data ?? [];
@@ -47,6 +58,7 @@ export function useCheckTodayData(farmId: string | null, enabled: boolean) {
         forgottenPointsCount: forgotten.length,
         forgottenPointsMaxDays: maxDays,
         overdueTasksCount: tasksRes.count ?? 0,
+        dueChecksCount: dueChecksRes.count ?? 0,
       };
     },
   });

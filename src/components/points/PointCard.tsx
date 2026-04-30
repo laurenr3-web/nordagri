@@ -9,6 +9,7 @@ import {
   FRESHNESS_DOT,
   TYPE_EMOJI,
   freshnessOf,
+  nextCheckState,
   relativeFromNow,
 } from './pointHelpers';
 import { PointStatusBadge } from './StatusBadge';
@@ -80,6 +81,21 @@ export const PointCard: React.FC<Props> = ({ point, onClick }) => {
           <div className="flex items-center gap-1.5 mt-1.5">
             <PointPriorityBadge priority={point.priority} />
             <PointStatusBadge status={point.status} />
+            {point.status !== 'resolved' && (() => {
+              const nc = nextCheckState(point.next_check_at);
+              if (nc.kind === 'none') return null;
+              const icon = nc.kind === 'overdue' ? '⚠️' : nc.kind === 'today' ? '🔴' : '🕒';
+              return (
+                <span
+                  className={cn(
+                    'text-[10px] px-1.5 py-0.5 rounded border whitespace-nowrap',
+                    nc.badgeClass
+                  )}
+                >
+                  {icon} {nc.shortLabel}
+                </span>
+              );
+            })()}
           </div>
 
           {/* Line 4: last event */}
