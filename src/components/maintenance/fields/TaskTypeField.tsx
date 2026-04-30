@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MaintenanceType } from '@/hooks/maintenance/maintenanceSlice';
 import FormFieldGroup from './FormFieldGroup';
+import { HelpTooltip } from '@/components/help/HelpTooltip';
 
 interface TaskTypeFieldProps {
   type: MaintenanceType;
@@ -13,7 +14,10 @@ interface TaskTypeFieldProps {
 const TaskTypeField: React.FC<TaskTypeFieldProps> = ({ type, setType }) => {
   return (
     <FormFieldGroup>
-      <Label htmlFor="taskType">Type de tâche</Label>
+      <span className="inline-flex items-center gap-1">
+        <Label htmlFor="taskType">Type de tâche</Label>
+        <HelpTooltip contentKey="maintenance.type" />
+      </span>
       <Select value={type} onValueChange={(value: MaintenanceType) => setType(value)}>
         <SelectTrigger id="taskType">
           <SelectValue placeholder="Sélectionner un type" />
