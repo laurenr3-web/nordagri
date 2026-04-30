@@ -13,6 +13,7 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/button';
 import { FileDown, Plus } from 'lucide-react';
 import ImportMaintenanceDialog from '@/components/maintenance/dialogs/ImportMaintenanceDialog';
+import { MaintenanceTourTrigger } from '@/components/onboarding/MaintenanceTourTrigger';
 
 const Maintenance = () => {
   const {
@@ -30,6 +31,7 @@ const Maintenance = () => {
     isImportDialogOpen,
     setIsImportDialogOpen,
     tasks,
+    isLoading,
     handleOpenNewTaskDialog,
     handleAddTask,
     updateTaskStatus,
@@ -41,6 +43,7 @@ const Maintenance = () => {
   
   return (
     <MainLayout>
+      <MaintenanceTourTrigger isLoading={isLoading} />
       <div className="flex items-center justify-end p-4 border-b">
         <MaintenanceNotificationsPopover />
       </div>
@@ -56,7 +59,11 @@ const Maintenance = () => {
                 <span className="hidden sm:inline">Import entretiens fabricant</span>
                 <span className="sm:hidden">Import</span>
               </Button>
-              <Button size="sm" onClick={() => setIsNewTaskDialogOpen(true)}>
+              <Button
+                size="sm"
+                onClick={() => setIsNewTaskDialogOpen(true)}
+                data-tour="maintenance-new-task"
+              >
                 <Plus className="h-4 w-4 mr-1.5" />
                 <span>Nouvelle tâche</span>
               </Button>
@@ -66,7 +73,7 @@ const Maintenance = () => {
         
         <Tabs defaultValue="tasks" value={dashboardView} onValueChange={setDashboardView}>
           <div className="flex justify-between items-center mb-6 flex-wrap gap-y-3">
-            <TabsList>
+            <TabsList data-tour="maintenance-tabs">
               <TabsTrigger value="tasks">Tâches</TabsTrigger>
               <TabsTrigger value="dashboard">Tableau de bord</TabsTrigger>
             </TabsList>

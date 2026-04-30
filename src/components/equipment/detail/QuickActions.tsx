@@ -17,7 +17,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({
   unitLabel,
 }) => {
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-3 gap-2" data-tour="equipment-quick-actions">
       <Button
         variant="outline"
         className="flex flex-col items-center gap-1.5 h-auto py-4 px-2 rounded-xl border-2 hover:border-primary hover:bg-primary/5 transition-all"

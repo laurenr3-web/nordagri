@@ -163,7 +163,7 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
                 equipment={localEquipment} 
               />
               
-              <div className="mt-4">
+              <div className="mt-4" data-tour="equipment-counters">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium text-muted-foreground">{unitLabel}</h3>
                   {!isEditingHours && canEdit && (
@@ -223,7 +223,9 @@ const EquipmentDetailContent = ({ equipment, onUpdate }: EquipmentDetailContentP
 
         <Card className="overflow-hidden rounded-xl">
           <CardContent className="p-4">
-            <EquipmentTabs equipment={localEquipment} />
+            <div data-tour="equipment-tabs">
+              <EquipmentTabs equipment={localEquipment} />
+            </div>
           </CardContent>
         </Card>
       </div>

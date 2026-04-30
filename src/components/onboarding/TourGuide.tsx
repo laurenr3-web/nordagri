@@ -6,6 +6,8 @@ import { useOnboarding } from '@/contexts/OnboardingContext';
 import { logger } from '@/utils/logger';
 import type { TourName } from './tours/types';
 import { welcomeStepsDesktop, welcomeStepsMobile } from './tours/welcomeTour';
+import { equipmentStepsDesktop, equipmentStepsMobile } from './tours/equipmentTour';
+import { maintenanceStepsDesktop, maintenanceStepsMobile } from './tours/maintenanceTour';
 
 /**
  * Renvoie les steps pour un tour donné, en filtrant ceux dont
@@ -16,7 +18,12 @@ function getStepsForTour(name: TourName, isMobile: boolean): Step[] {
   if (name === 'welcome') {
     candidates = isMobile ? welcomeStepsMobile : welcomeStepsDesktop;
   }
-  // equipment / maintenance : implémentés dans le Message 3
+  if (name === 'equipment') {
+    candidates = isMobile ? equipmentStepsMobile : equipmentStepsDesktop;
+  }
+  if (name === 'maintenance') {
+    candidates = isMobile ? maintenanceStepsMobile : maintenanceStepsDesktop;
+  }
   return candidates.filter((step) => {
     const t = step.target;
     if (typeof t !== 'string') return true;
