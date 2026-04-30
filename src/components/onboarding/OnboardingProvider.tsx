@@ -15,7 +15,7 @@ import { useFarmId } from '@/hooks/useFarmId';
 import { withPreviewToken } from '@/utils/previewRouting';
 import { ONBOARDING_STEPS, type OnboardingStepId } from './steps';
 import { OnboardingOverlay } from './OnboardingOverlay';
-import { OnboardingChecklist } from './OnboardingChecklist';
+import { OnboardingHelpPill } from './OnboardingHelpPill';
 
 interface OnboardingContextValue {
   isActive: boolean;
