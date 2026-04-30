@@ -97,45 +97,14 @@ export function OnboardingOverlay() {
     };
   }, [isActive]);
 
-  // Move focus to the primary action on every step (and on open)
-  useEffect(() => {
-    if (!isActive) return;
-    const t = window.setTimeout(() => nextBtnRef.current?.focus(), 50);
-    return () => window.clearTimeout(t);
-  }, [currentIndex, isActive]);
-
-  // Keyboard handling: ESC to skip + focus trap inside the dialog
+  // Keyboard: ESC to skip. We intentionally do NOT trap focus, so the user
+  // can interact with the highlighted element on the page.
   useEffect(() => {
     if (!isActive) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
         skip();
-        return;
-      }
-      if (e.key !== 'Tab') return;
-      const root = dialogRef.current;
-      if (!root) return;
-      const focusables = Array.from(
-        root.querySelectorAll<HTMLElement>(
-          'button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
-        ),
-      ).filter((el) => !el.hasAttribute('disabled'));
-      if (focusables.length === 0) return;
-      const first = focusables[0];
-      const last = focusables[focusables.length - 1];
-      const active = document.activeElement as HTMLElement | null;
-      if (active && !root.contains(active)) {
-        e.preventDefault();
-        first.focus();
-        return;
-      }
-      if (e.shiftKey && active === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && active === last) {
-        e.preventDefault();
-        first.focus();
       }
     };
     document.addEventListener('keydown', onKey);
@@ -175,6 +144,16 @@ export function OnboardingOverlay() {
   const isLast = currentIndex === totalSteps - 1;
   const stepProgressLabel = `Étape ${currentIndex + 1} sur ${totalSteps}`;
 
+  // Spotlight cutout dimensions
+  const cut = rect
+    ? {
+        top: Math.max(0, rect.top - PADDING),
+        left: Math.max(0, rect.left - PADDING),
+        width: rect.width + PADDING * 2,
+        height: rect.height + PADDING * 2,
+      }
+    : null;
+
   return createPortal(
     <div className="pointer-events-none">
       {/* Polite live region announces step changes for assistive tech */}
@@ -182,24 +161,35 @@ export function OnboardingOverlay() {
         {`${stepProgressLabel} : ${step.title}. ${step.description}`}
       </div>
 
-      {/* Backdrop with spotlight cutout */}
-      {rect ? (
-        <div
-          aria-hidden="true"
-          className="fixed inset-0 z-[10000] pointer-events-auto"
-          style={{
-            background: 'rgba(0, 0, 0, 0.55)',
-            clipPath: `polygon(
-              0 0, 100% 0, 100% 100%, 0 100%, 0 0,
-              ${rect.left - PADDING}px ${rect.top - PADDING}px,
-              ${rect.left - PADDING}px ${rect.top + rect.height + PADDING}px,
-              ${rect.left + rect.width + PADDING}px ${rect.top + rect.height + PADDING}px,
-              ${rect.left + rect.width + PADDING}px ${rect.top - PADDING}px,
-              ${rect.left - PADDING}px ${rect.top - PADDING}px
-            )`,
-          }}
-          onClick={(e) => e.stopPropagation()}
-        />
+      {/* Backdrop split into 4 panels around the spotlight so the cutout is
+          natively clickable (no clip-path event blocking). */}
+      {cut ? (
+        <>
+          <div
+            aria-hidden="true"
+            className="fixed left-0 right-0 top-0 z-[10000] bg-black/55"
+            style={{ height: cut.top }}
+          />
+          <div
+            aria-hidden="true"
+            className="fixed left-0 z-[10000] bg-black/55"
+            style={{ top: cut.top, height: cut.height, width: cut.left }}
+          />
+          <div
+            aria-hidden="true"
+            className="fixed right-0 z-[10000] bg-black/55"
+            style={{
+              top: cut.top,
+              height: cut.height,
+              left: cut.left + cut.width,
+            }}
+          />
+          <div
+            aria-hidden="true"
+            className="fixed left-0 right-0 bottom-0 z-[10000] bg-black/55"
+            style={{ top: cut.top + cut.height }}
+          />
+        </>
       ) : (
         <div
           aria-hidden="true"
@@ -226,7 +216,7 @@ export function OnboardingOverlay() {
       <div
         ref={dialogRef}
         role="dialog"
-        aria-modal="true"
+        aria-modal="false"
         aria-labelledby={titleId}
         aria-describedby={descId}
         tabIndex={-1}
@@ -245,6 +235,11 @@ export function OnboardingOverlay() {
         <p id={descId} className="text-sm text-muted-foreground mt-1.5">
           {step.description}
         </p>
+        {rect && (
+          <p className="mt-2 text-xs font-medium text-primary">
+            👉 Clique sur l'élément encadré pour continuer.
+          </p>
+        )}
 
         {missing && !rect && (
           <div className="mt-3 rounded-md bg-muted/60 p-2 text-xs">
@@ -272,6 +267,7 @@ export function OnboardingOverlay() {
           <Button
             ref={nextBtnRef}
             size="sm"
+            variant="outline"
             onClick={next}
             aria-label={
               isLast
@@ -279,7 +275,7 @@ export function OnboardingOverlay() {
                 : `Passer à l'étape ${currentIndex + 2} sur ${totalSteps}`
             }
           >
-            {isLast ? 'Terminer' : 'Suivant'}
+            {isLast ? 'Terminer' : 'Ignorer cette étape'}
           </Button>
         </div>
         <p className="sr-only">Appuyez sur Échap pour passer le tutoriel.</p>
