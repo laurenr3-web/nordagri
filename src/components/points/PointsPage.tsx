@@ -10,6 +10,7 @@ import { PointDetailDialog } from './PointDetailDialog';
 import { STATUS_LABELS } from './pointHelpers';
 import { LayoutWrapper } from '@/components/layout/LayoutWrapper';
 import { PageHeader } from '@/components/layout/PageHeader';
+import { useOnboardingTarget } from '@/components/onboarding/OnboardingProvider';
 
 const ORDER: PointStatus[] = ['open', 'watch', 'resolved'];
 
@@ -23,6 +24,7 @@ export const PointsPage = () => {
   const { farmId, isLoading: farmLoading } = useFarmId();
   const { data: points, isLoading } = usePoints(farmId);
   const [newOpen, setNewOpen] = useState(false);
+  const markAddPointDone = useOnboardingTarget('add-point');
   const [selected, setSelected] = useState<Point | null>(null);
   const [collapsed, setCollapsed] = useState<Record<PointStatus, boolean>>({
     open: false,
@@ -93,7 +95,11 @@ export const PointsPage = () => {
       {/* Floating Action Button — primary entry point for adding a point */}
       {farmId && (
         <Button
-          onClick={() => setNewOpen(true)}
+          onClick={() => {
+            setNewOpen(true);
+            markAddPointDone();
+          }}
+          data-onboarding="add-point"
           className="fixed bottom-20 right-4 lg:bottom-6 rounded-full h-14 px-5 shadow-xl z-40"
           size="lg"
         >
