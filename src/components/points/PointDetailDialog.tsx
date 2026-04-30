@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Plus, Trash2, ListPlus, ChevronRight, CheckCircle2, X, Clock, FileText } from 'lucide-react';
+import { Plus, Trash2, ListPlus, ChevronRight, CheckCircle2, X, Clock, FileText, Pencil, Loader2 } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import { Point, PointStatus } from '@/types/Point';
 import { STATUS_LABELS, TYPE_EMOJI, TYPE_LABELS, daysOpen, nextCheckState } from './pointHelpers';
 import { PointStatusBadge } from './StatusBadge';
@@ -15,6 +16,7 @@ import {
   useDeletePoint,
   useUpdatePointStatus,
   useUpdatePointNextCheck,
+  useUpdatePointTitle,
 } from '@/hooks/points/usePointMutations';
 import { usePointLinkedTasks } from '@/hooks/points/usePointLinkedTasks';
 import { withPreviewToken } from '@/utils/previewRouting';
@@ -34,8 +36,11 @@ export const PointDetailDialog: React.FC<Props> = ({ point, open, onOpenChange }
   const updateStatus = useUpdatePointStatus();
   const deletePoint = useDeletePoint();
   const updateNextCheck = useUpdatePointNextCheck();
+  const updateTitle = useUpdatePointTitle();
   const [addOpen, setAddOpen] = useState(false);
   const [taskOpen, setTaskOpen] = useState(false);
+  const [editingDesc, setEditingDesc] = useState(false);
+  const [descDraft, setDescDraft] = useState('');
   const { data: linkedTasks } = usePointLinkedTasks(point?.id ?? null);
 
   if (!point) return null;
@@ -55,6 +60,21 @@ export const PointDetailDialog: React.FC<Props> = ({ point, open, onOpenChange }
   const handleResolveAndClose = async () => {
     await updateStatus.mutateAsync({ id: point.id, status: 'resolved' });
     onOpenChange(false);
+  };
+
+  const startEditDesc = () => {
+    setDescDraft(point.title ?? '');
+    setEditingDesc(true);
+  };
+
+  const saveDesc = async () => {
+    const trimmed = descDraft.trim();
+    if (!trimmed || trimmed === point.title) {
+      setEditingDesc(false);
+      return;
+    }
+    await updateTitle.mutateAsync({ id: point.id, title: trimmed });
+    setEditingDesc(false);
   };
 
   return (
@@ -174,24 +194,69 @@ export const PointDetailDialog: React.FC<Props> = ({ point, open, onOpenChange }
             {/* Timeline */}
             <section>
               <h3 className="text-sm font-semibold mb-2">Timeline</h3>
-              {/* Description initiale du point, affichée comme première entrée
-                  de la timeline (équivalente à l'observation d'origine). */}
-              {point.title && (
-                <div className="mb-3 rounded-lg border bg-card p-3">
-                  <div className="flex items-center gap-2 mb-1">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-xs font-medium">Description</span>
-                    <span className="text-[11px] text-muted-foreground ml-auto">
-                      {new Date(point.created_at).toLocaleDateString('fr-FR', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                      })}
-                    </span>
-                  </div>
-                  <p className="text-sm whitespace-pre-wrap">{point.title}</p>
+              {/* Description initiale du point, éditable inline. */}
+              <div className="mb-3 rounded-lg border bg-card p-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-xs font-medium">Description</span>
+                  <span className="text-[11px] text-muted-foreground ml-auto">
+                    {new Date(point.created_at).toLocaleDateString('fr-FR', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                    })}
+                  </span>
+                  {!editingDesc && (
+                    <button
+                      type="button"
+                      onClick={startEditDesc}
+                      className="text-muted-foreground hover:text-foreground"
+                      aria-label="Modifier la description"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                  )}
                 </div>
-              )}
+                {!editingDesc ? (
+                  <p className="text-sm whitespace-pre-wrap">
+                    {point.title || (
+                      <span className="italic text-muted-foreground">Aucune description</span>
+                    )}
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    <Textarea
+                      value={descDraft}
+                      onChange={(e) => setDescDraft(e.target.value)}
+                      rows={4}
+                      autoFocus
+                      className="text-sm"
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setEditingDesc(false)}
+                        disabled={updateTitle.isPending}
+                      >
+                        <X className="h-4 w-4 mr-1" /> Annuler
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={saveDesc}
+                        disabled={updateTitle.isPending || !descDraft.trim()}
+                      >
+                        {updateTitle.isPending ? (
+                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                        ) : (
+                          <CheckCircle2 className="h-4 w-4 mr-1" />
+                        )}
+                        Enregistrer
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
               <PointTimeline pointId={point.id} />
             </section>
 
