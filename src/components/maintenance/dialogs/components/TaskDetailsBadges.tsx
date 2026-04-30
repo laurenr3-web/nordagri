@@ -15,7 +15,7 @@ export const TaskDetailsBadges: React.FC<TaskDetailsBadgesProps> = ({
   onDeleteClick 
 }) => {
   return (
-    <div className="flex flex-wrap justify-between items-start gap-2 mb-4">
+    <div className="flex flex-wrap justify-between items-start gap-2 mb-4 mt-2">
       <div className="flex flex-wrap gap-2">
         {getStatusBadge(task.status)}
         {getPriorityBadge(task.priority)}
