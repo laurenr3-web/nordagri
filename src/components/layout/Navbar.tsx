@@ -1,37 +1,34 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import {
-  Settings,
-  Wrench,
-  Tractor,
-  Folder,
-  Eye,
-  PieChart,
-  Clock,
-  CalendarCheck
-} from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { TimeTracker } from '@/components/time-tracking/TimeTracker';
 import { useTranslation } from "react-i18next";
 import { NetworkStatus } from './NetworkStatus';
+import { navGroups, accountItem, type NavItem } from './navConfig';
 
 // NavLink now supports ARIA for accessibility
-const NavLink = ({ path, icon, label, isActive }: { 
-  path: string; 
-  icon: React.ReactNode; 
+const NavLink = ({ path, icon, label, isActive, priority }: {
+  path: string;
+  icon: React.ReactNode;
   label: string;
   isActive: boolean;
+  priority: 'primary' | 'secondary';
 }) => {
   return (
     <Link
       to={path}
       className={cn(
-        "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
-        isActive 
-          ? "bg-secondary text-secondary-foreground" 
-          : "text-muted-foreground hover:bg-secondary/80 hover:text-secondary-foreground"
+        "flex items-center gap-3 rounded-lg px-3 transition-all",
+        priority === 'primary' ? "py-2.5 font-medium" : "py-2 text-sm",
+        isActive
+          ? priority === 'primary'
+            ? "bg-primary/10 text-primary"
+            : "bg-secondary text-secondary-foreground"
+          : priority === 'primary'
+            ? "text-foreground hover:bg-secondary/80"
+            : "text-muted-foreground hover:bg-secondary/80 hover:text-secondary-foreground"
       )}
       role="tab"
       aria-selected={isActive}
@@ -53,51 +50,27 @@ const Navbar = () => {
     if (path === '/dashboard') {
       return location.pathname === path;
     }
+    // Exact match for /time-tracking so it does not also light up for /time-tracking/statistics
+    if (path === '/time-tracking') {
+      return location.pathname === '/time-tracking';
+    }
     return location.pathname.startsWith(path);
   };
 
-  const navItems = [
-    {
-      path: '/dashboard',
-      icon: <PieChart className="h-5 w-5" aria-hidden="true" />,
-      label: t("navbar.dashboard"),
-    },
-    {
-      path: '/planning',
-      icon: <CalendarCheck className="h-5 w-5" aria-hidden="true" />,
-      label: t("navbar.planning"),
-    },
-    {
-      path: '/equipment',
-      icon: <Tractor className="h-5 w-5" aria-hidden="true" />,
-      label: t("navbar.equipment"),
-    },
-    {
-      path: '/maintenance',
-      icon: <Wrench className="h-5 w-5" aria-hidden="true" />,
-      label: t("navbar.maintenance"),
-    },
-    {
-      path: '/parts',
-      icon: <Folder className="h-5 w-5" aria-hidden="true" />,
-      label: t("navbar.parts"),
-    },
-    {
-      path: '/points',
-      icon: <Eye className="h-5 w-5" aria-hidden="true" />,
-      label: t("navbar.points"),
-    },
-    {
-      path: '/time-tracking',
-      icon: <Clock className="h-5 w-5" aria-hidden="true" />,
-      label: t("navbar.time"),
-    },
-    {
-      path: '/settings',
-      icon: <Settings className="h-5 w-5" aria-hidden="true" />,
-      label: t("navbar.settings"),
-    },
-  ];
+  const renderItem = (item: NavItem) => {
+    const Icon = item.icon;
+    const iconClass = item.priority === 'primary' ? 'h-5 w-5' : 'h-4 w-4';
+    return (
+      <NavLink
+        key={item.path}
+        path={item.path}
+        icon={<Icon className={iconClass} aria-hidden="true" />}
+        label={t(item.labelKey)}
+        isActive={isActive(item.path)}
+        priority={item.priority}
+      />
+    );
+  };
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden p-4" role="navigation" aria-label="Barre latérale principale">
@@ -115,16 +88,20 @@ const Navbar = () => {
       </div>
       
       <div className="flex-1 overflow-auto py-2">
-        <nav className="grid gap-1" role="tablist">
-          {navItems.map((item) => (
-            <NavLink 
-              key={item.path} 
-              path={item.path} 
-              icon={item.icon} 
-              label={item.label}
-              isActive={isActive(item.path)}
-            />
+        <nav className="flex flex-col" role="tablist">
+          {navGroups.map((group, idx) => (
+            <div key={group.id} className={cn(idx === 0 ? 'mt-0' : 'mt-6')}>
+              <div className="px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+                {t(group.labelKey)}
+              </div>
+              <div className="grid gap-1">
+                {group.items.map(renderItem)}
+              </div>
+            </div>
           ))}
+          <div className="mt-6 pt-4 border-t border-border/60">
+            {renderItem(accountItem)}
+          </div>
         </nav>
       </div>
       
