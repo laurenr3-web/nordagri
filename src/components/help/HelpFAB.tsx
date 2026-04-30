@@ -2,6 +2,7 @@ import { HelpCircle } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useHelpCenter } from '@/contexts/HelpCenterContext';
 import { useOnboarding } from '@/contexts/OnboardingContext';
+import { useHasOpenDialog } from '@/hooks/help/useHasOpenDialog';
 import { cn } from '@/lib/utils';
 
 const PUBLIC_ROUTES = ['/auth', '/auth/callback', '/accept-invitation', '/legal', '/pricing', '/unsubscribe'];
@@ -10,6 +11,7 @@ export const HelpFAB = () => {
   const { open, isOpen } = useHelpCenter();
   const { isOnboardingActive } = useOnboarding();
   const location = useLocation();
+  const hasOpenDialog = useHasOpenDialog();
 
   // Hide on public routes
   if (PUBLIC_ROUTES.some((r) => location.pathname.startsWith(r))) return null;
@@ -19,6 +21,11 @@ export const HelpFAB = () => {
 
   // Hide when the help drawer itself is open
   if (isOpen) return null;
+
+  // Hide whenever any other Radix dialog/sheet/drawer is open so the FAB
+  // doesn't overlap modal CTAs (Cancel/Save buttons, etc.). The HelpCenter
+  // sheet is already filtered above by `isOpen`.
+  if (hasOpenDialog) return null;
 
   return (
     <button
