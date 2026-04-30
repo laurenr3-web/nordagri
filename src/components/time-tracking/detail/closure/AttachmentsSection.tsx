@@ -3,6 +3,7 @@ import { FileImage } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
+import { HelpTooltip } from '@/components/help/HelpTooltip';
 
 interface AttachmentsSectionProps {
   selectedImage: string | null;
@@ -13,7 +14,10 @@ export function AttachmentsSection({ selectedImage, onFileChange }: AttachmentsS
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Pièces jointes</CardTitle>
+        <CardTitle className="text-lg inline-flex items-center gap-1">
+          Pièces jointes
+          <HelpTooltip contentKey="time.field.attachment" />
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid gap-4">

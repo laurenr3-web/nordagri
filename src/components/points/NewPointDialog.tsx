@@ -10,6 +10,7 @@ import { PRIORITY_LABELS, TYPE_EMOJI, TYPE_LABELS } from './pointHelpers';
 import { useCreatePoint } from '@/hooks/points/usePointMutations';
 import { uploadPointPhoto } from './uploadPointPhoto';
 import { Camera, Loader2, X } from 'lucide-react';
+import { HelpTooltip } from '@/components/help/HelpTooltip';
 
 export interface NewPointDialogDefaults {
   type?: PointType;
@@ -106,7 +107,10 @@ export const NewPointDialog: React.FC<Props> = ({ open, onOpenChange, farmId, de
 
         <div className="space-y-4">
           <div>
-            <Label className="mb-2 block">Type</Label>
+            <Label className="mb-2 inline-flex items-center gap-1">
+              Type
+              <HelpTooltip contentKey="point.field.type" />
+            </Label>
             <div className="grid grid-cols-5 gap-1.5">
               {TYPES.map((t) => (
                 <button
@@ -126,7 +130,10 @@ export const NewPointDialog: React.FC<Props> = ({ open, onOpenChange, farmId, de
           </div>
 
           <div>
-            <Label htmlFor="entity">Élément concerné</Label>
+            <Label htmlFor="entity" className="inline-flex items-center gap-1">
+              Élément concerné
+              <HelpTooltip contentKey="point.field.entityLabel" />
+            </Label>
             <Input
               id="entity"
               value={entityLabel}
@@ -148,7 +155,10 @@ export const NewPointDialog: React.FC<Props> = ({ open, onOpenChange, farmId, de
           </div>
 
           <div>
-            <Label className="mb-2 block">Priorité</Label>
+            <Label className="mb-2 inline-flex items-center gap-1">
+              Priorité
+              <HelpTooltip contentKey="point.field.priority" />
+            </Label>
             <div className="grid grid-cols-3 gap-2">
               {PRIORITIES.map((p) => (
                 <button

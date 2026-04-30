@@ -9,6 +9,7 @@ import { Plus } from 'lucide-react';
 import { PartFormValues } from '../partFormTypes';
 import { useManufacturers } from '@/hooks/parts/useManufacturers';
 import AddManufacturerDialog from '../AddManufacturerDialog';
+import { HelpTooltip } from '@/components/help/HelpTooltip';
 
 interface BasicInfoFieldsProps {
   form: UseFormReturn<PartFormValues>;
@@ -49,7 +50,10 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
         name="partNumber"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Référence</FormLabel>
+            <FormLabel className="inline-flex items-center gap-1">
+              Référence
+              <HelpTooltip contentKey="part.field.partNumber" />
+            </FormLabel>
             <FormControl>
               <Input placeholder="AF-JD-4290" {...field} />
             </FormControl>
@@ -63,7 +67,10 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
         name="category"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Catégorie</FormLabel>
+            <FormLabel className="inline-flex items-center gap-1">
+              Catégorie
+              <HelpTooltip contentKey="part.field.category" />
+            </FormLabel>
             <div className="flex items-center gap-2">
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>

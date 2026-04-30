@@ -15,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { TimeEntryTaskType } from '@/hooks/time-tracking/types';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { HelpTooltip } from '@/components/help/HelpTooltip';
 
 interface TimeEntryFormProps {
   isOpen: boolean;
@@ -207,7 +208,10 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
       />
       
       <div className="grid gap-2">
-        <Label htmlFor="title">🧾 Titre de la session *</Label>
+        <Label htmlFor="title" className="inline-flex items-center gap-1">
+          🧾 Titre de la session *
+          <HelpTooltip contentKey="time.field.title" />
+        </Label>
         <Input
           id="title"
           value={formData.title}
@@ -245,7 +249,10 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
       />
       
       <div className="grid gap-2">
-        <Label htmlFor="notes">🗒️ Notes / Observations</Label>
+        <Label htmlFor="notes" className="inline-flex items-center gap-1">
+          🗒️ Notes / Observations
+          <HelpTooltip contentKey="time.field.notes" />
+        </Label>
         <Textarea
           id="notes"
           value={formData.notes}
@@ -256,7 +263,10 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
       </div>
 
       <div className="grid gap-2">
-        <Label htmlFor="description">ℹ️ Description</Label>
+        <Label htmlFor="description" className="inline-flex items-center gap-1">
+          ℹ️ Description
+          <HelpTooltip contentKey="time.field.description" />
+        </Label>
         <Textarea
           id="description"
           value={formData.description}

@@ -9,6 +9,7 @@ import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEquipmentSelection } from '@/hooks/useEquipmentSelection';
 import { Skeleton } from '@/components/ui/skeleton';
+import { HelpTooltip } from '@/components/help/HelpTooltip';
 
 interface CompatibilityMultiSelectFieldProps {
   form: UseFormReturn<PartFormValues>;
@@ -33,7 +34,10 @@ const CompatibilityMultiSelectField: React.FC<CompatibilityMultiSelectFieldProps
       render={() => (
         <FormItem className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <FormLabel>Équipements compatibles</FormLabel>
+            <FormLabel className="inline-flex items-center gap-1">
+              Équipements compatibles
+              <HelpTooltip contentKey="part.field.compatibility" />
+            </FormLabel>
             {selectedIds.length > 0 && (
               <Button
                 type="button"

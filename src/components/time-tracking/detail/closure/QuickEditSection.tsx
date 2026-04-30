@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { HelpTooltip } from '@/components/help/HelpTooltip';
 
 interface QuickEditSectionProps {
   notes: string;
@@ -29,7 +30,10 @@ export function QuickEditSection({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="notes">Notes finales</Label>
+          <Label htmlFor="notes" className="inline-flex items-center gap-1">
+            Notes finales
+            <HelpTooltip contentKey="time.field.finalNotes" />
+          </Label>
           <Textarea
             id="notes"
             value={notes}
@@ -40,7 +44,10 @@ export function QuickEditSection({
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label>Matériel utilisé</Label>
+            <Label className="inline-flex items-center gap-1">
+              Matériel utilisé
+              <HelpTooltip contentKey="time.field.material" />
+            </Label>
             <Select value={material} onValueChange={setMaterial}>
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner" />

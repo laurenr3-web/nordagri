@@ -3,6 +3,7 @@ import { Plus, Send, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
+import { HelpTooltip } from '@/components/help/HelpTooltip';
 
 interface SmartActionsSectionProps {
   createRecurring: boolean;
@@ -38,9 +39,10 @@ export function SmartActionsSection({
           />
           <label
             htmlFor="recurring"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 inline-flex items-center gap-1"
           >
             Créer une tâche récurrente
+            <HelpTooltip contentKey="time.field.recurringClosure" />
           </label>
         </div>
 
@@ -52,9 +54,10 @@ export function SmartActionsSection({
           />
           <label
             htmlFor="verified"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 inline-flex items-center gap-1"
           >
             Session vérifiée par gestionnaire
+            <HelpTooltip contentKey="time.field.managerVerified" />
           </label>
         </div>
       </CardContent>

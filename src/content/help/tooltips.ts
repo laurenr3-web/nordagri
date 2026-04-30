@@ -268,6 +268,11 @@ export const tooltips = {
     title: 'Description',
     body: "Contexte général de la session (objectif, conditions). Différent des notes terrain qui consignent les observations en cours de travail.",
   },
+  'time.field.notes': {
+    title: 'Notes / Observations',
+    body: "Observations terrain : ce qui se passe pendant la session (anomalie repérée, conditions météo, action effectuée). Apparaît dans le rapport.",
+    articleId: 'how-to-track-time',
+  },
 
   // ===== Suivi de temps — Clôture de session =====
   'time.field.finalNotes': {
