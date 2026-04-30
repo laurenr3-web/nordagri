@@ -151,7 +151,20 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
 export function useOnboarding() {
   const ctx = useContext(OnboardingContext);
-  if (!ctx) throw new Error('useOnboarding must be used within OnboardingProvider');
+  // Return a no-op fallback when used outside the provider so consumers
+  // (e.g. settings rendered in isolation) don't crash.
+  if (!ctx) {
+    return {
+      isActive: false,
+      currentIndex: 0,
+      completedIds: [],
+      start: () => {},
+      next: () => {},
+      skip: () => {},
+      complete: () => {},
+      markStepDone: () => {},
+    } as OnboardingContextValue;
+  }
   return ctx;
 }
 
