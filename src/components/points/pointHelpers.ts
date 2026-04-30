@@ -110,8 +110,8 @@ export function nextCheckState(nextCheckAt: string | null | undefined): NextChec
     const late = Math.abs(diffDays);
     return {
       kind: 'overdue',
-      label: `Vérification en retard de ${late} j`,
-      shortLabel: `retard ${late} j`,
+      label: `En retard de ${late} j`,
+      shortLabel: `En retard (${late} j)`,
       badgeClass:
         'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30',
     };
@@ -120,7 +120,7 @@ export function nextCheckState(nextCheckAt: string | null | undefined): NextChec
     return {
       kind: 'today',
       label: 'À vérifier aujourd’hui',
-      shortLabel: 'à vérifier',
+      shortLabel: 'Aujourd’hui',
       badgeClass:
         'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30',
     };
@@ -128,7 +128,7 @@ export function nextCheckState(nextCheckAt: string | null | undefined): NextChec
   return {
     kind: 'soon',
     label: `À vérifier le ${formatted}`,
-    shortLabel: diffDays === 1 ? 'demain' : `dans ${diffDays} j`,
+    shortLabel: `À vérifier le ${formatted}`,
     badgeClass:
       'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30',
   };

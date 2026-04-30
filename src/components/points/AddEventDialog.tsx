@@ -138,7 +138,7 @@ export const AddEventDialog: React.FC<Props> = ({ open, onOpenChange, pointId, f
                 onCheckedChange={(v) => setScheduleCheck(v === true)}
               />
               <Clock className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">À revoir dans…</span>
+              <span className="text-sm font-medium">À vérifier dans X jours</span>
             </label>
             {scheduleCheck && (
               <div className="space-y-2">
