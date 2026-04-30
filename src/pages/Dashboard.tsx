@@ -227,6 +227,31 @@ const Dashboard = () => {
           </div>
         )}
 
+        {/* Onboarding empty state: farm exists but no equipment yet */}
+        {hasFarm && user && !loading.equipment && Array.isArray(data.equipment) && data.equipment.length === 0 && (
+          <div className="mb-6 rounded-lg border border-dashed">
+            <EmptyState
+              icon={emptyStates.dashboardOnboarding.icon}
+              title={emptyStates.dashboardOnboarding.title}
+              description={emptyStates.dashboardOnboarding.description}
+              action={{
+                label: emptyStates.dashboardOnboarding.actionLabel,
+                onClick: () => {
+                  window.dispatchEvent(new CustomEvent('open-add-equipment-dialog'));
+                },
+              }}
+              secondaryAction={
+                emptyStates.dashboardOnboarding.articleId
+                  ? {
+                      label: emptyStates.dashboardOnboarding.secondaryActionLabel!,
+                      articleId: emptyStates.dashboardOnboarding.articleId,
+                    }
+                  : undefined
+              }
+            />
+          </div>
+        )}
+
         {/* Onglets de navigation */}
         <Tabs value={activeView} onValueChange={(v) => setActiveView(v as any)}>
           <TabsList className="grid grid-cols-3 w-full sm:w-auto sm:inline-grid mb-6">
