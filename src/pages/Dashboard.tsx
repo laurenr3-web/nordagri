@@ -52,6 +52,9 @@ import { useAuthContext } from '@/providers/AuthProvider';
 import { CreateFarmDialog } from '@/components/farm/CreateFarmDialog';
 import { Plus } from 'lucide-react';
 import { useFarmId } from '@/hooks/useFarmId';
+import { EmptyState } from '@/components/help/EmptyState';
+import { emptyStates } from '@/content/help/emptyStates';
+import { useNavigate } from 'react-router-dom';
 
 const DEFAULT_WIDGETS: WidgetConfig[] = [
   { id: 'points_watch', type: 'points_watch', title: 'Points à surveiller', size: 'full', enabled: true },
