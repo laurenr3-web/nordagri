@@ -8,6 +8,8 @@ import { usePlanningTasks } from '@/hooks/planning/usePlanningTasks';
 import { MaintenanceSuggestions } from './MaintenanceSuggestions';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { EmptyState } from '@/components/help/EmptyState';
+import { emptyStates } from '@/content/help/emptyStates';
 
 interface DayViewProps {
   farmId: string | null;
@@ -95,10 +97,23 @@ export function DayView({ farmId, date, label, teamMembers, userId, taskFilter }
       {isToday && <MaintenanceSuggestions farmId={farmId} userId={userId ?? null} />}
 
       {totalTasks === 0 && (!isToday || filteredOverdue.length === 0) ? (
-        <div className="text-center py-12 text-muted-foreground">
-          <p className="text-lg">🎉</p>
-          <p className="text-sm mt-2">Aucune tâche pour {label.toLowerCase()}</p>
-        </div>
+        <EmptyState
+          icon={emptyStates.planningEmpty.icon}
+          title={emptyStates.planningEmpty.title}
+          description={`${emptyStates.planningEmpty.description} (${label.toLowerCase()})`}
+          action={{
+            label: emptyStates.planningEmpty.actionLabel,
+            onClick: () => window.dispatchEvent(new CustomEvent('planning:open-add-task')),
+          }}
+          secondaryAction={
+            emptyStates.planningEmpty.articleId
+              ? {
+                  label: emptyStates.planningEmpty.secondaryActionLabel!,
+                  articleId: emptyStates.planningEmpty.articleId,
+                }
+              : undefined
+          }
+        />
       ) : (
         <>
           <TaskGroup label="Critique" icon="🔴" tasks={filteredGrouped.critical} onTaskClick={setSelectedTask} {...assignProps} />

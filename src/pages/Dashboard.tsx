@@ -52,6 +52,8 @@ import { useAuthContext } from '@/providers/AuthProvider';
 import { CreateFarmDialog } from '@/components/farm/CreateFarmDialog';
 import { Plus } from 'lucide-react';
 import { useFarmId } from '@/hooks/useFarmId';
+import { EmptyState } from '@/components/help/EmptyState';
+import { emptyStates } from '@/content/help/emptyStates';
 
 const DEFAULT_WIDGETS: WidgetConfig[] = [
   { id: 'points_watch', type: 'points_watch', title: 'Points à surveiller', size: 'full', enabled: true },
@@ -221,6 +223,31 @@ const Dashboard = () => {
             <p className="text-sm text-muted-foreground">
               Voici ce qui demande ton attention aujourd'hui
             </p>
+          </div>
+        )}
+
+        {/* Onboarding empty state: farm exists but no equipment yet */}
+        {hasFarm && user && !loading.equipment && Array.isArray(data.equipment) && data.equipment.length === 0 && (
+          <div className="mb-6 rounded-lg border border-dashed">
+            <EmptyState
+              icon={emptyStates.dashboardOnboarding.icon}
+              title={emptyStates.dashboardOnboarding.title}
+              description={emptyStates.dashboardOnboarding.description}
+              action={{
+                label: emptyStates.dashboardOnboarding.actionLabel,
+                onClick: () => {
+                  window.dispatchEvent(new CustomEvent('open-add-equipment-dialog'));
+                },
+              }}
+              secondaryAction={
+                emptyStates.dashboardOnboarding.articleId
+                  ? {
+                      label: emptyStates.dashboardOnboarding.secondaryActionLabel!,
+                      articleId: emptyStates.dashboardOnboarding.articleId,
+                    }
+                  : undefined
+              }
+            />
           </div>
         )}
 

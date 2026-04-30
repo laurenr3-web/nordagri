@@ -14,6 +14,8 @@ import { WithdrawalDialog } from './dialogs/withdrawal';
 import { Part } from '@/types/Part';
 import { PartsView } from '@/hooks/parts/usePartsFilter';
 import PartDetailsDialog from './dialogs/PartDetailsDialog';
+import { EmptyState } from '@/components/help/EmptyState';
+import { emptyStates } from '@/content/help/emptyStates';
 
 interface PartsContainerProps {
   // Données des pièces
@@ -143,6 +145,32 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
     }
     
     if (!isLoading && filteredParts.length === 0) {
+      // No filters active and no parts at all → pedagogical empty state
+      if (filterCount === 0 && parts.length === 0) {
+        return (
+          <EmptyState
+            icon={emptyStates.partsList.icon}
+            title={emptyStates.partsList.title}
+            description={emptyStates.partsList.description}
+            action={
+              onAddPart
+                ? {
+                    label: emptyStates.partsList.actionLabel,
+                    onClick: onAddPart,
+                  }
+                : undefined
+            }
+            secondaryAction={
+              emptyStates.partsList.articleId
+                ? {
+                    label: emptyStates.partsList.secondaryActionLabel!,
+                    articleId: emptyStates.partsList.articleId,
+                  }
+                : undefined
+            }
+          />
+        );
+      }
       return <PartsEmptyState onClearFilters={filterCount > 0 ? clearFilters : undefined} />;
     }
     

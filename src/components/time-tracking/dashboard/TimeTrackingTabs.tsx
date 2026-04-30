@@ -9,6 +9,8 @@ import { TimeEntry } from '@/hooks/time-tracking/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import TimeTrackingRapport from '@/components/time-tracking/rapport/TimeTrackingRapport';
 import { Link } from 'react-router-dom';
+import { EmptyState } from '@/components/help/EmptyState';
+import { emptyStates } from '@/content/help/emptyStates';
 
 interface TimeTrackingTabsProps {
   activeTab: string;
@@ -67,10 +69,23 @@ export function TimeTrackingTabs({
             ))}
           </div>
         ) : entries.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-10">
-            <p className="text-muted-foreground mb-4">Aucune session de travail enregistrée</p>
-            <Button onClick={onNewSession}>Démarrer une nouvelle session</Button>
-          </div>
+          <EmptyState
+            icon={emptyStates.timeTrackingEmpty.icon}
+            title={emptyStates.timeTrackingEmpty.title}
+            description={emptyStates.timeTrackingEmpty.description}
+            action={{
+              label: emptyStates.timeTrackingEmpty.actionLabel,
+              onClick: onNewSession,
+            }}
+            secondaryAction={
+              emptyStates.timeTrackingEmpty.articleId
+                ? {
+                    label: emptyStates.timeTrackingEmpty.secondaryActionLabel!,
+                    articleId: emptyStates.timeTrackingEmpty.articleId,
+                  }
+                : undefined
+            }
+          />
         ) : (
           <ScrollArea className="h-[calc(100vh-28rem)] sm:h-[calc(100vh-24rem)]">
             <div className="space-y-4">
