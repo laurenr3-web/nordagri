@@ -176,6 +176,11 @@ export function TourGuide() {
       return;
     }
     controls.start(0);
+    // Marque le tour comme vu dès son démarrage : qu'il soit terminé,
+    // skippé, fermé via X, ou interrompu par un refresh, il ne se
+    // redéclenchera plus automatiquement. L'utilisateur peut toujours
+    // le relancer manuellement depuis les Réglages (forceStartTour).
+    void markTourCompleted(activeTour);
     // Cleanup : si le composant change de tour, on remet à zéro
     return () => {
       controls.reset();
@@ -195,6 +200,7 @@ export function TourGuide() {
     const offErr = on(EVENTS.TARGET_NOT_FOUND, () => {
       if (!activeTour) return;
       logger.warn('[onboarding] target not found, ending tour', activeTour);
+      void markTourCompleted(activeTour);
       stopTour();
     });
     return () => {
