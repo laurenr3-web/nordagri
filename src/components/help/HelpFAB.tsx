@@ -27,8 +27,10 @@ export const HelpFAB = () => {
       aria-label="Ouvrir le centre d'aide"
       title="Centre d'aide"
       className={cn(
-        'fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-[60]',
-        'w-12 h-12 sm:w-14 sm:h-14 rounded-full',
+        // Positionné à GAUCHE pour ne pas chevaucher les FAB d'ajout
+        // (Planning, Points, TimeTracking, ScrollToTop) qui occupent right-4/right-6.
+        'fixed bottom-20 left-4 sm:bottom-6 sm:left-6 z-[60]',
+        'w-11 h-11 sm:w-12 sm:h-12 rounded-full',
         'bg-primary text-primary-foreground',
         'shadow-lg hover:shadow-xl',
         'flex items-center justify-center',
@@ -36,7 +38,7 @@ export const HelpFAB = () => {
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
       )}
     >
-      <HelpCircle className="h-6 w-6" />
+      <HelpCircle className="h-5 w-5 sm:h-6 sm:w-6" />
     </button>
   );
 };
