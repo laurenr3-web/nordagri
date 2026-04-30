@@ -32,11 +32,11 @@ export const tooltips = {
   },
   'maintenance.priority': {
     title: 'Priorité',
-    body: "Critique : à faire immédiatement (équipement bloqué). Important : sous 7 jours. À faire : sans urgence.",
+    body: "Critique : à faire immédiatement (équipement bloqué). Élevée : sous quelques jours. Moyenne : à planifier. Faible : sans urgence.",
   },
   'maintenance.type': {
     title: 'Type de tâche',
-    body: "Choisissez Préventive pour planifier à l'avance, ou Corrective pour documenter une panne.",
+    body: "Préventive : planifiée à l'avance (intervalles). Corrective : suite à une panne. Conditionnelle : déclenchée par un seuil ou une observation.",
   },
 
   // Pièces
@@ -84,7 +84,7 @@ export const tooltips = {
   },
   'roles.hierarchy': {
     title: 'Hiérarchie des rôles',
-    body: "Owner : tous droits + facturation. Admin : gère équipe et paramètres. Member : utilise au quotidien. Viewer : consultation uniquement.",
+    body: "Owner : tous les droits sur la ferme. Admin : gère équipe et paramètres. Member : utilise au quotidien. Viewer : consultation uniquement.",
     articleId: 'invite-members',
   },
 } as const satisfies Record<string, TooltipContent>;

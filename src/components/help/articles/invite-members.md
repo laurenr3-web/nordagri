@@ -1,9 +1,8 @@
 ## Les 4 rôles dans Nordagri
 
 ### 👑 Owner (Propriétaire)
-Tous les droits, y compris la facturation et la suppression 
-de la ferme. Un seul Owner par ferme. Transférable, mais 
-avec confirmation.
+Tous les droits sur la ferme, y compris sa suppression. 
+Un seul Owner par ferme.
 
 ### 🛠️ Admin
 Gère l'équipe, les paramètres, et toutes les données. 
@@ -35,8 +34,9 @@ renvoyer si besoin.
 
 - **Donnez le rôle minimum nécessaire.** Un employé saisonnier 
   n'a pas besoin d'être Admin.
-- **Désactivez les comptes** des employés qui partent. Évitez 
-  de partager un compte entre plusieurs personnes.
+- **Retirez les membres** qui quittent l'exploitation depuis 
+  Réglages → Ferme → Membres. Évitez de partager un compte 
+  entre plusieurs personnes.
 - **Faites le point chaque trimestre** : qui a vraiment besoin 
   d'accès ? Le rôle correspond-il à la mission actuelle ?
 
