@@ -12,7 +12,7 @@ export interface WidgetConfig {
 
 export const useDashboardLayout = (defaultWidgets: WidgetConfig[]) => {
   const [widgets, setWidgets] = useLocalStorage<WidgetConfig[]>(
-    'dashboard-layout',
+    'dashboard-layout-v2',
     defaultWidgets,
     // Merge: inject any new default widgets missing from saved layout
     (saved) => {

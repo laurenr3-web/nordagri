@@ -36,6 +36,9 @@ import { EquipmentWidget } from '@/components/dashboard/widgets/EquipmentWidget'
 import { AlertsWidget } from '@/components/dashboard/widgets/AlertsWidget';
 import { CalendarWidget } from '@/components/dashboard/widgets/CalendarWidget';
 import { PlanningTodayWidget } from '@/components/dashboard/widgets/PlanningTodayWidget';
+import { PointsWatchWidget } from '@/components/dashboard/widgets/PointsWatchWidget';
+import { CheckTodayWidget } from '@/components/dashboard/widgets/CheckTodayWidget';
+import { RecentActivityWidget } from '@/components/dashboard/widgets/RecentActivityWidget';
 
 // Import du système de widgets
 import { DashboardWidget } from '@/components/dashboard/DashboardWidget';
@@ -51,9 +54,12 @@ import { Plus } from 'lucide-react';
 import { useFarmId } from '@/hooks/useFarmId';
 
 const DEFAULT_WIDGETS: WidgetConfig[] = [
-  { id: 'stats', type: 'stats', title: 'Statistiques', size: 'full', enabled: true },
-  { id: 'planning', type: 'planning', title: 'Planification du jour', size: 'full', enabled: true },
+  { id: 'points_watch', type: 'points_watch', title: 'Points à surveiller', size: 'full', enabled: true },
+  { id: 'planning', type: 'planning', title: 'Tâches du jour', size: 'full', enabled: true },
+  { id: 'check_today', type: 'check_today', title: 'À vérifier aujourd\'hui', size: 'full', enabled: true },
+  { id: 'recent_activity', type: 'recent_activity', title: 'Activité récente', size: 'medium', enabled: true },
   { id: 'equipment', type: 'equipment', title: 'Équipements', size: 'large', enabled: true },
+  { id: 'stats', type: 'stats', title: 'Statistiques', size: 'full', enabled: true },
   { id: 'alerts', type: 'alerts', title: 'Alertes', size: 'medium', enabled: true },
   { id: 'calendar', type: 'calendar', title: 'Calendrier', size: 'large', enabled: true },
 ];
@@ -121,6 +127,9 @@ const Dashboard = () => {
       equipment: EquipmentWidget,
       alerts: AlertsWidget,
       calendar: CalendarWidget,
+      points_watch: PointsWatchWidget,
+      check_today: CheckTodayWidget,
+      recent_activity: RecentActivityWidget,
     };
 
     const WidgetComponent = widgetComponents[widget.type];
@@ -202,6 +211,18 @@ const Dashboard = () => {
             </Button>
           </div>
         </div>
+
+        {/* Message d'accueil */}
+        {hasFarm && user && (
+          <div className="mb-6 rounded-lg border bg-card px-4 py-3">
+            <p className="text-base font-semibold text-foreground">
+              Bonjour {profileData?.first_name || ''} <span aria-hidden>👋</span>
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Voici ce qui demande ton attention aujourd'hui
+            </p>
+          </div>
+        )}
 
         {/* Onglets de navigation */}
         <Tabs value={activeView} onValueChange={(v) => setActiveView(v as any)}>
