@@ -56,7 +56,11 @@ const Maintenance = () => {
                 <span className="hidden sm:inline">Import entretiens fabricant</span>
                 <span className="sm:hidden">Import</span>
               </Button>
-              <Button size="sm" onClick={() => setIsNewTaskDialogOpen(true)}>
+              <Button
+                size="sm"
+                onClick={() => setIsNewTaskDialogOpen(true)}
+                data-tour="maintenance-new-task"
+              >
                 <Plus className="h-4 w-4 mr-1.5" />
                 <span>Nouvelle tâche</span>
               </Button>
@@ -66,7 +70,7 @@ const Maintenance = () => {
         
         <Tabs defaultValue="tasks" value={dashboardView} onValueChange={setDashboardView}>
           <div className="flex justify-between items-center mb-6 flex-wrap gap-y-3">
-            <TabsList>
+            <TabsList data-tour="maintenance-tabs">
               <TabsTrigger value="tasks">Tâches</TabsTrigger>
               <TabsTrigger value="dashboard">Tableau de bord</TabsTrigger>
             </TabsList>
