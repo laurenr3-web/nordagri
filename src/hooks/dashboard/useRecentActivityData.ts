@@ -17,7 +17,17 @@ export function useRecentActivityData(farmId: string | null, enabled: boolean) {
     enabled: !!farmId && enabled,
     staleTime: 5 * 60 * 1000,
     queryFn: async (): Promise<RecentActivityItem[]> => {
-      const [tasksRes, pointsRes, eventsRes] = await Promise.all([
+      // Fetch farm points first to scope events client-side (no FK declared on point_events)
+      const farmPointsRes = await supabase
+        .from('points')
+        .select('id, title, entity_label, created_at')
+        .eq('farm_id', farmId!);
+
+      const farmPoints = farmPointsRes.data ?? [];
+      const farmPointIds = farmPoints.map((p) => p.id);
+      const pointById = new Map(farmPoints.map((p) => [p.id, p]));
+
+      const [tasksRes, eventsRes] = await Promise.all([
         supabase
           .from('planning_tasks')
           .select('id, title, completed_at')
@@ -26,18 +36,14 @@ export function useRecentActivityData(farmId: string | null, enabled: boolean) {
           .not('completed_at', 'is', null)
           .order('completed_at', { ascending: false })
           .limit(5),
-        supabase
-          .from('points')
-          .select('id, title, entity_label, created_at')
-          .eq('farm_id', farmId!)
-          .order('created_at', { ascending: false })
-          .limit(5),
-        supabase
-          .from('point_events')
-          .select('id, point_id, event_type, note, created_at, points!inner(farm_id, title, entity_label)')
-          .eq('points.farm_id', farmId!)
-          .order('created_at', { ascending: false })
-          .limit(5),
+        farmPointIds.length > 0
+          ? supabase
+              .from('point_events')
+              .select('id, point_id, event_type, created_at')
+              .in('point_id', farmPointIds)
+              .order('created_at', { ascending: false })
+              .limit(5)
+          : Promise.resolve({ data: [], error: null } as any),
       ]);
 
       const items: RecentActivityItem[] = [];
@@ -52,7 +58,11 @@ export function useRecentActivityData(farmId: string | null, enabled: boolean) {
         });
       }
 
-      for (const p of pointsRes.data ?? []) {
+      // Sort points by created_at desc and take top 5
+      const recentPoints = [...farmPoints]
+        .sort((a, b) => b.created_at.localeCompare(a.created_at))
+        .slice(0, 5);
+      for (const p of recentPoints) {
         const label = p.entity_label || p.title;
         items.push({
           id: `point-${p.id}`,
@@ -64,7 +74,8 @@ export function useRecentActivityData(farmId: string | null, enabled: boolean) {
       }
 
       for (const e of (eventsRes.data ?? []) as any[]) {
-        const label = e.points?.entity_label || e.points?.title || 'point';
+        const point = pointById.get(e.point_id);
+        const label = point?.entity_label || point?.title || 'point';
         items.push({
           id: `event-${e.id}`,
           kind: 'point_event',
