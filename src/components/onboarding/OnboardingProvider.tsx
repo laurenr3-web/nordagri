@@ -8,20 +8,22 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { useFarmId } from '@/hooks/useFarmId';
 import { withPreviewToken } from '@/utils/previewRouting';
 import { ONBOARDING_STEPS, type OnboardingStepId } from './steps';
 import { OnboardingOverlay } from './OnboardingOverlay';
-import { OnboardingChecklist } from './OnboardingChecklist';
+import { OnboardingHelpPill } from './OnboardingHelpPill';
 
 interface OnboardingContextValue {
   isActive: boolean;
+  available: boolean;
   currentIndex: number;
   completedIds: OnboardingStepId[];
   start: (opts?: { force?: boolean }) => void;
+  startStep: (id: OnboardingStepId) => void;
   next: () => void;
   skip: () => void;
   complete: () => void;
@@ -36,19 +38,23 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const { user } = useAuthContext();
   const { farmId } = useFarmId();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const [isActive, setIsActive] = useState(false);
+  const [available, setAvailable] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [completedIds, setCompletedIds] = useState<OnboardingStepId[]>([]);
   const checkedRef = useRef(false);
 
-  // Auto-trigger on first login
+  // On first login, just mark the tutorial as AVAILABLE (no spotlight).
+  // The user discovers it via the small "Aide (n/4)" pill on each page.
   useEffect(() => {
     if (!user || !farmId || checkedRef.current) return;
     checkedRef.current = true;
     const localSeen = typeof window !== 'undefined' && localStorage.getItem(LS_KEY) === '1';
-    if (localSeen) return;
+    if (localSeen) {
+      setAvailable(false);
+      return;
+    }
 
     (async () => {
       const { data } = await supabase
@@ -59,14 +65,16 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       const seen = (data as { has_seen_onboarding?: boolean } | null)?.has_seen_onboarding;
       if (seen) {
         try { localStorage.setItem(LS_KEY, '1'); } catch {}
+        setAvailable(false);
         return;
       }
+      // Make the help pill visible across pages, no auto-redirect.
       setCurrentIndex(0);
       setCompletedIds([]);
-      setIsActive(true);
-      navigate(withPreviewToken(ONBOARDING_STEPS[0].route));
+      setIsActive(false);
+      setAvailable(true);
     })();
-  }, [user, farmId, navigate]);
+  }, [user, farmId]);
 
   const persistSeen = useCallback(async (seen: boolean) => {
     if (!user) return;
@@ -84,6 +92,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     (opts?: { force?: boolean }) => {
       setCurrentIndex(0);
       setCompletedIds([]);
+      setAvailable(true);
       setIsActive(true);
       if (opts?.force) {
         void persistSeen(false);
@@ -93,34 +102,44 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     [navigate, persistSeen],
   );
 
+  // Start the tutorial on a SPECIFIC step (used by per-page help pills).
+  // Does NOT navigate — the user is already on the right page.
+  const startStep = useCallback((id: OnboardingStepId) => {
+    const idx = ONBOARDING_STEPS.findIndex((s) => s.id === id);
+    if (idx < 0) return;
+    setCurrentIndex(idx);
+    setAvailable(true);
+    setIsActive(true);
+  }, []);
+
   const complete = useCallback(() => {
     setIsActive(false);
+    setAvailable(false);
     setCompletedIds(ONBOARDING_STEPS.map((s) => s.id));
     void persistSeen(true);
   }, [persistSeen]);
 
   const skip = useCallback(() => {
+    // "Passer" only closes the current spotlight; the help pill stays
+    // available so the user can resume on another page.
     setIsActive(false);
-    void persistSeen(true);
-  }, [persistSeen]);
+  }, []);
 
   const next = useCallback(() => {
     setCurrentIndex((i) => {
       const nextIdx = i + 1;
       if (nextIdx >= ONBOARDING_STEPS.length) {
         setIsActive(false);
+        setAvailable(false);
         void persistSeen(true);
         setCompletedIds(ONBOARDING_STEPS.map((s) => s.id));
         return i;
       }
-      const nextStep = ONBOARDING_STEPS[nextIdx];
-      // navigate if needed
-      if (!location.pathname.startsWith(nextStep.route)) {
-        navigate(withPreviewToken(nextStep.route));
-      }
+      // Stop the spotlight; user will re-trigger via the pill on the next page.
+      setIsActive(false);
       return nextIdx;
     });
-  }, [location.pathname, navigate, persistSeen]);
+  }, [persistSeen]);
 
   const markStepDone = useCallback(
     (id: OnboardingStepId) => {
@@ -136,15 +155,15 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo<OnboardingContextValue>(
-    () => ({ isActive, currentIndex, completedIds, start, next, skip, complete, markStepDone }),
-    [isActive, currentIndex, completedIds, start, next, skip, complete, markStepDone],
+    () => ({ isActive, available, currentIndex, completedIds, start, startStep, next, skip, complete, markStepDone }),
+    [isActive, available, currentIndex, completedIds, start, startStep, next, skip, complete, markStepDone],
   );
 
   return (
     <OnboardingContext.Provider value={value}>
       {children}
       {isActive && <OnboardingOverlay />}
-      {isActive && <OnboardingChecklist />}
+      {available && <OnboardingHelpPill />}
     </OnboardingContext.Provider>
   );
 }
@@ -156,9 +175,11 @@ export function useOnboarding() {
   if (!ctx) {
     return {
       isActive: false,
+      available: false,
       currentIndex: 0,
       completedIds: [],
       start: () => {},
+      startStep: () => {},
       next: () => {},
       skip: () => {},
       complete: () => {},
