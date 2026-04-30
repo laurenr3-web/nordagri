@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useFarmId } from '@/hooks/useFarmId';
 import { useTeamMembers } from '@/hooks/useTeamMembers';
 import { useOperationalStats, type StatsPeriod } from '@/hooks/statistics/useOperationalStats';
@@ -16,6 +17,7 @@ import {
   Hourglass,
   Trophy,
   Timer,
+  Info,
 } from 'lucide-react';
 
 interface PeriodFilterProps {
@@ -56,9 +58,10 @@ interface StatCardProps {
   hint?: string;
   icon: React.ReactNode;
   tone?: 'default' | 'success' | 'warning' | 'danger' | 'info';
+  info?: { title: string; description: string; formula?: string };
 }
 
-function StatCard({ label, value, hint, icon, tone = 'default' }: StatCardProps) {
+function StatCard({ label, value, hint, icon, tone = 'default', info }: StatCardProps) {
   const toneClasses: Record<string, string> = {
     default: 'text-foreground',
     success: 'text-emerald-600 dark:text-emerald-400',
@@ -78,9 +81,33 @@ function StatCard({ label, value, hint, icon, tone = 'default' }: StatCardProps)
       <CardContent className="p-4 sm:p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground truncate">
-              {label}
-            </p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground truncate">
+                {label}
+              </p>
+              {info && (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label={`En savoir plus : ${info.title}`}
+                      className="flex-shrink-0 rounded-full p-0.5 text-muted-foreground/70 hover:text-foreground hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
+                    >
+                      <Info className="h-3.5 w-3.5" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent side="top" align="start" className="w-72 text-sm">
+                    <p className="font-semibold text-foreground">{info.title}</p>
+                    <p className="mt-1 text-muted-foreground">{info.description}</p>
+                    {info.formula && (
+                      <p className="mt-2 rounded-md bg-muted px-2 py-1.5 font-mono text-xs text-foreground">
+                        {info.formula}
+                      </p>
+                    )}
+                  </PopoverContent>
+                </Popover>
+              )}
+            </div>
             <p className={cn('mt-1 text-3xl font-semibold tabular-nums', toneClasses[tone])}>
               {value}
             </p>
@@ -136,6 +163,8 @@ export const OperationalOverview: React.FC<OperationalOverviewProps> = ({ period
 
   const periodLabel =
     period === 'today' ? "aujourd'hui" : period === 'week' ? 'cette semaine' : 'ce mois-ci';
+  const periodScopeLabel =
+    period === 'today' ? "aujourd'hui" : period === 'week' ? 'des 7 derniers jours' : 'des 30 derniers jours';
 
   if (isLoading || !data) {
     return (
@@ -159,22 +188,37 @@ export const OperationalOverview: React.FC<OperationalOverviewProps> = ({ period
         <SectionTitle hint={`Activité des tâches ${periodLabel}.`}>Tâches</SectionTitle>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <StatCard
-            label="Complétées"
+            label="Terminées"
             value={data.tasks.done}
             icon={<CheckCircle2 className="h-5 w-5" />}
             tone="success"
+            info={{
+              title: 'Tâches terminées',
+              description: `Tâches marquées comme "Fait" ${periodLabel}. Permet de mesurer le travail accompli sur la période choisie.`,
+              formula: 'status = "done" sur la période',
+            }}
           />
           <StatCard
             label="En retard"
             value={data.tasks.overdue}
             icon={<AlertTriangle className="h-5 w-5" />}
             tone={data.tasks.overdue > 0 ? 'danger' : 'default'}
+            info={{
+              title: 'Tâches en retard',
+              description: 'Tâches non terminées dont la date prévue est déjà passée. À traiter en priorité.',
+              formula: 'due_date < aujourd\'hui ET status ≠ "done"',
+            }}
           />
           <StatCard
-            label="En cours"
+            label="À faire / en cours"
             value={data.tasks.inProgress}
             icon={<Loader2 className="h-5 w-5" />}
             tone="info"
+            info={{
+              title: 'Tâches actives',
+              description: 'Tâches non terminées et non en retard : à faire prochainement ou déjà entamées.',
+              formula: 'status ∈ {"todo", "in_progress"} ET pas en retard',
+            }}
           />
         </div>
 
@@ -232,6 +276,11 @@ export const OperationalOverview: React.FC<OperationalOverviewProps> = ({ period
             hint="État actuel"
             icon={<Eye className="h-5 w-5" />}
             tone={data.points.open > 0 ? 'warning' : 'default'}
+            info={{
+              title: 'Points ouverts',
+              description: 'Nombre total de points à surveiller actuellement non résolus, toutes périodes confondues.',
+              formula: 'status ≠ "resolved"',
+            }}
           />
           <StatCard
             label="Réglés"
@@ -239,6 +288,11 @@ export const OperationalOverview: React.FC<OperationalOverviewProps> = ({ period
             hint={`Sur la période`}
             icon={<CheckCheck className="h-5 w-5" />}
             tone="success"
+            info={{
+              title: 'Points réglés',
+              description: `Points dont la résolution a été enregistrée ${periodLabel}.`,
+              formula: 'resolved_at dans la période',
+            }}
           />
           <StatCard
             label="Oubliés"
@@ -246,6 +300,11 @@ export const OperationalOverview: React.FC<OperationalOverviewProps> = ({ period
             hint="Sans activité > 3 j"
             icon={<Clock className="h-5 w-5" />}
             tone={data.points.forgotten > 0 ? 'danger' : 'default'}
+            info={{
+              title: 'Points oubliés',
+              description: 'Points encore ouverts pour lesquels aucun événement (commentaire, action, correction) n\'a été enregistré depuis plus de 3 jours.',
+              formula: 'status ≠ "resolved" ET last_event_at < il y a 3 j',
+            }}
           />
         </div>
         <div className="grid grid-cols-1 mt-3">
@@ -255,27 +314,42 @@ export const OperationalOverview: React.FC<OperationalOverviewProps> = ({ period
             hint="Du signalement au règlement"
             icon={<Hourglass className="h-5 w-5" />}
             tone="info"
+            info={{
+              title: 'Temps moyen de résolution',
+              description: `Durée moyenne, en jours, entre la création d'un point et sa résolution, calculée sur les points réglés ${periodLabel}.`,
+              formula: 'moyenne(resolved_at − created_at)',
+            }}
           />
         </div>
       </section>
 
       {/* RÉACTIVITÉ */}
       <section>
-        <SectionTitle hint="Vitesse de réaction de l'équipe.">Réactivité</SectionTitle>
+        <SectionTitle hint="Vitesse de réaction de l'équipe : plus c'est court, mieux c'est.">Réactivité</SectionTitle>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <StatCard
-            label="Avant action sur un point"
+            label="Délai avant 1ʳᵉ action"
             value={fmtNumber(data.reactivity.avgFirstActionHours, ' h')}
-            hint="Temps moyen avant 1ʳᵉ action"
+            hint="Sur les points signalés"
             icon={<Timer className="h-5 w-5" />}
             tone="info"
+            info={{
+              title: 'Délai avant première action',
+              description: `Temps moyen, en heures, entre la création d'un point et le premier événement enregistré (action ou correction). Mesure la rapidité de prise en charge sur ${periodScopeLabel}.`,
+              formula: 'moyenne(1er event.created_at − point.created_at)',
+            }}
           />
           <StatCard
-            label="Pour compléter une tâche"
+            label="Délai de complétion d'une tâche"
             value={fmtNumber(data.reactivity.avgCompletionHours, ' h')}
-            hint="De la création à la complétion"
+            hint="De la création à la fin"
             icon={<Timer className="h-5 w-5" />}
             tone="info"
+            info={{
+              title: 'Délai de complétion',
+              description: `Temps moyen, en heures, entre la création d'une tâche et le moment où elle a été marquée comme terminée (sur les tâches complétées ${periodLabel}).`,
+              formula: 'moyenne(completed_at − created_at)',
+            }}
           />
         </div>
       </section>
