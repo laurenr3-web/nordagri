@@ -59,6 +59,7 @@ export interface UseUserPreferencesResult {
 export function useUserPreferences(userId: string | null | undefined): UseUserPreferencesResult {
   const [prefs, setPrefs] = useState<OnboardingPrefs>(DEFAULT_PREFS);
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadedUserId, setLoadedUserId] = useState<string | null>(null);
   const mountedRef = useRef<boolean>(true);
 
   useEffect(() => {
@@ -105,12 +106,14 @@ export function useUserPreferences(userId: string | null | undefined): UseUserPr
     if (!mountedRef.current) return;
     setPrefs(next);
     setLoading(false);
+    setLoadedUserId(userId ?? null);
   }, [fetchPrefs]);
 
   useEffect(() => {
     if (!userId) {
       setPrefs(DEFAULT_PREFS);
       setLoading(false);
+      setLoadedUserId(null);
       return;
     }
     setLoading(true);
@@ -118,6 +121,7 @@ export function useUserPreferences(userId: string | null | undefined): UseUserPr
       if (!mountedRef.current) return;
       setPrefs(next);
       setLoading(false);
+      setLoadedUserId(userId);
     });
   }, [userId, fetchPrefs]);
 
@@ -153,5 +157,5 @@ export function useUserPreferences(userId: string | null | undefined): UseUserPr
     [userId, prefs.completedTours, prefs.onboardingSkipped],
   );
 
-  return { prefs, loading, save, reload };
+  return { prefs, loading: loading || loadedUserId !== (userId ?? null), save, reload };
 }
