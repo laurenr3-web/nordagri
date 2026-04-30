@@ -2,6 +2,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Minimize2, HelpCircle } from 'lucide-react';
 import { withPreviewToken } from '@/utils/previewRouting';
 import { useOnboarding } from './OnboardingProvider';
 import { ONBOARDING_STEPS } from './steps';
@@ -14,6 +15,8 @@ interface Rect {
 }
 
 const PADDING = 8;
+const TOOLTIP_GAP = 12;
+const TOOLTIP_MAX_HEIGHT_DESKTOP = 240;
 
 export function OnboardingOverlay() {
   const { currentIndex, next, skip, isActive } = useOnboarding();
@@ -21,6 +24,7 @@ export function OnboardingOverlay() {
   const navigate = useNavigate();
   const [rect, setRect] = useState<Rect | null>(null);
   const [missing, setMissing] = useState(false);
+  const [minimized, setMinimized] = useState(false);
 
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const nextBtnRef = useRef<HTMLButtonElement | null>(null);
@@ -83,6 +87,7 @@ export function OnboardingOverlay() {
   useEffect(() => {
     setRect(null);
     setMissing(false);
+    setMinimized(false);
   }, [currentIndex]);
 
   // Save / restore focus when the tutorial opens & closes
@@ -114,30 +119,45 @@ export function OnboardingOverlay() {
   if (!isActive || !step) return null;
 
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+  const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 1200;
+  const tooltipMaxHeight = isMobile ? Math.round(vh * 0.4) : TOOLTIP_MAX_HEIGHT_DESKTOP;
 
   const tooltipStyle: React.CSSProperties = {
     position: 'fixed',
     zIndex: 10001,
-    maxWidth: 360,
+    maxWidth: isMobile ? '100%' : 360,
     width: isMobile ? 'calc(100vw - 24px)' : 'min(360px, calc(100vw - 24px))',
+    maxHeight: tooltipMaxHeight,
+    overflowY: 'auto',
   };
 
-  if (rect && !isMobile) {
-    const spaceBelow = window.innerHeight - (rect.top + rect.height);
-    const placeBelow = spaceBelow > 200 || rect.top < 220;
-    tooltipStyle.top = placeBelow
-      ? rect.top + rect.height + PADDING + 12
-      : Math.max(12, rect.top - 12 - 200);
-    tooltipStyle.left = Math.min(
-      Math.max(12, rect.left + rect.width / 2 - 180),
-      window.innerWidth - 372,
-    );
+  // Position the tooltip so it NEVER overlaps the spotlight cutout.
+  if (rect) {
+    const spaceBelow = vh - (rect.top + rect.height + PADDING + TOOLTIP_GAP);
+    const spaceAbove = rect.top - PADDING - TOOLTIP_GAP;
+    const placeBelow = spaceBelow >= spaceAbove;
+    if (placeBelow) {
+      tooltipStyle.top = rect.top + rect.height + PADDING + TOOLTIP_GAP;
+      tooltipStyle.maxHeight = Math.max(140, Math.min(tooltipMaxHeight, spaceBelow - 12));
+    } else {
+      tooltipStyle.maxHeight = Math.max(140, Math.min(tooltipMaxHeight, spaceAbove - 12));
+      tooltipStyle.bottom = vh - rect.top + PADDING + TOOLTIP_GAP - PADDING;
+    }
+    if (isMobile) {
+      tooltipStyle.left = 12;
+      tooltipStyle.right = 12;
+    } else {
+      tooltipStyle.left = Math.min(
+        Math.max(12, rect.left + rect.width / 2 - 180),
+        vw - 372,
+      );
+    }
   } else {
-    tooltipStyle.bottom = 16;
-    tooltipStyle.left = 12;
-    tooltipStyle.right = 12;
-    tooltipStyle.width = 'auto';
-    tooltipStyle.maxWidth = '100%';
+    // No target found: anchor at the bottom (mobile) or center-top (desktop)
+    tooltipStyle.bottom = isMobile ? 80 : 24;
+    tooltipStyle.left = isMobile ? 12 : Math.max(12, vw / 2 - 180);
+    if (isMobile) tooltipStyle.right = 12;
   }
 
   const totalSteps = ONBOARDING_STEPS.length;
@@ -163,7 +183,7 @@ export function OnboardingOverlay() {
 
       {/* Backdrop split into 4 panels around the spotlight so the cutout is
           natively clickable (no clip-path event blocking). */}
-      {cut ? (
+      {cut && !minimized ? (
         <>
           <div
             aria-hidden="true"
@@ -190,15 +210,15 @@ export function OnboardingOverlay() {
             style={{ top: cut.top + cut.height }}
           />
         </>
-      ) : (
+      ) : !cut && !minimized ? (
         <div
           aria-hidden="true"
           className="fixed inset-0 z-[10000] pointer-events-auto bg-black/55 backdrop-blur-[2px]"
         />
-      )}
+      ) : null}
 
       {/* Spotlight ring */}
-      {rect && (
+      {rect && !minimized && (
         <div
           aria-hidden="true"
           className="fixed z-[10000] rounded-xl ring-2 ring-primary ring-offset-2 ring-offset-background animate-pulse"
@@ -212,7 +232,21 @@ export function OnboardingOverlay() {
         />
       )}
 
+      {/* Minimized state: small floating pill to re-open the tooltip */}
+      {minimized && (
+        <button
+          type="button"
+          onClick={() => setMinimized(false)}
+          className="pointer-events-auto fixed bottom-20 right-3 z-[10001] flex items-center gap-1.5 rounded-full border bg-popover text-popover-foreground shadow-lg px-3 py-2 text-xs font-medium hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:bottom-4"
+          aria-label="Rouvrir l'aide du tutoriel"
+        >
+          <HelpCircle className="h-4 w-4 text-primary" aria-hidden="true" />
+          Aide ({currentIndex + 1}/{totalSteps})
+        </button>
+      )}
+
       {/* Tooltip card */}
+      {!minimized && (
       <div
         ref={dialogRef}
         role="dialog"
@@ -223,12 +257,22 @@ export function OnboardingOverlay() {
         style={tooltipStyle}
         className="pointer-events-auto rounded-xl border bg-popover text-popover-foreground shadow-2xl p-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <p
-          className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground"
-          aria-label={stepProgressLabel}
-        >
-          Étape {currentIndex + 1} / {totalSteps}
-        </p>
+        <div className="flex items-start justify-between gap-2">
+          <p
+            className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground"
+            aria-label={stepProgressLabel}
+          >
+            Étape {currentIndex + 1} / {totalSteps}
+          </p>
+          <button
+            type="button"
+            onClick={() => setMinimized(true)}
+            className="-mr-1 -mt-1 inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label="Réduire l'aide pour interagir avec la page"
+          >
+            <Minimize2 className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
         <h3 id={titleId} className="text-base font-semibold mt-1">
           {step.title}
         </h3>
@@ -280,6 +324,7 @@ export function OnboardingOverlay() {
         </div>
         <p className="sr-only">Appuyez sur Échap pour passer le tutoriel.</p>
       </div>
+      )}
     </div>,
     document.body,
   );
