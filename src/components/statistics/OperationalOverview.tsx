@@ -185,8 +185,6 @@ export const OperationalOverview: React.FC<OperationalOverviewProps> = ({ period
 
   const periodLabel =
     period === 'today' ? "aujourd'hui" : period === 'week' ? 'cette semaine' : 'ce mois-ci';
-  const periodScopeLabel =
-    period === 'today' ? "aujourd'hui" : period === 'week' ? 'des 7 derniers jours' : 'des 30 derniers jours';
 
   const filtersBlock = (
     <div className="space-y-2">
@@ -238,10 +236,11 @@ export const OperationalOverview: React.FC<OperationalOverviewProps> = ({ period
             value={data.tasks.done}
             icon={<CheckCircle2 className="h-5 w-5" />}
             tone="success"
+            hint={`Sur la période (${periodLabel})`}
             info={{
               title: 'Tâches terminées',
-              description: `Tâches marquées comme "Fait" ${periodLabel}. Permet de mesurer le travail accompli sur la période choisie.`,
-              formula: 'status = "done" sur la période',
+              description: `Tâches marquées comme terminées ${periodLabel}. Permet de mesurer le travail accompli sur la période choisie.`,
+              formula: 'statut = terminée ET date de complétion dans la période',
             }}
           />
           <StatCard
@@ -249,21 +248,23 @@ export const OperationalOverview: React.FC<OperationalOverviewProps> = ({ period
             value={data.tasks.overdue}
             icon={<AlertTriangle className="h-5 w-5" />}
             tone={data.tasks.overdue > 0 ? 'danger' : 'default'}
+            hint="État actuel"
             info={{
               title: 'Tâches en retard',
               description: 'Tâches non terminées dont la date prévue est déjà passée. À traiter en priorité.',
-              formula: 'due_date < aujourd\'hui ET status ≠ "done"',
+              formula: 'date prévue < aujourd\'hui ET statut ≠ terminée',
             }}
           />
           <StatCard
-            label="À faire / en cours"
+            label="À faire"
             value={data.tasks.inProgress}
             icon={<Loader2 className="h-5 w-5" />}
             tone="info"
+            hint={`Prévues sur la période (${periodLabel})`}
             info={{
-              title: 'Tâches actives',
-              description: 'Tâches non terminées et non en retard : à faire prochainement ou déjà entamées.',
-              formula: 'status ∈ {"todo", "in_progress"} ET pas en retard',
+              title: 'Tâches à faire',
+              description: `Tâches non terminées dont la date prévue tombe ${periodLabel}.`,
+              formula: 'statut ≠ terminée ET date prévue dans la période',
             }}
           />
         </div>
@@ -277,14 +278,14 @@ export const OperationalOverview: React.FC<OperationalOverviewProps> = ({ period
                   <span className="text-sm font-medium">
                     {topName ? (
                       <>
-                        Plus actif : <span className="text-foreground font-semibold">{topName}</span>
+                        Plus de tâches terminées : <span className="text-foreground font-semibold">{topName}</span>
                       </>
                     ) : (
-                      'Plus actif'
+                      'Plus de tâches terminées'
                     )}
                   </span>
                 </div>
-                <span className="text-xs text-muted-foreground">Tâches complétées</span>
+                <span className="text-xs text-muted-foreground">Tâches terminées</span>
               </div>
               <ul className="space-y-2">
                 {top.map((row, idx) => {
@@ -298,7 +299,7 @@ export const OperationalOverview: React.FC<OperationalOverviewProps> = ({ period
                         <span className="text-sm truncate">{name}</span>
                         {idx === 0 && (
                           <Badge variant="secondary" className="text-[10px] flex-shrink-0">
-                            Plus actif
+                            En tête
                           </Badge>
                         )}
                       </div>
@@ -324,46 +325,46 @@ export const OperationalOverview: React.FC<OperationalOverviewProps> = ({ period
             tone={data.points.open > 0 ? 'warning' : 'default'}
             info={{
               title: 'Points ouverts',
-              description: 'Nombre total de points à surveiller actuellement non résolus, toutes périodes confondues.',
-              formula: 'status ≠ "resolved"',
+              description: 'Nombre total de points actuellement non résolus, toutes périodes confondues.',
+              formula: 'statut ≠ résolu',
             }}
           />
           <StatCard
-            label="Réglés"
+            label="Résolus"
             value={data.points.resolved}
-            hint={`Sur la période`}
+            hint={`Sur la période (${periodLabel})`}
             icon={<CheckCheck className="h-5 w-5" />}
             tone="success"
             info={{
-              title: 'Points réglés',
+              title: 'Points résolus',
               description: `Points dont la résolution a été enregistrée ${periodLabel}.`,
-              formula: 'resolved_at dans la période',
+              formula: 'date de résolution dans la période',
             }}
           />
           <StatCard
             label="Oubliés"
             value={data.points.forgotten}
-            hint="Sans activité > 3 j"
+            hint="Sans activité depuis > 3 j"
             icon={<Clock className="h-5 w-5" />}
             tone={data.points.forgotten > 0 ? 'danger' : 'default'}
             info={{
               title: 'Points oubliés',
               description: 'Points encore ouverts pour lesquels aucun événement (commentaire, action, correction) n\'a été enregistré depuis plus de 3 jours.',
-              formula: 'status ≠ "resolved" ET last_event_at < il y a 3 j',
+              formula: 'statut ≠ résolu ET dernier événement > il y a 3 j',
             }}
           />
         </div>
         <div className="grid grid-cols-1 mt-3">
           <StatCard
-            label="Temps moyen de résolution"
+            label="Délai moyen de résolution"
             value={fmtNumber(data.points.avgResolutionDays, ' j')}
-            hint="Du signalement au règlement"
+            hint="Du signalement à la résolution"
             icon={<Hourglass className="h-5 w-5" />}
             tone="info"
             info={{
-              title: 'Temps moyen de résolution',
-              description: `Durée moyenne, en jours, entre la création d'un point et sa résolution, calculée sur les points réglés ${periodLabel}.`,
-              formula: 'moyenne(resolved_at − created_at)',
+              title: 'Délai moyen de résolution',
+              description: `Durée moyenne, en jours, entre la création d'un point et sa résolution, calculée sur les points résolus ${periodLabel}.`,
+              formula: 'moyenne(date de résolution − date de création), en jours',
             }}
           />
         </div>
@@ -374,27 +375,27 @@ export const OperationalOverview: React.FC<OperationalOverviewProps> = ({ period
         <SectionTitle hint="Vitesse de réaction de l'équipe : plus c'est court, mieux c'est.">Réactivité</SectionTitle>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <StatCard
-            label="Délai avant 1ʳᵉ action"
+            label="Délai moyen avant 1ʳᵉ action"
             value={fmtNumber(data.reactivity.avgFirstActionHours, ' h')}
-            hint="Sur les points signalés"
+            hint={`Sur les points créés ${periodLabel}`}
             icon={<Timer className="h-5 w-5" />}
             tone="info"
             info={{
-              title: 'Délai avant première action',
-              description: `Temps moyen, en heures, entre la création d'un point et le premier événement enregistré (action ou correction). Mesure la rapidité de prise en charge sur ${periodScopeLabel}.`,
-              formula: 'moyenne(1er event.created_at − point.created_at)',
+              title: 'Délai moyen avant 1ʳᵉ action',
+              description: `Durée moyenne, en heures, entre la création d'un point et le premier événement enregistré (action ou correction). Mesure la rapidité de prise en charge sur les points créés ${periodLabel}.`,
+              formula: 'moyenne(1er événement − date de création), en heures',
             }}
           />
           <StatCard
-            label="Délai de complétion d'une tâche"
+            label="Délai moyen de complétion d'une tâche"
             value={fmtNumber(data.reactivity.avgCompletionHours, ' h')}
-            hint="De la création à la fin"
+            hint={`Sur les tâches terminées ${periodLabel}`}
             icon={<Timer className="h-5 w-5" />}
             tone="info"
             info={{
-              title: 'Délai de complétion',
-              description: `Temps moyen, en heures, entre la création d'une tâche et le moment où elle a été marquée comme terminée (sur les tâches complétées ${periodLabel}).`,
-              formula: 'moyenne(completed_at − created_at)',
+              title: 'Délai moyen de complétion',
+              description: `Durée moyenne, en heures, entre la création d'une tâche et le moment où elle a été marquée comme terminée (sur les tâches terminées ${periodLabel}).`,
+              formula: 'moyenne(date de complétion − date de création), en heures',
             }}
           />
         </div>
