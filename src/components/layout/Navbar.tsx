@@ -91,7 +91,7 @@ const Navbar = () => {
         <nav className="flex flex-col" role="tablist">
           {navGroups.map((group, idx) => (
             <div key={group.id} className={cn(idx === 0 ? 'mt-0' : 'mt-6')}>
-              <div className="px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+              <div className="px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/60">
                 {t(group.labelKey)}
               </div>
               <div className="grid gap-1">
