@@ -4,9 +4,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { tooltips } from '@/content/help/tooltips';
 import { logger } from '@/utils/logger';
 import { cn } from '@/lib/utils';
-
-/** Will flip to true when the Help Center (Message 3) is delivered. */
-const HELP_CENTER_READY = false;
+import { HELP_CENTER_READY } from './constants';
+import { useHelpCenter } from '@/contexts/HelpCenterContext';
 
 interface HelpTooltipProps {
   contentKey: string;
@@ -24,6 +23,7 @@ export const HelpTooltip: React.FC<HelpTooltipProps> = ({
   className,
 }) => {
   const content = (tooltips as Record<string, { title: string; body: string; articleId?: string }>)[contentKey];
+  const { open } = useHelpCenter();
 
   if (!content) {
     logger.warn('[Help] Unknown tooltip key', { contentKey });
@@ -57,9 +57,13 @@ export const HelpTooltip: React.FC<HelpTooltipProps> = ({
         {content.articleId && HELP_CENTER_READY && (
           <button
             type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              open(content.articleId);
+            }}
             className="mt-2 text-xs text-primary underline underline-offset-2 hover:opacity-80"
           >
-            En savoir plus
+            En savoir plus →
           </button>
         )}
       </PopoverContent>

@@ -2,9 +2,8 @@ import React from 'react';
 import { BookOpen, type LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-
-/** Will flip to true when the Help Center (Message 3) is delivered. */
-const HELP_CENTER_READY = false;
+import { HELP_CENTER_READY } from './constants';
+import { useHelpCenter } from '@/contexts/HelpCenterContext';
 
 export interface EmptyStateAction {
   label: string;
@@ -36,6 +35,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   className,
 }) => {
   const isCompact = variant === 'compact';
+  const { open: openHelp } = useHelpCenter();
 
   return (
     <div
@@ -88,6 +88,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           type="button"
           variant="link"
           size="sm"
+          onClick={() => openHelp(secondaryAction.articleId)}
           className="mt-2 text-xs text-muted-foreground underline-offset-4"
         >
           <BookOpen className="h-3.5 w-3.5 mr-1" aria-hidden="true" />
