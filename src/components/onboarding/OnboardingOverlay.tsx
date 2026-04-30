@@ -29,6 +29,7 @@ export function OnboardingOverlay() {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const nextBtnRef = useRef<HTMLButtonElement | null>(null);
   const lastFocusedRef = useRef<HTMLElement | null>(null);
+  const scrolledForStepRef = useRef<string | null>(null);
   const titleId = useId();
   const descId = useId();
 
@@ -39,6 +40,24 @@ export function OnboardingOverlay() {
     let timeoutId: number | undefined;
     let observer: MutationObserver | null = null;
 
+    // Scroll the target into a comfortable zone, leaving room for the tooltip.
+    // Top safe-area = 15% of viewport; bottom safe-area = 40% (where the
+    // tooltip is most likely placed on mobile).
+    const ensureVisible = (el: HTMLElement) => {
+      if (scrolledForStepRef.current === step.id) return;
+      const r = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const topMargin = Math.round(vh * 0.15);
+      const bottomMargin = Math.round(vh * 0.4);
+      const needsScroll = r.top < topMargin || r.bottom > vh - bottomMargin;
+      if (needsScroll) {
+        const targetY =
+          window.scrollY + r.top - Math.max(topMargin, (vh - bottomMargin - r.height) / 2);
+        window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+      }
+      scrolledForStepRef.current = step.id;
+    };
+
     const update = () => {
       const el = document.querySelector<HTMLElement>(
         `[data-onboarding="${step.target}"]`,
@@ -47,12 +66,10 @@ export function OnboardingOverlay() {
         setRect(null);
         return;
       }
+      ensureVisible(el);
       const r = el.getBoundingClientRect();
       setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
       setMissing(false);
-      if (r.top < 0 || r.bottom > window.innerHeight) {
-        el.scrollIntoView({ block: 'center', behavior: 'smooth' });
-      }
     };
 
     const tick = () => {
@@ -88,6 +105,7 @@ export function OnboardingOverlay() {
     setRect(null);
     setMissing(false);
     setMinimized(false);
+    scrolledForStepRef.current = null;
   }, [currentIndex]);
 
   // Save / restore focus when the tutorial opens & closes
