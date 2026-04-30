@@ -28,6 +28,7 @@ export function WearUnitField({ form }: WearUnitFieldProps) {
                 <SelectItem value="heures">Heures moteur (h)</SelectItem>
                 <SelectItem value="kilometres">Kilomètres (km)</SelectItem>
                 <SelectItem value="acres">Acres</SelectItem>
+                <SelectItem value="jours">Jours (basé sur le temps)</SelectItem>
                 <SelectItem value="autre">Autre</SelectItem>
               </SelectContent>
             </Select>
