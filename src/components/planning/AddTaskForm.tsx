@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { PlanningCategory, PlanningPriority, PlanningTask } from '@/services/planning/planningService';
 import { ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { HelpTooltip } from '@/components/help/HelpTooltip';
 
 const categories: { value: PlanningCategory; label: string; icon: string }[] = [
   { value: 'animaux', label: 'Animaux', icon: '🐄' },
@@ -186,7 +187,10 @@ export function AddTaskForm({ open, onClose, onSubmit, teamMembers = [], equipme
 
           {/* Category - grid of buttons */}
           <div>
-            <Label className="text-sm font-medium">Catégorie</Label>
+            <Label className="text-sm font-medium inline-flex items-center gap-1">
+              Catégorie
+              <HelpTooltip contentKey="planning.field.category" />
+            </Label>
             <div className="grid grid-cols-2 gap-2 mt-1">
               {categories.map(c => (
                 <Button key={c.value} type="button"
@@ -245,7 +249,10 @@ export function AddTaskForm({ open, onClose, onSubmit, teamMembers = [], equipme
               </div>
               {recurrenceType === 'custom' && (
                 <div>
-                  <Label className="text-sm">Jours de la semaine</Label>
+                  <Label className="text-sm inline-flex items-center gap-1">
+                    Jours de la semaine
+                    <HelpTooltip contentKey="planning.field.recurrenceDays" />
+                  </Label>
                   <div className="grid grid-cols-7 gap-1 mt-1">
                     {dayLabels.map((label, i) => (
                       <Button
@@ -271,7 +278,10 @@ export function AddTaskForm({ open, onClose, onSubmit, teamMembers = [], equipme
                 <Textarea value={notes} onChange={e => setNotes(e.target.value)} className="mt-1" rows={2} placeholder="Détails..." />
               </div>
               <div>
-                <Label className="text-sm">Priorité manuelle</Label>
+                <Label className="text-sm inline-flex items-center gap-1">
+                  Priorité manuelle
+                  <HelpTooltip contentKey="planning.field.manualPriority" />
+                </Label>
                 <Select value={manualPriority} onValueChange={setManualPriority}>
                   <SelectTrigger className="mt-1 h-11">
                     <SelectValue placeholder="Automatique (par catégorie)" />
@@ -286,7 +296,10 @@ export function AddTaskForm({ open, onClose, onSubmit, teamMembers = [], equipme
               </div>
               {equipment.length > 0 && (
                 <div>
-                  <Label className="text-sm">Équipement</Label>
+                  <Label className="text-sm inline-flex items-center gap-1">
+                    Équipement
+                    <HelpTooltip contentKey="planning.field.equipment" />
+                  </Label>
                   <Select value={equipmentId} onValueChange={setEquipmentId}>
                     <SelectTrigger className="mt-1 h-11">
                       <SelectValue placeholder="Optionnel" />
@@ -301,15 +314,24 @@ export function AddTaskForm({ open, onClose, onSubmit, teamMembers = [], equipme
                 </div>
               )}
               <div>
-                <Label className="text-sm">Champ agricole</Label>
+                <Label className="text-sm inline-flex items-center gap-1">
+                  Champ agricole
+                  <HelpTooltip contentKey="planning.field.fieldName" />
+                </Label>
                 <Input value={fieldName} onChange={e => setFieldName(e.target.value)} className="mt-1 h-11" placeholder="Nom du champ" />
               </div>
               <div>
-                <Label className="text-sm">Bâtiment</Label>
+                <Label className="text-sm inline-flex items-center gap-1">
+                  Bâtiment
+                  <HelpTooltip contentKey="planning.field.buildingName" />
+                </Label>
                 <Input value={buildingName} onChange={e => setBuildingName(e.target.value)} className="mt-1 h-11" placeholder="Nom du bâtiment" />
               </div>
               <div>
-                <Label className="text-sm">Groupe d'animaux</Label>
+                <Label className="text-sm inline-flex items-center gap-1">
+                  Groupe d'animaux
+                  <HelpTooltip contentKey="planning.field.animalGroup" />
+                </Label>
                 <Input value={animalGroup} onChange={e => setAnimalGroup(e.target.value)} className="mt-1 h-11" placeholder="Ex: Vaches laitières" />
               </div>
             </div>

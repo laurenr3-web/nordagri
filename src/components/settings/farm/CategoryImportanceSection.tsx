@@ -6,6 +6,7 @@ import { useCategoryImportance } from '@/hooks/planning/useCategoryImportance';
 import { PlanningPriority } from '@/services/planning/planningService';
 import { Loader2, Tag } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { HelpTooltip } from '@/components/help/HelpTooltip';
 
 const CATEGORY_LABELS: Record<string, string> = {
   animaux: '🐄 Animaux',
@@ -52,6 +53,10 @@ export function CategoryImportanceSection() {
       showSaveButton={false}
     >
       <div className="space-y-3">
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <span>Choisis une priorité par défaut par catégorie</span>
+          <HelpTooltip contentKey="planning.field.categoryDefaultPriority" />
+        </div>
         {categories.map((cat) => (
           <div
             key={cat.id}

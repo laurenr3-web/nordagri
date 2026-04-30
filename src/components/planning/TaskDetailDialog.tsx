@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { HelpTooltip } from '@/components/help/HelpTooltip';
 
 const categoryLabels: Record<string, string> = {
   animaux: '🐄 Animaux',
@@ -221,7 +222,10 @@ export function TaskDetailDialog({
 
               {/* Section: Actions */}
               <div className="space-y-3">
-                <h4 className="text-sm font-semibold">Actions</h4>
+                <h4 className="text-sm font-semibold inline-flex items-center gap-1">
+                  Actions
+                  <HelpTooltip contentKey="planning.field.statusActions" />
+                </h4>
 
                 <div className="flex flex-wrap gap-2">
                   {task.status === 'todo' && (
@@ -247,7 +251,10 @@ export function TaskDetailDialog({
 
                 {/* Reporter */}
                 <div className="space-y-2">
-                  <label className="text-xs text-muted-foreground">Reporter à</label>
+                  <label className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                    Reporter à
+                    <HelpTooltip contentKey="planning.field.postpone" />
+                  </label>
                   <div className="flex flex-wrap gap-2">
                     <Button size="sm" variant="outline" className="text-xs" onClick={() => handlePostpone(todayStr)}>
                       Aujourd'hui
