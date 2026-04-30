@@ -23,6 +23,9 @@ import Points from '@/pages/Points';
 import TimeTracking from '@/pages/TimeTracking';
 import Planning from '@/pages/Planning';
 import { OnboardingProvider } from '@/components/onboarding/OnboardingProvider';
+import { HelpCenterProvider } from '@/contexts/HelpCenterContext';
+import { HelpCenter } from '@/components/help/HelpCenter';
+import { HelpFAB } from '@/components/help/HelpFAB';
 
 // Composant de chargement
 const LoadingSpinner = () => (
@@ -65,8 +68,9 @@ function App() {
           <RealtimeCacheProvider>
             <Router>
               <AuthProvider>
-                <OnboardingProvider>
-                  <OfflineProvider autoSyncInterval={60000} showOfflineIndicator={true}>
+                <HelpCenterProvider>
+                  <OnboardingProvider>
+                    <OfflineProvider autoSyncInterval={60000} showOfflineIndicator={true}>
                   <Suspense fallback={<LoadingSpinner />}>
                     <Routes>
                       <Route path="/" element={<Navigate to={withPreviewToken('/dashboard')} replace />} />
@@ -140,8 +144,11 @@ function App() {
                   <MobileMenu />
                   <Toaster />
                   <Footer />
+                  <HelpCenter />
+                  <HelpFAB />
                   </OfflineProvider>
-                </OnboardingProvider>
+                  </OnboardingProvider>
+                </HelpCenterProvider>
               </AuthProvider>
             </Router>
           </RealtimeCacheProvider>
