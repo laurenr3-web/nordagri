@@ -73,6 +73,27 @@ export function useUpdatePointStatus() {
   });
 }
 
+export function useUpdatePointTitle() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, title }: { id: string; title: string }) => {
+      const trimmed = title.trim();
+      if (!trimmed) throw new Error('La description ne peut pas être vide');
+      const { error } = await supabase
+        .from('points')
+        .update({ title: trimmed })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ['points'] });
+      qc.invalidateQueries({ queryKey: ['point', vars.id] });
+      toast.success('Description mise à jour');
+    },
+    onError: (e: any) => toast.error(e.message ?? 'Erreur'),
+  });
+}
+
 export interface NewEventInput {
   point_id: string;
   event_type: PointEventType;
