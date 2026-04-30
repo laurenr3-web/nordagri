@@ -35,11 +35,18 @@ export function usePointsWatchData(farmId: string | null, enabled: boolean) {
 
       const all = (data ?? []) as PointWatchItem[];
       const priorityRank: Record<string, number> = { critical: 0, important: 1, normal: 2 };
-      const sorted = [...all].sort((a, b) => {
-        const diff = (priorityRank[a.priority] ?? 2) - (priorityRank[b.priority] ?? 2);
-        if (diff !== 0) return diff;
-        return b.last_event_at.localeCompare(a.last_event_at);
-      });
+      const now = Date.now();
+      // Score d'urgence : priorité (poids fort) + ancienneté sans mise à jour (poids faible).
+      // Un point critique reste toujours devant un important, mais à priorité égale,
+      // celui négligé depuis le plus longtemps remonte en premier.
+      const urgencyScore = (p: PointWatchItem) => {
+        const pr = priorityRank[p.priority] ?? 2;
+        const last = p.last_event_at ? new Date(p.last_event_at).getTime() : now;
+        const daysStale = Math.max(0, (now - last) / (1000 * 60 * 60 * 24));
+        // priorité dominante (×1000), ancienneté soustraite pour faire remonter les plus vieux
+        return pr * 1000 - Math.min(daysStale, 365);
+      };
+      const sorted = [...all].sort((a, b) => urgencyScore(a) - urgencyScore(b));
 
       return {
         total: all.length,
