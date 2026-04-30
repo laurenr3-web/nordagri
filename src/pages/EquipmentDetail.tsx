@@ -7,6 +7,7 @@ import EquipmentDetailLoading from '@/components/equipment/detail/EquipmentDetai
 import EquipmentDetailError from '@/components/equipment/detail/EquipmentDetailError';
 import EquipmentDetailContent from '@/components/equipment/detail/EquipmentDetailContent';
 import { LayoutWrapper } from '@/components/layout/LayoutWrapper';
+import { EquipmentTourTrigger } from '@/components/onboarding/EquipmentTourTrigger';
 
 const EquipmentDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -15,6 +16,7 @@ const EquipmentDetail = () => {
   return (
     <MainLayout>
       <LayoutWrapper>
+        <EquipmentTourTrigger isLoading={loading} hasEquipment={!!equipment && !error} />
         {loading && (
           <EquipmentDetailLoading id={id} />
         )}

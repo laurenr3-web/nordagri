@@ -13,6 +13,7 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/button';
 import { FileDown, Plus } from 'lucide-react';
 import ImportMaintenanceDialog from '@/components/maintenance/dialogs/ImportMaintenanceDialog';
+import { MaintenanceTourTrigger } from '@/components/onboarding/MaintenanceTourTrigger';
 
 const Maintenance = () => {
   const {
@@ -30,6 +31,7 @@ const Maintenance = () => {
     isImportDialogOpen,
     setIsImportDialogOpen,
     tasks,
+    isLoading,
     handleOpenNewTaskDialog,
     handleAddTask,
     updateTaskStatus,
@@ -41,6 +43,7 @@ const Maintenance = () => {
   
   return (
     <MainLayout>
+      <MaintenanceTourTrigger isLoading={isLoading} />
       <div className="flex items-center justify-end p-4 border-b">
         <MaintenanceNotificationsPopover />
       </div>
