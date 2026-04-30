@@ -92,7 +92,11 @@ export const WithdrawalForm: React.FC<WithdrawalFormProps> = ({
       comment
     };
     
-    withdrawalMutation.mutate(withdrawalData);
+    withdrawalMutation.mutate(withdrawalData, {
+      onSuccess: () => {
+        onOpenChange(false);
+      },
+    });
   };
 
   return (
