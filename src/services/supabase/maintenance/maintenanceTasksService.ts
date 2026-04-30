@@ -144,10 +144,10 @@ export class MaintenanceTasksService {
     completedAtHours?: number;
     completedAtKm?: number;
   }): Promise<void> {
-    // Fetch the task to check recurrence info
+    // Fetch the task (with equipment unit) to check recurrence info
     const { data: taskData } = await supabase
       .from('maintenance_tasks')
-      .select('*')
+      .select('*, equipment_ref:equipment_id(unite_d_usure)')
       .eq('id', taskId)
       .single();
 
@@ -182,6 +182,25 @@ export class MaintenanceTasksService {
       throw new Error('Failed to complete maintenance task');
     }
 
+    // For time-based equipment ("jours"), refresh the equipment's
+    // last_wear_update so it reflects the actual last maintenance date.
+    const equipmentUnit = (taskData as any)?.equipment_ref?.unite_d_usure;
+    if (
+      taskData?.equipment_id &&
+      equipmentUnit === 'jours'
+    ) {
+      const completedAt = completionData.completedDate
+        ? completionData.completedDate.toISOString()
+        : new Date().toISOString();
+      const { error: eqError } = await supabase
+        .from('equipment')
+        .update({ last_wear_update: completedAt })
+        .eq('id', taskData.equipment_id);
+      if (eqError) {
+        console.error('Error updating equipment last_wear_update:', eqError);
+      }
+    }
+
     // If the task is recurrent, automatically create the next one
     if (taskData && taskData.is_recurrent && taskData.recurrence_interval) {
       await this.createNextRecurringTask(taskData, completionData);
@@ -191,9 +210,11 @@ export class MaintenanceTasksService {
   private async createNextRecurringTask(completedTask: any, completionData: {
     completedAtHours?: number;
     completedAtKm?: number;
+    completedDate?: Date;
   }): Promise<void> {
     const interval = completedTask.recurrence_interval;
     const recurrenceUnit = completedTask.recurrence_unit || completedTask.trigger_unit;
+    const equipmentUnit = completedTask?.equipment_ref?.unite_d_usure;
     
     let newTriggerHours = completedTask.trigger_hours;
     let newTriggerKm = completedTask.trigger_kilometers;
@@ -205,6 +226,17 @@ export class MaintenanceTasksService {
     } else if (recurrenceUnit === 'kilometers' || completedTask.trigger_unit === 'kilometers') {
       const baseKm = completionData.completedAtKm ?? completedTask.trigger_kilometers ?? 0;
       newTriggerKm = baseKm + interval;
+    } else if (
+      recurrenceUnit === 'days' ||
+      recurrenceUnit === 'jours' ||
+      equipmentUnit === 'jours'
+    ) {
+      // Time-based ("jours"): next_maintenance_date = last_maintenance_date + interval
+      const baseDate = completionData.completedDate
+        ? new Date(completionData.completedDate)
+        : new Date();
+      baseDate.setDate(baseDate.getDate() + interval);
+      newDueDate = baseDate;
     } else {
       const baseDate = new Date();
       baseDate.setDate(baseDate.getDate() + interval);
