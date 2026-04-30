@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { usePointsWatchData } from './usePointsWatchData';
 import { useCheckTodayData } from './useCheckTodayData';
 import { useRecentActivityData } from './useRecentActivityData';
+import { usePoints } from '@/hooks/points/usePoints';
 
 export const useWidgetData = (widgets: WidgetConfig[], activeView: string) => {
   const queryClient = useQueryClient();
@@ -64,6 +65,10 @@ export const useWidgetData = (widgets: WidgetConfig[], activeView: string) => {
     hasRecentActivityWidget
   );
 
+  // Active points (open + watch) for the stats tile
+  const { data: allPoints } = usePoints(farmId);
+  const activePointsCount = (allPoints ?? []).filter(p => p.status !== 'resolved').length;
+
   const refetch = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     queryClient.invalidateQueries({ queryKey: ['interventions'] });
@@ -88,7 +93,7 @@ export const useWidgetData = (widgets: WidgetConfig[], activeView: string) => {
               total: dashboardData.stockAlerts?.length || 0,
               lowStock: dashboardData.stockAlerts?.filter(s => s.percentRemaining < 20).length || 0
             },
-            fieldInterventions: dashboardData.urgentInterventions?.length || 0
+            pointsToWatch: activePointsCount
           };
           break;
         case 'equipment':

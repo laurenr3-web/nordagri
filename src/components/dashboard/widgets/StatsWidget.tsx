@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Tractor, Wrench, Package, MapPin } from 'lucide-react';
+import { Tractor, Wrench, Package, Eye } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -45,10 +45,10 @@ export const StatsWidget = ({ data, loading, size }: StatsWidgetProps) => {
       onClick: () => navigate('/parts')
     },
     {
-      title: 'Interventions',
-      value: data?.fieldInterventions || 0,
-      icon: MapPin,
-      onClick: () => navigate('/interventions')
+      title: 'Points à surveiller',
+      value: data?.pointsToWatch || 0,
+      icon: Eye,
+      onClick: () => navigate('/points')
     }
   ];
 
