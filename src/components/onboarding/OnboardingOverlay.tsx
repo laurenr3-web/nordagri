@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,12 @@ export function OnboardingOverlay() {
   const [rect, setRect] = useState<Rect | null>(null);
   const [missing, setMissing] = useState(false);
 
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const nextBtnRef = useRef<HTMLButtonElement | null>(null);
+  const lastFocusedRef = useRef<HTMLElement | null>(null);
+  const titleId = useId();
+  const descId = useId();
+
   // Locate target & follow layout changes
   useLayoutEffect(() => {
     if (!isActive || !step) return;
@@ -40,7 +46,6 @@ export function OnboardingOverlay() {
       const r = el.getBoundingClientRect();
       setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
       setMissing(false);
-      // Bring into view
       if (r.top < 0 || r.bottom > window.innerHeight) {
         el.scrollIntoView({ block: 'center', behavior: 'smooth' });
       }
@@ -80,12 +85,68 @@ export function OnboardingOverlay() {
     setMissing(false);
   }, [currentIndex]);
 
+  // Save / restore focus when the tutorial opens & closes
+  useEffect(() => {
+    if (!isActive) return;
+    lastFocusedRef.current = document.activeElement as HTMLElement | null;
+    return () => {
+      const prev = lastFocusedRef.current;
+      if (prev && typeof prev.focus === 'function' && document.contains(prev)) {
+        prev.focus();
+      }
+    };
+  }, [isActive]);
+
+  // Move focus to the primary action on every step (and on open)
+  useEffect(() => {
+    if (!isActive) return;
+    const t = window.setTimeout(() => nextBtnRef.current?.focus(), 50);
+    return () => window.clearTimeout(t);
+  }, [currentIndex, isActive]);
+
+  // Keyboard handling: ESC to skip + focus trap inside the dialog
+  useEffect(() => {
+    if (!isActive) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        skip();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const root = dialogRef.current;
+      if (!root) return;
+      const focusables = Array.from(
+        root.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => !el.hasAttribute('disabled'));
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (active && !root.contains(active)) {
+        e.preventDefault();
+        first.focus();
+        return;
+      }
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isActive, skip]);
+
   if (!isActive || !step) return null;
 
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
 
-  // Compute tooltip position
-  let tooltipStyle: React.CSSProperties = {
+  const tooltipStyle: React.CSSProperties = {
     position: 'fixed',
     zIndex: 10001,
     maxWidth: 360,
@@ -103,7 +164,6 @@ export function OnboardingOverlay() {
       window.innerWidth - 372,
     );
   } else {
-    // Mobile or no target: bottom sheet style
     tooltipStyle.bottom = 16;
     tooltipStyle.left = 12;
     tooltipStyle.right = 12;
@@ -113,13 +173,19 @@ export function OnboardingOverlay() {
 
   const totalSteps = ONBOARDING_STEPS.length;
   const isLast = currentIndex === totalSteps - 1;
+  const stepProgressLabel = `Étape ${currentIndex + 1} sur ${totalSteps}`;
 
   return createPortal(
     <div className="pointer-events-none">
+      {/* Polite live region announces step changes for assistive tech */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {`${stepProgressLabel} : ${step.title}. ${step.description}`}
+      </div>
+
       {/* Backdrop with spotlight cutout */}
       {rect ? (
         <div
-          aria-hidden
+          aria-hidden="true"
           className="fixed inset-0 z-[10000] pointer-events-auto"
           style={{
             background: 'rgba(0, 0, 0, 0.55)',
@@ -136,7 +202,7 @@ export function OnboardingOverlay() {
         />
       ) : (
         <div
-          aria-hidden
+          aria-hidden="true"
           className="fixed inset-0 z-[10000] pointer-events-auto bg-black/55 backdrop-blur-[2px]"
         />
       )}
@@ -144,7 +210,7 @@ export function OnboardingOverlay() {
       {/* Spotlight ring */}
       {rect && (
         <div
-          aria-hidden
+          aria-hidden="true"
           className="fixed z-[10000] rounded-xl ring-2 ring-primary ring-offset-2 ring-offset-background animate-pulse"
           style={{
             top: rect.top - PADDING,
@@ -158,16 +224,27 @@ export function OnboardingOverlay() {
 
       {/* Tooltip card */}
       <div
+        ref={dialogRef}
         role="dialog"
-        aria-label={step.title}
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={descId}
+        tabIndex={-1}
         style={tooltipStyle}
-        className="pointer-events-auto rounded-xl border bg-popover text-popover-foreground shadow-2xl p-4"
+        className="pointer-events-auto rounded-xl border bg-popover text-popover-foreground shadow-2xl p-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        <p
+          className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground"
+          aria-label={stepProgressLabel}
+        >
           Étape {currentIndex + 1} / {totalSteps}
         </p>
-        <h3 className="text-base font-semibold mt-1">{step.title}</h3>
-        <p className="text-sm text-muted-foreground mt-1.5">{step.description}</p>
+        <h3 id={titleId} className="text-base font-semibold mt-1">
+          {step.title}
+        </h3>
+        <p id={descId} className="text-sm text-muted-foreground mt-1.5">
+          {step.description}
+        </p>
 
         {missing && !rect && (
           <div className="mt-3 rounded-md bg-muted/60 p-2 text-xs">
@@ -175,7 +252,8 @@ export function OnboardingOverlay() {
             <button
               type="button"
               onClick={() => navigate(withPreviewToken(step.route))}
-              className="ml-1 font-medium text-primary underline-offset-2 hover:underline"
+              className="ml-1 font-medium text-primary underline-offset-2 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+              aria-label={`Aller à la page ${step.label}`}
             >
               Y aller
             </button>
@@ -183,13 +261,28 @@ export function OnboardingOverlay() {
         )}
 
         <div className="mt-4 flex items-center justify-between gap-2">
-          <Button variant="ghost" size="sm" onClick={skip}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={skip}
+            aria-label="Passer le tutoriel d'accueil et fermer cette fenêtre"
+          >
             Passer
           </Button>
-          <Button size="sm" onClick={next}>
+          <Button
+            ref={nextBtnRef}
+            size="sm"
+            onClick={next}
+            aria-label={
+              isLast
+                ? 'Terminer le tutoriel'
+                : `Passer à l'étape ${currentIndex + 2} sur ${totalSteps}`
+            }
+          >
             {isLast ? 'Terminer' : 'Suivant'}
           </Button>
         </div>
+        <p className="sr-only">Appuyez sur Échap pour passer le tutoriel.</p>
       </div>
     </div>,
     document.body,
