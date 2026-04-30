@@ -51,6 +51,44 @@ Notre plateforme permet de centraliser la gestion des équipements, la planifica
 - Alertes et notifications importantes
 - Calendrier des événements à venir
 - Statistiques d'utilisation et de coûts
+- Widget « À vérifier aujourd'hui » regroupant les points planifiés
+- Widget Planning avec les priorités du jour (Critique / Important / À faire)
+
+### 📍 Points à surveiller
+- Suivi des points d'attention sur animaux, équipements, champs ou bâtiments
+- Timeline d'événements (observation, action, vérification, note, correction)
+- Photos jointes aux événements (stockage privé sécurisé)
+- Statuts (En cours / À surveiller / Réglé) et priorités (Critique / Important / Normal)
+- **Prochaine vérification** : planification rapide « À vérifier dans X jours » (1, 3, 7, 14 j ou personnalisé)
+- Badges automatiques : 🕒 À vérifier le [date], 🔴 Aujourd'hui, ⚠️ En retard de X j
+- Indicateur de fraîcheur (dernier événement) pour repérer les points oubliés
+
+### 📅 Planning opérationnel
+- Tâches quotidiennes séparées de la maintenance technique
+- Regroupement automatique par priorité (Critique, Important, À faire)
+- Tâches récurrentes avec occurrences virtuelles et détection des retards (7 derniers jours)
+- Suggestions automatiques issues de la maintenance technique due
+- Vues : Mes tâches / Toutes / Par employé / Terminées (avec statistiques par période)
+- Actions rapides : assignation en 1 clic « Prendre », swipe pour terminer / reporter
+- Vue semaine compacte mobile (jours passés vides masqués)
+- Paramétrage des priorités par catégorie au niveau de la ferme
+
+### 👥 Multi-tenant & rôles
+- Architecture multi-fermes : toutes les données sont rattachées à un `farm_id`
+- Invitations par email via Edge Function (`invite-user`) avec acceptation explicite
+- Hiérarchie RBAC : Owner > Admin > Member > Viewer
+- Politiques RLS strictes avec fonctions helper à `search_path` fixé
+- Outil de diagnostic dans Réglages → Ferme pour corriger les assignations orphelines
+
+### 📈 Statistiques opérationnelles
+- Vue d'ensemble unifiée : Tâches, Points à surveiller, Réactivité
+- Calcul des KPIs côté base de données pour des requêtes optimisées
+- Libellés et unités harmonisés sur toute la page
+
+### 📧 Notifications email
+- Domaine dédié `notify.nordagri.ca`
+- File d'attente traitée par la fonction `process-email-queue`
+- Templates React Email (invitations, alertes maintenance, etc.)
 
 ## 🚀 Démarrage rapide
 
