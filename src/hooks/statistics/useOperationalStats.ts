@@ -60,9 +60,13 @@ function avg(values: number[]): number | null {
  * Aggregates operational KPIs (tasks, points, reactivity) for the selected farm
  * over the chosen period. All filtering is client-side over small per-farm datasets.
  */
-export function useOperationalStats(farmId: string | null, period: StatsPeriod) {
+export function useOperationalStats(
+  farmId: string | null,
+  period: StatsPeriod,
+  employeeId: string | null = null,
+) {
   return useQuery<OperationalStats>({
-    queryKey: ['operationalStats', farmId, period],
+    queryKey: ['operationalStats', farmId, period, employeeId ?? 'all'],
     enabled: !!farmId,
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
@@ -71,10 +75,18 @@ export function useOperationalStats(farmId: string | null, period: StatsPeriod) 
       const threeDaysAgoIso = new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString();
 
       // ---------- Tasks ----------
-      const { data: tasks, error: tasksErr } = await supabase
+      let tasksQuery = supabase
         .from('planning_tasks')
-        .select('id, status, due_date, completed_at, completed_by, created_at')
+        .select('id, status, due_date, completed_at, completed_by, created_at, assigned_to, created_by')
         .eq('farm_id', farmId!);
+      // Employee filter: a task is "linked" to a person if they are assigned,
+      // they completed it, or (fallback) they created it.
+      if (employeeId) {
+        tasksQuery = tasksQuery.or(
+          `assigned_to.eq.${employeeId},completed_by.eq.${employeeId},created_by.eq.${employeeId}`,
+        );
+      }
+      const { data: tasks, error: tasksErr } = await tasksQuery;
       if (tasksErr) throw tasksErr;
 
       const allTasks = tasks ?? [];
@@ -112,10 +124,25 @@ export function useOperationalStats(farmId: string | null, period: StatsPeriod) 
         .filter((h) => h >= 0);
 
       // ---------- Points ----------
-      const { data: points, error: pointsErr } = await supabase
+      let pointsQuery = supabase
         .from('points')
         .select('id, status, created_at, resolved_at, last_event_at')
         .eq('farm_id', farmId!);
+      if (employeeId) {
+        // Filter to points either created by the user or that have any event from the user.
+        const { data: userEvents } = await supabase
+          .from('point_events')
+          .select('point_id')
+          .eq('created_by', employeeId);
+        const eventPointIds = Array.from(new Set((userEvents ?? []).map((e) => e.point_id))).filter(Boolean);
+        if (eventPointIds.length > 0) {
+          const idList = eventPointIds.map((id) => `"${id}"`).join(',');
+          pointsQuery = pointsQuery.or(`created_by.eq.${employeeId},id.in.(${idList})`);
+        } else {
+          pointsQuery = pointsQuery.eq('created_by', employeeId);
+        }
+      }
+      const { data: points, error: pointsErr } = await pointsQuery;
       if (pointsErr) throw pointsErr;
 
       const allPoints = points ?? [];
