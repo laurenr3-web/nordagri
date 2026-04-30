@@ -1,0 +1,2 @@
+ALTER TABLE public.points ADD COLUMN IF NOT EXISTS next_check_at timestamptz NULL;
+CREATE INDEX IF NOT EXISTS idx_points_next_check ON public.points(farm_id, next_check_at) WHERE next_check_at IS NOT NULL AND status <> 'resolved';

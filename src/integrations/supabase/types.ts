@@ -1314,6 +1314,7 @@ export type Database = {
           farm_id: string
           id: string
           last_event_at: string
+          next_check_at: string | null
           priority: string
           resolved_at: string | null
           status: string
@@ -1329,6 +1330,7 @@ export type Database = {
           farm_id: string
           id?: string
           last_event_at?: string
+          next_check_at?: string | null
           priority?: string
           resolved_at?: string | null
           status?: string
@@ -1344,6 +1346,7 @@ export type Database = {
           farm_id?: string
           id?: string
           last_event_at?: string
+          next_check_at?: string | null
           priority?: string
           resolved_at?: string | null
           status?: string
@@ -1359,6 +1362,7 @@ export type Database = {
           created_at: string
           farm_id: string | null
           first_name: string | null
+          has_seen_onboarding: boolean
           id: string
           last_name: string | null
           role: string | null
@@ -1369,6 +1373,7 @@ export type Database = {
           created_at?: string
           farm_id?: string | null
           first_name?: string | null
+          has_seen_onboarding?: boolean
           id: string
           last_name?: string | null
           role?: string | null
@@ -1379,6 +1384,7 @@ export type Database = {
           created_at?: string
           farm_id?: string | null
           first_name?: string | null
+          has_seen_onboarding?: boolean
           id?: string
           last_name?: string | null
           role?: string | null
