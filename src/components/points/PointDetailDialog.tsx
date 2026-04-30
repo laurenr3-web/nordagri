@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Plus, Trash2, ListPlus, ChevronRight, CheckCircle2, X, Clock } from 'lucide-react';
+import { Plus, Trash2, ListPlus, ChevronRight, CheckCircle2, X, Clock, FileText } from 'lucide-react';
 import { Point, PointStatus } from '@/types/Point';
 import { STATUS_LABELS, TYPE_EMOJI, TYPE_LABELS, daysOpen, nextCheckState } from './pointHelpers';
 import { PointStatusBadge } from './StatusBadge';
@@ -68,10 +68,9 @@ export const PointDetailDialog: React.FC<Props> = ({ point, open, onOpenChange }
                 <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
                   {TYPE_LABELS[point.type]}
                 </p>
-                {point.entity_label && (
-                  <p className="font-semibold text-sm truncate">{point.entity_label}</p>
-                )}
-                <SheetTitle className="text-base leading-tight mt-0.5">{point.title}</SheetTitle>
+                <SheetTitle className="text-base leading-tight">
+                  {point.entity_label || 'Sans cible'}
+                </SheetTitle>
                 <div className="flex flex-wrap items-center gap-1.5 mt-2">
                   <PointPriorityBadge priority={point.priority} />
                   <PointStatusBadge status={point.status} />
@@ -175,6 +174,24 @@ export const PointDetailDialog: React.FC<Props> = ({ point, open, onOpenChange }
             {/* Timeline */}
             <section>
               <h3 className="text-sm font-semibold mb-2">Timeline</h3>
+              {/* Description initiale du point, affichée comme première entrée
+                  de la timeline (équivalente à l'observation d'origine). */}
+              {point.title && (
+                <div className="mb-3 rounded-lg border bg-card p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-xs font-medium">Description</span>
+                    <span className="text-[11px] text-muted-foreground ml-auto">
+                      {new Date(point.created_at).toLocaleDateString('fr-FR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                      })}
+                    </span>
+                  </div>
+                  <p className="text-sm whitespace-pre-wrap">{point.title}</p>
+                </div>
+              )}
               <PointTimeline pointId={point.id} />
             </section>
 
