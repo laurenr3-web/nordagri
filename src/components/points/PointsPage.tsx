@@ -10,6 +10,8 @@ import { PointDetailDialog } from './PointDetailDialog';
 import { STATUS_LABELS } from './pointHelpers';
 import { LayoutWrapper } from '@/components/layout/LayoutWrapper';
 import { PageHeader } from '@/components/layout/PageHeader';
+import { EmptyState } from '@/components/help/EmptyState';
+import { emptyStates } from '@/content/help/emptyStates';
 
 const ORDER: PointStatus[] = ['open', 'watch', 'resolved'];
 
@@ -49,6 +51,24 @@ export const PointsPage = () => {
         <p className="text-sm text-muted-foreground">Chargement…</p>
       ) : !farmId ? (
         <p className="text-sm text-muted-foreground">Aucune ferme accessible.</p>
+      ) : (points ?? []).length === 0 ? (
+        <EmptyState
+          icon={emptyStates.surveillanceList.icon}
+          title={emptyStates.surveillanceList.title}
+          description={emptyStates.surveillanceList.description}
+          action={{
+            label: emptyStates.surveillanceList.actionLabel,
+            onClick: () => setNewOpen(true),
+          }}
+          secondaryAction={
+            emptyStates.surveillanceList.articleId
+              ? {
+                  label: emptyStates.surveillanceList.secondaryActionLabel!,
+                  articleId: emptyStates.surveillanceList.articleId,
+                }
+              : undefined
+          }
+        />
       ) : (
         <div className="space-y-3 pb-24">
           {ORDER.map((status) => {
