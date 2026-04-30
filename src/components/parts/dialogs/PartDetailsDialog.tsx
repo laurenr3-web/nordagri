@@ -59,8 +59,8 @@ const PartDetailsDialog: React.FC<PartDetailsDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent 
-        className="sm:max-w-lg max-h-[90vh] overflow-y-auto"
+      <DialogContent
+        className="w-[calc(100vw-24px)] max-w-[calc(100vw-24px)] sm:w-auto sm:max-w-lg max-h-[calc(100vh-24px)] sm:max-h-[90vh] overflow-y-auto overflow-x-hidden p-3 sm:p-6"
         onClick={e => e.stopPropagation()}
       >
         <DialogHeader>

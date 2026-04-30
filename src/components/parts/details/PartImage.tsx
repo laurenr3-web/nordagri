@@ -12,9 +12,9 @@ const PartImage: React.FC<PartImageProps> = ({ part }) => {
   const isLowStock = part.stock <= part.reorderPoint;
 
   return (
-    <div className="relative aspect-video overflow-hidden rounded-md">
-      <img 
-        src={part.image} 
+    <div className="relative w-full max-w-full aspect-video overflow-hidden rounded-md bg-muted">
+      <img
+        src={part.image}
         alt={part.name}
         className="w-full h-full object-contain"
         onError={(e) => {
