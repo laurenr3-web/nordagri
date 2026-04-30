@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { useFarmId } from '@/hooks/useFarmId';
@@ -38,7 +38,6 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const { user } = useAuthContext();
   const { farmId } = useFarmId();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const [isActive, setIsActive] = useState(false);
   const [available, setAvailable] = useState(false);
