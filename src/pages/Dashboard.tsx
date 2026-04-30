@@ -226,7 +226,7 @@ const Dashboard = () => {
 
         {/* Message d'accueil */}
         {hasFarm && user && (
-          <div data-onboarding="dashboard" className="mb-6 rounded-lg border bg-card px-4 py-3">
+          <div className="mb-6 rounded-lg border bg-card px-4 py-3">
             <p className="text-base font-semibold text-foreground">
               Bonjour {profileData?.first_name || ''} <span aria-hidden>👋</span>
             </p>
