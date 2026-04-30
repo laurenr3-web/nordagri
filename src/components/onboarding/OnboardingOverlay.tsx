@@ -34,30 +34,13 @@ export function OnboardingOverlay() {
   const titleId = useId();
   const descId = useId();
 
-  // Locate target & follow layout changes
+  // Locate target & follow layout changes (NEVER scrolls automatically;
+  // only tracks position so the tooltip follows the user's own scroll).
   useLayoutEffect(() => {
     if (!isActive || !step) return;
     let raf = 0;
     let timeoutId: number | undefined;
     let observer: MutationObserver | null = null;
-
-    // Scroll the target into a comfortable zone, leaving room for the tooltip.
-    // Top safe-area = 15% of viewport; bottom safe-area = 40% (where the
-    // tooltip is most likely placed on mobile).
-    const ensureVisible = (el: HTMLElement) => {
-      if (scrolledForStepRef.current === step.id) return;
-      const r = el.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const topMargin = Math.round(vh * 0.15);
-      const bottomMargin = Math.round(vh * 0.4);
-      const needsScroll = r.top < topMargin || r.bottom > vh - bottomMargin;
-      if (needsScroll) {
-        const targetY =
-          window.scrollY + r.top - Math.max(topMargin, (vh - bottomMargin - r.height) / 2);
-        window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
-      }
-      scrolledForStepRef.current = step.id;
-    };
 
     const update = () => {
       const el = document.querySelector<HTMLElement>(
@@ -67,7 +50,6 @@ export function OnboardingOverlay() {
         setRect(null);
         return;
       }
-      ensureVisible(el);
       const r = el.getBoundingClientRect();
       setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
       setMissing(false);
@@ -100,6 +82,41 @@ export function OnboardingOverlay() {
       if (timeoutId) window.clearTimeout(timeoutId);
     };
   }, [isActive, step]);
+
+  // Confirmed scroll: ONLY runs when the user explicitly enters a step
+  // (via Next/Back/start). After that, no further scrolls are forced —
+  // the tooltip just tracks the target wherever the user scrolls.
+  useEffect(() => {
+    if (!isActive || !step) return;
+    if (scrolledForStepRef.current === step.id) return;
+    let cancelled = false;
+    // Wait for the target to mount (route change may take a moment).
+    const tryScroll = (attempt = 0) => {
+      if (cancelled) return;
+      const el = document.querySelector<HTMLElement>(
+        `[data-onboarding="${step.target}"]`,
+      );
+      if (!el) {
+        if (attempt < 20) window.setTimeout(() => tryScroll(attempt + 1), 100);
+        return;
+      }
+      const r = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const topMargin = Math.round(vh * 0.15);
+      const bottomMargin = Math.round(vh * 0.4);
+      const needsScroll = r.top < topMargin || r.bottom > vh - bottomMargin;
+      if (needsScroll) {
+        const targetY =
+          window.scrollY + r.top - Math.max(topMargin, (vh - bottomMargin - r.height) / 2);
+        window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+      }
+      scrolledForStepRef.current = step.id;
+    };
+    tryScroll();
+    return () => {
+      cancelled = true;
+    };
+  }, [isActive, step, currentIndex]);
 
   // Reset rect on step change
   useEffect(() => {
