@@ -26,6 +26,7 @@ import { OnboardingProvider } from '@/components/onboarding/OnboardingProvider';
 import { HelpCenterProvider } from '@/contexts/HelpCenterContext';
 import { HelpCenter } from '@/components/help/HelpCenter';
 import { HelpFAB } from '@/components/help/HelpFAB';
+import { DesktopShell } from '@/components/layout/DesktopShell';
 
 // Composant de chargement
 const LoadingSpinner = () => (
@@ -72,6 +73,7 @@ function App() {
                   <OnboardingProvider>
                     <OfflineProvider autoSyncInterval={60000} showOfflineIndicator={true}>
                   <Suspense fallback={<LoadingSpinner />}>
+                    <DesktopShell>
                     <Routes>
                       <Route path="/" element={<Navigate to={withPreviewToken('/dashboard')} replace />} />
                       <Route path="/auth" element={<Auth />} />
@@ -140,6 +142,7 @@ function App() {
                       <Route path="/unsubscribe" element={<Unsubscribe />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
+                    </DesktopShell>
                   </Suspense>
                   <MobileMenu />
                   <Toaster />
