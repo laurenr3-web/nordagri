@@ -19,6 +19,7 @@ import {
 import { usePointLinkedTasks } from '@/hooks/points/usePointLinkedTasks';
 import { withPreviewToken } from '@/utils/previewRouting';
 import { cn } from '@/lib/utils';
+import { HelpTooltip } from '@/components/help/HelpTooltip';
 
 const STATUSES: PointStatus[] = ['open', 'watch', 'resolved'];
 
@@ -74,6 +75,7 @@ export const PointDetailDialog: React.FC<Props> = ({ point, open, onOpenChange }
                 <div className="flex flex-wrap items-center gap-1.5 mt-2">
                   <PointPriorityBadge priority={point.priority} />
                   <PointStatusBadge status={point.status} />
+                  <HelpTooltip contentKey="surveillance.status" />
                   <span className="text-[11px] text-muted-foreground">
                     Ouvert depuis {daysOpen(point.created_at)} j
                   </span>
@@ -87,6 +89,7 @@ export const PointDetailDialog: React.FC<Props> = ({ point, open, onOpenChange }
                   >
                     <Clock className="h-3.5 w-3.5" />
                     <span>{nc.label}</span>
+                    <HelpTooltip contentKey="surveillance.nextCheck" size={14} />
                     <button
                       type="button"
                       onClick={() => updateNextCheck.mutate({ id: point.id, days: null })}

@@ -9,6 +9,7 @@ import { Plus } from 'lucide-react';
 import { PartFormValues } from '../partFormTypes';
 import { useStorageLocations } from '@/hooks/parts/useStorageLocations';
 import AddLocationDialog from '../AddLocationDialog';
+import { HelpTooltip } from '@/components/help/HelpTooltip';
 
 interface InventoryFieldsProps {
   form: UseFormReturn<PartFormValues>;
@@ -57,7 +58,10 @@ const InventoryFields: React.FC<InventoryFieldsProps> = ({ form }) => {
         name="reorderPoint"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Seuil d'alerte</FormLabel>
+            <FormLabel className="inline-flex items-center gap-1">
+              Seuil d'alerte
+              <HelpTooltip contentKey="parts.lowStock" />
+            </FormLabel>
             <FormControl>
               <Input type="number" placeholder="5" {...field} />
             </FormControl>
