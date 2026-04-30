@@ -36,10 +36,15 @@ const DetailsTabs: React.FC<DetailsTabsProps> = memo(({
   console.log('DetailsTabs rendered with activeTab:', activeTab, 'and part:', part.id);
   
   return (
-    <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
+    <Tabs value={activeTab} onValueChange={onTabChange} className="w-full max-w-full min-w-0">
       <TabsList className="w-full grid grid-cols-2">
-        <TabsTrigger value="details">Détails</TabsTrigger>
-        <TabsTrigger value="history">Historique des retraits</TabsTrigger>
+        <TabsTrigger value="details" className="text-xs sm:text-sm truncate">
+          Détails
+        </TabsTrigger>
+        <TabsTrigger value="history" className="text-xs sm:text-sm truncate">
+          <span className="truncate">Historique</span>
+          <span className="hidden sm:inline">&nbsp;des retraits</span>
+        </TabsTrigger>
       </TabsList>
       
       <TabsContent value="details" className="space-y-6 mt-6">
