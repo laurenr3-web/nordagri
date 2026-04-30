@@ -4,6 +4,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/comp
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { UseFormReturn } from 'react-hook-form';
+import { HelpTooltip } from '@/components/help/HelpTooltip';
 
 interface WearUnitFieldProps {
   form: UseFormReturn<any>;
@@ -17,7 +18,10 @@ export function WearUnitField({ form }: WearUnitFieldProps) {
         name="unite_d_usure"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Unité d'usure</FormLabel>
+            <FormLabel className="inline-flex items-center gap-1">
+              Unité d'usure
+              <HelpTooltip contentKey="equipment.field.wearUnit" />
+            </FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger>

@@ -78,7 +78,10 @@ const InventoryFields: React.FC<InventoryFieldsProps> = ({ form }) => {
         name="location"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Emplacement</FormLabel>
+            <FormLabel className="inline-flex items-center gap-1">
+              Emplacement
+              <HelpTooltip contentKey="part.field.location" />
+            </FormLabel>
             <div className="flex items-center gap-2">
               <Select onValueChange={field.onChange} value={field.value || ""}>
                 <FormControl>

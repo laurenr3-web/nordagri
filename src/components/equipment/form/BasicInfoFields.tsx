@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { HelpTooltip } from '@/components/help/HelpTooltip';
 
 interface BasicInfoFieldsProps {
   form: UseFormReturn<EquipmentFormValues>;
@@ -81,7 +82,10 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
         name="type"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t.type}</FormLabel>
+            <FormLabel className="inline-flex items-center gap-1">
+              {t.type}
+              <HelpTooltip contentKey="equipment.field.type" />
+            </FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger>
@@ -123,7 +127,10 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
         name="model"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t.model}</FormLabel>
+            <FormLabel className="inline-flex items-center gap-1">
+              {t.model}
+              <HelpTooltip contentKey="equipment.field.model" />
+            </FormLabel>
             <FormControl>
               <Input placeholder={t.modelPlaceholder} {...field} />
             </FormControl>
@@ -138,7 +145,10 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
         name="year"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t.year}</FormLabel>
+            <FormLabel className="inline-flex items-center gap-1">
+              {t.year}
+              <HelpTooltip contentKey="equipment.field.year" />
+            </FormLabel>
             <FormControl>
               <Input 
                 placeholder={t.yearPlaceholder} 

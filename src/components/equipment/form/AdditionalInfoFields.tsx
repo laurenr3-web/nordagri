@@ -11,6 +11,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { HelpTooltip } from '@/components/help/HelpTooltip';
 
 interface AdditionalInfoFieldsProps {
   form: UseFormReturn<EquipmentFormValues>;
@@ -64,7 +65,10 @@ const AdditionalInfoFields: React.FC<AdditionalInfoFieldsProps> = ({
         name="serialNumber"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t.serialNumber}</FormLabel>
+            <FormLabel className="inline-flex items-center gap-1">
+              {t.serialNumber}
+              <HelpTooltip contentKey="equipment.field.serialNumber" />
+            </FormLabel>
             <FormControl>
               <Input placeholder={t.serialNumberPlaceholder} {...field} value={field.value || ''} />
             </FormControl>
@@ -79,7 +83,10 @@ const AdditionalInfoFields: React.FC<AdditionalInfoFieldsProps> = ({
         name="status"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t.status}</FormLabel>
+            <FormLabel className="inline-flex items-center gap-1">
+              {t.status}
+              <HelpTooltip contentKey="equipment.status" />
+            </FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger>
@@ -119,7 +126,10 @@ const AdditionalInfoFields: React.FC<AdditionalInfoFieldsProps> = ({
         name="purchaseDate"
         render={({ field }) => (
           <FormItem className="flex flex-col">
-            <FormLabel>{t.purchaseDate}</FormLabel>
+            <FormLabel className="inline-flex items-center gap-1">
+              {t.purchaseDate}
+              <HelpTooltip contentKey="equipment.field.purchaseDate" />
+            </FormLabel>
             <Popover>
               <PopoverTrigger asChild>
                 <FormControl>
