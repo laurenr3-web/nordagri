@@ -2,6 +2,15 @@
 import React from 'react';
 import { Part } from '@/types/Part';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { MoreHorizontal } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface PartsDesktopViewProps {
@@ -15,6 +24,24 @@ interface PartsDesktopViewProps {
   animatingOut?: (string | number)[];
 }
 
+const renderStockBadge = (stock: number) => {
+  if (stock === 0) {
+    return <Badge variant="destructive">Rupture</Badge>;
+  }
+  if (stock <= 5) {
+    return (
+      <Badge className="bg-orange-500/15 text-orange-700 border border-orange-500/30 hover:bg-orange-500/20">
+        Faible ({stock})
+      </Badge>
+    );
+  }
+  return (
+    <Badge className="bg-green-500/15 text-green-700 border border-green-500/30 hover:bg-green-500/20">
+      {stock}
+    </Badge>
+  );
+};
+
 export const PartsDesktopView: React.FC<PartsDesktopViewProps> = ({
   parts,
   selectedParts,
@@ -22,20 +49,21 @@ export const PartsDesktopView: React.FC<PartsDesktopViewProps> = ({
   openPartDetails,
   openOrderDialog,
   openWithdrawalDialog,
-  getStockStatusColor,
+  getStockStatusColor: _getStockStatusColor,
   animatingOut = []
 }) => {
   return (
     <div className="hidden sm:block">
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead>Nom</TableHead>
-            <TableHead>Référence</TableHead>
-            <TableHead>Emplacement</TableHead>
-            <TableHead className="text-center">Stock</TableHead>
-            <TableHead className="text-center">Prix</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+          <TableRow className="h-10">
+            <TableHead className="py-2 text-xs">Nom</TableHead>
+            <TableHead className="py-2 text-xs">Référence</TableHead>
+            <TableHead className="py-2 text-xs">Emplacement</TableHead>
+            <TableHead className="py-2 text-xs">Catégorie</TableHead>
+            <TableHead className="py-2 text-xs">Stock</TableHead>
+            <TableHead className="py-2 text-xs text-right">Prix</TableHead>
+            <TableHead className="py-2 text-xs text-right w-12">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -45,43 +73,67 @@ export const PartsDesktopView: React.FC<PartsDesktopViewProps> = ({
             return (
               <TableRow 
                 key={part.id}
-                className={`${isAnimatingOut ? 'opacity-50' : ''}`}
+                className={`h-12 ${isAnimatingOut ? 'opacity-50' : ''}`}
               >
-                <TableCell className="font-medium cursor-pointer hover:underline" onClick={() => openPartDetails(part)}>
+                <TableCell
+                  className="py-2 text-sm font-medium cursor-pointer hover:underline"
+                  onClick={() => openPartDetails(part)}
+                >
                   {part.name}
                 </TableCell>
-                <TableCell>{part.partNumber}</TableCell>
-                <TableCell>{part.location}</TableCell>
-                <TableCell className={`text-center ${getStockStatusColor(part)}`}>
-                  {part.stock}
+                <TableCell className="py-2 text-sm text-muted-foreground">
+                  {part.partNumber}
                 </TableCell>
-                <TableCell className="text-center">
+                <TableCell className="py-2 text-sm text-muted-foreground">
+                  {part.location}
+                </TableCell>
+                <TableCell className="py-2">
+                  {part.category ? (
+                    <Badge variant="outline" className="text-xs font-normal">
+                      {part.category}
+                    </Badge>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
+                </TableCell>
+                <TableCell className="py-2">
+                  {renderStockBadge(part.stock)}
+                </TableCell>
+                <TableCell className="py-2 text-sm text-right tabular-nums">
                   {part.price?.toFixed(2)} €
                 </TableCell>
-                <TableCell className="text-right space-x-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openPartDetails(part)}
-                  >
-                    Détails
-                  </Button>
-                  {openWithdrawalDialog && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openWithdrawalDialog(part)}
-                    >
-                      Retirer
-                    </Button>
-                  )}
+                <TableCell className="py-2 text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Actions</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => openPartDetails(part)}>
+                        Voir / Modifier
+                      </DropdownMenuItem>
+                      {openWithdrawalDialog && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => openWithdrawalDialog(part)}
+                          >
+                            Retirer du stock
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             );
           })}
           {parts.length === 0 && (
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+              <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                 Aucune pièce trouvée
               </TableCell>
             </TableRow>

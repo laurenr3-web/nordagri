@@ -3,12 +3,10 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { PartsDesktopView } from './displays/PartsDesktopView';
 import { PartsMobileView } from './displays/PartsMobileView';
-import { PartsToolbar } from './toolbar/PartsToolbar';
-import { PartsFilters } from './filters/PartsFilters';
+import { PartsCompactFilters } from './toolbar/PartsCompactFilters';
 import { PartsEmptyState } from './states/PartsEmptyState';
 import { PartsErrorState } from './states/PartsErrorState';
 import { PartsLoadingState } from './states/PartsLoadingState';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { usePartsWithdrawal } from '@/hooks/parts/usePartsWithdrawal';
 import { WithdrawalDialog } from './dialogs/withdrawal';
 import { Part } from '@/types/Part';
@@ -108,9 +106,8 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
   
   // Actions
   onAddPart,
-  onWithdrawPart
+  onWithdrawPart: _onWithdrawPart
 }) => {
-  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   const { openWithdrawalDialog, isWithdrawalDialogOpen, selectedPart, setIsWithdrawalDialogOpen } = usePartsWithdrawal();
   const [isPartDetailsDialogOpen, setIsPartDetailsDialogOpen] = useState(false);
   const [selectedPartForDetails, setSelectedPartForDetails] = useState<Part | null>(null);
@@ -200,86 +197,33 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
   };
 
   return (
-    <div className="space-y-4">
-      <PartsToolbar 
-        view={currentView}
-        setView={(view) => setCurrentView(view)}
+    <div className="space-y-3">
+      <PartsCompactFilters
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
-        filterCount={filterCount}
-        onFilterClick={() => setIsFilterSheetOpen(true)}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
+        categories={categories}
+        manufacturers={manufacturers}
+        filterManufacturers={filterManufacturers}
+        toggleManufacturerFilter={toggleManufacturerFilter}
+        filterInStock={filterInStock}
+        setFilterInStock={setFilterInStock}
         sortBy={sortBy}
         setSortBy={setSortBy}
-        selectedCount={selectedParts.length}
-        onDeleteSelected={onDeleteSelected}
-        totalParts={parts.length}
-        filteredParts={filteredParts.length}
-        onAddPart={onAddPart}
-        onWithdrawPart={onWithdrawPart}
+        view={currentView}
+        setView={(v) => setCurrentView(v)}
+        filterCount={filterCount}
+        clearFilters={clearFilters}
+        filteredCount={filteredParts.length}
       />
-      
-      <div className="grid md:grid-cols-[240px,1fr] gap-4">
-        <div className="hidden md:block">
-          <PartsFilters 
-            categories={categories}
-            selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
-            manufacturers={manufacturers}
-            selectedManufacturers={filterManufacturers}
-            toggleManufacturer={toggleManufacturerFilter}
-            minPrice={filterMinPrice}
-            setMinPrice={setFilterMinPrice}
-            maxPrice={filterMaxPrice}
-            setMaxPrice={setFilterMaxPrice}
-            inStock={filterInStock}
-            setInStock={setFilterInStock}
-            filterCount={filterCount}
-            clearFilters={clearFilters}
-          />
-        </div>
-        
-        <Card>
-          <CardContent className="p-0 sm:p-3 md:p-6">
-            {renderContent()}
-          </CardContent>
-        </Card>
-      </div>
-      
-      <Sheet 
-        open={isFilterSheetOpen} 
-        onOpenChange={setIsFilterSheetOpen}
-      >
-        <SheetContent 
-          side="left" 
-          className="w-[300px] sm:w-[400px] p-0"
-        >
-          <div className="h-full overflow-y-auto py-6 px-4">
-            <PartsFilters 
-              categories={categories}
-              selectedCategory={selectedCategory}
-              setSelectedCategory={(cat) => {
-                setSelectedCategory(cat);
-                setIsFilterSheetOpen(false);
-              }}
-              manufacturers={manufacturers}
-              selectedManufacturers={filterManufacturers}
-              toggleManufacturer={toggleManufacturerFilter}
-              minPrice={filterMinPrice}
-              setMinPrice={setFilterMinPrice}
-              maxPrice={filterMaxPrice}
-              setMaxPrice={setFilterMaxPrice}
-              inStock={filterInStock}
-              setInStock={setFilterInStock}
-              filterCount={filterCount}
-              clearFilters={() => {
-                clearFilters();
-                setIsFilterSheetOpen(false);
-              }}
-            />
-          </div>
-        </SheetContent>
-      </Sheet>
-      
+
+      <Card>
+        <CardContent className="p-0 sm:p-2 md:p-4">
+          {renderContent()}
+        </CardContent>
+      </Card>
+
       <WithdrawalDialog 
         isOpen={isWithdrawalDialogOpen}
         onOpenChange={setIsWithdrawalDialogOpen}
