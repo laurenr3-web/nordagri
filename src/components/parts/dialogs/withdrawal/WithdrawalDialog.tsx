@@ -1,33 +1,42 @@
 
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Part } from '@/types/Part';
 import { usePartsWithdrawal } from '@/hooks/parts/usePartsWithdrawal';
 import { WithdrawalForm } from './WithdrawalForm';
-import { WithdrawalEmptyState } from './WithdrawalEmptyState';
+import { WithdrawalPartPicker } from './WithdrawalPartPicker';
 
 interface WithdrawalDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   part: Part | null;
+  parts?: Part[];
+  onSelectPart?: (part: Part) => void;
 }
 
 const WithdrawalDialog: React.FC<WithdrawalDialogProps> = ({
   isOpen,
   onOpenChange,
-  part
+  part,
+  parts = [],
+  onSelectPart,
 }) => {
   const { withdrawalMutation } = usePartsWithdrawal();
   
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="w-[calc(100vw-24px)] sm:max-w-[500px] max-h-[calc(100vh-24px)] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Retirer une pièce</DialogTitle>
+          <DialogTitle>{part ? 'Retirer une pièce' : 'Sélectionner une pièce à retirer'}</DialogTitle>
         </DialogHeader>
         
-        {!part ? <WithdrawalEmptyState onClose={() => onOpenChange(false)} /> : (
+        {!part ? (
+          <WithdrawalPartPicker
+            parts={parts}
+            onSelect={(p) => onSelectPart?.(p)}
+            onClose={() => onOpenChange(false)}
+          />
+        ) : (
           <WithdrawalForm 
             part={part}
             onOpenChange={onOpenChange}
