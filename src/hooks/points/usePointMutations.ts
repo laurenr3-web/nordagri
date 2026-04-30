@@ -120,6 +120,30 @@ export function useDeletePoint() {
   });
 }
 
+export function useUpdatePointNextCheck() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, days }: { id: string; days: number | null }) => {
+      const next_check_at =
+        days && days > 0
+          ? new Date(Date.now() + days * 86400000).toISOString()
+          : null;
+      const { error } = await supabase
+        .from('points')
+        .update({ next_check_at })
+        .eq('id', id);
+      if (error) throw error;
+      return next_check_at;
+    },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ['points'] });
+      qc.invalidateQueries({ queryKey: ['point', vars.id] });
+      qc.invalidateQueries({ queryKey: ['dashboard', 'checkToday'] });
+    },
+    onError: (e: any) => toast.error(e.message ?? 'Erreur'),
+  });
+}
+
 export function useUpdatePointEvent() {
   const qc = useQueryClient();
   return useMutation({

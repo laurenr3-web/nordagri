@@ -17,6 +17,7 @@ export interface Point {
   updated_at: string;
   last_event_at: string;
   resolved_at: string | null;
+  next_check_at: string | null;
 }
 
 export interface PointEvent {

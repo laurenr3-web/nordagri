@@ -77,6 +77,63 @@ export function relativeFromNow(iso: string): string {
   return `il y a ${mo} mois`;
 }
 
+export type NextCheckKind = 'none' | 'soon' | 'today' | 'overdue';
+
+export interface NextCheckState {
+  kind: NextCheckKind;
+  label: string;
+  shortLabel: string;
+  badgeClass: string;
+}
+
+/**
+ * Compute the display state of a point's `next_check_at`.
+ * - overdue: scheduled date already passed (and not today)
+ * - today: scheduled for today
+ * - soon: scheduled in the future
+ * - none: no scheduled check
+ */
+export function nextCheckState(nextCheckAt: string | null | undefined): NextCheckState {
+  if (!nextCheckAt) {
+    return { kind: 'none', label: '', shortLabel: '', badgeClass: '' };
+  }
+  const target = new Date(nextCheckAt);
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfTarget = new Date(target.getFullYear(), target.getMonth(), target.getDate());
+  const diffDays = Math.round(
+    (startOfTarget.getTime() - startOfToday.getTime()) / 86400000
+  );
+  const formatted = target.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+
+  if (diffDays < 0) {
+    const late = Math.abs(diffDays);
+    return {
+      kind: 'overdue',
+      label: `Vérification en retard de ${late} j`,
+      shortLabel: `retard ${late} j`,
+      badgeClass:
+        'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30',
+    };
+  }
+  if (diffDays === 0) {
+    return {
+      kind: 'today',
+      label: 'À vérifier aujourd’hui',
+      shortLabel: 'à vérifier',
+      badgeClass:
+        'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30',
+    };
+  }
+  return {
+    kind: 'soon',
+    label: `À vérifier le ${formatted}`,
+    shortLabel: diffDays === 1 ? 'demain' : `dans ${diffDays} j`,
+    badgeClass:
+      'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30',
+  };
+}
+
 export const PRIORITY_BADGE_CLASS: Record<PointPriority, string> = {
   critical: 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30',
   important: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30',

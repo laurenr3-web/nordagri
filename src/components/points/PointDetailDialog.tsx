@@ -3,15 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Plus, Trash2, ListPlus, ChevronRight, CheckCircle2, X } from 'lucide-react';
+import { Plus, Trash2, ListPlus, ChevronRight, CheckCircle2, X, Clock } from 'lucide-react';
 import { Point, PointStatus } from '@/types/Point';
-import { STATUS_LABELS, TYPE_EMOJI, TYPE_LABELS, daysOpen } from './pointHelpers';
+import { STATUS_LABELS, TYPE_EMOJI, TYPE_LABELS, daysOpen, nextCheckState } from './pointHelpers';
 import { PointStatusBadge } from './StatusBadge';
 import { PointPriorityBadge } from './PriorityBadge';
 import { PointTimeline } from './PointTimeline';
 import { AddEventDialog } from './AddEventDialog';
 import { CreateLinkedTaskDialog } from './CreateLinkedTaskDialog';
-import { useDeletePoint, useUpdatePointStatus } from '@/hooks/points/usePointMutations';
+import {
+  useDeletePoint,
+  useUpdatePointStatus,
+  useUpdatePointNextCheck,
+} from '@/hooks/points/usePointMutations';
 import { usePointLinkedTasks } from '@/hooks/points/usePointLinkedTasks';
 import { withPreviewToken } from '@/utils/previewRouting';
 import { cn } from '@/lib/utils';
@@ -28,11 +32,14 @@ export const PointDetailDialog: React.FC<Props> = ({ point, open, onOpenChange }
   const navigate = useNavigate();
   const updateStatus = useUpdatePointStatus();
   const deletePoint = useDeletePoint();
+  const updateNextCheck = useUpdatePointNextCheck();
   const [addOpen, setAddOpen] = useState(false);
   const [taskOpen, setTaskOpen] = useState(false);
   const { data: linkedTasks } = usePointLinkedTasks(point?.id ?? null);
 
   if (!point) return null;
+
+  const nc = nextCheckState(point.next_check_at);
 
   const handleStatus = async (s: PointStatus) => {
     await updateStatus.mutateAsync({ id: point.id, status: s });
@@ -71,6 +78,25 @@ export const PointDetailDialog: React.FC<Props> = ({ point, open, onOpenChange }
                     Ouvert depuis {daysOpen(point.created_at)} j
                   </span>
                 </div>
+                {point.status !== 'resolved' && nc.kind !== 'none' && (
+                  <div
+                    className={cn(
+                      'mt-2 inline-flex items-center gap-1.5 text-[12px] px-2 py-1 rounded border',
+                      nc.badgeClass
+                    )}
+                  >
+                    <Clock className="h-3.5 w-3.5" />
+                    <span>{nc.label}</span>
+                    <button
+                      type="button"
+                      onClick={() => updateNextCheck.mutate({ id: point.id, days: null })}
+                      className="ml-1 opacity-70 hover:opacity-100"
+                      aria-label="Retirer la prochaine vérification"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
               </div>
               <Button
                 type="button"
