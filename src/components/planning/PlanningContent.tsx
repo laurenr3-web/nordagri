@@ -15,6 +15,7 @@ import { usePlanningTasks } from '@/hooks/planning/usePlanningTasks';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { PlanningTask } from '@/services/planning/planningService';
+import { useOnboardingTarget } from '@/components/onboarding/OnboardingProvider';
 
 function getDateStr(offset: number = 0) {
   const d = new Date();
@@ -29,6 +30,7 @@ export function PlanningContent() {
   const [viewMode, setViewMode] = useState<ViewMode>('mine');
   const { farmId } = useFarmId();
   const { user } = useAuthContext();
+  const markCreateTaskDone = useOnboardingTarget('create-task');
 
   const todayStr = getDateStr(0);
   const tomorrowStr = getDateStr(1);
