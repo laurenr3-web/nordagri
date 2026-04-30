@@ -35,6 +35,13 @@ export function PlanningContent() {
 
   const { addTask, getComputedPriority } = usePlanningTasks(farmId, todayStr, todayStr);
 
+  // Allow nested empty states to request opening the AddTaskForm.
+  React.useEffect(() => {
+    const handler = () => setShowAddForm(true);
+    window.addEventListener('planning:open-add-task', handler);
+    return () => window.removeEventListener('planning:open-add-task', handler);
+  }, []);
+
   // Fetch farm members (from farm_members + profiles + owner)
   const { data: teamMembers = [] } = useQuery({
     queryKey: ['farmMembersForPlanning', farmId],
