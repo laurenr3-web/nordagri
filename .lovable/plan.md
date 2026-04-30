@@ -1,126 +1,105 @@
-# Dashboard orienté action — version raffinée
+## Objectif
 
-## Contexte
-La refonte précédente (3 nouveaux widgets + réorganisation) n'a pas encore été implémentée dans le code. Ce plan **fusionne la refonte initiale avec les raffinements demandés** pour livrer directement la bonne version, sans étape intermédiaire.
+Réorganiser uniquement la navigation (sidebar desktop + menu mobile) en 3 sections thématiques claires, sans toucher au backend ni supprimer aucune fonctionnalité. Les routes existantes restent identiques.
 
-## Ordre final des widgets
-```text
-0. Message d'accueil           ← NOUVEAU bandeau (pas un widget)
-1. Points à surveiller         ← NOUVEAU widget
-2. Tâches du jour              ← existant, simplifié + tri urgence
-3. À vérifier aujourd'hui      ← NOUVEAU widget
-4. Activité récente            ← NOUVEAU widget (filtré)
-5. Équipements / Stats / Calendrier ← descendus
+## Structure cible des sections
+
+```
+TRAVAIL QUOTIDIEN     (priorité haute, en haut, contraste fort)
+  • Dashboard           /dashboard
+  • Planification       /planning
+  • Points à surveiller /points
+
+GESTION MATÉRIEL      (priorité moyenne)
+  • Équipement          /equipment
+  • Maintenance         /maintenance
+  • Pièces              /parts
+
+ANALYSE               (priorité basse, plus discret)
+  • Suivi du temps      /time-tracking
+  • Statistiques        /time-tracking/statistics
+
+(Paramètres reste accessible en bas, séparé des 3 groupes)
 ```
 
-## 0. Message d'accueil
+## Changements proposés
 
-Bandeau statique au-dessus de la grille de widgets, dans `src/pages/Dashboard.tsx` (sous le `PageHeader`):
+### 1. Modèle de données nav partagé
+Créer `src/components/layout/navConfig.ts` exportant un tableau de groupes :
+```
+[
+  { id: 'daily',     labelKey: 'nav.group.daily',     items: [...] },
+  { id: 'equipment', labelKey: 'nav.group.equipment', items: [...] },
+  { id: 'analysis',  labelKey: 'nav.group.analysis',  items: [...] },
+]
+```
+Chaque item : `{ path, icon, labelKey, priority: 'primary'|'secondary' }`.
+Ajout de l'entrée Statistiques (route déjà existante `/time-tracking/statistics`, icône `BarChart3`).
 
-```text
-Bonjour {prénom} 👋
-Voici ce qui demande ton attention aujourd'hui
+Cela garantit la cohérence visuelle entre desktop et mobile (point 6).
+
+### 2. Sidebar desktop — `src/components/layout/Navbar.tsx`
+- Boucler sur les groupes de `navConfig`.
+- Avant chaque groupe, afficher un titre de section : petit, uppercase, `text-xs font-semibold text-muted-foreground/70 tracking-wider px-3 mt-4 mb-2` (sauf le premier groupe : `mt-0`).
+- Espacement clair entre groupes (`mt-6` entre groupes).
+- Items du groupe « Travail quotidien » :
+  - icône `h-5 w-5` (déjà), texte `font-medium`
+  - actif: `bg-primary/10 text-primary` au lieu du `bg-secondary` standard pour renforcer le contraste (point 3).
+- Items secondaires (Analyse) : `text-muted-foreground` un peu plus discret, icône `h-4 w-4` pour réduire le bruit (point 4).
+- « Paramètres » sort des 3 groupes, reste en bas comme aujourd’hui (déjà séparé via `mt-auto` d'un autre conteneur, à conserver via un petit groupe « Compte » non titré ou simplement détaché en bas).
+
+### 3. Menu mobile — `src/components/layout/MobileMenu.tsx`
+La barre du bas actuelle utilise `ExpandableTabs` à plat (8 items). Pour passer à 3 sections claires sans casser le mobile-first :
+
+Option retenue : **barre rapide + drawer**.
+- Barre fixe en bas affiche uniquement les 3 items prioritaires (Dashboard, Planification, Points) + bouton « Plus » (icône `Menu`).
+- Le bouton « Plus » ouvre un `Sheet` (bottom sheet) qui montre toutes les sections groupées avec titres :
+  - TRAVAIL QUOTIDIEN, GESTION MATÉRIEL, ANALYSE, COMPTE (Paramètres)
+  - Espacement clair (`space-y-6` entre groupes), grilles 2 colonnes pour les items, gros boutons accessibles au pouce (`h-14`, icône + label).
+- La route active reste mise en évidence dans la barre rapide ET dans le drawer.
+- Aucune route supprimée, tout reste atteignable.
+
+Cela répond aux points 3 (priorité visuelle), 4 (réduire le bruit), 7 (mobile-first / accès au pouce) sans scroll horizontal (cf. règle projet : pas de scroll horizontal mobile).
+
+### 4. Liens de navigation contextuels (point 5)
+Ajouts ciblés, sans nouvelle logique métier :
+- **Dashboard → Action** : sur le widget « Points à surveiller », ajouter un bouton « Créer une tâche » à côté de chaque item, qui navigue vers `/planning?fromPoint=<id>` (la page Planning ouvre déjà le dialog Nouvelle tâche via querystring — confirmer dans `Planning.tsx`, sinon préremplir via state `navigate(..., { state: { fromPoint } })`).
+- **Point → Tâche** : dans `src/components/points/...` (carte/détail d’un point), ajouter un bouton « Créer une tâche » qui ouvre Planning préremplie avec le point lié.
+- **Tâche → Point** : dans le dialog de détail d’une tâche de Planning, si la tâche est liée à un point (`linked_point_id` déjà géré côté DB via `usePointLinkedTasks`), afficher un bouton « Voir le point lié » qui navigue vers `/points?id=<id>`.
+- **Dashboard → Action directe** : les cartes urgentes (Interventions urgentes, Stock faible, Maintenance due) doivent toutes être cliquables et amener directement à la fiche concernée — vérifier que c’est déjà le cas et ajouter `navigate` manquant si besoin.
+
+Aucun changement de schéma DB. Uniquement des `Link` / `navigate` supplémentaires.
+
+### 5. Traductions — `src/locales/fr.json` et `en.json`
+Ajouter :
+```
+"nav.group.daily":     "Travail quotidien" / "Daily work"
+"nav.group.equipment": "Gestion matériel"  / "Equipment"
+"nav.group.analysis":  "Analyse"           / "Analysis"
+"navbar.statistics":   "Statistiques"      / "Statistics"
+"mobilemenu.statistics":"Stats"            / "Stats"
+"mobilemenu.more":     "Plus"              / "More"
 ```
 
-- Prénom: `profileData?.first_name` via `useAuthContext()`. Fallback: "Bonjour 👋".
-- Une seule carte sobre, padding réduit, masquée si `!hasFarm` (banner ferme déjà affiché).
+### 6. Cohérence visuelle (point 6)
+- Mêmes icônes Lucide partout (déjà le cas, on garde les mêmes mappings dans `navConfig`).
+- Espacement uniformisé : `gap-1` intra-groupe, `mt-6` inter-groupes.
+- Pas de nouvelle palette : on reste sur `text-primary`, `text-muted-foreground`, `bg-primary/10`.
 
-## 1. Widget Points à surveiller (avec niveau de priorité)
+## Fichiers touchés
 
-Fichier: `src/components/dashboard/widgets/PointsWatchWidget.tsx`
-Hook: `src/hooks/dashboard/usePointsWatchData.ts`
+- **Nouveau** `src/components/layout/navConfig.ts`
+- **Modifié** `src/components/layout/Navbar.tsx` (rendu groupé + titres de sections + accent prioritaire)
+- **Modifié** `src/components/layout/MobileMenu.tsx` (barre rapide 3 items + bouton Plus + bottom sheet groupé)
+- **Modifié** `src/locales/fr.json`, `src/locales/en.json` (clés de groupes + Statistiques + Plus)
+- **Modifié** widgets dashboard (`src/components/dashboard/...`) et `src/components/points/...` pour les boutons contextuels « Créer une tâche » / « Voir le point lié »
 
-Requête: `points where farm_id=? and status in ('open','watch') order by priority desc, last_event_at desc limit 5`.
+## Hors périmètre (explicitement)
 
-Affichage compact (≤ 4 lignes):
-- "⚠️ X points à surveiller — Y important(s)"
-- 1 à 2 exemples au format **`→ {entity_label || title} ({priorité})`**
-  - `critical` → "critique" (texte rouge)
-  - `important` → "important" (texte ambre)
-  - `normal` → "normal" (gris) — omis si la phrase devient trop longue
-- Clic carte → `/points`. Vide → "Aucun point à surveiller ✓".
+- Aucune modification des routes, des hooks, des services Supabase, des RLS, ou du schéma.
+- Aucune suppression de page/fonctionnalité.
+- Pas de redesign global : seules la navigation et quelques liens contextuels changent.
 
-## 2. Tâches du jour — tri par urgence
+## Résultat attendu
 
-Fichier modifié: `src/components/dashboard/widgets/PlanningTodayWidget.tsx`
-
-Nouveau tri pour le top 2 affiché (le reste passe par "Voir toutes les tâches"):
-
-```text
-1. due_date < aujourd'hui                (en retard)
-2. due_date == aujourd'hui                (du jour)
-3. priorité (critical > important > todo)
-4. created_at asc                         (tie-break)
-```
-
-Implémentation: tri client sur la liste fusionnée des 3 groupes déjà fournis par `usePlanningTasks`, badge "En retard" (rouge) si `due_date < today`. Compteur "X complétées / Y total" inchangé. Bouton "Voir toutes les tâches" en bas.
-
-## 3. À vérifier aujourd'hui — sentiment d'urgence
-
-Fichier: `src/components/dashboard/widgets/CheckTodayWidget.tsx`
-Hook: `src/hooks/dashboard/useCheckTodayData.ts`
-
-3 lignes (n'affiche que les non-zéro):
-- **Points oubliés**: format `"X point(s) oublié(s) depuis N jours"` où **N = max** des `floor((now - last_event_at) / 1 day)` parmi les points oubliés (>3 jours sans événement). Si X > 1, on affiche la valeur max ("depuis jusqu'à 8 jours" optionnellement, ou simplement "depuis 8 jours" — choisi: max simple).
-- **Tâches en retard**: `"X tâche(s) en retard"`
-- **Maintenances dues**: `"X maintenance(s) due(s)"` (réutilise `maintenanceSuggestions`)
-
-Tout à zéro → "Tout est à jour ✓". Chaque ligne cliquable → page concernée.
-
-## 4. Activité récente — filtrée
-
-Fichier: `src/components/dashboard/widgets/RecentActivityWidget.tsx`
-Hook: `src/hooks/dashboard/useRecentActivityData.ts`
-
-**Sources strictes** (3 requêtes parallèles, limit 5 chacune, fusion + tri desc, slice 5):
-- Tâches **complétées** uniquement: `planning_tasks where farm_id=? and status='done'` triées par `completed_at desc`
-- Points **créés** uniquement: `points where farm_id=?` triés par `created_at desc`
-- **Événements ajoutés** sur un point: `point_events` joint à `points.farm_id=?` triés par `created_at desc`
-
-**Exclus**: updates de tâches, changements de statut intermédiaires, modifications de profil, etc. — on n'interroge pas ces sources.
-
-Format: `{icône} {phrase courte} — {temps relatif fr}`
-- `✓ Tâche "Traite" complétée`
-- `⚠️ Point ajouté: patte 48`
-- `📝 Observation sur Tracteur JD`
-
-Clic → page concernée. Vide → "Aucune activité récente".
-
-## 5. Sections descendues
-
-Réordonner `DEFAULT_WIDGETS` dans `Dashboard.tsx`. Bump de la version dans `useDashboardLayout` pour réinitialiser une fois le layout stocké en localStorage des utilisateurs existants.
-
-## 6. Cohérence terrain (langage)
-
-- Phrases ≤ 6-8 mots, verbes simples
-- Pas de jargon ("entity", "metadata"…)
-- Mêmes étiquettes de priorité partout: **critique / important / normal**
-- Icônes Lucide cohérentes: `AlertCircle` (points), `CalendarCheck` (tâches), `Clock` (vérifications), `Activity` (activité)
-
-## Détails techniques
-
-### Fichiers créés
-- `src/components/dashboard/widgets/PointsWatchWidget.tsx`
-- `src/components/dashboard/widgets/CheckTodayWidget.tsx`
-- `src/components/dashboard/widgets/RecentActivityWidget.tsx`
-- `src/hooks/dashboard/usePointsWatchData.ts`
-- `src/hooks/dashboard/useCheckTodayData.ts`
-- `src/hooks/dashboard/useRecentActivityData.ts`
-
-### Fichiers modifiés
-- `src/pages/Dashboard.tsx` — bandeau d'accueil, `DEFAULT_WIDGETS` réordonné, branchement des 3 nouveaux types
-- `src/hooks/dashboard/useDashboardLayout.ts` — bump version layout
-- `src/hooks/dashboard/useWidgetData.ts` — branche les 3 nouveaux hooks
-- `src/components/dashboard/widgets/PlanningTodayWidget.tsx` — tri urgence + compteur complétées + bouton "Voir toutes les tâches" + badge "En retard"
-
-### Données / RLS
-Aucune migration. Toutes les tables (`points`, `point_events`, `planning_tasks`) ont déjà des RLS scopées `farm_id` qui couvrent les lectures par membre.
-
-### Performance
-- Toutes les queries: `staleTime: 5 min` (règle projet), invalidées par le bouton "Actualiser" et l'autoRefresh existant
-- Pas de realtime ajouté sur ces widgets (pas nécessaire pour un dashboard d'ouverture)
-
-### Hors scope
-- Pas de nouveau widget au-delà des 3 prévus
-- Pas de refonte visuelle de Stats/Equipment/Calendar — uniquement déplacés
-- Pas de personnalisation par utilisateur du message d'accueil
+Un utilisateur ouvre l’app et voit immédiatement 3 zones claires : *ce que je dois faire aujourd’hui*, *mon matériel*, *l’analyse*. Sur mobile, les 3 actions quotidiennes sont accessibles au pouce ; le reste est à un tap dans le bottom sheet. Les enchaînements Dashboard → Points → Planification deviennent des clics directs.
