@@ -24,11 +24,11 @@ const NavLink = ({ path, icon, label, isActive, priority }: {
         priority === 'primary' ? "py-2.5 font-medium" : "py-2 text-sm",
         isActive
           ? priority === 'primary'
-            ? "bg-primary/10 text-primary"
-            : "bg-secondary text-secondary-foreground"
+            ? "bg-sidebar-accent text-sidebar-primary-foreground ring-1 ring-sidebar-primary/40"
+            : "bg-sidebar-accent text-sidebar-accent-foreground"
           : priority === 'primary'
-            ? "text-foreground hover:bg-secondary/80"
-            : "text-muted-foreground hover:bg-secondary/80 hover:text-secondary-foreground"
+            ? "text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
+            : "text-sidebar-foreground/75 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
       )}
       role="tab"
       aria-selected={isActive}
