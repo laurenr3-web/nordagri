@@ -15,7 +15,6 @@ import { useDeletePoint, useUpdatePointStatus } from '@/hooks/points/usePointMut
 import { usePointLinkedTasks } from '@/hooks/points/usePointLinkedTasks';
 import { withPreviewToken } from '@/utils/previewRouting';
 import { cn } from '@/lib/utils';
-import { useOnboardingTarget } from '@/components/onboarding/OnboardingProvider';
 
 const STATUSES: PointStatus[] = ['open', 'watch', 'resolved'];
 
@@ -31,7 +30,6 @@ export const PointDetailDialog: React.FC<Props> = ({ point, open, onOpenChange }
   const deletePoint = useDeletePoint();
   const [addOpen, setAddOpen] = useState(false);
   const [taskOpen, setTaskOpen] = useState(false);
-  const markCreateTaskDone = useOnboardingTarget('create-task');
   const { data: linkedTasks } = usePointLinkedTasks(point?.id ?? null);
 
   if (!point) return null;
@@ -109,15 +107,7 @@ export const PointDetailDialog: React.FC<Props> = ({ point, open, onOpenChange }
                   ))}
                 </PopoverContent>
               </Popover>
-              <Button
-                variant="outline"
-                size="sm"
-                data-onboarding="create-task"
-                onClick={() => {
-                  setTaskOpen(true);
-                  markCreateTaskDone();
-                }}
-              >
+              <Button variant="outline" size="sm" onClick={() => setTaskOpen(true)}>
                 <ListPlus className="h-4 w-4 mr-1" /> Tâche
               </Button>
             </div>

@@ -52,7 +52,6 @@ import { useAuthContext } from '@/providers/AuthProvider';
 import { CreateFarmDialog } from '@/components/farm/CreateFarmDialog';
 import { Plus } from 'lucide-react';
 import { useFarmId } from '@/hooks/useFarmId';
-import { useOnboardingTarget } from '@/components/onboarding/OnboardingProvider';
 
 const DEFAULT_WIDGETS: WidgetConfig[] = [
   { id: 'points_watch', type: 'points_watch', title: 'Points à surveiller', size: 'full', enabled: true },
@@ -74,15 +73,6 @@ const Dashboard = () => {
   const queryClient = useQueryClient();
   const { farmId: resolvedFarmId, isLoading: farmLoading, noAccess } = useFarmId();
   const hasFarm = !!resolvedFarmId;
-  const markDashboardSeen = useOnboardingTarget('dashboard');
-
-  // Notify the onboarding flow that the user reached the dashboard
-  React.useEffect(() => {
-    if (hasFarm) {
-      const t = window.setTimeout(() => markDashboardSeen(), 800);
-      return () => window.clearTimeout(t);
-    }
-  }, [hasFarm, markDashboardSeen]);
   
   // Gestion du layout personnalisé
   const { 
@@ -194,13 +184,11 @@ const Dashboard = () => {
 
         {/* Header avec actions */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-          <div data-onboarding="dashboard">
-            <PageHeader 
-              title="Tableau de bord" 
-              description="Vue d'ensemble de vos opérations"
-              className="mb-0"
-            />
-          </div>
+          <PageHeader 
+            title="Tableau de bord" 
+            description="Vue d'ensemble de vos opérations"
+            className="mb-0"
+          />
           
           <div className="flex items-center gap-2">
             <Button

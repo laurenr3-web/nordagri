@@ -100,9 +100,7 @@ const Navbar = () => {
             </div>
           ))}
           <div className="mt-6 pt-4 border-t border-border/60">
-            <div data-onboarding="settings-nav">
-              {renderItem(accountItem)}
-            </div>
+            {renderItem(accountItem)}
           </div>
         </nav>
       </div>

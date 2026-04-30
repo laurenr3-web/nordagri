@@ -1,101 +1,99 @@
-# Tutoriel interactif d'accueil
+## Objectif
 
-Un tour guidé court qui apparaît au premier connexion et amène l'utilisateur à réaliser 3 actions concrètes : ajouter un point, créer une tâche, voir le dashboard. Skippable à tout moment, relançable depuis Paramètres → Profil.
+Refondre la page `Statistiques` (`/time-tracking/statistics`) pour qu'elle soit lisible en moins de 5 secondes : KPIs orientés terrain (Tâches, Points à surveiller, Réactivité), aucun graphique. La page actuelle (graphes temps/équipement) est conservée mais déplacée dans un onglet « Temps de travail » pour ne pas perdre la fonctionnalité.
 
-## 1. Comportement utilisateur
-
-- À la première connexion (après création du compte et de la ferme), un overlay léger apparaît avec un tooltip pointant vers la première action.
-- Une **checklist flottante** (en bas à droite, repliable) montre la progression : `Ajouter un point` · `Créer une tâche` · `Voir le dashboard`.
-- Un bouton **« Passer »** est toujours visible dans le tooltip et dans la checklist.
-- L'étape avance automatiquement quand l'utilisateur réalise l'action attendue (clic sur le bouton mis en évidence, dialog ouvert, etc.). L'utilisateur peut aussi cliquer **« Suivant »** pour avancer manuellement.
-- À la fin : petit toast/carte « C'est bon 👍 Tu peux utiliser NordAgri ».
-- Relançable depuis **Paramètres → Profil → "Revoir le tutoriel"**.
-
-## 2. Étapes
-
-1. **Étape 1 – Ajouter un point** (sur `/points`)
-   - Surbrillance du bouton « + Nouveau point » dans `PointsPage`.
-   - Tooltip : *"Ajoute un point à surveiller (ex : problème sur un animal ou un équipement)"*.
-   - Avance quand `NewPointDialog` s'ouvre OU sur clic « Suivant ».
-
-2. **Étape 2 – Créer une tâche** (sur la fiche du point ou sur `/planning`)
-   - Surbrillance du bouton « Créer une tâche » dans `PointDetailDialog` (`CreateLinkedTaskDialog`). Si l'utilisateur a sauté l'étape 1, on retombe sur le bouton « + Nouvelle tâche » dans `Planning`.
-   - Tooltip : *"Crée une tâche pour régler ce point"*.
-
-3. **Étape 3 – Voir le dashboard** (sur `/dashboard`)
-   - Surbrillance de la zone du tableau de bord (élément `PageHeader` + premier widget).
-   - Tooltip : *"Ici tu vois ce qui demande ton attention aujourd'hui"*.
-   - Bouton « Terminer ».
-
-## 3. Architecture technique
-
-### a. Persistance du flag
-
-Migration ajoutant la colonne `has_seen_onboarding boolean default false` à `public.profiles`. Pas de nouvelle policy : les policies existantes (lecture par soi/membres, update par soi) couvrent le cas. Lecture/écriture via le client Supabase. Fallback `localStorage` (`nordagri.onboarding.seen`) pour éviter le flash avant le retour réseau.
-
-### b. Nouveaux fichiers
+## Structure de la page
 
 ```
-src/components/onboarding/
-  OnboardingProvider.tsx      // contexte: étape courante, start/skip/next/complete
-  OnboardingOverlay.tsx       // backdrop assombri + spotlight sur l'élément ciblé
-  OnboardingTooltip.tsx       // bulle (titre, texte, "Passer" / "Suivant")
-  OnboardingChecklist.tsx     // carte flottante repliable, 3 items
-  steps.ts                    // définition des 3 étapes (route, sélecteur, texte)
-src/hooks/onboarding/
-  useOnboarding.ts            // hook public (start, skip, isActive, currentStep)
-  useOnboardingFlag.ts        // lit/écrit profiles.has_seen_onboarding
+PageHeader: "Statistiques"
+[ Filtre période : Aujourd'hui | Semaine (défaut) | Mois ]
+
+Onglets :
+  [ Vue d'ensemble (nouveau, par défaut) ]   [ Temps de travail (existant) ]
+
+== Vue d'ensemble ==
+  Section TÂCHES
+    [Card] Complétées   [Card] En retard   [Card] En cours
+    Liste « Plus actif : <prénom> » + top employés (nom + nb tâches complétées)
+
+  Section POINTS À SURVEILLER
+    [Card] Points ouverts   [Card] Points réglés (période)   [Card] Points oubliés (>3j)
+    [Card large] Temps moyen de résolution : X jours
+
+  Section RÉACTIVITÉ
+    [Card] Temps moyen avant 1ʳᵉ action sur un point : X h
+    [Card] Temps moyen pour compléter une tâche : X h
 ```
 
-### c. Ciblage des éléments
+## Données / calculs (côté client, pas de migration)
 
-Attribut `data-onboarding="add-point" | "create-task" | "dashboard"` posé sur :
-- bouton « + Nouveau point » dans `src/components/points/PointsPage.tsx`
-- bouton « Créer une tâche » dans `src/components/points/PointDetailDialog.tsx` (et fallback sur le bouton « + » de `Planning.tsx`)
-- conteneur du dashboard dans `src/pages/Dashboard.tsx`
+Période sélectionnée → `[from, to]` :
+- Aujourd'hui : `from = today 00:00`, `to = today 23:59`
+- Semaine : 7 derniers jours glissants (`today-6 → today`)
+- Mois : 30 derniers jours glissants
 
-L'overlay calcule la `getBoundingClientRect()` de la cible, dessine un trou (mask SVG) et positionne le tooltip à côté. `MutationObserver` + `requestAnimationFrame` pour suivre les changements de layout. Si la cible n'est pas trouvée après 2s, le tutoriel propose une CTA « Aller à la page » qui navigue vers la route attendue.
+Source unique par section, sans nouveau hook lourd : on lit ce qui existe déjà.
 
-### d. Déclenchement
+### Tâches — table `planning_tasks`
+- Complétées : `status = 'done' AND completed_at BETWEEN from AND to`
+- En retard : `status != 'done' AND due_date < today`
+- En cours : `status IN ('todo','in_progress') AND due_date BETWEEN from AND to` (tâches actives sur la période)
+- Top employés : group by `completed_by` sur les complétées de la période → join avec `useTeamMembers()` pour récupérer le prénom. « Plus actif » = max count. Pas de classement négatif.
 
-Dans `OnboardingProvider` (monté dans `App.tsx` sous `AuthProvider`) :
-- Au mount, si `user` existe ET `profile.has_seen_onboarding === false` ET `farmId` existe → `start()`.
-- Si pas de ferme, on n'amorce pas (l'utilisateur voit déjà la bannière « Créer ma ferme »).
-- `skip()` et `complete()` appellent `update profiles set has_seen_onboarding = true`.
+### Points — tables `points` + `point_events`
+- Ouverts : `status != 'resolved'` (compteur global, indépendant de la période — c'est une photo de l'état actuel)
+- Réglés sur la période : `resolved_at BETWEEN from AND to`
+- Oubliés (>3 j) : `status != 'resolved' AND last_event_at < today - 3 days`
+- Temps moyen de résolution : pour les points dont `resolved_at` tombe dans la période, moyenne de `resolved_at - created_at` en jours.
 
-### e. Intégration Settings
+### Réactivité
+- Temps avant 1ʳᵉ action sur un point : pour les points créés dans la période, requête `point_events` (premier event de type `action` ou `correction` après `created_at`) → moyenne `firstEvent.created_at - point.created_at` en heures.
+- Temps moyen pour compléter une tâche : pour les tâches `done` dans la période, moyenne `completed_at - created_at` en heures.
 
-Dans `src/components/settings/profile/ProfileSection.tsx`, ajouter une ligne :
-- Label : « Tutoriel d'accueil »
-- Bouton secondaire « Revoir le tutoriel » → `useOnboarding().start({ force: true })` qui remet aussi le flag à `false` côté DB.
+## Fichiers à créer / modifier
 
-## 4. UX details
+- **Nouveau** `src/hooks/statistics/useOperationalStats.ts`
+  - Signature : `useOperationalStats(farmId, period: 'today'|'week'|'month')`
+  - 3 sous-requêtes parallèles via React Query :
+    1. `planning_tasks` (filtres farm + plage temporelle pour completed_at, plus toutes les non-done pour overdue/in-progress)
+    2. `points` (toutes les lignes du farm — petites tables)
+    3. `point_events` (events de la période liés aux points du farm)
+  - Calcule en mémoire les KPIs ci-dessus + agrège « top employés ».
+  - Retour : `{ tasks: {done, overdue, inProgress, perEmployee[], topEmployee}, points: {open, resolved, forgotten, avgResolutionDays}, reactivity: {avgFirstActionHours, avgCompletionHours}, isLoading }`
 
-- Backdrop : `bg-black/50` + `backdrop-blur-[2px]`, transition `framer-motion`.
-- Spotlight : rectangle arrondi `rounded-xl` autour de la cible avec padding 8px et `box-shadow: 0 0 0 9999px rgba(0,0,0,.5)`.
-- Tooltip : carte `bg-popover` avec titre, texte, et footer `[Passer]  [Suivant]`. Sur mobile (≤640px) la tooltip se positionne en bas plein-largeur.
-- Checklist : carte 280px en `fixed bottom-4 right-4` (au-dessus de la bottom-nav mobile), repliable en pastille.
-- Aucune bibliothèque externe : pas de `react-joyride` / `shepherd` (composants maison, cohérents avec shadcn).
+- **Nouveau** `src/components/statistics/OperationalOverview.tsx`
+  - Filtre période (3 boutons toggle)
+  - 3 sections de cards simples (composants `Card` shadcn déjà dispo, gros chiffre + label court)
+  - Composant interne `StatCard` réutilisable (titre, valeur, sous-titre optionnel, couleur d'accent)
+  - Liste « Top employés » : 5 lignes max (`Avatar` + nom + nb), badge « Plus actif » sur le 1ᵉʳ.
 
-## 5. Migration
+- **Modifié** `src/pages/TimeTrackingStatistics.tsx`
+  - Renommer le titre en « Statistiques »
+  - Ajouter `Tabs` : `Vue d'ensemble` (par défaut) + `Temps de travail`
+  - L'ancien contenu (`TimeTrackingStatisticsPage`) est déplacé dans le 2ᵉ onglet, **inchangé**.
 
-```sql
-alter table public.profiles
-  add column if not exists has_seen_onboarding boolean not null default false;
-```
+- **Modifié** `src/components/layout/navConfig.ts`
+  - L'entrée « Statistiques » existe déjà. Aucune modif de route.
 
-(Les utilisateurs existants gardent `false` par défaut → ils verront le tutoriel à leur prochaine visite ; acceptable et conforme à l'objectif "tutoriel relançable".)
+## Hors périmètre (à ne pas faire)
 
-## 6. Étapes de livraison
+- Aucune migration DB, aucun changement de schéma ni RLS.
+- Aucun graphique ajouté.
+- Aucune suppression : la page « Temps de travail » avec ses graphes existants est conservée comme onglet secondaire.
+- Pas de classement négatif des employés.
 
-1. Migration SQL `has_seen_onboarding`.
-2. `OnboardingProvider`, hooks, overlay, tooltip, checklist, `steps.ts`.
-3. Ajout des `data-onboarding="…"` sur les 3 cibles.
-4. Montage du provider dans `App.tsx`, déclenchement automatique.
-5. Section « Revoir le tutoriel » dans `ProfileSection`.
-6. QA manuel : nouveau compte, skip, force-restart, mobile 390px.
+## Considérations
 
-## 7. Hors périmètre
+- **Privacy / RLS** : tout est déjà filtré par farm via les RLS existantes. `useTeamMembers()` (déjà utilisé partout) fournit les noms des employés sans toucher `auth.users`.
+- **Performance** : trois requêtes simples scoppées par farm + plage. Données agrégées en mémoire (volumes faibles). `staleTime` 5 min selon la convention projet.
+- **Mobile-first** : grilles `grid-cols-1 sm:grid-cols-3` pour les cards ; pas de scroll horizontal. Filtre période en `grid-cols-3` plein largeur sur mobile.
+- **Vide** : si une stat n'a pas assez de données (ex. 0 tâche complétée), afficher « — » plutôt qu'un 0 trompeur pour les moyennes.
 
-- Pas de tutoriels par module (équipement, parts, etc.) — uniquement les 3 étapes demandées.
-- Pas d'A/B testing ni de tracking analytics dans cette première version.
+## Résultat attendu
+
+Quand l'utilisateur ouvre `/time-tracking/statistics`, il voit immédiatement (en 5 secondes) :
+- Combien de tâches avancent / sont en retard, qui pousse l'équipe.
+- Si des points traînent (oubliés > 3 j) et la vitesse moyenne de résolution.
+- À quelle vitesse l'équipe réagit aux problèmes et termine les tâches.
+
+Les graphes existants restent disponibles dans un second onglet pour l'analyse fine.
