@@ -31,7 +31,8 @@ const Parts = () => {
     isWithdrawalDialogOpen, 
     setIsWithdrawalDialogOpen, 
     selectedPart,
-    openWithdrawalDialog
+    openWithdrawalDialog,
+    setSelectedPart,
   } = usePartsWithdrawal();
   
   // Check authentication status on page load
@@ -102,8 +103,13 @@ const Parts = () => {
         {/* Dialog for part withdrawal when no specific part is selected */}
         <WithdrawalDialog 
           isOpen={isWithdrawalDialogOpen} 
-          onOpenChange={setIsWithdrawalDialogOpen}
+          onOpenChange={(open) => {
+            setIsWithdrawalDialogOpen(open);
+            if (!open) setSelectedPart(null);
+          }}
           part={selectedPart}
+          parts={partsHookData.parts ?? []}
+          onSelectPart={(p) => setSelectedPart(p)}
         />
         
         {/* Dialog for adding parts */}
