@@ -15,6 +15,7 @@ export const helpArticles: Record<string, HelpArticle> = {
     category: 'equipment',
     readTime: 4,
     keywords: ['flotte', 'tracteur', 'équipement', 'organiser', 'inventaire'],
+    tags: ['Démarrage', 'Équipement', 'Bonnes pratiques'],
     content: equipmentOrganize,
   },
   'maintenance-seasons': {
@@ -23,6 +24,7 @@ export const helpArticles: Record<string, HelpArticle> = {
     category: 'maintenance',
     readTime: 5,
     keywords: ['maintenance', 'préventive', 'saison', 'printemps', 'récolte', 'hiver'],
+    tags: ['Maintenance', 'Préventif', 'Saison'],
     content: maintenanceSeasons,
   },
   'parts-stock': {
@@ -31,6 +33,7 @@ export const helpArticles: Record<string, HelpArticle> = {
     category: 'parts',
     readTime: 4,
     keywords: ['pièces', 'stock', 'rupture', 'commande', 'inventaire'],
+    tags: ['Stock', 'Pièces', 'Bonnes pratiques'],
     content: partsStock,
   },
   'surveillance-vs-intervention': {
@@ -39,6 +42,7 @@ export const helpArticles: Record<string, HelpArticle> = {
     category: 'surveillance',
     readTime: 3,
     keywords: ['point', 'surveiller', 'intervention', 'observation'],
+    tags: ['Surveillance', 'Intervention', 'Concept'],
     content: surveillanceVsIntervention,
   },
   'daily-planning': {
@@ -47,6 +51,7 @@ export const helpArticles: Record<string, HelpArticle> = {
     category: 'planning',
     readTime: 4,
     keywords: ['planning', 'tâche', 'récurrente', 'quotidien'],
+    tags: ['Planning', 'Quotidien', 'Productivité'],
     content: dailyPlanning,
   },
   'time-tracking': {
@@ -55,6 +60,7 @@ export const helpArticles: Record<string, HelpArticle> = {
     category: 'time',
     readTime: 4,
     keywords: ['temps', 'session', 'facturation', 'ETA', 'coût'],
+    tags: ['Temps', 'Facturation', 'Suivi'],
     content: timeTracking,
   },
   'invite-members': {
@@ -63,6 +69,7 @@ export const helpArticles: Record<string, HelpArticle> = {
     category: 'team',
     readTime: 3,
     keywords: ['équipe', 'inviter', 'rôle', 'admin', 'membre'],
+    tags: ['Équipe', 'Démarrage', 'Rôles'],
     content: inviteMembers,
   },
 };
