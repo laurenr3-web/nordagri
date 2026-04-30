@@ -25,6 +25,7 @@ export function OnboardingOverlay() {
   const [rect, setRect] = useState<Rect | null>(null);
   const [missing, setMissing] = useState(false);
   const [minimized, setMinimized] = useState(false);
+  const [radixOpen, setRadixOpen] = useState(false);
 
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const nextBtnRef = useRef<HTMLButtonElement | null>(null);
@@ -108,6 +109,28 @@ export function OnboardingOverlay() {
     scrolledForStepRef.current = null;
   }, [currentIndex]);
 
+  // Auto-hide overlay whenever a Radix dialog/sheet/popover/drawer is open.
+  // Most onboarding actions open such surfaces (e.g. "Add task" form), and
+  // our backdrop must not cover them.
+  useEffect(() => {
+    if (!isActive) return;
+    const check = () => {
+      const open = document.querySelector(
+        '[data-state="open"][role="dialog"], [data-state="open"][role="alertdialog"], [data-radix-popper-content-wrapper] [data-state="open"]',
+      );
+      setRadixOpen(!!open);
+    };
+    check();
+    const obs = new MutationObserver(check);
+    obs.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['data-state'],
+    });
+    return () => obs.disconnect();
+  }, [isActive]);
+
   // Save / restore focus when the tutorial opens & closes
   useEffect(() => {
     if (!isActive) return;
@@ -135,6 +158,11 @@ export function OnboardingOverlay() {
   }, [isActive, skip]);
 
   if (!isActive || !step) return null;
+
+  // While a modal/sheet is open, fully step aside so the user can interact
+  // with the form. We still keep the small "Aide" pill so they can re-open
+  // the tutorial after closing the dialog.
+  const hidden = radixOpen;
 
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
   const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
@@ -201,7 +229,7 @@ export function OnboardingOverlay() {
 
       {/* Backdrop split into 4 panels around the spotlight so the cutout is
           natively clickable (no clip-path event blocking). */}
-      {cut && !minimized ? (
+      {cut && !minimized && !hidden ? (
         <>
           <div
             aria-hidden="true"
@@ -228,7 +256,7 @@ export function OnboardingOverlay() {
             style={{ top: cut.top + cut.height }}
           />
         </>
-      ) : !cut && !minimized ? (
+      ) : !cut && !minimized && !hidden ? (
         <div
           aria-hidden="true"
           className="fixed inset-0 z-[10000] pointer-events-auto bg-black/55 backdrop-blur-[2px]"
@@ -236,7 +264,7 @@ export function OnboardingOverlay() {
       ) : null}
 
       {/* Spotlight ring */}
-      {rect && !minimized && (
+      {rect && !minimized && !hidden && (
         <div
           aria-hidden="true"
           className="fixed z-[10000] rounded-xl ring-2 ring-primary ring-offset-2 ring-offset-background animate-pulse"
@@ -251,20 +279,25 @@ export function OnboardingOverlay() {
       )}
 
       {/* Minimized state: small floating pill to re-open the tooltip */}
-      {minimized && (
+      {(minimized || hidden) && (
         <button
           type="button"
           onClick={() => setMinimized(false)}
+          disabled={hidden}
           className="pointer-events-auto fixed bottom-20 right-3 z-[10001] flex items-center gap-1.5 rounded-full border bg-popover text-popover-foreground shadow-lg px-3 py-2 text-xs font-medium hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:bottom-4"
-          aria-label="Rouvrir l'aide du tutoriel"
+          aria-label={
+            hidden
+              ? "Aide du tutoriel mise en pause pendant l'utilisation du formulaire"
+              : "Rouvrir l'aide du tutoriel"
+          }
         >
           <HelpCircle className="h-4 w-4 text-primary" aria-hidden="true" />
-          Aide ({currentIndex + 1}/{totalSteps})
+          {hidden ? 'Aide en pause' : `Aide (${currentIndex + 1}/${totalSteps})`}
         </button>
       )}
 
       {/* Tooltip card */}
-      {!minimized && (
+      {!minimized && !hidden && (
       <div
         ref={dialogRef}
         role="dialog"
