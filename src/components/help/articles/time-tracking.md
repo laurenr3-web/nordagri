@@ -39,6 +39,5 @@ dans votre logiciel de facturation ou envoyé à votre
 comptable.
 
 Filtres utiles :
-- Par client (champ libre dans la session)
 - Par période (semaine, mois, saison)
 - Par équipement (utile pour le calcul d'amortissement)

@@ -33,8 +33,7 @@ un historique complet se vend mieux qu'un tracteur "à l'aveugle".
 
 ## Astuces
 
-- Pour une exploitation de plus de 20 équipements, créez des 
-  catégories cohérentes (Tracteurs, Récolte, Travail du sol, 
-  Logistique).
-- Affectez un responsable principal à chaque équipement majeur. 
-  La responsabilité partagée mène à l'oubli.
+- Pour une exploitation de plus de 20 équipements, utilisez le 
+  champ catégorie (texte libre) pour grouper vos engins de 
+  façon cohérente : Tracteurs, Récolte, Travail du sol, 
+  Logistique, etc.
