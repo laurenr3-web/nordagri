@@ -27,6 +27,7 @@ import AddStaffDialog from './dialogs/AddStaffDialog';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { HelpTooltip } from '@/components/help/HelpTooltip';
 
 interface NewTaskDialogProps {
   open: boolean;
@@ -138,7 +139,10 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({
         {/* Type and Priority Fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="type">Type</Label>
+            <Label htmlFor="type" className="inline-flex items-center gap-1">
+              Type
+              <HelpTooltip contentKey="maintenance.type" />
+            </Label>
             <Select 
               value={type} 
               onValueChange={(value) => setType(value as MaintenanceType)} 
@@ -156,7 +160,10 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="priority">Priorité</Label>
+            <Label htmlFor="priority" className="inline-flex items-center gap-1">
+              Priorité
+              <HelpTooltip contentKey="maintenance.priority" />
+            </Label>
             <Select 
               value={priority} 
               onValueChange={(value) => setPriority(value as MaintenancePriority)} 
@@ -178,7 +185,10 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({
         {/* Due Date and Duration Fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="dueDate">Date d'échéance</Label>
+            <Label htmlFor="dueDate" className="inline-flex items-center gap-1">
+              Date d'échéance
+              <HelpTooltip contentKey="maintenance.field.dueDate" />
+            </Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -207,7 +217,10 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="engineHours">Durée estimée (heures)</Label>
+            <Label htmlFor="engineHours" className="inline-flex items-center gap-1">
+              Durée estimée (heures)
+              <HelpTooltip contentKey="maintenance.field.estimatedHours" />
+            </Label>
             <div className="flex items-center">
               <Input
                 id="engineHours"
@@ -224,7 +237,10 @@ const NewTaskDialog: React.FC<NewTaskDialogProps> = ({
         </div>
 
         <div className="space-y-2">
-          <Label>Seuil de déclenchement (optionnel)</Label>
+          <Label className="inline-flex items-center gap-1">
+            Seuil de déclenchement (optionnel)
+            <HelpTooltip contentKey="maintenance.field.trigger" />
+          </Label>
           <div className="flex gap-4">
             <Select
               value={trigger_unit}

@@ -17,6 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { MaintenanceFrequency, MaintenancePlan, MaintenanceUnit } from '@/hooks/maintenance/useMaintenancePlanner';
 import { MaintenancePriority, MaintenanceType } from '@/hooks/maintenance/maintenanceSlice';
 import { TriggerThresholdFields } from '../fields/TriggerThresholdFields';
+import { HelpTooltip } from '@/components/help/HelpTooltip';
 
 // Schema de validation pour le formulaire de plan de maintenance
 const maintenancePlanSchema = z.object({
@@ -218,7 +219,10 @@ export default function MaintenancePlanForm({
             name="frequency"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Fréquence</FormLabel>
+                <FormLabel className="inline-flex items-center gap-1">
+                  Fréquence
+                  <HelpTooltip contentKey="maintenance.field.frequency" />
+                </FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
@@ -248,7 +252,10 @@ export default function MaintenancePlanForm({
             name="interval"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Intervalle</FormLabel>
+                <FormLabel className="inline-flex items-center gap-1">
+                  Intervalle
+                  <HelpTooltip contentKey="maintenance.field.interval" />
+                </FormLabel>
                 <FormControl>
                   <Input 
                     type="number" 
@@ -272,7 +279,10 @@ export default function MaintenancePlanForm({
               name="unit"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Unité</FormLabel>
+                  <FormLabel className="inline-flex items-center gap-1">
+                    Unité
+                    <HelpTooltip contentKey="maintenance.field.unit" />
+                  </FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
@@ -303,7 +313,10 @@ export default function MaintenancePlanForm({
             name="type"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Type de maintenance</FormLabel>
+                <FormLabel className="inline-flex items-center gap-1">
+                  Type de maintenance
+                  <HelpTooltip contentKey="maintenance.type" />
+                </FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
@@ -333,7 +346,10 @@ export default function MaintenancePlanForm({
             name="priority"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Priorité</FormLabel>
+                <FormLabel className="inline-flex items-center gap-1">
+                  Priorité
+                  <HelpTooltip contentKey="maintenance.priority" />
+                </FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
@@ -363,7 +379,10 @@ export default function MaintenancePlanForm({
             name="engineHours"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Heures moteur estimées</FormLabel>
+                <FormLabel className="inline-flex items-center gap-1">
+                  Heures moteur estimées
+                  <HelpTooltip contentKey="maintenance.field.engineHoursEstimate" />
+                </FormLabel>
                 <FormControl>
                   <div className="flex items-center">
                     <Input 
@@ -390,7 +409,10 @@ export default function MaintenancePlanForm({
             name="nextDueDate"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Date de prochaine maintenance</FormLabel>
+                <FormLabel className="inline-flex items-center gap-1">
+                  Date de prochaine maintenance
+                  <HelpTooltip contentKey="maintenance.field.nextDueDate" />
+                </FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
