@@ -44,6 +44,8 @@ export function TourGuide() {
   // Tour effectivement actif (peut être différé si dialog ouvert)
   const [activeTour, setActiveTour] = useState<TourName | null>(null);
   const observerRef = useRef<MutationObserver | null>(null);
+  // Empêche les marquages multiples du même tour (sinon boucle de re-renders)
+  const markedRef = useRef<Set<TourName>>(new Set());
 
   const steps = useMemo<Step[]>(() => {
     if (!activeTour) return [];
@@ -172,7 +174,12 @@ export function TourGuide() {
     if (steps.length === 0) {
       // Aucune cible disponible : on marque comme terminé pour ne pas re-déclencher
       logger.info('[onboarding] no valid steps for tour, skipping', activeTour);
-      void markTourCompleted(activeTour).finally(() => stopTour());
+      if (!markedRef.current.has(activeTour)) {
+        markedRef.current.add(activeTour);
+        void markTourCompleted(activeTour).finally(() => stopTour());
+      } else {
+        stopTour();
+      }
       return;
     }
     controls.start(0);
@@ -180,12 +187,19 @@ export function TourGuide() {
     // skippé, fermé via X, ou interrompu par un refresh, il ne se
     // redéclenchera plus automatiquement. L'utilisateur peut toujours
     // le relancer manuellement depuis les Réglages (forceStartTour).
-    void markTourCompleted(activeTour);
+    if (!markedRef.current.has(activeTour)) {
+      markedRef.current.add(activeTour);
+      void markTourCompleted(activeTour);
+    }
     // Cleanup : si le composant change de tour, on remet à zéro
     return () => {
       controls.reset();
     };
-  }, [activeTour, steps, controls, markTourCompleted, stopTour]);
+    // markTourCompleted est volontairement exclu des deps : il change
+    // d'identité à chaque save de prefs, ce qui causait une boucle
+    // (effet relancé → controls.reset → restart → re-save…).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTour, steps, controls, stopTour]);
 
   // Souscriptions aux événements Joyride pour terminer/skipper
   useEffect(() => {
@@ -193,14 +207,20 @@ export function TourGuide() {
       if (!activeTour) return;
       const status = data.status;
       if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
-        void markTourCompleted(activeTour);
+        if (!markedRef.current.has(activeTour)) {
+          markedRef.current.add(activeTour);
+          void markTourCompleted(activeTour);
+        }
         stopTour();
       }
     });
     const offErr = on(EVENTS.TARGET_NOT_FOUND, () => {
       if (!activeTour) return;
       logger.warn('[onboarding] target not found, ending tour', activeTour);
-      void markTourCompleted(activeTour);
+      if (!markedRef.current.has(activeTour)) {
+        markedRef.current.add(activeTour);
+        void markTourCompleted(activeTour);
+      }
       stopTour();
     });
     return () => {
