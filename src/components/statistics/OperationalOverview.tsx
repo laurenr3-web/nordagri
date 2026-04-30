@@ -3,6 +3,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useFarmId } from '@/hooks/useFarmId';
 import { useTeamMembers } from '@/hooks/useTeamMembers';
 import { useOperationalStats, type StatsPeriod } from '@/hooks/statistics/useOperationalStats';
@@ -18,6 +25,7 @@ import {
   Trophy,
   Timer,
   Info,
+  Users,
 } from 'lucide-react';
 
 interface PeriodFilterProps {
@@ -144,8 +152,10 @@ interface OperationalOverviewProps {
 
 export const OperationalOverview: React.FC<OperationalOverviewProps> = ({ period, onPeriodChange }) => {
   const { farmId } = useFarmId();
-  const { data, isLoading } = useOperationalStats(farmId, period);
   const { teamMembers } = useTeamMembers();
+  const [employeeId, setEmployeeId] = React.useState<string>('all');
+  const selectedEmployeeId = employeeId === 'all' ? null : employeeId;
+  const { data, isLoading } = useOperationalStats(farmId, period, selectedEmployeeId);
 
   const memberById = useMemo(() => {
     const m = new Map<string, string>();
@@ -158,6 +168,18 @@ export const OperationalOverview: React.FC<OperationalOverviewProps> = ({ period
     return m;
   }, [teamMembers]);
 
+  const employeeOptions = useMemo(() => {
+    return (teamMembers ?? [])
+      .map((tm: any) => {
+        const id = tm.user_id || tm.id;
+        if (!id) return null;
+        const name = `${tm.first_name ?? ''} ${tm.last_name ?? ''}`.trim() || 'Utilisateur';
+        return { id, name };
+      })
+      .filter((x): x is { id: string; name: string } => !!x)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [teamMembers]);
+
   const top = data?.tasks.perEmployee.slice(0, 5) ?? [];
   const topName = data?.tasks.topEmployeeId ? memberById.get(data.tasks.topEmployeeId) ?? 'Membre' : null;
 
@@ -166,10 +188,34 @@ export const OperationalOverview: React.FC<OperationalOverviewProps> = ({ period
   const periodScopeLabel =
     period === 'today' ? "aujourd'hui" : period === 'week' ? 'des 7 derniers jours' : 'des 30 derniers jours';
 
+  const filtersBlock = (
+    <div className="space-y-2">
+      <PeriodFilter value={period} onChange={onPeriodChange} />
+      <div className="flex items-center gap-2">
+        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+          <Users className="h-4 w-4" />
+        </div>
+        <Select value={employeeId} onValueChange={setEmployeeId}>
+          <SelectTrigger className="flex-1" aria-label="Filtrer par employé">
+            <SelectValue placeholder="Tous les employés" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les employés</SelectItem>
+            {employeeOptions.map((emp) => (
+              <SelectItem key={emp.id} value={emp.id}>
+                {emp.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+
   if (isLoading || !data) {
     return (
       <div className="space-y-6">
-        <PeriodFilter value={period} onChange={onPeriodChange} />
+        {filtersBlock}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-28 rounded-lg" />
@@ -181,7 +227,7 @@ export const OperationalOverview: React.FC<OperationalOverviewProps> = ({ period
 
   return (
     <div className="space-y-8">
-      <PeriodFilter value={period} onChange={onPeriodChange} />
+      {filtersBlock}
 
       {/* TÂCHES */}
       <section>
