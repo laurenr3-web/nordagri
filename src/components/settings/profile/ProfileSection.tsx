@@ -3,8 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { SettingsSectionWrapper } from '../SettingsSectionWrapper';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User } from 'lucide-react';
+import { User, Sparkles } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { useOnboarding } from '@/components/onboarding/OnboardingProvider';
 
 interface ProfileSectionProps {
   firstName: string;
@@ -25,6 +27,7 @@ export function ProfileSection({
 }: ProfileSectionProps) {
   const [localFirstName, setLocalFirstName] = useState(firstName);
   const [localLastName, setLocalLastName] = useState(lastName);
+  const { start } = useOnboarding();
   
   useEffect(() => {
     setLocalFirstName(firstName);
@@ -118,6 +121,27 @@ export function ProfileSection({
           <p className="text-xs text-muted-foreground">
             L'email est utilisé pour la connexion et ne peut pas être modifié
           </p>
+        </div>
+
+        {/* Onboarding tutorial */}
+        <div className="rounded-lg border bg-muted/30 p-3 flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-sm font-medium flex items-center gap-1.5">
+              <Sparkles className="h-4 w-4 text-primary" />
+              Tutoriel d'accueil
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Refais le tour rapide en 3 étapes pour découvrir les bases.
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => start({ force: true })}
+          >
+            Revoir
+          </Button>
         </div>
       </div>
     </SettingsSectionWrapper>

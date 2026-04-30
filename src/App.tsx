@@ -8,6 +8,7 @@ import { RealtimeCacheProvider } from '@/providers/RealtimeCacheProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { OfflineProvider } from '@/providers/OfflineProvider';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { OnboardingProvider } from '@/components/onboarding/OnboardingProvider';
 import MobileMenu from '@/components/layout/MobileMenu';
 import '@/i18n'; // i18n setup
 import { I18nextProvider } from "react-i18next";
@@ -65,6 +66,7 @@ function App() {
             <Router>
               <AuthProvider>
                 <OfflineProvider autoSyncInterval={60000} showOfflineIndicator={true}>
+                  <OnboardingProvider>
                   <Suspense fallback={<LoadingSpinner />}>
                     <Routes>
                       <Route path="/" element={<Navigate to={withPreviewToken('/dashboard')} replace />} />
@@ -138,6 +140,7 @@ function App() {
                   <MobileMenu />
                   <Toaster />
                   <Footer />
+                  </OnboardingProvider>
                 </OfflineProvider>
               </AuthProvider>
             </Router>
