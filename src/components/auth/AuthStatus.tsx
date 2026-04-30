@@ -53,7 +53,7 @@ export const AuthStatus: React.FC = () => {
         </p>
       </div>
       
-      <Avatar className="h-8 w-8">
+      <Avatar className="h-8 w-8" data-tour="user-avatar">
         <AvatarFallback>{getInitials()}</AvatarFallback>
       </Avatar>
       

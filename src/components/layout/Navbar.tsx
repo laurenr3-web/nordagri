@@ -19,6 +19,7 @@ const NavLink = ({ path, icon, label, isActive, priority }: {
   return (
     <Link
       to={path}
+      data-tour={path === '/equipment' ? 'nav-equipment' : undefined}
       className={cn(
         "flex items-center gap-3 rounded-lg px-3 transition-all",
         priority === 'primary' ? "py-2.5 font-medium" : "py-2 text-sm",
@@ -88,7 +89,7 @@ const Navbar = () => {
       </div>
       
       <div className="flex-1 overflow-auto py-2">
-        <nav className="flex flex-col" role="tablist">
+        <nav className="flex flex-col" role="tablist" data-tour="sidebar-nav">
           {navGroups.map((group, idx) => (
             <div key={group.id} className={cn(idx === 0 ? 'mt-0' : 'mt-6')}>
               <div className="px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/60">

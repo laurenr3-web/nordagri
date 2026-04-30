@@ -23,6 +23,16 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
 
   const prefsLoaded = !!userId && !loading;
 
+  // Auto-démarrage du tour welcome à la 1re connexion (une seule fois)
+  const autoStartedRef = useRef(false);
+  useEffect(() => {
+    if (!prefsLoaded || autoStartedRef.current) return;
+    if (prefs.onboardingSkipped) return;
+    if (prefs.completedTours.includes('welcome')) return;
+    autoStartedRef.current = true;
+    setCurrentTour((prev) => (prev === null ? 'welcome' : prev));
+  }, [prefsLoaded, prefs.completedTours, prefs.onboardingSkipped]);
+
   const startTour = useCallback(
     (name: TourName) => {
       if (!prefsLoaded) {

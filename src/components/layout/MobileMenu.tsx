@@ -86,6 +86,7 @@ const MobileMenu = () => {
         className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t lg:hidden safe-area-bottom"
         role="navigation"
         aria-label="Menu principal mobile"
+        data-tour="mobile-quick-bar"
       >
         <div className="flex items-stretch gap-1 px-2 py-1">
           {mobileQuickItems.map((item) => (
