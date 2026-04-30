@@ -251,7 +251,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
       <div className="grid gap-2">
         <Label htmlFor="notes" className="inline-flex items-center gap-1">
           🗒️ Notes / Observations
-          <HelpTooltip contentKey="time.field.location" />
+          <HelpTooltip contentKey="time.field.notes" />
         </Label>
         <Textarea
           id="notes"
