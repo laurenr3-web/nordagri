@@ -13,6 +13,11 @@ export interface HelpArticle {
   category: HelpCategory;
   readTime: number;
   keywords: string[];
+  /**
+   * Tags affichés à l'utilisateur, cliquables comme filtres dans
+   * le centre d'aide. Distincts de `keywords` (purement matching texte).
+   */
+  tags: string[];
   content: string;
 }
 
