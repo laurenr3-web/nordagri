@@ -38,6 +38,14 @@ export const equipmentStepsDesktop: Step[] = [
       'Photos, maintenances, observations, interventions et QR code : tout est centralisé dans ces onglets.',
     skipBeacon: true,
   },
+  {
+    target: '[data-tour="equipment-qr"]',
+    placement: 'bottom',
+    title: 'QR code de l’équipement',
+    content:
+      "Générez et imprimez un QR code à coller sur la machine : un simple scan ouvre la fiche complète depuis le terrain.",
+    skipBeacon: true,
+  },
 ];
 
 export const equipmentStepsMobile: Step[] = [
@@ -63,6 +71,14 @@ export const equipmentStepsMobile: Step[] = [
     title: 'Onglets',
     content:
       'Photos, historique de maintenance et QR code se trouvent dans ces onglets.',
+    skipBeacon: true,
+  },
+  {
+    target: '[data-tour="equipment-qr"]',
+    placement: 'bottom',
+    title: 'QR code',
+    content:
+      "Imprimez un QR code à coller sur la machine pour accéder à sa fiche en un scan.",
     skipBeacon: true,
   },
 ];
