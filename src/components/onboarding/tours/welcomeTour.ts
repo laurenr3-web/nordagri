@@ -12,7 +12,7 @@ export const welcomeStepsDesktop: Step[] = [
     title: 'Bienvenue sur Nordagri 🌾',
     content:
       "Faisons un tour rapide pour vous montrer l'essentiel : navigation, équipements et profil. Vous pouvez quitter à tout moment.",
-    disableBeacon: true,
+    skipBeacon: true,
   },
   {
     target: '[data-tour="sidebar-nav"]',
@@ -20,7 +20,7 @@ export const welcomeStepsDesktop: Step[] = [
     title: 'Navigation principale',
     content:
       'Toutes les sections de votre ERP agricole sont ici : tableau de bord, planning, équipements, maintenance, pièces et statistiques.',
-    disableBeacon: true,
+    skipBeacon: true,
   },
   {
     target: '[data-tour="nav-equipment"]',
@@ -28,7 +28,7 @@ export const welcomeStepsDesktop: Step[] = [
     title: 'Vos équipements',
     content:
       'Suivez vos tracteurs, outils et machines : compteurs d’usage, photos, observations et historique de maintenance.',
-    disableBeacon: true,
+    skipBeacon: true,
   },
   {
     target: '[data-tour="user-avatar"]',
@@ -36,7 +36,7 @@ export const welcomeStepsDesktop: Step[] = [
     title: 'Votre profil',
     content:
       'Accédez à votre profil et aux Réglages. Vous pourrez relancer ce tutoriel à tout moment depuis cette zone.',
-    disableBeacon: true,
+    skipBeacon: true,
   },
 ];
 
@@ -47,7 +47,7 @@ export const welcomeStepsMobile: Step[] = [
     title: 'Bienvenue sur Nordagri 🌾',
     content:
       "Faisons un tour rapide. Vous pouvez quitter à tout moment et le relancer depuis les Réglages.",
-    disableBeacon: true,
+    skipBeacon: true,
   },
   {
     target: '[data-tour="mobile-quick-bar"]',
@@ -55,7 +55,7 @@ export const welcomeStepsMobile: Step[] = [
     title: 'Navigation rapide',
     content:
       'Vos sections principales sont accessibles ici. Le bouton « Plus » ouvre toutes les autres rubriques (équipements, maintenance, pièces…).',
-    disableBeacon: true,
+    skipBeacon: true,
   },
   {
     target: '[data-tour="user-avatar"]',
@@ -63,6 +63,6 @@ export const welcomeStepsMobile: Step[] = [
     title: 'Votre profil',
     content:
       'Accédez à votre profil et aux Réglages. Vous pourrez relancer ce tutoriel à tout moment.',
-    disableBeacon: true,
+    skipBeacon: true,
   },
 ];
