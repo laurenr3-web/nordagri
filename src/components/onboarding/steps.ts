@@ -1,7 +1,11 @@
 import type { ComponentType } from 'react';
-import { Target, ListPlus, LayoutDashboard } from 'lucide-react';
+import { Target, ListPlus, LayoutDashboard, Settings } from 'lucide-react';
 
-export type OnboardingStepId = 'add-point' | 'create-task' | 'dashboard';
+export type OnboardingStepId =
+  | 'add-point'
+  | 'create-task'
+  | 'dashboard'
+  | 'settings-replay';
 
 export interface OnboardingStep {
   id: OnboardingStepId;
@@ -46,5 +50,15 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     route: '/dashboard',
     target: 'dashboard',
     icon: LayoutDashboard,
+  },
+  {
+    id: 'settings-replay',
+    label: 'Revoir le tutoriel',
+    title: 'Retrouve ce tutoriel quand tu veux',
+    description:
+      "Ouvre Paramètres → Profil. Tu y trouveras le bouton « Revoir » pour relancer ce tour à tout moment.",
+    route: '/settings',
+    target: 'replay-tutorial',
+    icon: Settings,
   },
 ];

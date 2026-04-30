@@ -136,7 +136,9 @@ const MobileMenu = () => {
                 {t('nav.group.account')}
               </h3>
               <div className="grid grid-cols-2 gap-2">
-                <SheetItem item={accountItem} />
+                <div data-onboarding="settings-nav">
+                  <SheetItem item={accountItem} />
+                </div>
               </div>
             </section>
           </div>
