@@ -14,6 +14,8 @@ import { Button } from '@/components/ui/button';
 import { FileDown, Plus } from 'lucide-react';
 import ImportMaintenanceDialog from '@/components/maintenance/dialogs/ImportMaintenanceDialog';
 import { MaintenanceTourTrigger } from '@/components/onboarding/MaintenanceTourTrigger';
+import { EmptyState } from '@/components/help/EmptyState';
+import { emptyStates } from '@/content/help/emptyStates';
 
 const Maintenance = () => {
   const {
@@ -80,17 +82,37 @@ const Maintenance = () => {
           </div>
           
           <TabsContent value="tasks">
-            <MaintenanceContent 
-              tasks={tasks} 
-              currentView={currentView} 
-              setCurrentView={setCurrentView} 
-              currentMonth={currentMonth} 
-              setIsNewTaskDialogOpen={setIsNewTaskDialogOpen} 
-              updateTaskStatus={updateTaskStatus} 
-              updateTaskPriority={updateTaskPriority} 
-              deleteTask={deleteTask} 
-              userName={getUserDisplayName()} 
-            />
+            {!isLoading && tasks.length === 0 ? (
+              <EmptyState
+                icon={emptyStates.maintenanceList.icon}
+                title={emptyStates.maintenanceList.title}
+                description={emptyStates.maintenanceList.description}
+                action={{
+                  label: emptyStates.maintenanceList.actionLabel,
+                  onClick: () => setIsNewTaskDialogOpen(true),
+                }}
+                secondaryAction={
+                  emptyStates.maintenanceList.articleId
+                    ? {
+                        label: emptyStates.maintenanceList.secondaryActionLabel!,
+                        articleId: emptyStates.maintenanceList.articleId,
+                      }
+                    : undefined
+                }
+              />
+            ) : (
+              <MaintenanceContent
+                tasks={tasks}
+                currentView={currentView}
+                setCurrentView={setCurrentView}
+                currentMonth={currentMonth}
+                setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
+                updateTaskStatus={updateTaskStatus}
+                updateTaskPriority={updateTaskPriority}
+                deleteTask={deleteTask}
+                userName={getUserDisplayName()}
+              />
+            )}
           </TabsContent>
           
           <TabsContent value="dashboard">
