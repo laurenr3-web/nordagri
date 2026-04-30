@@ -3,12 +3,11 @@ import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Search, BookOpen, Clock, ChevronRight, X } from 'lucide-react';
+import { Search, BookOpen, Clock, ChevronRight } from 'lucide-react';
 import { useHelpCenter } from '@/contexts/HelpCenterContext';
 import { helpArticles } from './articles';
 import { HELP_CATEGORIES, type HelpArticle, type HelpCategory } from './articles/types';
 import { HelpArticleView } from './HelpArticleView';
-import { cn } from '@/lib/utils';
 
 const normalize = (s: string): string =>
   s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -18,32 +17,15 @@ export const HelpCenter = () => {
     isOpen,
     activeArticleId,
     searchQuery,
-    activeTags,
     close,
     setActiveArticle,
     setSearchQuery,
-    toggleTag,
-    clearTags,
   } = useHelpCenter();
-
-  // Liste de tous les tags disponibles, triés et dédupliqués
-  const allTags = useMemo<string[]>(() => {
-    const set = new Set<string>();
-    for (const a of Object.values(helpArticles)) {
-      a.tags.forEach((t) => set.add(t));
-    }
-    return Array.from(set).sort((a, b) => a.localeCompare(b, 'fr'));
-  }, []);
 
   const filteredArticles = useMemo<HelpArticle[]>(() => {
     const articles = Object.values(helpArticles);
     const q = normalize(searchQuery.trim());
     return articles.filter((a) => {
-      // Filtre tags : tous les tags actifs doivent être présents (AND)
-      if (activeTags.length > 0) {
-        const hasAll = activeTags.every((t) => a.tags.includes(t));
-        if (!hasAll) return false;
-      }
       // Filtre recherche texte (titre, mots-clés, tags, contenu)
       if (!q) return true;
       return (
@@ -53,7 +35,7 @@ export const HelpCenter = () => {
         normalize(a.content).includes(q)
       );
     });
-  }, [searchQuery, activeTags]);
+  }, [searchQuery]);
 
   const articlesByCategory = useMemo<Map<HelpCategory, HelpArticle[]>>(() => {
     const map = new Map<HelpCategory, HelpArticle[]>();
@@ -95,46 +77,6 @@ export const HelpCenter = () => {
                   className="pl-9"
                   aria-label="Rechercher dans le centre d'aide"
                 />
-              </div>
-
-              {/* Barre de tags pour affiner la recherche */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                    Filtrer par tags
-                  </span>
-                  {activeTags.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={clearTags}
-                      className="text-[11px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
-                    >
-                      <X className="h-3 w-3" />
-                      Tout effacer
-                    </button>
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {allTags.map((tag) => {
-                    const active = activeTags.includes(tag);
-                    return (
-                      <button
-                        key={tag}
-                        type="button"
-                        onClick={() => toggleTag(tag)}
-                        aria-pressed={active}
-                        className={cn(
-                          'text-xs px-2 py-0.5 rounded-full border transition-colors',
-                          active
-                            ? 'bg-primary text-primary-foreground border-primary'
-                            : 'bg-background text-muted-foreground border-border hover:bg-accent hover:text-accent-foreground',
-                        )}
-                      >
-                        {tag}
-                      </button>
-                    );
-                  })}
-                </div>
               </div>
             </div>
 
