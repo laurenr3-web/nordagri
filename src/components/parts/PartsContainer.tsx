@@ -197,7 +197,7 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 w-full max-w-full overflow-x-hidden">
       <PartsCompactFilters
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
