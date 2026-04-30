@@ -7,6 +7,7 @@ import { Loader2, User, Building, CreditCard, Shield, Bell } from 'lucide-react'
 import { useSettings } from '@/hooks/useSettings';
 import { useSettingsState } from '@/hooks/settings/useSettingsState';
 import { ProfileSection } from '@/components/settings/profile/ProfileSection';
+import { OnboardingSection } from '@/components/settings/profile/OnboardingSection';
 import { PasswordSection } from '@/components/settings/security/PasswordSection';
 import { SimpleNotificationSection } from '@/components/settings/notifications/SimpleNotificationSection';
 import { FarmSettingsSection } from '@/components/settings/farm/FarmSettingsSection';
@@ -188,6 +189,7 @@ const Settings = () => {
                   onUpdateNotifications={updateNotifications}
                   loading={loading}
                 />
+                <OnboardingSection />
               </TabsContent>
               
               <TabsContent value="farm" className="space-y-6 mt-0">
