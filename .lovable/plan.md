@@ -1,105 +1,99 @@
 ## Objectif
 
-Réorganiser uniquement la navigation (sidebar desktop + menu mobile) en 3 sections thématiques claires, sans toucher au backend ni supprimer aucune fonctionnalité. Les routes existantes restent identiques.
+Refondre la page `Statistiques` (`/time-tracking/statistics`) pour qu'elle soit lisible en moins de 5 secondes : KPIs orientés terrain (Tâches, Points à surveiller, Réactivité), aucun graphique. La page actuelle (graphes temps/équipement) est conservée mais déplacée dans un onglet « Temps de travail » pour ne pas perdre la fonctionnalité.
 
-## Structure cible des sections
+## Structure de la page
 
 ```
-TRAVAIL QUOTIDIEN     (priorité haute, en haut, contraste fort)
-  • Dashboard           /dashboard
-  • Planification       /planning
-  • Points à surveiller /points
+PageHeader: "Statistiques"
+[ Filtre période : Aujourd'hui | Semaine (défaut) | Mois ]
 
-GESTION MATÉRIEL      (priorité moyenne)
-  • Équipement          /equipment
-  • Maintenance         /maintenance
-  • Pièces              /parts
+Onglets :
+  [ Vue d'ensemble (nouveau, par défaut) ]   [ Temps de travail (existant) ]
 
-ANALYSE               (priorité basse, plus discret)
-  • Suivi du temps      /time-tracking
-  • Statistiques        /time-tracking/statistics
+== Vue d'ensemble ==
+  Section TÂCHES
+    [Card] Complétées   [Card] En retard   [Card] En cours
+    Liste « Plus actif : <prénom> » + top employés (nom + nb tâches complétées)
 
-(Paramètres reste accessible en bas, séparé des 3 groupes)
+  Section POINTS À SURVEILLER
+    [Card] Points ouverts   [Card] Points réglés (période)   [Card] Points oubliés (>3j)
+    [Card large] Temps moyen de résolution : X jours
+
+  Section RÉACTIVITÉ
+    [Card] Temps moyen avant 1ʳᵉ action sur un point : X h
+    [Card] Temps moyen pour compléter une tâche : X h
 ```
 
-## Changements proposés
+## Données / calculs (côté client, pas de migration)
 
-### 1. Modèle de données nav partagé
-Créer `src/components/layout/navConfig.ts` exportant un tableau de groupes :
-```
-[
-  { id: 'daily',     labelKey: 'nav.group.daily',     items: [...] },
-  { id: 'equipment', labelKey: 'nav.group.equipment', items: [...] },
-  { id: 'analysis',  labelKey: 'nav.group.analysis',  items: [...] },
-]
-```
-Chaque item : `{ path, icon, labelKey, priority: 'primary'|'secondary' }`.
-Ajout de l'entrée Statistiques (route déjà existante `/time-tracking/statistics`, icône `BarChart3`).
+Période sélectionnée → `[from, to]` :
+- Aujourd'hui : `from = today 00:00`, `to = today 23:59`
+- Semaine : 7 derniers jours glissants (`today-6 → today`)
+- Mois : 30 derniers jours glissants
 
-Cela garantit la cohérence visuelle entre desktop et mobile (point 6).
+Source unique par section, sans nouveau hook lourd : on lit ce qui existe déjà.
 
-### 2. Sidebar desktop — `src/components/layout/Navbar.tsx`
-- Boucler sur les groupes de `navConfig`.
-- Avant chaque groupe, afficher un titre de section : petit, uppercase, `text-xs font-semibold text-muted-foreground/70 tracking-wider px-3 mt-4 mb-2` (sauf le premier groupe : `mt-0`).
-- Espacement clair entre groupes (`mt-6` entre groupes).
-- Items du groupe « Travail quotidien » :
-  - icône `h-5 w-5` (déjà), texte `font-medium`
-  - actif: `bg-primary/10 text-primary` au lieu du `bg-secondary` standard pour renforcer le contraste (point 3).
-- Items secondaires (Analyse) : `text-muted-foreground` un peu plus discret, icône `h-4 w-4` pour réduire le bruit (point 4).
-- « Paramètres » sort des 3 groupes, reste en bas comme aujourd’hui (déjà séparé via `mt-auto` d'un autre conteneur, à conserver via un petit groupe « Compte » non titré ou simplement détaché en bas).
+### Tâches — table `planning_tasks`
+- Complétées : `status = 'done' AND completed_at BETWEEN from AND to`
+- En retard : `status != 'done' AND due_date < today`
+- En cours : `status IN ('todo','in_progress') AND due_date BETWEEN from AND to` (tâches actives sur la période)
+- Top employés : group by `completed_by` sur les complétées de la période → join avec `useTeamMembers()` pour récupérer le prénom. « Plus actif » = max count. Pas de classement négatif.
 
-### 3. Menu mobile — `src/components/layout/MobileMenu.tsx`
-La barre du bas actuelle utilise `ExpandableTabs` à plat (8 items). Pour passer à 3 sections claires sans casser le mobile-first :
+### Points — tables `points` + `point_events`
+- Ouverts : `status != 'resolved'` (compteur global, indépendant de la période — c'est une photo de l'état actuel)
+- Réglés sur la période : `resolved_at BETWEEN from AND to`
+- Oubliés (>3 j) : `status != 'resolved' AND last_event_at < today - 3 days`
+- Temps moyen de résolution : pour les points dont `resolved_at` tombe dans la période, moyenne de `resolved_at - created_at` en jours.
 
-Option retenue : **barre rapide + drawer**.
-- Barre fixe en bas affiche uniquement les 3 items prioritaires (Dashboard, Planification, Points) + bouton « Plus » (icône `Menu`).
-- Le bouton « Plus » ouvre un `Sheet` (bottom sheet) qui montre toutes les sections groupées avec titres :
-  - TRAVAIL QUOTIDIEN, GESTION MATÉRIEL, ANALYSE, COMPTE (Paramètres)
-  - Espacement clair (`space-y-6` entre groupes), grilles 2 colonnes pour les items, gros boutons accessibles au pouce (`h-14`, icône + label).
-- La route active reste mise en évidence dans la barre rapide ET dans le drawer.
-- Aucune route supprimée, tout reste atteignable.
+### Réactivité
+- Temps avant 1ʳᵉ action sur un point : pour les points créés dans la période, requête `point_events` (premier event de type `action` ou `correction` après `created_at`) → moyenne `firstEvent.created_at - point.created_at` en heures.
+- Temps moyen pour compléter une tâche : pour les tâches `done` dans la période, moyenne `completed_at - created_at` en heures.
 
-Cela répond aux points 3 (priorité visuelle), 4 (réduire le bruit), 7 (mobile-first / accès au pouce) sans scroll horizontal (cf. règle projet : pas de scroll horizontal mobile).
+## Fichiers à créer / modifier
 
-### 4. Liens de navigation contextuels (point 5)
-Ajouts ciblés, sans nouvelle logique métier :
-- **Dashboard → Action** : sur le widget « Points à surveiller », ajouter un bouton « Créer une tâche » à côté de chaque item, qui navigue vers `/planning?fromPoint=<id>` (la page Planning ouvre déjà le dialog Nouvelle tâche via querystring — confirmer dans `Planning.tsx`, sinon préremplir via state `navigate(..., { state: { fromPoint } })`).
-- **Point → Tâche** : dans `src/components/points/...` (carte/détail d’un point), ajouter un bouton « Créer une tâche » qui ouvre Planning préremplie avec le point lié.
-- **Tâche → Point** : dans le dialog de détail d’une tâche de Planning, si la tâche est liée à un point (`linked_point_id` déjà géré côté DB via `usePointLinkedTasks`), afficher un bouton « Voir le point lié » qui navigue vers `/points?id=<id>`.
-- **Dashboard → Action directe** : les cartes urgentes (Interventions urgentes, Stock faible, Maintenance due) doivent toutes être cliquables et amener directement à la fiche concernée — vérifier que c’est déjà le cas et ajouter `navigate` manquant si besoin.
+- **Nouveau** `src/hooks/statistics/useOperationalStats.ts`
+  - Signature : `useOperationalStats(farmId, period: 'today'|'week'|'month')`
+  - 3 sous-requêtes parallèles via React Query :
+    1. `planning_tasks` (filtres farm + plage temporelle pour completed_at, plus toutes les non-done pour overdue/in-progress)
+    2. `points` (toutes les lignes du farm — petites tables)
+    3. `point_events` (events de la période liés aux points du farm)
+  - Calcule en mémoire les KPIs ci-dessus + agrège « top employés ».
+  - Retour : `{ tasks: {done, overdue, inProgress, perEmployee[], topEmployee}, points: {open, resolved, forgotten, avgResolutionDays}, reactivity: {avgFirstActionHours, avgCompletionHours}, isLoading }`
 
-Aucun changement de schéma DB. Uniquement des `Link` / `navigate` supplémentaires.
+- **Nouveau** `src/components/statistics/OperationalOverview.tsx`
+  - Filtre période (3 boutons toggle)
+  - 3 sections de cards simples (composants `Card` shadcn déjà dispo, gros chiffre + label court)
+  - Composant interne `StatCard` réutilisable (titre, valeur, sous-titre optionnel, couleur d'accent)
+  - Liste « Top employés » : 5 lignes max (`Avatar` + nom + nb), badge « Plus actif » sur le 1ᵉʳ.
 
-### 5. Traductions — `src/locales/fr.json` et `en.json`
-Ajouter :
-```
-"nav.group.daily":     "Travail quotidien" / "Daily work"
-"nav.group.equipment": "Gestion matériel"  / "Equipment"
-"nav.group.analysis":  "Analyse"           / "Analysis"
-"navbar.statistics":   "Statistiques"      / "Statistics"
-"mobilemenu.statistics":"Stats"            / "Stats"
-"mobilemenu.more":     "Plus"              / "More"
-```
+- **Modifié** `src/pages/TimeTrackingStatistics.tsx`
+  - Renommer le titre en « Statistiques »
+  - Ajouter `Tabs` : `Vue d'ensemble` (par défaut) + `Temps de travail`
+  - L'ancien contenu (`TimeTrackingStatisticsPage`) est déplacé dans le 2ᵉ onglet, **inchangé**.
 
-### 6. Cohérence visuelle (point 6)
-- Mêmes icônes Lucide partout (déjà le cas, on garde les mêmes mappings dans `navConfig`).
-- Espacement uniformisé : `gap-1` intra-groupe, `mt-6` inter-groupes.
-- Pas de nouvelle palette : on reste sur `text-primary`, `text-muted-foreground`, `bg-primary/10`.
+- **Modifié** `src/components/layout/navConfig.ts`
+  - L'entrée « Statistiques » existe déjà. Aucune modif de route.
 
-## Fichiers touchés
+## Hors périmètre (à ne pas faire)
 
-- **Nouveau** `src/components/layout/navConfig.ts`
-- **Modifié** `src/components/layout/Navbar.tsx` (rendu groupé + titres de sections + accent prioritaire)
-- **Modifié** `src/components/layout/MobileMenu.tsx` (barre rapide 3 items + bouton Plus + bottom sheet groupé)
-- **Modifié** `src/locales/fr.json`, `src/locales/en.json` (clés de groupes + Statistiques + Plus)
-- **Modifié** widgets dashboard (`src/components/dashboard/...`) et `src/components/points/...` pour les boutons contextuels « Créer une tâche » / « Voir le point lié »
+- Aucune migration DB, aucun changement de schéma ni RLS.
+- Aucun graphique ajouté.
+- Aucune suppression : la page « Temps de travail » avec ses graphes existants est conservée comme onglet secondaire.
+- Pas de classement négatif des employés.
 
-## Hors périmètre (explicitement)
+## Considérations
 
-- Aucune modification des routes, des hooks, des services Supabase, des RLS, ou du schéma.
-- Aucune suppression de page/fonctionnalité.
-- Pas de redesign global : seules la navigation et quelques liens contextuels changent.
+- **Privacy / RLS** : tout est déjà filtré par farm via les RLS existantes. `useTeamMembers()` (déjà utilisé partout) fournit les noms des employés sans toucher `auth.users`.
+- **Performance** : trois requêtes simples scoppées par farm + plage. Données agrégées en mémoire (volumes faibles). `staleTime` 5 min selon la convention projet.
+- **Mobile-first** : grilles `grid-cols-1 sm:grid-cols-3` pour les cards ; pas de scroll horizontal. Filtre période en `grid-cols-3` plein largeur sur mobile.
+- **Vide** : si une stat n'a pas assez de données (ex. 0 tâche complétée), afficher « — » plutôt qu'un 0 trompeur pour les moyennes.
 
 ## Résultat attendu
 
-Un utilisateur ouvre l’app et voit immédiatement 3 zones claires : *ce que je dois faire aujourd’hui*, *mon matériel*, *l’analyse*. Sur mobile, les 3 actions quotidiennes sont accessibles au pouce ; le reste est à un tap dans le bottom sheet. Les enchaînements Dashboard → Points → Planification deviennent des clics directs.
+Quand l'utilisateur ouvre `/time-tracking/statistics`, il voit immédiatement (en 5 secondes) :
+- Combien de tâches avancent / sont en retard, qui pousse l'équipe.
+- Si des points traînent (oubliés > 3 j) et la vitesse moyenne de résolution.
+- À quelle vitesse l'équipe réagit aux problèmes et termine les tâches.
+
+Les graphes existants restent disponibles dans un second onglet pour l'analyse fine.
