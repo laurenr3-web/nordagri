@@ -18,6 +18,7 @@ import { Pencil, Check, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useFarmRole } from '@/hooks/useFarmRole';
 import QuickActions from './QuickActions';
+import { HelpTooltip } from '@/components/help/HelpTooltip';
 import UpdateHoursDialog from './UpdateHoursDialog';
 
 interface EquipmentDetailContentProps {
