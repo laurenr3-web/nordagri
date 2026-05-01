@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { PlanningTask } from './planningService';
 import { mapCategoryToTaskType, PLANNING_CATEGORY_LABELS } from './planningTaskTypeMap';
+import { workShiftService } from '@/services/work-shifts';
 
 export const ERR_USER_SESSION_ACTIVE = 'USER_SESSION_ACTIVE';
 export const ERR_TASK_SESSION_ACTIVE = 'TASK_SESSION_ACTIVE';
@@ -102,7 +103,10 @@ export const planningTimeService = {
     };
   },
 
-  async startSessionForTask(task: PlanningTask, userId: string): Promise<void> {
+  async startSessionForTask(
+    task: PlanningTask,
+    userId: string,
+  ): Promise<{ autoCreatedShift: boolean }> {
     // UX pré-check : session active utilisateur
     const { data: own, error: ownErr } = await supabase
       .from('time_sessions')
@@ -121,6 +125,12 @@ export const planningTimeService = {
     );
     if (rpcErr) throw rpcErr;
     if (hasActive === true) throw new Error(ERR_TASK_SESSION_ACTIVE);
+
+    // Auto Punch In : assure une journée active, race-safe (23505).
+    const { shift, autoCreated } = await workShiftService.ensureActiveShift(
+      userId,
+      task.farm_id,
+    );
 
     // Résolution task_type_id (best-effort, nullable accepté en DB)
     const taskTypeName = mapCategoryToTaskType(task.category);
@@ -141,6 +151,7 @@ export const planningTimeService = {
       status: 'active',
       start_time: new Date().toISOString(),
       technician: 'Self',
+      work_shift_id: shift.id,
     });
     if (insErr) {
       if (isUniqueViolation(insErr)) throw new Error(ERR_TASK_SESSION_ACTIVE);
@@ -153,9 +164,11 @@ export const planningTimeService = {
       .update({ status: 'in_progress' })
       .eq('id', task.id);
     if (updErr) throw updErr;
+
+    return { autoCreatedShift: autoCreated };
   },
 
-  resumeSessionForTask(task: PlanningTask, userId: string): Promise<void> {
+  resumeSessionForTask(task: PlanningTask, userId: string): Promise<{ autoCreatedShift: boolean }> {
     return this.startSessionForTask(task, userId);
   },
 
