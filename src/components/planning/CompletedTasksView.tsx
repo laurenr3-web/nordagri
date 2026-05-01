@@ -299,7 +299,7 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
         ? filtered.filter(i => i.wasOverdue)
         : filtered.filter(i => i.priority === priorityFilter);
     for (const i of displayed) {
-      const k = i.localDateStr(completedAt);
+      const k = localDateStr(i.completedAt);
       if (!map.has(k)) map.set(k, []);
       map.get(k)!.push(i);
     }
