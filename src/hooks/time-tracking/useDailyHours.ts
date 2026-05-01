@@ -8,6 +8,11 @@ export interface DailyHours {
   hours: number;
 }
 
+interface WorkShiftRow {
+  punch_in_at: string;
+  punch_out_at: string | null;
+}
+
 export function useDailyHours(month: Date) {
   const [dailyHours, setDailyHours] = useState<DailyHours[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -22,59 +27,50 @@ export function useDailyHours(month: Date) {
   }, [month]);
 
   useEffect(() => {
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
     const fetchDailyHours = async () => {
       try {
         setIsLoading(true);
-        
+
         const { data: sessionData } = await supabase.auth.getSession();
         if (!sessionData.session?.user) return;
-        
+
         const userId = sessionData.session.user.id;
-        
-        // Use a more precise date handling approach
+
+        // Source: work_shifts (Punch In / Punch Out). Avoids double-counting with time_sessions.
         const { data, error } = await supabase
-          .from('time_sessions')
-          .select(`
-            start_time,
-            end_time,
-            duration
-          `)
+          .from('work_shifts')
+          .select('punch_in_at, punch_out_at')
           .eq('user_id', userId)
-          .gte('start_time', dateRange.startDate.toISOString())
-          .lte('start_time', dateRange.endDate.toISOString())
-          .order('start_time');
-          
+          .gte('punch_in_at', dateRange.startDate.toISOString())
+          .lte('punch_in_at', dateRange.endDate.toISOString())
+          .order('punch_in_at');
+
         if (error) throw error;
-        
-        // Aggregate hours by local date (not UTC date)
+
+        const rows = (data as WorkShiftRow[] | null) ?? [];
+
+        // Aggregate hours by local date (not UTC date). Active shifts use now() as end.
         const hoursByDate = new Map<string, number>();
-        
-        data?.forEach(session => {
-          // Convert UTC date to local date format YYYY-MM-DD
-          const localDate = new Date(session.start_time);
-          const dateKey = format(localDate, 'yyyy-MM-dd');
-          
-          // Calculate duration if not available
-          let sessionDuration = session.duration;
-          if (!sessionDuration && session.end_time) {
-            const startTime = new Date(session.start_time);
-            const endTime = new Date(session.end_time);
-            sessionDuration = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60); // hours
-          }
-          
-          // Only count if we have a valid duration
-          if (sessionDuration) {
-            const currentTotal = hoursByDate.get(dateKey) || 0;
-            hoursByDate.set(dateKey, currentTotal + sessionDuration);
+        const nowMs = Date.now();
+
+        rows.forEach(shift => {
+          const startDate = new Date(shift.punch_in_at);
+          const dateKey = format(startDate, 'yyyy-MM-dd');
+          const endMs = shift.punch_out_at ? new Date(shift.punch_out_at).getTime() : nowMs;
+          const startMs = startDate.getTime();
+          const hours = Math.max(0, (endMs - startMs) / (1000 * 60 * 60));
+          if (hours > 0) {
+            hoursByDate.set(dateKey, (hoursByDate.get(dateKey) ?? 0) + hours);
           }
         });
-        
-        // Convert map to array
+
         const result: DailyHours[] = Array.from(hoursByDate.entries()).map(([date, hours]) => ({
           date,
           hours
         }));
-        
+
         setDailyHours(result);
       } catch (err) {
         console.error('Error fetching daily hours:', err);
@@ -83,8 +79,15 @@ export function useDailyHours(month: Date) {
         setIsLoading(false);
       }
     };
-    
+
     fetchDailyHours();
+
+    // Refresh every 60s so an active shift's running total updates in the calendar.
+    intervalId = setInterval(fetchDailyHours, 60_000);
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
   }, [dateRange.startDate, dateRange.endDate]);
   
   return {
