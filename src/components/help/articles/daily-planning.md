@@ -46,6 +46,17 @@ des retards.
 - **Bouton "Prendre"** : assignation en 1 clic, pratique en 
   équipe
 
+## Suivre le temps directement sur une tâche
+
+Chaque carte de tâche permet de lancer un chrono en un clic :
+**Démarrer**, **Pause**, **Reprendre**, **Terminer**. Le temps
+cumulé s'affiche en ligne compacte (ex. `Alimentation · En cours
+· ● 31 min`). Plusieurs sessions peuvent s'accumuler sur la même
+tâche dans la journée.
+
+👉 Voir l'article dédié : *Suivre le temps directement sur une
+tâche*.
+
 ## Astuce de chef d'exploitation
 
 Faites le point en **5 minutes le matin** avec votre équipe : 
