@@ -151,7 +151,7 @@ export function TaskCard({ task, onClick, teamMembers, currentUserMemberId, onAs
       )}
 
       {(isUnassigned || enableTimeTracking) && (
-        <div className="flex items-center justify-between gap-2" onClick={e => e.stopPropagation()}>
+        <div className="flex flex-wrap items-center justify-between gap-2" onClick={e => e.stopPropagation()}>
           <div className="flex items-center gap-2 min-w-0">
             {isUnassigned && (
               <>
