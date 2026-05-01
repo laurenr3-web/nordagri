@@ -151,9 +151,9 @@ export function TaskCard({ task, onClick, teamMembers, currentUserMemberId, onAs
       )}
 
       {(isUnassigned || enableTimeTracking) && (
-        <div className="flex items-center justify-between gap-2" onClick={e => e.stopPropagation()}>
-          <div className="flex items-center gap-2 min-w-0">
-            {isUnassigned && (
+        <div className="space-y-1.5" onClick={e => e.stopPropagation()}>
+          {isUnassigned && (
+            <div className="flex flex-wrap items-center gap-2 min-w-0">
               <>
                 {canAssign ? (
                   <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
@@ -202,10 +202,12 @@ export function TaskCard({ task, onClick, teamMembers, currentUserMemberId, onAs
                   </Button>
                 )}
               </>
-            )}
-          </div>
+            </div>
+          )}
           {enableTimeTracking && (
-            <TaskTimeControls task={task} userId={user?.id ?? null} variant="card" />
+            <div className="flex justify-end">
+              <TaskTimeControls task={task} userId={user?.id ?? null} variant="card" />
+            </div>
           )}
         </div>
       )}
