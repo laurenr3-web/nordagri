@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, CheckCircle2, Unlock, Flag } from 'lucide-react';
+import { Play, Pause, Check, Unlock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { PlanningTask } from '@/services/planning/planningService';
@@ -93,7 +93,7 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
           disabled={isLoadingMutation}
           onClick={() => complete.mutate({ taskId: task.id })}
         >
-          <Flag className="h-3.5 w-3.5" />
+          <Check className="h-3.5 w-3.5" />
           Terminer
         </Button>
       </div>
@@ -120,7 +120,7 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
       );
     }
 
-    // Cas normal : session active → Terminer session (pause) + Terminer tâche (outline)
+    // Cas normal : session active → Terminer session (pause) + Terminer (outline)
     return (
       <div className={cn('flex justify-end gap-2', className)} onClick={stop}>
         <Button
@@ -130,8 +130,8 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
           disabled={isLoadingMutation}
           onClick={() => pause.mutate({ taskId: task.id })}
         >
-          <CheckCircle2 className="h-3.5 w-3.5" />
-          Terminer session
+          <Pause className="h-3.5 w-3.5" />
+          Pause
         </Button>
         <Button
           size="sm"
@@ -140,8 +140,8 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
           disabled={isLoadingMutation}
           onClick={() => complete.mutate({ taskId: task.id })}
         >
-          <Flag className="h-3.5 w-3.5" />
-          Terminer tâche
+          <Check className="h-3.5 w-3.5" />
+          Terminer
         </Button>
       </div>
     );
