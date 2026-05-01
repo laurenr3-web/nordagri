@@ -4,7 +4,7 @@ import { Part } from '@/types/Part';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Package } from 'lucide-react';
+import { MoreHorizontal, Package, Plus } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +20,7 @@ interface PartsMobileViewProps {
   openPartDetails: (part: Part) => void;
   openOrderDialog?: (part: Part) => void;
   openWithdrawalDialog?: (part: Part) => void;
+  openAddStockDialog?: (part: Part) => void;
   getStockStatusColor: (part: Part) => string;
   animatingOut?: (string | number)[];
 }
@@ -46,6 +47,7 @@ export const PartsMobileView: React.FC<PartsMobileViewProps> = ({
   parts,
   openPartDetails,
   openWithdrawalDialog,
+  openAddStockDialog,
   animatingOut = []
 }) => {
   return (
@@ -69,6 +71,21 @@ export const PartsMobileView: React.FC<PartsMobileViewProps> = ({
               </h3>
               <div className="flex items-center gap-1 shrink-0 max-w-[60%]">
                 {renderStockBadge(part.stock)}
+                {openAddStockDialog && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0 text-green-600 hover:text-green-700 hover:bg-green-500/10"
+                    title="Ajouter au stock"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openAddStockDialog(part);
+                    }}
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span className="sr-only">Ajouter au stock</span>
+                  </Button>
+                )}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -93,6 +110,16 @@ export const PartsMobileView: React.FC<PartsMobileViewProps> = ({
                     >
                       Voir / Modifier
                     </DropdownMenuItem>
+                    {openAddStockDialog && (
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openAddStockDialog(part);
+                        }}
+                      >
+                        Ajouter au stock
+                      </DropdownMenuItem>
+                    )}
                     {openWithdrawalDialog && (
                       <>
                         <DropdownMenuSeparator />
