@@ -7,6 +7,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Clock, Wrench, User, Hand } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { TaskTimeBadge } from './TaskTimeBadge';
+import { TaskTimeControls } from './TaskTimeControls';
+import { useTaskTimeStats } from '@/hooks/planning/usePlanningTaskTime';
+import { useAuthContext } from '@/providers/AuthProvider';
 
 const categoryLabels: Record<string, string> = {
   animaux: '🐄 Animaux',
@@ -21,6 +25,7 @@ const categoryLabels: Record<string, string> = {
 const statusLabels: Record<string, string> = {
   todo: 'À faire',
   in_progress: 'En cours',
+  paused: 'En pause',
   done: 'Terminé',
   blocked: 'Bloqué',
 };
@@ -28,6 +33,7 @@ const statusLabels: Record<string, string> = {
 const statusColors: Record<string, string> = {
   todo: 'bg-muted text-muted-foreground',
   in_progress: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+  paused: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
   done: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
   blocked: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
 };
@@ -48,6 +54,7 @@ interface TaskCardProps {
 
 export function TaskCard({ task, onClick, teamMembers, currentUserMemberId, onAssign }: TaskCardProps) {
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const { user } = useAuthContext();
   const effectivePriority = task.manual_priority || task.computed_priority;
   const priority = priorityConfig[effectivePriority] || priorityConfig.todo;
 
@@ -63,6 +70,11 @@ export function TaskCard({ task, onClick, teamMembers, currentUserMemberId, onAs
 
   const isUnassigned = !task.assigned_to;
   const canAssign = !!onAssign && !!teamMembers && task.status !== 'done';
+
+  // Time-tracking : on n'active la requête que pour les tâches RÉELLES (pas les
+  // occurrences récurrentes virtuelles, qui n'ont pas de sessions liées).
+  const enableTimeTracking = task.status !== 'done' && !task.is_recurring;
+  const { data: timeStats } = useTaskTimeStats(enableTimeTracking ? task.id : null);
 
   const handleAssign = (memberId: string | null) => {
     onAssign?.(task.id, memberId);
@@ -185,6 +197,14 @@ export function TaskCard({ task, onClick, teamMembers, currentUserMemberId, onAs
 
       {task.notes && (
         <p className="text-xs text-muted-foreground line-clamp-2">{task.notes}</p>
+      )}
+
+      {enableTimeTracking && timeStats && (timeStats.sessionCount > 0 || timeStats.hasActive) && (
+        <TaskTimeBadge stats={timeStats} />
+      )}
+
+      {enableTimeTracking && (
+        <TaskTimeControls task={task} userId={user?.id ?? null} variant="card" />
       )}
     </Card>
   );

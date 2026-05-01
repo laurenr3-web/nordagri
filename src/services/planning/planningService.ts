@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 
 export type PlanningCategory = 'animaux' | 'champs' | 'alimentation' | 'equipement' | 'batiment' | 'administration' | 'autre';
-export type PlanningStatus = 'todo' | 'in_progress' | 'done' | 'blocked';
+export type PlanningStatus = 'todo' | 'in_progress' | 'paused' | 'done' | 'blocked';
 export type PlanningPriority = 'critical' | 'important' | 'todo';
 
 export interface PlanningTask {

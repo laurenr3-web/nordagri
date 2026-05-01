@@ -9,12 +9,17 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Separator } from '@/components/ui/separator';
-import { Play, CheckCircle2, AlertTriangle, Unlock, CalendarIcon, Trash2, Save, Clock, Wrench, ExternalLink, Pencil } from 'lucide-react';
+import { AlertTriangle, Unlock, CalendarIcon, Trash2, Save, Clock, Wrench, ExternalLink, Pencil } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { HelpTooltip } from '@/components/help/HelpTooltip';
+import { TaskTimeBadge } from './TaskTimeBadge';
+import { TaskTimeControls } from './TaskTimeControls';
+import { TaskSessionsList } from './TaskSessionsList';
+import { useTaskTimeStats } from '@/hooks/planning/usePlanningTaskTime';
+import { useAuthContext } from '@/providers/AuthProvider';
 
 const categoryLabels: Record<string, string> = {
   animaux: '🐄 Animaux',
@@ -29,6 +34,7 @@ const categoryLabels: Record<string, string> = {
 const statusLabels: Record<string, string> = {
   todo: 'À faire',
   in_progress: 'En cours',
+  paused: 'En pause',
   done: 'Terminé',
   blocked: 'Bloqué',
 };
@@ -36,6 +42,7 @@ const statusLabels: Record<string, string> = {
 const statusColors: Record<string, string> = {
   todo: 'bg-muted text-muted-foreground',
   in_progress: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+  paused: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
   done: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
   blocked: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
 };
@@ -70,10 +77,14 @@ export function TaskDetailDialog({
   onEdit,
 }: TaskDetailDialogProps) {
   const navigate = useNavigate();
+  const { user } = useAuthContext();
   const [localAssignedTo, setLocalAssignedTo] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const enableTimeTracking = !!task && !task.is_recurring;
+  const { data: timeStats } = useTaskTimeStats(enableTimeTracking ? task.id : null);
 
   // Reset local state on open/task change
   useEffect(() => {
@@ -220,6 +231,21 @@ export function TaskDetailDialog({
             <>
               <Separator />
 
+              {/* Section: Suivi de temps */}
+              {enableTimeTracking && (
+                <>
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold inline-flex items-center gap-1">
+                      Temps
+                    </h4>
+                    {timeStats && <TaskTimeBadge stats={timeStats} size="md" />}
+                    <TaskTimeControls task={task} userId={user?.id ?? null} variant="dialog" />
+                    <TaskSessionsList taskId={task.id} />
+                  </div>
+                  <Separator />
+                </>
+              )}
+
               {/* Section: Actions */}
               <div className="space-y-3">
                 <h4 className="text-sm font-semibold inline-flex items-center gap-1">
@@ -228,16 +254,6 @@ export function TaskDetailDialog({
                 </h4>
 
                 <div className="flex flex-wrap gap-2">
-                  {task.status === 'todo' && (
-                    <Button size="sm" className="gap-1.5 flex-1" onClick={() => handleStatusAction('in_progress')}>
-                      <Play className="h-3.5 w-3.5" /> Commencer
-                    </Button>
-                  )}
-                  {task.status === 'in_progress' && (
-                    <Button size="sm" className="gap-1.5 flex-1 bg-green-600 hover:bg-green-700" onClick={() => handleStatusAction('done')}>
-                      <CheckCircle2 className="h-3.5 w-3.5" /> Terminer
-                    </Button>
-                  )}
                   {task.status === 'blocked' ? (
                     <Button size="sm" variant="outline" className="gap-1.5 flex-1" onClick={() => handleStatusAction('todo')}>
                       <Unlock className="h-3.5 w-3.5" /> Débloquer

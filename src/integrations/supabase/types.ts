@@ -1541,6 +1541,7 @@ export type Database = {
           poste_travail: string | null
           start_time: string
           status: string | null
+          task_id: string | null
           task_type_id: string | null
           technician: string | null
           title: string | null
@@ -1563,6 +1564,7 @@ export type Database = {
           poste_travail?: string | null
           start_time?: string
           status?: string | null
+          task_id?: string | null
           task_type_id?: string | null
           technician?: string | null
           title?: string | null
@@ -1585,6 +1587,7 @@ export type Database = {
           poste_travail?: string | null
           start_time?: string
           status?: string | null
+          task_id?: string | null
           task_type_id?: string | null
           technician?: string | null
           title?: string | null
@@ -1604,6 +1607,13 @@ export type Database = {
             columns: ["intervention_id"]
             isOneToOne: false
             referencedRelation: "interventions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_sessions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "planning_tasks"
             referencedColumns: ["id"]
           },
           {
@@ -1671,6 +1681,10 @@ export type Database = {
       get_operational_stats: {
         Args: { _employee_id?: string; _farm_id: string; _period?: string }
         Returns: Json
+      }
+      has_active_session_on_task: {
+        Args: { _task_id: string }
+        Returns: boolean
       }
       has_farm_role: {
         Args: { _farm_id: string; _min_role: string }
