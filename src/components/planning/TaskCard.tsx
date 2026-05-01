@@ -91,7 +91,7 @@ export function TaskCard({ task, onClick, teamMembers, currentUserMemberId, onAs
   return (
     <Card
       className={cn(
-        "p-3 space-y-2 cursor-pointer hover:shadow-md transition-shadow",
+        "p-3 space-y-1.5 cursor-pointer hover:shadow-md transition-shadow",
         task.status === 'done' && "opacity-60",
         isOverdue && "border-orange-400 dark:border-orange-600"
       )}
@@ -142,59 +142,6 @@ export function TaskCard({ task, onClick, teamMembers, currentUserMemberId, onAs
         )}
       </div>
 
-      {/* Assignment row */}
-      {/* Assignment row — only shown when unassigned (assigned name is in the top badge row) */}
-      {isUnassigned && (
-        <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
-          {canAssign ? (
-            <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-              <PopoverTrigger asChild>
-                <button className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-colors text-muted-foreground bg-muted/50 hover:bg-muted">
-                  <User className="h-3 w-3" />
-                  Non assignée
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-48 p-1" align="start">
-                <div className="space-y-0.5">
-                  <button
-                    className="w-full text-left text-sm px-3 py-2 rounded-md hover:bg-muted transition-colors bg-muted font-medium"
-                    onClick={() => handleAssign(null)}
-                  >
-                    Non assignée
-                  </button>
-                  {teamMembers!.map(member => (
-                    <button
-                      key={member.id}
-                      className="w-full text-left text-sm px-3 py-2 rounded-md hover:bg-muted transition-colors"
-                      onClick={() => handleAssign(member.id)}
-                    >
-                      {member.name}
-                    </button>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-          ) : (
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <User className="h-3 w-3" />
-              Non assignée
-            </span>
-          )}
-
-          {canAssign && currentUserMemberId && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-6 text-xs px-2 gap-1"
-              onClick={handleTake}
-            >
-              <Hand className="h-3 w-3" />
-              Prendre
-            </Button>
-          )}
-        </div>
-      )}
-
       {task.notes && (
         <p className="text-xs text-muted-foreground line-clamp-2">{task.notes}</p>
       )}
@@ -203,8 +150,64 @@ export function TaskCard({ task, onClick, teamMembers, currentUserMemberId, onAs
         <TaskTimeBadge stats={timeStats} />
       )}
 
-      {enableTimeTracking && (
-        <TaskTimeControls task={task} userId={user?.id ?? null} variant="card" />
+      {(isUnassigned || enableTimeTracking) && (
+        <div className="flex items-center justify-between gap-2" onClick={e => e.stopPropagation()}>
+          <div className="flex items-center gap-2 min-w-0">
+            {isUnassigned && (
+              <>
+                {canAssign ? (
+                  <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <button className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-colors text-muted-foreground bg-muted/50 hover:bg-muted">
+                        <User className="h-3 w-3" />
+                        Non assignée
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-48 p-1" align="start">
+                      <div className="space-y-0.5">
+                        <button
+                          className="w-full text-left text-sm px-3 py-2 rounded-md hover:bg-muted transition-colors bg-muted font-medium"
+                          onClick={() => handleAssign(null)}
+                        >
+                          Non assignée
+                        </button>
+                        {teamMembers!.map(member => (
+                          <button
+                            key={member.id}
+                            className="w-full text-left text-sm px-3 py-2 rounded-md hover:bg-muted transition-colors"
+                            onClick={() => handleAssign(member.id)}
+                          >
+                            {member.name}
+                          </button>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                ) : (
+                  <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <User className="h-3 w-3" />
+                    Non assignée
+                  </span>
+                )}
+
+                {canAssign && currentUserMemberId && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs px-2 gap-1"
+                    onClick={handleTake}
+                  >
+                    <Hand className="h-3 w-3" />
+                    Prendre
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
+          {enableTimeTracking && (
+            <TaskTimeControls task={task} userId={user?.id ?? null} variant="card" />
+          )}
+        </div>
       )}
     </Card>
   );
