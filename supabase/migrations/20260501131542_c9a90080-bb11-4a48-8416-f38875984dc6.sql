@@ -1,0 +1,2 @@
+ALTER TABLE public.planning_tasks DROP CONSTRAINT planning_tasks_status_check;
+ALTER TABLE public.planning_tasks ADD CONSTRAINT planning_tasks_status_check CHECK (status = ANY (ARRAY['todo'::text, 'in_progress'::text, 'paused'::text, 'done'::text, 'blocked'::text]));
