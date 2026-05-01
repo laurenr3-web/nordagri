@@ -9,7 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Separator } from '@/components/ui/separator';
-import { CheckCircle2, AlertTriangle, Unlock, CalendarIcon, Trash2, Save, Clock, Wrench, ExternalLink, Pencil } from 'lucide-react';
+import { AlertTriangle, Unlock, CalendarIcon, Trash2, Save, Clock, Wrench, ExternalLink, Pencil } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
