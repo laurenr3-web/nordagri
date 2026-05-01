@@ -122,10 +122,10 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
 
     // Cas normal : session active → Terminer session (pause) + Terminer tâche (outline)
     return (
-      <div className={cn('flex gap-2', className)} onClick={stop}>
+      <div className={cn('flex flex-wrap justify-end gap-2', className)} onClick={stop}>
         <Button
           size="sm"
-          className={cn('flex-1 gap-1.5', btnSize)}
+          className={cn('gap-1.5 px-3', btnSize)}
           disabled={isLoadingMutation}
           onClick={() => pause.mutate({ taskId: task.id })}
         >
@@ -135,7 +135,7 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
         <Button
           size="sm"
           variant="outline"
-          className={cn('flex-1 gap-1.5', btnSize)}
+          className={cn('gap-1.5 px-3', btnSize)}
           disabled={isLoadingMutation}
           onClick={() => complete.mutate({ taskId: task.id })}
         >
