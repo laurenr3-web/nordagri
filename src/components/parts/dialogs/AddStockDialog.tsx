@@ -19,19 +19,32 @@ const QUICK_AMOUNTS = [1, 5, 10, 25];
 
 export const AddStockDialog: React.FC<AddStockDialogProps> = ({ isOpen, onOpenChange, part }) => {
   const [quantity, setQuantity] = useState<number>(1);
+  const [sessionAdded, setSessionAdded] = useState<number>(0);
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (isOpen) setQuantity(1);
+    if (isOpen) {
+      setQuantity(1);
+      setSessionAdded(0);
+    }
   }, [isOpen, part?.id]);
 
   const mutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (): Promise<{ newQty: number; added: number }> => {
       if (!part) throw new Error('Aucune pièce sélectionnée');
       if (quantity <= 0) throw new Error('La quantité doit être supérieure à 0');
 
       const partId = typeof part.id === 'string' ? parseInt(part.id) : part.id;
-      const newQty = (part.stock ?? 0) + quantity;
+      // Read fresh quantity to avoid stale stock when chaining adds
+      const { data: current, error: readError } = await supabase
+        .from('parts_inventory')
+        .select('quantity')
+        .eq('id', partId)
+        .single();
+      if (readError) throw readError;
+
+      const currentQty = (current?.quantity as number | null) ?? 0;
+      const newQty = currentQty + quantity;
 
       const { error } = await supabase
         .from('parts_inventory')
@@ -39,12 +52,7 @@ export const AddStockDialog: React.FC<AddStockDialogProps> = ({ isOpen, onOpenCh
         .eq('id', partId);
 
       if (error) throw error;
-      return newQty;
-    },
-    onSuccess: (newQty) => {
-      queryClient.invalidateQueries({ queryKey: ['parts'] });
-      toast.success(`Stock mis à jour : ${newQty} unité(s)`);
-      onOpenChange(false);
+      return { newQty, added: quantity };
     },
     onError: (err: Error) => {
       toast.error(err.message || 'Erreur lors de la mise à jour du stock');
@@ -53,7 +61,23 @@ export const AddStockDialog: React.FC<AddStockDialogProps> = ({ isOpen, onOpenCh
 
   if (!part) return null;
 
-  const newStock = (part.stock ?? 0) + (Number.isFinite(quantity) ? quantity : 0);
+  const baseStock = (part.stock ?? 0) + sessionAdded;
+  const newStock = baseStock + (Number.isFinite(quantity) ? quantity : 0);
+
+  const handleConfirm = (continueAdding: boolean) => {
+    mutation.mutate(undefined, {
+      onSuccess: ({ newQty, added }) => {
+        queryClient.invalidateQueries({ queryKey: ['parts'] });
+        toast.success(`+${added} ajouté(s) — stock : ${newQty}`);
+        if (continueAdding) {
+          setSessionAdded((prev) => prev + added);
+          setQuantity(1);
+        } else {
+          onOpenChange(false);
+        }
+      },
+    });
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -65,7 +89,14 @@ export const AddStockDialog: React.FC<AddStockDialogProps> = ({ isOpen, onOpenCh
         <div className="space-y-4 pt-2">
           <div className="bg-muted/50 p-2 rounded-md flex items-center justify-between text-sm">
             <span>Stock actuel</span>
-            <span className="font-medium">{part.stock} unité(s)</span>
+            <span className="font-medium tabular-nums">
+              {baseStock} unité(s)
+              {sessionAdded > 0 && (
+                <span className="ml-2 text-xs text-green-600">
+                  (+{sessionAdded} cette session)
+                </span>
+              )}
+            </span>
           </div>
 
           <div className="space-y-2">
@@ -118,15 +149,21 @@ export const AddStockDialog: React.FC<AddStockDialogProps> = ({ isOpen, onOpenCh
           </div>
         </div>
 
-        <DialogFooter className="gap-2">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            Annuler
+        <DialogFooter className="gap-2 flex-col sm:flex-row">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className="w-full sm:w-auto"
+          >
+            {sessionAdded > 0 ? 'Fermer' : 'Annuler'}
           </Button>
           <Button
             type="button"
-            className="bg-green-600 hover:bg-green-700 text-white"
+            variant="secondary"
             disabled={mutation.isPending || quantity <= 0}
-            onClick={() => mutation.mutate()}
+            onClick={() => handleConfirm(true)}
+            className="w-full sm:w-auto"
           >
             {mutation.isPending ? (
               <>
@@ -134,7 +171,22 @@ export const AddStockDialog: React.FC<AddStockDialogProps> = ({ isOpen, onOpenCh
                 Ajout...
               </>
             ) : (
-              `Ajouter ${quantity > 0 ? `+${quantity}` : ''}`
+              'Ajouter et continuer'
+            )}
+          </Button>
+          <Button
+            type="button"
+            className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"
+            disabled={mutation.isPending || quantity <= 0}
+            onClick={() => handleConfirm(false)}
+          >
+            {mutation.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Ajout...
+              </>
+            ) : (
+              `Ajouter +${quantity > 0 ? quantity : 0}`
             )}
           </Button>
         </DialogFooter>
