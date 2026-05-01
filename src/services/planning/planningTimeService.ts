@@ -39,33 +39,44 @@ interface RawSessionRow {
   start_time: string;
   end_time: string | null;
   status: TaskSessionStatus;
-  profiles: { first_name: string | null; last_name: string | null } | null;
 }
 
 export const planningTimeService = {
   async getTaskSessions(taskId: string): Promise<TaskSessionRow[]> {
     const { data, error } = await supabase
       .from('time_sessions')
-      .select('id,user_id,task_id,start_time,end_time,status,profiles:user_id(first_name,last_name)')
+      .select('id,user_id,task_id,start_time,end_time,status')
       .eq('task_id', taskId)
       .order('start_time', { ascending: false });
     if (error) throw error;
 
     const rows = (data as unknown as RawSessionRow[] | null) ?? [];
-    return rows.map((r) => {
-      const fullName = r.profiles
-        ? [r.profiles.first_name, r.profiles.last_name].filter(Boolean).join(' ')
-        : '';
-      return {
-        id: r.id,
-        user_id: r.user_id,
-        task_id: r.task_id,
-        start_time: r.start_time,
-        end_time: r.end_time,
-        status: r.status,
-        user_name: fullName.length > 0 ? fullName : null,
-      };
+    if (rows.length === 0) return [];
+
+    // Charger les profils séparément : la FK time_sessions.user_id pointe vers
+    // auth.users (pas vers public.profiles), donc PostgREST ne peut pas inférer
+    // un join — un select avec embed planterait toute la requête.
+    const userIds = Array.from(new Set(rows.map((r) => r.user_id)));
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, first_name, last_name')
+      .in('id', userIds);
+
+    const nameById = new Map<string, string>();
+    (profiles ?? []).forEach((p) => {
+      const full = [p.first_name, p.last_name].filter(Boolean).join(' ').trim();
+      if (full.length > 0) nameById.set(p.id, full);
     });
+
+    return rows.map((r) => ({
+      id: r.id,
+      user_id: r.user_id,
+      task_id: r.task_id,
+      start_time: r.start_time,
+      end_time: r.end_time,
+      status: r.status,
+      user_name: nameById.get(r.user_id) ?? null,
+    }));
   },
 
   async getTaskTimeStats(taskId: string): Promise<TaskTimeStats> {
