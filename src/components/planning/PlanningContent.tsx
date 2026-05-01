@@ -9,6 +9,7 @@ import { WeekView } from './WeekView';
 import { EmployeeView } from './EmployeeView';
 import { AddTaskForm } from './AddTaskForm';
 import { CompletedTasksView } from './CompletedTasksView';
+import { WorkShiftBar } from '@/components/work-shifts';
 import { useFarmId } from '@/hooks/useFarmId';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { usePlanningTasks } from '@/hooks/planning/usePlanningTasks';
@@ -129,6 +130,8 @@ export function PlanningContent() {
 
   return (
     <div className="space-y-4">
+      <WorkShiftBar />
+
       {/* View toggle */}
       <ToggleGroup
         type="single"

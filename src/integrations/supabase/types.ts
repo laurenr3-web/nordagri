@@ -1547,6 +1547,7 @@ export type Database = {
           title: string | null
           updated_at: string
           user_id: string
+          work_shift_id: string | null
         }
         Insert: {
           coordinates?: Json | null
@@ -1570,6 +1571,7 @@ export type Database = {
           title?: string | null
           updated_at?: string
           user_id: string
+          work_shift_id?: string | null
         }
         Update: {
           coordinates?: Json | null
@@ -1593,6 +1595,7 @@ export type Database = {
           title?: string | null
           updated_at?: string
           user_id?: string
+          work_shift_id?: string | null
         }
         Relationships: [
           {
@@ -1623,6 +1626,13 @@ export type Database = {
             referencedRelation: "task_types"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "time_sessions_work_shift_id_fkey"
+            columns: ["work_shift_id"]
+            isOneToOne: false
+            referencedRelation: "work_shifts"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_preferences: {
@@ -1648,6 +1658,39 @@ export type Database = {
           id?: string
           onboarding_skipped?: boolean
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      work_shifts: {
+        Row: {
+          created_at: string
+          farm_id: string
+          id: string
+          notes: string | null
+          punch_in_at: string
+          punch_out_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          farm_id: string
+          id?: string
+          notes?: string | null
+          punch_in_at?: string
+          punch_out_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          farm_id?: string
+          id?: string
+          notes?: string | null
+          punch_in_at?: string
+          punch_out_at?: string | null
+          status?: string
           user_id?: string
         }
         Relationships: []

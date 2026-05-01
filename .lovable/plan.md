@@ -1,69 +1,135 @@
-## Objectif
+# Plan final : Système Punch In / Punch Out
 
-Documenter la fonctionnalité de suivi du temps directement sur les tâches de Planification (Démarrer / Pause / Reprendre / Terminer + ligne compacte `Catégorie · Statut · ● 31 min`), **sans** ajouter d'icônes d'aide sur la carte mobile pour préserver l'allègement visuel.
+Création complète du système, avec les 2 règles de sécurité intégrées dès la première version.
 
-## Décision UX
+## 1. Base de données (migration)
 
-Les tooltips seront **créés** dans `tooltips.ts` (réutilisables ailleurs et utiles pour la cohérence du centre d'aide), mais **pas branchés** sur les boutons de `TaskTimeControls.tsx`. La pédagogie passe exclusivement par l'article du centre d'aide, accessible via le HelpFAB global et via la recherche.
+**Table `public.work_shifts`**
 
-## Fichiers et changements
+| Colonne | Type | Notes |
+|---|---|---|
+| `id` | `uuid` PK `gen_random_uuid()` | |
+| `user_id` | `uuid not null` | |
+| `farm_id` | `uuid not null` | |
+| `punch_in_at` | `timestamptz not null default now()` | |
+| `punch_out_at` | `timestamptz` | null tant qu'actif |
+| `status` | `text not null default 'active'` | `active` \| `completed` |
+| `notes` | `text` | |
+| `created_at` | `timestamptz default now()` | |
 
-### 1. Créer `src/components/help/articles/planning-task-time.md`
+CHECK `status IN ('active','completed')`. Index :
+- `(user_id, status)`, `(farm_id, punch_in_at desc)`
+- **Unique partiel** : `CREATE UNIQUE INDEX uniq_active_work_shift_user ON public.work_shifts(user_id) WHERE status = 'active';`
 
-Article en français terrain, structure :
+RLS :
+- SELECT `is_farm_member(farm_id)`
+- INSERT/UPDATE `user_id = auth.uid() AND has_farm_role(farm_id, 'member')`
+- DELETE `user_id = auth.uid() OR has_farm_role(farm_id, 'admin')`
 
-- **Pourquoi suivre le temps depuis une tâche ?** — 1 clic depuis la carte, pas besoin de basculer vers le module Temps, idéal pour les routines (traite, alimentation, contrôle).
-- **Le cycle Démarrer → Pause → Reprendre → Terminer** :
-  - Démarrer : ouvre une session liée à la tâche, le chrono court.
-  - Pause : ferme la session active, le temps cumulé est conservé. La tâche reste à reprendre.
-  - Reprendre : ouvre une nouvelle session sur la même tâche, le temps s'**additionne** au précédent.
-  - Terminer : marque la **tâche** comme faite. Si une session est encore active, elle est arrêtée automatiquement.
-- **Lire la ligne compacte** : `Alimentation · En cours · ● 31 min` — catégorie, statut, point pulsant + temps cumulé. Le point vert indique une session **active**.
-- **Plusieurs sessions sur une même tâche** : tâches étalées (matin / soir, avant-pause / après-pause). Le total affiché est la somme de toutes les sessions.
-- **3 bonnes pratiques terrain** :
-  1. Démarre dès que tu mets le pied dans la tâche, pas après.
-  2. Pause à chaque interruption réelle (appel, autre urgence) — c'est ce qui rend le total fiable.
-  3. Termine la tâche seulement quand elle est vraiment faite ; une session active sera coupée toute seule.
+**`time_sessions`** : ajouter `work_shift_id uuid` nullable, FK `ON DELETE SET NULL` + index. Pas de backfill.
 
-### 2. Mettre à jour `src/components/help/articles/index.ts`
+## 2. Service & hooks
 
-- Importer `planningTaskTime from './planning-task-time.md?raw'`.
-- Ajouter une entrée `planning-task-time` :
-  - `category: 'planning'`, `readTime: 3`
-  - `keywords: ['chrono','session','pause','reprendre','terminer','temps','planning','tâche']`
-  - `tags: ['Planning', 'Temps', 'Mobile']`
+`src/services/work-shifts/types.ts` — types stricts (zéro `any`).
 
-### 3. Compléter `src/components/help/articles/daily-planning.md`
+`src/services/work-shifts/workShiftService.ts` :
+- `getActiveShift(userId)`
+- `punchIn(userId, farmId)`
+- **`ensureActiveShift(userId, farmId): Promise<{ shift; autoCreated: boolean }>`** — race-safe dès la 1ʳᵉ version :
+  ```text
+  1. existing = getActiveShift → si trouvé : { shift, autoCreated: false }
+  2. INSERT punch_in
+     succès : { shift, autoCreated: true }
+  3. catch :
+     code '23505' → reread = getActiveShift
+                    si trouvé : { shift: reread, autoCreated: false }   ← jamais true
+                    sinon : throw
+     autre → throw
+  ```
+  Détection PG via guard typé sur `unknown` (pattern `isUniqueViolation` de `planningTimeService.ts`).
+- `punchOut(shiftId)`
+- `listShifts(userId, farmId, range)`
+- **`getShiftReport(shiftId)`** — calcule `punchedSeconds` (de `punch_in_at` à `punch_out_at ?? now()`), `taskSeconds` (somme `time_sessions.work_shift_id`), puis :
+  ```ts
+  const offTaskSeconds = Math.max(0, punchedSeconds - taskSeconds);
+  ```
+  → garantit `offTaskSeconds ≥ 0` quoi qu'il arrive.
 
-Ajouter une courte section (4-6 lignes) "Suivre le temps directement sur une tâche" avec un renvoi naturel vers le nouvel article ("Voir l'article dédié au chrono par tâche"). Pas de duplication du contenu détaillé.
+`src/hooks/work-shifts/useWorkShift.ts` :
+- `useActiveWorkShift()` — `staleTime: 30s`
+- `useWorkShiftMutations()` — invalide `['active-work-shift']`, `['planningTasks']`, `['active-time-entry']`, `['work-shifts-list']`
 
-### 4. Étendre `src/content/help/tooltips.ts`
+`src/hooks/work-shifts/useWorkShiftActions.ts` — encapsule auto-punch toast + AlertDialog punch out + ouverture report. Source unique pour Planning + Dashboard.
 
-Ajouter 4 entrées, toutes avec `articleId: 'planning-task-time'`, typées via le `satisfies Record<string, TooltipContent>` existant :
+## 3. Auto Punch In au démarrage de tâche
 
-- `planning.time.start` — *Démarrer* : "Lance une session de temps liée à cette tâche."
-- `planning.time.pause` — *Pause* : "Arrête la session en cours et conserve le temps cumulé. Tu peux reprendre plus tard."
-- `planning.time.resume` — *Reprendre* : "Démarre une nouvelle session sur la même tâche. Le temps s'additionne au précédent."
-- `planning.time.finishTask` — *Terminer* : "Marque la tâche comme faite. Si une session est active, elle est arrêtée automatiquement."
+`planningTimeService.startSessionForTask` :
+1. Avant l'INSERT `time_sessions`, appeler `ensureActiveShift(userId, task.farm_id)`
+2. Inclure `work_shift_id: shift.id` dans l'INSERT
+3. Retourner `{ autoCreated }`
 
-Ces clés restent disponibles pour de futurs emplacements (ex. dialog plein écran, écran d'onboarding) sans imposer de surcharge visuelle sur la carte.
+`usePlanningTaskTime.start.onSuccess` :
+- Toast existant « Session démarrée » conservé
+- **Si `autoCreated === true` uniquement** → toast info « Journée commencée automatiquement. »
+- Invalider `['active-work-shift']`
 
-### 5. `src/components/planning/TaskTimeControls.tsx`
+`pauseSessionForTask` et `completeTaskWithSession` strictement inchangés.
 
-**Aucun changement.** Pas d'ajout de `HelpTooltip`, pas de wrapper supplémentaire — la carte reste compacte.
+## 4. Punch Out avec tâche active
+
+Dans `useWorkShiftActions.handlePunchOut(shiftId)` :
+1. Vérifier session active de l'utilisateur
+2. Si présente → `AlertDialog` :
+   - **Titre** : « Une tâche est encore en cours »
+   - **Description** : « Voulez-vous l'arrêter avant de terminer la journée ? »
+   - **Boutons** : `Annuler` / `Arrêter la tâche et punch out`
+3. Si confirmé : `pauseSessionForTask(taskId)` puis `punchOut(shiftId)` — **jamais done**
+4. Sinon : `punchOut` direct
+
+## 5. UI
+
+- `WorkShiftBar.tsx` — bandeau en haut de `PlanningContent`
+- `WorkShiftCard.tsx` — carte Dashboard sous le message d'accueil. Inactif : « Journée de travail » + `Punch in`. Actif : « Journée en cours » + « Début 6:02 · 3h24 » + `Punch out` + icône `Voir journée`. Mobile pleine largeur, desktop `lg:max-w-md`.
+- `WorkShiftReportDialog.tsx` — Total punché / Sur tâches / **Temps hors tâche** + sous-texte « Temps punché sans session de tâche active. » + liste tâches avec durées
+- `WorkShiftsList.tsx` — onglet « Journées » dans `TimeTrackingTabs`. Lignes : date · punch in · punch out · durée · tâches · hors tâche. Clic → `WorkShiftReportDialog`.
+
+## 6. Intégrations
+
+- `src/pages/Dashboard.tsx` — `<WorkShiftCard />` dans `{hasFarm && user && (…)}`
+- `src/components/planning/PlanningContent.tsx` — `<WorkShiftBar />` au-dessus du `ToggleGroup`
+- `src/components/time-tracking/dashboard/TimeTrackingTabs.tsx` — onglet « Journées » entre Liste et Statistiques
+
+## 7. Documentation
+
+- `src/components/help/articles/work-shifts.md` (français terrain)
+- Enregistrement dans `articles/index.ts` (cat. `planning`)
+- Liens depuis `daily-planning.md` et `planning-task-time.md`
+
+## 8. Mémoire
+
+- `mem://features/work-shifts` (nouveau)
+- Mise à jour `mem://index.md`
+
+## Critères d'acceptation
+
+| Critère | Couvert par |
+|---|---|
+| Tâche démarre sans punch manuel | `ensureActiveShift` |
+| Race 23505 silencieuse, **pas de toast spam** | `autoCreated: false` sur relecture |
+| Toast auto-punch quand action crée vraiment | `autoCreated: true` sur INSERT réussi |
+| Punch out tâche active : message clair | AlertDialog titre/description/boutons exacts |
+| Tâche jamais done au punch out | `pauseSessionForTask` uniquement |
+| **Temps hors tâche ≥ 0 toujours** | `Math.max(0, punched - task)` |
+| Journées retrouvables | Onglet `Journées` + `WorkShiftsList` |
+| Rapports rétro-consultables | Clic → `WorkShiftReportDialog` |
+| Aucune régression sessions existantes | `work_shift_id` nullable, pas de backfill |
+| Mobile-first, pas de scroll horizontal | `h-11`, design Planning |
 
 ## Contraintes respectées
 
-- Aucune modification de logique métier (mutations, hooks, stats inchangés).
-- Aucun changement DB.
-- Aucun nouveau package.
-- Aucun `any`.
-- Carte de tâche mobile **non alourdie** (pas d'icône `?` à côté des boutons).
-- Français terrain agricole conservé.
-
-## Vérifications post-implémentation
-
-- L'article apparaît dans la catégorie Planning du centre d'aide.
-- La recherche par "chrono", "pause", "reprendre", "session" remonte le nouvel article.
-- Les 4 clés tooltip sont enregistrées (vérifiables côté types) sans s'afficher actuellement nulle part.
-- Aucune régression visuelle sur les cartes de tâches Planification.
+- Aucun nouveau package
+- Aucun `any`
+- React + TypeScript + Supabase
+- Mobile-first
+- Logique tâches inchangée hormis lien `work_shift_id`
+- Pas de duplication : `useWorkShiftActions` partagé Planning + Dashboard

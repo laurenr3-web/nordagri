@@ -60,9 +60,13 @@ export function usePlanningTimeMutations() {
   const start = useMutation({
     mutationFn: ({ task, userId }: { task: PlanningTask; userId: string }) =>
       planningTimeService.startSessionForTask(task, userId),
-    onSuccess: (_data, vars) => {
+    onSuccess: (data, vars) => {
       invalidate(vars.task.id);
       toast.success('Session démarrée');
+      if (data?.autoCreatedShift === true) {
+        toast.info('Journée commencée automatiquement.');
+        qc.invalidateQueries({ queryKey: ['active-work-shift'] });
+      }
     },
     onError: mapErrorToast,
   });
@@ -70,9 +74,13 @@ export function usePlanningTimeMutations() {
   const resume = useMutation({
     mutationFn: ({ task, userId }: { task: PlanningTask; userId: string }) =>
       planningTimeService.resumeSessionForTask(task, userId),
-    onSuccess: (_data, vars) => {
+    onSuccess: (data, vars) => {
       invalidate(vars.task.id);
       toast.success('Session reprise');
+      if (data?.autoCreatedShift === true) {
+        toast.info('Journée commencée automatiquement.');
+        qc.invalidateQueries({ queryKey: ['active-work-shift'] });
+      }
     },
     onError: mapErrorToast,
   });
