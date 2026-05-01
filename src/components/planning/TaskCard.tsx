@@ -73,7 +73,6 @@ export function TaskCard({ task, onClick, teamMembers, currentUserMemberId, onAs
 
   // Time-tracking : on n'active la requête que pour les tâches RÉELLES (pas les
   // occurrences récurrentes virtuelles, qui n'ont pas de sessions liées).
-  const isRealTask = !task._occurrence_date || task._occurrence_date === task.due_date && !task.is_recurring;
   const enableTimeTracking = task.status !== 'done' && !task.is_recurring;
   const { data: timeStats } = useTaskTimeStats(enableTimeTracking ? task.id : null);
 
