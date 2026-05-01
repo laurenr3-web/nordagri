@@ -30,14 +30,6 @@ const statusLabels: Record<string, string> = {
   blocked: 'Bloqué',
 };
 
-const statusColors: Record<string, string> = {
-  todo: 'bg-muted text-muted-foreground',
-  in_progress: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-  paused: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
-  done: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-  blocked: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
-};
-
 const priorityConfig: Record<string, { label: string; className: string }> = {
   critical: { label: 'Critique', className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' },
   important: { label: 'Important', className: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' },
@@ -114,11 +106,22 @@ export function TaskCard({ task, onClick, teamMembers, currentUserMemberId, onAs
         </Badge>
       </div>
 
-      <div className="flex flex-wrap items-center gap-1.5">
-        <span className="text-xs text-muted-foreground">{categoryLabels[task.category] || task.category}</span>
-        <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", statusColors[task.status])}>
+      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground">
+        <span>{categoryLabels[task.category] || task.category}</span>
+        <span className="opacity-50">·</span>
+        <span className={cn(
+          task.status === 'in_progress' && "text-blue-600 dark:text-blue-400 font-medium",
+          task.status === 'paused' && "text-amber-600 dark:text-amber-400 font-medium",
+          task.status === 'blocked' && "text-red-600 dark:text-red-400 font-medium",
+        )}>
           {statusLabels[task.status]}
-        </Badge>
+        </span>
+        {enableTimeTracking && timeStats && (timeStats.sessionCount > 0 || timeStats.hasActive) && (
+          <>
+            <span className="opacity-50">·</span>
+            <TaskTimeBadge stats={timeStats} inline />
+          </>
+        )}
         {assignedMemberName && (
           <Badge
             variant="outline"
@@ -144,10 +147,6 @@ export function TaskCard({ task, onClick, teamMembers, currentUserMemberId, onAs
 
       {task.notes && (
         <p className="text-xs text-muted-foreground line-clamp-2">{task.notes}</p>
-      )}
-
-      {enableTimeTracking && timeStats && (timeStats.sessionCount > 0 || timeStats.hasActive) && (
-        <TaskTimeBadge stats={timeStats} />
       )}
 
       {(isUnassigned || enableTimeTracking) && (
