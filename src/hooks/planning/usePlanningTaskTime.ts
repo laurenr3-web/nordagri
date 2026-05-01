@@ -80,21 +80,58 @@ export function usePlanningTimeMutations() {
   const pause = useMutation({
     mutationFn: ({ taskId }: { taskId: string }) =>
       planningTimeService.pauseSessionForTask(taskId),
+    onMutate: async ({ taskId }) => {
+      await qc.cancelQueries({ queryKey: ['task-time-stats', taskId] });
+      const prev = qc.getQueryData<TaskTimeStats>(['task-time-stats', taskId]);
+      if (prev) {
+        // Optimistic : on fige le compteur, on désactive le polling immédiatement.
+        const extraMs = prev.activeStartTime
+          ? Math.max(0, Date.now() - new Date(prev.activeStartTime).getTime())
+          : 0;
+        qc.setQueryData<TaskTimeStats>(['task-time-stats', taskId], {
+          ...prev,
+          totalSeconds: prev.totalSeconds + Math.floor(extraMs / 1000),
+          hasActive: false,
+          activeSessionId: null,
+          activeStartTime: null,
+        });
+      }
+      return { prev };
+    },
+    onError: (err, vars, ctx) => {
+      if (ctx?.prev) qc.setQueryData(['task-time-stats', vars.taskId], ctx.prev);
+      mapErrorToast(err);
+    },
     onSuccess: (_data, vars) => {
       invalidate(vars.taskId);
       toast.success('Session mise en pause');
     },
-    onError: mapErrorToast,
   });
 
   const complete = useMutation({
     mutationFn: ({ taskId }: { taskId: string }) =>
       planningTimeService.completeTaskWithSession(taskId),
+    onMutate: async ({ taskId }) => {
+      await qc.cancelQueries({ queryKey: ['task-time-stats', taskId] });
+      const prev = qc.getQueryData<TaskTimeStats>(['task-time-stats', taskId]);
+      if (prev) {
+        qc.setQueryData<TaskTimeStats>(['task-time-stats', taskId], {
+          ...prev,
+          hasActive: false,
+          activeSessionId: null,
+          activeStartTime: null,
+        });
+      }
+      return { prev };
+    },
+    onError: (err, vars, ctx) => {
+      if (ctx?.prev) qc.setQueryData(['task-time-stats', vars.taskId], ctx.prev);
+      mapErrorToast(err);
+    },
     onSuccess: (_data, vars) => {
       invalidate(vars.taskId);
       toast.success('Tâche terminée');
     },
-    onError: mapErrorToast,
   });
 
   const unblock = useMutation({
