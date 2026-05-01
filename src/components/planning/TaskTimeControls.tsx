@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Square, CheckCircle2, Unlock } from 'lucide-react';
+import { Play, CheckCircle2, Unlock, Flag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { PlanningTask } from '@/services/planning/planningService';
@@ -43,7 +43,7 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
         <Button
           size="sm"
           variant="outline"
-          className={cn('flex-1 gap-1.5', btnSize)}
+          className={cn('gap-1.5 px-3', btnSize)}
           disabled={isLoadingMutation}
           onClick={() => unblock.mutate({ taskId: task.id })}
         >
@@ -57,10 +57,11 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
   // ── todo ───────────────────────────────────────────────────
   if (task.status === 'todo') {
     return (
-      <div className={cn('flex gap-2', className)} onClick={stop}>
+      <div className={cn('flex justify-end gap-2', className)} onClick={stop}>
         <Button
           size="sm"
-          className={cn('flex-1 gap-1.5', btnSize)}
+          variant="outline"
+          className={cn('gap-1.5 px-3', btnSize)}
           disabled={isLoadingMutation}
           onClick={() => start.mutate({ task, userId })}
         >
@@ -74,10 +75,11 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
   // ── paused ─────────────────────────────────────────────────
   if (task.status === 'paused') {
     return (
-      <div className={cn('flex gap-2', className)} onClick={stop}>
+      <div className={cn('flex justify-end gap-2', className)} onClick={stop}>
         <Button
           size="sm"
-          className={cn('flex-1 gap-1.5', btnSize)}
+          variant="outline"
+          className={cn('gap-1.5 px-3', btnSize)}
           disabled={isLoadingMutation}
           onClick={() => resume.mutate({ task, userId })}
         >
@@ -87,11 +89,11 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
         <Button
           size="sm"
           variant="outline"
-          className={cn('gap-1.5', btnSize)}
+          className={cn('gap-1.5 px-3', btnSize)}
           disabled={isLoadingMutation}
           onClick={() => complete.mutate({ taskId: task.id })}
         >
-          <CheckCircle2 className="h-3.5 w-3.5" />
+          <Flag className="h-3.5 w-3.5" />
           Terminer
         </Button>
       </div>
@@ -103,10 +105,11 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
     // Edge case : statut in_progress mais aucune session active → uniquement Reprendre
     if (!hasActive) {
       return (
-        <div className={cn('flex gap-2', className)} onClick={stop}>
+        <div className={cn('flex justify-end gap-2', className)} onClick={stop}>
           <Button
             size="sm"
-            className={cn('flex-1 gap-1.5', btnSize)}
+            variant="outline"
+            className={cn('gap-1.5 px-3', btnSize)}
             disabled={isLoadingMutation}
             onClick={() => resume.mutate({ task, userId })}
           >
@@ -117,27 +120,27 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
       );
     }
 
-    // Cas normal : session active → Arrêter (pause) + Terminer (outline)
+    // Cas normal : session active → Terminer session (pause) + Terminer tâche (outline)
     return (
       <div className={cn('flex gap-2', className)} onClick={stop}>
         <Button
           size="sm"
-          className={cn('flex-1 gap-1.5 bg-amber-600 hover:bg-amber-700 text-white', btnSize)}
+          className={cn('flex-1 gap-1.5', btnSize)}
           disabled={isLoadingMutation}
           onClick={() => pause.mutate({ taskId: task.id })}
         >
-          <Square className="h-3.5 w-3.5" />
-          Arrêter
+          <CheckCircle2 className="h-3.5 w-3.5" />
+          Terminer session
         </Button>
         <Button
           size="sm"
           variant="outline"
-          className={cn('gap-1.5', btnSize)}
+          className={cn('flex-1 gap-1.5', btnSize)}
           disabled={isLoadingMutation}
           onClick={() => complete.mutate({ taskId: task.id })}
         >
-          <CheckCircle2 className="h-3.5 w-3.5" />
-          Terminer
+          <Flag className="h-3.5 w-3.5" />
+          Terminer tâche
         </Button>
       </div>
     );
