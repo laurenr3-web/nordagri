@@ -34,7 +34,7 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
     start.isPending || resume.isPending || pause.isPending || complete.isPending || unblock.isPending;
 
   const stop = (e: React.MouseEvent) => e.stopPropagation();
-  const btnSize = variant === 'card' ? 'h-9 text-xs' : 'h-10 text-sm';
+  const btnSize = variant === 'card' ? 'h-8 text-xs' : 'h-10 text-sm';
 
   // ── blocked ────────────────────────────────────────────────
   if (task.status === 'blocked') {
@@ -122,9 +122,10 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
 
     // Cas normal : session active → Terminer session (pause) + Terminer tâche (outline)
     return (
-      <div className={cn('flex flex-wrap justify-end gap-2', className)} onClick={stop}>
+      <div className={cn('flex justify-end gap-2', className)} onClick={stop}>
         <Button
           size="sm"
+          variant="secondary"
           className={cn('gap-1.5 px-3', btnSize)}
           disabled={isLoadingMutation}
           onClick={() => pause.mutate({ taskId: task.id })}

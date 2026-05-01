@@ -19,27 +19,18 @@ export function TaskTimeBadge({ stats, className, size = 'sm' }: TaskTimeBadgePr
   if (stats.sessionCount === 0 && !stats.hasActive) return null;
 
   const textSize = size === 'sm' ? 'text-[11px]' : 'text-xs';
+  const sessionsLabel =
+    stats.sessionCount > 0
+      ? `${stats.sessionCount} session${stats.sessionCount > 1 ? 's' : ''}`
+      : null;
+  const duration = formatDurationShort(stats.totalSeconds);
 
   return (
     <div className={cn('flex flex-wrap items-center gap-1.5', className)}>
-      <span
-        className={cn(
-          'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground',
-          textSize,
-        )}
-      >
-        <Clock className="h-3 w-3" />
-        {formatDurationShort(stats.totalSeconds)}
-        {stats.sessionCount > 0 && (
-          <span className="opacity-70">
-            · {stats.sessionCount} session{stats.sessionCount > 1 ? 's' : ''}
-          </span>
-        )}
-      </span>
-      {stats.hasActive && (
+      {stats.hasActive ? (
         <span
           className={cn(
-            'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+            'inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-md bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
             textSize,
           )}
         >
@@ -47,7 +38,19 @@ export function TaskTimeBadge({ stats, className, size = 'sm' }: TaskTimeBadgePr
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75" />
             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-600" />
           </span>
-          En cours
+          {duration}
+          {sessionsLabel && <span className="opacity-70">· {sessionsLabel}</span>}
+        </span>
+      ) : (
+        <span
+          className={cn(
+            'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground',
+            textSize,
+          )}
+        >
+          <Clock className="h-3 w-3" />
+          {duration}
+          {sessionsLabel && <span className="opacity-70">· {sessionsLabel}</span>}
         </span>
       )}
     </div>

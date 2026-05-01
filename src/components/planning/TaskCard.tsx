@@ -91,7 +91,7 @@ export function TaskCard({ task, onClick, teamMembers, currentUserMemberId, onAs
   return (
     <Card
       className={cn(
-        "p-3 space-y-1.5 cursor-pointer hover:shadow-md transition-shadow",
+        "p-3 space-y-1 cursor-pointer hover:shadow-md transition-shadow",
         task.status === 'done' && "opacity-60",
         isOverdue && "border-orange-400 dark:border-orange-600"
       )}
@@ -151,14 +151,14 @@ export function TaskCard({ task, onClick, teamMembers, currentUserMemberId, onAs
       )}
 
       {(isUnassigned || enableTimeTracking) && (
-        <div className="flex flex-wrap items-center justify-between gap-2" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between gap-2" onClick={e => e.stopPropagation()}>
           <div className="flex items-center gap-2 min-w-0">
             {isUnassigned && (
               <>
                 {canAssign ? (
                   <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
                     <PopoverTrigger asChild>
-                      <button className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-colors text-muted-foreground bg-muted/50 hover:bg-muted">
+                      <button className="flex items-center gap-1.5 h-8 text-xs px-2 rounded-md transition-colors text-muted-foreground bg-muted/50 hover:bg-muted">
                         <User className="h-3 w-3" />
                         Non assignée
                       </button>
@@ -194,7 +194,7 @@ export function TaskCard({ task, onClick, teamMembers, currentUserMemberId, onAs
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-7 text-xs px-2 gap-1"
+                    className="h-8 text-xs px-2 gap-1"
                     onClick={handleTake}
                   >
                     <Hand className="h-3 w-3" />

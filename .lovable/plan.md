@@ -1,93 +1,67 @@
+# Plan — Allègement des cartes de tâche Planification
 
-## Objectif
+Objectif : carte plus compacte, boutons équilibrés (aucun ne domine), une seule ligne d'actions, badge temps simplifié. Aucune logique métier touchée.
 
-Alléger visuellement les actions dans les cartes Planification et permettre de **terminer une session de temps** directement depuis la carte, sans aller dans le module Suivi de temps.
+## 1. `TaskTimeControls.tsx` — Équilibrer les boutons
 
-## Constat
+**Problème** : "Terminer session" est en variant par défaut (vert/primary plein) → domine visuellement face à "Terminer tâche" (outline).
 
-La logique métier requise existe déjà :
+**Changements** :
+- Bouton **"Terminer session"** (cas `in_progress` + session active) : passer de variant par défaut → `variant="secondary"`. Garde la même taille/padding que "Terminer tâche".
+- Conserver `variant="outline"` pour "Terminer tâche", "Démarrer", "Reprendre", "Débloquer".
+- Réduire la hauteur uniforme : `btnSize` carte passe de `h-9 text-xs` → `h-8 text-xs` (respect contrainte h-8/h-9 max, plus compact).
+- Retirer `flex-wrap` du conteneur in_progress → forcer une seule ligne (les deux boutons compacts tiennent à 390px car icônes 3.5w + texte court).
+- Garder `justify-end` pour l'alignement à droite dans la ligne d'action partagée.
 
-- `pause.mutate({ taskId })` ferme la session active (`status='completed'`, `end_time=now()`) et passe la tâche en `paused`. C'est exactement le comportement attendu pour "Terminer session".
-- `complete.mutate({ taskId })` ferme la session + tâche en `done` (= "Terminer tâche").
+Résultat : deux boutons côte à côte, même taille, même poids visuel (secondary ≈ outline en intensité), ergonomie tactile préservée.
 
-**Aucune modification** des services, hooks, types ou migrations. Uniquement deux fichiers UI.
+## 2. `TaskCard.tsx` — Une seule ligne d'actions + densité
 
-## Changements
+**Changements layout** :
+- Bloc d'actions bas (lignes 153-211) : déjà `flex items-center justify-between` — retirer `flex-wrap` pour forcer une vraie ligne unique. Ajouter `min-w-0` au conteneur droit pour autoriser la compression si besoin.
+- Réduire `space-y-1.5` → `space-y-1` sur la `Card` pour densifier.
+- Padding carte : `p-3` reste (déjà compact). Pas de changement.
+- Bouton "Prendre" : harmoniser à `h-8` (était `h-7`) pour matcher la hauteur des boutons temps → alignement vertical parfait.
+- Trigger "Non assignée" : passer en `h-8` également.
 
-### 1. `src/components/planning/TaskTimeControls.tsx` (édition UI seule)
+## 3. `TaskTimeBadge.tsx` — Simplifier ("● 19 min · 2 sessions")
 
-Renommage et allègement visuel des boutons. Aucun changement de logique de mutation.
+**Problème** : badge "Clock 19 min · 2 sessions" + badge séparé "● En cours" = redondance.
 
-**État `todo` — Démarrer**
-- Avant : `<Button size="sm" className="flex-1 ...">` (h-9, primary, plein largeur)
-- Après : `<Button size="sm" variant="outline">` compact (`px-3`, h-9), icône `Play`, **sans `flex-1`**.
-- Container : `flex justify-end gap-2`.
+**Refactor** :
+- Fusionner en un seul élément.
+- Si `stats.hasActive` :
+  - Préfixe = pastille verte pulsante (` ● `) au lieu d'icône Clock.
+  - Texte vert atténué : `text-green-700 dark:text-green-300`.
+  - Format : `● 19 min · 2 sessions` (sans le mot "En cours").
+- Sinon (pas de session active, mais sessions passées) :
+  - Conserver l'icône `Clock` discrète, fond `bg-muted`.
+  - Format : `19 min · 2 sessions`.
+- Supprimer le second `<span>` "En cours".
 
-**État `paused` — Reprendre + Terminer tâche**
-- "Reprendre" : `variant="outline"`, sans `flex-1`, icône `Play`.
-- "Terminer tâche" : `variant="outline"`, icône `Flag` (au lieu de `CheckCircle2`, pour différencier de "Terminer session").
-- Container : `flex justify-end gap-2`.
+Un seul badge sur la carte → moins de bruit visuel, le point vert pulsant suffit comme indicateur d'état actif.
 
-**État `in_progress` sans session active — Reprendre**
-- `variant="outline"`, sans `flex-1`, icône `Play`.
-- Container : `flex justify-end gap-2`.
+## 4. Ce qui ne change PAS
 
-**État `in_progress` + session active — Terminer session + Terminer tâche**
-- "Terminer session" (remplace "Arrêter") : `variant="default"` (primary, sobre, **pas d'ambre**), `flex-1`, icône `CheckCircle2`. Label : "Terminer session".
-  - Comportement inchangé : appelle `pause.mutate({ taskId })`.
-- "Terminer tâche" : `variant="outline"`, `flex-1`, icône `Flag`.
-- Container : `flex gap-2` (deux boutons équilibrés).
-
-**État `blocked` — Débloquer**
-- `variant="outline"`, sans `flex-1`, icône `Unlock`. Container `flex justify-end gap-2`.
-
-Imports lucide ajustés : retirer `Square`, ajouter `Flag`. Garder `Play`, `CheckCircle2`, `Unlock`.
-
-Hauteur uniforme : `h-9 text-xs` (variant card), inchangée pour `dialog` (`h-10 text-sm`).
-
-### 2. `src/components/planning/TaskCard.tsx` (édition layout)
-
-**Spacing carte** : `p-3 space-y-2` → `p-3 space-y-1.5`.
-
-**Fusion ligne assignation + ligne actions temps en une seule ligne** :
-
-Aujourd'hui le bloc d'assignation (`{isUnassigned && ...}`) et le bloc `<TaskTimeControls>` sont rendus sur deux lignes séparées. Les fusionner en un wrapper unique :
-
-```tsx
-{(isUnassigned || enableTimeTracking) && (
-  <div className="flex items-center justify-between gap-2">
-    <div className="flex items-center gap-2 min-w-0">
-      {isUnassigned ? <PopoverAssignation /> : <span />}
-    </div>
-    {enableTimeTracking && (
-      <TaskTimeControls task={task} userId={user?.id ?? null} variant="card" />
-    )}
-  </div>
-)}
-```
-
-- Si tâche assignée : seul le bloc droit (actions temps) est visible, naturellement aligné à droite grâce à `justify-between` et le `<span />` vide à gauche.
-- Si tâche non assignée + actions disponibles : "Non assignée ▾" + "Prendre" à gauche, action temps à droite.
-- Le badge du membre assigné reste dans la ligne supérieure (badges) — inchangé.
-
-**`TaskTimeBadge`** (durée cumulée + indicateur live) reste sur sa propre ligne, juste au-dessus de la nouvelle ligne d'actions, car c'est de l'information et non une action.
-
-### 3. `src/components/planning/TaskDetailDialog.tsx`
-
-Aucun changement nécessaire. Le composant utilise `<TaskTimeControls variant="dialog">`, donc les nouveaux labels et couleurs se propagent automatiquement.
+- `usePlanningTaskTime.ts`, `planningTimeService.ts`, `planningService.ts` — aucune modification.
+- Mutations `start/resume/pause/complete/unblock` — inchangées.
+- `TaskDetailDialog.tsx` (variant `dialog`) — inchangé, garde `h-10`.
+- Types, RLS, schémas DB — non concernés.
 
 ## Critères d'acceptation
 
-- "Arrêter" disparaît partout, remplacé par "Terminer session" (même comportement via `pause`).
-- Aucun bouton en pleine largeur (pas de `w-full` ni `flex-1` solitaire).
-- Aucune couleur agressive (plus d'`bg-amber-600`).
-- État `todo` → un seul bouton "Démarrer" compact en outline, aligné à droite.
-- État `in_progress` actif → "Terminer session" + "Terminer tâche" équilibrés (`flex-1` chacun, gap-2).
-- Carte plus dense verticalement (`space-y-1.5`).
-- Mobile 390px : aucun scroll horizontal, hauteur ≥ 36px (h-9).
-- Aucun `any`, aucun nouveau package, aucun `setInterval`/`setTimeout`, aucune modification de service ou hook.
+- [ ] Une seule ligne d'actions en bas de la carte (assignation à gauche, temps à droite).
+- [ ] "Terminer session" et "Terminer tâche" visuellement équilibrés (secondary + outline, même hauteur/padding).
+- [ ] Aucun bouton pleine largeur ni vert plein dominant.
+- [ ] Badge temps unifié : `● 19 min · 2 sessions` quand actif, sinon icône Clock seule.
+- [ ] Densité accrue (`space-y-1`).
+- [ ] Aucun scroll horizontal à 390px.
+- [ ] Aucune régression : toutes les actions temps fonctionnent comme avant.
 
-## Fichiers touchés
+## Fichiers modifiés
 
-- `src/components/planning/TaskTimeControls.tsx` (édition)
-- `src/components/planning/TaskCard.tsx` (édition)
+```text
+src/components/planning/TaskCard.tsx          (layout + densité)
+src/components/planning/TaskTimeControls.tsx  (variant secondary, h-8, no wrap)
+src/components/planning/TaskTimeBadge.tsx     (fusion badge actif)
+```
