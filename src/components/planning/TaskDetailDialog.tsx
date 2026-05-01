@@ -20,6 +20,8 @@ import { TaskTimeControls } from './TaskTimeControls';
 import { TaskSessionsList } from './TaskSessionsList';
 import { useTaskTimeStats } from '@/hooks/planning/usePlanningTaskTime';
 import { useAuthContext } from '@/providers/AuthProvider';
+import { todayLocal, localDateStr } from '@/lib/dateLocal';
+
 
 const categoryLabels: Record<string, string> = {
   animaux: '🐄 Animaux',
@@ -101,10 +103,10 @@ export function TaskDetailDialog({
   const effectivePriority = task.manual_priority || task.computed_priority;
   const priority = priorityConfig[effectivePriority] || priorityConfig.todo;
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = todayLocal();
   const tomorrowDate = new Date();
   tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-  const tomorrowStr = tomorrowDate.toISOString().split('T')[0];
+  const tomorrowStr = localDateStr(tomorrowDate);
 
   const isOverdue = task.due_date < todayStr && task.status !== 'done';
   const overdueDays = isOverdue
@@ -290,7 +292,7 @@ export function TaskDetailDialog({
                           selected={dueDateObj}
                           onSelect={(date) => {
                             if (date) {
-                              handlePostpone(date.toISOString().split('T')[0]);
+                              handlePostpone(localDateStr(date));
                               setShowDatePicker(false);
                             }
                           }}

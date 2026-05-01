@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { planningService } from '@/services/planning/planningService';
 import { toast } from 'sonner';
+import { todayLocal } from '@/lib/dateLocal';
+
 
 export interface MaintenanceSuggestion {
   id: number;
@@ -17,7 +19,7 @@ export interface MaintenanceSuggestion {
 
 export function useMaintenanceSuggestions(farmId: string | null, userId: string | null) {
   const queryClient = useQueryClient();
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = todayLocal();
 
   const { data: suggestions = [], isLoading } = useQuery({
     queryKey: ['maintenanceSuggestions', farmId],

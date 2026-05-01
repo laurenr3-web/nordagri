@@ -10,6 +10,8 @@ import { PlanningCategory, PlanningPriority, PlanningTask } from '@/services/pla
 import { ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { HelpTooltip } from '@/components/help/HelpTooltip';
+import { localDateStr } from '@/lib/dateLocal';
+
 
 const categories: { value: PlanningCategory; label: string; icon: string }[] = [
   { value: 'animaux', label: 'Animaux', icon: '🐄' },
@@ -47,7 +49,7 @@ interface AddTaskFormProps {
 function getDateStr(offset: number = 0) {
   const d = new Date();
   d.setDate(d.getDate() + offset);
-  return d.toISOString().split('T')[0];
+  return localDateStr(d);
 }
 
 export function AddTaskForm({ open, onClose, onSubmit, teamMembers = [], equipment = [], task = null }: AddTaskFormProps) {

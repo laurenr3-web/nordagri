@@ -11,6 +11,8 @@ import { TaskTimeBadge } from './TaskTimeBadge';
 import { TaskTimeControls } from './TaskTimeControls';
 import { useTaskTimeStats } from '@/hooks/planning/usePlanningTaskTime';
 import { useAuthContext } from '@/providers/AuthProvider';
+import { todayLocal } from '@/lib/dateLocal';
+
 
 const categoryLabels: Record<string, string> = {
   animaux: '🐄 Animaux',
@@ -50,7 +52,7 @@ export function TaskCard({ task, onClick, teamMembers, currentUserMemberId, onAs
   const effectivePriority = task.manual_priority || task.computed_priority;
   const priority = priorityConfig[effectivePriority] || priorityConfig.todo;
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = todayLocal();
   const isOverdue = task.due_date < todayStr && task.status !== 'done';
   const overdueDays = isOverdue
     ? Math.floor((new Date(todayStr).getTime() - new Date(task.due_date).getTime()) / 86400000)

@@ -10,6 +10,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { EmptyState } from '@/components/help/EmptyState';
 import { emptyStates } from '@/content/help/emptyStates';
+import { todayLocal, tomorrowLocal } from '@/lib/dateLocal';
+
 
 interface DayViewProps {
   farmId: string | null;
@@ -74,10 +76,10 @@ export function DayView({ farmId, date, label, teamMembers, userId, taskFilter }
   const filteredOverdue = applyFilter(overdueTasks);
 
   const totalTasks = filteredGrouped.critical.length + filteredGrouped.important.length + filteredGrouped.todo.length;
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = todayLocal();
   const isToday = date === todayStr;
 
-  const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+  const tomorrowStr = tomorrowLocal();
 
   const handleSwipeComplete = (id: string) => {
     updateStatus.mutate({ id, status: 'done' });
