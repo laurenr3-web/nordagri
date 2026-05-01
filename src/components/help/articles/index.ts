@@ -13,6 +13,7 @@ import howToCreatePoint from './how-to-create-point.md?raw';
 import howToCreatePart from './how-to-create-part.md?raw';
 import howToCreatePlanningTask from './how-to-create-planning-task.md?raw';
 import howToTrackTime from './how-to-track-time.md?raw';
+import planningTaskTime from './planning-task-time.md?raw';
 
 export const helpArticles: Record<string, HelpArticle> = {
   'equipment-organize': {
@@ -131,5 +132,14 @@ export const helpArticles: Record<string, HelpArticle> = {
     keywords: ['formulaire', 'temps', 'session', 'chrono', 'clôture', 'facturation', 'rapport'],
     tags: ['Temps', 'Formulaire', 'Facturation'],
     content: howToTrackTime,
+  },
+  'planning-task-time': {
+    id: 'planning-task-time',
+    title: 'Suivre le temps directement sur une tâche',
+    category: 'planning',
+    readTime: 3,
+    keywords: ['chrono', 'session', 'pause', 'reprendre', 'terminer', 'temps', 'planning', 'tâche'],
+    tags: ['Planning', 'Temps', 'Mobile'],
+    content: planningTaskTime,
   },
 };
