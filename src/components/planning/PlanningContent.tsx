@@ -15,11 +15,13 @@ import { usePlanningTasks } from '@/hooks/planning/usePlanningTasks';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { PlanningTask } from '@/services/planning/planningService';
+import { localDateStr } from '@/lib/dateLocal';
+
 
 function getDateStr(offset: number = 0) {
   const d = new Date();
   d.setDate(d.getDate() + offset);
-  return d.toISOString().split('T')[0];
+  return localDateStr(d);
 }
 
 type ViewMode = 'mine' | 'all' | 'employee';

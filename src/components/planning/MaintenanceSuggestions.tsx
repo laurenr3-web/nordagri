@@ -7,6 +7,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar as CalendarUI } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { localDateStr } from '@/lib/dateLocal';
+
 
 interface MaintenanceSuggestionsProps {
   farmId: string | null;
@@ -39,7 +41,7 @@ export function MaintenanceSuggestions({ farmId, userId }: MaintenanceSuggestion
 function getDateStr(offset: number) {
   const d = new Date();
   d.setDate(d.getDate() + offset);
-  return d.toISOString().split('T')[0];
+  return localDateStr(d);
 }
 
 function SuggestionCard({ suggestion, onCreateTask, isCreating }: {

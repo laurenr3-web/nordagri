@@ -4,6 +4,8 @@ import { planningService, PlanningTask, PlanningStatus, PlanningCategory, Planni
 import { toast } from 'sonner';
 import { useCategoryImportance } from './useCategoryImportance';
 import { useAuthContext } from '@/providers/AuthProvider';
+import { todayLocal, localDateStr } from '@/lib/dateLocal';
+
 
 /** Check if a recurring task should appear on a given date */
 function shouldAppearOnDate(task: PlanningTask, dateStr: string): boolean {
@@ -33,7 +35,7 @@ function getDatesInRange(start: string, end: string): string[] {
   const d = new Date(start + 'T00:00:00');
   const endD = new Date(end + 'T00:00:00');
   while (d <= endD) {
-    dates.push(d.toISOString().split('T')[0]);
+    dates.push(localDateStr(d));
     d.setDate(d.getDate() + 1);
   }
   return dates;
@@ -53,7 +55,7 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
   });
 
   // Fetch overdue tasks (due_date < today, status != done)
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = todayLocal();
   const { data: overdueTasks = [] } = useQuery({
     queryKey: ['planningOverdue', farmId, todayStr],
     queryFn: () => planningService.getOverdueTasks(farmId!, todayStr),
@@ -82,7 +84,7 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
   const overdueStartStr = (() => {
     const d = new Date();
     d.setDate(d.getDate() - 7);
-    return d.toISOString().split('T')[0];
+    return localDateStr(d);
   })();
   const completionsStart = startDate && startDate < overdueStartStr ? startDate : overdueStartStr;
   const completionsEnd = endDate && endDate > todayStr ? endDate : todayStr;
@@ -277,7 +279,7 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
   const yesterdayStr = (() => {
     const d = new Date();
     d.setDate(d.getDate() - 1);
-    return d.toISOString().split('T')[0];
+    return localDateStr(d);
   })();
   const overdueDates = getDatesInRange(overdueStartStr, yesterdayStr);
   for (const task of recurringTasks) {

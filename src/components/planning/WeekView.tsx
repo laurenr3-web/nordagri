@@ -10,6 +10,8 @@ import { Separator } from '@/components/ui/separator';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { todayLocal, tomorrowLocal, localDateStr } from '@/lib/dateLocal';
+
 
 interface WeekViewProps {
   farmId: string | null;
@@ -25,8 +27,8 @@ function getWeekRange() {
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
   return {
-    start: monday.toISOString().split('T')[0],
-    end: sunday.toISOString().split('T')[0],
+    start: localDateStr(monday),
+    end: localDateStr(sunday),
   };
 }
 
@@ -64,7 +66,7 @@ export function WeekView({ farmId, teamMembers, taskFilter }: WeekViewProps) {
   const handleAssign = (taskId: string, memberId: string | null) => {
     updateTask.mutate({ id: taskId, updates: { assigned_to: memberId } });
   };
-  const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+  const tomorrowStr = tomorrowLocal();
   const handleSwipeComplete = (id: string) => { updateStatus.mutate({ id, status: 'done' }); };
   const handleSwipePostpone = (id: string) => { postponeTask.mutate({ id, newDate: tomorrowStr }); };
 
@@ -77,11 +79,11 @@ export function WeekView({ farmId, teamMembers, taskFilter }: WeekViewProps) {
   }
 
   const monday = new Date(start);
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = todayLocal();
   const days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
-    return d.toISOString().split('T')[0];
+    return localDateStr(d);
   });
 
   const activeTasks = applyFilter(tasks.filter(t => t.status !== 'done'));

@@ -10,6 +10,8 @@ import { CheckCircle2, AlertOctagon, Flame, ListChecks, Clock, User as UserIcon 
 import { cn } from '@/lib/utils';
 import { format, isToday, isYesterday } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { localDateStr } from '@/lib/dateLocal';
+
 
 type Period = 'today' | 'week' | 'month';
 
@@ -82,8 +84,8 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
   const { start, end } = useMemo(() => getRangeFromPeriod(period), [period]);
   const startIso = start.toISOString();
   const endIso = end.toISOString();
-  const startDate = start.toISOString().split('T')[0];
-  const endDate = end.toISOString().split('T')[0];
+  const startDate = localDateStr(start);
+  const endDate = localDateStr(end);
 
   // Fetch non-recurring done tasks within window
   const { data: doneTasks = [], isLoading: loadingDone } = useQuery({
@@ -297,7 +299,7 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
         ? filtered.filter(i => i.wasOverdue)
         : filtered.filter(i => i.priority === priorityFilter);
     for (const i of displayed) {
-      const k = i.completedAt.toISOString().split('T')[0];
+      const k = i.localDateStr(completedAt);
       if (!map.has(k)) map.set(k, []);
       map.get(k)!.push(i);
     }
