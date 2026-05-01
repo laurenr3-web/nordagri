@@ -300,6 +300,28 @@ export const tooltips = {
     title: 'Export et envoi',
     body: "Génère un PDF de la session ou envoie le rapport par courriel. Pratique pour la facturation client ou l'archivage.",
   },
+
+  // ===== Planning — Suivi de temps par tâche =====
+  'planning.time.start': {
+    title: 'Démarrer',
+    body: "Lance une session de temps liée à cette tâche.",
+    articleId: 'planning-task-time',
+  },
+  'planning.time.pause': {
+    title: 'Pause',
+    body: "Arrête la session en cours et conserve le temps cumulé. Tu peux reprendre plus tard.",
+    articleId: 'planning-task-time',
+  },
+  'planning.time.resume': {
+    title: 'Reprendre',
+    body: "Démarre une nouvelle session sur la même tâche. Le temps s'additionne au précédent.",
+    articleId: 'planning-task-time',
+  },
+  'planning.time.finishTask': {
+    title: 'Terminer',
+    body: "Marque la tâche comme faite. Si une session est active, elle est arrêtée automatiquement.",
+    articleId: 'planning-task-time',
+  },
 } as const satisfies Record<string, TooltipContent>;
 
 export type TooltipKey = keyof typeof tooltips;
