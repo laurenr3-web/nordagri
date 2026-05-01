@@ -1,67 +1,69 @@
-# Plan — Allègement des cartes de tâche Planification
+## Objectif
 
-Objectif : carte plus compacte, boutons équilibrés (aucun ne domine), une seule ligne d'actions, badge temps simplifié. Aucune logique métier touchée.
+Documenter la fonctionnalité de suivi du temps directement sur les tâches de Planification (Démarrer / Pause / Reprendre / Terminer + ligne compacte `Catégorie · Statut · ● 31 min`), **sans** ajouter d'icônes d'aide sur la carte mobile pour préserver l'allègement visuel.
 
-## 1. `TaskTimeControls.tsx` — Équilibrer les boutons
+## Décision UX
 
-**Problème** : "Terminer session" est en variant par défaut (vert/primary plein) → domine visuellement face à "Terminer tâche" (outline).
+Les tooltips seront **créés** dans `tooltips.ts` (réutilisables ailleurs et utiles pour la cohérence du centre d'aide), mais **pas branchés** sur les boutons de `TaskTimeControls.tsx`. La pédagogie passe exclusivement par l'article du centre d'aide, accessible via le HelpFAB global et via la recherche.
 
-**Changements** :
-- Bouton **"Terminer session"** (cas `in_progress` + session active) : passer de variant par défaut → `variant="secondary"`. Garde la même taille/padding que "Terminer tâche".
-- Conserver `variant="outline"` pour "Terminer tâche", "Démarrer", "Reprendre", "Débloquer".
-- Réduire la hauteur uniforme : `btnSize` carte passe de `h-9 text-xs` → `h-8 text-xs` (respect contrainte h-8/h-9 max, plus compact).
-- Retirer `flex-wrap` du conteneur in_progress → forcer une seule ligne (les deux boutons compacts tiennent à 390px car icônes 3.5w + texte court).
-- Garder `justify-end` pour l'alignement à droite dans la ligne d'action partagée.
+## Fichiers et changements
 
-Résultat : deux boutons côte à côte, même taille, même poids visuel (secondary ≈ outline en intensité), ergonomie tactile préservée.
+### 1. Créer `src/components/help/articles/planning-task-time.md`
 
-## 2. `TaskCard.tsx` — Une seule ligne d'actions + densité
+Article en français terrain, structure :
 
-**Changements layout** :
-- Bloc d'actions bas (lignes 153-211) : déjà `flex items-center justify-between` — retirer `flex-wrap` pour forcer une vraie ligne unique. Ajouter `min-w-0` au conteneur droit pour autoriser la compression si besoin.
-- Réduire `space-y-1.5` → `space-y-1` sur la `Card` pour densifier.
-- Padding carte : `p-3` reste (déjà compact). Pas de changement.
-- Bouton "Prendre" : harmoniser à `h-8` (était `h-7`) pour matcher la hauteur des boutons temps → alignement vertical parfait.
-- Trigger "Non assignée" : passer en `h-8` également.
+- **Pourquoi suivre le temps depuis une tâche ?** — 1 clic depuis la carte, pas besoin de basculer vers le module Temps, idéal pour les routines (traite, alimentation, contrôle).
+- **Le cycle Démarrer → Pause → Reprendre → Terminer** :
+  - Démarrer : ouvre une session liée à la tâche, le chrono court.
+  - Pause : ferme la session active, le temps cumulé est conservé. La tâche reste à reprendre.
+  - Reprendre : ouvre une nouvelle session sur la même tâche, le temps s'**additionne** au précédent.
+  - Terminer : marque la **tâche** comme faite. Si une session est encore active, elle est arrêtée automatiquement.
+- **Lire la ligne compacte** : `Alimentation · En cours · ● 31 min` — catégorie, statut, point pulsant + temps cumulé. Le point vert indique une session **active**.
+- **Plusieurs sessions sur une même tâche** : tâches étalées (matin / soir, avant-pause / après-pause). Le total affiché est la somme de toutes les sessions.
+- **3 bonnes pratiques terrain** :
+  1. Démarre dès que tu mets le pied dans la tâche, pas après.
+  2. Pause à chaque interruption réelle (appel, autre urgence) — c'est ce qui rend le total fiable.
+  3. Termine la tâche seulement quand elle est vraiment faite ; une session active sera coupée toute seule.
 
-## 3. `TaskTimeBadge.tsx` — Simplifier ("● 19 min · 2 sessions")
+### 2. Mettre à jour `src/components/help/articles/index.ts`
 
-**Problème** : badge "Clock 19 min · 2 sessions" + badge séparé "● En cours" = redondance.
+- Importer `planningTaskTime from './planning-task-time.md?raw'`.
+- Ajouter une entrée `planning-task-time` :
+  - `category: 'planning'`, `readTime: 3`
+  - `keywords: ['chrono','session','pause','reprendre','terminer','temps','planning','tâche']`
+  - `tags: ['Planning', 'Temps', 'Mobile']`
 
-**Refactor** :
-- Fusionner en un seul élément.
-- Si `stats.hasActive` :
-  - Préfixe = pastille verte pulsante (` ● `) au lieu d'icône Clock.
-  - Texte vert atténué : `text-green-700 dark:text-green-300`.
-  - Format : `● 19 min · 2 sessions` (sans le mot "En cours").
-- Sinon (pas de session active, mais sessions passées) :
-  - Conserver l'icône `Clock` discrète, fond `bg-muted`.
-  - Format : `19 min · 2 sessions`.
-- Supprimer le second `<span>` "En cours".
+### 3. Compléter `src/components/help/articles/daily-planning.md`
 
-Un seul badge sur la carte → moins de bruit visuel, le point vert pulsant suffit comme indicateur d'état actif.
+Ajouter une courte section (4-6 lignes) "Suivre le temps directement sur une tâche" avec un renvoi naturel vers le nouvel article ("Voir l'article dédié au chrono par tâche"). Pas de duplication du contenu détaillé.
 
-## 4. Ce qui ne change PAS
+### 4. Étendre `src/content/help/tooltips.ts`
 
-- `usePlanningTaskTime.ts`, `planningTimeService.ts`, `planningService.ts` — aucune modification.
-- Mutations `start/resume/pause/complete/unblock` — inchangées.
-- `TaskDetailDialog.tsx` (variant `dialog`) — inchangé, garde `h-10`.
-- Types, RLS, schémas DB — non concernés.
+Ajouter 4 entrées, toutes avec `articleId: 'planning-task-time'`, typées via le `satisfies Record<string, TooltipContent>` existant :
 
-## Critères d'acceptation
+- `planning.time.start` — *Démarrer* : "Lance une session de temps liée à cette tâche."
+- `planning.time.pause` — *Pause* : "Arrête la session en cours et conserve le temps cumulé. Tu peux reprendre plus tard."
+- `planning.time.resume` — *Reprendre* : "Démarre une nouvelle session sur la même tâche. Le temps s'additionne au précédent."
+- `planning.time.finishTask` — *Terminer* : "Marque la tâche comme faite. Si une session est active, elle est arrêtée automatiquement."
 
-- [ ] Une seule ligne d'actions en bas de la carte (assignation à gauche, temps à droite).
-- [ ] "Terminer session" et "Terminer tâche" visuellement équilibrés (secondary + outline, même hauteur/padding).
-- [ ] Aucun bouton pleine largeur ni vert plein dominant.
-- [ ] Badge temps unifié : `● 19 min · 2 sessions` quand actif, sinon icône Clock seule.
-- [ ] Densité accrue (`space-y-1`).
-- [ ] Aucun scroll horizontal à 390px.
-- [ ] Aucune régression : toutes les actions temps fonctionnent comme avant.
+Ces clés restent disponibles pour de futurs emplacements (ex. dialog plein écran, écran d'onboarding) sans imposer de surcharge visuelle sur la carte.
 
-## Fichiers modifiés
+### 5. `src/components/planning/TaskTimeControls.tsx`
 
-```text
-src/components/planning/TaskCard.tsx          (layout + densité)
-src/components/planning/TaskTimeControls.tsx  (variant secondary, h-8, no wrap)
-src/components/planning/TaskTimeBadge.tsx     (fusion badge actif)
-```
+**Aucun changement.** Pas d'ajout de `HelpTooltip`, pas de wrapper supplémentaire — la carte reste compacte.
+
+## Contraintes respectées
+
+- Aucune modification de logique métier (mutations, hooks, stats inchangés).
+- Aucun changement DB.
+- Aucun nouveau package.
+- Aucun `any`.
+- Carte de tâche mobile **non alourdie** (pas d'icône `?` à côté des boutons).
+- Français terrain agricole conservé.
+
+## Vérifications post-implémentation
+
+- L'article apparaît dans la catégorie Planning du centre d'aide.
+- La recherche par "chrono", "pause", "reprendre", "session" remonte le nouvel article.
+- Les 4 clés tooltip sont enregistrées (vérifiables côté types) sans s'afficher actuellement nulle part.
+- Aucune régression visuelle sur les cartes de tâches Planification.
