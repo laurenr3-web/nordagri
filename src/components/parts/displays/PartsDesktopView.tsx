@@ -3,7 +3,7 @@ import React from 'react';
 import { Part } from '@/types/Part';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, Plus } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +20,7 @@ interface PartsDesktopViewProps {
   openPartDetails: (part: Part) => void;
   openOrderDialog?: (part: Part) => void;
   openWithdrawalDialog?: (part: Part) => void;
+  openAddStockDialog?: (part: Part) => void;
   getStockStatusColor: (part: Part) => string;
   animatingOut?: (string | number)[];
 }
@@ -49,6 +50,7 @@ export const PartsDesktopView: React.FC<PartsDesktopViewProps> = ({
   openPartDetails,
   openOrderDialog,
   openWithdrawalDialog,
+  openAddStockDialog,
   getStockStatusColor: _getStockStatusColor,
   animatingOut = []
 }) => {
@@ -103,7 +105,20 @@ export const PartsDesktopView: React.FC<PartsDesktopViewProps> = ({
                   {part.price?.toFixed(2)} €
                 </TableCell>
                 <TableCell className="py-2 text-right">
-                  <DropdownMenu>
+                  <div className="flex items-center justify-end gap-1">
+                    {openAddStockDialog && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-500/10"
+                        title="Ajouter au stock"
+                        onClick={() => openAddStockDialog(part)}
+                      >
+                        <Plus className="h-4 w-4" />
+                        <span className="sr-only">Ajouter au stock</span>
+                      </Button>
+                    )}
+                    <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="h-8 w-8">
                         <MoreHorizontal className="h-4 w-4" />
@@ -114,6 +129,11 @@ export const PartsDesktopView: React.FC<PartsDesktopViewProps> = ({
                       <DropdownMenuItem onClick={() => openPartDetails(part)}>
                         Voir / Modifier
                       </DropdownMenuItem>
+                      {openAddStockDialog && (
+                        <DropdownMenuItem onClick={() => openAddStockDialog(part)}>
+                          Ajouter au stock
+                        </DropdownMenuItem>
+                      )}
                       {openWithdrawalDialog && (
                         <>
                           <DropdownMenuSeparator />
@@ -126,7 +146,8 @@ export const PartsDesktopView: React.FC<PartsDesktopViewProps> = ({
                         </>
                       )}
                     </DropdownMenuContent>
-                  </DropdownMenu>
+                    </DropdownMenu>
+                  </div>
                 </TableCell>
               </TableRow>
             );
