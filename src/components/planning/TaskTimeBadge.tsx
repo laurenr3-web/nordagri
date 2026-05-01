@@ -8,51 +8,50 @@ interface TaskTimeBadgeProps {
   stats: TaskTimeStats;
   className?: string;
   size?: 'sm' | 'md';
+  /** Inline = no background, used inside the meta line. */
+  inline?: boolean;
 }
 
 /**
- * Affiche le temps total cumulé sur la tâche + nb sessions, et un badge
- * "● En cours" pulsant si une session est actuellement active.
- * Re-render automatique toutes les ~10s via le polling React Query (useTaskTimeStats).
+ * Affiche le temps cumulé. Si une session est active, point vert pulsant + texte vert.
+ * Sinon, icône Clock discrète. Variante `inline` (sans fond) pour fusion dans la meta-line.
  */
-export function TaskTimeBadge({ stats, className, size = 'sm' }: TaskTimeBadgeProps) {
+export function TaskTimeBadge({ stats, className, size = 'sm', inline = false }: TaskTimeBadgeProps) {
   if (stats.sessionCount === 0 && !stats.hasActive) return null;
 
   const textSize = size === 'sm' ? 'text-[11px]' : 'text-xs';
-  const sessionsLabel =
-    stats.sessionCount > 0
-      ? `${stats.sessionCount} session${stats.sessionCount > 1 ? 's' : ''}`
-      : null;
   const duration = formatDurationShort(stats.totalSeconds);
 
+  if (stats.hasActive) {
+    return (
+      <span
+        className={cn(
+          'inline-flex items-center gap-1.5 font-medium text-green-600 dark:text-green-400',
+          !inline && 'px-1.5 py-0.5 rounded-md',
+          textSize,
+          className,
+        )}
+      >
+        <span className="relative flex h-1.5 w-1.5">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75" />
+          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-600" />
+        </span>
+        {duration}
+      </span>
+    );
+  }
+
   return (
-    <div className={cn('flex flex-wrap items-center gap-1.5', className)}>
-      {stats.hasActive ? (
-        <span
-          className={cn(
-            'inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-md bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-            textSize,
-          )}
-        >
-          <span className="relative flex h-1.5 w-1.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75" />
-            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-600" />
-          </span>
-          {duration}
-          {sessionsLabel && <span className="opacity-70">· {sessionsLabel}</span>}
-        </span>
-      ) : (
-        <span
-          className={cn(
-            'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground',
-            textSize,
-          )}
-        >
-          <Clock className="h-3 w-3" />
-          {duration}
-          {sessionsLabel && <span className="opacity-70">· {sessionsLabel}</span>}
-        </span>
+    <span
+      className={cn(
+        'inline-flex items-center gap-1 text-muted-foreground',
+        !inline && 'px-1.5 py-0.5 rounded-md bg-muted',
+        textSize,
+        className,
       )}
-    </div>
+    >
+      <Clock className="h-3 w-3" />
+      {duration}
+    </span>
   );
 }
