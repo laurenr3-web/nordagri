@@ -12,6 +12,7 @@ import { WithdrawalDialog } from './dialogs/withdrawal';
 import { Part } from '@/types/Part';
 import { PartsView } from '@/hooks/parts/usePartsFilter';
 import PartDetailsDialog from './dialogs/PartDetailsDialog';
+import { AddStockDialog } from './dialogs/AddStockDialog';
 import { EmptyState } from '@/components/help/EmptyState';
 import { emptyStates } from '@/content/help/emptyStates';
 
@@ -111,6 +112,13 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
   const { openWithdrawalDialog, isWithdrawalDialogOpen, selectedPart, setIsWithdrawalDialogOpen } = usePartsWithdrawal();
   const [isPartDetailsDialogOpen, setIsPartDetailsDialogOpen] = useState(false);
   const [selectedPartForDetails, setSelectedPartForDetails] = useState<Part | null>(null);
+  const [isAddStockDialogOpen, setIsAddStockDialogOpen] = useState(false);
+  const [selectedPartForStock, setSelectedPartForStock] = useState<Part | null>(null);
+
+  const openAddStockDialog = (part: Part) => {
+    setSelectedPartForStock(part);
+    setIsAddStockDialogOpen(true);
+  };
 
   // Get stock status color based on levels
   const getStockStatusColor = (part: Part) => {
@@ -180,6 +188,7 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
           openPartDetails={handleOpenPartDetails}
           openOrderDialog={openOrderDialog}
           openWithdrawalDialog={openWithdrawalDialog}
+          openAddStockDialog={openAddStockDialog}
           getStockStatusColor={getStockStatusColor}
         />
         
@@ -190,6 +199,7 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
           openPartDetails={handleOpenPartDetails}
           openOrderDialog={openOrderDialog}
           openWithdrawalDialog={openWithdrawalDialog}
+          openAddStockDialog={openAddStockDialog}
           getStockStatusColor={getStockStatusColor}
         />
       </>
@@ -228,6 +238,15 @@ const PartsContainer: React.FC<PartsContainerProps> = ({
         isOpen={isWithdrawalDialogOpen}
         onOpenChange={setIsWithdrawalDialogOpen}
         part={selectedPart}
+      />
+
+      <AddStockDialog
+        isOpen={isAddStockDialogOpen}
+        onOpenChange={(open) => {
+          setIsAddStockDialogOpen(open);
+          if (!open) setSelectedPartForStock(null);
+        }}
+        part={selectedPartForStock}
       />
 
       <PartDetailsDialog 
