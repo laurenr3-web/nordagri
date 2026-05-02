@@ -156,6 +156,32 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
     enabled: !!farmId,
   });
 
+  // Time tracked per (non-recurring) done task. Only fetched once we know which tasks are displayed.
+  const doneTaskIds = useMemo(() => (doneTasks as Array<{ id: string }>).map(t => t.id), [doneTasks]);
+  const { data: trackedByTaskId = new Map<string, number>() } = useQuery<Map<string, number>>({
+    queryKey: ['completed-tasks-tracked-seconds', doneTaskIds.join(',')],
+    queryFn: async () => {
+      const map = new Map<string, number>();
+      if (doneTaskIds.length === 0) return map;
+      const { data, error } = await supabase
+        .from('time_sessions')
+        .select('task_id,start_time,end_time')
+        .in('task_id', doneTaskIds)
+        .not('end_time', 'is', null);
+      if (error) throw error;
+      const rows = (data as Array<{ task_id: string | null; start_time: string; end_time: string | null }> | null) ?? [];
+      for (const r of rows) {
+        if (!r.task_id || !r.end_time) continue;
+        const ms = new Date(r.end_time).getTime() - new Date(r.start_time).getTime();
+        if (ms <= 0) continue;
+        map.set(r.task_id, (map.get(r.task_id) ?? 0) + Math.floor(ms / 1000));
+      }
+      return map;
+    },
+    enabled: doneTaskIds.length > 0,
+    staleTime: 30_000,
+  });
+
   const memberByUserId = useMemo(() => {
     const m = new Map<string, TeamMember>();
     teamMembers.forEach(tm => { if (tm.userId) m.set(tm.userId, tm); });
@@ -190,6 +216,7 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
         equipmentId: t.equipment_id,
         dueDate: t.due_date,
         wasOverdue: !!wasOverdue,
+        trackedSeconds: trackedByTaskId.get(t.id) ?? null,
       });
     }
     for (const { completion, task } of recurringCompletions) {
@@ -212,11 +239,12 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
         equipmentId: task.equipment_id,
         dueDate: completion.completion_date,
         wasOverdue: !!wasOverdue,
+        trackedSeconds: null,
       });
     }
     result.sort((a, b) => b.completedAt.getTime() - a.completedAt.getTime());
     return result;
-  }, [doneTasks, recurringCompletions, memberByUserId, memberById]);
+  }, [doneTasks, recurringCompletions, memberByUserId, memberById, trackedByTaskId]);
 
   // Apply employee filter
   const filtered = useMemo(() => {
