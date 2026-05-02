@@ -566,6 +566,15 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
                             {item.wasOverdue && (
                               <Badge className="text-[9px] h-4 px-1.5 bg-orange-500 text-white border-0">retard</Badge>
                             )}
+                            {item.trackedSeconds !== null && item.trackedSeconds > 0 && (
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] px-1.5 py-0 gap-1 bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-900/50"
+                              >
+                                <Clock className="h-2.5 w-2.5" />
+                                {formatDurationShort(item.trackedSeconds)}
+                              </Badge>
+                            )}
                           </div>
                           {item.assignedToName && item.assignedToName !== item.completedByName && (
                             <div className="flex items-center gap-1">
