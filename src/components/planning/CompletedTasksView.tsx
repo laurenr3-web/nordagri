@@ -634,6 +634,9 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
                   <Row label="Échéance" value={format(new Date(selected.dueDate + 'T12:00:00'), 'd MMMM yyyy', { locale: fr })} />
                   {selected.assignedToName && <Row label="Assignée à" value={selected.assignedToName} />}
                   {selected.wasOverdue && <Row label="Statut" value="Terminée en retard" />}
+                  {selected.trackedSeconds !== null && selected.trackedSeconds > 0 && (
+                    <Row label="Temps tracké" value={formatDurationShort(selected.trackedSeconds)} />
+                  )}
                 </dl>
               </div>
             </>
