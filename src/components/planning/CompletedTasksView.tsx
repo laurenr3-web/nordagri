@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { format, isToday, isYesterday } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { localDateStr } from '@/lib/dateLocal';
+import { formatDurationShort } from '@/services/planning/planningTimeFormat';
 
 
 type Period = 'today' | 'week' | 'month';
@@ -32,6 +33,8 @@ interface CompletedItem {
   equipmentId: number | null;
   dueDate: string;
   wasOverdue: boolean;
+  /** Total tracké en secondes (uniquement pour tâches non-récurrentes terminées avec time tracking). */
+  trackedSeconds: number | null;
 }
 
 const categoryLabels: Record<string, string> = {
@@ -153,6 +156,32 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
     enabled: !!farmId,
   });
 
+  // Time tracked per (non-recurring) done task. Only fetched once we know which tasks are displayed.
+  const doneTaskIds = useMemo(() => (doneTasks as Array<{ id: string }>).map(t => t.id), [doneTasks]);
+  const { data: trackedByTaskId = new Map<string, number>() } = useQuery<Map<string, number>>({
+    queryKey: ['completed-tasks-tracked-seconds', doneTaskIds.join(',')],
+    queryFn: async () => {
+      const map = new Map<string, number>();
+      if (doneTaskIds.length === 0) return map;
+      const { data, error } = await supabase
+        .from('time_sessions')
+        .select('task_id,start_time,end_time')
+        .in('task_id', doneTaskIds)
+        .not('end_time', 'is', null);
+      if (error) throw error;
+      const rows = (data as Array<{ task_id: string | null; start_time: string; end_time: string | null }> | null) ?? [];
+      for (const r of rows) {
+        if (!r.task_id || !r.end_time) continue;
+        const ms = new Date(r.end_time).getTime() - new Date(r.start_time).getTime();
+        if (ms <= 0) continue;
+        map.set(r.task_id, (map.get(r.task_id) ?? 0) + Math.floor(ms / 1000));
+      }
+      return map;
+    },
+    enabled: doneTaskIds.length > 0,
+    staleTime: 30_000,
+  });
+
   const memberByUserId = useMemo(() => {
     const m = new Map<string, TeamMember>();
     teamMembers.forEach(tm => { if (tm.userId) m.set(tm.userId, tm); });
@@ -187,6 +216,7 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
         equipmentId: t.equipment_id,
         dueDate: t.due_date,
         wasOverdue: !!wasOverdue,
+        trackedSeconds: trackedByTaskId.get(t.id) ?? null,
       });
     }
     for (const { completion, task } of recurringCompletions) {
@@ -209,11 +239,12 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
         equipmentId: task.equipment_id,
         dueDate: completion.completion_date,
         wasOverdue: !!wasOverdue,
+        trackedSeconds: null,
       });
     }
     result.sort((a, b) => b.completedAt.getTime() - a.completedAt.getTime());
     return result;
-  }, [doneTasks, recurringCompletions, memberByUserId, memberById]);
+  }, [doneTasks, recurringCompletions, memberByUserId, memberById, trackedByTaskId]);
 
   // Apply employee filter
   const filtered = useMemo(() => {
@@ -535,6 +566,15 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
                             {item.wasOverdue && (
                               <Badge className="text-[9px] h-4 px-1.5 bg-orange-500 text-white border-0">retard</Badge>
                             )}
+                            {item.trackedSeconds !== null && item.trackedSeconds > 0 && (
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] px-1.5 py-0 gap-1 bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-900/50"
+                              >
+                                <Clock className="h-2.5 w-2.5" />
+                                {formatDurationShort(item.trackedSeconds)}
+                              </Badge>
+                            )}
                           </div>
                           {item.assignedToName && item.assignedToName !== item.completedByName && (
                             <div className="flex items-center gap-1">
@@ -594,6 +634,9 @@ export function CompletedTasksView({ farmId, teamMembers, currentUserId }: Compl
                   <Row label="Échéance" value={format(new Date(selected.dueDate + 'T12:00:00'), 'd MMMM yyyy', { locale: fr })} />
                   {selected.assignedToName && <Row label="Assignée à" value={selected.assignedToName} />}
                   {selected.wasOverdue && <Row label="Statut" value="Terminée en retard" />}
+                  {selected.trackedSeconds !== null && selected.trackedSeconds > 0 && (
+                    <Row label="Temps tracké" value={formatDurationShort(selected.trackedSeconds)} />
+                  )}
                 </dl>
               </div>
             </>
