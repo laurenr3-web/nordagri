@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDurationShort } from '@/services/planning/planningTimeFormat';
@@ -20,7 +20,11 @@ export function TaskTimeBadge({ stats, className, size = 'sm', inline = false }:
   if (stats.sessionCount === 0 && !stats.hasActive) return null;
 
   const textSize = size === 'sm' ? 'text-[11px]' : 'text-xs';
-  const duration = formatDurationShort(stats.totalSeconds);
+  // Live tick : quand une session est active, on incrémente l'affichage chaque seconde
+  // sans refetch. La requête React Query reste à 10s — ici on offre juste un compteur
+  // visuel fluide à partir du baseline retourné par le serveur.
+  const liveSeconds = useLiveTotalSeconds(stats);
+  const duration = formatDurationShort(liveSeconds);
 
   if (stats.hasActive) {
     return (
@@ -54,4 +58,28 @@ export function TaskTimeBadge({ stats, className, size = 'sm', inline = false }:
       {duration}
     </span>
   );
+}
+
+function useLiveTotalSeconds(stats: TaskTimeStats): number {
+  const baselineRef = useRef<{ total: number; capturedAt: number }>({
+    total: stats.totalSeconds,
+    capturedAt: Date.now(),
+  });
+  const [now, setNow] = useState<number>(() => Date.now());
+
+  // Reset le baseline à chaque refetch React Query (totalSeconds change).
+  useEffect(() => {
+    baselineRef.current = { total: stats.totalSeconds, capturedAt: Date.now() };
+    setNow(Date.now());
+  }, [stats.totalSeconds, stats.hasActive, stats.activeSessionId]);
+
+  useEffect(() => {
+    if (!stats.hasActive) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [stats.hasActive]);
+
+  if (!stats.hasActive) return stats.totalSeconds;
+  const elapsed = Math.floor((now - baselineRef.current.capturedAt) / 1000);
+  return baselineRef.current.total + Math.max(0, elapsed);
 }
