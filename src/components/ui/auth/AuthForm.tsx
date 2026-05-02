@@ -58,7 +58,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle className="text-xl text-center">Bienvenue sur OptiTractor</CardTitle>
+        <CardTitle className="text-xl text-center">Bienvenue sur Nordagri</CardTitle>
         <CardDescription className="text-center">
           {authMode === 'login' 
             ? 'Connectez-vous à votre compte' 
