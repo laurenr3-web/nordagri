@@ -1,8 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
-import { calculateDuration } from '@/utils/dateHelpers';
 
 export interface TimeSummary {
   today: number;
@@ -11,6 +9,11 @@ export interface TimeSummary {
   todayPercentage: number;
   weekPercentage: number;
   monthPercentage: number;
+}
+
+interface WorkShiftRow {
+  punch_in_at: string;
+  punch_out_at: string | null;
 }
 
 export function useMonthlySummary() {
@@ -35,93 +38,59 @@ export function useMonthlySummary() {
       try {
         setIsLoading(true);
         
-        // Dates de calcul
+        // Source unique : work_shifts (même que le Calendrier d'activité, useDailyHours).
+        // Évite tout écart et tout double comptage avec time_sessions.
         const today = new Date();
-        const startOfToday = new Date(today);
-        startOfToday.setHours(0, 0, 0, 0);
-        
-        const endOfToday = new Date(today);
-        endOfToday.setHours(23, 59, 59, 999);
-        
-        // Utiliser la même logique que dans useTimeTrackingStats pour la semaine
-        const weekStart = startOfWeek(today, { weekStartsOn: 1 }); // Commence le lundi
-        const weekEnd = endOfWeek(today, { weekStartsOn: 1 }); // Finit le dimanche
-        
+        const weekStart = startOfWeek(today, { weekStartsOn: 1 });
+        const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
         const monthStart = startOfMonth(today);
         const monthEnd = endOfMonth(today);
-        
+        const todayDateStr = format(today, 'yyyy-MM-dd');
+
         const { data: sessionData } = await supabase.auth.getSession();
         if (!sessionData.session?.user) return;
-        
+
         const userId = sessionData.session.user.id;
-        
-        // Obtenir toutes les entrées de temps pour le mois en cours
+
         const { data, error } = await supabase
-          .from('time_sessions')
-          .select(`
-            id,
-            start_time,
-            end_time,
-            duration,
-            status
-          `)
+          .from('work_shifts')
+          .select('punch_in_at, punch_out_at')
           .eq('user_id', userId)
-          .gte('start_time', monthStart.toISOString())
-          .lte('start_time', monthEnd.toISOString());
-          
+          .gte('punch_in_at', monthStart.toISOString())
+          .lte('punch_in_at', monthEnd.toISOString());
+
         if (error) throw error;
-        
+
+        const rows = (data as WorkShiftRow[] | null) ?? [];
+        const nowMs = Date.now();
+
         let todayHours = 0;
         let weekHours = 0;
         let monthHours = 0;
-        
+
         // Heures de travail standards pour le calcul des pourcentages
-        const standardDayHours = 8; // 8 heures par jour
-        const standardWeekHours = 40; // 40 heures par semaine
-        const standardMonthHours = 160; // ~160 heures par mois
-        
-        // Calculer les heures pour chaque période
-        data?.forEach(session => {
-          const startTime = new Date(session.start_time);
-          const todayDate = format(today, 'yyyy-MM-dd');
-          const sessionDate = format(startTime, 'yyyy-MM-dd');
-          
-          // Calculer la durée avec la nouvelle fonction utilitaire
-          let sessionDuration = 0;
-          
-          // Pour les sessions terminées avec durée stockée
-          if (session.status === 'completed' && session.duration) {
-            sessionDuration = session.duration;
-          } 
-          // Pour les sessions sans durée ou actives
-          else {
-            sessionDuration = calculateDuration(session.start_time, session.end_time);
-            
-            // Ne calculer la durée que si la session est terminée ou active
-            if (session.status !== 'completed' && session.status !== 'active') {
-              sessionDuration = 0;
-            }
-          }
-          
-          // Vérifier si dans le mois en cours (déjà filtré par la requête, mais par précaution)
-          if (startTime >= monthStart && startTime <= monthEnd) {
-            monthHours += sessionDuration;
-            
-            // Vérifier si dans la semaine en cours
-            if (startTime >= weekStart && startTime <= weekEnd) {
-              weekHours += sessionDuration;
-              
-              // Vérifier si aujourd'hui
-              if (sessionDate === todayDate) {
-                todayHours += sessionDuration;
-              }
+        const standardDayHours = 8;
+        const standardWeekHours = 40;
+        const standardMonthHours = 160;
+
+        rows.forEach(shift => {
+          const startDate = new Date(shift.punch_in_at);
+          const endMs = shift.punch_out_at ? new Date(shift.punch_out_at).getTime() : nowMs;
+          const hours = Math.max(0, (endMs - startDate.getTime()) / (1000 * 60 * 60));
+          if (hours <= 0) return;
+
+          monthHours += hours;
+          if (startDate >= weekStart && startDate <= weekEnd) {
+            weekHours += hours;
+            if (format(startDate, 'yyyy-MM-dd') === todayDateStr) {
+              todayHours += hours;
             }
           }
         });
-        
-        // Appliquer des limites raisonnables
-        monthHours = Math.min(monthHours, 744); // ~31 jours * 24h
-        weekHours = Math.min(weekHours, 168); // 7 jours * 24h
+
+        // Garde-fous identiques à useDailyHours/useTimeTrackingStats
+        monthHours = Math.min(monthHours, 744);
+        weekHours = Math.min(weekHours, 168);
         todayHours = Math.min(todayHours, 24);
         
         // Calculer les pourcentages
@@ -152,9 +121,10 @@ export function useMonthlySummary() {
     };
     
     fetchSummary();
-    
-    // Mettre en place un intervalle pour actualiser les données toutes les minutes (important pour les sessions actives)
-    intervalId = setInterval(fetchSummary, 60000);
+
+    // Refresh chaque minute pour faire monter le total d'une journée active.
+    // Même cadence que useDailyHours pour rester aligné avec le calendrier.
+    intervalId = setInterval(fetchSummary, 60_000);
     
     return () => {
       isActive = false;

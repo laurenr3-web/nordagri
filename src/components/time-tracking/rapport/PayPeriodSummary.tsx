@@ -56,40 +56,28 @@ const PayPeriodSummary: React.FC<Props> = ({ isLoading, monthly, biWeekly }) => 
         const endDate = new Date(dateRange.to);
         endDate.setHours(23, 59, 59);
         
-        // Query time sessions for the selected date range
-        const { data: timeEntries, error } = await supabase
-          .from('time_sessions')
-          .select('start_time, end_time, duration')
+        // Source unique : work_shifts (alignée avec le Calendrier d'activité et les autres cartes).
+        const { data: shifts, error } = await supabase
+          .from('work_shifts')
+          .select('punch_in_at, punch_out_at')
           .eq('user_id', userId)
-          .gte('start_time', dateRange.from.toISOString())
-          .lte('start_time', endDate.toISOString())
-          .not('end_time', 'is', null);
-        
+          .gte('punch_in_at', dateRange.from.toISOString())
+          .lte('punch_in_at', endDate.toISOString());
+
         if (error) {
           console.error('Error fetching custom period data:', error);
           setErrorMessage('Impossible de récupérer les données pour cette période');
           return;
         }
-        
-        // Calculate total hours for the period
-        let totalHours = 0;
-        if (timeEntries) {
-          totalHours = timeEntries.reduce((total, session) => {
-            // Use stored duration if available
-            if (session.duration) {
-              return total + session.duration;
-            }
-            
-            // Otherwise calculate it
-            if (session.start_time && session.end_time) {
-              const start = new Date(session.start_time);
-              const end = new Date(session.end_time);
-              return total + (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-            }
-            return total;
-          }, 0);
-        }
-        
+
+        const nowMs = Date.now();
+        const totalHours = (shifts ?? []).reduce((total, shift) => {
+          const startMs = new Date(shift.punch_in_at).getTime();
+          const endMs = shift.punch_out_at ? new Date(shift.punch_out_at).getTime() : nowMs;
+          const hours = Math.max(0, (endMs - startMs) / (1000 * 60 * 60));
+          return total + hours;
+        }, 0);
+
         setCustomPeriodHours(totalHours);
       } catch (error) {
         console.error('Error calculating custom period hours:', error);
