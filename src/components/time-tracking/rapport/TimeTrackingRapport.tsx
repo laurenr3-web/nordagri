@@ -82,61 +82,38 @@ const TimeTrackingRapport: React.FC = () => {
         // Bi-weekly calculation - from last even Monday to now
         const biWeeklyStart = getLastEvenMondayStart();
         
-        // Run queries for monthly and bi-weekly totals
+        // Source unique : work_shifts (alignée avec le Calendrier d'activité,
+        // useMonthlySummary, useTimeTrackingStats). Pas de double comptage avec time_sessions.
         const [monthlyResult, biWeeklyResult] = await Promise.all([
           supabase
-            .from('time_sessions')
-            .select('start_time, end_time, duration')
+            .from('work_shifts')
+            .select('punch_in_at, punch_out_at')
             .eq('user_id', userId)
-            .gte('start_time', monthStart.toISOString())
-            .lte('start_time', monthEnd.toISOString())
-            .not('end_time', 'is', null),
-            
+            .gte('punch_in_at', monthStart.toISOString())
+            .lte('punch_in_at', monthEnd.toISOString()),
+
           supabase
-            .from('time_sessions')
-            .select('start_time, end_time, duration')
+            .from('work_shifts')
+            .select('punch_in_at, punch_out_at')
             .eq('user_id', userId)
-            .gte('start_time', biWeeklyStart.toISOString())
-            .not('end_time', 'is', null)
+            .gte('punch_in_at', biWeeklyStart.toISOString())
         ]);
-        
-        // Calculate total hours for monthly period
-        let monthlyHours = 0;
-        if (monthlyResult.data) {
-          monthlyHours = monthlyResult.data.reduce((total, session) => {
-            // Use stored duration if available
-            if (session.duration) {
-              return total + session.duration;
-            }
-            
-            // Otherwise calculate it
-            if (session.start_time && session.end_time) {
-              const start = new Date(session.start_time);
-              const end = new Date(session.end_time);
-              return total + (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-            }
-            return total;
+
+        const nowMs = Date.now();
+        const sumShiftHours = (
+          rows: Array<{ punch_in_at: string; punch_out_at: string | null }> | null
+        ): number => {
+          if (!rows) return 0;
+          return rows.reduce((total, shift) => {
+            const startMs = new Date(shift.punch_in_at).getTime();
+            const endMs = shift.punch_out_at ? new Date(shift.punch_out_at).getTime() : nowMs;
+            const hours = Math.max(0, (endMs - startMs) / (1000 * 60 * 60));
+            return total + hours;
           }, 0);
-        }
-        
-        // Calculate total hours for bi-weekly period
-        let biWeeklyHours = 0;
-        if (biWeeklyResult.data) {
-          biWeeklyHours = biWeeklyResult.data.reduce((total, session) => {
-            // Use stored duration if available
-            if (session.duration) {
-              return total + session.duration;
-            }
-            
-            // Otherwise calculate it
-            if (session.start_time && session.end_time) {
-              const start = new Date(session.start_time);
-              const end = new Date(session.end_time);
-              return total + (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-            }
-            return total;
-          }, 0);
-        }
+        };
+
+        const monthlyHours = sumShiftHours(monthlyResult.data);
+        const biWeeklyHours = sumShiftHours(biWeeklyResult.data);
         
         setPayPeriodStats({
           monthly: monthlyHours,
