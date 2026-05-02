@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { format, isToday, isYesterday } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { localDateStr } from '@/lib/dateLocal';
+import { formatDurationShort } from '@/services/planning/planningTimeFormat';
 
 
 type Period = 'today' | 'week' | 'month';
@@ -32,6 +33,8 @@ interface CompletedItem {
   equipmentId: number | null;
   dueDate: string;
   wasOverdue: boolean;
+  /** Total tracké en secondes (uniquement pour tâches non-récurrentes terminées avec time tracking). */
+  trackedSeconds: number | null;
 }
 
 const categoryLabels: Record<string, string> = {
