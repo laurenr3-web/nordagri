@@ -106,7 +106,11 @@ const Dashboard: React.FC = () => {
                 <FirstActionCard action={firstAction} loading={false} />
                 <WorkTodayCard items={workItems} limit={3} loading={planningLoading} />
                 <div className="lg:hidden">
-                  <ActiveTeamCard team={activeTeam} loading={teamLoading} />
+                  <ActiveTeamCard
+                    team={activeTeam}
+                    loading={teamLoading}
+                    unassignedCount={signals?.unassignedTasks ?? 0}
+                  />
                 </div>
 
                 {/* Desktop-only secondary blocks under main column */}
@@ -123,7 +127,11 @@ const Dashboard: React.FC = () => {
 
               {/* Right column: desktop only */}
               <aside className="hidden lg:block lg:col-span-4 space-y-4 lg:space-y-6">
-                <ActiveTeamCard team={activeTeam} loading={teamLoading} />
+                <ActiveTeamCard
+                  team={activeTeam}
+                  loading={teamLoading}
+                  unassignedCount={signals?.unassignedTasks ?? 0}
+                />
                 <FleetStatusCard farmId={farmId} />
               </aside>
             </div>
