@@ -15,19 +15,19 @@ interface Props {
 export const DesktopWatchPoints: React.FC<Props> = ({ items, criticalCount, importantCount, loading }) => {
   const navigate = useNavigate();
   return (
-    <div className="rounded-xl border bg-card overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b">
+    <div className="rounded-2xl border border-border/70 bg-card shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border/70 gap-2 min-w-0">
         <div className="flex items-center gap-2">
           <Eye className="h-4 w-4 text-muted-foreground" />
           <h3 className="text-sm font-semibold">Points à surveiller</h3>
           {criticalCount > 0 && (
-            <Badge variant="destructive" className="text-[10px]">{criticalCount} critiques</Badge>
+            <Badge variant="destructive" className="text-[10px] shrink-0 whitespace-nowrap">{criticalCount} critiques</Badge>
           )}
           {importantCount > 0 && (
-            <Badge variant="secondary" className="text-[10px]">{importantCount} importants</Badge>
+            <Badge variant="secondary" className="text-[10px] shrink-0 whitespace-nowrap">{importantCount} importants</Badge>
           )}
         </div>
-        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => navigate('/points')}>
+        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs shrink-0" onClick={() => navigate('/points')}>
           Voir <ChevronRight className="ml-1 h-3 w-3" />
         </Button>
       </div>
@@ -36,15 +36,15 @@ export const DesktopWatchPoints: React.FC<Props> = ({ items, criticalCount, impo
       ) : items.length === 0 ? (
         <p className="p-6 text-sm text-center text-muted-foreground">Rien à surveiller pour le moment.</p>
       ) : (
-        <ul className="divide-y">
+        <ul className="divide-y divide-border/60">
           {items.slice(0, 5).map(p => (
             <li key={p.id} className="px-4 py-2.5 flex items-center gap-3 min-w-0">
-              <div className={`h-2 w-2 rounded-full flex-shrink-0 ${
+              <div className={`h-2 w-2 rounded-full shrink-0 ${
                 p.priority === 'critical' ? 'bg-destructive' :
                 p.priority === 'important' ? 'bg-amber-500' : 'bg-muted-foreground/40'
               }`} />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium truncate">{p.title}</p>
+              <div className="min-w-0 flex-1 overflow-hidden">
+                <p className="text-sm font-medium line-clamp-1">{p.title}</p>
                 {p.entity_label && <p className="text-[11px] text-muted-foreground truncate">{p.entity_label}</p>}
               </div>
             </li>
