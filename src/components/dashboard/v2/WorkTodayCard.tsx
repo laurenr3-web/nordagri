@@ -19,9 +19,9 @@ interface Props {
 }
 
 const phase = (priority: WorkTodayItem['priority'], idx: number) => {
-  if (priority === 'critical') return { label: 'Maintenant', icon: Wrench, tone: 'text-emerald-700 bg-emerald-100', badge: 'En cours', badgeTone: 'bg-emerald-100 text-emerald-700' };
-  if (priority === 'important') return { label: 'Ensuite', icon: Box, tone: 'text-amber-700 bg-amber-100', badge: 'À faire', badgeTone: 'bg-amber-100 text-amber-700' };
-  return { label: 'À surveiller', icon: Eye, tone: 'text-sky-700 bg-sky-100', badge: 'À revoir', badgeTone: 'bg-sky-100 text-sky-700' };
+  if (priority === 'critical') return { icon: Wrench, tone: 'text-emerald-700 bg-emerald-100', badge: 'En cours', badgeTone: 'bg-emerald-100 text-emerald-700' };
+  if (priority === 'important') return { icon: Box, tone: 'text-amber-700 bg-amber-100', badge: 'À faire', badgeTone: 'bg-amber-100 text-amber-700' };
+  return { icon: Eye, tone: 'text-sky-700 bg-sky-100', badge: 'À revoir', badgeTone: 'bg-sky-100 text-sky-700' };
 };
 
 export const WorkTodayCard: React.FC<Props> = ({ items, limit = 3, loading }) => {
@@ -74,9 +74,8 @@ export const WorkTodayCard: React.FC<Props> = ({ items, limit = 3, loading }) =>
                 onClick={() => navigate('/planning')}
                 className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-accent/40 transition-colors text-left min-w-0"
               >
-                <div className={cn('h-10 w-10 rounded-lg flex flex-col items-center justify-center flex-shrink-0', ph.tone)}>
-                  <Icon className="h-3.5 w-3.5" />
-                  <span className="text-[8px] font-semibold leading-tight mt-0.5">{ph.label}</span>
+                <div className={cn('h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0', ph.tone)}>
+                  <Icon className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1 overflow-hidden">
                   <p className="text-sm font-medium truncate">{item.title}</p>
