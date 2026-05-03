@@ -1,7 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, ClipboardList, Wrench, Box, Eye, Plus } from 'lucide-react';
+import {
+  ChevronRight, ClipboardList, Wrench, Eye, Plus, AlertTriangle, PlayCircle, Package, MapPin,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface WorkTodayItem {
@@ -10,6 +12,8 @@ export interface WorkTodayItem {
   category?: string | null;
   priority?: 'critical' | 'important' | 'todo' | null;
   assignedTo?: string | null;
+  itemType?: 'task' | 'maintenance' | 'watch_point' | 'intervention' | 'part';
+  status?: string | null;
 }
 
 interface Props {
@@ -18,10 +22,40 @@ interface Props {
   loading?: boolean;
 }
 
-const phase = (priority: WorkTodayItem['priority'], idx: number) => {
-  if (priority === 'critical') return { icon: Wrench, tone: 'text-emerald-700 bg-emerald-100', badge: 'En cours', badgeTone: 'bg-emerald-100 text-emerald-700' };
-  if (priority === 'important') return { icon: Box, tone: 'text-amber-700 bg-amber-100', badge: 'À faire', badgeTone: 'bg-amber-100 text-amber-700' };
-  return { icon: Eye, tone: 'text-sky-700 bg-sky-100', badge: 'À revoir', badgeTone: 'bg-sky-100 text-sky-700' };
+const phase = (item: WorkTodayItem) => {
+  const status = String(item.status ?? '').toLowerCase();
+  const type = item.itemType ?? 'task';
+
+  if (type === 'watch_point') {
+    return { icon: Eye, tone: 'text-sky-700 bg-sky-100', badge: 'À revoir', badgeTone: 'bg-sky-100 text-sky-700' };
+  }
+  if (type === 'maintenance') {
+    const overdue = status === 'overdue' || item.priority === 'critical';
+    return {
+      icon: Wrench,
+      tone: overdue ? 'text-rose-700 bg-rose-100' : 'text-amber-700 bg-amber-100',
+      badge: overdue ? 'En retard' : 'À faire',
+      badgeTone: overdue ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700',
+    };
+  }
+  if (type === 'intervention') {
+    return { icon: MapPin, tone: 'text-indigo-700 bg-indigo-100', badge: 'À faire', badgeTone: 'bg-indigo-100 text-indigo-700' };
+  }
+  if (type === 'part') {
+    return { icon: Package, tone: 'text-purple-700 bg-purple-100', badge: 'À commander', badgeTone: 'bg-purple-100 text-purple-700' };
+  }
+
+  // task (planning)
+  if (status === 'blocked' || status === 'bloqué' || status === 'bloque') {
+    return { icon: AlertTriangle, tone: 'text-rose-700 bg-rose-100', badge: 'Bloqué', badgeTone: 'bg-rose-100 text-rose-700' };
+  }
+  if (status === 'in_progress' || status === 'en cours') {
+    return { icon: PlayCircle, tone: 'text-emerald-700 bg-emerald-100', badge: 'En cours', badgeTone: 'bg-emerald-100 text-emerald-700' };
+  }
+  if (item.priority === 'critical') {
+    return { icon: AlertTriangle, tone: 'text-rose-700 bg-rose-100', badge: 'Urgent', badgeTone: 'bg-rose-100 text-rose-700' };
+  }
+  return { icon: ClipboardList, tone: 'text-amber-700 bg-amber-100', badge: 'À faire', badgeTone: 'bg-amber-100 text-amber-700' };
 };
 
 export const WorkTodayCard: React.FC<Props> = ({ items, limit = 3, loading }) => {
@@ -64,8 +98,8 @@ export const WorkTodayCard: React.FC<Props> = ({ items, limit = 3, loading }) =>
             </Button>
           </div>
         ) : (
-          visible.map((item, idx) => {
-            const ph = phase(item.priority, idx);
+          visible.map((item) => {
+            const ph = phase(item);
             const Icon = ph.icon;
             return (
               <button

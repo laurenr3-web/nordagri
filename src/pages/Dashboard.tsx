@@ -115,6 +115,17 @@ const Dashboard: React.FC = () => {
       category: t.category,
       priority: (t.manual_priority ?? t.computed_priority) as any,
       assignedTo: t.assigned_to,
+      status: t.status,
+      itemType:
+        t._kind === 'point'
+          ? 'watch_point'
+          : t._kind === 'maintenance'
+          ? 'maintenance'
+          : t._kind === 'intervention'
+          ? 'intervention'
+          : t._kind === 'part'
+          ? 'part'
+          : 'task',
     }));
 
     if (firstAction?.source === 'planning') {
