@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Calendar, ListFilter, BarChart, PieChart } from 'lucide-react';
+import { Calendar, ListFilter, BarChart, PieChart, Users } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -8,6 +8,7 @@ import { TimeEntryCard } from '@/components/time-tracking/TimeEntryCard';
 import { TimeEntry } from '@/hooks/time-tracking/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import TimeTrackingRapport from '@/components/time-tracking/rapport/TimeTrackingRapport';
+import { TeamSection } from '@/components/time-tracking/team/TeamSection';
 import { Link } from 'react-router-dom';
 import { EmptyState } from '@/components/help/EmptyState';
 import { emptyStates } from '@/content/help/emptyStates';
@@ -52,6 +53,10 @@ export function TimeTrackingTabs({
             <TabsTrigger value="rapport" className="flex items-center gap-1">
               <PieChart className="h-4 w-4" />
               <span>Rapport</span>
+            </TabsTrigger>
+            <TabsTrigger value="team" className="flex items-center gap-1">
+              <Users className="h-4 w-4" />
+              <span>Équipe</span>
             </TabsTrigger>
           </TabsList>
         </div>
@@ -113,6 +118,10 @@ export function TimeTrackingTabs({
       
       <TabsContent value="rapport">
         <TimeTrackingRapport />
+      </TabsContent>
+
+      <TabsContent value="team">
+        <TeamSection />
       </TabsContent>
     </Tabs>
   );
