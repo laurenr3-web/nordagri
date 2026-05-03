@@ -72,13 +72,13 @@ export const BlockersCard: React.FC<Props> = ({ farmId }) => {
   });
 
   return (
-    <div className="rounded-2xl border border-border/70 bg-card shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border/70">
-        <div className="flex items-center gap-2">
-          <AlertOctagon className="h-4 w-4 text-muted-foreground" />
-          <h3 className="text-sm font-semibold">Blocages</h3>
+    <div className="rounded-2xl border border-orange-200/70 bg-orange-50/70 dark:bg-orange-950/20 dark:border-orange-900/40 shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-orange-200/70 dark:border-orange-900/40">
+        <div className="flex items-center gap-2 min-w-0">
+          <AlertOctagon className="h-4 w-4 text-orange-700 dark:text-orange-300 shrink-0" />
+          <h3 className="text-sm font-semibold text-orange-900 dark:text-orange-50 truncate">Blocages</h3>
         </div>
-        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        <ChevronRight className="h-4 w-4 text-orange-700/70 dark:text-orange-300/70 shrink-0" />
       </div>
       {isLoading ? (
         <div className="p-4 space-y-2">
