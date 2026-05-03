@@ -66,19 +66,41 @@ const Dashboard: React.FC = () => {
       if (!byId.has(String(t.id))) byId.set(String(t.id), t);
     }
 
-    // Order: en cours → bloquées → critiques → en retard → dues aujourd'hui
-    //        → importantes non assignées → autres
+    // Inject "points à surveiller" with last_event today as virtual items
     const today = todayStr;
+    const watchExamples = (pointsWatch?.examples ?? []) as any[];
+    for (const p of watchExamples) {
+      const eventDay = p.last_event_at ? String(p.last_event_at).slice(0, 10) : null;
+      if (eventDay !== today) continue;
+      const key = `point:${p.id}`;
+      if (byId.has(key)) continue;
+      byId.set(key, {
+        id: key,
+        title: p.title,
+        category: p.entity_label ?? 'Point à surveiller',
+        status: 'todo',
+        manual_priority: p.priority === 'normal' ? 'todo' : p.priority,
+        computed_priority: p.priority === 'normal' ? 'todo' : p.priority,
+        due_date: today,
+        assigned_to: null,
+        _kind: 'point',
+      });
+    }
+
+    // Order: en cours → bloquées → critiques → en retard → dues aujourd'hui
+    //        → importantes non assignées → points à surveiller dus aujourd'hui → autres
     const score = (t: any): number => {
       const status = String(t.status ?? '').toLowerCase();
       const prio = (t.manual_priority ?? t.computed_priority) as string | null;
+      const isPoint = t._kind === 'point';
       if (status === 'in_progress' || status === 'en cours') return 0;
       if (status === 'blocked' || status === 'bloqué' || status === 'bloque') return 1;
       if (prio === 'critical') return 2;
-      if (t.due_date && t.due_date < today) return 3; // en retard
-      if (t.due_date === today) return 4; // dues aujourd'hui
+      if (!isPoint && t.due_date && t.due_date < today) return 3; // en retard
+      if (!isPoint && t.due_date === today) return 4; // dues aujourd'hui
       if (prio === 'important' && !t.assigned_to) return 5;
-      return 6;
+      if (isPoint && t.due_date === today) return 6; // points à surveiller dus aujourd'hui
+      return 7;
     };
 
     const sorted = [...byId.values()].sort((a, b) => {
@@ -99,7 +121,7 @@ const Dashboard: React.FC = () => {
       return list.filter(i => String(i.id) !== String(firstAction.sourceId));
     }
     return list;
-  }, [planningTasks, overdueTasks, firstAction, todayStr]);
+  }, [planningTasks, overdueTasks, pointsWatch, firstAction, todayStr]);
 
   return (
     <MainLayout>
