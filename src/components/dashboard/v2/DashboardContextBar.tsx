@@ -13,7 +13,7 @@ export const DashboardContextBar: React.FC<Props> = ({ activeUsers, unassignedTa
   const navigate = useNavigate();
   const chips = [
     { icon: Users, value: activeUsers, label: 'actifs', tone: 'default' as const, onClick: () => navigate('/time-tracking') },
-    { icon: ClipboardList, value: unassignedTasks, label: 'non assignées', tone: unassignedTasks > 0 ? ('warn' as const) : ('default' as const), onClick: () => navigate('/planning') },
+    { icon: ClipboardList, value: unassignedTasks, label: 'non assig.', tone: unassignedTasks > 0 ? ('warn' as const) : ('default' as const), onClick: () => navigate('/planning') },
     { icon: Eye, value: pointsToWatch, label: 'à surveiller', tone: pointsToWatch > 0 ? ('warn' as const) : ('default' as const), onClick: () => navigate('/points') },
   ];
 
@@ -27,14 +27,14 @@ export const DashboardContextBar: React.FC<Props> = ({ activeUsers, unassignedTa
             type="button"
             onClick={c.onClick}
             className={cn(
-              'flex items-center gap-1.5 rounded-full border bg-card px-3 py-2 text-left transition-colors hover:bg-accent/50 min-w-0 shadow-sm',
+              'flex items-center gap-1 rounded-full border bg-card px-2.5 py-2 text-left transition-colors hover:bg-accent/50 min-w-0 shadow-sm',
               c.tone === 'warn' && 'border-amber-500/40'
             )}
           >
-            <Icon className={cn('h-4 w-4 flex-shrink-0', c.tone === 'warn' ? 'text-amber-600' : 'text-muted-foreground')} />
-            <span className="text-xs font-semibold flex-shrink-0">{c.value}</span>
-            <span className="text-[11px] text-muted-foreground truncate flex-1">{c.label}</span>
-            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" />
+            <Icon className={cn('h-4 w-4 shrink-0', c.tone === 'warn' ? 'text-amber-600' : 'text-muted-foreground')} />
+            <span className="text-xs font-semibold shrink-0">{c.value}</span>
+            <span className="text-[11px] text-muted-foreground truncate flex-1 min-w-0">{c.label}</span>
+            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0 hidden sm:block" />
           </button>
         );
       })}

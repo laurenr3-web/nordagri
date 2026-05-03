@@ -57,9 +57,9 @@ export const FirstActionCard: React.FC<Props> = ({ action, loading }) => {
         </span>
       </div>
 
-      <div className="flex items-start gap-3">
-        <div className="min-w-0 flex-1">
-          <h2 className="text-lg sm:text-xl font-bold text-foreground line-clamp-2 leading-tight">
+      <div className="flex items-start gap-3 min-w-0">
+        <div className="min-w-0 flex-1 overflow-hidden">
+          <h2 className="text-lg sm:text-xl font-bold text-foreground line-clamp-2 leading-tight break-words">
             {action.title}
           </h2>
           {action.subtitle && (
@@ -67,14 +67,14 @@ export const FirstActionCard: React.FC<Props> = ({ action, loading }) => {
           )}
         </div>
         <div className={cn(
-          'h-16 w-16 sm:h-20 sm:w-20 rounded-xl flex items-center justify-center flex-shrink-0',
+          'h-16 w-16 sm:h-20 sm:w-20 rounded-xl flex items-center justify-center shrink-0',
           isCritical ? 'bg-destructive/10' : 'bg-primary/10'
         )}>
           <Icon className={cn('h-8 w-8', isCritical ? 'text-destructive' : 'text-primary')} />
         </div>
       </div>
 
-      <div className="mt-4 flex items-center gap-2 flex-wrap">
+      <div className="mt-4 flex flex-wrap items-center gap-2">
         <Button
           onClick={() => navigate(action.ctaPath)}
           size="sm"
@@ -83,20 +83,22 @@ export const FirstActionCard: React.FC<Props> = ({ action, loading }) => {
           <CheckCircle2 className="h-4 w-4" />
           Marquer fait
         </Button>
-        <Button
-          onClick={() => navigate(action.ctaPath)}
-          size="sm"
-          variant="outline"
-          className="gap-1.5"
-        >
-          <FolderOpen className="h-4 w-4" />
-          Ouvrir fiche
-        </Button>
+        {action.source === 'maintenance' && action.equipmentId && (
+          <Button
+            onClick={() => navigate(`/equipment/${action.equipmentId}`)}
+            size="sm"
+            variant="outline"
+            className="gap-1.5"
+          >
+            <FolderOpen className="h-4 w-4" />
+            Ouvrir fiche
+          </Button>
+        )}
         <Button
           onClick={() => navigate(action.ctaPath)}
           size="sm"
           variant="ghost"
-          className="ml-auto text-primary"
+          className="text-primary whitespace-nowrap"
         >
           Voir la priorité <ArrowRight className="ml-1 h-3.5 w-3.5" />
         </Button>

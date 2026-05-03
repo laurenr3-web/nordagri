@@ -65,13 +65,13 @@ export const WorkTodayCard: React.FC<Props> = ({ items, limit = 3, loading }) =>
                   <Icon className="h-3.5 w-3.5" />
                   <span className="text-[8px] font-semibold leading-tight mt-0.5">{ph.label}</span>
                 </div>
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 overflow-hidden">
                   <p className="text-sm font-medium truncate">{item.title}</p>
                   {item.category && (
                     <p className="text-[11px] text-muted-foreground capitalize truncate">{item.category}</p>
                   )}
                 </div>
-                <span className={cn('text-[10px] font-medium px-2 py-1 rounded-md flex-shrink-0', ph.badgeTone)}>
+                <span className={cn('text-[10px] font-medium px-2 py-1 rounded-md shrink-0 whitespace-nowrap', ph.badgeTone)}>
                   {ph.badge}
                 </span>
               </button>

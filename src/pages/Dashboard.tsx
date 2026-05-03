@@ -100,9 +100,9 @@ const Dashboard: React.FC = () => {
               pointsToWatch={signals?.pointsToWatch ?? 0}
             />
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5 min-w-0">
               {/* Left / main column */}
-              <div className="lg:col-span-8 space-y-4 lg:space-y-5">
+              <div className="lg:col-span-8 min-w-0 space-y-4 lg:space-y-5">
                 <FirstActionCard action={firstAction} loading={false} />
                 <WorkTodayCard items={workItems} limit={isMobile ? 3 : 5} loading={planningLoading} />
 
@@ -130,7 +130,7 @@ const Dashboard: React.FC = () => {
               </div>
 
               {/* Right column — desktop only */}
-              <aside className="hidden lg:block lg:col-span-4 space-y-4 lg:space-y-5">
+              <aside className="hidden lg:block lg:col-span-4 min-w-0 space-y-4 lg:space-y-5">
                 <ActiveTeamCard
                   team={activeTeam}
                   loading={teamLoading}
