@@ -45,6 +45,7 @@ import TimeTrackingStatistics from '@/pages/TimeTrackingStatistics';
 // Pages secondaires chargées de manière asynchrone
 const AuthCallback = lazy(() => import('@/pages/Auth/Callback'));
 const ScanRedirect = lazy(() => import('@/pages/ScanRedirect'));
+const Scan = lazy(() => import('@/pages/Scan'));
 const LegalPage = lazy(() => import('@/pages/Legal'));
 const Pricing = lazy(() => import('@/pages/Pricing'));
 const BentoDemo = lazy(() => import('@/pages/BentoDemo'));
@@ -136,6 +137,11 @@ function App() {
                         </ProtectedRoute>
                       } />
                       <Route path="/scan/:id" element={<ScanRedirect />} />
+                      <Route path="/scan" element={
+                        <ProtectedRoute>
+                          <Scan />
+                        </ProtectedRoute>
+                      } />
                       <Route path="/bento-demo" element={<BentoDemo />} />
                       <Route path="/legal" element={<LegalPage />} />
                       <Route path="/pricing" element={<Pricing />} />
