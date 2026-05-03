@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface ActiveTeamMember {
@@ -12,10 +13,36 @@ export interface ActiveTeamMember {
 }
 
 export function useActiveTeam(farmId: string | null) {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!farmId) return;
+    const invalidate = () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard-v2', 'activeTeam', farmId] });
+      queryClient.invalidateQueries({ queryKey: ['farm-team-status', farmId] });
+    };
+    const channel = supabase
+      .channel(`active-team-${farmId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'work_shifts', filter: `farm_id=eq.${farmId}` },
+        invalidate,
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'time_sessions' },
+        invalidate,
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [farmId, queryClient]);
+
   return useQuery({
     queryKey: ['dashboard-v2', 'activeTeam', farmId],
     enabled: !!farmId,
-    staleTime: 60_000,
+    staleTime: 30_000,
     queryFn: async (): Promise<ActiveTeamMember[]> => {
       // Source of truth = work_shifts (RLS visible by farm members)
       const { data: shifts, error: shiftsErr } = await supabase
