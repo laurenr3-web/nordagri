@@ -30,10 +30,10 @@ export const ActiveTeamCard: React.FC<Props> = ({ team, loading, unassignedCount
   const overflow = Math.max(0, team.length - visible.length);
 
   return (
-    <div className="rounded-2xl border border-border/70 bg-card shadow-sm overflow-hidden">
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-border/70">
-        <Users className="h-4 w-4 text-muted-foreground" />
-        <h3 className="text-sm font-semibold">Équipe active</h3>
+    <div className="rounded-2xl border border-blue-200/60 bg-blue-50/60 dark:bg-blue-950/20 dark:border-blue-900/40 shadow-sm overflow-hidden">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-blue-200/60 dark:border-blue-900/40">
+        <Users className="h-4 w-4 text-blue-700 dark:text-blue-300 shrink-0" />
+        <h3 className="text-sm font-semibold text-blue-950 dark:text-blue-50">Équipe active</h3>
         <button
           type="button"
           onClick={() => navigate('/time-tracking')}
