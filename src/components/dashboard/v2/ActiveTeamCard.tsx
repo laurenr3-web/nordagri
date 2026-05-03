@@ -51,21 +51,27 @@ export const ActiveTeamCard: React.FC<Props> = ({ team, loading, unassignedCount
       ) : (
         <ul className="divide-y">
           {team.slice(0, 6).map((m) => (
-            <li key={m.sessionId} className="flex items-center gap-3 px-4 py-2.5 min-w-0">
-              <Avatar className="h-8 w-8 flex-shrink-0">
+            <li key={m.sessionId}>
+              <button
+                type="button"
+                onClick={() => navigate('/time-tracking')}
+                className="w-full flex items-center gap-3 px-4 py-2.5 min-w-0 hover:bg-accent/40 transition-colors text-left"
+              >
+              <Avatar className="h-8 w-8 shrink-0">
                 {m.avatarUrl && <AvatarImage src={m.avatarUrl} alt={m.name} />}
                 <AvatarFallback className="text-xs">{initials(m.name)}</AvatarFallback>
               </Avatar>
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0 flex-1 overflow-hidden">
                 <p className="text-sm font-medium truncate">{m.name}</p>
                 <p className="text-[11px] text-muted-foreground truncate">
                   {m.title || 'Session'}{m.equipmentName ? ` · ${m.equipmentName}` : ''}
                 </p>
               </div>
-              <div className="flex items-center gap-1 text-xs font-medium text-primary flex-shrink-0">
+              <div className="flex items-center gap-1 text-xs font-medium text-primary shrink-0 whitespace-nowrap">
                 <Timer className="h-3.5 w-3.5" />
                 {formatDuration(m.startTime)}
               </div>
+              </button>
             </li>
           ))}
         </ul>
@@ -77,10 +83,10 @@ export const ActiveTeamCard: React.FC<Props> = ({ team, loading, unassignedCount
           className="w-full flex items-center gap-2 px-4 py-2.5 border-t bg-muted/30 hover:bg-muted/50 transition-colors text-left"
         >
           <Users className="h-4 w-4 text-amber-600" />
-          <span className="text-xs flex-1 truncate">
+          <span className="text-xs flex-1 truncate min-w-0">
             {unassignedCount} tâche{unassignedCount > 1 ? 's' : ''} non assignée{unassignedCount > 1 ? 's' : ''}
           </span>
-          <span className="text-xs font-medium text-primary inline-flex items-center gap-1">
+          <span className="text-xs font-medium text-primary inline-flex items-center gap-1 shrink-0 whitespace-nowrap">
             Assigner <ArrowRight className="h-3 w-3" />
           </span>
         </button>

@@ -15,6 +15,7 @@ export interface FirstAction {
   dueDate?: string | null;
   ctaLabel: string;
   ctaPath: string;
+  equipmentId?: string | null;
 }
 
 export function useFirstAction(farmId: string | null) {
@@ -88,6 +89,7 @@ export function useFirstAction(farmId: string | null) {
         dueDate: overdue.due_date,
         ctaLabel: 'Traiter la maintenance',
         ctaPath: '/maintenance',
+        equipmentId: overdue.equipment_id ?? null,
       };
     }
 
@@ -143,6 +145,7 @@ export function useFirstAction(farmId: string | null) {
         dueDate: dueToday.due_date,
         ctaLabel: 'Voir la maintenance',
         ctaPath: '/maintenance',
+        equipmentId: dueToday.equipment_id ?? null,
       };
     }
 

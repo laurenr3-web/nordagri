@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { ClipboardPlus, Wrench, Eye, Tractor, ClipboardList, Plus } from 'lucide-react';
+import { ClipboardPlus, Wrench, Eye, Tractor, QrCode, Package } from 'lucide-react';
 
 interface Props {
   open: boolean;
@@ -18,17 +18,17 @@ export const QuickActionBottomSheet: React.FC<Props> = ({ open, onOpenChange }) 
     onOpenChange(false);
     navigate(path);
     if (eventName) {
-      setTimeout(() => window.dispatchEvent(new CustomEvent(eventName)), 280);
+      setTimeout(() => window.dispatchEvent(new CustomEvent(eventName)), 250);
     }
   };
 
   const actions: Array<{ icon: any; label: string; onClick: () => void }> = [
-    { icon: ClipboardPlus, label: 'Nouvelle tâche', onClick: () => trigger('/planning', 'planning:n-task') },
+    { icon: ClipboardPlus, label: 'Nouvelle tâche', onClick: () => trigger('/planning', 'planning:open-add-task') },
     { icon: Eye, label: 'Point à surveiller', onClick: () => trigger('/points', 'points:n-point') },
     { icon: Wrench, label: 'Maintenance', onClick: () => trigger('/maintenance', 'maintenance:n-task') },
-    { icon: Tractor, label: 'Nouvel équipement', onClick: () => trigger('/equipment', 'n-equipment-dialog') },
-    { icon: ClipboardList, label: 'Voir planification', onClick: () => trigger('/planning') },
-    { icon: Plus, label: 'Voir équipements', onClick: () => trigger('/equipment') },
+    { icon: Tractor, label: 'Nouvel équipement', onClick: () => trigger('/equipment', 'open-add-equipment-dialog') },
+    { icon: QrCode, label: 'Scanner QR', onClick: () => trigger('/scan') },
+    { icon: Package, label: 'Ajouter pièce', onClick: () => trigger('/parts') },
   ];
 
   const Grid = (
