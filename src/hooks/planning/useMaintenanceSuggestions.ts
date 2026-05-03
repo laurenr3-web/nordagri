@@ -28,7 +28,7 @@ export function useMaintenanceSuggestions(farmId: string | null, userId: string 
       // 1. Fetch maintenance tasks with equipment info
       const { data: tasks, error } = await supabase
         .from('maintenance_tasks')
-        .select('id, title, due_date, status, trigger_unit, trigger_hours, trigger_kilometers, equipment_id, equipment:equipment_id(valeur_actuelle, farm_id, name)')
+        .select('id, title, due_date, status, trigger_unit, trigger_hours, trigger_kilometers, equipment_id, equipment:equipment_id(valeur_actuelle, farm_id, name, unite_d_usure, last_wear_update)')
         .not('status', 'in', '("completed","cancelled")');
 
       if (error) throw error;
@@ -46,7 +46,14 @@ export function useMaintenanceSuggestions(farmId: string | null, userId: string 
         if (!eq) continue;
 
         const triggerUnit = t.trigger_unit || 'none';
-        const currentVal = eq.valeur_actuelle || 0;
+        const baseline = Number(eq.valeur_actuelle) || 0;
+        // For day-based equipment the displayed counter = baseline + days elapsed
+        // since last_wear_update (matches useEquipmentWear logic).
+        const elapsedDays = eq.last_wear_update
+          ? Math.max(0, Math.floor((Date.now() - new Date(eq.last_wear_update).getTime()) / 86400000))
+          : 0;
+        const isDayUnit = (eq.unite_d_usure === 'jours') || triggerUnit === 'days';
+        const currentVal = isDayUnit ? baseline + elapsedDays : baseline;
 
         let isDue = false;
         let isCounterBased = false;
@@ -63,6 +70,13 @@ export function useMaintenanceSuggestions(farmId: string | null, userId: string 
           if (currentVal >= t.trigger_kilometers) {
             isDue = true;
             counterLabel = `Seuil d'entretien dépassé (${currentVal}/${t.trigger_kilometers} km)`;
+          }
+        } else if (triggerUnit === 'days' && t.trigger_hours) {
+          // 'days' trigger reuses trigger_hours as the threshold value.
+          isCounterBased = true;
+          if (currentVal >= t.trigger_hours) {
+            isDue = true;
+            counterLabel = `Seuil d'entretien dépassé (${currentVal}/${t.trigger_hours} jours)`;
           }
         } else {
           // Date-based
