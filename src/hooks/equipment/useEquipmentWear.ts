@@ -22,16 +22,18 @@ export function useEquipmentWear(equipment: EquipmentWearData): WearInfo {
     const valeur = equipment.valeur_actuelle || 0;
 
     // For time-based equipment ("jours"), the wear value is derived from
-    // the date of the last maintenance/update, not from a manual counter.
+    // a baseline value plus the days elapsed since last_wear_update.
+    // This way, the counter auto-increments by +1 every day, just like
+    // an hour meter — users only need to set/correct the baseline.
     let formattedValue: string;
     if (unite === 'jours') {
+      let totalDays = valeur;
       if (equipment.last_wear_update) {
         const last = new Date(equipment.last_wear_update).getTime();
-        const days = Math.max(0, Math.floor((Date.now() - last) / 86400000));
-        formattedValue = `${days.toLocaleString('fr-FR')} jour${days > 1 ? 's' : ''}`;
-      } else {
-        formattedValue = '— jours';
+        const elapsed = Math.max(0, Math.floor((Date.now() - last) / 86400000));
+        totalDays = valeur + elapsed;
       }
+      formattedValue = `${totalDays.toLocaleString('fr-FR')} jour${totalDays > 1 ? 's' : ''}`;
     } else {
       formattedValue = `${valeur.toLocaleString('fr-FR')} `;
       switch (unite) {
