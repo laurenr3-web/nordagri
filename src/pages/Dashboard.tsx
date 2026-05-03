@@ -66,7 +66,8 @@ const Dashboard: React.FC = () => {
       if (!byId.has(String(t.id))) byId.set(String(t.id), t);
     }
 
-    // Score: in_progress/blocked > critical > overdue > important > today > todo
+    // Order: en cours → bloquées → critiques → en retard → dues aujourd'hui
+    //        → importantes non assignées → autres
     const today = todayStr;
     const score = (t: any): number => {
       const status = String(t.status ?? '').toLowerCase();
@@ -74,11 +75,10 @@ const Dashboard: React.FC = () => {
       if (status === 'in_progress' || status === 'en cours') return 0;
       if (status === 'blocked' || status === 'bloqué' || status === 'bloque') return 1;
       if (prio === 'critical') return 2;
-      if (t.due_date && t.due_date < today) return 3; // overdue
-      if (prio === 'important') return 4;
-      if (t.due_date === today) return 5;
-      if (!t.assigned_to) return 6;
-      return 7;
+      if (t.due_date && t.due_date < today) return 3; // en retard
+      if (t.due_date === today) return 4; // dues aujourd'hui
+      if (prio === 'important' && !t.assigned_to) return 5;
+      return 6;
     };
 
     const sorted = [...byId.values()].sort((a, b) => {
