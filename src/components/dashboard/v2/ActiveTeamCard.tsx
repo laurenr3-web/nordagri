@@ -30,8 +30,8 @@ export const ActiveTeamCard: React.FC<Props> = ({ team, loading, unassignedCount
   const overflow = Math.max(0, team.length - visible.length);
 
   return (
-    <div className="rounded-xl border bg-card overflow-hidden">
-      <div className="flex items-center gap-2 px-4 py-3 border-b">
+    <div className="rounded-2xl border border-border/70 bg-card shadow-sm overflow-hidden">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-border/70">
         <Users className="h-4 w-4 text-muted-foreground" />
         <h3 className="text-sm font-semibold">Équipe active</h3>
         <button
@@ -57,7 +57,7 @@ export const ActiveTeamCard: React.FC<Props> = ({ team, loading, unassignedCount
           </Button>
         </div>
       ) : (
-        <ul className="divide-y">
+        <ul className="divide-y divide-border/60">
           {visible.map((m) => (
             <li key={m.sessionId}>
               <button
@@ -70,7 +70,7 @@ export const ActiveTeamCard: React.FC<Props> = ({ team, loading, unassignedCount
                   <AvatarFallback className="text-xs">{initials(m.name)}</AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1 overflow-hidden">
-                  <p className="text-sm font-medium truncate">{m.name}</p>
+                  <p className="text-sm font-medium line-clamp-1">{m.name}</p>
                   <p className="text-[11px] text-muted-foreground truncate">
                     {m.title || 'Session active'}{m.equipmentName ? ` · ${m.equipmentName}` : ''}
                   </p>
@@ -99,12 +99,14 @@ export const ActiveTeamCard: React.FC<Props> = ({ team, loading, unassignedCount
         <button
           type="button"
           onClick={() => navigate('/planning')}
-          className="w-full flex items-center gap-2 px-4 py-2.5 border-t bg-muted/30 hover:bg-muted/50 transition-colors text-left"
+          className="w-full flex items-center justify-between gap-3 px-4 py-2.5 border-t border-border/70 bg-muted/30 hover:bg-muted/50 transition-colors text-left min-w-0"
         >
-          <Users className="h-4 w-4 text-amber-600" />
-          <span className="text-xs flex-1 truncate min-w-0">
-            {unassignedCount} tâche{unassignedCount > 1 ? 's' : ''} non assignée{unassignedCount > 1 ? 's' : ''}
-          </span>
+          <div className="flex items-center gap-2 min-w-0">
+            <Users className="h-4 w-4 text-amber-600 shrink-0" />
+            <span className="text-xs truncate">
+              {unassignedCount} tâche{unassignedCount > 1 ? 's' : ''} non assignée{unassignedCount > 1 ? 's' : ''}
+            </span>
+          </div>
           <span className="text-xs font-medium text-primary inline-flex items-center gap-1 shrink-0 whitespace-nowrap">
             Assigner <ArrowRight className="h-3 w-3" />
           </span>
