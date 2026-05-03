@@ -99,9 +99,9 @@ export const ActiveTeamCard: React.FC<Props> = ({ team, loading, unassignedCount
         <button
           type="button"
           onClick={() => navigate('/planning')}
-          className="w-full flex items-center justify-between gap-3 px-4 py-2.5 border-t border-border/70 bg-muted/30 hover:bg-muted/50 transition-colors text-left min-w-0"
+          className="w-full flex items-center justify-between gap-3 px-4 py-2.5 border-t border-blue-200/60 dark:border-blue-900/40 bg-white/70 dark:bg-background/40 hover:bg-white transition-colors text-left min-w-0"
         >
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <Users className="h-4 w-4 text-amber-600 shrink-0" />
             <span className="text-xs truncate">
               {unassignedCount} tâche{unassignedCount > 1 ? 's' : ''} non assignée{unassignedCount > 1 ? 's' : ''}
