@@ -29,8 +29,8 @@ export const WorkTodayCard: React.FC<Props> = ({ items, limit = 3, loading }) =>
   const visible = items.slice(0, limit);
 
   return (
-    <div className="rounded-xl border bg-card overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b">
+    <div className="rounded-2xl border border-border/70 bg-card shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border/70">
         <div className="flex items-center gap-2">
           <ClipboardList className="h-4 w-4 text-muted-foreground" />
           <h3 className="text-sm font-semibold">Travail du jour</h3>
@@ -39,7 +39,7 @@ export const WorkTodayCard: React.FC<Props> = ({ items, limit = 3, loading }) =>
           Voir toute la file <ChevronRight className="ml-1 h-3 w-3" />
         </Button>
       </div>
-      <div className="divide-y">
+      <div className="divide-y divide-border/60">
         {loading ? (
           <div className="p-4 space-y-2">
             {[1, 2, 3].map((i) => (
