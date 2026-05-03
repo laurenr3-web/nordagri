@@ -92,7 +92,7 @@ const Dashboard: React.FC = () => {
             <DashboardContextBar
               activeUsers={signals?.activeUsers ?? 0}
               unassignedTasks={signals?.unassignedTasks ?? 0}
-              lowStockParts={signals?.lowStockParts ?? 0}
+              pointsToWatch={signals?.pointsToWatch ?? 0}
             />
 
             {/* Mobile single column / desktop 2 columns */}
