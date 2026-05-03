@@ -27,7 +27,7 @@ export const FleetStatusCard: React.FC<Props> = ({ farmId }) => {
   });
 
   return (
-    <div className="rounded-xl border bg-card p-4">
+    <div className="rounded-2xl border border-border/70 bg-card shadow-sm p-4">
       <div className="flex items-center gap-2 mb-3">
         <Tractor className="h-4 w-4 text-muted-foreground" />
         <h3 className="text-sm font-semibold">État de la flotte</h3>
