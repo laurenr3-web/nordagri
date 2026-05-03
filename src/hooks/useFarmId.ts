@@ -6,6 +6,7 @@ import { logger } from '@/utils/logger';
 
 export const useFarmId = (equipmentId?: number) => {
   const [farmId, setFarmId] = useState<string | null>(null);
+  const [farmName, setFarmName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [noAccess, setNoAccess] = useState(false);
 
@@ -87,13 +88,14 @@ export const useFarmId = (equipmentId?: number) => {
       logger.log('Vérification si l\'utilisateur est propriétaire d\'une ferme');
       const { data: ownedFarms, error: ownerError } = await supabase
         .from('farms')
-        .select('id')
+        .select('id, name')
         .eq('owner_id', userId);
 
       if (!ownerError && ownedFarms && ownedFarms.length > 0) {
         logger.log('Fermes possédées trouvées:', ownedFarms.length);
         if (!isCancelled) {
           setFarmId(ownedFarms[0].id);
+          setFarmName((ownedFarms[0] as any).name ?? null);
           setIsLoading(false);
         }
         return;
@@ -103,7 +105,7 @@ export const useFarmId = (equipmentId?: number) => {
       logger.log('Recherche des fermes accessibles via farm_members');
       const { data: farmMembers, error: membersError } = await supabase
         .from('farm_members')
-        .select('farm_id')
+        .select('farm_id, farms:farm_id(name)')
         .eq('user_id', userId);
 
       if (membersError) {
@@ -119,6 +121,7 @@ export const useFarmId = (equipmentId?: number) => {
         logger.log('Fermes accessibles trouvées:', farmMembers.length);
         if (!isCancelled) {
           setFarmId(farmMembers[0].farm_id);
+          setFarmName(((farmMembers[0] as any).farms?.name) ?? null);
           setIsLoading(false);
         }
         if (farmMembers.length > 1) {
@@ -142,5 +145,5 @@ export const useFarmId = (equipmentId?: number) => {
     return () => { cancelled = true; };
   }, [equipmentId]);
 
-  return { farmId, isLoading, noAccess };
+  return { farmId, farmName, isLoading, noAccess };
 };
