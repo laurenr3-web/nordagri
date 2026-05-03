@@ -171,6 +171,7 @@ const Dashboard: React.FC = () => {
                     team={activeTeam}
                     loading={teamLoading}
                     unassignedCount={signals?.unassignedTasks ?? 0}
+                    limit={3}
                   />
                 </div>
 
@@ -195,6 +196,7 @@ const Dashboard: React.FC = () => {
                   team={activeTeam}
                   loading={teamLoading}
                   unassignedCount={signals?.unassignedTasks ?? 0}
+                  limit={5}
                 />
                 <BlockersCard farmId={farmId} />
                 <RecentActivityCard farmId={farmId} />
