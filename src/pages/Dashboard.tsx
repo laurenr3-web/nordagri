@@ -17,6 +17,7 @@ import { useActiveTeam } from '@/hooks/dashboard/v2/useActiveTeam';
 import { usePlanningTasks } from '@/hooks/planning/usePlanningTasks';
 import { usePointsWatchData } from '@/hooks/dashboard/usePointsWatchData';
 import { todayLocal } from '@/lib/dateLocal';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 import { DashboardHeader } from '@/components/dashboard/v2/DashboardHeader';
 import { DashboardContextBar } from '@/components/dashboard/v2/DashboardContextBar';
@@ -25,6 +26,9 @@ import { WorkTodayCard, type WorkTodayItem } from '@/components/dashboard/v2/Wor
 import { ActiveTeamCard } from '@/components/dashboard/v2/ActiveTeamCard';
 import { DesktopWatchPoints } from '@/components/dashboard/v2/DesktopWatchPoints';
 import { FleetStatusCard } from '@/components/dashboard/v2/FleetStatusCard';
+import { BlockersCard } from '@/components/dashboard/v2/BlockersCard';
+import { RecentActivityCard } from '@/components/dashboard/v2/RecentActivityCard';
+import { WeekStatsCard } from '@/components/dashboard/v2/WeekStatsCard';
 
 const Dashboard: React.FC = () => {
   const { user, profileData } = useAuthContext();
@@ -32,6 +36,7 @@ const Dashboard: React.FC = () => {
   const { farmId, farmName } = useFarmId();
   const hasFarm = !!farmId;
   const [showCreateFarm, setShowCreateFarm] = useState(false);
+  const isMobile = useIsMobile();
 
   const todayStr = todayLocal();
 
@@ -41,7 +46,6 @@ const Dashboard: React.FC = () => {
   const { tasks: planningTasks = [], isLoading: planningLoading } = usePlanningTasks(farmId, todayStr, todayStr) as any;
   const { data: pointsWatch, isLoading: pointsLoading } = usePointsWatchData(farmId, hasFarm);
 
-  // Build today's work items, exclude the First Action source to avoid repetition
   const workItems = useMemo<WorkTodayItem[]>(() => {
     const list: WorkTodayItem[] = (planningTasks ?? [])
       .filter((t: any) => t.status !== 'done')
@@ -62,13 +66,10 @@ const Dashboard: React.FC = () => {
   return (
     <MainLayout>
       <LayoutWrapper>
-        {/* Banner: no farm yet */}
         {!hasFarm && user && (
           <div className="rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 p-6 text-center space-y-3 mb-6">
             <h2 className="text-lg font-semibold">Bienvenue sur NordAgri !</h2>
-            <p className="text-sm text-muted-foreground">
-              Créez votre ferme pour commencer.
-            </p>
+            <p className="text-sm text-muted-foreground">Créez votre ferme pour commencer.</p>
             <Button onClick={() => setShowCreateFarm(true)} size="lg">
               <Plus className="mr-2 h-5 w-5" />
               Créer ma ferme
@@ -86,7 +87,7 @@ const Dashboard: React.FC = () => {
         )}
 
         {hasFarm && (
-          <div className="space-y-4 lg:space-y-6 pb-24 lg:pb-8">
+          <div className="space-y-4 lg:space-y-5 pb-24 lg:pb-8">
             <DashboardHeader
               firstName={profileData?.first_name}
               farmName={farmName}
@@ -99,12 +100,12 @@ const Dashboard: React.FC = () => {
               pointsToWatch={signals?.pointsToWatch ?? 0}
             />
 
-            {/* Mobile single column / desktop 2 columns */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
-              {/* Main column */}
-              <div className="lg:col-span-8 space-y-4 lg:space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5">
+              {/* Left / main column */}
+              <div className="lg:col-span-8 space-y-4 lg:space-y-5">
                 <FirstActionCard action={firstAction} loading={false} />
-                <WorkTodayCard items={workItems} limit={3} loading={planningLoading} />
+                <WorkTodayCard items={workItems} limit={isMobile ? 3 : 5} loading={planningLoading} />
+
                 <div className="lg:hidden">
                   <ActiveTeamCard
                     team={activeTeam}
@@ -113,8 +114,7 @@ const Dashboard: React.FC = () => {
                   />
                 </div>
 
-                {/* Desktop-only secondary blocks under main column */}
-                <div className="hidden lg:grid grid-cols-2 gap-4">
+                <div className="hidden lg:grid grid-cols-2 gap-4 lg:gap-5">
                   <DesktopWatchPoints
                     items={pointsWatch?.examples ?? []}
                     criticalCount={pointsWatch?.criticalCount ?? 0}
@@ -123,20 +123,24 @@ const Dashboard: React.FC = () => {
                   />
                   <FleetStatusCard farmId={farmId} />
                 </div>
+
+                <div className="hidden lg:block">
+                  <WeekStatsCard farmId={farmId} />
+                </div>
               </div>
 
-              {/* Right column: desktop only */}
-              <aside className="hidden lg:block lg:col-span-4 space-y-4 lg:space-y-6">
+              {/* Right column — desktop only */}
+              <aside className="hidden lg:block lg:col-span-4 space-y-4 lg:space-y-5">
                 <ActiveTeamCard
                   team={activeTeam}
                   loading={teamLoading}
                   unassignedCount={signals?.unassignedTasks ?? 0}
                 />
-                <FleetStatusCard farmId={farmId} />
+                <BlockersCard farmId={farmId} />
+                <RecentActivityCard farmId={farmId} />
               </aside>
             </div>
 
-            {/* Onboarding empty hint when no equipment yet */}
             {hasFarm && (
               <div className="hidden">
                 <EmptyState
