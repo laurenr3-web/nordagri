@@ -42,8 +42,8 @@ export const FirstActionCard: React.FC<Props> = ({ action, loading }) => {
 
   return (
     <div className={cn(
-      'relative rounded-2xl border bg-card p-4 sm:p-5 shadow-sm overflow-hidden',
-      isCritical && 'border-destructive/30'
+      'relative rounded-2xl border border-border/70 bg-card p-4 sm:p-5 shadow-md overflow-hidden',
+      isCritical && 'border-destructive/40 bg-destructive/[0.04]'
     )}>
       {isCritical && (
         <div className="absolute top-3 right-3 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow">
@@ -63,7 +63,7 @@ export const FirstActionCard: React.FC<Props> = ({ action, loading }) => {
             {action.title}
           </h2>
           {action.subtitle && (
-            <p className="text-sm text-muted-foreground truncate mt-1">{action.subtitle}</p>
+            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{action.subtitle}</p>
           )}
         </div>
         <div className={cn(
