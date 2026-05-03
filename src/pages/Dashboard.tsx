@@ -29,7 +29,7 @@ import { FleetStatusCard } from '@/components/dashboard/v2/FleetStatusCard';
 const Dashboard: React.FC = () => {
   const { user, profileData } = useAuthContext();
   const queryClient = useQueryClient();
-  const { farmId } = useFarmId();
+  const { farmId, farmName } = useFarmId();
   const hasFarm = !!farmId;
   const [showCreateFarm, setShowCreateFarm] = useState(false);
 
@@ -87,7 +87,11 @@ const Dashboard: React.FC = () => {
 
         {hasFarm && (
           <div className="space-y-4 lg:space-y-6 pb-24 lg:pb-8">
-            <DashboardHeader firstName={profileData?.first_name} />
+            <DashboardHeader
+              firstName={profileData?.first_name}
+              farmName={farmName}
+              avatarUrl={(profileData as any)?.avatar_url ?? null}
+            />
 
             <DashboardContextBar
               activeUsers={signals?.activeUsers ?? 0}
