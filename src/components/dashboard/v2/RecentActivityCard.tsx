@@ -77,11 +77,11 @@ export const RecentActivityCard: React.FC<Props> = ({ farmId }) => {
   });
 
   return (
-    <div className="rounded-2xl border border-border/70 bg-card shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border/70">
-        <div className="flex items-center gap-2">
-          <ActivityIcon className="h-4 w-4 text-muted-foreground" />
-          <h3 className="text-sm font-semibold">Activité récente</h3>
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-800/60 bg-slate-50 dark:bg-slate-900/30 shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-800/60">
+        <div className="flex items-center gap-2 min-w-0">
+          <ActivityIcon className="h-4 w-4 text-slate-600 dark:text-slate-300 shrink-0" />
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-50 truncate">Activité récente</h3>
         </div>
       </div>
       {isLoading ? (
@@ -93,16 +93,18 @@ export const RecentActivityCard: React.FC<Props> = ({ farmId }) => {
       ) : !data || data.length === 0 ? (
         <p className="p-6 text-sm text-center text-muted-foreground">Pas d'activité récente.</p>
       ) : (
-        <ul className="divide-y divide-border/60">
+        <ul className="divide-y divide-slate-200/70 dark:divide-slate-800/50">
           {data.map((a) => {
             const Icon = iconFor(a.type);
             return (
-              <li key={a.id} className="flex items-center gap-3 px-4 py-2.5 min-w-0">
-                <Icon className="h-4 w-4 text-primary shrink-0" />
-                <p className="text-sm flex-1 min-w-0 line-clamp-2 leading-snug">{a.text}</p>
-                <span className="text-[11px] text-muted-foreground shrink-0 whitespace-nowrap">
-                  il y a {formatDistanceToNowStrict(new Date(a.at), { locale: fr })}
-                </span>
+              <li key={a.id} className="flex items-start gap-3 px-4 py-2.5 min-w-0">
+                <Icon className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm line-clamp-2 leading-snug">{a.text}</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    il y a {formatDistanceToNowStrict(new Date(a.at), { locale: fr })}
+                  </p>
+                </div>
               </li>
             );
           })}
