@@ -72,8 +72,8 @@ export const BlockersCard: React.FC<Props> = ({ farmId }) => {
   });
 
   return (
-    <div className="rounded-xl border bg-card overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b">
+    <div className="rounded-2xl border border-border/70 bg-card shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border/70">
         <div className="flex items-center gap-2">
           <AlertOctagon className="h-4 w-4 text-muted-foreground" />
           <h3 className="text-sm font-semibold">Blocages</h3>
@@ -89,24 +89,36 @@ export const BlockersCard: React.FC<Props> = ({ farmId }) => {
       ) : !data || data.length === 0 ? (
         <p className="p-6 text-sm text-center text-muted-foreground">Aucun blocage.</p>
       ) : (
-        <ul className="divide-y">
+        <ul className="divide-y divide-border/60">
           {data.map((b) => (
-            <li key={b.id} className="flex items-center gap-3 px-4 py-3 min-w-0">
-              <div className="h-7 w-7 rounded-full bg-destructive/10 text-destructive flex items-center justify-center flex-shrink-0">
-                <AlertOctagon className="h-3.5 w-3.5" />
+            <li key={b.id} className="px-4 py-3 min-w-0">
+              <div className="flex items-start gap-3 min-w-0">
+                <div className="h-7 w-7 rounded-full bg-destructive/10 text-destructive flex items-center justify-center shrink-0">
+                  <AlertOctagon className="h-3.5 w-3.5" />
+                </div>
+                <div className="min-w-0 flex-1 overflow-hidden">
+                  <p className="text-sm font-medium leading-snug line-clamp-2">{b.title}</p>
+                  <p className="text-[11px] text-muted-foreground line-clamp-2">{b.subtitle}</p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => navigate(b.ctaPath)}
+                  className="h-7 px-3 text-xs shrink-0 whitespace-nowrap hidden sm:inline-flex"
+                >
+                  {b.cta}
+                </Button>
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium truncate">{b.title}</p>
-                <p className="text-[11px] text-muted-foreground truncate">{b.subtitle}</p>
+              <div className="mt-2 flex sm:hidden justify-end">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => navigate(b.ctaPath)}
+                  className="h-7 px-3 text-xs whitespace-nowrap"
+                >
+                  {b.cta}
+                </Button>
               </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => navigate(b.ctaPath)}
-                className="h-7 px-3 text-xs flex-shrink-0"
-              >
-                {b.cta}
-              </Button>
             </li>
           ))}
         </ul>
