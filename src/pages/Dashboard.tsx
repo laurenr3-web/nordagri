@@ -43,25 +43,63 @@ const Dashboard: React.FC = () => {
   const firstAction = useFirstAction(farmId);
   const { data: signals } = useDashboardSignals(farmId);
   const { data: activeTeam = [], isLoading: teamLoading } = useActiveTeam(farmId);
-  const { tasks: planningTasks = [], isLoading: planningLoading } = usePlanningTasks(farmId, todayStr, todayStr) as any;
+  const {
+    tasks: planningTasks = [],
+    overdueTasks = [],
+    isLoading: planningLoading,
+  } = usePlanningTasks(farmId, todayStr, todayStr) as any;
   const { data: pointsWatch, isLoading: pointsLoading } = usePointsWatchData(farmId, hasFarm);
 
   const workItems = useMemo<WorkTodayItem[]>(() => {
-    const list: WorkTodayItem[] = (planningTasks ?? [])
-      .filter((t: any) => t.status !== 'done')
-      .map((t: any) => ({
-        id: t.id,
-        title: t.title,
-        category: t.category,
-        priority: (t.manual_priority ?? t.computed_priority) as any,
-        assignedTo: t.assigned_to,
-      }));
+    const inactiveStatuses = new Set([
+      'done', 'completed', 'resolved', 'cancelled', 'canceled', 'terminé', 'termine', 'annulé', 'annule',
+    ]);
+
+    // Merge today's tasks + overdue (non-done) tasks
+    const merged = [...(overdueTasks ?? []), ...(planningTasks ?? [])];
+
+    // Dedupe by id
+    const byId = new Map<string, any>();
+    for (const t of merged) {
+      if (!t || !t.id) continue;
+      if (inactiveStatuses.has(String(t.status).toLowerCase())) continue;
+      if (!byId.has(String(t.id))) byId.set(String(t.id), t);
+    }
+
+    // Score: in_progress/blocked > critical > overdue > important > today > todo
+    const today = todayStr;
+    const score = (t: any): number => {
+      const status = String(t.status ?? '').toLowerCase();
+      const prio = (t.manual_priority ?? t.computed_priority) as string | null;
+      if (status === 'in_progress' || status === 'en cours') return 0;
+      if (status === 'blocked' || status === 'bloqué' || status === 'bloque') return 1;
+      if (prio === 'critical') return 2;
+      if (t.due_date && t.due_date < today) return 3; // overdue
+      if (prio === 'important') return 4;
+      if (t.due_date === today) return 5;
+      if (!t.assigned_to) return 6;
+      return 7;
+    };
+
+    const sorted = [...byId.values()].sort((a, b) => {
+      const d = score(a) - score(b);
+      if (d !== 0) return d;
+      return String(a.due_date ?? '').localeCompare(String(b.due_date ?? ''));
+    });
+
+    const list: WorkTodayItem[] = sorted.map((t: any) => ({
+      id: t.id,
+      title: t.title,
+      category: t.category,
+      priority: (t.manual_priority ?? t.computed_priority) as any,
+      assignedTo: t.assigned_to,
+    }));
 
     if (firstAction?.source === 'planning') {
       return list.filter(i => String(i.id) !== String(firstAction.sourceId));
     }
     return list;
-  }, [planningTasks, firstAction]);
+  }, [planningTasks, overdueTasks, firstAction, todayStr]);
 
   return (
     <MainLayout>
