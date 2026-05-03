@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import MainLayout from '@/ui/layouts/MainLayout';
 import { useMaintenancePage } from '@/hooks/maintenance/useMaintenancePage';
 import NewTaskDialog from '@/components/maintenance/NewTaskDialog';
@@ -42,7 +42,13 @@ const Maintenance = () => {
     refreshTasks,
     getUserDisplayName
   } = useMaintenancePage();
-  
+
+  useEffect(() => {
+    const handler = () => setIsNewTaskDialogOpen(true);
+    window.addEventListener('maintenance:n-task', handler);
+    return () => window.removeEventListener('maintenance:n-task', handler);
+  }, [setIsNewTaskDialogOpen]);
+
   return (
     <MainLayout>
       <MaintenanceTourTrigger isLoading={isLoading} />

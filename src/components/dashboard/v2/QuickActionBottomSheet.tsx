@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { ClipboardPlus, Wrench, Eye, Fuel, QrCode, Tractor } from 'lucide-react';
+import { ClipboardPlus, Wrench, Eye, Tractor, ClipboardList, Plus } from 'lucide-react';
 
 interface Props {
   open: boolean;
@@ -10,18 +10,23 @@ interface Props {
 
 export const QuickActionBottomSheet: React.FC<Props> = ({ open, onOpenChange }) => {
   const navigate = useNavigate();
-  const go = (path: string) => {
+
+  const trigger = (path: string, eventName?: string) => {
     onOpenChange(false);
     navigate(path);
+    if (eventName) {
+      // give the target page time to mount its listener
+      setTimeout(() => window.dispatchEvent(new CustomEvent(eventName)), 280);
+    }
   };
 
-  const actions = [
-    { icon: ClipboardPlus, label: 'Nouvelle tâche', path: '/planning?new=1' },
-    { icon: Eye, label: 'Point à surveiller', path: '/points?new=1' },
-    { icon: Wrench, label: 'Maintenance', path: '/maintenance?new=1' },
-    { icon: Fuel, label: 'Plein carburant', path: '/equipment?fuel=1' },
-    { icon: QrCode, label: 'Scanner QR', path: '/equipment?scan=1' },
-    { icon: Tractor, label: 'Équipements', path: '/equipment' },
+  const actions: Array<{ icon: any; label: string; onClick: () => void }> = [
+    { icon: ClipboardPlus, label: 'Nouvelle tâche', onClick: () => trigger('/planning', 'planning:n-task') },
+    { icon: Eye, label: 'Point à surveiller', onClick: () => trigger('/points', 'points:n-point') },
+    { icon: Wrench, label: 'Maintenance', onClick: () => trigger('/maintenance', 'maintenance:n-task') },
+    { icon: Tractor, label: 'Nouvel équipement', onClick: () => trigger('/equipment', 'n-equipment-dialog') },
+    { icon: ClipboardList, label: 'Voir planification', onClick: () => trigger('/planning') },
+    { icon: Plus, label: 'Voir équipements', onClick: () => trigger('/equipment') },
   ];
 
   return (
@@ -34,11 +39,11 @@ export const QuickActionBottomSheet: React.FC<Props> = ({ open, onOpenChange }) 
           <SheetTitle>Action rapide</SheetTitle>
         </SheetHeader>
         <div className="mt-4 grid grid-cols-3 gap-3">
-          {actions.map(({ icon: Icon, label, path }) => (
+          {actions.map(({ icon: Icon, label, onClick }, i) => (
             <button
-              key={path}
+              key={i}
               type="button"
-              onClick={() => go(path)}
+              onClick={onClick}
               className="flex flex-col items-center justify-center gap-2 rounded-xl border bg-card hover:bg-accent/40 transition-colors p-3 aspect-square"
             >
               <Icon className="h-6 w-6 text-primary" />

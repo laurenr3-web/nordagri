@@ -29,7 +29,7 @@ import { FleetStatusCard } from '@/components/dashboard/v2/FleetStatusCard';
 const Dashboard: React.FC = () => {
   const { user, profileData } = useAuthContext();
   const queryClient = useQueryClient();
-  const { farmId } = useFarmId();
+  const { farmId, farmName } = useFarmId();
   const hasFarm = !!farmId;
   const [showCreateFarm, setShowCreateFarm] = useState(false);
 
@@ -87,12 +87,16 @@ const Dashboard: React.FC = () => {
 
         {hasFarm && (
           <div className="space-y-4 lg:space-y-6 pb-24 lg:pb-8">
-            <DashboardHeader firstName={profileData?.first_name} />
+            <DashboardHeader
+              firstName={profileData?.first_name}
+              farmName={farmName}
+              avatarUrl={(profileData as any)?.avatar_url ?? null}
+            />
 
             <DashboardContextBar
               activeUsers={signals?.activeUsers ?? 0}
               unassignedTasks={signals?.unassignedTasks ?? 0}
-              lowStockParts={signals?.lowStockParts ?? 0}
+              pointsToWatch={signals?.pointsToWatch ?? 0}
             />
 
             {/* Mobile single column / desktop 2 columns */}
@@ -102,7 +106,11 @@ const Dashboard: React.FC = () => {
                 <FirstActionCard action={firstAction} loading={false} />
                 <WorkTodayCard items={workItems} limit={3} loading={planningLoading} />
                 <div className="lg:hidden">
-                  <ActiveTeamCard team={activeTeam} loading={teamLoading} />
+                  <ActiveTeamCard
+                    team={activeTeam}
+                    loading={teamLoading}
+                    unassignedCount={signals?.unassignedTasks ?? 0}
+                  />
                 </div>
 
                 {/* Desktop-only secondary blocks under main column */}
@@ -119,7 +127,11 @@ const Dashboard: React.FC = () => {
 
               {/* Right column: desktop only */}
               <aside className="hidden lg:block lg:col-span-4 space-y-4 lg:space-y-6">
-                <ActiveTeamCard team={activeTeam} loading={teamLoading} />
+                <ActiveTeamCard
+                  team={activeTeam}
+                  loading={teamLoading}
+                  unassignedCount={signals?.unassignedTasks ?? 0}
+                />
                 <FleetStatusCard farmId={farmId} />
               </aside>
             </div>

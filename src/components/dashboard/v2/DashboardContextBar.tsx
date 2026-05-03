@@ -1,20 +1,20 @@
 import React from 'react';
-import { Users, ClipboardList, PackageMinus } from 'lucide-react';
+import { Users, ClipboardList, Eye, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 interface Props {
   activeUsers: number;
   unassignedTasks: number;
-  lowStockParts: number;
+  pointsToWatch: number;
 }
 
-export const DashboardContextBar: React.FC<Props> = ({ activeUsers, unassignedTasks, lowStockParts }) => {
+export const DashboardContextBar: React.FC<Props> = ({ activeUsers, unassignedTasks, pointsToWatch }) => {
   const navigate = useNavigate();
   const chips = [
     { icon: Users, value: activeUsers, label: 'actifs', tone: 'default' as const, onClick: () => navigate('/time-tracking') },
     { icon: ClipboardList, value: unassignedTasks, label: 'non assignées', tone: unassignedTasks > 0 ? ('warn' as const) : ('default' as const), onClick: () => navigate('/planning') },
-    { icon: PackageMinus, value: lowStockParts, label: 'stock bas', tone: lowStockParts > 0 ? ('warn' as const) : ('default' as const), onClick: () => navigate('/parts') },
+    { icon: Eye, value: pointsToWatch, label: 'à surveiller', tone: pointsToWatch > 0 ? ('warn' as const) : ('default' as const), onClick: () => navigate('/points') },
   ];
 
   return (
@@ -27,15 +27,14 @@ export const DashboardContextBar: React.FC<Props> = ({ activeUsers, unassignedTa
             type="button"
             onClick={c.onClick}
             className={cn(
-              'flex items-center gap-2 rounded-lg border bg-card px-3 py-2 text-left transition-colors hover:bg-accent/50 min-w-0',
-              c.tone === 'warn' && 'border-amber-500/40 bg-amber-500/5'
+              'flex items-center gap-1.5 rounded-full border bg-card px-3 py-2 text-left transition-colors hover:bg-accent/50 min-w-0 shadow-sm',
+              c.tone === 'warn' && 'border-amber-500/40'
             )}
           >
             <Icon className={cn('h-4 w-4 flex-shrink-0', c.tone === 'warn' ? 'text-amber-600' : 'text-muted-foreground')} />
-            <div className="min-w-0">
-              <div className="text-base font-semibold leading-none">{c.value}</div>
-              <div className="text-[10px] text-muted-foreground truncate">{c.label}</div>
-            </div>
+            <span className="text-xs font-semibold flex-shrink-0">{c.value}</span>
+            <span className="text-[11px] text-muted-foreground truncate flex-1">{c.label}</span>
+            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" />
           </button>
         );
       })}

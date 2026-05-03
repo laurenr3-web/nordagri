@@ -5,6 +5,7 @@ export interface DashboardSignals {
   activeUsers: number;
   unassignedTasks: number;
   lowStockParts: number;
+  pointsToWatch: number;
 }
 
 export function useDashboardSignals(farmId: string | null) {
@@ -16,7 +17,7 @@ export function useDashboardSignals(farmId: string | null) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      const [activeRes, tasksRes, partsRes] = await Promise.all([
+      const [activeRes, tasksRes, partsRes, pointsRes] = await Promise.all([
         supabase
           .from('time_sessions')
           .select('user_id')
@@ -31,6 +32,11 @@ export function useDashboardSignals(farmId: string | null) {
           .from('parts_inventory')
           .select('id, quantity, reorder_threshold')
           .eq('farm_id', farmId!),
+        supabase
+          .from('points')
+          .select('id')
+          .eq('farm_id', farmId!)
+          .in('status', ['open', 'watch']),
       ]);
 
       const uniqueUsers = new Set((activeRes.data ?? []).map((s: any) => s.user_id));
@@ -43,6 +49,7 @@ export function useDashboardSignals(farmId: string | null) {
         activeUsers: uniqueUsers.size,
         unassignedTasks: (tasksRes.data ?? []).length,
         lowStockParts: lowStock,
+        pointsToWatch: (pointsRes.data ?? []).length,
       };
     },
   });

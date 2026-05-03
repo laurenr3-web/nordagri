@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -67,6 +67,12 @@ export const PointsPage = () => {
   const { data: points, isLoading } = usePoints(farmId);
   const [newOpen, setNewOpen] = useState(false);
   const [selected, setSelected] = useState<Point | null>(null);
+
+  useEffect(() => {
+    const handler = () => setNewOpen(true);
+    window.addEventListener('points:n-point', handler);
+    return () => window.removeEventListener('points:n-point', handler);
+  }, []);
 
   const {
     filters,

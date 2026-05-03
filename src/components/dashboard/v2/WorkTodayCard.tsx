@@ -1,8 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ChevronRight, ClipboardList } from 'lucide-react';
+import { ChevronRight, ClipboardList, Wrench, Box, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface WorkTodayItem {
@@ -19,10 +18,10 @@ interface Props {
   loading?: boolean;
 }
 
-const prioColor: Record<string, string> = {
-  critical: 'bg-destructive/15 text-destructive',
-  important: 'bg-amber-500/15 text-amber-700 dark:text-amber-400',
-  todo: 'bg-muted text-muted-foreground',
+const phase = (priority: WorkTodayItem['priority'], idx: number) => {
+  if (priority === 'critical') return { label: 'Maintenant', icon: Wrench, tone: 'text-emerald-700 bg-emerald-100', badge: 'En cours', badgeTone: 'bg-emerald-100 text-emerald-700' };
+  if (priority === 'important') return { label: 'Ensuite', icon: Box, tone: 'text-amber-700 bg-amber-100', badge: 'À faire', badgeTone: 'bg-amber-100 text-amber-700' };
+  return { label: 'À surveiller', icon: Eye, tone: 'text-sky-700 bg-sky-100', badge: 'À revoir', badgeTone: 'bg-sky-100 text-sky-700' };
 };
 
 export const WorkTodayCard: React.FC<Props> = ({ items, limit = 3, loading }) => {
@@ -37,44 +36,47 @@ export const WorkTodayCard: React.FC<Props> = ({ items, limit = 3, loading }) =>
           <h3 className="text-sm font-semibold">Travail du jour</h3>
         </div>
         <Button variant="ghost" size="sm" onClick={() => navigate('/planning')} className="h-7 px-2 text-xs">
-          Tout voir <ChevronRight className="ml-1 h-3 w-3" />
+          Voir toute la file <ChevronRight className="ml-1 h-3 w-3" />
         </Button>
       </div>
       <div className="divide-y">
         {loading ? (
           <div className="p-4 space-y-2">
-            {[1,2,3].map(i => <div key={i} className="h-10 rounded-md bg-muted animate-pulse" />)}
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-12 rounded-md bg-muted animate-pulse" />
+            ))}
           </div>
         ) : visible.length === 0 ? (
           <p className="p-6 text-sm text-center text-muted-foreground">
             Aucune autre tâche pour aujourd'hui.
           </p>
         ) : (
-          visible.map(item => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => navigate('/planning')}
-              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-accent/40 transition-colors text-left min-w-0"
-            >
-              <div className={cn(
-                'h-2 w-2 rounded-full flex-shrink-0',
-                item.priority === 'critical' ? 'bg-destructive' :
-                item.priority === 'important' ? 'bg-amber-500' : 'bg-muted-foreground/40'
-              )} />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium truncate">{item.title}</p>
-                {item.category && (
-                  <p className="text-[11px] text-muted-foreground capitalize truncate">{item.category}</p>
-                )}
-              </div>
-              {item.priority && item.priority !== 'todo' && (
-                <Badge className={cn('text-[10px] flex-shrink-0', prioColor[item.priority])} variant="outline">
-                  {item.priority === 'critical' ? 'Critique' : 'Important'}
-                </Badge>
-              )}
-            </button>
-          ))
+          visible.map((item, idx) => {
+            const ph = phase(item.priority, idx);
+            const Icon = ph.icon;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => navigate('/planning')}
+                className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-accent/40 transition-colors text-left min-w-0"
+              >
+                <div className={cn('h-10 w-10 rounded-lg flex flex-col items-center justify-center flex-shrink-0', ph.tone)}>
+                  <Icon className="h-3.5 w-3.5" />
+                  <span className="text-[8px] font-semibold leading-tight mt-0.5">{ph.label}</span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium truncate">{item.title}</p>
+                  {item.category && (
+                    <p className="text-[11px] text-muted-foreground capitalize truncate">{item.category}</p>
+                  )}
+                </div>
+                <span className={cn('text-[10px] font-medium px-2 py-1 rounded-md flex-shrink-0', ph.badgeTone)}>
+                  {ph.badge}
+                </span>
+              </button>
+            );
+          })
         )}
       </div>
     </div>
