@@ -3,8 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { SettingsSectionWrapper } from '../SettingsSectionWrapper';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User } from 'lucide-react';
+import { User, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { useAuthHandlers } from '@/hooks/auth/useAuthHandlers';
 
 interface ProfileSectionProps {
   firstName: string;
@@ -25,6 +28,7 @@ export function ProfileSection({
 }: ProfileSectionProps) {
   const [localFirstName, setLocalFirstName] = useState(firstName);
   const [localLastName, setLocalLastName] = useState(lastName);
+  const { signOut, loading: signingOut } = useAuthHandlers();
   
   useEffect(() => {
     setLocalFirstName(firstName);
@@ -118,6 +122,27 @@ export function ProfileSection({
           <p className="text-xs text-muted-foreground">
             L'email est utilisé pour la connexion et ne peut pas être modifié
           </p>
+        </div>
+
+        <Separator />
+
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium">Session</p>
+            <p className="text-xs text-muted-foreground">
+              Déconnectez-vous de votre compte sur cet appareil
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={signOut}
+            disabled={signingOut}
+            className="w-full sm:w-auto h-11 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            {signingOut ? 'Déconnexion…' : 'Déconnexion'}
+          </Button>
         </div>
       </div>
     </SettingsSectionWrapper>
