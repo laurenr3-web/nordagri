@@ -1,135 +1,46 @@
-# Plan final : Système Punch In / Punch Out
+## Objectif
 
-Création complète du système, avec les 2 règles de sécurité intégrées dès la première version.
+Remplacer `/dashboard` (widgets DnD legacy) par un poste de commande mobile premium + vue desktop 2 colonnes, sans nouvelle route, table ou RLS.
 
-## 1. Base de données (migration)
+## Fichiers créés
 
-**Table `public.work_shifts`**
+**Hooks** (`src/hooks/dashboard/v2/`)
+- `useFirstAction.ts` — calcule la priorité dominante : maintenance en retard > points critiques > tâche planning critique > tâche planning du jour. Réutilise `useMaintenanceTasks`, `usePoints`, `usePlanningTasks` existants.
+- `useDashboardSignals.ts` — agrège: tâches non assignées, sessions actives (`time_sessions`), pièces sous seuil (`parts_inventory`).
+- `useActiveTeam.ts` — sessions `time_sessions` ouvertes joint sur `profiles` + `equipment`.
 
-| Colonne | Type | Notes |
-|---|---|---|
-| `id` | `uuid` PK `gen_random_uuid()` | |
-| `user_id` | `uuid not null` | |
-| `farm_id` | `uuid not null` | |
-| `punch_in_at` | `timestamptz not null default now()` | |
-| `punch_out_at` | `timestamptz` | null tant qu'actif |
-| `status` | `text not null default 'active'` | `active` \| `completed` |
-| `notes` | `text` | |
-| `created_at` | `timestamptz default now()` | |
+**Composants** (`src/components/dashboard/v2/`)
+- `DashboardHeader.tsx` — salutation + date.
+- `DashboardContextBar.tsx` — 3 chips (membres actifs, tâches non assignées, alertes stock).
+- `FirstActionCard.tsx` — carte dominante avec CTA, source, badge priorité.
+- `WorkTodayCard.tsx` — liste 3 (mobile) / 5 (desktop) tâches du jour, exclut l'ID de la First Action.
+- `ActiveTeamCard.tsx` — avatars + équipement courant.
+- `DesktopWatchPoints.tsx` — points à surveiller (sans répéter total).
+- `FleetStatus.tsx` — état flotte (opérationnel/maintenance/HS).
+- `BlockersCard.tsx` — interventions bloquées, stock critique.
+- `StatsCard.tsx` (v2) — KPIs essentiels.
+- `MobileFab.tsx` — bouton + flottant central avec safe-area.
+- `QuickActionBottomSheet.tsx` — sheet : nouvelle tâche, intervention, scan QR, saisie carburant.
+- `DesktopDashboardGrid.tsx` — grille 12 colonnes desktop.
 
-CHECK `status IN ('active','completed')`. Index :
-- `(user_id, status)`, `(farm_id, punch_in_at desc)`
-- **Unique partiel** : `CREATE UNIQUE INDEX uniq_active_work_shift_user ON public.work_shifts(user_id) WHERE status = 'active';`
+## Fichiers modifiés
 
-RLS :
-- SELECT `is_farm_member(farm_id)`
-- INSERT/UPDATE `user_id = auth.uid() AND has_farm_role(farm_id, 'member')`
-- DELETE `user_id = auth.uid() OR has_farm_role(farm_id, 'admin')`
+- `src/pages/Dashboard.tsx` — remplacer entièrement par layout responsive : header, ContextBar, FirstActionCard, WorkTodayCard, ActiveTeamCard (mobile, colonne unique). Desktop (lg+): 2 colonnes via `DesktopDashboardGrid`. Conserver `CreateFarmDialog`, `useFarmId`, banner "pas de ferme", empty state onboarding. Supprimer DnD/customizer/tabs.
+- `src/components/layout/MobileMenu.tsx` — réduire à 4 QuickButtons + FAB central qui ouvre `QuickActionBottomSheet`. Le bouton "Plus" devient une entrée du sheet ou reste à droite ; le FAB + occupe le centre, surélevé via `-mt-6` ou positionnement absolu.
 
-**`time_sessions`** : ajouter `work_shift_id uuid` nullable, FK `ON DELETE SET NULL` + index. Pas de backfill.
+## Règles UX/Tech
 
-## 2. Service & hooks
+- Aucun scroll horizontal mobile.
+- FAB central, taille 56px, `bottom: calc(env(safe-area-inset-bottom) + 1rem)`.
+- Bottom sheet utilise `Sheet` shadcn existant.
+- Anti-répétition : First Action exclue de Work Today (filtrage par id source).
+- Fallback propre si données vides (skeleton court + message).
+- Pas de nouvelles routes : tous CTA naviguent vers routes existantes (`/maintenance`, `/planning`, `/equipment/:id`, `/parts`, `/interventions`, `/qr-scanner` si existe sinon `/equipment`).
+- Pas de migration DB, pas de RLS, pas de nouvelle table.
+- Static imports uniquement (règle préview Lovable).
 
-`src/services/work-shifts/types.ts` — types stricts (zéro `any`).
+## Validation
 
-`src/services/work-shifts/workShiftService.ts` :
-- `getActiveShift(userId)`
-- `punchIn(userId, farmId)`
-- **`ensureActiveShift(userId, farmId): Promise<{ shift; autoCreated: boolean }>`** — race-safe dès la 1ʳᵉ version :
-  ```text
-  1. existing = getActiveShift → si trouvé : { shift, autoCreated: false }
-  2. INSERT punch_in
-     succès : { shift, autoCreated: true }
-  3. catch :
-     code '23505' → reread = getActiveShift
-                    si trouvé : { shift: reread, autoCreated: false }   ← jamais true
-                    sinon : throw
-     autre → throw
-  ```
-  Détection PG via guard typé sur `unknown` (pattern `isUniqueViolation` de `planningTimeService.ts`).
-- `punchOut(shiftId)`
-- `listShifts(userId, farmId, range)`
-- **`getShiftReport(shiftId)`** — calcule `punchedSeconds` (de `punch_in_at` à `punch_out_at ?? now()`), `taskSeconds` (somme `time_sessions.work_shift_id`), puis :
-  ```ts
-  const offTaskSeconds = Math.max(0, punchedSeconds - taskSeconds);
-  ```
-  → garantit `offTaskSeconds ≥ 0` quoi qu'il arrive.
-
-`src/hooks/work-shifts/useWorkShift.ts` :
-- `useActiveWorkShift()` — `staleTime: 30s`
-- `useWorkShiftMutations()` — invalide `['active-work-shift']`, `['planningTasks']`, `['active-time-entry']`, `['work-shifts-list']`
-
-`src/hooks/work-shifts/useWorkShiftActions.ts` — encapsule auto-punch toast + AlertDialog punch out + ouverture report. Source unique pour Planning + Dashboard.
-
-## 3. Auto Punch In au démarrage de tâche
-
-`planningTimeService.startSessionForTask` :
-1. Avant l'INSERT `time_sessions`, appeler `ensureActiveShift(userId, task.farm_id)`
-2. Inclure `work_shift_id: shift.id` dans l'INSERT
-3. Retourner `{ autoCreated }`
-
-`usePlanningTaskTime.start.onSuccess` :
-- Toast existant « Session démarrée » conservé
-- **Si `autoCreated === true` uniquement** → toast info « Journée commencée automatiquement. »
-- Invalider `['active-work-shift']`
-
-`pauseSessionForTask` et `completeTaskWithSession` strictement inchangés.
-
-## 4. Punch Out avec tâche active
-
-Dans `useWorkShiftActions.handlePunchOut(shiftId)` :
-1. Vérifier session active de l'utilisateur
-2. Si présente → `AlertDialog` :
-   - **Titre** : « Une tâche est encore en cours »
-   - **Description** : « Voulez-vous l'arrêter avant de terminer la journée ? »
-   - **Boutons** : `Annuler` / `Arrêter la tâche et punch out`
-3. Si confirmé : `pauseSessionForTask(taskId)` puis `punchOut(shiftId)` — **jamais done**
-4. Sinon : `punchOut` direct
-
-## 5. UI
-
-- `WorkShiftBar.tsx` — bandeau en haut de `PlanningContent`
-- `WorkShiftCard.tsx` — carte Dashboard sous le message d'accueil. Inactif : « Journée de travail » + `Punch in`. Actif : « Journée en cours » + « Début 6:02 · 3h24 » + `Punch out` + icône `Voir journée`. Mobile pleine largeur, desktop `lg:max-w-md`.
-- `WorkShiftReportDialog.tsx` — Total punché / Sur tâches / **Temps hors tâche** + sous-texte « Temps punché sans session de tâche active. » + liste tâches avec durées
-- `WorkShiftsList.tsx` — onglet « Journées » dans `TimeTrackingTabs`. Lignes : date · punch in · punch out · durée · tâches · hors tâche. Clic → `WorkShiftReportDialog`.
-
-## 6. Intégrations
-
-- `src/pages/Dashboard.tsx` — `<WorkShiftCard />` dans `{hasFarm && user && (…)}`
-- `src/components/planning/PlanningContent.tsx` — `<WorkShiftBar />` au-dessus du `ToggleGroup`
-- `src/components/time-tracking/dashboard/TimeTrackingTabs.tsx` — onglet « Journées » entre Liste et Statistiques
-
-## 7. Documentation
-
-- `src/components/help/articles/work-shifts.md` (français terrain)
-- Enregistrement dans `articles/index.ts` (cat. `planning`)
-- Liens depuis `daily-planning.md` et `planning-task-time.md`
-
-## 8. Mémoire
-
-- `mem://features/work-shifts` (nouveau)
-- Mise à jour `mem://index.md`
-
-## Critères d'acceptation
-
-| Critère | Couvert par |
-|---|---|
-| Tâche démarre sans punch manuel | `ensureActiveShift` |
-| Race 23505 silencieuse, **pas de toast spam** | `autoCreated: false` sur relecture |
-| Toast auto-punch quand action crée vraiment | `autoCreated: true` sur INSERT réussi |
-| Punch out tâche active : message clair | AlertDialog titre/description/boutons exacts |
-| Tâche jamais done au punch out | `pauseSessionForTask` uniquement |
-| **Temps hors tâche ≥ 0 toujours** | `Math.max(0, punched - task)` |
-| Journées retrouvables | Onglet `Journées` + `WorkShiftsList` |
-| Rapports rétro-consultables | Clic → `WorkShiftReportDialog` |
-| Aucune régression sessions existantes | `work_shift_id` nullable, pas de backfill |
-| Mobile-first, pas de scroll horizontal | `h-11`, design Planning |
-
-## Contraintes respectées
-
-- Aucun nouveau package
-- Aucun `any`
-- React + TypeScript + Supabase
-- Mobile-first
-- Logique tâches inchangée hormis lien `work_shift_id`
-- Pas de duplication : `useWorkShiftActions` partagé Planning + Dashboard
+- Build TS propre.
+- Vérification lg breakpoint : sidebar `DesktopShell` conservée.
+- Vérification mobile 375px : pas d'overflow horizontal.

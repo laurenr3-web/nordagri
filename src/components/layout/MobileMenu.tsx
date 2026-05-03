@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Menu } from 'lucide-react';
+import { Menu, Plus } from 'lucide-react';
 import { TimeTracker } from '@/components/time-tracking/TimeTracker';
 import { useTranslation } from 'react-i18next';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -12,12 +12,14 @@ import {
   mobileQuickItems,
   type NavItem,
 } from './navConfig';
+import { QuickActionBottomSheet } from '@/components/dashboard/v2/QuickActionBottomSheet';
 
 const MobileMenu = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const [quickOpen, setQuickOpen] = useState(false);
 
   if (location.pathname === '/auth') {
     return null;
@@ -88,10 +90,27 @@ const MobileMenu = () => {
         aria-label="Menu principal mobile"
         data-tour="mobile-quick-bar"
       >
-        <div className="flex items-stretch gap-1 px-2 py-1">
-          {mobileQuickItems.map((item) => (
+        <div className="relative flex items-stretch gap-1 px-2 py-1">
+          {mobileQuickItems.slice(0, 2).map((item) => (
             <QuickButton key={item.path} item={item} />
           ))}
+
+          {/* Center FAB — quick actions */}
+          <div className="flex-1 flex items-center justify-center min-w-0">
+            <button
+              type="button"
+              onClick={() => setQuickOpen(true)}
+              aria-label="Action rapide"
+              className="-mt-6 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+            >
+              <Plus className="h-6 w-6" />
+            </button>
+          </div>
+
+          {mobileQuickItems.slice(2, 3).map((item) => (
+            <QuickButton key={item.path} item={item} />
+          ))}
+
           <button
             type="button"
             onClick={() => setOpen(true)}
@@ -108,6 +127,8 @@ const MobileMenu = () => {
           </button>
         </div>
       </nav>
+
+      <QuickActionBottomSheet open={quickOpen} onOpenChange={setQuickOpen} />
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent

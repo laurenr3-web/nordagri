@@ -1,170 +1,73 @@
-
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import MainLayout from '@/ui/layouts/MainLayout';
 import { LayoutWrapper } from '@/components/layout/LayoutWrapper';
-import { PageHeader } from '@/components/layout/PageHeader';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { 
-  LayoutDashboard, 
-  Calendar, 
-  AlertCircle, 
-  RefreshCw, 
-  Settings
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  DndContext, 
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-
-// Import des widgets
-import { StatsWidget } from '@/components/dashboard/widgets/StatsWidget';
-import { EquipmentWidget } from '@/components/dashboard/widgets/EquipmentWidget';
-import { AlertsWidget } from '@/components/dashboard/widgets/AlertsWidget';
-import { CalendarWidget } from '@/components/dashboard/widgets/CalendarWidget';
-import { PlanningTodayWidget } from '@/components/dashboard/widgets/PlanningTodayWidget';
-import { PointsWatchWidget } from '@/components/dashboard/widgets/PointsWatchWidget';
-import { CheckTodayWidget } from '@/components/dashboard/widgets/CheckTodayWidget';
-import { RecentActivityWidget } from '@/components/dashboard/widgets/RecentActivityWidget';
-
-// Import du système de widgets
-import { DashboardWidget } from '@/components/dashboard/DashboardWidget';
-import { DashboardCustomizer } from '@/components/dashboard/DashboardCustomizer';
-
-// Hooks
-import { useDashboardLayout, WidgetConfig } from '@/hooks/dashboard/useDashboardLayout';
-import { useWidgetData } from '@/hooks/dashboard/useWidgetData';
-import { useAutoRefresh } from '@/hooks/useAutoRefresh';
-import { useAuthContext } from '@/providers/AuthProvider';
-import { CreateFarmDialog } from '@/components/farm/CreateFarmDialog';
 import { Plus } from 'lucide-react';
+
+import { useAuthContext } from '@/providers/AuthProvider';
 import { useFarmId } from '@/hooks/useFarmId';
+import { CreateFarmDialog } from '@/components/farm/CreateFarmDialog';
 import { EmptyState } from '@/components/help/EmptyState';
 import { emptyStates } from '@/content/help/emptyStates';
 
-const DEFAULT_WIDGETS: WidgetConfig[] = [
-  { id: 'points_watch', type: 'points_watch', title: 'Points à surveiller', size: 'full', enabled: true },
-  { id: 'planning', type: 'planning', title: 'Tâches du jour', size: 'full', enabled: true },
-  { id: 'check_today', type: 'check_today', title: 'À vérifier aujourd\'hui', size: 'full', enabled: true },
-  { id: 'recent_activity', type: 'recent_activity', title: 'Activité récente', size: 'medium', enabled: true },
-  { id: 'equipment', type: 'equipment', title: 'Équipements', size: 'large', enabled: true },
-  { id: 'stats', type: 'stats', title: 'Statistiques', size: 'full', enabled: true },
-  { id: 'alerts', type: 'alerts', title: 'Alertes', size: 'medium', enabled: true },
-  { id: 'calendar', type: 'calendar', title: 'Calendrier', size: 'large', enabled: true },
-];
+import { useFirstAction } from '@/hooks/dashboard/v2/useFirstAction';
+import { useDashboardSignals } from '@/hooks/dashboard/v2/useDashboardSignals';
+import { useActiveTeam } from '@/hooks/dashboard/v2/useActiveTeam';
+import { usePlanningTasks } from '@/hooks/planning/usePlanningTasks';
+import { usePointsWatchData } from '@/hooks/dashboard/usePointsWatchData';
+import { todayLocal } from '@/lib/dateLocal';
 
-const Dashboard = () => {
-  const [activeView, setActiveView] = useState<'main' | 'calendar' | 'alerts'>('main');
-  const [isCustomizing, setIsCustomizing] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [showCreateFarm, setShowCreateFarm] = useState(false);
+import { DashboardHeader } from '@/components/dashboard/v2/DashboardHeader';
+import { DashboardContextBar } from '@/components/dashboard/v2/DashboardContextBar';
+import { FirstActionCard } from '@/components/dashboard/v2/FirstActionCard';
+import { WorkTodayCard, type WorkTodayItem } from '@/components/dashboard/v2/WorkTodayCard';
+import { ActiveTeamCard } from '@/components/dashboard/v2/ActiveTeamCard';
+import { DesktopWatchPoints } from '@/components/dashboard/v2/DesktopWatchPoints';
+import { FleetStatusCard } from '@/components/dashboard/v2/FleetStatusCard';
+
+const Dashboard: React.FC = () => {
   const { user, profileData } = useAuthContext();
   const queryClient = useQueryClient();
-  const { farmId: resolvedFarmId, isLoading: farmLoading, noAccess } = useFarmId();
-  const hasFarm = !!resolvedFarmId;
-  
-  // Gestion du layout personnalisé
-  const { 
-    widgets, 
-    updateWidget, 
-    removeWidget, 
-    reorderWidgets,
-    resetLayout 
-  } = useDashboardLayout(DEFAULT_WIDGETS);
+  const { farmId } = useFarmId();
+  const hasFarm = !!farmId;
+  const [showCreateFarm, setShowCreateFarm] = useState(false);
 
-  // Auto-refresh toutes les 5 minutes
-  const { refresh } = useAutoRefresh(5 * 60 * 1000);
+  const todayStr = todayLocal();
 
-  // Chargement des données des widgets actifs uniquement
-  const activeWidgets = useMemo(
-    () => widgets.filter(w => w.enabled),
-    [widgets]
-  );
-  
-  const { data, loading, refetch } = useWidgetData(activeWidgets, activeView);
+  const firstAction = useFirstAction(farmId);
+  const { data: signals } = useDashboardSignals(farmId);
+  const { data: activeTeam = [], isLoading: teamLoading } = useActiveTeam(farmId);
+  const { tasks: planningTasks = [], isLoading: planningLoading } = usePlanningTasks(farmId, todayStr, todayStr) as any;
+  const { data: pointsWatch, isLoading: pointsLoading } = usePointsWatchData(farmId, hasFarm);
 
-  // Drag and drop
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+  // Build today's work items, exclude the First Action source to avoid repetition
+  const workItems = useMemo<WorkTodayItem[]>(() => {
+    const list: WorkTodayItem[] = (planningTasks ?? [])
+      .filter((t: any) => t.status !== 'done')
+      .map((t: any) => ({
+        id: t.id,
+        title: t.title,
+        category: t.category,
+        priority: (t.manual_priority ?? t.computed_priority) as any,
+        assignedTo: t.assigned_to,
+      }));
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    
-    if (over && active.id !== over.id) {
-      const oldIndex = widgets.findIndex((w) => w.id === active.id);
-      const newIndex = widgets.findIndex((w) => w.id === over.id);
-      reorderWidgets(arrayMove(widgets, oldIndex, newIndex));
+    if (firstAction?.source === 'planning') {
+      return list.filter(i => String(i.id) !== String(firstAction.sourceId));
     }
-  };
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await refetch();
-    setTimeout(() => setIsRefreshing(false), 500);
-  };
-
-  const renderWidget = (widget: WidgetConfig) => {
-    const widgetData = data[widget.id];
-    
-    const widgetComponents: Record<string, React.ComponentType<any>> = {
-      stats: StatsWidget,
-      planning: PlanningTodayWidget,
-      equipment: EquipmentWidget,
-      alerts: AlertsWidget,
-      calendar: CalendarWidget,
-      points_watch: PointsWatchWidget,
-      check_today: CheckTodayWidget,
-      recent_activity: RecentActivityWidget,
-    };
-
-    const WidgetComponent = widgetComponents[widget.type];
-    if (!WidgetComponent) return null;
-
-    return (
-      <DashboardWidget
-        key={widget.id}
-        id={widget.id}
-        title={widget.title}
-        size={widget.size}
-        onRemove={() => removeWidget(widget.id)}
-        onResize={(size) => updateWidget(widget.id, { size })}
-        isCustomizing={isCustomizing}
-      >
-        <WidgetComponent 
-          data={widgetData} 
-          loading={loading[widget.id]}
-          size={widget.size}
-        />
-      </DashboardWidget>
-    );
-  };
+    return list;
+  }, [planningTasks, firstAction]);
 
   return (
     <MainLayout>
       <LayoutWrapper>
-        {/* Banner si pas de ferme */}
+        {/* Banner: no farm yet */}
         {!hasFarm && user && (
-          <div className="rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 p-8 text-center space-y-3 mb-6">
-            <h2 className="text-xl font-semibold">Bienvenue sur NordAgri !</h2>
-            <p className="text-muted-foreground">
-              Pour commencer, créez votre ferme. Toutes vos données (équipements, maintenances, pièces) seront liées à votre exploitation.
+          <div className="rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 p-6 text-center space-y-3 mb-6">
+            <h2 className="text-lg font-semibold">Bienvenue sur NordAgri !</h2>
+            <p className="text-sm text-muted-foreground">
+              Créez votre ferme pour commencer.
             </p>
             <Button onClick={() => setShowCreateFarm(true)} size="lg">
               <Plus className="mr-2 h-5 w-5" />
@@ -178,167 +81,65 @@ const Dashboard = () => {
             open={showCreateFarm}
             onOpenChange={setShowCreateFarm}
             userId={user.id}
-            onFarmCreated={() => {
-              queryClient.invalidateQueries();
-            }}
+            onFarmCreated={() => queryClient.invalidateQueries()}
           />
         )}
 
-        {/* Header avec actions */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-          <PageHeader 
-            title="Tableau de bord" 
-            description="Vue d'ensemble de vos opérations"
-            className="mb-0"
-          />
-          
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-            >
-              <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-              Actualiser
-            </Button>
-            
-            <Button
-              variant={isCustomizing ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setIsCustomizing(!isCustomizing)}
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              {isCustomizing ? 'Terminer' : 'Personnaliser'}
-            </Button>
-          </div>
-        </div>
+        {hasFarm && (
+          <div className="space-y-4 lg:space-y-6 pb-24 lg:pb-8">
+            <DashboardHeader firstName={profileData?.first_name} />
 
-        {/* Message d'accueil */}
-        {hasFarm && user && (
-          <div className="mb-6 rounded-lg border bg-card px-4 py-3">
-            <p className="text-base font-semibold text-foreground">
-              Bonjour {profileData?.first_name || ''} <span aria-hidden>👋</span>
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Voici ce qui demande ton attention aujourd'hui
-            </p>
-          </div>
-        )}
-
-        {/* Onboarding empty state: farm exists but no equipment yet */}
-        {hasFarm && user && !loading.equipment && Array.isArray(data.equipment) && data.equipment.length === 0 && (
-          <div className="mb-6 rounded-lg border border-dashed">
-            <EmptyState
-              icon={emptyStates.dashboardOnboarding.icon}
-              title={emptyStates.dashboardOnboarding.title}
-              description={emptyStates.dashboardOnboarding.description}
-              action={{
-                label: emptyStates.dashboardOnboarding.actionLabel,
-                onClick: () => {
-                  window.dispatchEvent(new CustomEvent('open-add-equipment-dialog'));
-                },
-              }}
-              secondaryAction={
-                emptyStates.dashboardOnboarding.articleId
-                  ? {
-                      label: emptyStates.dashboardOnboarding.secondaryActionLabel!,
-                      articleId: emptyStates.dashboardOnboarding.articleId,
-                    }
-                  : undefined
-              }
+            <DashboardContextBar
+              activeUsers={signals?.activeUsers ?? 0}
+              unassignedTasks={signals?.unassignedTasks ?? 0}
+              lowStockParts={signals?.lowStockParts ?? 0}
             />
-          </div>
-        )}
 
-        {/* Onglets de navigation */}
-        <Tabs value={activeView} onValueChange={(v) => setActiveView(v as any)}>
-          <TabsList className="grid grid-cols-3 w-full sm:w-auto sm:inline-grid mb-6">
-            <TabsTrigger value="main" className="gap-2">
-              <LayoutDashboard className="h-4 w-4" />
-              <span className="hidden sm:inline">Vue principale</span>
-              <span className="sm:hidden">Principal</span>
-            </TabsTrigger>
-            <TabsTrigger value="calendar" className="gap-2">
-              <Calendar className="h-4 w-4" />
-              <span>Calendrier</span>
-            </TabsTrigger>
-            <TabsTrigger value="alerts" className="gap-2">
-              <AlertCircle className="h-4 w-4" />
-              <span>Alertes</span>
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Mode personnalisation */}
-          <AnimatePresence>
-            {isCustomizing && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="mb-6"
-              >
-                <DashboardCustomizer
-                  widgets={widgets}
-                  onToggleWidget={(id) => 
-                    updateWidget(id, { enabled: !widgets.find(w => w.id === id)?.enabled })
-                  }
-                  onResetLayout={resetLayout}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Contenu des vues */}
-          <TabsContent value="main" className="mt-0">
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={activeWidgets.map(w => w.id)}
-                strategy={verticalListSortingStrategy}
-                disabled={!isCustomizing}
-              >
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                  {activeWidgets.map(widget => {
-                    const colSpan = {
-                      small: 'lg:col-span-3',
-                      medium: 'lg:col-span-6', 
-                      large: 'lg:col-span-8',
-                      full: 'lg:col-span-12'
-                    }[widget.size];
-
-                    return (
-                      <div key={widget.id} className={colSpan}>
-                        {renderWidget(widget)}
-                      </div>
-                    );
-                  })}
+            {/* Mobile single column / desktop 2 columns */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
+              {/* Main column */}
+              <div className="lg:col-span-8 space-y-4 lg:space-y-6">
+                <FirstActionCard action={firstAction} loading={false} />
+                <WorkTodayCard items={workItems} limit={3} loading={planningLoading} />
+                <div className="lg:hidden">
+                  <ActiveTeamCard team={activeTeam} loading={teamLoading} />
                 </div>
-              </SortableContext>
-            </DndContext>
-          </TabsContent>
 
-          <TabsContent value="calendar" className="mt-0">
-            <CalendarWidget 
-              data={data.calendar} 
-              loading={loading.calendar}
-              size="full"
-              view="month"
-            />
-          </TabsContent>
+                {/* Desktop-only secondary blocks under main column */}
+                <div className="hidden lg:grid grid-cols-2 gap-4">
+                  <DesktopWatchPoints
+                    items={pointsWatch?.examples ?? []}
+                    criticalCount={pointsWatch?.criticalCount ?? 0}
+                    importantCount={pointsWatch?.importantCount ?? 0}
+                    loading={pointsLoading}
+                  />
+                  <FleetStatusCard farmId={farmId} />
+                </div>
+              </div>
 
-          <TabsContent value="alerts" className="mt-0">
-            <AlertsWidget 
-              data={data.alerts} 
-              loading={loading.alerts}
-              size="full"
-              view="detailed"
-            />
-          </TabsContent>
-        </Tabs>
+              {/* Right column: desktop only */}
+              <aside className="hidden lg:block lg:col-span-4 space-y-4 lg:space-y-6">
+                <ActiveTeamCard team={activeTeam} loading={teamLoading} />
+                <FleetStatusCard farmId={farmId} />
+              </aside>
+            </div>
+
+            {/* Onboarding empty hint when no equipment yet */}
+            {hasFarm && (
+              <div className="hidden">
+                <EmptyState
+                  icon={emptyStates.dashboardOnboarding.icon}
+                  title={emptyStates.dashboardOnboarding.title}
+                  description={emptyStates.dashboardOnboarding.description}
+                  action={{
+                    label: emptyStates.dashboardOnboarding.actionLabel,
+                    onClick: () => window.dispatchEvent(new CustomEvent('open-add-equipment-dialog')),
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        )}
       </LayoutWrapper>
     </MainLayout>
   );
