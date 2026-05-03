@@ -15,7 +15,7 @@ export interface FirstAction {
   dueDate?: string | null;
   ctaLabel: string;
   ctaPath: string;
-  equipmentId?: string | null;
+  equipmentId?: string | number | null;
 }
 
 export function useFirstAction(farmId: string | null) {
