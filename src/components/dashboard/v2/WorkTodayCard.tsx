@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, ClipboardList, Wrench, Box, Eye } from 'lucide-react';
+import { ChevronRight, ClipboardList, Wrench, Box, Eye, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface WorkTodayItem {
@@ -47,9 +47,22 @@ export const WorkTodayCard: React.FC<Props> = ({ items, limit = 3, loading }) =>
             ))}
           </div>
         ) : visible.length === 0 ? (
-          <p className="p-6 text-sm text-center text-muted-foreground">
-            Aucune autre tâche pour aujourd'hui.
-          </p>
+          <div className="p-6 flex flex-col items-center gap-3 text-center">
+            <p className="text-sm text-muted-foreground">
+              Aucune tâche prévue aujourd'hui.
+            </p>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                navigate('/planning');
+                setTimeout(() => window.dispatchEvent(new CustomEvent('planning:open-add-task')), 250);
+              }}
+            >
+              <Plus className="mr-1.5 h-3.5 w-3.5" />
+              Ajouter une tâche
+            </Button>
+          </div>
         ) : (
           visible.map((item, idx) => {
             const ph = phase(item.priority, idx);
