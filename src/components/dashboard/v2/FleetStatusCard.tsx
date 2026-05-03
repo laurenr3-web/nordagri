@@ -38,15 +38,15 @@ export const FleetStatusCard: React.FC<Props> = ({ farmId }) => {
         <div className="grid grid-cols-3 gap-2 min-w-0">
           <div className="rounded-lg bg-emerald-500/15 p-2.5 text-center min-w-0">
             <div className="text-xl font-bold text-emerald-700 dark:text-emerald-400">{data?.operational ?? 0}</div>
-            <div className="text-[10px] text-muted-foreground uppercase tracking-wide leading-tight line-clamp-2">Actifs</div>
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wide leading-tight line-clamp-2">🟢</div>
           </div>
           <div className="rounded-lg bg-amber-500/15 p-2.5 text-center min-w-0">
             <div className="text-xl font-bold text-amber-700 dark:text-amber-400">{data?.maintenance ?? 0}</div>
-            <div className="text-[10px] text-muted-foreground uppercase tracking-wide leading-tight line-clamp-2">Maintenance</div>
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wide leading-tight line-clamp-2">🔧</div>
           </div>
           <div className="rounded-lg bg-destructive/10 p-2.5 text-center min-w-0">
             <div className="text-xl font-bold text-destructive">{data?.repair ?? 0}</div>
-            <div className="text-[10px] text-muted-foreground uppercase tracking-wide leading-tight line-clamp-2">Hors service</div>
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wide leading-tight line-clamp-2">🚫</div>
           </div>
         </div>
       )}
