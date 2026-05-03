@@ -92,13 +92,14 @@ const Dashboard: React.FC = () => {
     const score = (t: any): number => {
       const status = String(t.status ?? '').toLowerCase();
       const prio = (t.manual_priority ?? t.computed_priority) as string | null;
+      const isPoint = t._kind === 'point';
       if (status === 'in_progress' || status === 'en cours') return 0;
       if (status === 'blocked' || status === 'bloqué' || status === 'bloque') return 1;
       if (prio === 'critical') return 2;
-      if (t.due_date && t.due_date < today) return 3; // en retard
-      if (t.due_date === today) return 4; // dues aujourd'hui
+      if (!isPoint && t.due_date && t.due_date < today) return 3; // en retard
+      if (!isPoint && t.due_date === today) return 4; // dues aujourd'hui
       if (prio === 'important' && !t.assigned_to) return 5;
-      if (t._kind === 'point' && t.due_date === today) return 6; // points à surveiller dus aujourd'hui
+      if (isPoint && t.due_date === today) return 6; // points à surveiller dus aujourd'hui
       return 7;
     };
 
