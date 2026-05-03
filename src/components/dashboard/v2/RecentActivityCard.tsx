@@ -77,8 +77,8 @@ export const RecentActivityCard: React.FC<Props> = ({ farmId }) => {
   });
 
   return (
-    <div className="rounded-xl border bg-card overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b">
+    <div className="rounded-2xl border border-border/70 bg-card shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border/70">
         <div className="flex items-center gap-2">
           <ActivityIcon className="h-4 w-4 text-muted-foreground" />
           <h3 className="text-sm font-semibold">Activité récente</h3>
@@ -93,14 +93,14 @@ export const RecentActivityCard: React.FC<Props> = ({ farmId }) => {
       ) : !data || data.length === 0 ? (
         <p className="p-6 text-sm text-center text-muted-foreground">Pas d'activité récente.</p>
       ) : (
-        <ul className="divide-y">
+        <ul className="divide-y divide-border/60">
           {data.map((a) => {
             const Icon = iconFor(a.type);
             return (
               <li key={a.id} className="flex items-center gap-3 px-4 py-2.5 min-w-0">
-                <Icon className="h-4 w-4 text-primary flex-shrink-0" />
-                <p className="text-sm flex-1 truncate">{a.text}</p>
-                <span className="text-[11px] text-muted-foreground flex-shrink-0">
+                <Icon className="h-4 w-4 text-primary shrink-0" />
+                <p className="text-sm flex-1 min-w-0 line-clamp-2 leading-snug">{a.text}</p>
+                <span className="text-[11px] text-muted-foreground shrink-0 whitespace-nowrap">
                   il y a {formatDistanceToNowStrict(new Date(a.at), { locale: fr })}
                 </span>
               </li>
