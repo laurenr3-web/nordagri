@@ -73,6 +73,7 @@ export function TimeTrackingTabs(props: TimeTrackingTabsProps) {
           onQuickStart={props.onQuickStart}
           onSeeTeam={() => onTabChange('team')}
           onSeeHistory={() => onTabChange('history')}
+          onSeeReports={() => onTabChange('reports')}
         />
       </TabsContent>
 
