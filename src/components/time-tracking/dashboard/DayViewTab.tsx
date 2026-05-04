@@ -50,8 +50,8 @@ export function DayViewTab({
   return (
     <div className="flex flex-col gap-4 sm:gap-5 min-w-0">
       {/* Top row: Active session | Active team | Quick start */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 min-w-0">
-        <div className="lg:col-span-4 min-w-0 order-1">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 min-w-0 items-stretch">
+        <div className="lg:col-span-5 min-w-0 order-1 flex">
           {activeTimeEntry ? (
             <ActiveTimeSession
               session={activeTimeEntry}
@@ -63,17 +63,17 @@ export function DayViewTab({
             <EmptyActiveSession onStart={onNewSession} />
           )}
         </div>
-        <div className="lg:col-span-4 min-w-0 order-3 lg:order-2">
+        <div className="lg:col-span-4 min-w-0 order-3 lg:order-2 flex">
           <ActiveTeamCard onSeeAll={onSeeTeam} />
         </div>
-        <div className="lg:col-span-4 min-w-0 order-2 lg:order-3">
+        <div className="lg:col-span-3 min-w-0 order-2 lg:order-3 flex">
           <QuickStartGrid onPick={onQuickStart} onCustom={onNewSession} />
         </div>
       </div>
 
       {/* Bottom row: Summary | Recent sessions | Work type chart */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 min-w-0">
-        <div className="lg:col-span-3 min-w-0 order-1">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 min-w-0 items-stretch">
+        <div className="lg:col-span-3 min-w-0 order-1 flex">
           <TimeTrackingSummary
             stats={stats}
             isLoading={isLoading}
@@ -81,14 +81,14 @@ export function DayViewTab({
             completedCount={completedCount}
           />
         </div>
-        <div className="lg:col-span-5 min-w-0 order-2">
+        <div className="lg:col-span-5 min-w-0 order-2 flex">
           <RecentSessionsCard
             entries={todayEntries}
             isLoading={isLoading}
             onSeeAll={onSeeHistory}
           />
         </div>
-        <div className="lg:col-span-4 min-w-0 order-3">
+        <div className="lg:col-span-4 min-w-0 order-3 flex">
           <WorkTypeChartCard />
         </div>
       </div>
