@@ -65,10 +65,10 @@ export const WeekStatsCard: React.FC<Props> = ({ farmId, compact = false }) => {
   });
 
   const cells = [
-    { icon: Calendar, label: 'Tâches terminées', value: data?.tasksDone ?? 0, tone: 'text-emerald-700 bg-emerald-100', href: '/planning?tab=completed' },
+    { icon: Calendar, label: 'Tâches terminées', value: data?.tasksDone ?? 0, tone: 'text-emerald-700 bg-emerald-100', href: buildTabUrl('planning', 'completed') },
     { icon: Wrench, label: 'Maintenance ouverte', value: data?.maintenanceOpen ?? 0, tone: 'text-primary bg-primary/10', href: '/maintenance' },
     { icon: AlertCircle, label: 'En retard', value: data?.maintenanceLate ?? 0, tone: 'text-amber-700 bg-amber-100', href: '/maintenance?filter=late' },
-    { icon: Clock, label: 'Heures suivies', value: data ? `${data.hoursTracked} h` : '0 h', tone: 'text-sky-700 bg-sky-100', href: '/time-tracking/statistics?tab=hours' },
+    { icon: Clock, label: 'Heures suivies', value: data ? `${data.hoursTracked} h` : '0 h', tone: 'text-sky-700 bg-sky-100', href: buildTabUrl('timeStatistics', 'hours') },
   ];
 
   return (
