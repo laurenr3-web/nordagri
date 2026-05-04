@@ -57,8 +57,8 @@ export function RecentSessionsCard({
   const visible = sorted.slice(0, maxDesktop);
 
   return (
-    <Card className="rounded-2xl shadow-sm">
-      <div className="p-5 sm:p-6 flex flex-col gap-4">
+    <Card className="rounded-2xl shadow-sm w-full h-full">
+      <div className="p-5 sm:p-6 flex flex-col gap-4 h-full min-w-0">
         <div className="flex items-center justify-between gap-2">
           <h3 className="text-sm font-semibold">Sessions récentes</h3>
           {onSeeAll && entries.length > 0 && (

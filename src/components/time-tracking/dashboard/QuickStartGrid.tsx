@@ -30,13 +30,13 @@ const SHORTCUTS: Array<{
 
 export function QuickStartGrid({ onPick, onCustom }: QuickStartGridProps) {
   return (
-    <Card className="rounded-2xl shadow-sm h-full">
-      <div className="p-5 sm:p-6 flex flex-col gap-4 h-full">
+    <Card className="rounded-2xl shadow-sm w-full h-full">
+      <div className="p-5 sm:p-6 flex flex-col gap-4 h-full min-w-0">
         <div>
           <h3 className="text-sm font-semibold">Démarrer une session</h3>
           <p className="text-xs text-muted-foreground mt-0.5">Choisissez un type de travail</p>
         </div>
-        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="grid grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-3">
           {SHORTCUTS.map((s) => {
             const Icon = s.icon;
             return (

@@ -55,10 +55,10 @@ export function TimeTrackingSummary({
   ];
 
   return (
-    <Card className="rounded-2xl shadow-sm">
-      <div className="p-5 sm:p-6">
+    <Card className="rounded-2xl shadow-sm w-full h-full">
+      <div className="p-5 sm:p-6 h-full flex flex-col">
         <h3 className="text-sm font-semibold text-muted-foreground mb-4">Résumé du jour</h3>
-        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 flex-1">
           {tiles.map((t) => {
             const Icon = t.icon;
             return (

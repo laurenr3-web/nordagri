@@ -30,7 +30,7 @@ export function ActiveTeamCard({ maxMobile = 3, maxDesktop = 6, onSeeAll }: Acti
   }, 0);
 
   return (
-    <Card className="rounded-2xl shadow-sm h-full">
+    <Card className="rounded-2xl shadow-sm w-full h-full">
       <div className="p-5 sm:p-6 flex flex-col gap-4 h-full">
         <div className="flex items-center justify-between gap-2">
           <h3 className="text-sm font-semibold">Équipe active</h3>
