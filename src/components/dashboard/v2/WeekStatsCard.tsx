@@ -6,9 +6,11 @@ import { Calendar, Wrench, AlertCircle, Clock } from 'lucide-react';
 
 interface Props {
   farmId: string | null;
+  /** When true, renders the mobile-optimized 2x2 layout with larger numbers. */
+  compact?: boolean;
 }
 
-export const WeekStatsCard: React.FC<Props> = ({ farmId }) => {
+export const WeekStatsCard: React.FC<Props> = ({ farmId, compact = false }) => {
   const navigate = useNavigate();
   const { data, isLoading } = useQuery({
     queryKey: ['dashboard-v2', 'week-stats', farmId],
@@ -74,7 +76,13 @@ export const WeekStatsCard: React.FC<Props> = ({ farmId }) => {
       <div className="flex items-center justify-between px-4 py-3 border-b">
         <h3 className="text-sm font-semibold">Statistiques cette semaine</h3>
       </div>
-      <div className="p-3 grid grid-cols-2 xl:grid-cols-4 gap-2">
+      <div
+        className={
+          compact
+            ? 'p-3 grid grid-cols-2 gap-3'
+            : 'p-3 grid grid-cols-2 xl:grid-cols-4 gap-2'
+        }
+      >
         {cells.map((c, i) => {
           const Icon = c.icon;
           return (
@@ -83,15 +91,37 @@ export const WeekStatsCard: React.FC<Props> = ({ farmId }) => {
               type="button"
               onClick={() => navigate(c.href)}
               aria-label={`Voir ${c.label}`}
-              className="rounded-lg border bg-background p-3 min-w-0 text-left w-full hover:bg-accent/50 hover:border-primary/30 transition-colors cursor-pointer"
+              className={
+                compact
+                  ? 'rounded-xl border bg-background p-4 min-w-0 text-left w-full hover:bg-accent/50 hover:border-primary/30 transition-colors cursor-pointer'
+                  : 'rounded-lg border bg-background p-3 min-w-0 text-left w-full hover:bg-accent/50 hover:border-primary/30 transition-colors cursor-pointer'
+              }
             >
-              <div className={`h-7 w-7 rounded-md flex items-center justify-center mb-2 ${c.tone}`}>
-                <Icon className="h-3.5 w-3.5" />
+              <div
+                className={`shrink-0 rounded-md flex items-center justify-center mb-2 ${c.tone} ${
+                  compact ? 'h-8 w-8' : 'h-7 w-7'
+                }`}
+              >
+                <Icon className={compact ? 'h-4 w-4' : 'h-3.5 w-3.5'} />
               </div>
-              <div className="text-lg font-bold leading-none">
+              <div
+                className={
+                  compact
+                    ? 'text-2xl font-bold leading-none'
+                    : 'text-lg font-bold leading-none'
+                }
+              >
                 {isLoading ? '—' : c.value}
               </div>
-              <div className="text-[10px] text-muted-foreground mt-1 truncate">{c.label}</div>
+              <div
+                className={
+                  compact
+                    ? 'text-xs text-muted-foreground mt-1.5 leading-tight'
+                    : 'text-[10px] text-muted-foreground mt-1 truncate'
+                }
+              >
+                {c.label}
+              </div>
             </button>
           );
         })}
