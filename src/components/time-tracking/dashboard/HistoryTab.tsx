@@ -392,11 +392,23 @@ export function HistoryTab({
                             {workTitle}
                           </p>
                           <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                            {context} · {startTime} – {endTime}
+                            {context}
                           </p>
-                          {!isActive && !isPaused && (
+                          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
+                            <span className="font-medium tabular-nums text-foreground">
+                              {startTime} – {endTime}
+                            </span>
+                            <span className="text-muted-foreground tabular-nums">
+                              · {duration}
+                            </span>
+                          </div>
+                          {!isActive && !isPaused && entry.end_time && (
                             <p className="text-[11px] text-muted-foreground/80 mt-0.5 line-clamp-1">
-                              Terminée par {name}
+                              Terminée le{' '}
+                              {format(new Date(entry.end_time), "d MMM yyyy 'à' HH:mm", {
+                                locale: fr,
+                              })}{' '}
+                              · par {name}
                             </p>
                           )}
                         </div>
