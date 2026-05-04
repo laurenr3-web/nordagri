@@ -65,6 +65,7 @@ interface TaskDetailDialogProps {
   onDelete: (id: string) => void;
   onUpdate: (id: string, updates: Partial<PlanningTask>) => void;
   onEdit?: (task: PlanningTask) => void;
+  headerBadge?: React.ReactNode;
 }
 
 export function TaskDetailDialog({
@@ -77,6 +78,7 @@ export function TaskDetailDialog({
   onDelete,
   onUpdate,
   onEdit,
+  headerBadge,
 }: TaskDetailDialogProps) {
   const navigate = useNavigate();
   const { user } = useAuthContext();
@@ -147,6 +149,7 @@ export function TaskDetailDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader>
+            {headerBadge && <div className="mb-1">{headerBadge}</div>}
             <DialogTitle className="text-lg leading-tight pr-6">{task.title}</DialogTitle>
           </DialogHeader>
 
