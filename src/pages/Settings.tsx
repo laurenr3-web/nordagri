@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { TAB_ROUTES, isValidTab, resolveTab } from '@/config/tabRoutes';
 import MainLayout from '@/ui/layouts/MainLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuthContext } from '@/providers/AuthProvider';
@@ -60,22 +61,18 @@ const TABS_CONFIG = [
 const Settings = () => {
   const { isAuthenticated, loading: authLoading } = useAuthContext();
   const [searchParams, setSearchParams] = useSearchParams();
-  const validTabs = TABS_CONFIG.map(t => t.value);
-  const initialTab = validTabs.includes(searchParams.get('tab') || '')
-    ? (searchParams.get('tab') as string)
-    : 'profile';
-  const [activeTab, setActiveTab] = useState(initialTab);
+  const [activeTab, setActiveTab] = useState<string>(resolveTab('settings', searchParams.get('tab')));
 
   useEffect(() => {
     const t = searchParams.get('tab');
-    if (t && validTabs.includes(t) && t !== activeTab) setActiveTab(t);
+    if (isValidTab('settings', t) && t !== activeTab) setActiveTab(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   const handleTabChange = (v: string) => {
     setActiveTab(v);
     const next = new URLSearchParams(searchParams);
-    if (v === 'profile') next.delete('tab');
+    if (v === TAB_ROUTES.settings.defaultTab) next.delete('tab');
     else next.set('tab', v);
     setSearchParams(next, { replace: true });
   };
