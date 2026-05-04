@@ -1,11 +1,18 @@
 export type HelpCategory =
+  | 'getting-started'
+  | 'dashboard'
   | 'equipment'
   | 'maintenance'
   | 'parts'
   | 'surveillance'
   | 'planning'
   | 'time'
-  | 'team';
+  | 'team'
+  | 'statistics'
+  | 'scan'
+  | 'notifications'
+  | 'settings'
+  | 'troubleshooting';
 
 export interface HelpArticle {
   id: string;
@@ -28,11 +35,18 @@ export interface HelpCategoryMeta {
 }
 
 export const HELP_CATEGORIES: HelpCategoryMeta[] = [
-  { id: 'equipment', label: 'Équipements', order: 1 },
-  { id: 'maintenance', label: 'Maintenance', order: 2 },
-  { id: 'parts', label: 'Pièces détachées', order: 3 },
+  { id: 'getting-started', label: 'Bien démarrer', order: 1 },
+  { id: 'dashboard', label: 'Tableau de bord', order: 2 },
+  { id: 'planning', label: 'Planning', order: 3 },
   { id: 'surveillance', label: 'Points à surveiller', order: 4 },
-  { id: 'planning', label: 'Planning', order: 5 },
-  { id: 'time', label: 'Temps de travail', order: 6 },
-  { id: 'team', label: 'Équipe', order: 7 },
+  { id: 'equipment', label: 'Équipements', order: 5 },
+  { id: 'maintenance', label: 'Maintenance', order: 6 },
+  { id: 'parts', label: 'Pièces détachées', order: 7 },
+  { id: 'time', label: 'Temps de travail', order: 8 },
+  { id: 'team', label: 'Équipe', order: 9 },
+  { id: 'statistics', label: 'Statistiques', order: 10 },
+  { id: 'scan', label: 'Scanner QR', order: 11 },
+  { id: 'notifications', label: 'Notifications', order: 12 },
+  { id: 'settings', label: 'Paramètres', order: 13 },
+  { id: 'troubleshooting', label: 'Dépannage', order: 14 },
 ];
