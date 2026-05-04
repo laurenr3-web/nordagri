@@ -495,139 +495,139 @@ const TimeTrackingStatisticsPage: React.FC = () => {
       </div>
 
       {/* 4. Performance par membre — sessions, total, average */}
-      <SectionCard
-        title="Performance par membre"
-        subtitle="Sessions, temps total et durée moyenne par personne"
-        icon={<Users className="h-4 w-4" />}
-        iconTone="blue"
-      >
-        {isLoading ? (
-          <div className="space-y-3">
-            {[0, 1, 2].map(i => <Skeleton key={i} className="h-12 w-full" />)}
-          </div>
-        ) : membersRanking.length === 0 ? (
-          <div className="py-8 text-center">
-            <p className="text-sm font-medium text-foreground">Aucune donnée par membre</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Les données apparaîtront lorsque des sessions seront enregistrées.
-            </p>
-          </div>
-        ) : (
-          (() => {
-            const totalMembers = membersRanking.length;
-            const totalHoursMembers = membersRanking.reduce((s, m) => s + m.hours, 0);
-            const totalSessionsMembers = membersRanking.reduce((s, m) => s + m.sessions, 0);
-            const avgPerSession = totalSessionsMembers > 0 ? totalHoursMembers / totalSessionsMembers : 0;
-            const maxHours = membersRanking.reduce((m, x) => Math.max(m, x.hours), 0);
-            const topUserId = membersRanking[0]?.userId;
-            return (
-              <>
-                {/* Compact summary */}
-                <p className="-mt-2 mb-4 text-xs text-muted-foreground">
-                  {totalMembers} membre{totalMembers > 1 ? 's' : ''} · {formatHours(totalHoursMembers)} suivies · moyenne {formatHours(avgPerSession)}/session
-                </p>
-
-            {/* Desktop: light table */}
-            <div className="hidden sm:block">
-                  <div className="grid grid-cols-12 gap-3 px-2 pb-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80 border-b border-border/60">
-                    <div className="col-span-6">Membre</div>
-                    <div className="col-span-2 text-right">Sessions</div>
-                    <div className="col-span-2 text-right">Temps total</div>
-                    <div className="col-span-2 text-right whitespace-nowrap">Moyenne/session</div>
-              </div>
-              <div className="divide-y divide-border/60">
-                {membersRanking.map(m => {
-                  const avg = m.sessions > 0 ? m.hours / m.sessions : 0;
-                      const barPct = maxHours > 0 ? (m.hours / maxHours) * 100 : 0;
-                      const isTop = m.userId === topUserId;
-                  return (
-                    <div
-                      key={m.userId}
-                          className="grid grid-cols-12 gap-3 items-center px-2 py-4 min-w-0"
-                    >
-                          <div className="col-span-6 flex items-center gap-3 min-w-0">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-700 text-xs font-semibold">
-                          {initials(m.name)}
-                        </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2 min-w-0">
-                                <p className="truncate text-sm font-medium text-foreground">{m.name}</p>
-                                {isTop && (
-                                  <span className="shrink-0 rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-700 whitespace-nowrap">
-                                    Top contributeur
-                                  </span>
-                                )}
-                              </div>
-                              <div className="mt-1.5 h-1 w-full rounded-full bg-muted overflow-hidden">
-                                <div
-                                  className="h-full rounded-full bg-sky-400/80 transition-all"
-                                  style={{ width: `${Math.max(2, Math.min(100, barPct))}%` }}
-                                />
-                              </div>
-                            </div>
-                      </div>
-                      <div className="col-span-2 text-right text-sm font-semibold text-foreground tabular-nums">
-                        {m.sessions}
-                      </div>
-                          <div className="col-span-2 text-right text-sm font-semibold text-foreground tabular-nums whitespace-nowrap">
-                        {formatHours(m.hours)}
-                      </div>
-                      <div className="col-span-2 text-right text-sm text-muted-foreground tabular-nums whitespace-nowrap">
-                        {formatHours(avg)}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+      <Card className="rounded-2xl border border-sky-200/60 bg-gradient-to-br from-sky-50/60 via-card to-card shadow-sm">
+        <CardContent className="p-5 sm:p-6">
+          {/* Header */}
+          <div className="flex items-start gap-3 mb-1 min-w-0">
+            <div className="shrink-0 rounded-xl p-2 ring-1 bg-sky-50 text-sky-600 ring-sky-100">
+              <Users className="h-4 w-4" />
             </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base font-semibold text-foreground line-clamp-1">
+                Performance par membre
+              </h3>
+              <p className="text-xs text-muted-foreground line-clamp-1">
+                Sessions, temps total et moyenne par personne
+              </p>
+            </div>
+          </div>
 
-            {/* Mobile: compact cards */}
-            <div className="sm:hidden space-y-3">
-              {membersRanking.map(m => {
-                const avg = m.sessions > 0 ? m.hours / m.sessions : 0;
-                    const barPct = maxHours > 0 ? (m.hours / maxHours) * 100 : 0;
-                    const isTop = m.userId === topUserId;
-                return (
-                  <div
-                    key={m.userId}
-                    className="rounded-xl border border-border/60 bg-card p-3 shadow-sm"
-                  >
+          {isLoading ? (
+            <div className="mt-4 space-y-3">
+              {[0, 1, 2].map(i => <Skeleton key={i} className="h-14 w-full" />)}
+            </div>
+          ) : membersRanking.length === 0 ? (
+            <div className="mt-6 py-8 text-center">
+              <p className="text-sm font-medium text-foreground">Aucune donnée par membre</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Les données apparaîtront lorsque des sessions seront enregistrées.
+              </p>
+            </div>
+          ) : (
+            (() => {
+              const totalMembers = membersRanking.length;
+              const totalHoursMembers = membersRanking.reduce((s, m) => s + m.hours, 0);
+              const totalSessionsMembers = membersRanking.reduce((s, m) => s + m.sessions, 0);
+              const avgPerSession = totalSessionsMembers > 0 ? totalHoursMembers / totalSessionsMembers : 0;
+              const top = membersRanking[0];
+              const topAvg = top && top.sessions > 0 ? top.hours / top.sessions : 0;
+              const others = membersRanking.slice(1);
+              return (
+                <>
+                  {/* A. Mini-KPIs row */}
+                  <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
+                    <div className="rounded-xl border border-border/60 bg-card px-3 py-2.5 text-center">
+                      <p className="text-lg sm:text-xl font-bold text-foreground tabular-nums leading-tight">
+                        {totalMembers}
+                      </p>
+                      <p className="mt-0.5 text-[10px] sm:text-[11px] text-muted-foreground">
+                        {totalMembers > 1 ? 'membres' : 'membre'}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-border/60 bg-card px-3 py-2.5 text-center">
+                      <p className="text-lg sm:text-xl font-bold text-foreground tabular-nums leading-tight whitespace-nowrap">
+                        {formatHours(totalHoursMembers)}
+                      </p>
+                      <p className="mt-0.5 text-[10px] sm:text-[11px] text-muted-foreground">temps total</p>
+                    </div>
+                    <div className="rounded-xl border border-border/60 bg-card px-3 py-2.5 text-center">
+                      <p className="text-lg sm:text-xl font-bold text-foreground tabular-nums leading-tight whitespace-nowrap">
+                        {formatHours(avgPerSession)}
+                      </p>
+                      <p className="mt-0.5 text-[10px] sm:text-[11px] text-muted-foreground">/session</p>
+                    </div>
+                  </div>
+
+                  {/* B. Top contributor highlight */}
+                  {top && (
+                    <div className="mt-5">
+                      <div className="mb-2 flex items-center gap-1.5">
+                        <Trophy className="h-3.5 w-3.5 text-amber-500" />
+                        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                          Top contributeur
+                        </p>
+                      </div>
+                      <div className="rounded-2xl border border-sky-200/70 bg-sky-50/70 p-4">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-700 text-xs font-semibold">
-                            {initials(m.name)}
+                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-sky-600 text-white text-sm font-bold shadow-sm ring-2 ring-sky-200">
+                            {initials(top.name)}
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 min-w-0">
-                              <p className="truncate text-sm font-medium text-foreground">{m.name}</p>
-                              {isTop && (
-                                <span className="shrink-0 rounded-full bg-sky-100 px-1.5 py-0.5 text-[9px] font-semibold text-sky-700 whitespace-nowrap">
-                                  Top
-                                </span>
-                              )}
+                              <p className="truncate text-sm sm:text-base font-semibold text-foreground">
+                                {top.name}
+                              </p>
+                              <span className="shrink-0 rounded-full bg-sky-600 px-2 py-0.5 text-[10px] font-semibold text-white whitespace-nowrap">
+                                #1
+                              </span>
                             </div>
-                            <p className="mt-0.5 text-[11px] text-muted-foreground">
-                              {m.sessions} session{m.sessions > 1 ? 's' : ''} · {formatHours(avg)}/session
+                            <p className="mt-0.5 text-xs text-sky-900/80">
+                              {formatHours(top.hours)} · {top.sessions} session{top.sessions > 1 ? 's' : ''} · moyenne {formatHours(topAvg)}/session
                             </p>
                           </div>
-                          <p className="shrink-0 text-sm font-semibold text-foreground tabular-nums whitespace-nowrap">
-                            {formatHours(m.hours)}
-                          </p>
                         </div>
-                        <div className="mt-2 h-1 w-full rounded-full bg-muted overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-sky-400/80 transition-all"
-                            style={{ width: `${Math.max(2, Math.min(100, barPct))}%` }}
-                          />
-                        </div>
-                  </div>
-                );
-              })}
-            </div>
-              </>
-            );
-          })()
-        )}
-      </SectionCard>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* C. Other members — simple list, no big bars */}
+                  {others.length > 0 && (
+                    <div className="mt-5">
+                      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        Autres membres
+                      </p>
+                      <ul className="divide-y divide-border/60">
+                        {others.map(m => {
+                          const avg = m.sessions > 0 ? m.hours / m.sessions : 0;
+                          return (
+                            <li
+                              key={m.userId}
+                              className="flex items-center gap-3 py-3 min-w-0"
+                            >
+                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-700 text-xs font-semibold">
+                                {initials(m.name)}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-sm font-medium text-foreground">{m.name}</p>
+                                <p className="mt-0.5 text-[11px] text-muted-foreground truncate">
+                                  {m.sessions} session{m.sessions > 1 ? 's' : ''} · {formatHours(avg)}/session
+                                </p>
+                              </div>
+                              <p className="shrink-0 text-sm font-semibold text-foreground tabular-nums whitespace-nowrap">
+                                {formatHours(m.hours)}
+                              </p>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  )}
+                </>
+              );
+            })()
+          )}
+        </CardContent>
+      </Card>
 
       {/* 5. Insights */}
       {insights.length > 0 && (
