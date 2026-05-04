@@ -183,6 +183,46 @@ serve(async (req) => {
       .update({ status: 'accepted' })
       .eq('id', invitationId);
 
+    // Cleanup: if the invitee owns a solo "default" farm (created automatically
+    // at signup) that contains no real data, delete it so they don't end up
+    // bouncing between two farms. Safe checks: must be owner, must be only
+    // member, and must have no equipment / planning_tasks / fuel_logs / etc.
+    try {
+      const { data: ownedSoloFarms } = await supabaseAdmin
+        .from('farms')
+        .select('id')
+        .eq('owner_id', userId)
+        .neq('id', invitation.farm_id);
+
+      for (const f of ownedSoloFarms ?? []) {
+        const farmId = f.id;
+        const checks = await Promise.all([
+          supabaseAdmin.from('farm_members').select('id', { count: 'exact', head: true }).eq('farm_id', farmId),
+          supabaseAdmin.from('equipment').select('id', { count: 'exact', head: true }).eq('farm_id', farmId),
+          supabaseAdmin.from('planning_tasks').select('id', { count: 'exact', head: true }).eq('farm_id', farmId),
+          supabaseAdmin.from('fuel_logs').select('id', { count: 'exact', head: true }).eq('farm_id', farmId),
+          supabaseAdmin.from('parts_inventory').select('id', { count: 'exact', head: true }).eq('farm_id', farmId),
+          supabaseAdmin.from('points').select('id', { count: 'exact', head: true }).eq('farm_id', farmId),
+          supabaseAdmin.from('maintenance_plans').select('id', { count: 'exact', head: true }).eq('farm_id', farmId),
+        ]);
+        const [members, equipment, tasks, fuel, parts, points, plans] = checks.map((r: any) => r.count ?? 0);
+        const isEmpty =
+          members <= 1 && equipment === 0 && tasks === 0 && fuel === 0 && parts === 0 && points === 0 && plans === 0;
+
+        if (!isEmpty) continue;
+
+        await supabaseAdmin.from('farm_members').delete().eq('farm_id', farmId);
+        await supabaseAdmin.from('farm_settings').delete().eq('farm_id', farmId);
+        await supabaseAdmin.from('planning_category_importance').delete().eq('farm_id', farmId);
+        await supabaseAdmin.from('invitations').delete().eq('farm_id', farmId);
+        await supabaseAdmin.from('farms').delete().eq('id', farmId);
+        console.log('Solo farm cleaned up:', farmId);
+      }
+    } catch (cleanupErr) {
+      // Non-blocking: log and continue
+      console.error('Solo farm cleanup failed (non-blocking):', cleanupErr);
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 
