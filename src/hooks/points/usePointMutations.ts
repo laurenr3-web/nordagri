@@ -94,6 +94,25 @@ export function useUpdatePointTitle() {
   });
 }
 
+export function useUpdatePointPriority() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, priority }: { id: string; priority: PointPriority }) => {
+      const { error } = await supabase
+        .from('points')
+        .update({ priority })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ['points'] });
+      qc.invalidateQueries({ queryKey: ['point', vars.id] });
+      toast.success('Priorité mise à jour');
+    },
+    onError: (e: any) => toast.error(e.message ?? 'Erreur'),
+  });
+}
+
 export interface NewEventInput {
   point_id: string;
   event_type: PointEventType;
