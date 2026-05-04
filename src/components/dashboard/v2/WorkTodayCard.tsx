@@ -2,9 +2,18 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
-  ChevronRight, ClipboardList, Wrench, Eye, Plus, AlertTriangle, PlayCircle, Package, MapPin,
+  ChevronRight, ClipboardList, Wrench, Eye, Plus, AlertTriangle, PlayCircle, Package, MapPin, Play,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+} from '@/components/ui/alert-dialog';
+import { useStartTaskFromDashboard } from '@/hooks/planning/useStartTaskFromDashboard';
 
 export interface WorkTodayItem {
   id: string;
@@ -14,6 +23,10 @@ export interface WorkTodayItem {
   assignedTo?: string | null;
   itemType?: 'task' | 'maintenance' | 'watch_point' | 'intervention' | 'part';
   status?: string | null;
+  // Renseignés uniquement quand itemType === 'task'
+  farmId?: string;
+  equipmentId?: number | null;
+  dueDate?: string;
 }
 
 interface Props {
@@ -61,6 +74,7 @@ const phase = (item: WorkTodayItem) => {
 export const WorkTodayCard: React.FC<Props> = ({ items, limit = 3, loading }) => {
   const navigate = useNavigate();
   const visible = items.slice(0, limit);
+  const tasks = useStartTaskFromDashboard();
 
   return (
     <div className="rounded-2xl border border-border/70 bg-card shadow-sm overflow-hidden">
@@ -101,6 +115,10 @@ export const WorkTodayCard: React.FC<Props> = ({ items, limit = 3, loading }) =>
           visible.map((item) => {
             const ph = phase(item);
             const Icon = ph.icon;
+            const status = item.status == null ? null : String(item.status).toLowerCase();
+            const startable =
+              item.itemType === 'task' &&
+              (status === null || status === 'todo' || status === 'pending' || status === 'paused');
             return (
               <button
                 key={item.id}
@@ -117,14 +135,77 @@ export const WorkTodayCard: React.FC<Props> = ({ items, limit = 3, loading }) =>
                     <p className="text-[11px] text-muted-foreground capitalize truncate">{item.category}</p>
                   )}
                 </div>
-                <span className={cn('text-[10px] font-medium px-2 py-1 rounded-md shrink-0 whitespace-nowrap', ph.badgeTone)}>
-                  {ph.badge}
-                </span>
+                {startable ? (
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    aria-disabled={tasks.isLoading}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      if (!tasks.isLoading) tasks.startTask(item);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        if (!tasks.isLoading) tasks.startTask(item);
+                      }
+                    }}
+                    className={cn(
+                      'inline-flex items-center gap-1 h-7 px-2 text-xs font-medium rounded-md border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 shrink-0 whitespace-nowrap cursor-pointer',
+                      tasks.isLoading && 'opacity-50 pointer-events-none',
+                    )}
+                  >
+                    <Play className="h-3 w-3" />
+                    Commencer
+                  </span>
+                ) : (
+                  <span className={cn('text-[10px] font-medium px-2 py-1 rounded-md shrink-0 whitespace-nowrap', ph.badgeTone)}>
+                    {ph.badge}
+                  </span>
+                )}
               </button>
             );
           })
         )}
       </div>
+      <AlertDialog
+        open={!!tasks.conflictItem}
+        onOpenChange={(o) => { if (!o) tasks.cancelConflict(); }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Session déjà active</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tu as déjà une session de temps en cours. Que veux-tu faire ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col gap-2 sm:flex-col sm:space-x-0">
+            <Button
+              variant="default"
+              disabled={tasks.isLoading}
+              onClick={() => tasks.confirmEndCurrentAndStart()}
+            >
+              Terminer l'actuelle et commencer
+            </Button>
+            <Button
+              variant="outline"
+              disabled={tasks.isLoading}
+              onClick={() => tasks.confirmStartWithoutTime()}
+            >
+              Commencer sans démarrer le temps
+            </Button>
+            <Button
+              variant="ghost"
+              disabled={tasks.isLoading}
+              onClick={() => tasks.cancelConflict()}
+            >
+              Annuler
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
