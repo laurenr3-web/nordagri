@@ -135,35 +135,9 @@ export const planningTimeService = {
     if (rpcErr) throw rpcErr;
     if (hasActive === true) throw new Error(ERR_TASK_SESSION_ACTIVE);
 
-    // Si la tâche a déjà été travaillée et qu'elle est en pause / in_progress sans
-    // session active, seul le dernier utilisateur (propriétaire en cours) peut la
-    // reprendre. On regarde la session la plus récente sur la tâche.
-    // Robustesse : si aucune session précédente n'est trouvée (données manquantes,
-    // tâche jamais démarrée techniquement, historique purgé) ou si la requête
-    // échoue, on NE BLOQUE PAS — on laisse l'utilisateur reprendre la tâche.
-    if (task.status === 'paused' || task.status === 'in_progress') {
-      try {
-        const { data: lastSession, error: lastErr } = await supabase
-          .from('time_sessions')
-          .select('user_id')
-          .eq('task_id', task.id)
-          .order('start_time', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        // Erreur réseau / RLS : on log mais on ne bloque pas un utilisateur
-        // légitime à cause d'un échec de lecture transitoire.
-        if (lastErr) {
-          console.warn('[planningTime] last-session lookup failed, allowing resume', lastErr);
-        } else if (lastSession?.user_id && lastSession.user_id !== userId) {
-          throw new Error(ERR_TASK_OWNED_BY_OTHER);
-        }
-        // lastSession null → aucune session précédente : on autorise (auto-héritage).
-      } catch (e) {
-        // Re-throw uniquement notre erreur métier ; tout le reste est ignoré.
-        if (e instanceof Error && e.message === ERR_TASK_OWNED_BY_OTHER) throw e;
-        console.warn('[planningTime] last-session check skipped', e);
-      }
-    }
+    // Note : une tâche en pause peut être reprise par n'importe quel membre.
+    // Seul le verrou cross-user appliqué est ERR_TASK_SESSION_ACTIVE (ci-dessus),
+    // qui empêche de démarrer si une session est *actuellement* active.
 
     // Auto Punch In : assure une journée active, race-safe (23505).
     const { shift, autoCreated } = await workShiftService.ensureActiveShift(
