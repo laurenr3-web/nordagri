@@ -73,40 +73,61 @@ export function DayViewTab({
     </Card>
   );
 
+  const sessionBlock = activeTimeEntry ? (
+    <ActiveTimeSession
+      session={activeTimeEntry}
+      onPause={onPause}
+      onResume={onResume}
+      onStop={onStop}
+    />
+  ) : (
+    <EmptyActiveSession onStart={onNewSession} />
+  );
+
+  const summaryBlock = (
+    <TimeTrackingSummary
+      stats={stats}
+      isLoading={isLoading}
+      activeCount={activeCount}
+      completedCount={completedCount}
+    />
+  );
+
   return (
-    <div className="min-w-0 grid gap-5 lg:gap-6 lg:grid-cols-[minmax(0,1.7fr)_minmax(340px,0.9fr)] items-start">
-      {/* Left column */}
-      <div className="flex flex-col gap-5 lg:gap-6 min-w-0 order-2 lg:order-1">
-        {activeTimeEntry ? (
-          <ActiveTimeSession
-            session={activeTimeEntry}
-            onPause={onPause}
-            onResume={onResume}
-            onStop={onStop}
-          />
-        ) : (
-          <EmptyActiveSession onStart={onNewSession} />
-        )}
+    <>
+      {/* Mobile: single stacked column with spec ordering */}
+      <div className="flex flex-col gap-5 lg:hidden min-w-0">
+        {sessionBlock}
         <QuickStartGrid onPick={onQuickStart} onCustom={onNewSession} />
+        <ActiveTeamCard onSeeAll={onSeeTeam} />
+        {summaryBlock}
         <RecentSessionsCard
           entries={todayEntries}
           isLoading={isLoading}
           onSeeAll={onSeeHistory}
           maxDesktop={4}
         />
-      </div>
-
-      {/* Right column */}
-      <div className="flex flex-col gap-5 lg:gap-6 min-w-0 order-1 lg:order-2">
-        <ActiveTeamCard onSeeAll={onSeeTeam} />
-        <TimeTrackingSummary
-          stats={stats}
-          isLoading={isLoading}
-          activeCount={activeCount}
-          completedCount={completedCount}
-        />
         {reportsCard}
       </div>
-    </div>
+
+      {/* Desktop: 2-column layout */}
+      <div className="hidden lg:grid gap-6 grid-cols-[minmax(0,1.7fr)_minmax(340px,0.9fr)] items-start min-w-0">
+        <div className="flex flex-col gap-6 min-w-0">
+          {sessionBlock}
+          <QuickStartGrid onPick={onQuickStart} onCustom={onNewSession} />
+          <RecentSessionsCard
+            entries={todayEntries}
+            isLoading={isLoading}
+            onSeeAll={onSeeHistory}
+            maxDesktop={4}
+          />
+        </div>
+        <div className="flex flex-col gap-6 min-w-0">
+          <ActiveTeamCard onSeeAll={onSeeTeam} />
+          {summaryBlock}
+          {reportsCard}
+        </div>
+      </div>
+    </>
   );
 }
