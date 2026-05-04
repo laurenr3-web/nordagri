@@ -220,6 +220,7 @@ const TimeTrackingStatisticsPage: React.FC = () => {
         userId: e.userId,
         name: e.employeeName || 'Utilisateur',
         hours: e.hours,
+        sessions: e.sessions || 0,
         percent: max > 0 ? (e.hours / max) * 100 : 0,
         share: total > 0 ? (e.hours / total) * 100 : 0,
       }));
@@ -510,7 +511,101 @@ const TimeTrackingStatisticsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. Insights */}
+      {/* 4. Performance par membre — sessions, total, average */}
+      <SectionCard
+        title="Performance par membre"
+        subtitle="Sessions, temps total et durée moyenne par personne"
+        icon={<Users className="h-4 w-4" />}
+        iconTone="blue"
+      >
+        {isLoading ? (
+          <div className="space-y-3">
+            {[0, 1, 2].map(i => <Skeleton key={i} className="h-12 w-full" />)}
+          </div>
+        ) : membersRanking.length === 0 ? (
+          <div className="py-8 text-center">
+            <p className="text-sm font-medium text-foreground">Aucune donnée par membre</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Les données apparaîtront lorsque des sessions seront enregistrées.
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Desktop: light table */}
+            <div className="hidden sm:block">
+              <div className="grid grid-cols-12 gap-3 px-2 pb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground border-b border-border/60">
+                <div className="col-span-5">Membre</div>
+                <div className="col-span-2 text-right">Sessions</div>
+                <div className="col-span-3 text-right">Temps total</div>
+                <div className="col-span-2 text-right">Moyenne / session</div>
+              </div>
+              <div className="divide-y divide-border/60">
+                {membersRanking.map(m => {
+                  const avg = m.sessions > 0 ? m.hours / m.sessions : 0;
+                  return (
+                    <div
+                      key={m.userId}
+                      className="grid grid-cols-12 gap-3 items-center px-2 py-3 min-w-0"
+                    >
+                      <div className="col-span-5 flex items-center gap-3 min-w-0">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-700 text-xs font-semibold">
+                          {initials(m.name)}
+                        </div>
+                        <p className="truncate text-sm font-medium text-foreground">{m.name}</p>
+                      </div>
+                      <div className="col-span-2 text-right text-sm font-semibold text-foreground tabular-nums">
+                        {m.sessions}
+                      </div>
+                      <div className="col-span-3 text-right text-sm font-semibold text-foreground tabular-nums whitespace-nowrap">
+                        {formatHours(m.hours)}
+                      </div>
+                      <div className="col-span-2 text-right text-sm text-muted-foreground tabular-nums whitespace-nowrap">
+                        {formatHours(avg)}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Mobile: compact cards */}
+            <div className="sm:hidden space-y-3">
+              {membersRanking.map(m => {
+                const avg = m.sessions > 0 ? m.hours / m.sessions : 0;
+                return (
+                  <div
+                    key={m.userId}
+                    className="rounded-xl border border-border/60 bg-card p-3 shadow-sm"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-700 text-xs font-semibold">
+                        {initials(m.name)}
+                      </div>
+                      <p className="truncate text-sm font-medium text-foreground">{m.name}</p>
+                    </div>
+                    <div className="mt-3 grid grid-cols-3 gap-2">
+                      <div className="rounded-lg bg-muted/50 px-2 py-2 text-center">
+                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Sessions</p>
+                        <p className="mt-0.5 text-sm font-bold text-foreground tabular-nums">{m.sessions}</p>
+                      </div>
+                      <div className="rounded-lg bg-muted/50 px-2 py-2 text-center">
+                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Total</p>
+                        <p className="mt-0.5 text-sm font-bold text-foreground tabular-nums">{formatHours(m.hours)}</p>
+                      </div>
+                      <div className="rounded-lg bg-muted/50 px-2 py-2 text-center">
+                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Moyenne</p>
+                        <p className="mt-0.5 text-sm font-bold text-foreground tabular-nums">{formatHours(avg)}</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </SectionCard>
+
+      {/* 5. Insights */}
       {insights.length > 0 && (
         <Card className="rounded-2xl border border-emerald-200/70 bg-emerald-50/50 shadow-sm">
           <CardContent className="p-5 sm:p-6">

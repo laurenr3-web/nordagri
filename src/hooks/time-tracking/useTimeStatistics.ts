@@ -18,6 +18,7 @@ export interface EmployeeStats {
   userId: string;
   employeeName: string;
   hours: number;
+  sessions: number;
 }
 
 export interface EquipmentStats {
@@ -187,19 +188,23 @@ export function useTimeStatistics() {
         return d >= start && d <= end;
       });
 
-      // Process employee statistics
-      const employeeData = new Map<string, number>();
+      // Process employee statistics (hours + session counts)
+      const employeeData = new Map<string, { hours: number; sessions: number }>();
       inRange.forEach(session => {
         if (!session.user_id) return;
-        const current = employeeData.get(session.user_id) || 0;
-        employeeData.set(session.user_id, current + session._hours);
+        const current = employeeData.get(session.user_id) || { hours: 0, sessions: 0 };
+        employeeData.set(session.user_id, {
+          hours: current.hours + session._hours,
+          sessions: current.sessions + 1,
+        });
       });
 
       const employeeStatsArray: EmployeeStats[] = Array.from(employeeData.entries())
-        .map(([userId, hours]) => ({
+        .map(([userId, data]) => ({
           userId,
           employeeName: userNameMap.get(userId) || 'Utilisateur',
-          hours
+          hours: data.hours,
+          sessions: data.sessions,
         }))
         .sort((a, b) => b.hours - a.hours)
         .slice(0, 10);  // Get top 10
