@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useTimeBreakdown } from '@/hooks/time-tracking/useTimeBreakdown';
 import { TimeRange, useTimeStatistics } from '@/hooks/time-tracking/useTimeStatistics';
 import { formatHoursDecimalToHM } from '@/utils/timeFormat';
+import { translateWorkType } from '@/utils/translateWorkType';
 import { cn } from '@/lib/utils';
 
 /* -----------------------------------------------------------
@@ -40,9 +41,7 @@ function initials(name: string): string {
 }
 
 function prettyTaskType(name: string): string {
-  if (!name) return 'Autre';
-  const cleaned = name.replace(/_/g, ' ').trim();
-  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+  return translateWorkType(name);
 }
 
 /* -----------------------------------------------------------
