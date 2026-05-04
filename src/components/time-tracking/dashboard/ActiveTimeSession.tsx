@@ -17,7 +17,8 @@ interface ActiveTimeSessionProps {
 }
 
 function describeWork(s: ActiveTimeEntry): string {
-  if (s.title) return s.title;
+  const anyS = s as any;
+  if (anyS.title) return anyS.title;
   if (s.description) return s.description;
   if (s.task_type === 'other' && s.custom_task_type) return s.custom_task_type;
   if (s.task_type) {
