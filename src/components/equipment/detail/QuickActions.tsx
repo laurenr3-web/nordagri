@@ -1,52 +1,65 @@
 
 import React from 'react';
-import { Clock, Wrench, Eye } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Clock, Wrench, Eye, Activity, Package, QrCode, LucideIcon } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface QuickActionsProps {
-  onUpdateHours: () => void;
-  onMaintenance: () => void;
-  onObservation: () => void;
+  onUpdateCounter: () => void;
+  onAddMaintenance: () => void;
+  onAddPoint: () => void;
+  onAddIntervention: () => void;
+  onLinkPart: () => void;
+  onShowQR: () => void;
   unitLabel: string;
 }
 
+interface ActionDef {
+  icon: LucideIcon;
+  label: string;
+  onClick: () => void;
+  color: string;
+}
+
 const QuickActions: React.FC<QuickActionsProps> = ({
-  onUpdateHours,
-  onMaintenance,
-  onObservation,
+  onUpdateCounter,
+  onAddMaintenance,
+  onAddPoint,
+  onAddIntervention,
+  onLinkPart,
+  onShowQR,
   unitLabel,
 }) => {
+  const actions: ActionDef[] = [
+    { icon: Clock, label: unitLabel === 'Heures moteur' ? 'Heures' : 'Compteur', onClick: onUpdateCounter, color: 'text-primary' },
+    { icon: Wrench, label: 'Maintenance', onClick: onAddMaintenance, color: 'text-amber-600' },
+    { icon: Eye, label: 'Point', onClick: onAddPoint, color: 'text-blue-600' },
+    { icon: Activity, label: 'Intervention', onClick: onAddIntervention, color: 'text-violet-600' },
+    { icon: Package, label: 'Pièce', onClick: onLinkPart, color: 'text-emerald-600' },
+    { icon: QrCode, label: 'QR', onClick: onShowQR, color: 'text-foreground/70' },
+  ];
+
   return (
-    <div className="grid grid-cols-3 gap-2" data-tour="equipment-quick-actions">
-      <Button
-        variant="outline"
-        className="flex flex-col items-center gap-1.5 h-auto py-4 px-2 rounded-xl border-2 hover:border-primary hover:bg-primary/5 transition-all"
-        onClick={onUpdateHours}
-      >
-        <Clock className="h-6 w-6 text-primary" />
-        <span className="text-xs font-medium text-center leading-tight">
-          {unitLabel === 'Heures moteur' ? 'Heures' : 'Kilomètres'}
-        </span>
-      </Button>
-
-      <Button
-        variant="outline"
-        className="flex flex-col items-center gap-1.5 h-auto py-4 px-2 rounded-xl border-2 hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-all"
-        onClick={onMaintenance}
-      >
-        <Wrench className="h-6 w-6 text-amber-600" />
-        <span className="text-xs font-medium text-center leading-tight">Maintenance</span>
-      </Button>
-
-      <Button
-        variant="outline"
-        className="flex flex-col items-center gap-1.5 h-auto py-4 px-2 rounded-xl border-2 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all"
-        onClick={onObservation}
-      >
-        <Eye className="h-6 w-6 text-blue-600" />
-        <span className="text-xs font-medium text-center leading-tight">Observation</span>
-      </Button>
-    </div>
+    <Card className="rounded-2xl border bg-card shadow-sm" data-tour="equipment-quick-actions">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          Actions rapides
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-3 gap-2">
+          {actions.map(({ icon: Icon, label, onClick, color }) => (
+            <button
+              key={label}
+              onClick={onClick}
+              className="flex flex-col items-center justify-center gap-1.5 rounded-xl border bg-background py-3 px-1 hover:bg-accent/60 hover:border-primary/40 transition-colors min-h-[64px]"
+            >
+              <Icon className={`h-5 w-5 ${color}`} />
+              <span className="text-[11px] font-medium text-center leading-tight">{label}</span>
+            </button>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
