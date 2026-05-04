@@ -15,9 +15,10 @@ interface MaintenanceTaskDetailDialogProps {
   onClose: () => void;
   task: any;
   onCompleted?: () => void;
+  headerBadge?: React.ReactNode;
 }
 
-const MaintenanceTaskDetailDialog: React.FC<MaintenanceTaskDetailDialogProps> = ({ isOpen, onClose, task, onCompleted }) => {
+const MaintenanceTaskDetailDialog: React.FC<MaintenanceTaskDetailDialogProps> = ({ isOpen, onClose, task, onCompleted, headerBadge }) => {
   const [showCompletionForm, setShowCompletionForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -108,6 +109,7 @@ const MaintenanceTaskDetailDialog: React.FC<MaintenanceTaskDetailDialogProps> = 
     <Dialog open={isOpen} onOpenChange={handleDialogClose}>
       <DialogContent className={showCompletionForm ? "sm:max-w-[600px] max-h-[90vh] overflow-y-auto" : "max-w-md"}>
         <DialogHeader>
+          {headerBadge && <div className="mb-1">{headerBadge}</div>}
           <DialogTitle className="flex items-center gap-2">
             <Wrench className="h-5 w-5" />
             {task.title}
