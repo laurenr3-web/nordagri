@@ -77,16 +77,7 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
 
   // ── paused ─────────────────────────────────────────────────
   if (task.status === 'paused') {
-    // Seul le dernier utilisateur ayant travaillé sur la tâche peut la reprendre.
-    if (lastUserId && !isLastUser) {
-      return (
-        <div className={cn('flex justify-end', className)} onClick={stop}>
-          <span className="text-[11px] text-muted-foreground italic">
-            En pause par un autre membre
-          </span>
-        </div>
-      );
-    }
+    // Une tâche en pause peut être reprise/terminée par n'importe quel membre.
     return (
       <div className={cn('flex justify-end gap-2', className)} onClick={stop}>
         <Button
@@ -99,6 +90,16 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
           <Play className="h-3.5 w-3.5" />
           Reprendre
         </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className={cn('gap-1.5 px-3', btnSize)}
+          disabled={isLoadingMutation}
+          onClick={() => complete.mutate({ taskId: task.id })}
+        >
+          <Check className="h-3.5 w-3.5" />
+          Terminer
+        </Button>
       </div>
     );
   }
@@ -107,15 +108,7 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
   if (task.status === 'in_progress') {
     // Edge case : statut in_progress mais aucune session active → uniquement Reprendre
     if (!hasActive) {
-      if (lastUserId && !isLastUser) {
-        return (
-          <div className={cn('flex justify-end', className)} onClick={stop}>
-            <span className="text-[11px] text-muted-foreground italic">
-              En cours par un autre membre
-            </span>
-          </div>
-        );
-      }
+      // Pas de session active → assimilable à en pause : ouvert à tous.
       return (
         <div className={cn('flex justify-end gap-2', className)} onClick={stop}>
           <Button
@@ -127,6 +120,16 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
           >
             <Play className="h-3.5 w-3.5" />
             Reprendre
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className={cn('gap-1.5 px-3', btnSize)}
+            disabled={isLoadingMutation}
+            onClick={() => complete.mutate({ taskId: task.id })}
+          >
+            <Check className="h-3.5 w-3.5" />
+            Terminer
           </Button>
         </div>
       );
