@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -143,6 +144,35 @@ export function HistoryTab({
 }: HistoryTabProps) {
   const [period, setPeriod] = useState<Period>('week');
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [profileNames, setProfileNames] = useState<Record<string, string>>({});
+
+  // Fetch profile names for the user_ids present in entries
+  useEffect(() => {
+    const ids = Array.from(
+      new Set(entries.map((e) => e.user_id).filter(Boolean) as string[]),
+    );
+    const missing = ids.filter((id) => !(id in profileNames));
+    if (missing.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name')
+        .in('id', missing);
+      if (cancelled || !data) return;
+      setProfileNames((prev) => {
+        const next = { ...prev };
+        for (const p of data) {
+          const full = `${p.first_name ?? ''} ${p.last_name ?? ''}`.trim();
+          if (full) next[p.id] = full;
+        }
+        return next;
+      });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [entries, profileNames]);
 
   const setQuickPeriod = (p: Period) => {
     setPeriod(p);
