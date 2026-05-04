@@ -1,60 +1,79 @@
-## Problème identifié
+# Refonte premium du module `/time-tracking`
 
-La RLS de `time_sessions` est stricte : `user_id = auth.uid()`. Aucun membre ne peut voir les sessions des autres → `useActiveTeam` ne retourne jamais les coéquipiers, et même pour soi le filtre `status='active'` peut rater une ligne avec `end_time IS NULL`. La table fiable pour le périmètre ferme est `work_shifts` (RLS = `is_farm_member(farm_id)`), avec un index unique sur `(user_id) WHERE status='active'`.
+## Objectif
+Transformer la page Suivi du temps en outil de punch et suivi d'équipe clair et premium, avec 4 onglets (**Vue du jour**, **Équipe**, **Historique**, **Rapports**). Aucune nouvelle route, aucune migration DB, aucune RLS modifiée.
 
-## Approche
+## Fichiers modifiés
+- `src/components/time-tracking/dashboard/TimeTrackingPage.tsx` — réécriture du layout en 4 onglets, suppression des KPI/filtres/tables affichés en haut.
+- `src/components/time-tracking/dashboard/TimeTrackingTabs.tsx` — 4 onglets (Vue du jour / Équipe / Historique / Rapports), trigger actif vert souligné, grille fixe mobile (pas de scroll horizontal).
+- `src/components/time-tracking/dashboard/TimeTrackingHeader.tsx` — titre « Suivi du temps », sous-titre date + statut sync, bouton « + Nouvelle session » (vert).
+- `src/components/time-tracking/dashboard/ActiveTimeSession.tsx` — carte hero premium, durée géante `XhYY`, badge « Session active », sous-texte « Depuis HH:MM », travail + équipement/poste fallback, boutons **Terminer** / **Modifier**, état vide si aucune session.
+- `src/components/time-tracking/dashboard/TimeTrackingSummary.tsx` — grille 2x2 KPI (Mon temps, Temps équipe, Sessions actives, Sessions terminées), `rounded-2xl`, gros chiffres.
+- `src/components/time-tracking/team/TeamSection.tsx` — barre de recherche, badges « Accès app » / « Sans compte », actions Voir sessions / Inviter / Assigner.
+- `src/components/time-tracking/TimeEntryForm.tsx` — accepte un nouveau prop `defaultTaskType?: TimeEntryTaskType` (alimente `formData.task_type` à l'ouverture si fourni et pas d'`initialData`).
 
-Adosser la notion "punch in" à `work_shifts.status='active'` (la source de vérité), puis enrichir avec la `time_sessions` active de l'utilisateur si visible (sinon on affiche juste la durée du shift et "Session active").
+## Fichiers créés (sous `src/components/time-tracking/dashboard/`)
+- `DayViewTab.tsx` — assemble la Vue du jour ; grille `grid-cols-12` desktop, `flex-col` mobile.
+- `QuickStartGrid.tsx` — 6 raccourcis (Animaux, Champs, Équipement, Maintenance, Bâtiments, Autre) ; au clic, ouvre `TimeEntryForm` avec `defaultTaskType` mappé. Lien « Ou créer une session personnalisée → ».
+- `ActiveTeamCard.tsx` — basé sur `useFarmTeamStatus`, max 3 mobile / 6 desktop, footer « N membres actifs · total XhYY », fallback initiales, jamais d'`undefined`.
+- `RecentSessionsCard.tsx` — basé sur `useTimeTrackingEntries` (déjà chargé), 3 mobile / 5 desktop, durée `XhYY`, badge Active/Terminée, plage horaire `HH:mm - HH:mm` ou `HH:mm - En cours`.
+- `WorkTypeChartCard.tsx` — wrapper donut basé sur `useTimeBreakdown`, total au centre `XhYY`, légende. Affiché desktop dans Vue du jour ; sur mobile uniquement dans Rapports (via `useIsMobile`).
+- `DailyTipBanner.tsx` — bandeau vert très pâle, icône feuille, copy fixe.
+- `HistoryTab.tsx` — chips Aujourd'hui/Semaine/Mois, accordion « Filtres avancés » (membre, équipement, type, statut, période perso), liste de cartes mobile / table légère desktop, basée sur `useTimeTrackingEntries`.
 
-### 1. `useActiveTeam` (refonte)
+## Fichier nouveau (utilitaire)
+- `src/utils/timeFormat.ts` — helper `formatHM(ms: number)` et `formatHMRange(start, end?)` retournant `0h26`, `2h15`, `10h05`. Utilisé partout (Active session, Team card, Recent sessions, Summary).
 
-- Charger membres ferme (owner + farm_members) → ids.
-- Charger `work_shifts` actifs : `farm_id = farmId AND status = 'active'` → liste des utilisateurs réellement punch in.
-- Charger `profiles` (id, first_name, last_name, avatar_url) pour ces user_ids.
-- Charger `time_sessions` actives (`status='active' OR end_time IS NULL`) restreintes à `user_id IN (userIds)` — la RLS filtrera côté DB ; en pratique on récupère seulement la sienne, ce qui suffit pour enrichir l'auto-affichage.
-- Pour chaque shift actif :
-  - `name`, `avatarUrl` depuis profiles.
-  - `startTime` = `punch_in_at` du shift (fallback durée).
-  - Si une `time_sessions` active existe : `equipmentName` (join `equipment_ref:equipment_id(name)`), `title` = `title || description || poste_travail || 'Session active'`.
-  - Sinon : `title = 'Session active'`, `equipmentName = null`.
-- Trier par `punch_in_at` desc.
+## Détails techniques
 
-### 2. `ActiveTeamCard`
+### Détection session active
+```ts
+const isActive = (s) => s.status === 'active' || s.end_time == null;
+```
 
-- Limites : `mobile = 3`, `desktop = 5` via prop `limit` passé depuis `Dashboard.tsx` (utiliser `useIsMobile`).
-- Afficher `+ N autres actifs` si `team.length > limit`.
-- Empty state : "Aucune session active" + bouton "Démarrer suivi du temps" → `/time-tracking`.
-- Conserver la ligne "tâches non assignées" (déjà OK).
+### Mapping QuickStart → TaskType
+Les types valides existants : `maintenance | repair | inspection | operation | other`.
+- Animaux → `operation` + `custom_task_type: 'Animaux'`
+- Champs → `operation` + `custom_task_type: 'Champs'`
+- Équipement → `operation`
+- Maintenance → `maintenance`
+- Bâtiments → `other` + `custom_task_type: 'Bâtiments'`
+- Autre → `other`
 
-### 3. Onglet "Équipe" dans `/time-tracking`
+Passage via `initialData={{ task_type, custom_task_type }}` (déjà supporté par `TimeEntryForm`). Pas besoin du nouveau prop `defaultTaskType` strictement, mais on l'ajoute pour clarté ergonomique.
 
-- Nouveau hook `useFarmTeamStatus(farmId)` :
-  - Charge `farms.owner_id` + `farm_members` → liste de user_ids + role.
-  - Charge `profiles` (nom, avatar).
-  - Charge `work_shifts` actifs de la ferme → map user_id → shift actif.
-  - Charge `work_shifts` derniers terminés (top 1 par user, dernier mois) → `last_activity`.
-  - Pour les utilisateurs actifs visibles (= soi), tente d'enrichir avec `time_sessions` active.
-  - Charge `planning_tasks` count par `assigned_to` pour aujourd'hui.
-- Nouveau composant `TeamSection.tsx` (mobile-first, cartes compactes) :
-  - Liste : avatar, nom, badge Actif/Inactif (vert/gris), travail en cours + durée si actif, sinon "Dernière activité {date}" ou "—", "{N} tâche(s) aujourd'hui".
-  - Pas de scroll horizontal, grille empilée mobile, 2 colonnes ≥ md.
-- Ajouter un onglet `team` dans `TimeTrackingTabs.tsx` (icône `Users`) avant `Liste` ou après `Rapport`. Pas de nouvelle route.
+### Layout
+```text
+Desktop (lg+) :
+  Row 1 : ActiveSession (col-span-6) | ActiveTeam (col-span-3) | QuickStart (col-span-3)
+  Row 2 : Summary (col-span-3) | RecentSessions (col-span-6) | WorkTypeChart (col-span-3)
+  Row 3 : DailyTip (col-span-12)
 
-### 4. Validation
+Mobile :
+  ActiveSession → QuickStart → ActiveTeam → Summary → RecentSessions → DailyTip
+  (WorkTypeChart masqué, présent uniquement dans Rapports)
+```
 
-- Punch in sans équipement → on apparaît avec "Session active" + durée du shift.
-- Punch in avec session équipement → "Chargeur Volvo" + titre.
-- Aucun shift actif → empty state avec CTA `/time-tracking`.
-- Mobile ≤ 3, desktop ≤ 5, overflow `+N autres actifs`.
-- Membres inactifs : absents du dashboard, présents dans onglet Équipe avec "Inactif".
+### Style
+- Cartes : `rounded-2xl shadow-sm bg-card`, padding `p-5 sm:p-6`.
+- Couleur principale : token `primary` (vert NordAgri déjà en place).
+- Typo : durée hero `text-5xl font-bold tabular-nums`, KPI `text-3xl font-semibold`.
 
-## Fichiers modifiés / créés
+### Hygiène Tailwind
+- Conteneurs flex avec texte : `min-w-0`.
+- Avatars / badges / durées / boutons : `shrink-0`.
+- `truncate` sur sous-textes seulement, `line-clamp-2` sur titres importants.
+- `whitespace-nowrap` réservé aux durées et badges courts.
 
-- `src/hooks/dashboard/v2/useActiveTeam.ts` (refonte basée sur `work_shifts`).
-- `src/components/dashboard/v2/ActiveTeamCard.tsx` (limites + empty CTA + overflow).
-- `src/pages/Dashboard.tsx` (passer `limit` selon `useIsMobile`).
-- `src/hooks/time-tracking/useFarmTeamStatus.ts` (nouveau).
-- `src/components/time-tracking/team/TeamSection.tsx` (nouveau).
-- `src/components/time-tracking/dashboard/TimeTrackingTabs.tsx` (ajouter onglet Équipe).
+### Aucun changement
+- Tables, RLS, fonctions DB, edge functions, routes — inchangés.
+- `useTimeTracking`, `useTimeTrackingData`, `useFarmTeamStatus`, `useTimeTrackingEntries`, `useTimeTrackingStats` — inchangés (consommés tels quels).
+- Logique punch in / pause / reprise / stop — inchangée (handlers déjà branchés dans `useTimeTrackingData`).
+- `TimeTrackingRapport` — déplacé tel quel dans l'onglet Rapports.
 
-Aucune migration DB, aucune nouvelle route, aucune modif RLS.
+## Validation
+- Build TypeScript automatique (harness).
+- Préviews 390 / 768 / 1366 / 1920 : pas de scroll horizontal.
+- Punch in / out / pause / reprise via la carte Active fonctionnent.
+- Session sans `equipment_id` affiche poste ou type, jamais `undefined`.
+- QuickStart ouvre bien le dialog avec type prérempli.
