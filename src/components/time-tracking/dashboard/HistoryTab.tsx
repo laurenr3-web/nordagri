@@ -407,8 +407,7 @@ export function HistoryTab({
                               Terminée le{' '}
                               {format(new Date(entry.end_time), "d MMM yyyy 'à' HH:mm", {
                                 locale: fr,
-                              })}{' '}
-                              · par {name}
+                              })}
                             </p>
                           )}
                         </div>
