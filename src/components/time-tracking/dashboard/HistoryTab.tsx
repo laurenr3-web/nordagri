@@ -330,23 +330,18 @@ export function HistoryTab({
               <Card className="rounded-2xl overflow-hidden">
                 <ul className="divide-y" role="list">
                   {bucket.items.map((entry) => {
-                    const name =
-                      entry.user_name || entry.owner_name || entry.technician || 'Membre';
-                    const taskLabel =
-                      entry.task_type === 'other'
-                        ? entry.custom_task_type || 'Autre'
-                        : TASK_LABELS[entry.task_type] || entry.task_type;
-                    const context =
-                      entry.equipment_name || entry.poste_travail || entry.location || null;
+                    const name = resolveMemberName(entry);
+                    const workTitle = resolveWorkTitle(entry);
+                    const context = resolveContext(entry);
                     const startTime = format(new Date(entry.start_time), 'HH:mm', {
                       locale: fr,
                     });
+                    const isActive = entry.status === 'active' || !entry.end_time;
+                    const isPaused = entry.status === 'paused';
                     const endTime = entry.end_time
                       ? format(new Date(entry.end_time), 'HH:mm', { locale: fr })
                       : 'En cours';
                     const duration = formatDuration(entry.start_time, entry.end_time);
-                    const isActive = entry.status === 'active';
-                    const isPaused = entry.status === 'paused';
 
                     return (
                       <li
@@ -360,17 +355,12 @@ export function HistoryTab({
                         </Avatar>
 
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <p className="font-medium text-sm line-clamp-1">{name}</p>
-                          </div>
-                          <p className="text-xs text-muted-foreground line-clamp-1">
-                            <span className="font-medium text-foreground/80">
-                              {taskLabel}
-                            </span>
-                            {context ? <> · {context}</> : null}
+                          <p className="font-semibold text-sm line-clamp-1">{name}</p>
+                          <p className="text-sm text-foreground/80 line-clamp-1 mt-0.5">
+                            {workTitle}
                           </p>
-                          <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                            {startTime} – {endTime}
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                            {context} · {startTime} – {endTime}
                           </p>
                         </div>
 
