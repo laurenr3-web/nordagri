@@ -220,6 +220,7 @@ const TimeTrackingStatisticsPage: React.FC = () => {
         userId: e.userId,
         name: e.employeeName || 'Utilisateur',
         hours: e.hours,
+        sessions: e.sessions || 0,
         percent: max > 0 ? (e.hours / max) * 100 : 0,
         share: total > 0 ? (e.hours / total) * 100 : 0,
       }));
