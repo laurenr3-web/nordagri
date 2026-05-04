@@ -14,10 +14,26 @@ function initials(name: string) {
   return name.split(' ').map((p) => p[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || '?';
 }
 
+const INVALID_NAMES = new Set(['self', 'unknown', 'unknown equipment', 'undefined', 'null', '']);
+
+function cleanText(value?: string | null): string | null {
+  if (!value) return null;
+  const trimmed = String(value).trim();
+  if (!trimmed) return null;
+  if (INVALID_NAMES.has(trimmed.toLowerCase())) return null;
+  return trimmed;
+}
+
 function describeWork(s: TimeEntry): string {
   const anyS = s as any;
-  if (anyS.title) return anyS.title;
-  if (s.task_type === 'other' && s.custom_task_type) return s.custom_task_type;
+  const intervention = cleanText(anyS.intervention_title);
+  if (intervention) return intervention;
+  const title = cleanText(anyS.title);
+  if (title) return title;
+  if (s.task_type === 'other') {
+    const custom = cleanText(s.custom_task_type);
+    if (custom) return custom;
+  }
   const labels: Record<string, string> = {
     maintenance: 'Maintenance',
     repair: 'Réparation',
@@ -25,14 +41,18 @@ function describeWork(s: TimeEntry): string {
     operation: 'Opération',
     other: 'Autre',
   };
-  return labels[s.task_type] ?? 'Session';
+  return labels[s.task_type] ?? cleanText((s as any).description) ?? cleanText((s as any).notes) ?? 'Session de travail';
 }
 
 function describeContext(s: TimeEntry): string | null {
-  if (s.equipment_name) return s.equipment_name;
-  if (s.poste_travail) return s.poste_travail;
-  if (s.location) return s.location;
-  return null;
+  const equipment = cleanText(s.equipment_name);
+  if (equipment) return equipment;
+  if (s.equipment_id) return 'Équipement non trouvé';
+  const poste = cleanText(s.poste_travail);
+  if (poste) return `Poste : ${poste}`;
+  const location = cleanText(s.location);
+  if (location) return location;
+  return 'Sans équipement';
 }
 
 interface RecentSessionsCardProps {
