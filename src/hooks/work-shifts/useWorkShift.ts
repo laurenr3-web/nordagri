@@ -29,6 +29,8 @@ export function useWorkShiftMutations() {
     qc.invalidateQueries({ queryKey: ['work-shifts-list'] });
     qc.invalidateQueries({ queryKey: ['planningTasks'] });
     qc.invalidateQueries({ queryKey: ['active-time-entry'] });
+    qc.invalidateQueries({ queryKey: ['dashboard-v2', 'activeTeam'] });
+    qc.invalidateQueries({ queryKey: ['farm-team-status'] });
   };
 
   const punchIn = useMutation({
