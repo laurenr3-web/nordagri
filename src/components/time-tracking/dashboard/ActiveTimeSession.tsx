@@ -157,8 +157,8 @@ interface EmptyActiveSessionProps {
 
 export function EmptyActiveSession({ onStart }: EmptyActiveSessionProps) {
   return (
-    <Card className="rounded-2xl border-dashed bg-muted/20 shadow-none w-full h-full">
-      <div className="p-6 sm:p-8 flex flex-col items-start gap-3">
+    <Card className="rounded-2xl border-dashed bg-muted/20 shadow-none w-full">
+      <div className="p-6 flex flex-col items-start gap-3">
         <div className="rounded-xl bg-primary/10 p-3">
           <Clock className="h-6 w-6 text-primary" />
         </div>
