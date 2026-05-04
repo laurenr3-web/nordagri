@@ -77,13 +77,13 @@ const Parts = () => {
           title="Gestion des pièces"
           description="Gérez votre inventaire de pièces et commandez de nouvelles pièces"
           action={
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => setIsWithdrawalDialogOpen(true)}>
+            <div className="flex flex-wrap gap-2 justify-start sm:justify-end">
+              <Button size="sm" variant="outline" className="shrink-0" onClick={() => setIsWithdrawalDialogOpen(true)}>
                 <MinusCircle className="h-4 w-4 mr-1" /> Retirer une pièce
               </Button>
               <Button
                 size="sm"
-                className="bg-green-600 hover:bg-green-700 text-white"
+                className="bg-green-600 hover:bg-green-700 text-white shrink-0"
                 onClick={() => setIsAddPartDialogOpen(true)}
               >
                 <Plus className="h-4 w-4 mr-1" /> Ajouter une pièce

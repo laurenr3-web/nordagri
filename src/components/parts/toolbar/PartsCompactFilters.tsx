@@ -102,9 +102,9 @@ export const PartsCompactFilters: React.FC<PartsCompactFiltersProps> = ({
 
   return (
     <Card className="p-3">
-      {/* Desktop : une seule ligne */}
-      <div className="hidden md:flex items-center gap-2">
-        <div className="relative flex-1 max-w-sm">
+      {/* Desktop : ligne(s) qui s'enroulent si besoin */}
+      <div className="hidden md:flex md:flex-wrap items-center gap-2">
+        <div className="relative flex-1 min-w-[180px] max-w-sm">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Rechercher..."
@@ -115,7 +115,7 @@ export const PartsCompactFilters: React.FC<PartsCompactFiltersProps> = ({
         </div>
 
         <Select value={categoryValue} onValueChange={handleCategoryChange}>
-          <SelectTrigger className="h-9 w-[160px]">
+          <SelectTrigger className="h-9 w-[140px]">
             <SelectValue placeholder="Catégorie" />
           </SelectTrigger>
           <SelectContent>
@@ -131,7 +131,7 @@ export const PartsCompactFilters: React.FC<PartsCompactFiltersProps> = ({
         </Select>
 
         <Select value={currentManufacturer} onValueChange={handleManufacturerChange}>
-          <SelectTrigger className="h-9 w-[160px]">
+          <SelectTrigger className="h-9 w-[140px]">
             <SelectValue placeholder="Fabricant" />
           </SelectTrigger>
           <SelectContent>
@@ -145,7 +145,7 @@ export const PartsCompactFilters: React.FC<PartsCompactFiltersProps> = ({
         </Select>
 
         <Select value={stockValue} onValueChange={handleStockChange}>
-          <SelectTrigger className="h-9 w-[140px]">
+          <SelectTrigger className="h-9 w-[130px]">
             <SelectValue placeholder="Stock" />
           </SelectTrigger>
           <SelectContent>
@@ -155,7 +155,7 @@ export const PartsCompactFilters: React.FC<PartsCompactFiltersProps> = ({
         </Select>
 
         <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="h-9 w-[180px]">
+          <SelectTrigger className="h-9 w-[160px]">
             <SelectValue placeholder="Trier" />
           </SelectTrigger>
           <SelectContent>
