@@ -36,7 +36,11 @@ export function QuickStartGrid({ onPick, onCustom }: QuickStartGridProps) {
           <h3 className="text-sm font-semibold">Démarrer une session</h3>
           <p className="text-xs text-muted-foreground mt-0.5">Choisissez un type de travail</p>
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+        <div
+          className="grid grid-cols-2 lg:grid-cols-3 gap-3"
+          role="group"
+          aria-label="Raccourcis de démarrage de session"
+        >
           {SHORTCUTS.map((s) => {
             const Icon = s.icon;
             return (
@@ -44,10 +48,11 @@ export function QuickStartGrid({ onPick, onCustom }: QuickStartGridProps) {
                 key={s.label}
                 type="button"
                 onClick={() => onPick(s.choice)}
-                className="group flex flex-col items-center justify-center gap-2 rounded-xl border bg-card p-3 hover:border-primary/40 hover:bg-primary/5 transition-colors min-h-[96px] min-w-0 text-center"
+                aria-label={`Démarrer une session : ${s.label}`}
+                className="group flex flex-col items-center justify-center gap-2 rounded-xl border bg-card p-3 hover:border-primary/40 hover:bg-primary/5 transition-colors min-h-[96px] min-w-0 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <span className={`inline-flex h-9 w-9 items-center justify-center rounded-lg ${s.bg} ${s.fg} shrink-0`}>
-                  <Icon className="h-4 w-4" />
+                  <Icon className="h-4 w-4" aria-hidden="true" />
                 </span>
                 <span className="text-xs font-medium leading-tight line-clamp-2 break-words max-w-full">
                   {s.label}
@@ -59,7 +64,7 @@ export function QuickStartGrid({ onPick, onCustom }: QuickStartGridProps) {
         <button
           type="button"
           onClick={onCustom}
-          className="text-xs text-primary hover:underline text-left mt-auto"
+          className="text-xs text-primary hover:underline text-left mt-auto rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           Ou créer une session personnalisée →
         </button>

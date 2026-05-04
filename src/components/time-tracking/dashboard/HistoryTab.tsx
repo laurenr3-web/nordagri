@@ -149,12 +149,17 @@ export function HistoryTab({
       {/* Top filter bar */}
       <Card className="rounded-2xl">
         <CardContent className="p-3 sm:p-4 flex flex-wrap items-center gap-2">
-          <div className="flex flex-wrap gap-1.5">
+          <div
+            className="flex flex-wrap gap-1.5"
+            role="group"
+            aria-label="Période rapide"
+          >
             {periods.map((p) => (
               <Button
                 key={p.key}
                 variant={period === p.key ? 'default' : 'outline'}
                 size="sm"
+                aria-pressed={period === p.key}
                 className="rounded-full h-8"
                 onClick={() => setQuickPeriod(p.key)}
               >
@@ -168,10 +173,13 @@ export function HistoryTab({
               size="sm"
               className="rounded-full h-8 gap-1.5"
               onClick={() => setAdvancedOpen((v) => !v)}
+              aria-expanded={advancedOpen}
+              aria-controls="history-advanced-filters"
             >
-              <SlidersHorizontal className="h-3.5 w-3.5" />
+              <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
               Filtres
               <ChevronDown
+                aria-hidden="true"
                 className={cn(
                   'h-3.5 w-3.5 transition-transform',
                   advancedOpen && 'rotate-180',
@@ -182,7 +190,7 @@ export function HistoryTab({
 
           {/* Advanced filters (collapsible) */}
           <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen} className="w-full">
-            <CollapsibleContent className="pt-3">
+            <CollapsibleContent id="history-advanced-filters" className="pt-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-muted-foreground mb-1">
@@ -259,17 +267,22 @@ export function HistoryTab({
           </div>
         </Card>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-6" role="list" aria-label="Sessions de temps groupées par date">
           {grouped.map((bucket) => (
-            <div key={bucket.label} className="space-y-2">
+            <section key={bucket.label} className="space-y-2" aria-labelledby={`bucket-${bucket.label}`}>
               <div className="flex items-center gap-2 px-1">
-                <h3 className="text-sm font-semibold text-foreground">{bucket.label}</h3>
+                <h3
+                  id={`bucket-${bucket.label}`}
+                  className="text-sm font-semibold text-foreground"
+                >
+                  {bucket.label}
+                </h3>
                 <span className="text-xs text-muted-foreground">
                   · {bucket.items.length} session{bucket.items.length > 1 ? 's' : ''}
                 </span>
               </div>
               <Card className="rounded-2xl overflow-hidden">
-                <ul className="divide-y">
+                <ul className="divide-y" role="list">
                   {bucket.items.map((entry) => {
                     const name =
                       entry.user_name || entry.owner_name || entry.technician || 'Membre';
@@ -337,9 +350,15 @@ export function HistoryTab({
                         <Link
                           to={`/time-tracking/detail/${entry.id}`}
                           className="hidden sm:flex shrink-0"
+                          aria-label={`Voir le détail de la session de ${name}`}
                         >
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <ExternalLink className="h-4 w-4" />
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            tabIndex={-1}
+                          >
+                            <ExternalLink className="h-4 w-4" aria-hidden="true" />
                           </Button>
                         </Link>
                       </li>
@@ -347,7 +366,7 @@ export function HistoryTab({
                   })}
                 </ul>
               </Card>
-            </div>
+            </section>
           ))}
         </div>
       )}
