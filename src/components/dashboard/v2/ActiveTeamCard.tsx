@@ -29,12 +29,26 @@ function formatDuration(start: string): string {
 export const ActiveTeamCard: React.FC<Props> = ({ team, loading, limit = 5 }) => {
   const navigate = useNavigate();
   const { user } = useAuth(false);
-  const { handlePunchIn, handlePunchOut, isPunchingIn, isPunchingOut } = useWorkShiftActions();
+  const { handlePunchIn, handlePunchOut, isPunchingIn, isPunchingOut, activeShift, isLoading: shiftLoading } =
+    useWorkShiftActions();
 
   const myMember = user ? team.find((m) => m.userId === user.id) ?? null : null;
   const others = user ? team.filter((m) => m.userId !== user.id) : team;
   const visible = others.slice(0, limit);
   const overflow = Math.max(0, others.length - visible.length);
+
+  const hasActiveShift = !!activeShift || !!myMember;
+  const punchInDisabled = isPunchingIn || shiftLoading || hasActiveShift;
+  const punchOutDisabled = isPunchingOut || (!activeShift && !myMember);
+
+  const onPunchIn = () => {
+    if (punchInDisabled) return;
+    handlePunchIn();
+  };
+  const onPunchOut = () => {
+    if (punchOutDisabled) return;
+    handlePunchOut();
+  };
 
   return (
     <div className="rounded-2xl border border-blue-200/60 bg-blue-50/60 dark:bg-blue-950/20 dark:border-blue-900/40 shadow-sm overflow-hidden">
@@ -58,7 +72,7 @@ export const ActiveTeamCard: React.FC<Props> = ({ team, loading, limit = 5 }) =>
       ) : team.length === 0 ? (
         <div className="p-6 flex flex-col items-center gap-3 text-center">
           <p className="text-sm text-muted-foreground">Aucune session active</p>
-          <Button size="sm" variant="default" disabled={isPunchingIn} onClick={() => handlePunchIn()}>
+          <Button size="sm" variant="default" disabled={punchInDisabled} onClick={onPunchIn}>
             <Play className="mr-1.5 h-3.5 w-3.5" />
             Démarrer mon temps
           </Button>
@@ -131,13 +145,13 @@ export const ActiveTeamCard: React.FC<Props> = ({ team, loading, limit = 5 }) =>
                 <Timer className="h-3.5 w-3.5 shrink-0" />
                 <span className="truncate">Ma session · {formatDuration(myMember.startTime)}</span>
               </span>
-              <Button size="sm" variant="destructive" className="h-7 px-2.5 shrink-0" disabled={isPunchingOut} onClick={() => handlePunchOut()}>
+              <Button size="sm" variant="destructive" className="h-7 px-2.5 shrink-0" disabled={punchOutDisabled} onClick={onPunchOut}>
                 <Square className="mr-1 h-3 w-3" />
                 Terminer
               </Button>
             </>
           ) : (
-            <Button size="sm" variant="default" className="h-7 px-2.5 ml-auto" disabled={isPunchingIn} onClick={() => handlePunchIn()}>
+            <Button size="sm" variant="default" className="h-7 px-2.5 ml-auto" disabled={punchInDisabled} onClick={onPunchIn}>
               <Play className="mr-1 h-3 w-3" />
               Démarrer mon temps
             </Button>
