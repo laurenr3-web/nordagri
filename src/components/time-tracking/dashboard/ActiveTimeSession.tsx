@@ -107,10 +107,17 @@ export function ActiveTimeSession({
         </div>
 
         <div className="flex flex-wrap gap-2 pt-1">
-          <Button onClick={handleStop} size="lg" className="rounded-xl flex-1 sm:flex-none">
-            <Square className="h-4 w-4" />
-            Terminer la session
-          </Button>
+          {!isSynthetic ? (
+            <Button onClick={handleStop} size="lg" className="rounded-xl flex-1 sm:flex-none">
+              <Square className="h-4 w-4" />
+              Terminer la session
+            </Button>
+          ) : (
+            <Button onClick={() => navigate('/time-tracking')} size="lg" className="rounded-xl flex-1 sm:flex-none">
+              <Pencil className="h-4 w-4" />
+              Démarrer un suivi détaillé
+            </Button>
+          )}
           {!isSynthetic && (isPaused ? (
             <Button
               variant="outline"
