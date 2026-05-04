@@ -1,10 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Calendar, Users, History, BarChart3 } from 'lucide-react';
+import { Calendar, Users, History } from 'lucide-react';
 import { DayViewTab } from './DayViewTab';
 import { TeamSection } from '@/components/time-tracking/team/TeamSection';
 import { HistoryTab } from './HistoryTab';
-import TimeTrackingRapport from '@/components/time-tracking/rapport/TimeTrackingRapport';
 import { TimeEntry, ActiveTimeEntry } from '@/hooks/time-tracking/types';
 import { QuickStartChoice } from './QuickStartGrid';
 
@@ -33,17 +33,17 @@ const TABS = [
   { value: 'day', label: 'Vue du jour', icon: Calendar },
   { value: 'team', label: 'Équipe', icon: Users },
   { value: 'history', label: 'Historique', icon: History },
-  { value: 'reports', label: 'Rapports', icon: BarChart3 },
 ];
 
 export function TimeTrackingTabs(props: TimeTrackingTabsProps) {
   const { activeTab, onTabChange } = props;
+  const navigate = useNavigate();
 
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
       <TabsList
         aria-label="Sections du suivi du temps"
-        className="grid grid-cols-4 sm:flex sm:w-auto sm:inline-flex w-full h-auto bg-transparent p-0 border-b rounded-none gap-1 sm:gap-1 justify-start"
+        className="grid grid-cols-3 sm:flex sm:w-auto sm:inline-flex w-full h-auto bg-transparent p-0 border-b rounded-none gap-1 sm:gap-1 justify-start"
       >
         {TABS.map((t) => {
           const Icon = t.icon;
@@ -74,7 +74,7 @@ export function TimeTrackingTabs(props: TimeTrackingTabsProps) {
           onQuickStart={props.onQuickStart}
           onSeeTeam={() => onTabChange('team')}
           onSeeHistory={() => onTabChange('history')}
-          onSeeReports={() => onTabChange('reports')}
+          onSeeReports={() => navigate('/statistics?tab=time')}
         />
       </TabsContent>
 
@@ -94,10 +94,6 @@ export function TimeTrackingTabs(props: TimeTrackingTabsProps) {
           taskTypeFilter={props.taskTypeFilter}
           setTaskTypeFilter={props.setTaskTypeFilter}
         />
-      </TabsContent>
-
-      <TabsContent value="reports" className="mt-4 sm:mt-6 space-y-4">
-        <TimeTrackingRapport />
       </TabsContent>
     </Tabs>
   );
