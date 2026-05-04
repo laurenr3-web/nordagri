@@ -5,6 +5,7 @@ import {
   Clock,
   Users,
   Tractor,
+  Layers,
   Sparkles,
   ArrowRight,
   Briefcase,
