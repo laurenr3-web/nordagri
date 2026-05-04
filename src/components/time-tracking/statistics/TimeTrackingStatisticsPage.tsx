@@ -389,7 +389,7 @@ const TimeTrackingStatisticsPage: React.FC = () => {
         {/* Left — type of work (wide) */}
         <SectionCard
           title="Temps par type de travail"
-          subtitle="Répartition sur la période sélectionnée"
+          subtitle="Répartition du temps par catégorie"
           icon={<Briefcase className="h-4 w-4" />}
           iconTone="violet"
           className="lg:col-span-2"
@@ -401,8 +401,22 @@ const TimeTrackingStatisticsPage: React.FC = () => {
           ) : typeRanking.length === 0 ? (
             <EmptyCard message="Aucun type de travail enregistré sur la période." />
           ) : (
-            <div className="divide-y divide-border/60">
-              {typeRanking.map((t, i) => {
+            <>
+              {/* Compact summary */}
+              {(() => {
+                const totalTypeHours = typeRanking.reduce((s, x) => s + x.hours, 0);
+                const principal = typeRanking[0]?.name;
+                return (
+                  <p className="-mt-2 mb-4 text-xs text-muted-foreground">
+                    {formatHours(totalTypeHours)} suivies
+                    {principal ? <> · Principal : <span className="font-medium text-foreground">{principal}</span></> : null}
+                  </p>
+                );
+              })()}
+              <div className="divide-y divide-border/60">
+              {typeRanking
+                .filter(t => t.hours > 0)
+                .map((t, i) => {
                 const color = t.color || 'hsl(var(--primary))';
                 return (
                   <div key={`${t.name}-${i}`} className="py-3 first:pt-0 last:pb-0">
@@ -420,7 +434,7 @@ const TimeTrackingStatisticsPage: React.FC = () => {
                           {formatHours(t.hours)}
                         </p>
                         <p className="text-[11px] text-muted-foreground whitespace-nowrap">
-                          {t.percent.toFixed(0)}%
+                          {t.percent < 1 ? '<1%' : `${t.percent.toFixed(0)}%`}
                         </p>
                       </div>
                     </div>
@@ -436,45 +450,13 @@ const TimeTrackingStatisticsPage: React.FC = () => {
                   </div>
                 );
               })}
-            </div>
+              </div>
+            </>
           )}
         </SectionCard>
 
-        {/* Right column — members + equipment stacked */}
+        {/* Right column — equipment (members live in dedicated card below) */}
         <div className="space-y-4 sm:space-y-6">
-          <SectionCard
-            title="Temps par membre"
-            subtitle="Top contributeurs de la période"
-            icon={<Users className="h-4 w-4" />}
-            iconTone="blue"
-          >
-            {isLoading ? (
-              <div className="space-y-3">
-                {[0, 1, 2].map(i => <Skeleton key={i} className="h-12 w-full" />)}
-              </div>
-            ) : membersRanking.length === 0 ? (
-              <EmptyCard message="Aucun membre n'a enregistré de temps sur la période." />
-            ) : (
-              <div className="divide-y divide-border/60">
-                {membersRanking.map(m => (
-                  <RankRow
-                    key={m.userId}
-                    leading={
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-sky-100 text-sky-700 text-xs font-semibold">
-                        {initials(m.name)}
-                      </div>
-                    }
-                    title={m.name}
-                    subtitle={`${m.share.toFixed(0)}% du temps total`}
-                    value={formatHours(m.hours)}
-                    percent={m.percent}
-                    barClass="bg-sky-500/80"
-                  />
-                ))}
-              </div>
-            )}
-          </SectionCard>
-
           <SectionCard
             title="Temps par équipement"
             subtitle="Utilisation cumulée"
