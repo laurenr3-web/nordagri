@@ -4,5 +4,9 @@ import { useTimeBreakdown } from '@/hooks/time-tracking/useTimeBreakdown';
 
 export function WorkTypeChartCard() {
   const { data, isLoading, error } = useTimeBreakdown();
-  return <TimeBreakdownChart data={data} isLoading={isLoading} error={error} />;
+  return (
+    <div className="w-full h-full min-w-0 [&>*]:w-full [&>*]:h-full">
+      <TimeBreakdownChart data={data} isLoading={isLoading} error={error} />
+    </div>
+  );
 }
