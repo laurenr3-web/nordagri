@@ -530,33 +530,63 @@ const TimeTrackingStatisticsPage: React.FC = () => {
             </p>
           </div>
         ) : (
-          <>
+          (() => {
+            const totalMembers = membersRanking.length;
+            const totalHoursMembers = membersRanking.reduce((s, m) => s + m.hours, 0);
+            const totalSessionsMembers = membersRanking.reduce((s, m) => s + m.sessions, 0);
+            const avgPerSession = totalSessionsMembers > 0 ? totalHoursMembers / totalSessionsMembers : 0;
+            const maxHours = membersRanking.reduce((m, x) => Math.max(m, x.hours), 0);
+            const topUserId = membersRanking[0]?.userId;
+            return (
+              <>
+                {/* Compact summary */}
+                <p className="-mt-2 mb-4 text-xs text-muted-foreground">
+                  {totalMembers} membre{totalMembers > 1 ? 's' : ''} · {formatHours(totalHoursMembers)} suivies · moyenne {formatHours(avgPerSession)}/session
+                </p>
+
             {/* Desktop: light table */}
             <div className="hidden sm:block">
-              <div className="grid grid-cols-12 gap-3 px-2 pb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground border-b border-border/60">
-                <div className="col-span-5">Membre</div>
-                <div className="col-span-2 text-right">Sessions</div>
-                <div className="col-span-3 text-right">Temps total</div>
-                <div className="col-span-2 text-right">Moyenne / session</div>
+                  <div className="grid grid-cols-12 gap-3 px-2 pb-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80 border-b border-border/60">
+                    <div className="col-span-6">Membre</div>
+                    <div className="col-span-2 text-right">Sessions</div>
+                    <div className="col-span-2 text-right">Temps total</div>
+                    <div className="col-span-2 text-right whitespace-nowrap">Moyenne/session</div>
               </div>
               <div className="divide-y divide-border/60">
                 {membersRanking.map(m => {
                   const avg = m.sessions > 0 ? m.hours / m.sessions : 0;
+                      const barPct = maxHours > 0 ? (m.hours / maxHours) * 100 : 0;
+                      const isTop = m.userId === topUserId;
                   return (
                     <div
                       key={m.userId}
-                      className="grid grid-cols-12 gap-3 items-center px-2 py-3 min-w-0"
+                          className="grid grid-cols-12 gap-3 items-center px-2 py-4 min-w-0"
                     >
-                      <div className="col-span-5 flex items-center gap-3 min-w-0">
+                          <div className="col-span-6 flex items-center gap-3 min-w-0">
                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-700 text-xs font-semibold">
                           {initials(m.name)}
                         </div>
-                        <p className="truncate text-sm font-medium text-foreground">{m.name}</p>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <p className="truncate text-sm font-medium text-foreground">{m.name}</p>
+                                {isTop && (
+                                  <span className="shrink-0 rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-700 whitespace-nowrap">
+                                    Top contributeur
+                                  </span>
+                                )}
+                              </div>
+                              <div className="mt-1.5 h-1 w-full rounded-full bg-muted overflow-hidden">
+                                <div
+                                  className="h-full rounded-full bg-sky-400/80 transition-all"
+                                  style={{ width: `${Math.max(2, Math.min(100, barPct))}%` }}
+                                />
+                              </div>
+                            </div>
                       </div>
                       <div className="col-span-2 text-right text-sm font-semibold text-foreground tabular-nums">
                         {m.sessions}
                       </div>
-                      <div className="col-span-3 text-right text-sm font-semibold text-foreground tabular-nums whitespace-nowrap">
+                          <div className="col-span-2 text-right text-sm font-semibold text-foreground tabular-nums whitespace-nowrap">
                         {formatHours(m.hours)}
                       </div>
                       <div className="col-span-2 text-right text-sm text-muted-foreground tabular-nums whitespace-nowrap">
@@ -572,36 +602,47 @@ const TimeTrackingStatisticsPage: React.FC = () => {
             <div className="sm:hidden space-y-3">
               {membersRanking.map(m => {
                 const avg = m.sessions > 0 ? m.hours / m.sessions : 0;
+                    const barPct = maxHours > 0 ? (m.hours / maxHours) * 100 : 0;
+                    const isTop = m.userId === topUserId;
                 return (
                   <div
                     key={m.userId}
                     className="rounded-xl border border-border/60 bg-card p-3 shadow-sm"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-700 text-xs font-semibold">
-                        {initials(m.name)}
-                      </div>
-                      <p className="truncate text-sm font-medium text-foreground">{m.name}</p>
-                    </div>
-                    <div className="mt-3 grid grid-cols-3 gap-2">
-                      <div className="rounded-lg bg-muted/50 px-2 py-2 text-center">
-                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Sessions</p>
-                        <p className="mt-0.5 text-sm font-bold text-foreground tabular-nums">{m.sessions}</p>
-                      </div>
-                      <div className="rounded-lg bg-muted/50 px-2 py-2 text-center">
-                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Total</p>
-                        <p className="mt-0.5 text-sm font-bold text-foreground tabular-nums">{formatHours(m.hours)}</p>
-                      </div>
-                      <div className="rounded-lg bg-muted/50 px-2 py-2 text-center">
-                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Moyenne</p>
-                        <p className="mt-0.5 text-sm font-bold text-foreground tabular-nums">{formatHours(avg)}</p>
-                      </div>
-                    </div>
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-700 text-xs font-semibold">
+                            {initials(m.name)}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <p className="truncate text-sm font-medium text-foreground">{m.name}</p>
+                              {isTop && (
+                                <span className="shrink-0 rounded-full bg-sky-100 px-1.5 py-0.5 text-[9px] font-semibold text-sky-700 whitespace-nowrap">
+                                  Top
+                                </span>
+                              )}
+                            </div>
+                            <p className="mt-0.5 text-[11px] text-muted-foreground">
+                              {m.sessions} session{m.sessions > 1 ? 's' : ''} · {formatHours(avg)}/session
+                            </p>
+                          </div>
+                          <p className="shrink-0 text-sm font-semibold text-foreground tabular-nums whitespace-nowrap">
+                            {formatHours(m.hours)}
+                          </p>
+                        </div>
+                        <div className="mt-2 h-1 w-full rounded-full bg-muted overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-sky-400/80 transition-all"
+                            style={{ width: `${Math.max(2, Math.min(100, barPct))}%` }}
+                          />
+                        </div>
                   </div>
                 );
               })}
             </div>
-          </>
+              </>
+            );
+          })()
         )}
       </SectionCard>
 
