@@ -19,6 +19,7 @@ export interface StartTimeEntryData {
 
 export interface TimeEntriesFilter {
   userId: string;
+  userIds?: string[];
   startDate?: Date;
   endDate?: Date;
   equipmentId?: number;
