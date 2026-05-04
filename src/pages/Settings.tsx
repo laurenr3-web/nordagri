@@ -1,5 +1,6 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import MainLayout from '@/ui/layouts/MainLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuthContext } from '@/providers/AuthProvider';
@@ -58,7 +59,26 @@ const TABS_CONFIG = [
 
 const Settings = () => {
   const { isAuthenticated, loading: authLoading } = useAuthContext();
-  const [activeTab, setActiveTab] = useState('profile');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const validTabs = TABS_CONFIG.map(t => t.value);
+  const initialTab = validTabs.includes(searchParams.get('tab') || '')
+    ? (searchParams.get('tab') as string)
+    : 'profile';
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  useEffect(() => {
+    const t = searchParams.get('tab');
+    if (t && validTabs.includes(t) && t !== activeTab) setActiveTab(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  const handleTabChange = (v: string) => {
+    setActiveTab(v);
+    const next = new URLSearchParams(searchParams);
+    if (v === 'profile') next.delete('tab');
+    else next.set('tab', v);
+    setSearchParams(next, { replace: true });
+  };
   const { hasAnyUnsavedChanges, markAsChanged } = useSettingsState();
   
   const {
@@ -139,7 +159,7 @@ const Settings = () => {
         
         <Tabs 
           value={activeTab} 
-          onValueChange={setActiveTab} 
+          onValueChange={handleTabChange} 
           className="space-y-6"
         >
           {/* Onglets avec responsive design amélioré */}
