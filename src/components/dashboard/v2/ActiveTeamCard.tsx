@@ -2,8 +2,12 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Users, Timer, ArrowRight, Play } from 'lucide-react';
+import { Users, Timer, ArrowRight, Play, Square } from 'lucide-react';
 import type { ActiveTeamMember } from '@/hooks/dashboard/v2/useActiveTeam';
+import { useAuth } from '@/hooks/useAuth';
+import { useTimeTracking } from '@/hooks/time-tracking/useTimeTracking';
+import { TimeEntryForm } from '@/components/time-tracking/TimeEntryForm';
+import { toast } from 'sonner';
 
 interface Props {
   team: ActiveTeamMember[];
@@ -24,10 +28,35 @@ function formatDuration(start: string): string {
   return `${h}h${String(m).padStart(2, '0')}`;
 }
 
-export const ActiveTeamCard: React.FC<Props> = ({ team, loading, unassignedCount = 0, limit = 5 }) => {
+export const ActiveTeamCard: React.FC<Props> = ({ team, loading, limit = 5 }) => {
   const navigate = useNavigate();
-  const visible = team.slice(0, limit);
-  const overflow = Math.max(0, team.length - visible.length);
+  const { user } = useAuth(false);
+  const { activeTimeEntry, startTimeEntry } = useTimeTracking();
+  const [isFormOpen, setIsFormOpen] = React.useState(false);
+
+  const myMember = user ? team.find((m) => m.userId === user.id) ?? null : null;
+  const others = user ? team.filter((m) => m.userId !== user.id) : team;
+  const visible = others.slice(0, limit);
+  const overflow = Math.max(0, others.length - visible.length);
+
+  const handleStart = async (data: any) => {
+    try {
+      await startTimeEntry(data);
+      setIsFormOpen(false);
+      toast.success('Session démarrée');
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleStop = () => {
+    if (!activeTimeEntry) return;
+    if (activeTimeEntry.id.startsWith('shift:')) {
+      navigate('/time-tracking');
+      return;
+    }
+    navigate(`/time-tracking/detail/${activeTimeEntry.id}`);
+  };
 
   return (
     <div className="rounded-2xl border border-blue-200/60 bg-blue-50/60 dark:bg-blue-950/20 dark:border-blue-900/40 shadow-sm overflow-hidden">
@@ -51,13 +80,34 @@ export const ActiveTeamCard: React.FC<Props> = ({ team, loading, unassignedCount
       ) : team.length === 0 ? (
         <div className="p-6 flex flex-col items-center gap-3 text-center">
           <p className="text-sm text-muted-foreground">Aucune session active</p>
-          <Button size="sm" variant="outline" onClick={() => navigate('/time-tracking')}>
+          <Button size="sm" variant="default" onClick={() => setIsFormOpen(true)}>
             <Play className="mr-1.5 h-3.5 w-3.5" />
-            Démarrer suivi du temps
+            Démarrer mon temps
           </Button>
         </div>
       ) : (
         <ul className="divide-y divide-border/60">
+          {myMember && (
+            <li className="bg-blue-100/40 dark:bg-blue-900/20">
+              <div className="flex items-center gap-3 px-4 py-2.5 min-w-0">
+                <Avatar className="h-8 w-8 shrink-0">
+                  {myMember.avatarUrl && <AvatarImage src={myMember.avatarUrl} alt={myMember.name} />}
+                  <AvatarFallback className="text-xs">{initials(myMember.name)}</AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1 overflow-hidden">
+                  <p className="text-sm font-medium line-clamp-1">Ma session · {myMember.name}</p>
+                  <p className="text-[11px] text-muted-foreground truncate">
+                    {myMember.title || 'Session active'}
+                    {myMember.equipmentName ? ` · ${myMember.equipmentName}` : ''}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1 text-xs font-medium text-emerald-600 shrink-0 whitespace-nowrap">
+                  <Timer className="h-3.5 w-3.5" />
+                  {formatDuration(myMember.startTime)}
+                </div>
+              </div>
+            </li>
+          )}
           {visible.map((m) => (
             <li key={m.sessionId}>
               <button
@@ -95,23 +145,28 @@ export const ActiveTeamCard: React.FC<Props> = ({ team, loading, unassignedCount
           )}
         </ul>
       )}
-      {unassignedCount > 0 && (
-        <button
-          type="button"
-          onClick={() => navigate('/planning')}
-          className="w-full flex items-center justify-between gap-3 px-4 py-2.5 border-t border-blue-200/60 dark:border-blue-900/40 bg-white/70 dark:bg-background/40 hover:bg-white transition-colors text-left min-w-0"
-        >
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <Users className="h-4 w-4 text-amber-600 shrink-0" />
-            <span className="text-xs truncate">
-              {unassignedCount} tâche{unassignedCount > 1 ? 's' : ''} non assignée{unassignedCount > 1 ? 's' : ''}
-            </span>
-          </div>
-          <span className="text-xs font-medium text-primary inline-flex items-center gap-1 shrink-0 whitespace-nowrap">
-            Assigner <ArrowRight className="h-3 w-3" />
-          </span>
-        </button>
+      {!loading && team.length > 0 && (
+        <div className="flex items-center justify-between gap-2 px-4 py-2.5 border-t border-blue-200/60 dark:border-blue-900/40 bg-white/70 dark:bg-background/40 min-w-0">
+          {myMember ? (
+            <>
+              <span className="text-xs text-muted-foreground inline-flex items-center gap-1 min-w-0 truncate">
+                <Timer className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">Ma session · {formatDuration(myMember.startTime)}</span>
+              </span>
+              <Button size="sm" variant="destructive" className="h-7 px-2.5 shrink-0" onClick={handleStop}>
+                <Square className="mr-1 h-3 w-3" />
+                Terminer
+              </Button>
+            </>
+          ) : (
+            <Button size="sm" variant="default" className="h-7 px-2.5 ml-auto" onClick={() => setIsFormOpen(true)}>
+              <Play className="mr-1 h-3 w-3" />
+              Démarrer mon temps
+            </Button>
+          )}
+        </div>
       )}
+      <TimeEntryForm isOpen={isFormOpen} onOpenChange={setIsFormOpen} onSubmit={handleStart} />
     </div>
   );
 };
