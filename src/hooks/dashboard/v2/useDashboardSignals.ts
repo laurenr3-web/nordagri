@@ -19,8 +19,9 @@ export function useDashboardSignals(farmId: string | null) {
 
       const [activeRes, tasksRes, partsRes, pointsRes] = await Promise.all([
         supabase
-          .from('time_sessions')
+          .from('work_shifts')
           .select('user_id')
+          .eq('farm_id', farmId!)
           .eq('status', 'active'),
         supabase
           .from('planning_tasks')
