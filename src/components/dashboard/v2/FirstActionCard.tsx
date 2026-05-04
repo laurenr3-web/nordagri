@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Wrench, Eye, ClipboardList, Sparkles, Star, AlertCircle, FolderOpen, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Wrench, Eye, ClipboardList, Sparkles, Star, AlertCircle, FolderOpen, CheckCircle2, Undo2 } from 'lucide-react';
 import type { FirstAction } from '@/hooks/dashboard/v2/useFirstAction';
 import { cn } from '@/lib/utils';
 import { FirstActionDetailDialog } from './FirstActionDetailDialog';
@@ -36,6 +36,17 @@ export const FirstActionCard: React.FC<Props> = ({ action, loading }) => {
   const [detailOpen, setDetailOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [completing, setCompleting] = useState(false);
+  const [undoOpen, setUndoOpen] = useState(false);
+  const [undoing, setUndoing] = useState(false);
+  const [lastCompleted, setLastCompleted] = useState<
+    | {
+        source: 'planning' | 'maintenance' | 'point';
+        sourceId: string | number;
+        title: string;
+        recurringDate?: string | null;
+      }
+    | null
+  >(null);
   const queryClient = useQueryClient();
   const { user } = useAuthContext();
 
@@ -67,6 +78,7 @@ export const FirstActionCard: React.FC<Props> = ({ action, loading }) => {
     if (!action) return;
     setCompleting(true);
     try {
+      let recurringDate: string | null = null;
       if (action.source === 'planning') {
         const id = String(action.sourceId);
         // Check if recurring with occurrence date
@@ -76,6 +88,7 @@ export const FirstActionCard: React.FC<Props> = ({ action, loading }) => {
           .eq('id', id)
           .maybeSingle();
         if (t?.is_recurring && user) {
+          recurringDate = t.due_date;
           await supabase
             .from('planning_task_completions')
             .upsert(
@@ -97,6 +110,12 @@ export const FirstActionCard: React.FC<Props> = ({ action, loading }) => {
           .update({ status: 'resolved', resolved_at: new Date().toISOString() })
           .eq('id', String(action.sourceId));
       }
+      setLastCompleted({
+        source: action.source,
+        sourceId: action.sourceId,
+        title: action.title,
+        recurringDate,
+      });
       toast.success('Marquée comme terminée');
       queryClient.invalidateQueries({ queryKey: ['dashboard-v2'] });
       queryClient.invalidateQueries({ queryKey: ['planningTasks'] });
@@ -109,6 +128,51 @@ export const FirstActionCard: React.FC<Props> = ({ action, loading }) => {
       toast.error(e?.message ?? 'Erreur');
     } finally {
       setCompleting(false);
+    }
+  };
+
+  const handleUndo = async () => {
+    if (!lastCompleted) return;
+    setUndoing(true);
+    try {
+      const { source, sourceId, recurringDate } = lastCompleted;
+      if (source === 'planning') {
+        if (recurringDate) {
+          await supabase
+            .from('planning_task_completions')
+            .delete()
+            .eq('task_id', String(sourceId))
+            .eq('completion_date', recurringDate);
+        } else {
+          await supabase
+            .from('planning_tasks')
+            .update({ status: 'todo' })
+            .eq('id', String(sourceId));
+        }
+      } else if (source === 'maintenance') {
+        await supabase
+          .from('maintenance_tasks')
+          .update({ status: 'scheduled', completed_date: null })
+          .eq('id', Number(sourceId));
+      } else if (source === 'point') {
+        await supabase
+          .from('points')
+          .update({ status: 'open', resolved_at: null })
+          .eq('id', String(sourceId));
+      }
+      toast.success('Complétion annulée');
+      queryClient.invalidateQueries({ queryKey: ['dashboard-v2'] });
+      queryClient.invalidateQueries({ queryKey: ['planningTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['planningOverdue'] });
+      queryClient.invalidateQueries({ queryKey: ['planningCompletions'] });
+      queryClient.invalidateQueries({ queryKey: ['maintenance-tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['points'] });
+      setLastCompleted(null);
+      setUndoOpen(false);
+    } catch (e: any) {
+      toast.error(e?.message ?? 'Erreur');
+    } finally {
+      setUndoing(false);
     }
   };
 
@@ -167,6 +231,17 @@ export const FirstActionCard: React.FC<Props> = ({ action, loading }) => {
           <CheckCircle2 className="h-4 w-4" />
           Marquer fait
         </Button>
+        {lastCompleted && (
+          <Button
+            onClick={() => setUndoOpen(true)}
+            size="sm"
+            variant="outline"
+            className="gap-1.5"
+          >
+            <Undo2 className="h-4 w-4" />
+            Annuler la complétion
+          </Button>
+        )}
         {action.source === 'maintenance' && action.equipmentId && (
           <Button
             onClick={() => navigate(`/equipment/${action.equipmentId}`)}
@@ -201,6 +276,24 @@ export const FirstActionCard: React.FC<Props> = ({ action, loading }) => {
             <AlertDialogCancel disabled={completing}>Annuler</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmDone} disabled={completing}>
               {completing ? 'En cours...' : 'Oui, terminée'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={undoOpen} onOpenChange={setUndoOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Annuler la complétion ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {lastCompleted
+                ? `Restaurer « ${lastCompleted.title} » comme non terminée ?`
+                : ''}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={undoing}>Non</AlertDialogCancel>
+            <AlertDialogAction onClick={handleUndo} disabled={undoing}>
+              {undoing ? 'En cours...' : 'Oui, annuler'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
