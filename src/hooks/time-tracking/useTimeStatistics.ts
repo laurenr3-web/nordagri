@@ -112,35 +112,87 @@ export function useTimeStatistics() {
         userNameMap.set(profile.id, name);
       });
 
-      // Fetch all time sessions in the specified time range
-      const { data: sessions } = await supabase
+      // Resolve farm member user_ids (owner + members) so we include
+      // sessions from every member of the active farm.
+      const memberUserIds = new Set<string>();
+      const { data: ownerRow } = await supabase
+        .from('farms')
+        .select('owner_id')
+        .eq('id', userData.farm_id)
+        .maybeSingle();
+      if (ownerRow?.owner_id) memberUserIds.add(ownerRow.owner_id);
+      const { data: members } = await supabase
+        .from('farm_members')
+        .select('user_id')
+        .eq('farm_id', userData.farm_id);
+      members?.forEach((m: any) => m.user_id && memberUserIds.add(m.user_id));
+      const userIds = Array.from(memberUserIds);
+
+      // We need a wide enough window to compute week/month/quarter summaries
+      // independently of the active range filter.
+      const quarterRange = getDateRange('quarter');
+      const weekRange = getDateRange('week');
+      const monthRange = getDateRange('month');
+      const lowerBound = new Date(Math.min(
+        quarterRange.start.getTime(),
+        weekRange.start.getTime(),
+        monthRange.start.getTime(),
+        start.getTime(),
+      ));
+      const upperBound = new Date(Math.max(
+        quarterRange.end.getTime(),
+        weekRange.end.getTime(),
+        monthRange.end.getTime(),
+        end.getTime(),
+      ));
+
+      // Fetch completed sessions for all farm members in the wide window.
+      let query = supabase
         .from('time_sessions')
         .select(`
-          id, 
-          user_id, 
-          equipment_id, 
-          start_time, 
-          end_time, 
+          id,
+          user_id,
+          equipment_id,
+          start_time,
+          end_time,
           duration,
           equipment:equipment_id (name)
         `)
-        .gte('start_time', start.toISOString())
-        .lte('start_time', end.toISOString())
+        .gte('start_time', lowerBound.toISOString())
+        .lte('start_time', upperBound.toISOString())
         .not('end_time', 'is', null);
 
-      if (!sessions) {
-        setIsLoading(false);
-        return;
+      if (userIds.length > 0) {
+        query = query.in('user_id', userIds);
       }
+
+      const { data: rawSessions, error: sessionsError } = await query;
+      if (sessionsError) {
+        console.error('Error loading time_sessions:', sessionsError);
+      }
+
+      // Compute duration (hours) from start/end when the column is NULL.
+      const sessions = (rawSessions ?? []).map((s: any) => {
+        let hours = typeof s.duration === 'number' ? s.duration : 0;
+        if ((!hours || hours <= 0) && s.start_time && s.end_time) {
+          const ms = new Date(s.end_time).getTime() - new Date(s.start_time).getTime();
+          if (Number.isFinite(ms) && ms > 0) hours = ms / (1000 * 60 * 60);
+        }
+        return { ...s, _hours: hours };
+      });
+
+      // Restrict to active range for breakdown stats.
+      const inRange = sessions.filter(s => {
+        const d = new Date(s.start_time);
+        return d >= start && d <= end;
+      });
 
       // Process employee statistics
       const employeeData = new Map<string, number>();
-      sessions.forEach(session => {
+      inRange.forEach(session => {
         if (!session.user_id) return;
-        
-        const hours = session.duration || 0;
         const current = employeeData.get(session.user_id) || 0;
-        employeeData.set(session.user_id, current + hours);
+        employeeData.set(session.user_id, current + session._hours);
       });
 
       const employeeStatsArray: EmployeeStats[] = Array.from(employeeData.entries())
@@ -154,16 +206,14 @@ export function useTimeStatistics() {
 
       // Process equipment statistics
       const equipmentData = new Map<number, { name: string | null; hours: number }>();
-      sessions.forEach(session => {
+      inRange.forEach(session => {
         if (!session.equipment_id) return;
-        
         const equipId = session.equipment_id;
-        const hours = session.duration || 0;
-        // Fixed: Access equipment name properly
-        const equipmentName = session.equipment && typeof session.equipment === 'object' ? 
-          (session.equipment as any).name : null;
+        const equipmentName = session.equipment && typeof session.equipment === 'object'
+          ? (session.equipment as any).name
+          : null;
         const current = equipmentData.get(equipId) || { name: equipmentName, hours: 0 };
-        equipmentData.set(equipId, { name: current.name, hours: current.hours + hours });
+        equipmentData.set(equipId, { name: current.name ?? equipmentName, hours: current.hours + session._hours });
       });
 
       const equipmentStatsArray: EquipmentStats[] = Array.from(equipmentData.entries())
@@ -175,31 +225,27 @@ export function useTimeStatistics() {
         .sort((a, b) => b.hours - a.hours)
         .slice(0, 5);  // Get top 5
 
-      // Compute summary statistics for all time ranges
-      const weekRange = getDateRange('week');
-      const monthRange = getDateRange('month');
-      const quarterRange = getDateRange('quarter');
-
+      // Summary uses the full wide-window dataset.
       const weekHours = sessions
         .filter(s => {
           const date = new Date(s.start_time);
           return date >= weekRange.start && date <= weekRange.end;
         })
-        .reduce((sum, s) => sum + (s.duration || 0), 0);
+        .reduce((sum, s) => sum + s._hours, 0);
 
       const monthHours = sessions
         .filter(s => {
           const date = new Date(s.start_time);
           return date >= monthRange.start && date <= monthRange.end;
         })
-        .reduce((sum, s) => sum + (s.duration || 0), 0);
+        .reduce((sum, s) => sum + s._hours, 0);
 
       const quarterHours = sessions
         .filter(s => {
           const date = new Date(s.start_time);
           return date >= quarterRange.start && date <= quarterRange.end;
         })
-        .reduce((sum, s) => sum + (s.duration || 0), 0);
+        .reduce((sum, s) => sum + s._hours, 0);
 
       setEmployeeStats(employeeStatsArray);
       setEquipmentStats(equipmentStatsArray);

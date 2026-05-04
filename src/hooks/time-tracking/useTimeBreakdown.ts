@@ -28,28 +28,33 @@ export function useTimeBreakdown() {
         const { data: timeData, error: timeError } = await supabase
           .from('time_sessions')
           .select(`
-            task_types (
-              name
-            ),
-            duration
+            task_types ( name ),
+            custom_task_type,
+            duration,
+            start_time,
+            end_time,
+            status
           `)
-          .eq('status', 'completed')
-          .not('task_type_id', 'is', null)
-          .not('duration', 'is', null);
+          .not('end_time', 'is', null)
+          .neq('status', 'active');
 
         if (timeError) throw timeError;
 
         // Process the data for the chart
-        const groupedData = timeData.reduce((acc, session) => {
-          // Fixed: Access task name properly
-          const taskType = session.task_types && typeof session.task_types === 'object' ? 
-            (session.task_types as any).name || 'other' : 'other';
-          const duration = session.duration || 0;
-          
-          if (!acc[taskType]) {
-            acc[taskType] = 0;
+        const groupedData = (timeData ?? []).reduce((acc, session: any) => {
+          const taskType = session.task_types && typeof session.task_types === 'object'
+            ? (session.task_types as any).name || session.custom_task_type || 'other'
+            : (session.custom_task_type || 'other');
+
+          let hours = typeof session.duration === 'number' ? session.duration : 0;
+          if ((!hours || hours <= 0) && session.start_time && session.end_time) {
+            const ms = new Date(session.end_time).getTime() - new Date(session.start_time).getTime();
+            if (Number.isFinite(ms) && ms > 0) hours = ms / (1000 * 60 * 60);
           }
-          acc[taskType] += duration * 60; // Convert hours to minutes
+          if (!hours || hours <= 0) return acc;
+
+          if (!acc[taskType]) acc[taskType] = 0;
+          acc[taskType] += hours * 60; // hours -> minutes
           return acc;
         }, {} as Record<string, number>);
 
