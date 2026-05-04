@@ -47,8 +47,14 @@ export default function TimeTrackingPage() {
     setIsFormOpen(true);
   };
 
-  // Default tab to "day"
-  const tab = activeTab === 'list' || activeTab === 'statistics' || activeTab === 'rapport' ? 'day' : activeTab;
+  // Default tab to "day" — fall back when legacy/removed tabs are requested
+  const tab =
+    activeTab === 'list' ||
+    activeTab === 'statistics' ||
+    activeTab === 'rapport' ||
+    activeTab === 'reports'
+      ? 'day'
+      : activeTab;
   const handleTabChange = (t: string) => setActiveTab(t);
 
   return (
