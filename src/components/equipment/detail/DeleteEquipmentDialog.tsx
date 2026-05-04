@@ -19,6 +19,8 @@ interface DeleteEquipmentDialogProps {
   equipmentName: string;
   isDeleting: boolean;
   onConfirm: () => void;
+  triggerVariant?: 'destructive' | 'ghost' | 'outline';
+  compact?: boolean;
 }
 
 interface RelatedCounts {
@@ -36,6 +38,8 @@ const DeleteEquipmentDialog: React.FC<DeleteEquipmentDialogProps> = ({
   equipmentName,
   isDeleting,
   onConfirm,
+  triggerVariant = 'destructive',
+  compact = false,
 }) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -94,17 +98,22 @@ const DeleteEquipmentDialog: React.FC<DeleteEquipmentDialogProps> = ({
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button variant="destructive" size="sm" disabled={isDeleting}>
+        <Button
+          variant={triggerVariant}
+          size="sm"
+          disabled={isDeleting}
+          className={triggerVariant === 'ghost' ? 'text-destructive hover:text-destructive hover:bg-destructive/10' : ''}
+        >
           {isDeleting ? (
             <>
               <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-              <span className="hidden sm:inline">Suppression...</span>
-              <span className="sm:hidden">...</span>
+              {!compact && <span className="hidden sm:inline">Suppression...</span>}
+              {!compact && <span className="sm:hidden">...</span>}
             </>
           ) : (
             <>
-              <Trash2 className="mr-1.5 h-4 w-4" />
-              Supprimer
+              <Trash2 className={compact ? 'h-4 w-4' : 'mr-1.5 h-4 w-4'} />
+              {!compact && 'Supprimer'}
             </>
           )}
         </Button>
