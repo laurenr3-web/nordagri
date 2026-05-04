@@ -136,7 +136,7 @@ export const TaskTypeRanking: React.FC<Props> = ({ data, isLoading }) => {
                     {formatDuration(task.hours)}
                   </span>
                 </div>
-                <div className="mt-1.5 flex items-center gap-2 pl-4.5">
+                <div className="mt-1.5 flex items-center gap-2 pl-[18px]">
                   {isPrincipal && (
                     <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-medium">
                       Principal
