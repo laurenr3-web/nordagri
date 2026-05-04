@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Calendar, Wrench, AlertCircle, Clock } from 'lucide-react';
+import { buildTabUrl } from '@/config/tabRoutes';
 
 interface Props {
   farmId: string | null;
