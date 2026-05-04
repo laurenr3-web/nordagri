@@ -13,7 +13,7 @@ import { useDailyHours } from '@/hooks/time-tracking/useDailyHours';
 import { useMonthlySummary } from '@/hooks/time-tracking/useMonthlySummary';
 import { useTaskTypeDistribution } from '@/hooks/time-tracking/useTaskTypeDistribution';
 import { useTopEquipment } from '@/hooks/time-tracking/useTopEquipment';
-import { TimeDistributionChart } from './TimeDistributionChart';
+import { TaskTypeRanking } from './TaskTypeRanking';
 import { TopEquipmentList } from './TopEquipmentList';
 import { useExportReport } from '@/hooks/time-tracking/useExportReport';
 import { 
@@ -172,11 +172,11 @@ const TimeTrackingRapport: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
         <Card className="rounded-2xl">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Répartition par type de tâche</CardTitle>
-            <CardDescription>Où va le temps ce mois</CardDescription>
+            <CardTitle className="text-base">Temps par type de travail</CardTitle>
+            <CardDescription>Répartition sur la période sélectionnée</CardDescription>
           </CardHeader>
           <CardContent>
-            <TimeDistributionChart data={distribution} isLoading={isDistributionLoading} />
+            <TaskTypeRanking data={distribution} isLoading={isDistributionLoading} />
           </CardContent>
         </Card>
 
