@@ -1,5 +1,6 @@
 
 import React, { useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import MainLayout from '@/ui/layouts/MainLayout';
 import { useMaintenancePage } from '@/hooks/maintenance/useMaintenancePage';
 import NewTaskDialog from '@/components/maintenance/NewTaskDialog';
@@ -42,6 +43,16 @@ const Maintenance = () => {
     refreshTasks,
     getUserDisplayName
   } = useMaintenancePage();
+
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+    const filter = searchParams.get('filter');
+    if (filter === 'late') {
+      setDashboardView('tasks');
+      setCurrentView('overdue');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   useEffect(() => {
     const handler = () => setIsNewTaskDialogOpen(true);
