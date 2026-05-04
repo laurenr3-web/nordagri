@@ -36,7 +36,7 @@ export function QuickStartGrid({ onPick, onCustom }: QuickStartGridProps) {
           <h3 className="text-sm font-semibold">Démarrer une session</h3>
           <p className="text-xs text-muted-foreground mt-0.5">Choisissez un type de travail</p>
         </div>
-        <div className="grid grid-cols-2 2xl:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           {SHORTCUTS.map((s) => {
             const Icon = s.icon;
             return (
