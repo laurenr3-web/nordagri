@@ -1,109 +1,87 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { TimeTrackingHeader } from './TimeTrackingHeader';
-import { ActiveTimeSession } from './ActiveTimeSession';
-import { TimeTrackingSummary } from './TimeTrackingSummary';
-import { TimeTrackingFilters } from '../dashboard/TimeTrackingFilters';
-import { ActiveSessionsTable } from '../ActiveSessionsTable';
-import { TimeEntryForm } from '../TimeEntryForm';
 import { TimeTrackingTabs } from './TimeTrackingTabs';
-import { startOfWeek, endOfWeek } from 'date-fns';
+import { TimeEntryForm } from '../TimeEntryForm';
 import { useTimeTrackingData } from '@/hooks/time-tracking/useTimeTrackingData';
+import { TimeEntryTaskType } from '@/hooks/time-tracking/types';
+import { QuickStartChoice } from './QuickStartGrid';
 
 export default function TimeTrackingPage() {
   const {
-    userId,
     entries,
     isLoading,
     activeTab,
     isFormOpen,
     stats,
     equipments,
-    activeSessions,
-    handleStartTimeEntry,
-    handleResumeTimeEntry,
-    handlePauseTimeEntry,
-    handleStopTimeEntry,
-    handleDeleteTimeEntry,
-    setIsFormOpen,
-    setActiveTab,
     activeTimeEntry,
     dateRange,
-    setDateRange,
     equipmentFilter,
-    setEquipmentFilter,
     taskTypeFilter,
+    handleStartTimeEntry,
+    handleResumeTimeEntry,
+    handleStopTimeEntry,
+    handlePauseTimeEntry,
+    setIsFormOpen,
+    setActiveTab,
+    setDateRange,
+    setEquipmentFilter,
     setTaskTypeFilter,
   } = useTimeTrackingData();
 
+  const [defaultTaskType, setDefaultTaskType] = useState<TimeEntryTaskType | undefined>(undefined);
+  const [initialData, setInitialData] = useState<any>(undefined);
+
+  const openForm = (choice?: QuickStartChoice) => {
+    if (choice) {
+      setDefaultTaskType(choice.taskType);
+      setInitialData(
+        choice.customTaskType
+          ? { task_type: choice.taskType, custom_task_type: choice.customTaskType }
+          : { task_type: choice.taskType }
+      );
+    } else {
+      setDefaultTaskType(undefined);
+      setInitialData(undefined);
+    }
+    setIsFormOpen(true);
+  };
+
+  // Default tab to "day"
+  const tab = activeTab === 'list' || activeTab === 'statistics' || activeTab === 'rapport' ? 'day' : activeTab;
+  const handleTabChange = (t: string) => setActiveTab(t);
+
   return (
-    <div className="flex flex-col gap-4 sm:gap-6 min-w-0">
-      <TimeTrackingHeader
-        onNewSession={() => setIsFormOpen(true)}
-      />
+    <div className="flex flex-col gap-5 sm:gap-6 min-w-0">
+      <TimeTrackingHeader onNewSession={() => openForm()} />
 
-      {/* Résumé du temps */}
-      <TimeTrackingSummary 
-        stats={stats} 
-        isLoading={isLoading} 
-      />
-
-      {/* Session active */}
-      {activeTimeEntry && (
-        <ActiveTimeSession
-          session={activeTimeEntry}
-          onPause={handlePauseTimeEntry}
-          onResume={handleResumeTimeEntry}
-          onStop={handleStopTimeEntry}
-        />
-      )}
-
-      {/* Filtres */}
-      <TimeTrackingFilters
-        dateRange={dateRange}
-        equipmentFilter={equipmentFilter}
-        taskTypeFilter={taskTypeFilter}
+      <TimeTrackingTabs
+        activeTab={tab || 'day'}
+        onTabChange={handleTabChange}
+        activeTimeEntry={activeTimeEntry}
+        entries={entries}
+        isLoading={isLoading}
+        stats={stats}
         equipments={equipments}
-        onDateRangeChange={(range) => {
-          if (range?.from && range?.to) {
-            setDateRange({ from: range.from, to: range.to });
-          }
-        }}
-        onEquipmentChange={setEquipmentFilter}
-        onTaskTypeChange={setTaskTypeFilter}
-        onReset={() => {
-          setDateRange({
-            from: startOfWeek(new Date(), { weekStartsOn: 1 }),
-            to: endOfWeek(new Date(), { weekStartsOn: 1 })
-          });
-          setEquipmentFilter(undefined);
-          setTaskTypeFilter(undefined);
-        }}
-      />
-
-      {/* Sessions actives */}
-      <ActiveSessionsTable
-        sessions={activeSessions}
+        dateRange={dateRange}
+        setDateRange={setDateRange}
+        equipmentFilter={equipmentFilter}
+        setEquipmentFilter={setEquipmentFilter}
+        taskTypeFilter={taskTypeFilter}
+        setTaskTypeFilter={setTaskTypeFilter}
         onPause={handlePauseTimeEntry}
         onResume={handleResumeTimeEntry}
         onStop={handleStopTimeEntry}
+        onNewSession={() => openForm()}
+        onQuickStart={openForm}
       />
 
-      {/* Onglets */}
-      <TimeTrackingTabs
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        entries={entries}
-        isLoading={isLoading}
-        onNewSession={() => setIsFormOpen(true)}
-        onResumeEntry={handleResumeTimeEntry}
-        onDeleteEntry={handleDeleteTimeEntry}
-      />
-      
       <TimeEntryForm
         isOpen={isFormOpen}
         onOpenChange={setIsFormOpen}
         onSubmit={handleStartTimeEntry}
+        defaultTaskType={defaultTaskType}
+        initialData={initialData}
       />
     </div>
   );
