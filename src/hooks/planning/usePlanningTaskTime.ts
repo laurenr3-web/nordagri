@@ -4,6 +4,7 @@ import {
   planningTimeService,
   ERR_USER_SESSION_ACTIVE,
   ERR_TASK_SESSION_ACTIVE,
+  ERR_TASK_OWNED_BY_OTHER,
   type TaskTimeStats,
   type TaskSessionRow,
 } from '@/services/planning/planningTimeService';
@@ -40,6 +41,8 @@ function mapErrorToast(err: unknown): void {
     toast.error('Vous avez déjà une session de temps en cours.');
   } else if (msg === ERR_TASK_SESSION_ACTIVE) {
     toast.error('Cette tâche est déjà en cours par un autre membre.');
+  } else if (msg === ERR_TASK_OWNED_BY_OTHER) {
+    toast.error('Cette tâche a été démarrée par un autre membre. Seule cette personne peut la reprendre.');
   } else {
     toast.error(msg || 'Une erreur est survenue.');
   }
