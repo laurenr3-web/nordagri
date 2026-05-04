@@ -5,7 +5,6 @@ import { timeTrackingService } from '@/services/supabase/timeTrackingService';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useFarmId } from '@/hooks/useFarmId';
 
 export function useTimeTrackingEntries(
   userId: string | null,
@@ -14,7 +13,6 @@ export function useTimeTrackingEntries(
   taskTypeFilter?: string
 ) {
   const navigate = useNavigate();
-  const { farmId } = useFarmId();
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -25,17 +23,26 @@ export function useTimeTrackingEntries(
     try {
       // Resolve all farm member user_ids so the history shows sessions
       // completed by every member of the farm (not just the current user).
-      let userIds: string[] = [userId];
-      if (farmId) {
-        const [{ data: farm }, { data: members }] = await Promise.all([
-          supabase.from('farms').select('owner_id').eq('id', farmId).maybeSingle(),
-          supabase.from('farm_members').select('user_id').eq('farm_id', farmId),
+      const set = new Set<string>([userId]);
+      const [{ data: ownedFarms }, { data: memberships }] = await Promise.all([
+        supabase.from('farms').select('id').eq('owner_id', userId),
+        supabase.from('farm_members').select('farm_id').eq('user_id', userId),
+      ]);
+      const farmIds = Array.from(
+        new Set([
+          ...(ownedFarms ?? []).map((f: any) => f.id),
+          ...(memberships ?? []).map((m: any) => m.farm_id),
+        ]),
+      );
+      if (farmIds.length > 0) {
+        const [{ data: farms }, { data: members }] = await Promise.all([
+          supabase.from('farms').select('owner_id').in('id', farmIds),
+          supabase.from('farm_members').select('user_id').in('farm_id', farmIds),
         ]);
-        const set = new Set<string>([userId]);
-        if (farm?.owner_id) set.add(farm.owner_id);
+        (farms ?? []).forEach((f: any) => f.owner_id && set.add(f.owner_id));
         (members ?? []).forEach((m: any) => m.user_id && set.add(m.user_id));
-        userIds = Array.from(set);
       }
+      const userIds = Array.from(set);
 
       const data = await timeTrackingService.getTimeEntries({
         userId,
@@ -91,7 +98,7 @@ export function useTimeTrackingEntries(
     if (userId) {
       fetchTimeEntries();
     }
-  }, [userId, farmId, dateRange, equipmentFilter, taskTypeFilter]);
+  }, [userId, dateRange, equipmentFilter, taskTypeFilter]);
 
   return {
     entries,
