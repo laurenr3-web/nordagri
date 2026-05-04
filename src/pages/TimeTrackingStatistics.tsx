@@ -40,10 +40,16 @@ const TimeTrackingStatistics = () => {
           description="Vue d'ensemble du travail, des points à surveiller et de la réactivité"
         />
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full max-w-2xl grid-cols-3">
-            <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
-            <TabsTrigger value="hours">Heures des tâches</TabsTrigger>
-            <TabsTrigger value="time">Temps de travail</TabsTrigger>
+          <TabsList className="grid w-full max-w-2xl grid-cols-3 gap-1 h-auto">
+            <TabsTrigger value="overview" className="text-[11px] sm:text-sm px-1 sm:px-3 py-1.5 whitespace-normal leading-tight text-center">
+              Vue d'ensemble
+            </TabsTrigger>
+            <TabsTrigger value="hours" className="text-[11px] sm:text-sm px-1 sm:px-3 py-1.5 whitespace-normal leading-tight text-center">
+              Heures des tâches
+            </TabsTrigger>
+            <TabsTrigger value="time" className="text-[11px] sm:text-sm px-1 sm:px-3 py-1.5 whitespace-normal leading-tight text-center">
+              Temps de travail
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="overview" className="mt-6">
             <OperationalOverview period={period} onPeriodChange={setPeriod} />
