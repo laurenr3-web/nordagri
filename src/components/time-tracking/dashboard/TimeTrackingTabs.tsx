@@ -1,127 +1,102 @@
-
 import React from 'react';
-import { Calendar, ListFilter, BarChart, PieChart, Users } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { TimeEntryCard } from '@/components/time-tracking/TimeEntryCard';
-import { TimeEntry } from '@/hooks/time-tracking/types';
-import { Skeleton } from '@/components/ui/skeleton';
-import TimeTrackingRapport from '@/components/time-tracking/rapport/TimeTrackingRapport';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Calendar, Users, History, BarChart3 } from 'lucide-react';
+import { DayViewTab } from './DayViewTab';
 import { TeamSection } from '@/components/time-tracking/team/TeamSection';
-import { Link } from 'react-router-dom';
-import { EmptyState } from '@/components/help/EmptyState';
-import { emptyStates } from '@/content/help/emptyStates';
+import { HistoryTab } from './HistoryTab';
+import TimeTrackingRapport from '@/components/time-tracking/rapport/TimeTrackingRapport';
+import { WorkTypeChartCard } from './WorkTypeChartCard';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { TimeEntry, ActiveTimeEntry } from '@/hooks/time-tracking/types';
+import { QuickStartChoice } from './QuickStartGrid';
 
 interface TimeTrackingTabsProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  activeTimeEntry: ActiveTimeEntry | null;
   entries: TimeEntry[];
   isLoading: boolean;
+  stats: { totalToday: number; totalWeek: number; totalMonth: number };
+  equipments: { id: number; name: string }[];
+  dateRange: { from: Date; to: Date };
+  setDateRange: (r: { from: Date; to: Date }) => void;
+  equipmentFilter?: number;
+  setEquipmentFilter: (v: number | undefined) => void;
+  taskTypeFilter?: string;
+  setTaskTypeFilter: (v: string | undefined) => void;
+  onPause: (id: string) => void;
+  onResume: (id: string) => void;
+  onStop: (id: string) => void;
   onNewSession: () => void;
-  onResumeEntry: (entryId: string) => void;
-  onDeleteEntry: (entryId: string) => void;
+  onQuickStart: (choice: QuickStartChoice) => void;
 }
 
-export function TimeTrackingTabs({
-  activeTab,
-  onTabChange,
-  entries,
-  isLoading,
-  onNewSession,
-  onResumeEntry,
-  onDeleteEntry,
-}: TimeTrackingTabsProps) {
+const TABS = [
+  { value: 'day', label: 'Vue du jour', icon: Calendar },
+  { value: 'team', label: 'Équipe', icon: Users },
+  { value: 'history', label: 'Historique', icon: History },
+  { value: 'reports', label: 'Rapports', icon: BarChart3 },
+];
+
+export function TimeTrackingTabs(props: TimeTrackingTabsProps) {
+  const isMobile = useIsMobile();
+  const { activeTab, onTabChange } = props;
+
   return (
-    <Tabs 
-      defaultValue={activeTab} 
-      value={activeTab}
-      onValueChange={onTabChange}
-      className="mt-6"
-    >
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-        <div className="overflow-x-auto pb-2 snap-x">
-          <TabsList className="min-w-max">
-            <TabsTrigger value="list" className="flex items-center gap-1">
-              <ListFilter className="h-4 w-4" />
-              <span>Liste</span>
+    <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
+      <TabsList className="grid w-full grid-cols-4 h-auto bg-transparent p-0 border-b rounded-none gap-1 sm:gap-0">
+        {TABS.map((t) => {
+          const Icon = t.icon;
+          return (
+            <TabsTrigger
+              key={t.value}
+              value={t.value}
+              className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 py-2.5 sm:py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-xs sm:text-sm font-medium"
+            >
+              <Icon className="h-4 w-4 shrink-0" />
+              <span className="truncate">{t.label}</span>
             </TabsTrigger>
-            <TabsTrigger value="statistics" className="flex items-center gap-1">
-              <BarChart className="h-4 w-4" />
-              <span>Statistiques</span>
-            </TabsTrigger>
-            <TabsTrigger value="rapport" className="flex items-center gap-1">
-              <PieChart className="h-4 w-4" />
-              <span>Rapport</span>
-            </TabsTrigger>
-            <TabsTrigger value="team" className="flex items-center gap-1">
-              <Users className="h-4 w-4" />
-              <span>Équipe</span>
-            </TabsTrigger>
-          </TabsList>
-        </div>
-        
-        <Button size="sm" onClick={onNewSession} disabled={isLoading} className="w-full sm:w-auto">
-          Nouvelle session
-        </Button>
-      </div>
-      
-      <TabsContent value="list" className="space-y-4">
-        {isLoading ? (
-          <div className="space-y-4">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-24" />
-            ))}
-          </div>
-        ) : entries.length === 0 ? (
-          <EmptyState
-            icon={emptyStates.timeTrackingEmpty.icon}
-            title={emptyStates.timeTrackingEmpty.title}
-            description={emptyStates.timeTrackingEmpty.description}
-            action={{
-              label: emptyStates.timeTrackingEmpty.actionLabel,
-              onClick: onNewSession,
-            }}
-            secondaryAction={
-              emptyStates.timeTrackingEmpty.articleId
-                ? {
-                    label: emptyStates.timeTrackingEmpty.secondaryActionLabel!,
-                    articleId: emptyStates.timeTrackingEmpty.articleId,
-                  }
-                : undefined
-            }
-          />
-        ) : (
-          <ScrollArea className="h-[calc(100vh-28rem)] sm:h-[calc(100vh-24rem)]">
-            <div className="space-y-4">
-              {entries.map((entry) => (
-                <TimeEntryCard
-                  key={entry.id}
-                  entry={entry}
-                  onResume={() => onResumeEntry(entry.id)}
-                  onDelete={() => onDeleteEntry(entry.id)}
-                />
-              ))}
-            </div>
-          </ScrollArea>
-        )}
-      </TabsContent>
-      
-      <TabsContent value="statistics">
-        <div className="flex flex-col space-y-4">
-          <p className="text-muted-foreground mb-4">Accédez à des analyses détaillées de votre temps de travail</p>
-          <Link to="/time-tracking/statistics">
-            <Button className="w-full sm:w-auto">Voir les statistiques</Button>
-          </Link>
-        </div>
-      </TabsContent>
-      
-      <TabsContent value="rapport">
-        <TimeTrackingRapport />
+          );
+        })}
+      </TabsList>
+
+      <TabsContent value="day" className="mt-4 sm:mt-6">
+        <DayViewTab
+          activeTimeEntry={props.activeTimeEntry}
+          entries={props.entries}
+          isLoading={props.isLoading}
+          stats={props.stats}
+          onPause={props.onPause}
+          onResume={props.onResume}
+          onStop={props.onStop}
+          onNewSession={props.onNewSession}
+          onQuickStart={props.onQuickStart}
+          onSeeTeam={() => onTabChange('team')}
+          onSeeHistory={() => onTabChange('history')}
+        />
       </TabsContent>
 
-      <TabsContent value="team">
+      <TabsContent value="team" className="mt-4 sm:mt-6">
         <TeamSection />
+      </TabsContent>
+
+      <TabsContent value="history" className="mt-4 sm:mt-6">
+        <HistoryTab
+          entries={props.entries}
+          isLoading={props.isLoading}
+          equipments={props.equipments}
+          dateRange={props.dateRange}
+          setDateRange={props.setDateRange}
+          equipmentFilter={props.equipmentFilter}
+          setEquipmentFilter={props.setEquipmentFilter}
+          taskTypeFilter={props.taskTypeFilter}
+          setTaskTypeFilter={props.setTaskTypeFilter}
+        />
+      </TabsContent>
+
+      <TabsContent value="reports" className="mt-4 sm:mt-6 space-y-4">
+        {isMobile && <WorkTypeChartCard />}
+        <TimeTrackingRapport />
       </TabsContent>
     </Tabs>
   );
