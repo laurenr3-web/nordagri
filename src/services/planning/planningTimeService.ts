@@ -5,6 +5,7 @@ import { workShiftService } from '@/services/work-shifts';
 
 export const ERR_USER_SESSION_ACTIVE = 'USER_SESSION_ACTIVE';
 export const ERR_TASK_SESSION_ACTIVE = 'TASK_SESSION_ACTIVE';
+export const ERR_TASK_OWNED_BY_OTHER = 'TASK_OWNED_BY_OTHER';
 
 interface PgError { code?: string; message?: string }
 
@@ -133,6 +134,23 @@ export const planningTimeService = {
     );
     if (rpcErr) throw rpcErr;
     if (hasActive === true) throw new Error(ERR_TASK_SESSION_ACTIVE);
+
+    // Si la tâche a déjà été travaillée et qu'elle est en pause / in_progress sans
+    // session active, seul le dernier utilisateur (propriétaire en cours) peut la
+    // reprendre. On regarde la session la plus récente sur la tâche.
+    if (task.status === 'paused' || task.status === 'in_progress') {
+      const { data: lastSession, error: lastErr } = await supabase
+        .from('time_sessions')
+        .select('user_id')
+        .eq('task_id', task.id)
+        .order('start_time', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (lastErr) throw lastErr;
+      if (lastSession && lastSession.user_id !== userId) {
+        throw new Error(ERR_TASK_OWNED_BY_OTHER);
+      }
+    }
 
     // Auto Punch In : assure une journée active, race-safe (23505).
     const { shift, autoCreated } = await workShiftService.ensureActiveShift(
