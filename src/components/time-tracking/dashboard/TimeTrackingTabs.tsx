@@ -5,8 +5,6 @@ import { DayViewTab } from './DayViewTab';
 import { TeamSection } from '@/components/time-tracking/team/TeamSection';
 import { HistoryTab } from './HistoryTab';
 import TimeTrackingRapport from '@/components/time-tracking/rapport/TimeTrackingRapport';
-import { WorkTypeChartCard } from './WorkTypeChartCard';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { TimeEntry, ActiveTimeEntry } from '@/hooks/time-tracking/types';
 import { QuickStartChoice } from './QuickStartGrid';
 
@@ -39,7 +37,6 @@ const TABS = [
 ];
 
 export function TimeTrackingTabs(props: TimeTrackingTabsProps) {
-  const isMobile = useIsMobile();
   const { activeTab, onTabChange } = props;
 
   return (
@@ -96,7 +93,6 @@ export function TimeTrackingTabs(props: TimeTrackingTabsProps) {
       </TabsContent>
 
       <TabsContent value="reports" className="mt-4 sm:mt-6 space-y-4">
-        {isMobile && <WorkTypeChartCard />}
         <TimeTrackingRapport />
       </TabsContent>
     </Tabs>
