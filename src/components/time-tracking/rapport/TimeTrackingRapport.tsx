@@ -154,22 +154,45 @@ const TimeTrackingRapport: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col space-y-6 py-4 px-2 sm:px-4 w-full max-w-full overflow-x-hidden">
+    <div className="flex flex-col space-y-5 sm:space-y-6 w-full max-w-full overflow-x-hidden">
       {/* Header */}
       <Header isExporting={isExporting} onExport={handleExport} />
-      
+
       {/* Month Selector */}
-      <MonthSelector 
-        currentMonth={currentMonth} 
-        onPrevious={handlePreviousMonth} 
+      <MonthSelector
+        currentMonth={currentMonth}
+        onPrevious={handlePreviousMonth}
         onNext={handleNextMonth}
       />
-      
-      {/* Hours Summary */}
+
+      {/* KPI Hours Summary */}
       <HoursSummary summary={summary} />
-      
+
+      {/* Charts grid (desktop 2 cols) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
+        <Card className="rounded-2xl">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Répartition par type de tâche</CardTitle>
+            <CardDescription>Où va le temps ce mois</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TimeDistributionChart data={distribution} isLoading={isDistributionLoading} />
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-2xl">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Équipements les plus utilisés</CardTitle>
+            <CardDescription>Top équipements suivis</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TopEquipmentList data={equipment} isLoading={isEquipmentLoading} />
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Calendar */}
-      <Card className="rounded-xl">
+      <Card className="rounded-2xl">
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Calendrier d'activité</CardTitle>
           <CardDescription>Vue mensuelle avec total d'heures</CardDescription>
@@ -183,27 +206,7 @@ const TimeTrackingRapport: React.FC = () => {
           />
         </CardContent>
       </Card>
-      
-      {/* Task Type Distribution */}
-      <Card className="rounded-xl">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Répartition par type de tâche</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <TimeDistributionChart data={distribution} isLoading={isDistributionLoading} />
-        </CardContent>
-      </Card>
-      
-      {/* Top Equipment */}
-      <Card className="rounded-xl">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Équipements les plus utilisés</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <TopEquipmentList data={equipment} isLoading={isEquipmentLoading} />
-        </CardContent>
-      </Card>
-      
+
       {/* Pay Period Summary */}
       <PayPeriodSummary 
         isLoading={isLoadingPayPeriod}
