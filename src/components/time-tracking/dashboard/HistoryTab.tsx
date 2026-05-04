@@ -30,7 +30,7 @@ import {
   isYesterday,
   isThisWeek,
   format,
-  differenceInMinutes,
+  differenceInSeconds,
 } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { TimeEntry } from '@/hooks/time-tracking/types';
@@ -68,13 +68,59 @@ function getInitials(name?: string) {
     .join('');
 }
 
-function formatDuration(start: string, end?: string | null) {
+function formatDuration(start: string, end?: string | null): string {
   const startD = new Date(start);
   const endD = end ? new Date(end) : new Date();
-  const minutes = Math.max(0, differenceInMinutes(endD, startD));
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
+  if (isNaN(startD.getTime()) || isNaN(endD.getTime())) return 'Durée inconnue';
+  const seconds = Math.max(0, differenceInSeconds(endD, startD));
+  if (seconds < 60) return '<1 min';
+  const totalMinutes = Math.floor(seconds / 60);
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  if (h === 0) return `${m} min`;
   return `${h}h${m.toString().padStart(2, '0')}`;
+}
+
+const INVALID_NAMES = new Set(['self', 'unknown', 'unknown equipment', 'undefined', 'null', '']);
+
+function cleanText(value?: string | null): string | null {
+  if (!value) return null;
+  const trimmed = String(value).trim();
+  if (!trimmed) return null;
+  if (INVALID_NAMES.has(trimmed.toLowerCase())) return null;
+  return trimmed;
+}
+
+function resolveMemberName(entry: TimeEntry): string {
+  return (
+    cleanText(entry.user_name) ||
+    cleanText(entry.owner_name) ||
+    cleanText(entry.technician) ||
+    'Utilisateur'
+  );
+}
+
+function resolveWorkTitle(entry: TimeEntry): string {
+  const intervention = cleanText(entry.intervention_title);
+  if (intervention) return intervention;
+  if (entry.task_type === 'other') {
+    const custom = cleanText(entry.custom_task_type);
+    if (custom) return custom;
+  }
+  const taskLabel = TASK_LABELS[entry.task_type];
+  if (taskLabel) return taskLabel;
+  return cleanText(entry.description) || cleanText(entry.notes) || 'Session de travail';
+}
+
+function resolveContext(entry: TimeEntry): string {
+  const equipment = cleanText(entry.equipment_name);
+  if (equipment) return equipment;
+  if (entry.equipment_id) return 'Équipement non trouvé';
+  const poste = cleanText(entry.poste_travail);
+  if (poste) return `Poste : ${poste}`;
+  const location = cleanText(entry.location);
+  if (location) return location;
+  return 'Sans équipement';
 }
 
 function bucketLabel(date: Date): string {
@@ -284,23 +330,18 @@ export function HistoryTab({
               <Card className="rounded-2xl overflow-hidden">
                 <ul className="divide-y" role="list">
                   {bucket.items.map((entry) => {
-                    const name =
-                      entry.user_name || entry.owner_name || entry.technician || 'Membre';
-                    const taskLabel =
-                      entry.task_type === 'other'
-                        ? entry.custom_task_type || 'Autre'
-                        : TASK_LABELS[entry.task_type] || entry.task_type;
-                    const context =
-                      entry.equipment_name || entry.poste_travail || entry.location || null;
+                    const name = resolveMemberName(entry);
+                    const workTitle = resolveWorkTitle(entry);
+                    const context = resolveContext(entry);
                     const startTime = format(new Date(entry.start_time), 'HH:mm', {
                       locale: fr,
                     });
+                    const isActive = entry.status === 'active' || !entry.end_time;
+                    const isPaused = entry.status === 'paused';
                     const endTime = entry.end_time
                       ? format(new Date(entry.end_time), 'HH:mm', { locale: fr })
                       : 'En cours';
                     const duration = formatDuration(entry.start_time, entry.end_time);
-                    const isActive = entry.status === 'active';
-                    const isPaused = entry.status === 'paused';
 
                     return (
                       <li
@@ -314,17 +355,12 @@ export function HistoryTab({
                         </Avatar>
 
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <p className="font-medium text-sm line-clamp-1">{name}</p>
-                          </div>
-                          <p className="text-xs text-muted-foreground line-clamp-1">
-                            <span className="font-medium text-foreground/80">
-                              {taskLabel}
-                            </span>
-                            {context ? <> · {context}</> : null}
+                          <p className="font-semibold text-sm line-clamp-1">{name}</p>
+                          <p className="text-sm text-foreground/80 line-clamp-1 mt-0.5">
+                            {workTitle}
                           </p>
-                          <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                            {startTime} – {endTime}
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                            {context} · {startTime} – {endTime}
                           </p>
                         </div>
 
