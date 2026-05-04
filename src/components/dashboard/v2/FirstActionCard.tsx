@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Wrench, Eye, ClipboardList, Sparkles, Star, AlertCircle, FolderOpen, CheckCircle2 } from 'lucide-react';
 import type { FirstAction } from '@/hooks/dashboard/v2/useFirstAction';
 import { cn } from '@/lib/utils';
+import { FirstActionDetailDialog } from './FirstActionDetailDialog';
 
 const sourceIcon = {
   maintenance: Wrench,
@@ -18,6 +19,7 @@ interface Props {
 
 export const FirstActionCard: React.FC<Props> = ({ action, loading }) => {
   const navigate = useNavigate();
+  const [detailOpen, setDetailOpen] = useState(false);
 
   if (loading) {
     return <div className="h-44 rounded-2xl border bg-card animate-pulse" />;
@@ -40,10 +42,11 @@ export const FirstActionCard: React.FC<Props> = ({ action, loading }) => {
   const Icon = sourceIcon[action.source];
   const isCritical = action.priority === 'critical';
 
-  const openDetails = () => navigate(action.ctaPath);
+  const openDetails = () => setDetailOpen(true);
   const stop = (e: React.MouseEvent) => e.stopPropagation();
 
   return (
+    <>
     <div
       role="button"
       tabIndex={0}
@@ -90,7 +93,7 @@ export const FirstActionCard: React.FC<Props> = ({ action, loading }) => {
 
       <div className="mt-4 flex flex-wrap items-center gap-2" onClick={stop}>
         <Button
-          onClick={() => navigate(action.ctaPath)}
+          onClick={openDetails}
           size="sm"
           className="gap-1.5"
         >
@@ -109,7 +112,7 @@ export const FirstActionCard: React.FC<Props> = ({ action, loading }) => {
           </Button>
         )}
         <Button
-          onClick={() => navigate(action.ctaPath)}
+          onClick={openDetails}
           size="sm"
           variant="ghost"
           className="text-primary whitespace-nowrap"
@@ -118,5 +121,7 @@ export const FirstActionCard: React.FC<Props> = ({ action, loading }) => {
         </Button>
       </div>
     </div>
+      <FirstActionDetailDialog action={action} open={detailOpen} onOpenChange={setDetailOpen} />
+    </>
   );
 };
