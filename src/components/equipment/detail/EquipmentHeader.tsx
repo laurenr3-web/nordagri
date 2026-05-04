@@ -2,14 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, ArrowLeft, Tractor, MoreVertical, Trash2 } from 'lucide-react';
+import { Edit, ArrowLeft, Tractor } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import DeleteEquipmentDialog from './DeleteEquipmentDialog';
 import { translateRawStatus, formatCounter } from './statusHelpers';
@@ -102,28 +96,13 @@ const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({
             </Button>
           )}
           {canDelete && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-muted-foreground" disabled={isDeleting}>
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onSelect={(e) => e.preventDefault()}
-                  className="text-destructive focus:text-destructive p-0"
-                >
-                  <div className="w-full">
-                    <DeleteEquipmentDialog
-                      equipmentId={equipment.id}
-                      equipmentName={equipment.name}
-                      isDeleting={isDeleting}
-                      onConfirm={onDelete}
-                    />
-                  </div>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <DeleteEquipmentDialog
+              equipmentId={equipment.id}
+              equipmentName={equipment.name}
+              isDeleting={isDeleting}
+              onConfirm={onDelete}
+              triggerVariant="ghost"
+            />
           )}
         </div>
       </div>
