@@ -6,6 +6,7 @@ import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { withPreviewToken } from '@/utils/previewRouting';
 import { consumeAuthRedirectTarget } from '@/utils/authRedirect';
+import { buildTabUrl } from '@/config/tabRoutes';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ const AuthCallback = () => {
       return `/accept-invitation?id=${pending}`;
     }
 
-    if (type === 'recovery') return '/settings?tab=security';
+    if (type === 'recovery') return buildTabUrl('settings', 'security');
     return '/dashboard';
   };
 
