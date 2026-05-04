@@ -4,8 +4,8 @@ import { QuickStartGrid, QuickStartChoice } from './QuickStartGrid';
 import { ActiveTeamCard } from './ActiveTeamCard';
 import { RecentSessionsCard } from './RecentSessionsCard';
 import { TimeTrackingSummary } from './TimeTrackingSummary';
-import { WorkTypeChartCard } from './WorkTypeChartCard';
-import { DailyTipBanner } from './DailyTipBanner';
+import { Card } from '@/components/ui/card';
+import { BarChart3, ArrowRight } from 'lucide-react';
 import { TimeEntry, ActiveTimeEntry } from '@/hooks/time-tracking/types';
 
 interface DayViewTabProps {
@@ -20,6 +20,7 @@ interface DayViewTabProps {
   onQuickStart: (choice: QuickStartChoice) => void;
   onSeeTeam: () => void;
   onSeeHistory: () => void;
+  onSeeReports?: () => void;
 }
 
 export function DayViewTab({
@@ -34,6 +35,7 @@ export function DayViewTab({
   onQuickStart,
   onSeeTeam,
   onSeeHistory,
+  onSeeReports,
 }: DayViewTabProps) {
   const today = new Date();
   const todayEntries = entries.filter((e) => {
@@ -47,53 +49,85 @@ export function DayViewTab({
     (e) => e.status === 'completed' && e.end_time,
   ).length;
 
+  const reportsCard = (
+    <Card className="rounded-2xl shadow-sm w-full">
+      <button
+        type="button"
+        onClick={onSeeReports}
+        className="w-full text-left p-5 sm:p-6 flex items-start gap-4 group"
+      >
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
+          <BarChart3 className="h-5 w-5" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h3 className="text-sm font-semibold">Rapports disponibles</h3>
+          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+            Consulte le temps par membre, équipement ou type de travail.
+          </p>
+          <span className="mt-2 inline-flex items-center gap-1 text-xs text-primary font-medium">
+            Voir les rapports
+            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+          </span>
+        </div>
+      </button>
+    </Card>
+  );
+
+  const sessionBlock = activeTimeEntry ? (
+    <ActiveTimeSession
+      session={activeTimeEntry}
+      onPause={onPause}
+      onResume={onResume}
+      onStop={onStop}
+    />
+  ) : (
+    <EmptyActiveSession onStart={onNewSession} />
+  );
+
+  const summaryBlock = (
+    <TimeTrackingSummary
+      stats={stats}
+      isLoading={isLoading}
+      activeCount={activeCount}
+      completedCount={completedCount}
+    />
+  );
+
   return (
-    <div className="flex flex-col gap-4 sm:gap-5 min-w-0">
-      {/* Top row: Active session | Active team | Quick start */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 min-w-0 items-start">
-        <div className="lg:col-span-4 min-w-0 order-1 flex">
-          {activeTimeEntry ? (
-            <ActiveTimeSession
-              session={activeTimeEntry}
-              onPause={onPause}
-              onResume={onResume}
-              onStop={onStop}
-            />
-          ) : (
-            <EmptyActiveSession onStart={onNewSession} />
-          )}
-        </div>
-        <div className="lg:col-span-4 min-w-0 order-3 lg:order-2 flex">
-          <ActiveTeamCard onSeeAll={onSeeTeam} />
-        </div>
-        <div className="lg:col-span-4 min-w-0 order-2 lg:order-3 flex">
-          <QuickStartGrid onPick={onQuickStart} onCustom={onNewSession} />
-        </div>
+    <>
+      {/* Mobile: single stacked column with spec ordering */}
+      <div className="flex flex-col gap-5 lg:hidden min-w-0">
+        {sessionBlock}
+        <QuickStartGrid onPick={onQuickStart} onCustom={onNewSession} />
+        <ActiveTeamCard onSeeAll={onSeeTeam} />
+        {summaryBlock}
+        <RecentSessionsCard
+          entries={todayEntries}
+          isLoading={isLoading}
+          onSeeAll={onSeeHistory}
+          maxDesktop={4}
+        />
+        {reportsCard}
       </div>
 
-      {/* Bottom row: Summary | Recent sessions | Work type chart */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 min-w-0 items-stretch">
-        <div className="lg:col-span-3 min-w-0 order-1 flex">
-          <TimeTrackingSummary
-            stats={stats}
-            isLoading={isLoading}
-            activeCount={activeCount}
-            completedCount={completedCount}
-          />
-        </div>
-        <div className="lg:col-span-5 min-w-0 order-2 flex">
+      {/* Desktop: 2-column layout */}
+      <div className="hidden lg:grid gap-6 grid-cols-[minmax(0,1.7fr)_minmax(340px,0.9fr)] items-start min-w-0">
+        <div className="flex flex-col gap-6 min-w-0">
+          {sessionBlock}
+          <QuickStartGrid onPick={onQuickStart} onCustom={onNewSession} />
           <RecentSessionsCard
             entries={todayEntries}
             isLoading={isLoading}
             onSeeAll={onSeeHistory}
+            maxDesktop={4}
           />
         </div>
-        <div className="lg:col-span-4 min-w-0 order-3 flex">
-          <WorkTypeChartCard />
+        <div className="flex flex-col gap-6 min-w-0">
+          <ActiveTeamCard onSeeAll={onSeeTeam} />
+          {summaryBlock}
+          {reportsCard}
         </div>
       </div>
-
-      <DailyTipBanner />
-    </div>
+    </>
   );
 }

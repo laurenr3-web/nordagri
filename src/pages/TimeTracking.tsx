@@ -9,7 +9,7 @@ const TimeTracking = () => {
   const { t } = useTranslation();
   return (
     <MainLayout>
-      <main className="px-4 sm:px-6 lg:px-8 xl:px-10 max-w-[1600px] mx-auto pb-24 lg:pb-6">
+      <main className="px-4 sm:px-6 lg:px-8 max-w-[1500px] mx-auto pb-24 lg:pb-6">
         <PageHeader
           title="Suivi du temps"
           description="Enregistrez et suivez le temps passé sur vos tâches"
