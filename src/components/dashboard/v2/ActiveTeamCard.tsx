@@ -87,7 +87,7 @@ export const ActiveTeamCard: React.FC<Props> = ({ team, loading, limit = 5 }) =>
                   <AvatarFallback className="text-xs">{initials(myMember.name)}</AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1 overflow-hidden">
-                  <p className="text-sm font-medium line-clamp-1">Ma session · {myMember.name}</p>
+                  <p className="text-sm font-medium line-clamp-1">Ma session</p>
                   <p className="text-[11px] text-muted-foreground truncate">
                     {myMember.title || 'Session active'}
                     {myMember.equipmentName ? ` · ${myMember.equipmentName}` : ''}
@@ -143,7 +143,7 @@ export const ActiveTeamCard: React.FC<Props> = ({ team, loading, limit = 5 }) =>
             <>
               <span className="text-xs text-muted-foreground inline-flex items-center gap-1 min-w-0 truncate">
                 <Timer className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">Ma session · {formatDuration(myMember.startTime)}</span>
+                <span className="truncate">Ma session</span>
               </span>
               <Button size="sm" variant="destructive" className="h-7 px-2.5 shrink-0" disabled={punchOutDisabled} onClick={onPunchOut}>
                 <Square className="mr-1 h-3 w-3" />
