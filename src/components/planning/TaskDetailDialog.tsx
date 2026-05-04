@@ -181,7 +181,8 @@ export function TaskDetailDialog({
     onOpenChange(false);
   };
 
-  const dueDateObj = new Date((localDueDate || task.due_date) + 'T12:00:00');
+  const dueDateRaw = localDueDate || task.due_date;
+  const dueDateObj = dueDateRaw ? new Date(dueDateRaw + 'T12:00:00') : null;
 
   return (
     <>
