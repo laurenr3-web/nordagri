@@ -1,12 +1,14 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Edit } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Edit, ArrowLeft, Tractor } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
-import QRCodeGenerator from '../qr/QRCodeGenerator';
 import DeleteEquipmentDialog from './DeleteEquipmentDialog';
-import { HelpTooltip } from '@/components/help/HelpTooltip';
+import { translateRawStatus, formatCounter } from './statusHelpers';
+import { useEquipmentPhotos } from '@/hooks/equipment/useEquipmentPhotos';
+import { equipmentMultiPhotoService } from '@/services/supabase/equipmentMultiPhotoService';
 
 interface EquipmentHeaderProps {
   equipment: EquipmentItem;
@@ -17,52 +19,83 @@ interface EquipmentHeaderProps {
   canDelete?: boolean;
 }
 
-const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({ 
-  equipment, 
-  onEdit, 
+const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({
+  equipment,
+  onEdit,
   onDelete,
   isDeleting = false,
   canEdit = true,
   canDelete = true,
 }) => {
+  const navigate = useNavigate();
+  const status = translateRawStatus(equipment.status);
+  const { photos, getDisplayUrl } = useEquipmentPhotos(equipment.id);
+  const [thumb, setThumb] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (photos && photos.length > 0) {
+        const sorted = [...photos].sort((a, b) =>
+          (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0) || a.display_order - b.display_order);
+        const url = getDisplayUrl(sorted[0]);
+        if (!cancelled) setThumb(url || null);
+      } else if (equipment.image && equipment.image !== 'nul') {
+        if (equipment.image.startsWith('data:') || equipment.image.startsWith('http')) {
+          if (!cancelled) setThumb(equipment.image);
+        } else {
+          try {
+            const url = await equipmentMultiPhotoService.getSignedUrl(equipment.image);
+            if (!cancelled) setThumb(url || null);
+          } catch { /* noop */ }
+        }
+      } else if (!cancelled) setThumb(null);
+    })();
+    return () => { cancelled = true; };
+  }, [photos, equipment.image, getDisplayUrl]);
+
+  const subtitle = equipment.manufacturer && equipment.model
+    ? `${equipment.manufacturer} ${equipment.model}${equipment.year ? ` (${equipment.year})` : ''}`
+    : `${equipment.type || 'Équipement'}${equipment.year ? ` (${equipment.year})` : ''}`;
+
   return (
     <div className="flex flex-col gap-3 mb-4">
-      <div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{equipment.name}</h1>
-          <Badge variant="outline" className={equipment.status === 'operational' ? 'bg-green-100' : 
-                                              equipment.status === 'maintenance' ? 'bg-yellow-100' : 
-                                              equipment.status === 'broken' ? 'bg-red-100' : 'bg-gray-100'}>
-            {equipment.status}
-          </Badge>
-          <HelpTooltip contentKey="equipment.status" />
-        </div>
-        
-        <div className="text-sm text-muted-foreground mt-0.5">
-          {equipment.manufacturer && equipment.model ? (
-            <p>{equipment.manufacturer} {equipment.model} {equipment.year > 0 && `(${equipment.year})`}</p>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => navigate(-1)}
+        className="self-start text-muted-foreground -ml-2"
+      >
+        <ArrowLeft className="h-4 w-4 mr-1" /> Retour
+      </Button>
+
+      <div className="flex items-start gap-4">
+        <div className="h-20 w-20 rounded-2xl bg-muted/40 border overflow-hidden flex items-center justify-center shrink-0">
+          {thumb ? (
+            <img src={thumb} alt={equipment.name} className="h-full w-full object-contain" />
           ) : (
-            <p>{equipment.type || 'Équipement'} {equipment.year > 0 && `(${equipment.year})`}</p>
+            <Tractor className="h-9 w-9 text-muted-foreground" />
           )}
         </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight truncate">{equipment.name}</h1>
+            <Badge variant="outline" className={status.badgeClass}>{status.label}</Badge>
+          </div>
+          <p className="text-sm text-muted-foreground mt-0.5 truncate">{subtitle}</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Compteur : <span className="font-medium text-foreground">{formatCounter(equipment.valeur_actuelle, equipment.unite_d_usure)}</span>
+          </p>
+        </div>
       </div>
-      
+
       <div className="flex flex-wrap gap-2">
-        <span data-tour="equipment-qr" className="inline-flex items-center gap-1">
-          <QRCodeGenerator 
-            equipmentId={equipment.id} 
-            equipmentName={equipment.name} 
-          />
-          <HelpTooltip contentKey="equipment.qr" />
-        </span>
-        
         {canEdit && (
           <Button variant="outline" size="sm" onClick={onEdit} disabled={isDeleting}>
-            <Edit className="mr-1.5 h-4 w-4" />
-            Modifier
+            <Edit className="mr-1.5 h-4 w-4" /> Modifier
           </Button>
         )}
-        
         {canDelete && (
           <DeleteEquipmentDialog
             equipmentId={equipment.id}
