@@ -15,13 +15,33 @@ export interface TaskHoursSession {
   equipment: { id: number; name: string } | null;
 }
 
-export function useTaskHoursLast7Days(farmId: string | null) {
+export type TaskHoursRange = 'today' | '7d' | '30d' | 'all';
+
+function computeSince(range: TaskHoursRange): string | null {
+  const now = Date.now();
+  switch (range) {
+    case 'today': {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      return d.toISOString();
+    }
+    case '7d':
+      return new Date(now - 7 * 24 * 3600 * 1000).toISOString();
+    case '30d':
+      return new Date(now - 30 * 24 * 3600 * 1000).toISOString();
+    case 'all':
+    default:
+      return null;
+  }
+}
+
+export function useTaskHoursLast7Days(farmId: string | null, range: TaskHoursRange = '7d') {
   return useQuery({
-    queryKey: ['task-hours-last-7d', farmId],
+    queryKey: ['task-hours', farmId, range],
     enabled: !!farmId,
     staleTime: 5 * 60_000,
     queryFn: async (): Promise<{ sessions: TaskHoursSession[]; userNames: Record<string, string> }> => {
-      const since = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
+      const since = computeSince(range);
 
       // Resolve farm members (owner + farm_members)
       const [{ data: farm }, { data: members }] = await Promise.all([
@@ -36,17 +56,19 @@ export function useTaskHoursLast7Days(farmId: string | null) {
 
       const ids = Array.from(userIds);
 
+      let query = supabase
+        .from('time_sessions')
+        .select(`
+          id, user_id, task_id, start_time, end_time, duration, status, title, custom_task_type,
+          task:planning_tasks!task_id(id, title, status),
+          equipment:equipment_id(id, name)
+        `)
+        .in('user_id', ids)
+        .order('start_time', { ascending: false });
+      if (since) query = query.gte('start_time', since);
+
       const [{ data: sessions }, { data: profiles }] = await Promise.all([
-        supabase
-          .from('time_sessions')
-          .select(`
-            id, user_id, task_id, start_time, end_time, duration, status, title, custom_task_type,
-            task:planning_tasks!task_id(id, title, status),
-            equipment:equipment_id(id, name)
-          `)
-          .in('user_id', ids)
-          .gte('start_time', since)
-          .order('start_time', { ascending: false }),
+        query,
         supabase.from('profiles').select('id, first_name, last_name').in('id', ids),
       ]);
 
