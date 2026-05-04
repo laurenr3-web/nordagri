@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { TAB_ROUTES, resolveTab } from '@/config/tabRoutes';
 import { Plus, User, List, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -35,14 +36,11 @@ export function PlanningContent() {
   const { user } = useAuthContext();
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialTab = ['today', 'tomorrow', 'week', 'completed'].includes(searchParams.get('tab') || '')
-    ? (searchParams.get('tab') as string)
-    : 'today';
-  const [activeTab, setActiveTab] = useState<string>(initialTab);
+  const [activeTab, setActiveTab] = useState<string>(resolveTab('planning', searchParams.get('tab')));
   const handleTabChange = (v: string) => {
     setActiveTab(v);
     const next = new URLSearchParams(searchParams);
-    if (v === 'today') next.delete('tab');
+    if (v === TAB_ROUTES.planning.defaultTab) next.delete('tab');
     else next.set('tab', v);
     setSearchParams(next, { replace: true });
   };
