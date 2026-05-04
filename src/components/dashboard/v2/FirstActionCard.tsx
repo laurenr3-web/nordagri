@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Wrench, Eye, ClipboardList, Sparkles, Star, AlertCircle, FolderOpen, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Wrench, Eye, ClipboardList, Sparkles, Star, AlertCircle, FolderOpen, CheckCircle2, Undo2 } from 'lucide-react';
 import type { FirstAction } from '@/hooks/dashboard/v2/useFirstAction';
 import { cn } from '@/lib/utils';
 import { FirstActionDetailDialog } from './FirstActionDetailDialog';
