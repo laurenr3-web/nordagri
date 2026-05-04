@@ -9,25 +9,23 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import OperationalOverview from '@/components/statistics/OperationalOverview';
 import TaskHoursTab from '@/components/time-tracking/statistics/TaskHoursTab';
 import type { StatsPeriod } from '@/hooks/statistics/useOperationalStats';
+import { TAB_ROUTES, isValidTab, resolveTab } from '@/config/tabRoutes';
 
 const TimeTrackingStatistics = () => {
   const [period, setPeriod] = useState<StatsPeriod>('week');
   const [searchParams, setSearchParams] = useSearchParams();
-  const initial = ['overview', 'time', 'hours'].includes(searchParams.get('tab') || '')
-    ? (searchParams.get('tab') as string)
-    : 'overview';
-  const [activeTab, setActiveTab] = useState<string>(initial);
+  const [activeTab, setActiveTab] = useState<string>(resolveTab('timeStatistics', searchParams.get('tab')));
 
   useEffect(() => {
     const t = searchParams.get('tab');
-    if (t && ['overview', 'time', 'hours'].includes(t) && t !== activeTab) setActiveTab(t);
+    if (isValidTab('timeStatistics', t) && t !== activeTab) setActiveTab(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   const handleTabChange = (v: string) => {
     setActiveTab(v);
     const next = new URLSearchParams(searchParams);
-    if (v === 'overview') next.delete('tab');
+    if (v === TAB_ROUTES.timeStatistics.defaultTab) next.delete('tab');
     else next.set('tab', v);
     setSearchParams(next, { replace: true });
   };
