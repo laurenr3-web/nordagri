@@ -44,17 +44,17 @@ export function TimeTrackingTabs(props: TimeTrackingTabsProps) {
 
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-      <TabsList className="grid w-full grid-cols-4 h-auto bg-transparent p-0 border-b rounded-none gap-1 sm:gap-0">
+      <TabsList className="grid grid-cols-4 sm:flex sm:w-auto sm:inline-flex w-full h-auto bg-transparent p-0 border-b rounded-none gap-1 sm:gap-1 justify-start">
         {TABS.map((t) => {
           const Icon = t.icon;
           return (
             <TabsTrigger
               key={t.value}
               value={t.value}
-              className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 py-2.5 sm:py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-xs sm:text-sm font-medium"
+              className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2 sm:px-4 py-2.5 sm:py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-xs sm:text-sm font-medium whitespace-nowrap shrink-0"
             >
               <Icon className="h-4 w-4 shrink-0" />
-              <span className="truncate">{t.label}</span>
+              <span className="truncate sm:whitespace-nowrap">{t.label}</span>
             </TabsTrigger>
           );
         })}
