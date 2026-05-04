@@ -26,6 +26,8 @@ export interface HelpArticle {
    */
   tags: string[];
   content: string;
+  /** Optional call-to-action button shown at the bottom of the article. */
+  cta?: { label: string; path: string };
 }
 
 export interface HelpCategoryMeta {

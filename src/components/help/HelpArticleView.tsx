@@ -1,8 +1,10 @@
 import ReactMarkdown from 'react-markdown';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Clock } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Clock } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { helpArticles } from './articles';
+import { useHelpCenter } from '@/contexts/HelpCenterContext';
 
 interface HelpArticleViewProps {
   articleId: string;
@@ -11,6 +13,8 @@ interface HelpArticleViewProps {
 
 export const HelpArticleView = ({ articleId, onBack }: HelpArticleViewProps) => {
   const article = helpArticles[articleId];
+  const navigate = useNavigate();
+  const { close } = useHelpCenter();
 
   if (!article) {
     return (
@@ -27,6 +31,12 @@ export const HelpArticleView = ({ articleId, onBack }: HelpArticleViewProps) => 
       </div>
     );
   }
+
+  const handleCtaClick = () => {
+    if (!article.cta) return;
+    close();
+    navigate(article.cta.path);
+  };
 
   return (
     <div className="flex h-full flex-col">
@@ -58,6 +68,14 @@ export const HelpArticleView = ({ articleId, onBack }: HelpArticleViewProps) => 
           <ReactMarkdown>{article.content}</ReactMarkdown>
         </div>
       </ScrollArea>
+      {article.cta && (
+        <div className="border-t p-4 bg-muted/30">
+          <Button onClick={handleCtaClick} className="w-full" size="lg">
+            {article.cta.label}
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
