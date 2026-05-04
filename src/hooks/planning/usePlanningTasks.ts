@@ -195,24 +195,25 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: PlanningStatus }) => {
       const task = tasks.find(t => t.id === id);
-      // Garde-fou : seul le membre qui a démarré le suivi de temps peut clôturer
-      // une tâche en pause / in_progress (sinon n'importe qui pourrait swiper-terminer).
+      // Garde-fou : une tâche avec une session de temps *actuellement active*
+      // ne peut être terminée que par le propriétaire de cette session.
       if (
         status === 'done' &&
         task &&
         !task.is_recurring &&
-        (task.status === 'paused' || task.status === 'in_progress') &&
+        task.status === 'in_progress' &&
         user
       ) {
-        const { data: lastSession } = await supabase
+        const { data: activeSession } = await supabase
           .from('time_sessions')
           .select('user_id')
           .eq('task_id', id)
-          .order('start_time', { ascending: false })
+          .eq('status', 'active')
+          .is('end_time', null)
           .limit(1)
           .maybeSingle();
-        if (lastSession?.user_id && lastSession.user_id !== user.id) {
-          throw new Error('Seul le membre qui a démarré cette tâche peut la terminer.');
+        if (activeSession?.user_id && activeSession.user_id !== user.id) {
+          throw new Error('Cette tâche est en cours par un autre membre. Il doit la mettre en pause avant qu\'elle puisse être terminée.');
         }
       }
       if (task?.is_recurring && task._occurrence_date && user) {
