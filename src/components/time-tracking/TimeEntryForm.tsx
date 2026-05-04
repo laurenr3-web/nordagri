@@ -21,6 +21,7 @@ interface TimeEntryFormProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: any) => void;
+  defaultTaskType?: TimeEntryTaskType;
   initialData?: {
     task_type?: TimeEntryTaskType;
     custom_task_type?: string;
@@ -35,7 +36,7 @@ interface TimeEntryFormProps {
   };
 }
 
-export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: TimeEntryFormProps) {
+export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData, defaultTaskType }: TimeEntryFormProps) {
   const isMobile = useIsMobile();
   const [taskTypes, setTaskTypes] = useState<{ id: string; name: TimeEntryTaskType }[]>([]);
   const [equipments, setEquipments] = useState<Array<{ id: number; name: string }>>([]);
@@ -82,7 +83,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
     } else if (isOpen) {
       // Reset form when opening without initialData
       setFormData({
-        task_type: 'maintenance',
+        task_type: defaultTaskType ?? 'maintenance',
         task_type_id: '',
         custom_task_type: '',
         equipment_id: undefined,
@@ -94,7 +95,7 @@ export function TimeEntryForm({ isOpen, onOpenChange, onSubmit, initialData }: T
         poste_travail: '',
       });
     }
-  }, [isOpen, initialData]);
+  }, [isOpen, initialData, defaultTaskType]);
   
   useEffect(() => {
     if (isOpen) {
