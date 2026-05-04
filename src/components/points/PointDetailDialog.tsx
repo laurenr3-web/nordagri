@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Plus, Trash2, ListPlus, ChevronRight, CheckCircle2, X, Clock, FileText, Pencil, Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
-import { Point, PointStatus } from '@/types/Point';
+import { Point, PointStatus, PointPriority } from '@/types/Point';
 import { STATUS_LABELS, TYPE_EMOJI, TYPE_LABELS, daysOpen, nextCheckState } from './pointHelpers';
 import { PointStatusBadge } from './StatusBadge';
 import { PointPriorityBadge } from './PriorityBadge';
@@ -17,7 +17,9 @@ import {
   useUpdatePointStatus,
   useUpdatePointNextCheck,
   useUpdatePointTitle,
+  useUpdatePointPriority,
 } from '@/hooks/points/usePointMutations';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePointLinkedTasks } from '@/hooks/points/usePointLinkedTasks';
 import { withPreviewToken } from '@/utils/previewRouting';
 import { cn } from '@/lib/utils';
@@ -38,6 +40,7 @@ export const PointDetailDialog: React.FC<Props> = ({ point, open, onOpenChange, 
   const deletePoint = useDeletePoint();
   const updateNextCheck = useUpdatePointNextCheck();
   const updateTitle = useUpdatePointTitle();
+  const updatePriority = useUpdatePointPriority();
   const [addOpen, setAddOpen] = useState(false);
   const [taskOpen, setTaskOpen] = useState(false);
   const [editingDesc, setEditingDesc] = useState(false);
@@ -94,7 +97,24 @@ export const PointDetailDialog: React.FC<Props> = ({ point, open, onOpenChange, 
                   {point.entity_label || 'Sans cible'}
                 </SheetTitle>
                 <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                  <PointPriorityBadge priority={point.priority} />
+                  <Select
+                    value={point.priority}
+                    onValueChange={(v) =>
+                      updatePriority.mutate({ id: point.id, priority: v as PointPriority })
+                    }
+                  >
+                    <SelectTrigger className="h-6 w-auto gap-1 text-[11px] px-2 py-0">
+                      <SelectValue>
+                        <PointPriorityBadge priority={point.priority} />
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="critical">Critique</SelectItem>
+                      <SelectItem value="high">Élevée</SelectItem>
+                      <SelectItem value="normal">Normale</SelectItem>
+                      <SelectItem value="low">Basse</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <PointStatusBadge status={point.status} />
                   <HelpTooltip contentKey="surveillance.status" />
                   <span className="text-[11px] text-muted-foreground">
