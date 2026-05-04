@@ -189,6 +189,10 @@ const Dashboard: React.FC = () => {
                   />
                 </div>
 
+                <div className="lg:hidden">
+                  <WeekStatsCard farmId={farmId} compact />
+                </div>
+
                 <div className="hidden lg:grid grid-cols-2 gap-4 lg:gap-6">
                   <DesktopWatchPoints
                     items={pointsWatch?.examples ?? []}
