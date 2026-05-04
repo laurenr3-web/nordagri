@@ -16,7 +16,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTimeBreakdown } from '@/hooks/time-tracking/useTimeBreakdown';
-import { useTaskTypeDistribution } from '@/hooks/time-tracking/useTaskTypeDistribution';
 import { TimeRange, useTimeStatistics } from '@/hooks/time-tracking/useTimeStatistics';
 import { formatHoursDecimalToHM } from '@/utils/timeFormat';
 import { cn } from '@/lib/utils';
@@ -183,7 +182,6 @@ const TimeTrackingStatisticsPage: React.FC = () => {
   const [selectedMonth] = useState(new Date());
 
   const { data: timeBreakdownData, isLoading: isLoadingBreakdown } = useTimeBreakdown();
-  const { distribution, isLoading: isLoadingDistribution } = useTaskTypeDistribution(selectedMonth);
   const { employeeStats, equipmentStats, hoursSummary, isLoading } = useTimeStatistics();
 
   // Total hours for the selected period (existing summary keys)
@@ -533,56 +531,6 @@ const TimeTrackingStatisticsPage: React.FC = () => {
         </Card>
       )}
 
-      {/* 5. Detailed distribution (compact, replaces old heavy table) */}
-      <SectionCard
-        title="Détail de la distribution"
-        subtitle="Mois en cours — par type de travail"
-        icon={<Layers className="h-4 w-4" />}
-        iconTone="green"
-      >
-        {isLoadingDistribution ? (
-          <div className="space-y-3">
-            {[0, 1, 2, 3].map(i => <Skeleton key={i} className="h-10 w-full" />)}
-          </div>
-        ) : !distribution || distribution.length === 0 ? (
-          <EmptyCard message="Aucune donnée de distribution pour le mois en cours." />
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
-            {distribution
-              .filter(d => (d.hours || 0) > 0)
-              .slice(0, 12)
-              .map((d, i) => {
-                const totalDist = distribution.reduce((s, x) => s + (x.hours || 0), 0);
-                const pct = totalDist > 0 ? ((d.hours || 0) / totalDist) * 100 : 0;
-                return (
-                  <div
-                    key={`${d.type}-${i}`}
-                    className="flex items-center justify-between gap-3 py-2 border-b border-border/40 last:border-b-0 min-w-0"
-                  >
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <span
-                        aria-hidden
-                        className="h-2 w-2 rounded-full shrink-0"
-                        style={{ backgroundColor: d.color || 'hsl(var(--muted-foreground))' }}
-                      />
-                      <span className="text-sm text-foreground line-clamp-1">
-                        {prettyTaskType(d.type)}
-                      </span>
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <span className="text-sm font-medium text-foreground whitespace-nowrap">
-                        {formatHours(d.hours)}
-                      </span>
-                      <span className="ml-2 text-[11px] text-muted-foreground whitespace-nowrap">
-                        {pct.toFixed(0)}%
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-          </div>
-        )}
-      </SectionCard>
     </div>
   );
 };
