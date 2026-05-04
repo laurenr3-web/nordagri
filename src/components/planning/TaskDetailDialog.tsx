@@ -9,6 +9,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { AlertTriangle, Unlock, CalendarIcon, Trash2, Save, Clock, Wrench, ExternalLink, Pencil } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -83,6 +85,10 @@ export function TaskDetailDialog({
   const navigate = useNavigate();
   const { user } = useAuthContext();
   const [localAssignedTo, setLocalAssignedTo] = useState<string | null>(null);
+  const [localTitle, setLocalTitle] = useState<string>('');
+  const [localNotes, setLocalNotes] = useState<string>('');
+  const [localPriority, setLocalPriority] = useState<string>('todo');
+  const [localDueDate, setLocalDueDate] = useState<string>('');
   const [hasChanges, setHasChanges] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -94,6 +100,10 @@ export function TaskDetailDialog({
   useEffect(() => {
     if (task && open) {
       setLocalAssignedTo(task.assigned_to);
+      setLocalTitle(task.title ?? '');
+      setLocalNotes(task.notes ?? '');
+      setLocalPriority((task.manual_priority || task.computed_priority) ?? 'todo');
+      setLocalDueDate(task.due_date);
       setHasChanges(false);
       setShowDeleteConfirm(false);
       setShowDatePicker(false);
@@ -115,14 +125,43 @@ export function TaskDetailDialog({
     ? Math.floor((new Date(todayStr).getTime() - new Date(task.due_date).getTime()) / 86400000)
     : 0;
 
+  const recomputeChanges = (next: {
+    title?: string;
+    notes?: string;
+    priority?: string;
+    dueDate?: string;
+    assignedTo?: string | null;
+  }) => {
+    const t = next.title ?? localTitle;
+    const n = next.notes ?? localNotes;
+    const p = next.priority ?? localPriority;
+    const d = next.dueDate ?? localDueDate;
+    const a = next.assignedTo !== undefined ? next.assignedTo : localAssignedTo;
+    const currentPriority = (task.manual_priority || task.computed_priority) ?? 'todo';
+    const changed =
+      t !== (task.title ?? '') ||
+      n !== (task.notes ?? '') ||
+      p !== currentPriority ||
+      d !== task.due_date ||
+      a !== task.assigned_to;
+    setHasChanges(changed);
+  };
+
   const handleAssignChange = (value: string) => {
     const newVal = value === 'none' ? null : value;
     setLocalAssignedTo(newVal);
-    setHasChanges(newVal !== task.assigned_to);
+    recomputeChanges({ assignedTo: newVal });
   };
 
   const handleSave = () => {
-    onUpdate(task.id, { assigned_to: localAssignedTo });
+    const updates: Partial<PlanningTask> = {
+      title: localTitle.trim() || task.title,
+      notes: localNotes,
+      assigned_to: localAssignedTo,
+      due_date: localDueDate,
+      manual_priority: localPriority as any,
+    };
+    onUpdate(task.id, updates);
     setHasChanges(false);
   };
 
@@ -132,8 +171,8 @@ export function TaskDetailDialog({
   };
 
   const handlePostpone = (dateStr: string) => {
-    onPostpone(task.id, dateStr);
-    onOpenChange(false);
+    setLocalDueDate(dateStr);
+    recomputeChanges({ dueDate: dateStr });
   };
 
   const handleDeleteConfirm = () => {
@@ -150,7 +189,16 @@ export function TaskDetailDialog({
         <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             {headerBadge && <div className="mb-1">{headerBadge}</div>}
-            <DialogTitle className="text-lg leading-tight pr-6">{task.title}</DialogTitle>
+            <DialogTitle className="text-lg leading-tight pr-6">
+              <Input
+                value={localTitle}
+                onChange={(e) => {
+                  setLocalTitle(e.target.value);
+                  recomputeChanges({ title: e.target.value });
+                }}
+                className="text-lg font-semibold border-0 shadow-none px-0 focus-visible:ring-0 h-auto py-1"
+              />
+            </DialogTitle>
           </DialogHeader>
 
           {/* Section: Informations */}
@@ -160,9 +208,22 @@ export function TaskDetailDialog({
               <Badge variant="outline" className={cn("text-xs", statusColors[task.status])}>
                 {statusLabels[task.status]}
               </Badge>
-              <Badge variant="outline" className={cn("text-xs", priority.className)}>
-                {priority.label}
-              </Badge>
+              <Select
+                value={localPriority}
+                onValueChange={(v) => {
+                  setLocalPriority(v);
+                  recomputeChanges({ priority: v });
+                }}
+              >
+                <SelectTrigger className="h-7 w-auto gap-1 text-xs px-2">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="critical">Critique</SelectItem>
+                  <SelectItem value="important">Important</SelectItem>
+                  <SelectItem value="todo">À faire</SelectItem>
+                </SelectContent>
+              </Select>
               {isOverdue && (
                 <Badge className="text-xs bg-orange-500 text-white border-0 gap-1">
                   <Clock className="h-3 w-3" />
@@ -171,9 +232,19 @@ export function TaskDetailDialog({
               )}
             </div>
 
-            {task.notes && (
-              <p className="text-sm text-muted-foreground whitespace-pre-line">{task.notes}</p>
-            )}
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Notes</label>
+              <Textarea
+                value={localNotes}
+                onChange={(e) => {
+                  setLocalNotes(e.target.value);
+                  recomputeChanges({ notes: e.target.value });
+                }}
+                rows={3}
+                placeholder="Aucune note"
+                className="text-sm resize-none"
+              />
+            </div>
 
             {/* Source maintenance indicator */}
             {task.source_module === 'maintenance' && task.equipment_id && (
@@ -222,7 +293,7 @@ export function TaskDetailDialog({
 
             <div className="flex items-center gap-2 text-sm">
               <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-              <span>{format(dueDateObj, 'd MMMM yyyy', { locale: fr })}</span>
+              <span>{format(new Date(localDueDate + 'T12:00:00'), 'd MMMM yyyy', { locale: fr })}</span>
             </div>
 
             {hasChanges && (
