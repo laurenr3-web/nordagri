@@ -9,6 +9,7 @@ import { AlertCircle, Lock, ShieldAlert, User } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
+import { buildTabUrl } from '@/config/tabRoutes';
 
 export const SecuritySection = () => {
   const [password, setPassword] = useState('');
@@ -78,7 +79,7 @@ export const SecuritySection = () => {
       setLoading(true);
       
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/settings?tab=security`,
+        redirectTo: `${window.location.origin}${buildTabUrl('settings', 'security')}`,
       });
       
       if (error) throw error;
