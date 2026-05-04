@@ -212,6 +212,7 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
       queryClient.invalidateQueries({ queryKey: ['planningCompletions'] });
       queryClient.invalidateQueries({ queryKey: ['planningRecurring'] });
       queryClient.invalidateQueries({ queryKey: ['planningOverdue'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-v2'] });
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -222,6 +223,7 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['planningTasks'] });
       queryClient.invalidateQueries({ queryKey: ['planningOverdue'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-v2'] });
       toast.success('Tâche reportée');
     },
     onError: (e: any) => toast.error(e.message),
@@ -233,6 +235,7 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
       queryClient.invalidateQueries({ queryKey: ['planningTasks'] });
       queryClient.invalidateQueries({ queryKey: ['planningRecurring'] });
       queryClient.invalidateQueries({ queryKey: ['planningOverdue'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-v2'] });
       toast.success('Tâche supprimée');
     },
     onError: (e: any) => toast.error(e.message),
@@ -245,6 +248,7 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
       queryClient.invalidateQueries({ queryKey: ['planningTasks'] });
       queryClient.invalidateQueries({ queryKey: ['planningRecurring'] });
       queryClient.invalidateQueries({ queryKey: ['planningOverdue'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-v2'] });
       toast.success('Tâche mise à jour');
     },
     onError: (e: any) => toast.error(e.message),
