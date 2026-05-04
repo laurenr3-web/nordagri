@@ -75,12 +75,12 @@ export function ActiveTimeSession({
   return (
     <Card
       data-tick={tick}
-      className="relative overflow-hidden rounded-2xl border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background shadow-sm w-full h-full"
+      className="relative overflow-hidden rounded-2xl border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background shadow-sm w-full"
     >
-      <div className="absolute inset-y-0 right-0 hidden xl:flex items-center pr-6 opacity-10 pointer-events-none">
-        <Tractor className="h-32 w-32 text-primary shrink-0" />
+      <div className="absolute inset-y-0 right-0 hidden lg:flex items-center pr-8 opacity-10 pointer-events-none">
+        <Tractor className="h-32 w-32 xl:h-40 xl:w-40 text-primary shrink-0" />
       </div>
-      <div className="relative p-5 sm:p-6 flex flex-col gap-5 xl:pr-36 min-w-0">
+      <div className="relative p-5 sm:p-6 flex flex-col gap-5 lg:pr-36 xl:pr-44 min-w-0">
         <div className="flex items-center gap-2 min-w-0">
           <Badge className="bg-primary/15 text-primary hover:bg-primary/15 border-0 shrink-0">
             <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
