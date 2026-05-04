@@ -29,9 +29,10 @@ interface Props {
   point: Point | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  headerBadge?: React.ReactNode;
 }
 
-export const PointDetailDialog: React.FC<Props> = ({ point, open, onOpenChange }) => {
+export const PointDetailDialog: React.FC<Props> = ({ point, open, onOpenChange, headerBadge }) => {
   const navigate = useNavigate();
   const updateStatus = useUpdatePointStatus();
   const deletePoint = useDeletePoint();
@@ -85,6 +86,7 @@ export const PointDetailDialog: React.FC<Props> = ({ point, open, onOpenChange }
             <div className="flex items-start gap-3">
               <span className="text-2xl">{TYPE_EMOJI[point.type]}</span>
               <div className="flex-1 min-w-0 pr-10">
+                {headerBadge && <div className="mb-1">{headerBadge}</div>}
                 <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
                   {TYPE_LABELS[point.type]}
                 </p>
