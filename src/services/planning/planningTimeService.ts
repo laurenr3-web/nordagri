@@ -31,6 +31,7 @@ export interface TaskTimeStats {
   hasActive: boolean;
   activeSessionId: string | null;
   activeStartTime: string | null;
+  activeUserId: string | null;
 }
 
 interface RawSessionRow {
@@ -85,6 +86,7 @@ export const planningTimeService = {
     let totalMs = 0;
     let activeId: string | null = null;
     let activeStart: string | null = null;
+    let activeUser: string | null = null;
     for (const s of sessions) {
       const start = new Date(s.start_time).getTime();
       const end = s.end_time ? new Date(s.end_time).getTime() : Date.now();
@@ -92,6 +94,7 @@ export const planningTimeService = {
       if (s.status === 'active' && !s.end_time) {
         activeId = s.id;
         activeStart = s.start_time;
+        activeUser = s.user_id;
       }
     }
     return {
@@ -100,6 +103,7 @@ export const planningTimeService = {
       hasActive: activeId !== null,
       activeSessionId: activeId,
       activeStartTime: activeStart,
+      activeUserId: activeUser,
     };
   },
 
