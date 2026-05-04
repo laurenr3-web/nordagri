@@ -1,5 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Calendar, Wrench, AlertCircle, Clock } from 'lucide-react';
 
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export const WeekStatsCard: React.FC<Props> = ({ farmId }) => {
+  const navigate = useNavigate();
   const { data, isLoading } = useQuery({
     queryKey: ['dashboard-v2', 'week-stats', farmId],
     enabled: !!farmId,
@@ -61,10 +63,10 @@ export const WeekStatsCard: React.FC<Props> = ({ farmId }) => {
   });
 
   const cells = [
-    { icon: Calendar, label: 'Tâches terminées', value: data?.tasksDone ?? 0, tone: 'text-emerald-700 bg-emerald-100' },
-    { icon: Wrench, label: 'Maintenance ouverte', value: data?.maintenanceOpen ?? 0, tone: 'text-primary bg-primary/10' },
-    { icon: AlertCircle, label: 'En retard', value: data?.maintenanceLate ?? 0, tone: 'text-amber-700 bg-amber-100' },
-    { icon: Clock, label: 'Heures suivies', value: data ? `${data.hoursTracked} h` : '0 h', tone: 'text-sky-700 bg-sky-100' },
+    { icon: Calendar, label: 'Tâches terminées', value: data?.tasksDone ?? 0, tone: 'text-emerald-700 bg-emerald-100', href: '/planning?tab=done' },
+    { icon: Wrench, label: 'Maintenance ouverte', value: data?.maintenanceOpen ?? 0, tone: 'text-primary bg-primary/10', href: '/maintenance' },
+    { icon: AlertCircle, label: 'En retard', value: data?.maintenanceLate ?? 0, tone: 'text-amber-700 bg-amber-100', href: '/maintenance?filter=late' },
+    { icon: Clock, label: 'Heures suivies', value: data ? `${data.hoursTracked} h` : '0 h', tone: 'text-sky-700 bg-sky-100', href: '/time-tracking/statistics' },
   ];
 
   return (
@@ -76,7 +78,13 @@ export const WeekStatsCard: React.FC<Props> = ({ farmId }) => {
         {cells.map((c, i) => {
           const Icon = c.icon;
           return (
-            <div key={i} className="rounded-lg border bg-background p-3 min-w-0">
+            <button
+              key={i}
+              type="button"
+              onClick={() => navigate(c.href)}
+              aria-label={`Voir ${c.label}`}
+              className="rounded-lg border bg-background p-3 min-w-0 text-left w-full hover:bg-accent/50 hover:border-primary/30 transition-colors cursor-pointer"
+            >
               <div className={`h-7 w-7 rounded-md flex items-center justify-center mb-2 ${c.tone}`}>
                 <Icon className="h-3.5 w-3.5" />
               </div>
@@ -84,7 +92,7 @@ export const WeekStatsCard: React.FC<Props> = ({ farmId }) => {
                 {isLoading ? '—' : c.value}
               </div>
               <div className="text-[10px] text-muted-foreground mt-1 truncate">{c.label}</div>
-            </div>
+            </button>
           );
         })}
       </div>
