@@ -30,6 +30,7 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
   if (!userId) return null;
 
   const hasActive = stats?.hasActive === true;
+  const isOwnerOfActive = hasActive && stats?.activeUserId === userId;
   const isLoadingMutation =
     start.isPending || resume.isPending || pause.isPending || complete.isPending || unblock.isPending;
 
@@ -86,16 +87,6 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
           <Play className="h-3.5 w-3.5" />
           Reprendre
         </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          className={cn('gap-1.5 px-3', btnSize)}
-          disabled={isLoadingMutation}
-          onClick={() => complete.mutate({ taskId: task.id })}
-        >
-          <Check className="h-3.5 w-3.5" />
-          Terminer
-        </Button>
       </div>
     );
   }
@@ -120,7 +111,17 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
       );
     }
 
-    // Cas normal : session active → Terminer session (pause) + Terminer (outline)
+    // Cas normal : session active. Seul le propriétaire de la session active
+    // peut la mettre en pause ou la terminer.
+    if (!isOwnerOfActive) {
+      return (
+        <div className={cn('flex justify-end', className)} onClick={stop}>
+          <span className="text-[11px] text-muted-foreground italic">
+            En cours par un autre membre
+          </span>
+        </div>
+      );
+    }
     return (
       <div className={cn('flex justify-end gap-2', className)} onClick={stop}>
         <Button
