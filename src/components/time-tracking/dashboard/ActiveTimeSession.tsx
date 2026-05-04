@@ -62,8 +62,15 @@ export function ActiveTimeSession({
   const work = describeWork(session);
   const context = describeContext(session);
 
-  const handleStop = () => navigate(`/time-tracking/detail/${session.id}`);
-  const handleEdit = () => navigate(`/time-tracking/detail/${session.id}`);
+  const isSynthetic = String(session.id).startsWith('shift:');
+  const handleStop = () => {
+    if (isSynthetic) return onStop(session.id);
+    navigate(`/time-tracking/detail/${session.id}`);
+  };
+  const handleEdit = () => {
+    if (isSynthetic) return;
+    navigate(`/time-tracking/detail/${session.id}`);
+  };
 
   return (
     <Card
@@ -100,11 +107,18 @@ export function ActiveTimeSession({
         </div>
 
         <div className="flex flex-wrap gap-2 pt-1">
-          <Button onClick={handleStop} size="lg" className="rounded-xl flex-1 sm:flex-none">
-            <Square className="h-4 w-4" />
-            Terminer la session
-          </Button>
-          {isPaused ? (
+          {!isSynthetic ? (
+            <Button onClick={handleStop} size="lg" className="rounded-xl flex-1 sm:flex-none">
+              <Square className="h-4 w-4" />
+              Terminer la session
+            </Button>
+          ) : (
+            <Button onClick={() => navigate('/time-tracking')} size="lg" className="rounded-xl flex-1 sm:flex-none">
+              <Pencil className="h-4 w-4" />
+              Démarrer un suivi détaillé
+            </Button>
+          )}
+          {!isSynthetic && (isPaused ? (
             <Button
               variant="outline"
               size="lg"
@@ -124,11 +138,13 @@ export function ActiveTimeSession({
               <Pause className="h-4 w-4" />
               Pause
             </Button>
-          )}
+          ))}
+          {!isSynthetic && (
           <Button variant="ghost" size="lg" onClick={handleEdit} className="rounded-xl">
             <Pencil className="h-4 w-4" />
             Modifier
           </Button>
+          )}
         </div>
       </div>
     </Card>
@@ -141,8 +157,8 @@ interface EmptyActiveSessionProps {
 
 export function EmptyActiveSession({ onStart }: EmptyActiveSessionProps) {
   return (
-    <Card className="rounded-2xl border-dashed bg-muted/20 shadow-none w-full h-full">
-      <div className="p-6 sm:p-8 flex flex-col items-start gap-3">
+    <Card className="rounded-2xl border-dashed bg-muted/20 shadow-none w-full">
+      <div className="p-6 flex flex-col items-start gap-3">
         <div className="rounded-xl bg-primary/10 p-3">
           <Clock className="h-6 w-6 text-primary" />
         </div>

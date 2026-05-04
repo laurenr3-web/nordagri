@@ -49,8 +49,35 @@ export function useActiveTimeEntry() {
           activeSessionId: activeEntry.id 
         });
       } else {
-        setActiveTimeEntry(null);
-        setTimeTracking({ isRunning: false, activeSessionId: null });
+        // Fallback: if user is punched in via work_shifts, surface a synthetic
+        // active session so "Ma session active" stays consistent with "Équipe active".
+        const { data: shift } = await supabase
+          .from('work_shifts')
+          .select('id, punch_in_at, status, notes')
+          .eq('user_id', userId)
+          .eq('status', 'active')
+          .order('punch_in_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (shift?.punch_in_at) {
+          const synthetic: ActiveTimeEntry = {
+            id: `shift:${shift.id}`,
+            user_id: userId,
+            task_type: 'other' as any,
+            start_time: shift.punch_in_at,
+            end_time: null,
+            status: 'active' as any,
+            created_at: shift.punch_in_at,
+            updated_at: shift.punch_in_at,
+            description: shift.notes || 'Session active',
+          };
+          setActiveTimeEntry(updateCurrentDuration(synthetic));
+          setTimeTracking({ isRunning: true, activeSessionId: synthetic.id });
+        } else {
+          setActiveTimeEntry(null);
+          setTimeTracking({ isRunning: false, activeSessionId: null });
+        }
       }
     } catch (err) {
       console.error("Error fetching active time entry:", err);

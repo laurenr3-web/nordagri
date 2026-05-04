@@ -79,12 +79,12 @@ export function ActiveTeamCard({ maxMobile = 3, maxDesktop = 6, onSeeAll }: Acti
                       {m.avatarUrl && <AvatarImage src={m.avatarUrl} alt={m.name} />}
                       <AvatarFallback className="text-xs">{initials(m.name)}</AvatarFallback>
                     </Avatar>
-                    <div className="min-w-0 flex-1 overflow-hidden">
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 min-w-0">
                         <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
-                        <p className="text-sm font-medium truncate">{m.name}</p>
+                        <p className="text-sm font-medium line-clamp-1">{m.name}</p>
                       </div>
-                      <p className="text-xs text-muted-foreground truncate">
+                      <p className="text-xs text-muted-foreground line-clamp-1">
                         {work}
                         {ctx ? ` · ${ctx}` : ''}
                       </p>
