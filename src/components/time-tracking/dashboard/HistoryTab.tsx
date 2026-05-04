@@ -394,6 +394,11 @@ export function HistoryTab({
                           <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
                             {context} · {startTime} – {endTime}
                           </p>
+                          {!isActive && !isPaused && (
+                            <p className="text-[11px] text-muted-foreground/80 mt-0.5 line-clamp-1">
+                              Terminée par {name}
+                            </p>
+                          )}
                         </div>
 
                         <div className="flex flex-col items-end gap-1 shrink-0">
