@@ -4,6 +4,8 @@ import { TimeEntry } from './types';
 import { timeTrackingService } from '@/services/supabase/timeTrackingService';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useFarmId } from '@/hooks/useFarmId';
 
 export function useTimeTrackingEntries(
   userId: string | null,
@@ -12,6 +14,7 @@ export function useTimeTrackingEntries(
   taskTypeFilter?: string
 ) {
   const navigate = useNavigate();
+  const { farmId } = useFarmId();
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -20,12 +23,27 @@ export function useTimeTrackingEntries(
     
     setIsLoading(true);
     try {
+      // Resolve all farm member user_ids so the history shows sessions
+      // completed by every member of the farm (not just the current user).
+      let userIds: string[] = [userId];
+      if (farmId) {
+        const [{ data: farm }, { data: members }] = await Promise.all([
+          supabase.from('farms').select('owner_id').eq('id', farmId).maybeSingle(),
+          supabase.from('farm_members').select('user_id').eq('farm_id', farmId),
+        ]);
+        const set = new Set<string>([userId]);
+        if (farm?.owner_id) set.add(farm.owner_id);
+        (members ?? []).forEach((m: any) => m.user_id && set.add(m.user_id));
+        userIds = Array.from(set);
+      }
+
       const data = await timeTrackingService.getTimeEntries({
         userId,
+        userIds,
         startDate: dateRange.from,
         endDate: dateRange.to,
         equipmentId: equipmentFilter,
-        taskType: taskTypeFilter as any
+        taskType: taskTypeFilter as any,
       });
       
       setEntries(data);
@@ -73,7 +91,7 @@ export function useTimeTrackingEntries(
     if (userId) {
       fetchTimeEntries();
     }
-  }, [userId, dateRange, equipmentFilter, taskTypeFilter]);
+  }, [userId, farmId, dateRange, equipmentFilter, taskTypeFilter]);
 
   return {
     entries,
