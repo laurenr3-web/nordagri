@@ -116,6 +116,9 @@ const Dashboard: React.FC = () => {
       priority: (t.manual_priority ?? t.computed_priority) as any,
       assignedTo: t.assigned_to,
       status: t.status,
+      farmId: t.farm_id,
+      equipmentId: t.equipment_id ?? null,
+      dueDate: t.due_date,
       itemType:
         t._kind === 'point'
           ? 'watch_point'
