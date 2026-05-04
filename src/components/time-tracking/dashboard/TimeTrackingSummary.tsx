@@ -1,57 +1,89 @@
-
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Clock, Users, Activity, CheckCircle2 } from 'lucide-react';
+import { formatHoursDecimalToHM } from '@/utils/timeFormat';
 
-interface TimeTrackingStatsProps {
+interface TimeTrackingSummaryProps {
   stats: {
     totalToday: number;
     totalWeek: number;
     totalMonth: number;
   };
   isLoading: boolean;
+  teamHoursToday?: number;
+  activeCount?: number;
+  completedCount?: number;
 }
 
-export function TimeTrackingSummary({ stats, isLoading }: TimeTrackingStatsProps) {
-  // Format hours with a maximum of 1 decimal place, and ensure it doesn't display unreasonable values
-  const formatHours = (hours: number): string => {
-    // Safety check for ridiculous values
-    const safeHours = isNaN(hours) ? 0 : Math.min(hours, 744); // 31 days * 24 hours max
-    return `${safeHours.toFixed(1)} h`;
-  };
+export function TimeTrackingSummary({
+  stats,
+  isLoading,
+  teamHoursToday = 0,
+  activeCount = 0,
+  completedCount = 0,
+}: TimeTrackingSummaryProps) {
+  const tiles = [
+    {
+      label: 'Mon temps',
+      value: formatHoursDecimalToHM(stats.totalToday),
+      icon: Clock,
+      color: 'text-primary',
+      bg: 'bg-primary/10',
+    },
+    {
+      label: 'Temps équipe',
+      value: formatHoursDecimalToHM(teamHoursToday),
+      icon: Users,
+      color: 'text-blue-600',
+      bg: 'bg-blue-500/10',
+    },
+    {
+      label: 'Sessions actives',
+      value: String(activeCount),
+      icon: Activity,
+      color: 'text-amber-600',
+      bg: 'bg-amber-500/10',
+    },
+    {
+      label: 'Sessions terminées',
+      value: String(completedCount),
+      icon: CheckCircle2,
+      color: 'text-emerald-600',
+      bg: 'bg-emerald-500/10',
+    },
+  ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6 w-full">
-      <Card className="rounded-xl sm:rounded-lg w-full max-w-full bg-blue-50">
-        <CardHeader className="pb-1 sm:pb-2">
-          <CardTitle className="text-sm sm:text-base font-medium text-center sm:text-left">Temps Aujourd'hui</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl sm:text-2xl font-bold min-h-[44px] flex items-center justify-center sm:justify-start">
-            {isLoading ? <Skeleton className="h-8 w-20" /> : formatHours(stats.totalToday)}
-          </div>
-        </CardContent>
-      </Card>
-      <Card className="rounded-xl sm:rounded-lg w-full max-w-full bg-green-50">
-        <CardHeader className="pb-1 sm:pb-2">
-          <CardTitle className="text-sm sm:text-base font-medium text-center sm:text-left">Temps Cette Semaine</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl sm:text-2xl font-bold min-h-[44px] flex items-center justify-center sm:justify-start">
-            {isLoading ? <Skeleton className="h-8 w-20" /> : formatHours(stats.totalWeek)}
-          </div>
-        </CardContent>
-      </Card>
-      <Card className="rounded-xl sm:rounded-lg w-full max-w-full bg-purple-50">
-        <CardHeader className="pb-1 sm:pb-2">
-          <CardTitle className="text-sm sm:text-base font-medium text-center sm:text-left">Temps Ce Mois</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl sm:text-2xl font-bold min-h-[44px] flex items-center justify-center sm:justify-start">
-            {isLoading ? <Skeleton className="h-8 w-20" /> : formatHours(stats.totalMonth)}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <Card className="rounded-2xl shadow-sm">
+      <div className="p-5 sm:p-6">
+        <h3 className="text-sm font-semibold text-muted-foreground mb-4">Résumé du jour</h3>
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          {tiles.map((t) => {
+            const Icon = t.icon;
+            return (
+              <div
+                key={t.label}
+                className="rounded-xl border bg-card p-3 sm:p-4 flex flex-col gap-2 min-w-0"
+              >
+                <div className={`inline-flex h-8 w-8 items-center justify-center rounded-lg ${t.bg} ${t.color} shrink-0`}>
+                  <Icon className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  {isLoading ? (
+                    <Skeleton className="h-7 w-16" />
+                  ) : (
+                    <div className="text-2xl sm:text-3xl font-semibold tabular-nums tracking-tight">
+                      {t.value}
+                    </div>
+                  )}
+                  <div className="text-xs text-muted-foreground mt-0.5 truncate">{t.label}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </Card>
   );
 }
