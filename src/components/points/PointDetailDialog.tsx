@@ -110,9 +110,8 @@ export const PointDetailDialog: React.FC<Props> = ({ point, open, onOpenChange, 
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="critical">Critique</SelectItem>
-                      <SelectItem value="high">Élevée</SelectItem>
+                      <SelectItem value="important">Importante</SelectItem>
                       <SelectItem value="normal">Normale</SelectItem>
-                      <SelectItem value="low">Basse</SelectItem>
                     </SelectContent>
                   </Select>
                   <PointStatusBadge status={point.status} />
