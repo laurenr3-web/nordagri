@@ -294,7 +294,7 @@ export function TaskDetailDialog({
 
             <div className="flex items-center gap-2 text-sm">
               <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-              <span>{format(new Date(localDueDate + 'T12:00:00'), 'd MMMM yyyy', { locale: fr })}</span>
+              <span>{dueDateObj && !isNaN(dueDateObj.getTime()) ? format(dueDateObj, 'd MMMM yyyy', { locale: fr }) : '—'}</span>
             </div>
 
             {hasChanges && (
@@ -364,7 +364,7 @@ export function TaskDetailDialog({
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
-                          selected={dueDateObj}
+                          selected={dueDateObj ?? undefined}
                           onSelect={(date) => {
                             if (date) {
                               handlePostpone(localDateStr(date));
