@@ -14,8 +14,78 @@ import howToCreatePart from './how-to-create-part.md?raw';
 import howToCreatePlanningTask from './how-to-create-planning-task.md?raw';
 import howToTrackTime from './how-to-track-time.md?raw';
 import planningTaskTime from './planning-task-time.md?raw';
+import quickStart from './quick-start.md?raw';
+import dashboardOverview from './dashboard-overview.md?raw';
+import howToScanQr from './how-to-scan-qr.md?raw';
+import notificationsOverview from './notifications-overview.md?raw';
+import statisticsOverview from './statistics-overview.md?raw';
+import settingsOverview from './settings-overview.md?raw';
+import troubleshootingCommon from './troubleshooting-common.md?raw';
 
 export const helpArticles: Record<string, HelpArticle> = {
+  'quick-start': {
+    id: 'quick-start',
+    title: 'Démarrage rapide en 5 minutes',
+    category: 'getting-started',
+    readTime: 5,
+    keywords: ['démarrage', 'commencer', 'débuter', 'tour', 'guide', 'nouveau', 'ferme', 'premier'],
+    tags: ['Démarrage', 'Guide', 'Nouveau'],
+    content: quickStart,
+  },
+  'dashboard-overview': {
+    id: 'dashboard-overview',
+    title: 'Comprendre le tableau de bord',
+    category: 'dashboard',
+    readTime: 3,
+    keywords: ['dashboard', 'tableau', 'bord', 'accueil', 'travail', 'jour', 'semaine', 'statistiques'],
+    tags: ['Dashboard', 'Quotidien', 'Vue ensemble'],
+    content: dashboardOverview,
+  },
+  'how-to-scan-qr': {
+    id: 'how-to-scan-qr',
+    title: 'Utiliser le scanner QR',
+    category: 'scan',
+    readTime: 3,
+    keywords: ['QR', 'code', 'scan', 'scanner', 'caméra', 'équipement', 'fiche'],
+    tags: ['Scan', 'QR', 'Équipement'],
+    content: howToScanQr,
+  },
+  'notifications-overview': {
+    id: 'notifications-overview',
+    title: 'Comprendre et gérer les notifications',
+    category: 'notifications',
+    readTime: 3,
+    keywords: ['notification', 'alerte', 'cloche', 'mail', 'courriel', 'maintenance', 'tâche'],
+    tags: ['Notifications', 'Alertes'],
+    content: notificationsOverview,
+  },
+  'statistics-overview': {
+    id: 'statistics-overview',
+    title: 'Lire les statistiques',
+    category: 'statistics',
+    readTime: 4,
+    keywords: ['statistique', 'rapport', 'temps', 'membre', 'performance', 'kpi', 'période'],
+    tags: ['Statistiques', 'Temps', 'Rapport'],
+    content: statisticsOverview,
+  },
+  'settings-overview': {
+    id: 'settings-overview',
+    title: 'Naviguer dans les paramètres',
+    category: 'settings',
+    readTime: 3,
+    keywords: ['paramètre', 'setting', 'profil', 'ferme', 'sécurité', 'mot de passe', 'abonnement', 'déconnexion'],
+    tags: ['Paramètres', 'Compte'],
+    content: settingsOverview,
+  },
+  'troubleshooting-common': {
+    id: 'troubleshooting-common',
+    title: 'Problèmes fréquents et solutions',
+    category: 'troubleshooting',
+    readTime: 5,
+    keywords: ['problème', 'bug', 'erreur', '404', 'sync', 'hors ligne', 'données', 'manquant', 'PWA', 'dépannage'],
+    tags: ['Dépannage', 'Erreurs', 'Aide'],
+    content: troubleshootingCommon,
+  },
   'equipment-organize': {
     id: 'equipment-organize',
     title: 'Bien organiser sa flotte',
