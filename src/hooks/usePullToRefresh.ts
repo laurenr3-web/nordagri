@@ -10,7 +10,13 @@ interface Options {
 
 const isInteractiveTarget = (el: EventTarget | null): boolean => {
   if (!(el instanceof Element)) return false;
-  if (el.closest('input, textarea, select, [contenteditable="true"], [role="dialog"], [role="alertdialog"]')) {
+  if (
+    el.closest(
+      'input, textarea, select, button[aria-haspopup], [contenteditable="true"], ' +
+        '[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [role="combobox"], ' +
+        '[data-radix-scroll-area-viewport], [data-vaul-drawer], [data-state="open"][data-side]',
+    )
+  ) {
     return true;
   }
   // Avoid hijacking nested scrollable containers
@@ -26,10 +32,34 @@ const isInteractiveTarget = (el: EventTarget | null): boolean => {
   return false;
 };
 
+const hasOpenOverlay = (): boolean => {
+  // Radix sets data-state="open" on dialogs, sheets, popovers, dropdowns, drawers
+  if (document.querySelector(
+    '[role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"], ' +
+      '[data-radix-popper-content-wrapper], [data-vaul-drawer][data-state="open"], ' +
+      '[role="menu"][data-state="open"], [role="listbox"][data-state="open"]'
+  )) {
+    return true;
+  }
+  // Body scroll-lock applied by Radix when modal is open
+  if (document.body.hasAttribute('data-scroll-locked')) return true;
+  // Active text input
+  const ae = document.activeElement as HTMLElement | null;
+  if (ae) {
+    const tag = ae.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || ae.isContentEditable) {
+      return true;
+    }
+  }
+  return false;
+};
+
 export function usePullToRefresh({ onRefresh, threshold = 80, disabled = false }: Options) {
   const [state, setState] = useState<PullState>('idle');
   const [distance, setDistance] = useState(0);
   const startY = useRef<number | null>(null);
+  const startX = useRef<number | null>(null);
+  const cancelledRef = useRef(false);
   const refreshingRef = useRef(false);
   const activeRef = useRef(false);
   const distanceRef = useRef(0);
@@ -38,7 +68,9 @@ export function usePullToRefresh({ onRefresh, threshold = 80, disabled = false }
 
   const reset = useCallback(() => {
     startY.current = null;
+    startX.current = null;
     activeRef.current = false;
+    cancelledRef.current = false;
     setDistance(0);
   }, []);
 
@@ -51,16 +83,36 @@ export function usePullToRefresh({ onRefresh, threshold = 80, disabled = false }
     const onTouchStart = (e: TouchEvent) => {
       if (refreshingRef.current) return;
       if (window.scrollY > 0) return;
+      if (hasOpenOverlay()) return;
       if (isInteractiveTarget(e.target)) return;
       if (e.touches.length !== 1) return;
       startY.current = e.touches[0].clientY;
+      startX.current = e.touches[0].clientX;
+      cancelledRef.current = false;
       activeRef.current = true;
     };
 
     const onTouchMove = (e: TouchEvent) => {
-      if (!activeRef.current || startY.current === null) return;
+      if (!activeRef.current || startY.current === null || startX.current === null) return;
       if (refreshingRef.current) return;
+      if (cancelledRef.current) return;
+      if (hasOpenOverlay()) {
+        cancelledRef.current = true;
+        distanceRef.current = 0;
+        setDistance(0);
+        setState('idle');
+        return;
+      }
       const dy = e.touches[0].clientY - startY.current;
+      const dx = e.touches[0].clientX - startX.current;
+      // Cancel on dominant horizontal gesture (swipe-to-postpone, carousel, drawer, etc.)
+      if (Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy)) {
+        cancelledRef.current = true;
+        distanceRef.current = 0;
+        setDistance(0);
+        setState('idle');
+        return;
+      }
       if (dy <= 0) {
         if (distanceRef.current !== 0) {
           distanceRef.current = 0;
@@ -82,9 +134,10 @@ export function usePullToRefresh({ onRefresh, threshold = 80, disabled = false }
 
     const onTouchEnd = async () => {
       if (!activeRef.current) return;
-      const wasReady = distanceRef.current >= threshold;
+      const wasReady = !cancelledRef.current && distanceRef.current >= threshold && !hasOpenOverlay();
       activeRef.current = false;
       startY.current = null;
+      startX.current = null;
       if (wasReady && !refreshingRef.current) {
         refreshingRef.current = true;
         setState('refreshing');
@@ -105,6 +158,7 @@ export function usePullToRefresh({ onRefresh, threshold = 80, disabled = false }
         }
       } else {
         distanceRef.current = 0;
+        cancelledRef.current = false;
         setDistance(0);
         setState('idle');
       }
