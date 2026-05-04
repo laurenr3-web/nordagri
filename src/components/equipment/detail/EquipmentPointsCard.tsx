@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useFarmId } from '@/hooks/useFarmId';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import { NewPointDialog } from '@/components/points/NewPointDialog';
-import PointDetailDialog from '@/components/points/PointDetailDialog';
+import { PointDetailDialog } from '@/components/points/PointDetailDialog';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -18,7 +18,7 @@ const EquipmentPointsCard: React.FC<Props> = ({ equipment, canEdit = true }) => 
   const { farmId } = useFarmId();
   const queryClient = useQueryClient();
   const [newOpen, setNewOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedPoint, setSelectedPoint] = useState<any>(null);
 
   const { data: points = [], isLoading } = useQuery({
     queryKey: ['equipment-points', farmId, equipment.id, equipment.name],
@@ -69,7 +69,7 @@ const EquipmentPointsCard: React.FC<Props> = ({ equipment, canEdit = true }) => 
         ) : (
           <div className="space-y-2">
             {points.map((p: any) => (
-              <button key={p.id} onClick={() => setSelectedId(p.id)}
+              <button key={p.id} onClick={() => setSelectedPoint(p)}
                 className="w-full text-left rounded-xl border p-3 hover:bg-accent/50 transition-colors">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
@@ -102,9 +102,9 @@ const EquipmentPointsCard: React.FC<Props> = ({ equipment, canEdit = true }) => 
         />
       )}
       <PointDetailDialog
-        pointId={selectedId}
-        open={!!selectedId}
-        onOpenChange={(o) => !o && setSelectedId(null)}
+        point={selectedPoint}
+        open={!!selectedPoint}
+        onOpenChange={(o) => { if (!o) setSelectedPoint(null); }}
       />
     </Card>
   );
