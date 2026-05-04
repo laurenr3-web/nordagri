@@ -62,8 +62,15 @@ export function ActiveTimeSession({
   const work = describeWork(session);
   const context = describeContext(session);
 
-  const handleStop = () => navigate(`/time-tracking/detail/${session.id}`);
-  const handleEdit = () => navigate(`/time-tracking/detail/${session.id}`);
+  const isSynthetic = String(session.id).startsWith('shift:');
+  const handleStop = () => {
+    if (isSynthetic) return onStop(session.id);
+    navigate(`/time-tracking/detail/${session.id}`);
+  };
+  const handleEdit = () => {
+    if (isSynthetic) return;
+    navigate(`/time-tracking/detail/${session.id}`);
+  };
 
   return (
     <Card
@@ -104,7 +111,7 @@ export function ActiveTimeSession({
             <Square className="h-4 w-4" />
             Terminer la session
           </Button>
-          {isPaused ? (
+          {!isSynthetic && (isPaused ? (
             <Button
               variant="outline"
               size="lg"
@@ -124,11 +131,13 @@ export function ActiveTimeSession({
               <Pause className="h-4 w-4" />
               Pause
             </Button>
-          )}
+          ))}
+          {!isSynthetic && (
           <Button variant="ghost" size="lg" onClick={handleEdit} className="rounded-xl">
             <Pencil className="h-4 w-4" />
             Modifier
           </Button>
+          )}
         </div>
       </div>
     </Card>
