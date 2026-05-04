@@ -60,12 +60,12 @@ export function DayViewTab({
           <BarChart3 className="h-5 w-5" />
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="text-sm font-semibold">Rapports disponibles</h3>
+          <h3 className="text-sm font-semibold">Voir les statistiques de temps</h3>
           <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-            Consulte le temps par membre, équipement ou type de travail.
+            Analyse détaillée par membre, équipement et type de travail.
           </p>
           <span className="mt-2 inline-flex items-center gap-1 text-xs text-primary font-medium">
-            Voir les rapports
+            Ouvrir les statistiques
             <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
           </span>
         </div>
