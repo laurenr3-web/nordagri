@@ -4,6 +4,8 @@ import { QuickStartGrid, QuickStartChoice } from './QuickStartGrid';
 import { ActiveTeamCard } from './ActiveTeamCard';
 import { RecentSessionsCard } from './RecentSessionsCard';
 import { TimeTrackingSummary } from './TimeTrackingSummary';
+import { WorkTypeChartCard } from './WorkTypeChartCard';
+import { DailyTipBanner } from './DailyTipBanner';
 import { TimeEntry, ActiveTimeEntry } from '@/hooks/time-tracking/types';
 
 interface DayViewTabProps {
@@ -46,34 +48,52 @@ export function DayViewTab({
   ).length;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 min-w-0">
-      <div className="lg:col-span-8 min-w-0 space-y-4 sm:space-y-5">
-        {activeTimeEntry ? (
-          <ActiveTimeSession
-            session={activeTimeEntry}
-            onPause={onPause}
-            onResume={onResume}
-            onStop={onStop}
+    <div className="flex flex-col gap-4 sm:gap-5 min-w-0">
+      {/* Top row: Active session | Active team | Quick start */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 min-w-0">
+        <div className="lg:col-span-4 min-w-0 order-1">
+          {activeTimeEntry ? (
+            <ActiveTimeSession
+              session={activeTimeEntry}
+              onPause={onPause}
+              onResume={onResume}
+              onStop={onStop}
+            />
+          ) : (
+            <EmptyActiveSession onStart={onNewSession} />
+          )}
+        </div>
+        <div className="lg:col-span-4 min-w-0 order-3 lg:order-2">
+          <ActiveTeamCard onSeeAll={onSeeTeam} />
+        </div>
+        <div className="lg:col-span-4 min-w-0 order-2 lg:order-3">
+          <QuickStartGrid onPick={onQuickStart} onCustom={onNewSession} />
+        </div>
+      </div>
+
+      {/* Bottom row: Summary | Recent sessions | Work type chart */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 min-w-0">
+        <div className="lg:col-span-3 min-w-0 order-1">
+          <TimeTrackingSummary
+            stats={stats}
+            isLoading={isLoading}
+            activeCount={activeCount}
+            completedCount={completedCount}
           />
-        ) : (
-          <EmptyActiveSession onStart={onNewSession} />
-        )}
-        <QuickStartGrid onPick={onQuickStart} onCustom={onNewSession} />
-        <RecentSessionsCard
-          entries={todayEntries}
-          isLoading={isLoading}
-          onSeeAll={onSeeHistory}
-        />
+        </div>
+        <div className="lg:col-span-5 min-w-0 order-2">
+          <RecentSessionsCard
+            entries={todayEntries}
+            isLoading={isLoading}
+            onSeeAll={onSeeHistory}
+          />
+        </div>
+        <div className="lg:col-span-4 min-w-0 order-3">
+          <WorkTypeChartCard />
+        </div>
       </div>
-      <div className="lg:col-span-4 min-w-0 space-y-4 sm:space-y-5">
-        <TimeTrackingSummary
-          stats={stats}
-          isLoading={isLoading}
-          activeCount={activeCount}
-          completedCount={completedCount}
-        />
-        <ActiveTeamCard onSeeAll={onSeeTeam} />
-      </div>
+
+      <DailyTipBanner />
     </div>
   );
 }
