@@ -17,26 +17,32 @@ type HoursSummaryProps = {
 };
 
 const HoursSummary: React.FC<HoursSummaryProps> = ({ summary }) => (
-  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
-    <Card className="bg-blue-50 w-full max-w-full">
-      <CardContent className="p-2 sm:p-3">
-        <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">Aujourd&apos;hui</p>
-        <h3 className="text-xl font-bold text-center sm:text-left">{summary?.today.toFixed(1)} h</h3>
-        <Progress value={summary?.todayPercentage || 0} className="h-1 mt-1" />
+  <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full">
+    <Card className="rounded-2xl">
+      <CardContent className="p-3 sm:p-4">
+        <p className="text-[11px] sm:text-xs text-muted-foreground">Aujourd&apos;hui</p>
+        <h3 className="text-lg sm:text-2xl font-bold tabular-nums">
+          {summary?.today.toFixed(1) ?? '0.0'} h
+        </h3>
+        <Progress value={summary?.todayPercentage || 0} className="h-1 mt-2" />
       </CardContent>
     </Card>
-    <Card className="bg-green-50 w-full max-w-full">
-      <CardContent className="p-2 sm:p-3">
-        <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">Cette semaine</p>
-        <h3 className="text-xl font-bold text-center sm:text-left">{summary?.week.toFixed(1)} h</h3>
-        <Progress value={summary?.weekPercentage || 0} className="h-1 mt-1" />
+    <Card className="rounded-2xl">
+      <CardContent className="p-3 sm:p-4">
+        <p className="text-[11px] sm:text-xs text-muted-foreground">Cette semaine</p>
+        <h3 className="text-lg sm:text-2xl font-bold tabular-nums">
+          {summary?.week.toFixed(1) ?? '0.0'} h
+        </h3>
+        <Progress value={summary?.weekPercentage || 0} className="h-1 mt-2" />
       </CardContent>
     </Card>
-    <Card className="bg-purple-50 w-full max-w-full">
-      <CardContent className="p-2 sm:p-3">
-        <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">Ce mois</p>
-        <h3 className="text-xl font-bold text-center sm:text-left">{summary?.month.toFixed(1)} h</h3>
-        <Progress value={summary?.monthPercentage || 0} className="h-1 mt-1" />
+    <Card className="rounded-2xl">
+      <CardContent className="p-3 sm:p-4">
+        <p className="text-[11px] sm:text-xs text-muted-foreground">Ce mois</p>
+        <h3 className="text-lg sm:text-2xl font-bold tabular-nums">
+          {summary?.month.toFixed(1) ?? '0.0'} h
+        </h3>
+        <Progress value={summary?.monthPercentage || 0} className="h-1 mt-2" />
       </CardContent>
     </Card>
   </div>
