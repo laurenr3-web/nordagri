@@ -82,8 +82,13 @@ export const timeEntryQueries = {
         .select(`
           *,
           equipment:equipment_id (name)
-        `)
-        .eq('user_id', filters.userId);
+        `);
+
+      if (filters.userIds && filters.userIds.length > 0) {
+        query = query.in('user_id', filters.userIds);
+      } else {
+        query = query.eq('user_id', filters.userId);
+      }
       
       // Apply optional filters
       if (filters.startDate) {
@@ -114,14 +119,30 @@ export const timeEntryQueries = {
       const { data, error } = await query.order('start_time', { ascending: false });
       
       if (error) throw error;
+
+      // Resolve profile names for displayed users (avoids "User"/"Self" placeholders)
+      const userIds = Array.from(new Set((data || []).map((d: any) => d.user_id).filter(Boolean)));
+      const profileMap = new Map<string, string>();
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name')
+          .in('id', userIds);
+        (profiles || []).forEach((p: any) => {
+          const full = [p.first_name, p.last_name].filter(Boolean).join(' ').trim();
+          if (full) profileMap.set(p.id, full);
+        });
+      }
       
       // Transform to TimeEntry format
       return (data || []).map(item => {
+        const resolvedName =
+          profileMap.get(item.user_id) || item.technician || 'Utilisateur';
         return {
           id: item.id,
           user_id: item.user_id,
-          owner_name: item.technician || 'User',
-          user_name: item.technician || 'User',
+          owner_name: resolvedName,
+          user_name: resolvedName,
           equipment_id: item.equipment_id,
           intervention_id: item.intervention_id,
           task_type: item.custom_task_type as TimeEntryTaskType || 'maintenance',
