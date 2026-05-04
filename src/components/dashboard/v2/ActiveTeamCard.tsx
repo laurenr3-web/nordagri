@@ -5,9 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Users, Timer, ArrowRight, Play, Square } from 'lucide-react';
 import type { ActiveTeamMember } from '@/hooks/dashboard/v2/useActiveTeam';
 import { useAuth } from '@/hooks/useAuth';
-import { useTimeTracking } from '@/hooks/time-tracking/useTimeTracking';
-import { TimeEntryForm } from '@/components/time-tracking/TimeEntryForm';
-import { toast } from 'sonner';
+import { useWorkShiftActions } from '@/hooks/work-shifts/useWorkShiftActions';
 
 interface Props {
   team: ActiveTeamMember[];
@@ -31,32 +29,12 @@ function formatDuration(start: string): string {
 export const ActiveTeamCard: React.FC<Props> = ({ team, loading, limit = 5 }) => {
   const navigate = useNavigate();
   const { user } = useAuth(false);
-  const { activeTimeEntry, startTimeEntry } = useTimeTracking();
-  const [isFormOpen, setIsFormOpen] = React.useState(false);
+  const { handlePunchIn, handlePunchOut, isPunchingIn, isPunchingOut } = useWorkShiftActions();
 
   const myMember = user ? team.find((m) => m.userId === user.id) ?? null : null;
   const others = user ? team.filter((m) => m.userId !== user.id) : team;
   const visible = others.slice(0, limit);
   const overflow = Math.max(0, others.length - visible.length);
-
-  const handleStart = async (data: any) => {
-    try {
-      await startTimeEntry(data);
-      setIsFormOpen(false);
-      toast.success('Session démarrée');
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleStop = () => {
-    if (!activeTimeEntry) return;
-    if (activeTimeEntry.id.startsWith('shift:')) {
-      navigate('/time-tracking');
-      return;
-    }
-    navigate(`/time-tracking/detail/${activeTimeEntry.id}`);
-  };
 
   return (
     <div className="rounded-2xl border border-blue-200/60 bg-blue-50/60 dark:bg-blue-950/20 dark:border-blue-900/40 shadow-sm overflow-hidden">
@@ -80,7 +58,7 @@ export const ActiveTeamCard: React.FC<Props> = ({ team, loading, limit = 5 }) =>
       ) : team.length === 0 ? (
         <div className="p-6 flex flex-col items-center gap-3 text-center">
           <p className="text-sm text-muted-foreground">Aucune session active</p>
-          <Button size="sm" variant="default" onClick={() => setIsFormOpen(true)}>
+          <Button size="sm" variant="default" disabled={isPunchingIn} onClick={() => handlePunchIn()}>
             <Play className="mr-1.5 h-3.5 w-3.5" />
             Démarrer mon temps
           </Button>
@@ -153,20 +131,19 @@ export const ActiveTeamCard: React.FC<Props> = ({ team, loading, limit = 5 }) =>
                 <Timer className="h-3.5 w-3.5 shrink-0" />
                 <span className="truncate">Ma session · {formatDuration(myMember.startTime)}</span>
               </span>
-              <Button size="sm" variant="destructive" className="h-7 px-2.5 shrink-0" onClick={handleStop}>
+              <Button size="sm" variant="destructive" className="h-7 px-2.5 shrink-0" disabled={isPunchingOut} onClick={() => handlePunchOut()}>
                 <Square className="mr-1 h-3 w-3" />
                 Terminer
               </Button>
             </>
           ) : (
-            <Button size="sm" variant="default" className="h-7 px-2.5 ml-auto" onClick={() => setIsFormOpen(true)}>
+            <Button size="sm" variant="default" className="h-7 px-2.5 ml-auto" disabled={isPunchingIn} onClick={() => handlePunchIn()}>
               <Play className="mr-1 h-3 w-3" />
               Démarrer mon temps
             </Button>
           )}
         </div>
       )}
-      <TimeEntryForm isOpen={isFormOpen} onOpenChange={setIsFormOpen} onSubmit={handleStart} />
     </div>
   );
 };
