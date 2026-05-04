@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -21,9 +22,25 @@ function formatHours(h: number) {
 const TaskHoursTab: React.FC = () => {
   const { farmId } = useFarmId();
   const { data, isLoading } = useTaskHoursLast7Days(farmId);
+  const [userFilter, setUserFilter] = useState<string>('all');
+
+  const userOptions = useMemo(() => {
+    if (!data) return [] as { id: string; name: string }[];
+    const present = new Set<string>();
+    data.sessions.forEach(s => present.add(s.user_id));
+    return Array.from(present)
+      .map(id => ({ id, name: data.userNames[id] || 'Utilisateur' }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [data]);
+
+  const filteredSessions = useMemo(() => {
+    if (!data) return [];
+    return userFilter === 'all' ? data.sessions : data.sessions.filter(s => s.user_id === userFilter);
+  }, [data, userFilter]);
 
   const grouped = useMemo(() => {
     if (!data) return [];
+    const sessions = filteredSessions;
     const map = new Map<string, {
       key: string;
       label: string;
@@ -35,7 +52,7 @@ const TaskHoursTab: React.FC = () => {
       lastStart: string;
     }>();
 
-    for (const s of data.sessions) {
+    for (const s of sessions) {
       const dur = (() => {
         if (s.duration && s.duration > 0) return Number(s.duration);
         if (s.end_time) {
@@ -74,7 +91,7 @@ const TaskHoursTab: React.FC = () => {
     return Array.from(map.values())
       .map(g => ({ ...g, perUserList: Array.from(g.perUser.values()).sort((a, b) => b.hours - a.hours) }))
       .sort((a, b) => b.totalHours - a.totalHours);
-  }, [data]);
+  }, [data, filteredSessions]);
 
   const summary = useMemo(() => {
     const totalHours = grouped.reduce((sum, g) => sum + g.totalHours, 0);
@@ -124,6 +141,21 @@ const TaskHoursTab: React.FC = () => {
             </Card>
           );
         })}
+      </div>
+
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-xs text-muted-foreground">Filtrer par personne :</span>
+        <Select value={userFilter} onValueChange={setUserFilter}>
+          <SelectTrigger className="h-9 w-[220px]">
+            <SelectValue placeholder="Tous les employés" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les employés</SelectItem>
+            {userOptions.map(u => (
+              <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <Card>
