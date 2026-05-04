@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Timer, Users, ClipboardList } from 'lucide-react';
+import { Timer, Users, ClipboardList, CheckCircle2 } from 'lucide-react';
 import { useFarmId } from '@/hooks/useFarmId';
 import { useFarmTeamStatus, type FarmTeamMemberStatus } from '@/hooks/time-tracking/useFarmTeamStatus';
 
@@ -31,6 +31,14 @@ function formatRelative(iso: string | null): string {
   return d.toLocaleDateString();
 }
 
+function formatMinutes(mins: number): string {
+  if (mins <= 0) return '0 min';
+  if (mins < 60) return `${mins} min`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m === 0 ? `${h}h` : `${h}h${String(m).padStart(2, '0')}`;
+}
+
 const MemberCard: React.FC<{ m: FarmTeamMemberStatus; onClick: () => void }> = ({ m, onClick }) => (
   <button
     type="button"
@@ -52,17 +60,38 @@ const MemberCard: React.FC<{ m: FarmTeamMemberStatus; onClick: () => void }> = (
           <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 shrink-0">Inactif</Badge>
         )}
       </div>
-      <p className="text-[11px] text-muted-foreground truncate">
-        {m.isActive
-          ? `${m.currentTitle ?? 'Session active'}${m.currentEquipment ? ` · ${m.currentEquipment}` : ''}`
-          : `Dernière activité ${formatRelative(m.lastActivity)}`}
-      </p>
-      {m.todayTaskCount > 0 && (
-        <p className="text-[10px] text-muted-foreground inline-flex items-center gap-1 mt-0.5">
-          <ClipboardList className="h-3 w-3" />
-          {m.todayTaskCount} tâche{m.todayTaskCount > 1 ? 's' : ''} aujourd'hui
+      {m.isActive ? (
+        <p className="text-[11px] text-muted-foreground truncate">
+          {`${m.currentTitle ?? 'Session active'}${m.currentEquipment ? ` · ${m.currentEquipment}` : ''}`}
+        </p>
+      ) : m.lastCompletedAt ? (
+        <p className="text-[11px] text-muted-foreground truncate">
+          Dernière session terminée {formatRelative(m.lastCompletedAt)}
+          {m.lastCompletedTitle ? ` · ${m.lastCompletedTitle}` : ''}
+          {m.lastCompletedEquipment ? ` · ${m.lastCompletedEquipment}` : ''}
+        </p>
+      ) : (
+        <p className="text-[11px] text-muted-foreground truncate">
+          Dernière activité {formatRelative(m.lastActivity)}
         </p>
       )}
+      <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+        {m.todayTaskCount > 0 && (
+          <span className="text-[10px] text-muted-foreground inline-flex items-center gap-1">
+            <ClipboardList className="h-3 w-3" />
+            {m.todayTaskCount} tâche{m.todayTaskCount > 1 ? 's' : ''} aujourd'hui
+          </span>
+        )}
+        {m.completedWeekCount > 0 && (
+          <span className="text-[10px] text-muted-foreground inline-flex items-center gap-1">
+            <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+            {m.completedTodayCount > 0
+              ? `${m.completedTodayCount} terminée${m.completedTodayCount > 1 ? 's' : ''} aujourd'hui`
+              : `${m.completedWeekCount} cette semaine`}
+            {m.completedTotalMinutes > 0 ? ` · ${formatMinutes(m.completedTotalMinutes)}` : ''}
+          </span>
+        )}
+      </div>
     </div>
     {m.isActive && m.shiftStart && (
       <div className="flex items-center gap-1 text-xs font-medium text-emerald-600 shrink-0 whitespace-nowrap">
