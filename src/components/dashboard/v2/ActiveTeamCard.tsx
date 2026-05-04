@@ -87,7 +87,7 @@ export const ActiveTeamCard: React.FC<Props> = ({ team, loading, limit = 5 }) =>
                   <AvatarFallback className="text-xs">{initials(myMember.name)}</AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1 overflow-hidden">
-                  <p className="text-sm font-medium line-clamp-1">Ma session · {myMember.name}</p>
+                  <p className="text-sm font-medium line-clamp-1">Ma session</p>
                   <p className="text-[11px] text-muted-foreground truncate">
                     {myMember.title || 'Session active'}
                     {myMember.equipmentName ? ` · ${myMember.equipmentName}` : ''}
