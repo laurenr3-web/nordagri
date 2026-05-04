@@ -23,7 +23,7 @@ interface TaskTimeControlsProps {
  *  → on affiche uniquement [Reprendre] (pas d'[Arrêter] qui n'aurait rien à arrêter).
  */
 export function TaskTimeControls({ task, userId, variant = 'card', className }: TaskTimeControlsProps) {
-  const { data: stats } = useTaskTimeStats(task.id);
+  const { data: stats, isLoading: statsLoading } = useTaskTimeStats(task.id);
   const { start, resume, pause, complete, unblock } = usePlanningTimeMutations();
 
   if (task.status === 'done') return null;
@@ -31,8 +31,6 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
 
   const hasActive = stats?.hasActive === true;
   const isOwnerOfActive = hasActive && stats?.activeUserId === userId;
-  const lastUserId = stats?.lastUserId ?? null;
-  const isLastUser = lastUserId === userId;
   const isLoadingMutation =
     start.isPending || resume.isPending || pause.isPending || complete.isPending || unblock.isPending;
 
@@ -106,7 +104,38 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
 
   // ── in_progress ────────────────────────────────────────────
   if (task.status === 'in_progress') {
-    // Edge case : statut in_progress mais aucune session active → uniquement Reprendre
+    // Pendant le chargement des stats, on ne sait pas encore si c'est nous qui
+    // tenons la session — on affiche Pause/Terminer (vue propriétaire) plutôt
+    // qu'un Reprendre qui jetterait ERR_USER_SESSION_ACTIVE.
+    if (statsLoading) {
+      return (
+        <div className={cn('flex justify-end gap-2', className)} onClick={stop}>
+          <Button
+            size="sm"
+            variant="secondary"
+            className={cn('gap-1.5 px-3', btnSize)}
+            disabled={isLoadingMutation}
+            onClick={() => pause.mutate({ taskId: task.id })}
+          >
+            <Pause className="h-3.5 w-3.5" />
+            Pause
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className={cn('gap-1.5 px-3', btnSize)}
+            disabled={isLoadingMutation}
+            onClick={() => complete.mutate({ taskId: task.id })}
+          >
+            <Check className="h-3.5 w-3.5" />
+            Terminer
+          </Button>
+        </div>
+      );
+    }
+
+    // Edge case : statut in_progress mais aucune session active → ouvert à tous
+    // (Reprendre démarre une nouvelle session ; Terminer clôture sans session).
     if (!hasActive) {
       // Pas de session active → assimilable à en pause : ouvert à tous.
       return (
