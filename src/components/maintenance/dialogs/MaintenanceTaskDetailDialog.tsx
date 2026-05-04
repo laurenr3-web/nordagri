@@ -1,12 +1,19 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Calendar, User, Wrench, AlertTriangle, Gauge, CheckCircle } from 'lucide-react';
+import { Clock, Calendar, User, Wrench, AlertTriangle, Gauge, CheckCircle, Save } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarPicker } from '@/components/ui/calendar';
 import { maintenanceService } from '@/services/supabase/maintenanceService';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import MaintenanceCompletionForm from '@/components/maintenance/forms/MaintenanceCompletionForm';
 
@@ -21,11 +28,35 @@ interface MaintenanceTaskDetailDialogProps {
 const MaintenanceTaskDetailDialog: React.FC<MaintenanceTaskDetailDialogProps> = ({ isOpen, onClose, task, onCompleted, headerBadge }) => {
   const [showCompletionForm, setShowCompletionForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [localTitle, setLocalTitle] = useState('');
+  const [localNotes, setLocalNotes] = useState('');
+  const [localPriority, setLocalPriority] = useState('medium');
+  const [localAssignedTo, setLocalAssignedTo] = useState('');
+  const [localDueDate, setLocalDueDate] = useState<Date | null>(null);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
   const { toast } = useToast();
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (task && isOpen) {
+      setLocalTitle(task.title ?? '');
+      setLocalNotes(task.notes ?? '');
+      setLocalPriority(task.priority ?? 'medium');
+      setLocalAssignedTo(task.assignedTo ?? '');
+      setLocalDueDate(task.dueDate ? new Date(task.dueDate) : null);
+    }
+  }, [task, isOpen]);
 
   if (!task) return null;
 
-  const dueDate = new Date(task.dueDate);
+  const dueDate = localDueDate ?? new Date(task.dueDate);
+  const hasChanges =
+    localTitle.trim() !== (task.title ?? '') ||
+    localNotes !== (task.notes ?? '') ||
+    localPriority !== (task.priority ?? 'medium') ||
+    localAssignedTo !== (task.assignedTo ?? '') ||
+    (localDueDate && new Date(task.dueDate).getTime() !== localDueDate.getTime());
   const triggerUnit = task.trigger_unit || 'none';
   const rawTriggerHours = task.triggerHours ?? task.trigger_hours;
   const rawTriggerKilometers = task.triggerKilometers ?? task.trigger_kilometers;
@@ -98,6 +129,35 @@ const MaintenanceTaskDetailDialog: React.FC<MaintenanceTaskDetailDialogProps> = 
     }
   };
 
+  const handleSave = async () => {
+    if (!localTitle.trim()) {
+      toast({ title: 'Titre requis', variant: 'destructive' });
+      return;
+    }
+    try {
+      setIsSaving(true);
+      const { error } = await supabase
+        .from('maintenance_tasks')
+        .update({
+          title: localTitle.trim(),
+          notes: localNotes,
+          priority: localPriority,
+          assigned_to: localAssignedTo || null,
+          due_date: (localDueDate ?? new Date(task.dueDate)).toISOString(),
+        })
+        .eq('id', task.id);
+      if (error) throw error;
+      toast({ title: 'Modifications enregistrées' });
+      qc.invalidateQueries({ queryKey: ['maintenanceTasks'] });
+      qc.invalidateQueries({ queryKey: ['firstAction'] });
+      qc.invalidateQueries({ queryKey: ['firstAction', 'maintenance'] });
+    } catch (e: any) {
+      toast({ title: 'Erreur', description: e.message, variant: 'destructive' });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleDialogClose = (open: boolean) => {
     if (!open) {
       setShowCompletionForm(false);
@@ -127,6 +187,12 @@ const MaintenanceTaskDetailDialog: React.FC<MaintenanceTaskDetailDialogProps> = 
           />
         ) : (
           <div className="space-y-4">
+            {/* Editable title */}
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Titre</label>
+              <Input value={localTitle} onChange={(e) => setLocalTitle(e.target.value)} />
+            </div>
+
             {/* Status & Priority */}
             <div className="flex items-center gap-2 flex-wrap">
               <Badge variant={status.variant}>{status.label}</Badge>
@@ -136,9 +202,18 @@ const MaintenanceTaskDetailDialog: React.FC<MaintenanceTaskDetailDialogProps> = 
                   En retard
                 </Badge>
               )}
-              <span className={`text-sm font-medium ${priority.className}`}>
-                Priorité: {priority.label}
-              </span>
+              <Select value={localPriority} onValueChange={setLocalPriority}>
+                <SelectTrigger className="h-8 w-auto gap-1 text-xs px-2">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Basse</SelectItem>
+                  <SelectItem value="medium">Moyenne</SelectItem>
+                  <SelectItem value="high">Haute</SelectItem>
+                  <SelectItem value="urgent">Urgente</SelectItem>
+                  <SelectItem value="critical">Critique</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Info rows */}
@@ -167,11 +242,33 @@ const MaintenanceTaskDetailDialog: React.FC<MaintenanceTaskDetailDialogProps> = 
               ) : (
                 <div className="flex items-center gap-3">
                   <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <div>
+                  <div className="flex-1">
                     <p className="text-xs text-muted-foreground">Échéance</p>
-                    <p className={`text-sm font-medium ${isOverdue ? 'text-destructive' : ''}`}>
-                      {format(dueDate, 'd MMMM yyyy', { locale: fr })}
-                    </p>
+                    <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className={`h-auto p-0 text-sm font-medium ${isOverdue ? 'text-destructive' : ''}`}
+                        >
+                          {format(dueDate, 'd MMMM yyyy', { locale: fr })}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarPicker
+                          mode="single"
+                          selected={dueDate}
+                          onSelect={(d) => {
+                            if (d) {
+                              setLocalDueDate(d);
+                              setDatePickerOpen(false);
+                            }
+                          }}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 </div>
               )}
@@ -187,30 +284,44 @@ const MaintenanceTaskDetailDialog: React.FC<MaintenanceTaskDetailDialogProps> = 
               )}
 
 
-              {task.assignedTo && (
-                <div className="flex items-center gap-3">
-                  <User className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Assignée à</p>
-                    <p className="text-sm font-medium">{task.assignedTo}</p>
-                  </div>
+              <div className="flex items-center gap-3">
+                <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                <div className="flex-1">
+                  <p className="text-xs text-muted-foreground">Assignée à</p>
+                  <Input
+                    value={localAssignedTo}
+                    onChange={(e) => setLocalAssignedTo(e.target.value)}
+                    placeholder="Nom du technicien"
+                    className="h-8 text-sm"
+                  />
                 </div>
-              )}
+              </div>
 
             </div>
 
             {/* Notes */}
-            {task.notes && (
-              <div className="rounded-lg border p-3">
-                <p className="text-xs text-muted-foreground mb-1">Notes</p>
-                <p className="text-sm">{task.notes}</p>
-              </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Notes</label>
+              <Textarea
+                value={localNotes}
+                onChange={(e) => setLocalNotes(e.target.value)}
+                rows={3}
+                placeholder="Aucune note"
+                className="text-sm resize-none"
+              />
+            </div>
+
+            {hasChanges && (
+              <Button onClick={handleSave} disabled={isSaving} className="w-full gap-2" variant="default">
+                <Save className="h-4 w-4" /> {isSaving ? 'Enregistrement…' : 'Enregistrer'}
+              </Button>
             )}
 
             {/* Complete button */}
             {task.status !== 'completed' && (
               <Button
                 onClick={() => setShowCompletionForm(true)}
+                variant="outline"
                 className="w-full flex items-center gap-2"
               >
                 <CheckCircle className="h-4 w-4" />
