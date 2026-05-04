@@ -34,6 +34,19 @@ export function PlanningContent() {
   const { farmId } = useFarmId();
   const { user } = useAuthContext();
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = ['today', 'tomorrow', 'week', 'completed'].includes(searchParams.get('tab') || '')
+    ? (searchParams.get('tab') as string)
+    : 'today';
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
+  const handleTabChange = (v: string) => {
+    setActiveTab(v);
+    const next = new URLSearchParams(searchParams);
+    if (v === 'today') next.delete('tab');
+    else next.set('tab', v);
+    setSearchParams(next, { replace: true });
+  };
+
   const todayStr = getDateStr(0);
   const tomorrowStr = getDateStr(1);
 
@@ -154,7 +167,7 @@ export function PlanningContent() {
       {viewMode === 'employee' ? (
         <EmployeeView farmId={farmId} teamMembers={teamMembers as any[]} />
       ) : (
-        <Tabs defaultValue="today" className="w-full">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid grid-cols-4 w-full h-11">
             <TabsTrigger value="today" className="text-xs sm:text-sm font-medium px-1">Aujourd'hui</TabsTrigger>
             <TabsTrigger value="tomorrow" className="text-xs sm:text-sm font-medium px-1">Demain</TabsTrigger>
