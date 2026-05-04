@@ -32,6 +32,7 @@ export interface TaskTimeStats {
   activeSessionId: string | null;
   activeStartTime: string | null;
   activeUserId: string | null;
+  lastUserId: string | null;
 }
 
 interface RawSessionRow {
@@ -97,6 +98,8 @@ export const planningTimeService = {
         activeUser = s.user_id;
       }
     }
+    // sessions sont triées start_time DESC → la première est la plus récente
+    const lastUser = sessions.length > 0 ? sessions[0].user_id : null;
     return {
       totalSeconds: Math.floor(totalMs / 1000),
       sessionCount: sessions.length,
@@ -104,6 +107,7 @@ export const planningTimeService = {
       activeSessionId: activeId,
       activeStartTime: activeStart,
       activeUserId: activeUser,
+      lastUserId: lastUser,
     };
   },
 
