@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { useCategoryImportance } from './useCategoryImportance';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { todayLocal, localDateStr } from '@/lib/dateLocal';
+import { supabase } from '@/integrations/supabase/client';
 
 
 /** Check if a recurring task should appear on a given date */
@@ -194,6 +195,26 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: PlanningStatus }) => {
       const task = tasks.find(t => t.id === id);
+      // Garde-fou : seul le membre qui a démarré le suivi de temps peut clôturer
+      // une tâche en pause / in_progress (sinon n'importe qui pourrait swiper-terminer).
+      if (
+        status === 'done' &&
+        task &&
+        !task.is_recurring &&
+        (task.status === 'paused' || task.status === 'in_progress') &&
+        user
+      ) {
+        const { data: lastSession } = await supabase
+          .from('time_sessions')
+          .select('user_id')
+          .eq('task_id', id)
+          .order('start_time', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (lastSession?.user_id && lastSession.user_id !== user.id) {
+          throw new Error('Seul le membre qui a démarré cette tâche peut la terminer.');
+        }
+      }
       if (task?.is_recurring && task._occurrence_date && user) {
         if (status === 'done') {
           await planningService.markRecurringComplete(id, task._occurrence_date, user.id);
