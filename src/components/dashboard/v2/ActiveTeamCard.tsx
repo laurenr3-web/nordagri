@@ -139,19 +139,17 @@ export const ActiveTeamCard: React.FC<Props> = ({ team, loading, limit = 5 }) =>
       )}
       {!loading && team.length > 0 && (
         <div className="flex items-center justify-between gap-2 px-4 py-2.5 border-t border-blue-200/60 dark:border-blue-900/40 bg-white/70 dark:bg-background/40 min-w-0">
+          <span className={`text-xs text-muted-foreground inline-flex items-center gap-1 min-w-0 truncate ${myMember ? '' : 'invisible'}`}>
+            <Timer className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">Ma session</span>
+          </span>
           {myMember ? (
-            <>
-              <span className="text-xs text-muted-foreground inline-flex items-center gap-1 min-w-0 truncate">
-                <Timer className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">Ma session</span>
-              </span>
-              <Button size="sm" variant="destructive" className="h-7 px-2.5 shrink-0" disabled={punchOutDisabled} onClick={onPunchOut}>
-                <Square className="mr-1 h-3 w-3" />
-                Terminer
-              </Button>
-            </>
+            <Button key="punch-out" size="sm" variant="destructive" className="h-7 px-2.5 shrink-0" disabled={punchOutDisabled} onClick={onPunchOut}>
+              <Square className="mr-1 h-3 w-3" />
+              Terminer
+            </Button>
           ) : (
-            <Button size="sm" variant="default" className="h-7 px-2.5 ml-auto" disabled={punchInDisabled} onClick={onPunchIn}>
+            <Button key="punch-in" size="sm" variant="default" className="h-7 px-2.5 shrink-0" disabled={punchInDisabled} onClick={onPunchIn}>
               <Play className="mr-1 h-3 w-3" />
               Démarrer mon temps
             </Button>
