@@ -18,6 +18,13 @@ export interface FirstAction {
   equipmentId?: string | number | null;
 }
 
+const INACTIVE_STATUSES = new Set([
+  'done', 'completed', 'resolved', 'cancelled', 'canceled', 'archived',
+  'terminé', 'termine', 'annulé', 'annule',
+]);
+
+const isInactive = (s: any) => INACTIVE_STATUSES.has(String(s ?? '').toLowerCase());
+
 export function useFirstAction(farmId: string | null) {
   const todayStr = todayLocal();
 
@@ -28,11 +35,11 @@ export function useFirstAction(farmId: string | null) {
     queryFn: async () => {
       const { data } = await supabase
         .from('maintenance_tasks')
-        .select('id, title, due_date, priority, equipment_id, equipment, status, equipment_ref:equipment_id(farm_id)')
+        .select('id, title, due_date, priority, equipment_id, equipment, status, updated_at, created_at, equipment_ref:equipment_id(farm_id)')
         .neq('status', 'completed')
         .order('due_date', { ascending: true })
         .limit(20);
-      return (data ?? []).filter((t: any) => t.equipment_ref?.farm_id === farmId);
+      return (data ?? []).filter((t: any) => t.equipment_ref?.farm_id === farmId && !isInactive(t.status));
     },
   });
 
@@ -60,12 +67,11 @@ export function useFirstAction(farmId: string | null) {
     queryFn: async () => {
       const { data } = await supabase
         .from('planning_tasks')
-        .select('id, title, category, due_date, manual_priority, computed_priority, status')
+        .select('id, title, category, due_date, manual_priority, computed_priority, status, created_at, updated_at')
         .eq('farm_id', farmId!)
         .neq('status', 'done')
-        .order('due_date', { ascending: true })
-        .limit(30);
-      return data ?? [];
+        .limit(100);
+      return (data ?? []).filter((t: any) => !isInactive(t.status));
     },
   });
 
@@ -73,117 +79,136 @@ export function useFirstAction(farmId: string | null) {
     const today = new Date(todayStr);
     today.setHours(0, 0, 0, 0);
 
-    // 1) Maintenance overdue (due_date < today)
-    const overdue = (maintenance ?? []).find((m: any) => {
-      if (!m.due_date) return false;
-      return new Date(m.due_date) < today;
-    });
-    if (overdue) {
-      return {
-        id: `maintenance-${overdue.id}`,
-        source: 'maintenance',
-        sourceId: overdue.id,
-        title: overdue.title,
-        subtitle: overdue.equipment ?? null,
-        priority: 'critical',
-        dueDate: overdue.due_date,
-        ctaLabel: 'Traiter la maintenance',
-        ctaPath: '/maintenance',
-        equipmentId: overdue.equipment_id ?? null,
-      };
+    type Candidate = {
+      score: number;
+      dateKey: string;
+      updatedKey: string;
+      action: FirstAction;
+    };
+
+    const candidates: Candidate[] = [];
+
+    const getPlanningPrio = (t: any): string | null => {
+      // manual override > explicit priority field > computed
+      return t.manual_priority ?? (t as any).priority ?? t.computed_priority ?? null;
+    };
+
+    // Planning tasks
+    for (const t of planning ?? []) {
+      const prio = getPlanningPrio(t);
+      const status = String(t.status ?? '').toLowerCase();
+      const blocked = status === 'blocked' || status === 'bloqué' || status === 'bloque';
+      const inProgress = status === 'in_progress' || status === 'en cours';
+      const dueStr = t.due_date as string | null;
+      const isOverdue = !!dueStr && dueStr < todayStr;
+      const isToday = dueStr === todayStr;
+
+      let score = 0;
+      let mapped: FirstActionPriority = 'normal';
+
+      if (prio === 'critical') {
+        // Tâche critique non terminée (rule 1) — highest. Blocked critical even higher (rule 2).
+        score = blocked ? 110 : 100;
+        mapped = 'critical';
+      } else if (blocked && prio === 'important') {
+        score = 95; // bloquée critique/importante (rule 2)
+        mapped = 'important';
+      } else if (prio === 'important') {
+        score = 50; // rule 6
+        mapped = 'important';
+      } else if (inProgress) {
+        score = 40; // rule 7
+        mapped = 'normal';
+      } else if (isToday) {
+        score = 25; // rule 9
+        mapped = 'normal';
+      } else if (isOverdue) {
+        score = 22;
+        mapped = 'normal';
+      } else {
+        score = 5; // rule 10 — autre tâche non terminée
+        mapped = 'normal';
+      }
+
+      // Slight boost for overdue items within same priority bucket
+      if (isOverdue && prio !== 'critical') score += 1;
+
+      candidates.push({
+        score,
+        dateKey: dueStr ?? '9999-99-99',
+        updatedKey: String(t.updated_at ?? t.created_at ?? ''),
+        action: {
+          id: `planning-${t.id}`,
+          source: 'planning',
+          sourceId: t.id,
+          title: t.title,
+          subtitle: t.category,
+          priority: mapped,
+          dueDate: dueStr,
+          ctaLabel: 'Ouvrir la tâche',
+          ctaPath: '/planning',
+        },
+      });
     }
 
-    // 2) Critical point
-    const critPoint = (points ?? [])[0];
-    if (critPoint) {
-      return {
-        id: `point-${critPoint.id}`,
-        source: 'point',
-        sourceId: critPoint.id,
-        title: critPoint.title,
-        subtitle: critPoint.entity_label,
-        priority: 'critical',
-        ctaLabel: 'Voir le point',
-        ctaPath: '/points',
-      };
-    }
-
-    // 3) Planning critical task today/overdue
-    const planningCritical = (planning ?? []).find((t: any) => {
-      const prio = t.manual_priority ?? t.computed_priority;
-      return prio === 'critical' && t.due_date <= todayStr;
-    });
-    if (planningCritical) {
-      return {
-        id: `planning-${planningCritical.id}`,
-        source: 'planning',
-        sourceId: planningCritical.id,
-        title: planningCritical.title,
-        subtitle: planningCritical.category,
-        priority: 'critical',
-        dueDate: planningCritical.due_date,
-        ctaLabel: 'Ouvrir la tâche',
-        ctaPath: '/planning',
-      };
-    }
-
-    // 4) Maintenance due today
-    const dueToday = (maintenance ?? []).find((m: any) => {
-      if (!m.due_date) return false;
+    // Maintenance overdue / due today (rules 3 & 8)
+    for (const m of maintenance ?? []) {
+      if (!m.due_date) continue;
       const d = new Date(m.due_date);
+      if (isNaN(d.getTime())) continue;
       d.setHours(0, 0, 0, 0);
-      return d.getTime() === today.getTime();
+      const overdue = d.getTime() < today.getTime();
+      const dueToday = d.getTime() === today.getTime();
+      if (!overdue && !dueToday) continue;
+
+      const score = overdue ? 90 : 30; // rule 3 (overdue maintenance), rule 8 (due today)
+      candidates.push({
+        score,
+        dateKey: String(m.due_date).slice(0, 10),
+        updatedKey: String(m.updated_at ?? m.created_at ?? ''),
+        action: {
+          id: `maintenance-${m.id}`,
+          source: 'maintenance',
+          sourceId: m.id,
+          title: m.title,
+          subtitle: m.equipment ?? null,
+          priority: overdue ? 'critical' : 'important',
+          dueDate: m.due_date,
+          ctaLabel: overdue ? 'Traiter la maintenance' : 'Voir la maintenance',
+          ctaPath: '/maintenance',
+          equipmentId: m.equipment_id ?? null,
+        },
+      });
+    }
+
+    // Critical point (rule 4)
+    for (const p of points ?? []) {
+      candidates.push({
+        score: 80,
+        dateKey: todayStr,
+        updatedKey: '',
+        action: {
+          id: `point-${p.id}`,
+          source: 'point',
+          sourceId: p.id,
+          title: p.title,
+          subtitle: p.entity_label,
+          priority: 'critical',
+          ctaLabel: 'Voir le point',
+          ctaPath: '/points',
+        },
+      });
+    }
+
+    if (candidates.length === 0) return null;
+
+    candidates.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      if (a.dateKey !== b.dateKey) return a.dateKey.localeCompare(b.dateKey);
+      // most recently updated wins as tiebreaker
+      return b.updatedKey.localeCompare(a.updatedKey);
     });
-    if (dueToday) {
-      return {
-        id: `maintenance-${dueToday.id}`,
-        source: 'maintenance',
-        sourceId: dueToday.id,
-        title: dueToday.title,
-        subtitle: dueToday.equipment ?? null,
-        priority: 'important',
-        dueDate: dueToday.due_date,
-        ctaLabel: 'Voir la maintenance',
-        ctaPath: '/maintenance',
-        equipmentId: dueToday.equipment_id ?? null,
-      };
-    }
 
-    // 5) Important planning today
-    const planningImportant = (planning ?? []).find((t: any) => {
-      const prio = t.manual_priority ?? t.computed_priority;
-      return prio === 'important' && t.due_date <= todayStr;
-    });
-    if (planningImportant) {
-      return {
-        id: `planning-${planningImportant.id}`,
-        source: 'planning',
-        sourceId: planningImportant.id,
-        title: planningImportant.title,
-        subtitle: planningImportant.category,
-        priority: 'important',
-        dueDate: planningImportant.due_date,
-        ctaLabel: 'Ouvrir la tâche',
-        ctaPath: '/planning',
-      };
-    }
-
-    // 6) Any planning today
-    const todayTask = (planning ?? []).find((t: any) => t.due_date <= todayStr);
-    if (todayTask) {
-      return {
-        id: `planning-${todayTask.id}`,
-        source: 'planning',
-        sourceId: todayTask.id,
-        title: todayTask.title,
-        subtitle: todayTask.category,
-        priority: 'normal',
-        dueDate: todayTask.due_date,
-        ctaLabel: 'Ouvrir la tâche',
-        ctaPath: '/planning',
-      };
-    }
-
-    return null;
+    return candidates[0].action;
   }, [maintenance, points, planning, todayStr]);
 }
