@@ -7,6 +7,7 @@ import { TeamSection } from '@/components/time-tracking/team/TeamSection';
 import { HistoryTab } from './HistoryTab';
 import { TimeEntry, ActiveTimeEntry } from '@/hooks/time-tracking/types';
 import { QuickStartChoice } from './QuickStartGrid';
+import { buildTabUrl } from '@/config/tabRoutes';
 
 interface TimeTrackingTabsProps {
   activeTab: string;
@@ -74,7 +75,7 @@ export function TimeTrackingTabs(props: TimeTrackingTabsProps) {
           onQuickStart={props.onQuickStart}
           onSeeTeam={() => onTabChange('team')}
           onSeeHistory={() => onTabChange('history')}
-          onSeeReports={() => navigate('/time-tracking/statistics?tab=time')}
+          onSeeReports={() => navigate(buildTabUrl('timeStatistics', 'time'))}
         />
       </TabsContent>
 
