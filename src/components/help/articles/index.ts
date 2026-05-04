@@ -30,7 +30,7 @@ export const helpArticles: Record<string, HelpArticle> = {
     readTime: 5,
     keywords: ['démarrage', 'commencer', 'débuter', 'tour', 'guide', 'nouveau', 'ferme', 'premier'],
     tags: ['Démarrage', 'Guide', 'Nouveau'],
-    content: quickStart,,
+    content: quickStart,
     cta: { label: 'Aller au tableau de bord', path: '/dashboard' }
   },
   'dashboard-overview': {
@@ -40,7 +40,7 @@ export const helpArticles: Record<string, HelpArticle> = {
     readTime: 3,
     keywords: ['dashboard', 'tableau', 'bord', 'accueil', 'travail', 'jour', 'semaine', 'statistiques'],
     tags: ['Dashboard', 'Quotidien', 'Vue ensemble'],
-    content: dashboardOverview,,
+    content: dashboardOverview,
     cta: { label: 'Aller au tableau de bord', path: '/dashboard' }
   },
   'how-to-scan-qr': {
@@ -50,7 +50,7 @@ export const helpArticles: Record<string, HelpArticle> = {
     readTime: 3,
     keywords: ['QR', 'code', 'scan', 'scanner', 'caméra', 'équipement', 'fiche'],
     tags: ['Scan', 'QR', 'Équipement'],
-    content: howToScanQr,,
+    content: howToScanQr,
     cta: { label: 'Ouvrir le scanner', path: '/scan' }
   },
   'notifications-overview': {
@@ -60,7 +60,7 @@ export const helpArticles: Record<string, HelpArticle> = {
     readTime: 3,
     keywords: ['notification', 'alerte', 'cloche', 'mail', 'courriel', 'maintenance', 'tâche'],
     tags: ['Notifications', 'Alertes'],
-    content: notificationsOverview,,
+    content: notificationsOverview,
     cta: { label: 'Régler les notifications', path: '/settings?tab=notifications' }
   },
   'statistics-overview': {
@@ -70,7 +70,7 @@ export const helpArticles: Record<string, HelpArticle> = {
     readTime: 4,
     keywords: ['statistique', 'rapport', 'temps', 'membre', 'performance', 'kpi', 'période'],
     tags: ['Statistiques', 'Temps', 'Rapport'],
-    content: statisticsOverview,,
+    content: statisticsOverview,
     cta: { label: 'Voir les statistiques', path: '/time-tracking/statistics?tab=time' }
   },
   'settings-overview': {
@@ -80,7 +80,7 @@ export const helpArticles: Record<string, HelpArticle> = {
     readTime: 3,
     keywords: ['paramètre', 'setting', 'profil', 'ferme', 'sécurité', 'mot de passe', 'abonnement', 'déconnexion'],
     tags: ['Paramètres', 'Compte'],
-    content: settingsOverview,,
+    content: settingsOverview,
     cta: { label: 'Ouvrir les paramètres', path: '/settings' }
   },
   'troubleshooting-common': {
@@ -90,7 +90,7 @@ export const helpArticles: Record<string, HelpArticle> = {
     readTime: 5,
     keywords: ['problème', 'bug', 'erreur', '404', 'sync', 'hors ligne', 'données', 'manquant', 'PWA', 'dépannage'],
     tags: ['Dépannage', 'Erreurs', 'Aide'],
-    content: troubleshootingCommon,,
+    content: troubleshootingCommon,
     cta: { label: 'Aller au tableau de bord', path: '/dashboard' }
   },
   'equipment-organize': {
