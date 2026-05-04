@@ -32,6 +32,9 @@ export function usePullToRefresh({ onRefresh, threshold = 80, disabled = false }
   const startY = useRef<number | null>(null);
   const refreshingRef = useRef(false);
   const activeRef = useRef(false);
+  const distanceRef = useRef(0);
+  const onRefreshRef = useRef(onRefresh);
+  useEffect(() => { onRefreshRef.current = onRefresh; }, [onRefresh]);
 
   const reset = useCallback(() => {
     startY.current = null;
@@ -59,7 +62,10 @@ export function usePullToRefresh({ onRefresh, threshold = 80, disabled = false }
       if (refreshingRef.current) return;
       const dy = e.touches[0].clientY - startY.current;
       if (dy <= 0) {
-        if (distance !== 0) setDistance(0);
+        if (distanceRef.current !== 0) {
+          distanceRef.current = 0;
+          setDistance(0);
+        }
         return;
       }
       if (window.scrollY > 0) {
@@ -69,6 +75,7 @@ export function usePullToRefresh({ onRefresh, threshold = 80, disabled = false }
       }
       // Resistance curve
       const pulled = Math.min(dy * 0.5, threshold * 1.6);
+      distanceRef.current = pulled;
       setDistance(pulled);
       setState(pulled >= threshold ? 'ready' : 'pulling');
     };
@@ -82,28 +89,26 @@ export function usePullToRefresh({ onRefresh, threshold = 80, disabled = false }
         refreshingRef.current = true;
         setState('refreshing');
         setDistance(threshold);
+        distanceRef.current = threshold;
         try {
-          await onRefresh();
+          await onRefreshRef.current();
           setState('done');
         } catch {
           setState('done');
         } finally {
           setTimeout(() => {
             refreshingRef.current = false;
+            distanceRef.current = 0;
             setDistance(0);
             setState('idle');
           }, 700);
         }
       } else {
+        distanceRef.current = 0;
         setDistance(0);
         setState('idle');
       }
     };
-
-    // Track latest distance via ref to read in touchend
-    const distanceRef = { current: 0 };
-    const sync = () => { distanceRef.current = distance; };
-    sync();
 
     window.addEventListener('touchstart', onTouchStart, { passive: true });
     window.addEventListener('touchmove', onTouchMove, { passive: true });
@@ -115,7 +120,7 @@ export function usePullToRefresh({ onRefresh, threshold = 80, disabled = false }
       window.removeEventListener('touchend', onTouchEnd);
       window.removeEventListener('touchcancel', onTouchEnd);
     };
-  }, [disabled, threshold, onRefresh, distance, reset]);
+  }, [disabled, threshold, reset]);
 
   return { state, distance, threshold, isRefreshing: state === 'refreshing' };
 }
