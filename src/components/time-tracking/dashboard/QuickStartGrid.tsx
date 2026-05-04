@@ -36,7 +36,7 @@ export function QuickStartGrid({ onPick, onCustom }: QuickStartGridProps) {
           <h3 className="text-sm font-semibold">Démarrer une session</h3>
           <p className="text-xs text-muted-foreground mt-0.5">Choisissez un type de travail</p>
         </div>
-        <div className="grid grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           {SHORTCUTS.map((s) => {
             const Icon = s.icon;
             return (
@@ -44,12 +44,12 @@ export function QuickStartGrid({ onPick, onCustom }: QuickStartGridProps) {
                 key={s.label}
                 type="button"
                 onClick={() => onPick(s.choice)}
-                className="group flex flex-col items-center gap-1.5 rounded-xl border bg-card p-3 hover:border-primary/40 hover:bg-primary/5 transition-colors min-h-[80px]"
+                className="group flex flex-col items-center justify-center gap-2 rounded-xl border bg-card p-3 hover:border-primary/40 hover:bg-primary/5 transition-colors min-h-[96px] min-w-0 text-center"
               >
                 <span className={`inline-flex h-9 w-9 items-center justify-center rounded-lg ${s.bg} ${s.fg} shrink-0`}>
                   <Icon className="h-4 w-4" />
                 </span>
-                <span className="text-[11px] sm:text-xs font-medium text-center leading-tight">
+                <span className="text-xs font-medium leading-tight line-clamp-2 break-words max-w-full">
                   {s.label}
                 </span>
               </button>
