@@ -185,6 +185,7 @@ export function usePlanningTasks(farmId: string | null, startDate?: string, endD
       queryClient.invalidateQueries({ queryKey: ['planningTasks'] });
       queryClient.invalidateQueries({ queryKey: ['planningRecurring'] });
       queryClient.invalidateQueries({ queryKey: ['planningOverdue'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-v2'] });
       toast.success('Tâche ajoutée');
     },
     onError: (e: any) => toast.error(e.message),
