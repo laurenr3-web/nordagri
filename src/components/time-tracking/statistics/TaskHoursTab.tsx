@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Clock, ListChecks, Users, Activity, Wrench } from 'lucide-react';
 import { useFarmId } from '@/hooks/useFarmId';
-import { useTaskHoursLast7Days } from '@/hooks/time-tracking/useTaskHoursLast7Days';
+import { useTaskHoursLast7Days, type TaskHoursRange } from '@/hooks/time-tracking/useTaskHoursLast7Days';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -19,9 +19,17 @@ function formatHours(h: number) {
   return `${hh} h ${mm.toString().padStart(2, '0')}`;
 }
 
+const RANGE_LABELS: Record<TaskHoursRange, { short: string; long: string }> = {
+  today: { short: "Aujourd'hui", long: "Aujourd'hui" },
+  '7d': { short: '7 j', long: '7 derniers jours' },
+  '30d': { short: '30 j', long: '30 derniers jours' },
+  all: { short: 'Tout', long: "Tout l'historique" },
+};
+
 const TaskHoursTab: React.FC = () => {
   const { farmId } = useFarmId();
-  const { data, isLoading } = useTaskHoursLast7Days(farmId);
+  const [range, setRange] = useState<TaskHoursRange>('7d');
+  const { data, isLoading } = useTaskHoursLast7Days(farmId, range);
   const [userFilter, setUserFilter] = useState<string>('all');
 
   const userOptions = useMemo(() => {
@@ -118,7 +126,7 @@ const TaskHoursTab: React.FC = () => {
   }
 
   const cards = [
-    { icon: Clock, label: 'Heures totales (7 j)', value: formatHours(summary.totalHours), tone: 'text-sky-700 bg-sky-100' },
+    { icon: Clock, label: `Heures totales (${RANGE_LABELS[range].short})`, value: formatHours(summary.totalHours), tone: 'text-sky-700 bg-sky-100' },
     { icon: ListChecks, label: 'Tâches suivies', value: summary.tasks, tone: 'text-emerald-700 bg-emerald-100' },
     { icon: Activity, label: 'Sessions', value: summary.totalSessions, tone: 'text-primary bg-primary/10' },
     { icon: Users, label: 'Employés actifs', value: summary.employees, tone: 'text-amber-700 bg-amber-100' },
@@ -144,28 +152,44 @@ const TaskHoursTab: React.FC = () => {
       </div>
 
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-xs text-muted-foreground">Filtrer par personne :</span>
-        <Select value={userFilter} onValueChange={setUserFilter}>
-          <SelectTrigger className="h-9 w-[220px]">
-            <SelectValue placeholder="Tous les employés" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tous les employés</SelectItem>
-            {userOptions.map(u => (
-              <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Période :</span>
+          <Select value={range} onValueChange={(v) => setRange(v as TaskHoursRange)}>
+            <SelectTrigger className="h-9 w-[170px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="today">Aujourd'hui</SelectItem>
+              <SelectItem value="7d">7 derniers jours</SelectItem>
+              <SelectItem value="30d">30 derniers jours</SelectItem>
+              <SelectItem value="all">Tout l'historique</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Personne :</span>
+          <Select value={userFilter} onValueChange={setUserFilter}>
+            <SelectTrigger className="h-9 w-[200px]">
+              <SelectValue placeholder="Tous les employés" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les employés</SelectItem>
+              {userOptions.map(u => (
+                <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Détail par tâche — 7 derniers jours</CardTitle>
+          <CardTitle className="text-base">Détail par tâche — {RANGE_LABELS[range].long}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {grouped.length === 0 ? (
             <div className="p-8 text-center text-sm text-muted-foreground">
-              Aucune heure suivie sur les 7 derniers jours.
+              Aucune heure suivie sur la période sélectionnée.
             </div>
           ) : (
             <ul className="divide-y">
