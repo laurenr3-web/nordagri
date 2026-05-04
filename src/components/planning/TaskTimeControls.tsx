@@ -31,6 +31,8 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
 
   const hasActive = stats?.hasActive === true;
   const isOwnerOfActive = hasActive && stats?.activeUserId === userId;
+  const lastUserId = stats?.lastUserId ?? null;
+  const isLastUser = lastUserId === userId;
   const isLoadingMutation =
     start.isPending || resume.isPending || pause.isPending || complete.isPending || unblock.isPending;
 
@@ -75,6 +77,16 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
 
   // ── paused ─────────────────────────────────────────────────
   if (task.status === 'paused') {
+    // Seul le dernier utilisateur ayant travaillé sur la tâche peut la reprendre.
+    if (lastUserId && !isLastUser) {
+      return (
+        <div className={cn('flex justify-end', className)} onClick={stop}>
+          <span className="text-[11px] text-muted-foreground italic">
+            En pause par un autre membre
+          </span>
+        </div>
+      );
+    }
     return (
       <div className={cn('flex justify-end gap-2', className)} onClick={stop}>
         <Button
@@ -95,6 +107,15 @@ export function TaskTimeControls({ task, userId, variant = 'card', className }: 
   if (task.status === 'in_progress') {
     // Edge case : statut in_progress mais aucune session active → uniquement Reprendre
     if (!hasActive) {
+      if (lastUserId && !isLastUser) {
+        return (
+          <div className={cn('flex justify-end', className)} onClick={stop}>
+            <span className="text-[11px] text-muted-foreground italic">
+              En cours par un autre membre
+            </span>
+          </div>
+        );
+      }
       return (
         <div className={cn('flex justify-end gap-2', className)} onClick={stop}>
           <Button
