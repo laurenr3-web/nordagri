@@ -404,41 +404,37 @@ const TimeTrackingStatisticsPage: React.FC = () => {
             <EmptyCard message="Aucun type de travail enregistré sur la période." />
           ) : (
             <div className="divide-y divide-border/60">
-              {typeRanking.map((t, i) => (
-                <RankRow
-                  key={`${t.name}-${i}`}
-                  leading={
-                    <span
-                      aria-hidden
-                      className="block h-2.5 w-2.5 rounded-full"
-                      style={{ backgroundColor: t.color || 'hsl(var(--primary))' }}
-                    />
-                  }
-                  title={t.name}
-                  value={formatHours(t.hours)}
-                  percent={t.percent}
-                  barClass=""
-                  // override bar color via inline style by wrapping below
-                />
-              )).map((node, idx) => {
-                // Inject inline color to the progress bar of each row.
-                const t = typeRanking[idx];
-                const child = node as React.ReactElement;
+              {typeRanking.map((t, i) => {
+                const color = t.color || 'hsl(var(--primary))';
                 return (
-                  <div key={`wrap-${idx}`}>
-                    {React.cloneElement(child, {}, ...React.Children.toArray((child.props as any).children).map((c: any) =>
-                      c?.props?.className?.includes?.('h-1.5') ? (
-                        <div key="bar" className="mt-2 h-1.5 w-full rounded-full bg-muted overflow-hidden">
-                          <div
-                            className="h-full rounded-full"
-                            style={{
-                              width: `${Math.max(2, Math.min(100, t.percent))}%`,
-                              backgroundColor: t.color || 'hsl(var(--primary))',
-                            }}
-                          />
-                        </div>
-                      ) : c
-                    ))}
+                  <div key={`${t.name}-${i}`} className="py-3 first:pt-0 last:pb-0">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span
+                        aria-hidden
+                        className="shrink-0 block h-2.5 w-2.5 rounded-full"
+                        style={{ backgroundColor: color }}
+                      />
+                      <p className="flex-1 min-w-0 text-sm font-medium text-foreground line-clamp-1">
+                        {t.name}
+                      </p>
+                      <div className="shrink-0 text-right">
+                        <p className="text-sm font-semibold text-foreground whitespace-nowrap">
+                          {formatHours(t.hours)}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground whitespace-nowrap">
+                          {t.percent.toFixed(0)}%
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-2 h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{
+                          width: `${Math.max(2, Math.min(100, t.percent))}%`,
+                          backgroundColor: color,
+                        }}
+                      />
+                    </div>
                   </div>
                 );
               })}
