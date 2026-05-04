@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Users } from 'lucide-react';
 import { useFarmId } from '@/hooks/useFarmId';
 import { useFarmTeamStatus } from '@/hooks/time-tracking/useFarmTeamStatus';
-import { formatHMRange } from '@/utils/timeFormat';
+import { formatHM, formatHMRange } from '@/utils/timeFormat';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -102,9 +102,7 @@ export function ActiveTeamCard({ maxMobile = 3, maxDesktop = 6, onSeeAll }: Acti
                 {active.length} membre{active.length > 1 ? 's' : ''} actif
                 {active.length > 1 ? 's' : ''}
               </span>
-              <span className="font-medium tabular-nums">
-                {formatHMRange(new Date(Date.now() - totalMs).toISOString())} total
-              </span>
+              <span className="font-medium tabular-nums">{formatHM(totalMs)} total</span>
             </div>
           </>
         )}
