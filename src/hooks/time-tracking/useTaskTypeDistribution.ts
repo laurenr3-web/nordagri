@@ -36,7 +36,23 @@ export function useTaskTypeDistribution(month: Date) {
         if (!sessionData.session?.user) return;
         
         const userId = sessionData.session.user.id;
-        
+
+        // Resolve all farm member user_ids so distribution covers the whole farm.
+        const memberIds = new Set<string>([userId]);
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('farm_id')
+          .eq('id', userId)
+          .maybeSingle();
+        if (profile?.farm_id) {
+          const { data: ownerRow } = await supabase
+            .from('farms').select('owner_id').eq('id', profile.farm_id).maybeSingle();
+          if (ownerRow?.owner_id) memberIds.add(ownerRow.owner_id);
+          const { data: members } = await supabase
+            .from('farm_members').select('user_id').eq('farm_id', profile.farm_id);
+          members?.forEach((m: any) => m.user_id && memberIds.add(m.user_id));
+        }
+
         // First, get all task types
         const { data: taskTypes } = await supabase
           .from('task_types')
@@ -48,7 +64,7 @@ export function useTaskTypeDistribution(month: Date) {
           taskTypeMap.set(type.id, type.name);
         });
         
-        // Get time entries with duration
+        // Get time entries with duration for every member of the farm.
         const { data, error } = await supabase
           .from('time_sessions')
           .select(`
@@ -58,9 +74,10 @@ export function useTaskTypeDistribution(month: Date) {
             start_time,
             end_time
           `)
-          .eq('user_id', userId)
+          .in('user_id', Array.from(memberIds))
           .gte('start_time', startDate.toISOString())
-          .lte('start_time', endDate.toISOString());
+          .lte('start_time', endDate.toISOString())
+          .not('end_time', 'is', null);
           
         if (error) throw error;
         
