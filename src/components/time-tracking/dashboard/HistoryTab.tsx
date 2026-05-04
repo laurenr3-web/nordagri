@@ -360,7 +360,9 @@ export function HistoryTab({
               <Card className="rounded-2xl overflow-hidden">
                 <ul className="divide-y" role="list">
                   {bucket.items.map((entry) => {
-                    const name = resolveMemberName(entry);
+                    const name =
+                      (entry.user_id && profileNames[entry.user_id]) ||
+                      resolveMemberName(entry);
                     const workTitle = resolveWorkTitle(entry);
                     const context = resolveContext(entry);
                     const startTime = format(new Date(entry.start_time), 'HH:mm', {
