@@ -6,6 +6,8 @@ interface Options {
   onRefresh: () => Promise<void> | void;
   threshold?: number;
   disabled?: boolean;
+  /** Minimum delay (ms) between two refreshes to prevent spam. */
+  cooldownMs?: number;
 }
 
 const isInteractiveTarget = (el: EventTarget | null): boolean => {
@@ -54,7 +56,7 @@ const hasOpenOverlay = (): boolean => {
   return false;
 };
 
-export function usePullToRefresh({ onRefresh, threshold = 80, disabled = false }: Options) {
+export function usePullToRefresh({ onRefresh, threshold = 80, disabled = false, cooldownMs = 1500 }: Options) {
   const [state, setState] = useState<PullState>('idle');
   const [distance, setDistance] = useState(0);
   const startY = useRef<number | null>(null);
@@ -63,6 +65,7 @@ export function usePullToRefresh({ onRefresh, threshold = 80, disabled = false }
   const refreshingRef = useRef(false);
   const activeRef = useRef(false);
   const distanceRef = useRef(0);
+  const lastRefreshAtRef = useRef(0);
   const onRefreshRef = useRef(onRefresh);
   useEffect(() => { onRefreshRef.current = onRefresh; }, [onRefresh]);
 
@@ -139,6 +142,16 @@ export function usePullToRefresh({ onRefresh, threshold = 80, disabled = false }
       startY.current = null;
       startX.current = null;
       if (wasReady && !refreshingRef.current) {
+        const now = Date.now();
+        if (now - lastRefreshAtRef.current < cooldownMs) {
+          // Anti-spam: ignore but show brief "done" so the user gets feedback
+          setState('done');
+          setDistance(0);
+          distanceRef.current = 0;
+          setTimeout(() => setState('idle'), 500);
+          return;
+        }
+        lastRefreshAtRef.current = now;
         refreshingRef.current = true;
         setState('refreshing');
         setDistance(threshold);
@@ -149,12 +162,13 @@ export function usePullToRefresh({ onRefresh, threshold = 80, disabled = false }
         } catch {
           setState('done');
         } finally {
+          lastRefreshAtRef.current = Date.now();
           setTimeout(() => {
             refreshingRef.current = false;
             distanceRef.current = 0;
             setDistance(0);
             setState('idle');
-          }, 700);
+          }, 900);
         }
       } else {
         distanceRef.current = 0;
