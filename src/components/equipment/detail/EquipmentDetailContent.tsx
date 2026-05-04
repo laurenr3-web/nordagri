@@ -103,7 +103,7 @@ const EquipmentDetailContent: React.FC<EquipmentDetailContentProps> = ({ equipme
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-4 pb-16">
+    <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 pb-16 space-y-6">
       <EquipmentHeader
         equipment={localEquipment}
         onEdit={handleEditEquipment}
@@ -113,76 +113,69 @@ const EquipmentDetailContent: React.FC<EquipmentDetailContentProps> = ({ equipme
         canDelete={canDelete}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-        {/* Colonne principale */}
-        <div className="lg:col-span-2 space-y-4">
-          <StatusCard equipment={localEquipment} />
+      {/* État actuel pleine largeur */}
+      <StatusCard equipment={localEquipment} />
 
-          {/* Mobile: actions + compteur sous l'état */}
-          <div className="lg:hidden space-y-4">
-            {canEdit && (
-              <QuickActions
-                onUpdateCounter={() => setIsUpdateHoursOpen(true)}
-                onAddMaintenance={() => setIsAddMaintenanceOpen(true)}
-                onAddPoint={handleOpenObservation}
-                onAddIntervention={handleAddIntervention}
-                onLinkPart={() => setIsAddPartOpen(true)}
-                onShowQR={scrollToQR}
-                unitLabel={unitLabel}
-              />
-            )}
+      {/* Actions rapides pleine largeur */}
+      {canEdit && (
+        <QuickActions
+          onUpdateCounter={() => setIsUpdateHoursOpen(true)}
+          onAddMaintenance={() => setIsAddMaintenanceOpen(true)}
+          onAddPoint={handleOpenObservation}
+          onAddIntervention={handleAddIntervention}
+          onLinkPart={() => setIsAddPartOpen(true)}
+          onShowQR={scrollToQR}
+          unitLabel={unitLabel}
+        />
+      )}
+
+      {/* Contenu 2 colonnes */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Colonne gauche ~65% */}
+        <div className="lg:col-span-8 space-y-6">
+          {/* Mobile: compteur en premier */}
+          <div className="lg:hidden">
             <CounterCard equipment={localEquipment} onUpdate={() => setIsUpdateHoursOpen(true)} canEdit={canEdit} />
           </div>
 
           <MaintenancePriorityCard equipment={localEquipment} canEdit={canEdit} />
           <EquipmentPointsCard equipment={localEquipment} canEdit={canEdit} />
 
-          {/* Mobile: pièces et carburant entre points et journal */}
-          <div className="lg:hidden space-y-4">
+          {/* Mobile: pièces avant journal */}
+          <div className="lg:hidden">
             <LinkedPartsCard equipment={localEquipment} canEdit={canEdit} />
           </div>
 
           <MachineJournalCard equipment={localEquipment} />
 
-          <div className="lg:hidden space-y-4">
+          <div className="lg:hidden space-y-6">
             <FuelSummaryCard equipment={localEquipment} canEdit={canEdit} />
             <QRCompactCard equipment={localEquipment} />
           </div>
-
-          {/* Onglets détaillés */}
-          <Card className="rounded-2xl border bg-card shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Vue détaillée
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div data-tour="equipment-tabs">
-                <EquipmentTabs equipment={localEquipment} />
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
-        {/* Colonne droite (desktop only) */}
-        <aside className="hidden lg:flex lg:flex-col lg:gap-4">
-          {canEdit && (
-            <QuickActions
-              onUpdateCounter={() => setIsUpdateHoursOpen(true)}
-              onAddMaintenance={() => setIsAddMaintenanceOpen(true)}
-              onAddPoint={handleOpenObservation}
-              onAddIntervention={handleAddIntervention}
-              onLinkPart={() => setIsAddPartOpen(true)}
-              onShowQR={scrollToQR}
-              unitLabel={unitLabel}
-            />
-          )}
+        {/* Colonne droite ~35% (desktop only) */}
+        <aside className="hidden lg:flex lg:flex-col lg:gap-6 lg:col-span-4">
           <CounterCard equipment={localEquipment} onUpdate={() => setIsUpdateHoursOpen(true)} canEdit={canEdit} />
           <LinkedPartsCard equipment={localEquipment} canEdit={canEdit} />
           <FuelSummaryCard equipment={localEquipment} canEdit={canEdit} />
           <QRCompactCard equipment={localEquipment} />
         </aside>
       </div>
+
+      {/* Onglets détaillés en bas, pleine largeur */}
+      <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Vue détaillée
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div data-tour="equipment-tabs">
+            <EquipmentTabs equipment={localEquipment} />
+          </div>
+        </CardContent>
+      </Card>
 
       {isEditDialogOpen && (
         <EditEquipmentDialog

@@ -30,7 +30,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({
   unitLabel,
 }) => {
   const actions: ActionDef[] = [
-    { icon: Clock, label: unitLabel === 'Heures moteur' ? 'Heures' : 'Compteur', onClick: onUpdateCounter, color: 'text-primary' },
+    { icon: Clock, label: 'Compteur', onClick: onUpdateCounter, color: 'text-primary' },
     { icon: Wrench, label: 'Maintenance', onClick: onAddMaintenance, color: 'text-amber-600' },
     { icon: Eye, label: 'Point', onClick: onAddPoint, color: 'text-blue-600' },
     { icon: Activity, label: 'Intervention', onClick: onAddIntervention, color: 'text-violet-600' },
@@ -39,22 +39,24 @@ const QuickActions: React.FC<QuickActionsProps> = ({
   ];
 
   return (
-    <Card className="rounded-2xl border bg-card shadow-sm" data-tour="equipment-quick-actions">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+    <Card className="rounded-2xl border border-border/60 bg-card shadow-sm" data-tour="equipment-quick-actions">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Actions rapides
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-3 gap-2">
+      <CardContent className="pt-0">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {actions.map(({ icon: Icon, label, onClick, color }) => (
             <button
               key={label}
               onClick={onClick}
-              className="flex flex-col items-center justify-center gap-1.5 rounded-xl border bg-background py-3 px-1 hover:bg-accent/60 hover:border-primary/40 transition-colors min-h-[64px]"
+              className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border/60 bg-background px-2 py-4 min-h-[88px] hover:bg-accent/60 hover:border-primary/40 transition-colors"
             >
               <Icon className={`h-5 w-5 ${color}`} />
-              <span className="text-[11px] font-medium text-center leading-tight">{label}</span>
+              <span className="text-xs font-medium text-center leading-tight line-clamp-2 break-words">
+                {label}
+              </span>
             </button>
           ))}
         </div>
