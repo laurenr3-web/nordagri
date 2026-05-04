@@ -40,11 +40,25 @@ export const FirstActionCard: React.FC<Props> = ({ action, loading }) => {
   const Icon = sourceIcon[action.source];
   const isCritical = action.priority === 'critical';
 
+  const openDetails = () => navigate(action.ctaPath);
+  const stop = (e: React.MouseEvent) => e.stopPropagation();
+
   return (
-    <div className={cn(
-      'relative rounded-2xl border border-border/70 bg-card p-4 sm:p-5 shadow-md overflow-hidden',
-      isCritical && 'border-destructive/40 bg-destructive/[0.04]'
-    )}>
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={openDetails}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openDetails();
+        }
+      }}
+      className={cn(
+        'relative rounded-2xl border border-border/70 bg-card p-4 sm:p-5 shadow-md overflow-hidden cursor-pointer transition-colors hover:bg-accent/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+        isCritical && 'border-destructive/40 bg-destructive/[0.04] hover:bg-destructive/[0.07]'
+      )}
+    >
       {isCritical && (
         <div className="absolute top-3 right-3 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow">
           <AlertCircle className="h-3.5 w-3.5" />
@@ -74,7 +88,7 @@ export const FirstActionCard: React.FC<Props> = ({ action, loading }) => {
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
+      <div className="mt-4 flex flex-wrap items-center gap-2" onClick={stop}>
         <Button
           onClick={() => navigate(action.ctaPath)}
           size="sm"
