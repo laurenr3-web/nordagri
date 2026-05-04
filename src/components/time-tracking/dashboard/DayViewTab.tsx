@@ -51,7 +51,7 @@ export function DayViewTab({
     <div className="flex flex-col gap-4 sm:gap-5 min-w-0">
       {/* Top row: Active session | Active team | Quick start */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 min-w-0 items-start">
-        <div className="lg:col-span-5 min-w-0 order-1 flex">
+        <div className="lg:col-span-4 min-w-0 order-1 flex">
           {activeTimeEntry ? (
             <ActiveTimeSession
               session={activeTimeEntry}
@@ -63,7 +63,7 @@ export function DayViewTab({
             <EmptyActiveSession onStart={onNewSession} />
           )}
         </div>
-        <div className="lg:col-span-3 min-w-0 order-3 lg:order-2 flex">
+        <div className="lg:col-span-4 min-w-0 order-3 lg:order-2 flex">
           <ActiveTeamCard onSeeAll={onSeeTeam} />
         </div>
         <div className="lg:col-span-4 min-w-0 order-2 lg:order-3 flex">
