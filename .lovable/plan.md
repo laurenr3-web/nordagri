@@ -1,107 +1,48 @@
-# Bouton "Commencer" dans Travail du jour
+## Objectif
 
-Ajouter un bouton compact **Commencer** dans `WorkTodayCard` pour les vraies tâches `planning_tasks`. Au clic : tâche → `in_progress` + session de temps créée, en réutilisant la mutation existante `usePlanningTimeMutations().start` (qui gère déjà auto Punch In, `time_sessions`, et toutes les invalidations). Aucune duplication de logique.
+Clarifier la séparation entre **Suivi du temps** (opérationnel) et **Statistiques** (analyse) en retirant les rapports/graphiques avancés de `/time-tracking` et en pointant vers la page Statistiques existante.
 
-## Fichiers touchés
+## État actuel constaté
 
-```text
-src/hooks/planning/useStartTaskFromDashboard.ts   (NOUVEAU — wrapper + dialog state)
-src/components/dashboard/v2/WorkTodayCard.tsx     (bouton + AlertDialog conflit)
-src/pages/Dashboard.tsx                           (mapper farmId/equipmentId/dueDate)
-```
+- `/time-tracking` a 4 onglets : **Vue du jour, Équipe, Historique, Rapports** (`TimeTrackingTabs.tsx`).
+- L'onglet **Rapports** affiche `TimeTrackingRapport` (graphiques avancés : par membre, équipement, type de travail).
+- Dans la **Vue du jour**, une carte « Rapports disponibles » mène vers cet onglet Rapports interne.
+- La page **Statistiques** (`/statistics`, `TimeTrackingStatistics.tsx`) existe déjà avec 3 onglets : Vue d'ensemble, Heures des tâches, **Temps de travail** — ce dernier rend déjà `TimeTrackingStatisticsPage` (graphiques par équipement, employé, type de tâche, etc.).
 
-## 1. Enrichir `WorkTodayItem` (WorkTodayCard.tsx)
+Conclusion : aucun graphique à déplacer, tout existe déjà côté Statistiques. Il suffit de **retirer** les rapports de Suivi du temps et de **rediriger** vers `/statistics?tab=time`.
 
-```ts
-export interface WorkTodayItem {
-  id: string;
-  title: string;
-  category?: string | null;
-  priority?: 'critical' | 'important' | 'todo' | null;
-  assignedTo?: string | null;
-  itemType?: 'task' | 'maintenance' | 'watch_point' | 'intervention' | 'part';
-  status?: string | null;
-  // Renseignés uniquement quand itemType === 'task'
-  farmId?: string;
-  equipmentId?: number | null;
-  dueDate?: string;
-}
-```
+## Modifications
 
-## 2. Mapper dans `Dashboard.tsx`
+### 1. `src/components/time-tracking/dashboard/TimeTrackingTabs.tsx`
+- Retirer l'entrée `{ value: 'reports', ... }` du tableau `TABS`.
+- Retirer le `<TabsContent value="reports">` qui rend `TimeTrackingRapport`.
+- Passer la `TabsList` de `grid-cols-4` à `grid-cols-3`.
+- Retirer l'import `TimeTrackingRapport` et l'icône `BarChart3` si non utilisés ailleurs.
+- Le prop `onSeeReports` reste mais pointera vers `/statistics?tab=time` (navigation externe) au lieu de changer d'onglet interne.
 
-Dans le `.map((t: any) => ({...}))` final, ajouter :
-- `farmId: t.farm_id`
-- `equipmentId: t.equipment_id ?? null`
-- `dueDate: t.due_date`
+### 2. `src/components/time-tracking/dashboard/TimeTrackingPage.tsx`
+- Mettre à jour la liste des valeurs valides de `tab` : remplacer `'list' || 'statistics' || 'rapport'` par `'reports'` aussi (fallback vers `'day'`) afin que toute URL `?tab=reports` retombe sur Vue du jour sans casser.
 
-(Les watch_points injectés en virtuel n'ont pas `farm_id`/`equipment_id` mais leur `itemType` est `'watch_point'` → bouton non affiché de toute façon.)
+### 3. `src/components/time-tracking/dashboard/TimeTrackingTabs.tsx` — handler `onSeeReports`
+- Au lieu de `() => onTabChange('reports')`, naviguer vers `/statistics?tab=time` via `useNavigate` de `react-router-dom`. Passer ce handler au `DayViewTab`.
 
-## 3. Hook `useStartTaskFromDashboard`
+### 4. `src/components/time-tracking/dashboard/DayViewTab.tsx`
+- Garder la carte « Rapports disponibles » mais la renommer en **« Voir les statistiques de temps »** avec un libellé descriptif court (« Analyse détaillée par membre, équipement et type de travail. ») et le bouton « Voir les statistiques → ».
+- Laisser le rendu actuel (Card discrète sous Sessions récentes côté mobile, dans la colonne droite côté desktop) — c'est déjà un bloc discret conforme à la demande.
+- `onSeeReports` exécute la redirection vers `/statistics?tab=time`.
 
-`src/hooks/planning/useStartTaskFromDashboard.ts` — wrapper minimal :
+### 5. Aucun changement
+- `TimeTrackingRapport` et le dossier `rapport/` restent en place (réutilisés implicitement par `TimeTrackingStatisticsPage` via ses propres imports — vérifier qu'aucune autre route ne dépend de l'onglet retiré).
+- Aucune modification base de données, RLS, punch in/out, historique, ou hooks.
+- Pas de duplication : les graphiques ne vivent plus que dans `/statistics`.
 
-- Importe `usePlanningTimeMutations` et `ERR_USER_SESSION_ACTIVE`.
-- Récupère `user` via `useAuthContext()`, `qc` via `useQueryClient()`.
-- État local : `conflictItem: WorkTodayItem | null`.
-- `startTask(item)` :
-  1. Validation : `item.itemType === 'task'` + `item.farmId` présents, sinon return.
-  2. Reconstruit un `PlanningTask` minimal (cast `as PlanningTask`) avec `id`, `farm_id`, `title`, `category`, `equipment_id`, `due_date` — `startSessionForTask` n'utilise que ces champs.
-  3. `await start.mutateAsync({ task, userId: user.id })`.
-  4. Catch : si `err.message === ERR_USER_SESSION_ACTIVE` → `setConflictItem(item)` (pas de toast d'erreur). Sinon, le `mapErrorToast` interne du hook source affiche déjà l'erreur.
-  5. Succès : la mutation existante affiche déjà "Session démarrée" + invalidations. On override en ajoutant **après** un `toast.success("Tâche commencée · Temps démarré")` et on invalide en plus les clés dashboard.
-- `confirmEndCurrentAndStart()` :
-  1. `update time_sessions set status='completed', end_time=now() where user_id=auth.uid() and status='active'`.
-  2. `await start.mutateAsync(...)` à nouveau.
-  3. Toast "Nouvelle tâche commencée · Temps démarré". Ferme dialog.
-- `confirmStartWithoutTime()` :
-  1. `update planning_tasks set status='in_progress' where id=item.id`.
-  2. Toast "Tâche commencée". Ferme dialog.
-  3. Invalide clés dashboard + planning.
-- `cancelConflict()` : `setConflictItem(null)`.
-- Helper interne `invalidateDashboard()` :
-  ```ts
-  qc.invalidateQueries({ queryKey: ['planningTasks'] });
-  qc.invalidateQueries({ queryKey: ['planningOverdue'] });
-  qc.invalidateQueries({ queryKey: ['active-time-entry'] });
-  qc.invalidateQueries({ queryKey: ['active-work-shift'] });
-  qc.invalidateQueries({ queryKey: ['dashboard-v2', 'activeTeam'] });
-  qc.invalidateQueries({ queryKey: ['dashboard-v2', 'signals'] });
-  qc.invalidateQueries({ queryKey: ['farm-team-status'] });
-  ```
-- Retourne `{ startTask, conflictItem, confirmEndCurrentAndStart, confirmStartWithoutTime, cancelConflict, isLoading: start.isPending }`.
+## Vérifications avant build
 
-## 4. UI dans `WorkTodayCard.tsx`
+- `rg "tab=reports|'reports'"` dans `src/` pour s'assurer qu'aucun lien externe ne pointe vers l'onglet supprimé.
+- Confirmer que `TimeTrackingRapport` n'est plus importé que par la page Statistiques (sinon laisser l'import là où nécessaire).
 
-- Importer le hook + `Play` de lucide + `AlertDialog*` de shadcn.
-- Au début du composant : `const tasks = useStartTaskFromDashboard();`.
-- Dans le rendu de chaque ligne, calculer :
-  ```ts
-  const startable = item.itemType === 'task'
-    && [undefined, null, 'todo', 'pending', 'paused'].includes(item.status as any);
-  ```
-- Si `startable` : remplacer le `<span className="…badgeTone">{ph.badge}</span>` par :
-  ```tsx
-  <Button
-    size="sm" variant="outline"
-    className="h-7 px-2 text-xs shrink-0 whitespace-nowrap gap-1"
-    disabled={tasks.isLoading}
-    onClick={(e) => { e.stopPropagation(); tasks.startTask(item); }}
-  >
-    <Play className="h-3 w-3" />
-    Commencer
-  </Button>
-  ```
-- Sinon : badge actuel inchangé (en particulier "En cours" pour `in_progress` géré par `phase()`).
-- À la fin du JSX (hors de la map), ajouter un seul `<AlertDialog open={!!tasks.conflictItem} onOpenChange={(o) => !o && tasks.cancelConflict()}>` avec :
-  - Titre : "Session déjà active"
-  - Description : "Tu as déjà une session en cours. Que veux-tu faire ?"
-  - 3 actions (boutons) : "Terminer l'actuelle et commencer", "Commencer sans démarrer le temps", "Annuler".
+## Résultat
 
-## 5. Garde-fous
-
-- ✅ Aucune nouvelle route, aucune table, aucune RLS modifiée.
-- ✅ Aucun fichier des modules Planification ou Suivi du temps modifié — seulement consommé.
-- ✅ Bouton **uniquement** quand `itemType === 'task'` → exclut watch_points / maintenance / interventions / parts.
-- ✅ Pas de double session : la mutation source vérifie déjà ; le dialog couvre explicitement le conflit.
-- ✅ Layout mobile préservé (`shrink-0`, `whitespace-nowrap`, le titre garde son `truncate`).
+- `/time-tracking` : 3 onglets (Vue du jour, Équipe, Historique) + un bloc discret « Voir les statistiques de temps → » menant vers `/statistics?tab=time`.
+- `/statistics` : inchangé, contient déjà toute l'analyse avancée.
+- Punch in/out, historique, sessions actives : intacts.
