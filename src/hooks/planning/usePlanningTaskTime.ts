@@ -37,7 +37,7 @@ export function useTaskSessions(taskId: string | null) {
 function mapErrorToast(err: unknown): void {
   const msg = err instanceof Error ? err.message : '';
   if (msg === ERR_USER_SESSION_ACTIVE) {
-    toast.error('Vous avez déjà une session de temps en cours.');
+    toast.error('Vous avez déjà une session de temps en cours sur une autre tâche.');
   } else if (msg === ERR_TASK_SESSION_ACTIVE) {
     toast.error('Cette tâche est déjà en cours par un autre membre.');
   } else {
