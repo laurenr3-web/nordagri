@@ -1,4 +1,6 @@
 
+import { getComputedWearValue } from '@/components/equipment/detail/statusHelpers';
+
 export function useMaintenanceUtils() {
   
   const getLastMaintenanceDate = (maintenanceTasks: any[]) => {
@@ -14,7 +16,7 @@ export function useMaintenanceUtils() {
   const getNextServiceInfo = (maintenanceTasks: any[], equipment?: any) => {
     if (!maintenanceTasks || maintenanceTasks.length === 0) return null;
     
-    const currentHours = equipment?.valeur_actuelle || 0;
+    const currentHours = getComputedWearValue(equipment) ?? 0;
     
     const scheduledTasks = maintenanceTasks
       .filter(task => task.status === 'scheduled')
