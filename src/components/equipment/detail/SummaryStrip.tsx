@@ -83,9 +83,9 @@ const Cell: React.FC<{ icon: React.ReactNode; tone: string; label: string; title
   <div className="flex items-center gap-3 p-4 min-w-0">
     <div className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${TONES[tone] || TONES.muted}`}>{icon}</div>
     <div className="min-w-0">
-      <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">{label}</p>
-      <p className="text-sm font-semibold leading-snug line-clamp-2 break-words safe-text">{title}</p>
-      <p className="text-[11px] text-muted-foreground truncate">{sub}</p>
+      <p className="eq-label">{label}</p>
+      <p className="eq-item-title font-semibold">{title}</p>
+      <p className="eq-meta text-[11px]">{sub}</p>
     </div>
   </div>
 );
