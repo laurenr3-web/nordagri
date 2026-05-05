@@ -16,21 +16,21 @@ const makeProps = () => ({
 describe('QuickActions (équipement)', () => {
   it('rend toujours les 4 actions principales', () => {
     render(<QuickActions {...makeProps()} />);
-    expect(screen.getByText('Actions rapides')).toBeInTheDocument();
+    expect(screen.getByText('Actions rapides')).toBeTruthy();
     ['Compteur', 'Maintenance', 'Point', 'QR'].forEach((label) => {
-      expect(screen.getByText(label)).toBeInTheDocument();
+      expect(screen.getByText(label)).toBeTruthy();
     });
   });
 
   it('cache les actions secondaires tant que "Plus d\'actions" n\'est pas ouvert', () => {
     render(<QuickActions {...makeProps()} />);
-    expect(screen.queryByText('Pièce')).not.toBeInTheDocument();
-    expect(screen.queryByText('Carburant')).not.toBeInTheDocument();
-    expect(screen.queryByText('Performance')).not.toBeInTheDocument();
+    expect(screen.queryByText('Pièce')).toBeNull();
+    expect(screen.queryByText('Carburant')).toBeNull();
+    expect(screen.queryByText('Performance')).toBeNull();
     fireEvent.click(screen.getByText("Plus d'actions"));
-    expect(screen.getByText('Pièce')).toBeInTheDocument();
-    expect(screen.getByText('Carburant')).toBeInTheDocument();
-    expect(screen.getByText('Performance')).toBeInTheDocument();
+    expect(screen.getByText('Pièce')).toBeTruthy();
+    expect(screen.getByText('Carburant')).toBeTruthy();
+    expect(screen.getByText('Performance')).toBeTruthy();
   });
 
   it('déclenche les bons callbacks au clic', () => {
