@@ -90,8 +90,8 @@ const StatusCard: React.FC<StatusCardProps> = ({ equipment }) => {
               {status.key === 'out_of_service' && <AlertTriangle className="h-5 w-5" />}
             </div>
             <div>
-              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">État actuel</p>
-              <h2 className="text-xl font-semibold leading-tight mt-0.5">{status.label}</h2>
+              <p className="eq-label">État actuel</p>
+              <h2 className="eq-title-h2 mt-0.5">{status.label}</h2>
             </div>
           </div>
           <Badge variant="outline" className={`${status.badgeClass} hidden sm:inline-flex`}>{status.label}</Badge>
@@ -120,8 +120,8 @@ const Row: React.FC<{ icon: React.ReactNode; label: string; value: string; sub?:
   <div className="flex items-start gap-2 rounded-lg bg-muted/40 px-3 py-2">
     <div className="text-muted-foreground mt-0.5">{icon}</div>
     <div className="min-w-0">
-      <p className="text-[11px] text-muted-foreground">{label}</p>
-      <p className="text-sm font-medium leading-snug line-clamp-2 break-words safe-text">{value}</p>
+      <p className="eq-label">{label}</p>
+      <p className="eq-item-title">{value}</p>
       {sub && <p className="text-[11px] text-muted-foreground capitalize">{sub}</p>}
     </div>
   </div>
