@@ -10,6 +10,7 @@ import { maintenanceService } from '@/services/supabase/maintenanceService';
 import MaintenanceTaskDetailDialog from '@/components/maintenance/dialogs/MaintenanceTaskDetailDialog';
 import AddMaintenanceDialog from '@/components/maintenance/dialogs/AddMaintenanceDialog';
 import { toast } from 'sonner';
+import { getComputedWearValue } from './statusHelpers';
 
 interface Props { equipment: EquipmentItem; canEdit?: boolean; }
 
@@ -33,12 +34,13 @@ const MaintenancePriorityCard: React.FC<Props> = ({ equipment, canEdit = true })
 
   useEffect(() => { reload(); }, [reload]);
 
-  const currentValue = equipment.valeur_actuelle ?? 0;
+  const currentValue = getComputedWearValue(equipment) ?? 0;
   const isOverdue = (t: any) => {
     const th = t.triggerHours ?? t.trigger_hours;
     const tk = t.triggerKilometers ?? t.trigger_kilometers;
     if (t.trigger_unit === 'hours' && th != null) return currentValue >= th;
     if (t.trigger_unit === 'kilometers' && tk != null) return currentValue >= tk;
+    if ((t.trigger_unit === 'days' || t.trigger_unit === 'jours') && th != null) return currentValue >= th;
     return t.dueDate ? new Date(t.dueDate) < new Date() : false;
   };
 
