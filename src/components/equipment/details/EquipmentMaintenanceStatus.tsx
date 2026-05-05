@@ -10,6 +10,7 @@ import AddMaintenanceDialog from '@/components/maintenance/dialogs/AddMaintenanc
 import { maintenanceService } from '@/services/supabase/maintenanceService';
 import { toast } from 'sonner';
 import MaintenanceTaskDetailDialog from '@/components/maintenance/dialogs/MaintenanceTaskDetailDialog';
+import { getComputedWearValue } from '../detail/statusHelpers';
 
 interface EquipmentMaintenanceStatusProps {
   equipment: EquipmentItem;
