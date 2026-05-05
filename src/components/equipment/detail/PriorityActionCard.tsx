@@ -1,14 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Wrench, Eye, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
-import { maintenanceService } from '@/services/supabase/maintenanceService';
-import { supabase } from '@/integrations/supabase/client';
-import { useFarmId } from '@/hooks/useFarmId';
 import MaintenanceTaskDetailDialog from '@/components/maintenance/dialogs/MaintenanceTaskDetailDialog';
 import { PointDetailDialog } from '@/components/points/PointDetailDialog';
+import { useEquipmentSnapshot } from './useEquipmentSnapshot';
 
 interface Props {
   equipment: EquipmentItem;
@@ -22,77 +20,32 @@ type Item =
   | { kind: 'point-important'; raw: any; title: string; meta: string };
 
 const PriorityActionCard: React.FC<Props> = ({ equipment, onNavigateToTab }) => {
-  const { farmId } = useFarmId();
-  const [items, setItems] = useState<Item[]>([]);
+  const snap = useEquipmentSnapshot(equipment);
   const [openTask, setOpenTask] = useState<any>(null);
   const [openPoint, setOpenPoint] = useState<any>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const cv = equipment.valeur_actuelle ?? 0;
-      const isOverdue = (x: any) => {
-        if (x.status === 'completed' || x.status === 'cancelled') return false;
-        const th = x.triggerHours ?? x.trigger_hours;
-        const tk = x.triggerKilometers ?? x.trigger_kilometers;
-        if (x.trigger_unit === 'hours' && th != null) return cv >= th;
-        if (x.trigger_unit === 'kilometers' && tk != null) return cv >= tk;
-        return x.dueDate ? new Date(x.dueDate) < new Date() : false;
-      };
-
-      let tasks: any[] = [];
-      try { tasks = await maintenanceService.getTasksForEquipment(Number(equipment.id)) || []; } catch { /* noop */ }
-
-      let points: any[] = [];
-      if (farmId) {
-        try {
-          const eqIdStr = String(equipment.id);
-          let { data } = await supabase.from('points').select('*')
-            .eq('farm_id', farmId).eq('type', 'equipement').neq('status', 'resolved')
-            .eq('entity_id', eqIdStr).order('last_event_at', { ascending: false });
-          if ((!data || !data.length) && equipment.name) {
-            const fb = await supabase.from('points').select('*')
-              .eq('farm_id', farmId).eq('type', 'equipement').neq('status', 'resolved')
-              .ilike('entity_label', `%${equipment.name}%`).order('last_event_at', { ascending: false });
-            data = fb.data ?? [];
-          }
-          points = data ?? [];
-        } catch { /* noop */ }
-      }
-
-      const overdueTasks = tasks.filter(isOverdue);
-      const soonTasks = tasks
-        .filter((x) => x.status !== 'completed' && x.status !== 'cancelled' && !isOverdue(x))
-        .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-      const critPoints = points.filter((p) => p.priority === 'critical');
-      const impPoints = points.filter((p) => p.priority === 'important');
-
-      const formatRetard = (t: any) => {
+  const items = useMemo<Item[]>(() => {
+    const formatRetard = (t: any) => {
         if (t.dueDate) {
           const d = Math.floor((Date.now() - new Date(t.dueDate).getTime()) / 86400000);
           return `Maintenance · Retard de ${d} j`;
         }
         return 'Maintenance · En retard';
-      };
-      const formatSoon = (t: any) => {
+    };
+    const formatSoon = (t: any) => {
         if (!t.dueDate) return 'Maintenance · Planifiée';
         const d = Math.ceil((new Date(t.dueDate).getTime() - Date.now()) / 86400000);
         if (d <= 0) return 'Maintenance · Aujourd\'hui';
         if (d === 1) return 'Maintenance · Demain';
         return `Maintenance · Dans ${d} j`;
-      };
-
-      const all: Item[] = [
-        ...overdueTasks.map<Item>((t) => ({ kind: 'maintenance-overdue', raw: t, title: t.title, meta: formatRetard(t) })),
-        ...critPoints.map<Item>((p) => ({ kind: 'point-critical', raw: p, title: p.title, meta: 'Point · Critique' })),
-        ...soonTasks.slice(0, 3).map<Item>((t) => ({ kind: 'maintenance-soon', raw: t, title: t.title, meta: formatSoon(t) })),
-        ...impPoints.map<Item>((p) => ({ kind: 'point-important', raw: p, title: p.title, meta: 'Point · Important' })),
-      ];
-
-      if (!cancelled) setItems(all);
-    })();
-    return () => { cancelled = true; };
-  }, [equipment.id, equipment.valeur_actuelle, equipment.name, farmId]);
+    };
+    return [
+      ...snap.overdueTasks.map<Item>((t) => ({ kind: 'maintenance-overdue', raw: t, title: t.title, meta: formatRetard(t) })),
+      ...snap.criticalPoints.map<Item>((p) => ({ kind: 'point-critical', raw: p, title: p.title, meta: 'Point · Critique' })),
+      ...snap.upcomingTasks.slice(0, 3).map<Item>((t) => ({ kind: 'maintenance-soon', raw: t, title: t.title, meta: formatSoon(t) })),
+      ...snap.importantPoints.map<Item>((p) => ({ kind: 'point-important', raw: p, title: p.title, meta: 'Point · Important' })),
+    ];
+  }, [snap]);
 
   const top = items[0];
   const rest = items.length - 1;
