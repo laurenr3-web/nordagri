@@ -21,6 +21,9 @@ interface DeleteEquipmentDialogProps {
   onConfirm: () => void;
   triggerVariant?: 'destructive' | 'ghost' | 'outline';
   compact?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
 }
 
 interface RelatedCounts {
@@ -40,8 +43,13 @@ const DeleteEquipmentDialog: React.FC<DeleteEquipmentDialogProps> = ({
   onConfirm,
   triggerVariant = 'destructive',
   compact = false,
+  open: openProp,
+  onOpenChange,
+  hideTrigger = false,
 }) => {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
+  const setOpen = (v: boolean) => { setInternalOpen(v); onOpenChange?.(v); };
   const [loading, setLoading] = useState(false);
   const [counts, setCounts] = useState<RelatedCounts | null>(null);
 
@@ -97,6 +105,7 @@ const DeleteEquipmentDialog: React.FC<DeleteEquipmentDialogProps> = ({
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
+      {!hideTrigger && (
       <AlertDialogTrigger asChild>
         <Button
           variant={triggerVariant}
@@ -118,6 +127,7 @@ const DeleteEquipmentDialog: React.FC<DeleteEquipmentDialogProps> = ({
           )}
         </Button>
       </AlertDialogTrigger>
+      )}
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
