@@ -72,9 +72,9 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({
                 </div>
               </div>
               <div className="p-4">
-                <h3 className="font-semibold text-base truncate">{item.name}</h3>
+                <h3 className="font-semibold text-base leading-snug line-clamp-2 break-words safe-text">{item.name}</h3>
                 {(item.brand || item.model) && (
-                  <p className="text-sm text-muted-foreground truncate mt-0.5">
+                  <p className="text-sm text-muted-foreground line-clamp-1 mt-0.5">
                     {[item.brand, item.model].filter(Boolean).join(' ')}
                   </p>
                 )}
