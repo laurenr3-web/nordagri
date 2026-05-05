@@ -49,8 +49,8 @@ const LinkedPartsCard: React.FC<Props> = ({ equipment, canEdit = true }) => {
               return (
                 <button key={p.id} onClick={() => navigate(`/parts?id=${p.id}`)}
                   className="w-full text-left rounded-xl border p-2.5 hover:bg-accent/50 transition-colors flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">{p.name}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium leading-snug line-clamp-2 break-words safe-text">{p.name}</p>
                     <p className="text-[11px] text-muted-foreground">
                       {p.stock ?? 0} en stock {lowStock && <span className="text-orange-600 font-medium">· Stock bas</span>}
                     </p>
