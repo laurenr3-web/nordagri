@@ -119,7 +119,7 @@ const MachineJournalCard: React.FC<Props> = ({ equipment }) => {
                     <div key={e.id} className="flex items-start gap-2.5 text-sm min-w-0">
                       <span className="text-muted-foreground tabular-nums text-xs w-12 shrink-0 mt-0.5">{format(e.date, 'HH:mm')}</span>
                       <span className="mt-0.5 shrink-0">{iconFor(e.type)}</span>
-                      <span className="min-w-0 flex-1 leading-snug line-clamp-2 break-words safe-text">{e.title}</span>
+                      <span className="eq-item-title flex-1">{e.title}</span>
                     </div>
                   ))}
                 </div>
