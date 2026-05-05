@@ -108,7 +108,7 @@ const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({
             <span className="text-muted-foreground">·</span>
             <span className="inline-flex items-center gap-1.5 text-muted-foreground">
               <Gauge className="h-3.5 w-3.5" />
-              <span className="font-medium text-foreground">{formatCounter(equipment.valeur_actuelle, equipment.unite_d_usure)}</span>
+              <span className="font-medium text-foreground">{formatCounter(equipment)}</span>
               <span className="hidden sm:inline">Compteur</span>
             </span>
           </div>

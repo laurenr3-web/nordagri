@@ -5,7 +5,7 @@ import { Gauge, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
-import { unitShort } from './statusHelpers';
+import { unitShort, getComputedWearValue, isDayUnit } from './statusHelpers';
 
 interface CounterCardProps {
   equipment: EquipmentItem;
@@ -14,8 +14,8 @@ interface CounterCardProps {
 }
 
 const CounterCard: React.FC<CounterCardProps> = ({ equipment, onUpdate, canEdit }) => {
-  const value = equipment.valeur_actuelle;
   const unit = equipment.unite_d_usure || 'heures';
+  const value = getComputedWearValue(equipment);
   const lastUpdate = equipment.last_wear_update
     ? format(new Date(equipment.last_wear_update as any), "d MMM yyyy", { locale: fr })
     : null;
@@ -33,7 +33,10 @@ const CounterCard: React.FC<CounterCardProps> = ({ equipment, onUpdate, canEdit 
               <p className="text-xs text-muted-foreground">Compteur</p>
               {hasValue ? (
                 <p className="text-xl font-semibold leading-tight">
-                  {value} <span className="text-sm font-normal text-muted-foreground">{unitShort(unit)}</span>
+                  {value}{' '}
+                  <span className="text-sm font-normal text-muted-foreground">
+                    {isDayUnit(unit) ? `jour${(value as number) > 1 ? 's' : ''}` : unitShort(unit)}
+                  </span>
                 </p>
               ) : (
                 <p className="text-sm font-medium text-muted-foreground">Aucun compteur enregistré</p>

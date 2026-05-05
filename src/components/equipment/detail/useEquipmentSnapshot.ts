@@ -3,6 +3,7 @@ import { maintenanceService } from '@/services/supabase/maintenanceService';
 import { supabase } from '@/integrations/supabase/client';
 import { useFarmId } from '@/hooks/useFarmId';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
+import { getComputedWearValue } from './statusHelpers';
 
 export interface EquipmentSnapshot {
   tasks: any[];
@@ -28,7 +29,7 @@ export function useEquipmentSnapshot(equipment: EquipmentItem) {
   const eqId = Number(equipment.id);
   const eqIdStr = String(equipment.id);
   const eqName = equipment.name;
-  const cv = equipment.valeur_actuelle ?? 0;
+  const cv = getComputedWearValue(equipment) ?? 0;
 
   return useQuery<EquipmentSnapshot>({
     queryKey: ['equipment-snapshot', farmId, eqId, cv],

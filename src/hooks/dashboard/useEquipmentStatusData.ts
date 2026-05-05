@@ -26,7 +26,7 @@ export function useEquipmentStatusData() {
         // Fetch equipment data
         const { data: equipment, error: equipmentError } = await supabase
           .from('equipment')
-          .select('id, name, type, status, image, valeur_actuelle, unite_d_usure')
+          .select('id, name, type, status, image, valeur_actuelle, unite_d_usure, last_wear_update')
           .eq('owner_id', user.id)
           .order('name');
         
@@ -106,8 +106,13 @@ export function useEquipmentStatusData() {
             }
           }
 
-          // Calculate service hours and threshold
-          const currentHours = item.valeur_actuelle || 0;
+          // Calculate service hours and threshold (day-unit auto-increments)
+          const isDay = ['jours','jour','days','day','j'].includes((item.unite_d_usure || '').toLowerCase());
+          const baseline = Number(item.valeur_actuelle) || 0;
+          const elapsedDays = isDay && item.last_wear_update
+            ? Math.max(0, Math.floor((Date.now() - new Date(item.last_wear_update).getTime()) / 86400000))
+            : 0;
+          const currentHours = baseline + elapsedDays;
           const serviceThreshold = servicePlan?.trigger_hours || 500; // Default if not defined
           
           return {

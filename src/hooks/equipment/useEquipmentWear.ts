@@ -18,7 +18,9 @@ interface EquipmentWearData {
 
 export function useEquipmentWear(equipment: EquipmentWearData): WearInfo {
   return useMemo(() => {
-    const unite = equipment.unite_d_usure || 'heures';
+    const uniteRaw = equipment.unite_d_usure || 'heures';
+    const unite = uniteRaw.toLowerCase();
+    const isDay = ['jours','jour','days','day','j'].includes(unite);
     const valeur = equipment.valeur_actuelle || 0;
 
     // For time-based equipment ("jours"), the wear value is derived from
@@ -26,7 +28,7 @@ export function useEquipmentWear(equipment: EquipmentWearData): WearInfo {
     // This way, the counter auto-increments by +1 every day, just like
     // an hour meter — users only need to set/correct the baseline.
     let formattedValue: string;
-    if (unite === 'jours') {
+    if (isDay) {
       let totalDays = valeur;
       if (equipment.last_wear_update) {
         const last = new Date(equipment.last_wear_update).getTime();

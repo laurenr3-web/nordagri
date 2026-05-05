@@ -69,10 +69,57 @@ export function unitShort(unit?: string | null): string {
   if (u === 'heures' || u === 'hours') return 'h';
   if (u === 'kilometres' || u === 'kilometers' || u === 'km') return 'km';
   if (u === 'acres') return 'ac';
+  if (isDayUnit(u)) return 'j';
   return u;
 }
 
-export function formatCounter(value?: number | null, unit?: string | null): string {
+const DAY_UNITS = new Set(['jours', 'jour', 'days', 'day', 'j']);
+export function isDayUnit(unit?: string | null): boolean {
+  return DAY_UNITS.has((unit || '').toLowerCase().trim());
+}
+
+export interface WearLike {
+  valeur_actuelle?: number | null;
+  unite_d_usure?: string | null;
+  last_wear_update?: string | Date | null;
+}
+
+/**
+ * Compteur effectif pour affichage et comparaison de seuils.
+ * - Pour les unités en jours : valeur_actuelle + jours écoulés depuis last_wear_update.
+ * - Pour les autres unités : valeur_actuelle inchangée.
+ * Retourne null si aucune valeur n'est disponible.
+ */
+export function getComputedWearValue(equipment?: WearLike | null): number | null {
+  if (!equipment) return null;
+  const raw = equipment.valeur_actuelle;
+  const hasBase = raw !== null && raw !== undefined && !Number.isNaN(Number(raw));
+  const base = hasBase ? Number(raw) : null;
+
+  if (!isDayUnit(equipment.unite_d_usure)) return base;
+
+  const baseline = base ?? 0;
+  if (!equipment.last_wear_update) return hasBase ? baseline : null;
+  const t = new Date(equipment.last_wear_update).getTime();
+  if (Number.isNaN(t)) return hasBase ? baseline : null;
+  const elapsed = Math.max(0, Math.floor((Date.now() - t) / 86400000));
+  return baseline + elapsed;
+}
+
+export function formatCounter(
+  valueOrEquipment?: number | WearLike | null,
+  unit?: string | null,
+): string {
+  // Surcharge : formatCounter(equipment) ou formatCounter(value, unit)
+  if (valueOrEquipment !== null && typeof valueOrEquipment === 'object') {
+    const eq = valueOrEquipment as WearLike;
+    const v = getComputedWearValue(eq);
+    if (v === null || v === undefined || Number.isNaN(v)) return 'Non renseigné';
+    if (isDayUnit(eq.unite_d_usure)) return `${v} jour${v > 1 ? 's' : ''}`;
+    return `${v} ${unitShort(eq.unite_d_usure)}`;
+  }
+  const value = valueOrEquipment as number | null | undefined;
   if (value === null || value === undefined || Number.isNaN(value)) return 'Non renseigné';
+  if (isDayUnit(unit)) return `${value} jour${value > 1 ? 's' : ''}`;
   return `${value} ${unitShort(unit)}`;
 }

@@ -6,7 +6,7 @@ import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import { maintenanceService } from '@/services/supabase/maintenanceService';
 import { supabase } from '@/integrations/supabase/client';
 import { useFarmId } from '@/hooks/useFarmId';
-import { computeGlobalStatus, formatCounter, STATUS_MAP } from './statusHelpers';
+import { computeGlobalStatus, formatCounter, getComputedWearValue, STATUS_MAP } from './statusHelpers';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -49,7 +49,7 @@ const StatusCard: React.FC<StatusCardProps> = ({ equipment }) => {
     })();
   }, [farmId, equipment.name]);
 
-  const currentValue = equipment.valeur_actuelle ?? 0;
+  const currentValue = getComputedWearValue(equipment) ?? 0;
   const overdueTasks = tasks.filter((t: any) => {
     if (t.status === 'completed' || t.status === 'cancelled') return false;
     const th = t.triggerHours ?? t.trigger_hours;
@@ -109,7 +109,7 @@ const StatusCard: React.FC<StatusCardProps> = ({ equipment }) => {
           <Row icon={<Activity className="h-3.5 w-3.5" />} label="Dernière intervention"
                value="Aucune intervention récente" />
           <Row icon={<Gauge className="h-3.5 w-3.5" />} label="Compteur"
-               value={formatCounter(equipment.valeur_actuelle, equipment.unite_d_usure)} />
+               value={formatCounter(equipment)} />
         </div>
       </CardContent>
     </Card>
