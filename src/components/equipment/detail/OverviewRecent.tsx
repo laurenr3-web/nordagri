@@ -64,7 +64,7 @@ const OverviewRecent: React.FC<Props> = ({ equipment, onNavigateToTab }) => {
           <div className="flex items-start justify-between gap-3 min-w-0">
             <div className="flex items-start gap-2 min-w-0">
               <Wrench className="h-4 w-4 text-amber-600 shrink-0 mt-1" />
-              <CardTitle className="text-sm font-semibold leading-snug line-clamp-2">Maintenances récentes</CardTitle>
+              <CardTitle className="eq-title-card">Maintenances récentes</CardTitle>
             </div>
             <Button variant="ghost" size="sm" onClick={() => onNavigateToTab?.('maintenance')} className="shrink-0 whitespace-nowrap h-7 px-2 text-xs text-primary">Voir tout</Button>
           </div>
@@ -91,7 +91,7 @@ const OverviewRecent: React.FC<Props> = ({ equipment, onNavigateToTab }) => {
           <div className="flex items-start justify-between gap-3 min-w-0">
             <div className="flex items-start gap-2 min-w-0">
               <Eye className="h-4 w-4 text-blue-600 shrink-0 mt-1" />
-              <CardTitle className="text-sm font-semibold leading-snug line-clamp-2">Points récents</CardTitle>
+              <CardTitle className="eq-title-card">Points récents</CardTitle>
             </div>
             <Button variant="ghost" size="sm" onClick={() => onNavigateToTab?.('points')} className="shrink-0 whitespace-nowrap h-7 px-2 text-xs text-primary">Voir tout</Button>
           </div>
@@ -118,7 +118,7 @@ const OverviewRecent: React.FC<Props> = ({ equipment, onNavigateToTab }) => {
           <div className="flex items-start justify-between gap-3 min-w-0">
             <div className="flex items-start gap-2 min-w-0">
               <History className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
-              <CardTitle className="text-sm font-semibold leading-snug line-clamp-2">Historique récent</CardTitle>
+              <CardTitle className="eq-title-card">Historique récent</CardTitle>
             </div>
             <Button variant="ghost" size="sm" onClick={() => onNavigateToTab?.('history')} className="shrink-0 whitespace-nowrap h-7 px-2 text-xs text-primary">Voir tout</Button>
           </div>
