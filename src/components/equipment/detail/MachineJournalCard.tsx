@@ -116,10 +116,10 @@ const MachineJournalCard: React.FC<Props> = ({ equipment }) => {
                 <p className="text-[11px] font-semibold uppercase text-muted-foreground mb-2">{day}</p>
                 <div className="space-y-1.5">
                   {items.map((e) => (
-                    <div key={e.id} className="flex items-start gap-2.5 text-sm">
+                    <div key={e.id} className="flex items-start gap-2.5 text-sm min-w-0">
                       <span className="text-muted-foreground tabular-nums text-xs w-12 shrink-0 mt-0.5">{format(e.date, 'HH:mm')}</span>
-                      <span className="mt-0.5">{iconFor(e.type)}</span>
-                      <span className="min-w-0 truncate">{e.title}</span>
+                      <span className="mt-0.5 shrink-0">{iconFor(e.type)}</span>
+                      <span className="min-w-0 flex-1 leading-snug line-clamp-2 break-words safe-text">{e.title}</span>
                     </div>
                   ))}
                 </div>

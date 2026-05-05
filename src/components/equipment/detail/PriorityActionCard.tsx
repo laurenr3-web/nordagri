@@ -166,7 +166,7 @@ const PriorityActionCard: React.FC<Props> = ({ equipment, onNavigateToTab }) => 
                         {isMaint ? <Wrench className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">{it.title}</p>
+                        <p className="text-sm font-medium leading-snug line-clamp-2 break-words safe-text">{it.title}</p>
                         <p className="text-[11px] text-muted-foreground truncate">{it.meta}</p>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0" aria-hidden="true">
