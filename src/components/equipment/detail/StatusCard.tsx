@@ -121,7 +121,7 @@ const Row: React.FC<{ icon: React.ReactNode; label: string; value: string; sub?:
     <div className="text-muted-foreground mt-0.5">{icon}</div>
     <div className="min-w-0">
       <p className="text-[11px] text-muted-foreground">{label}</p>
-      <p className="text-sm font-medium truncate">{value}</p>
+      <p className="text-sm font-medium leading-snug line-clamp-2 break-words safe-text">{value}</p>
       {sub && <p className="text-[11px] text-muted-foreground capitalize">{sub}</p>}
     </div>
   </div>
