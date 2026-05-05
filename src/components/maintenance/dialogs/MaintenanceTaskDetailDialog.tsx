@@ -167,18 +167,24 @@ const MaintenanceTaskDetailDialog: React.FC<MaintenanceTaskDetailDialogProps> = 
 
   return (
     <Dialog open={isOpen} onOpenChange={handleDialogClose}>
-      <DialogContent className={showCompletionForm ? "sm:max-w-[600px] max-h-[90vh] overflow-y-auto" : "max-w-md"}>
-        <DialogHeader>
+      <DialogContent
+        className={
+          (showCompletionForm ? "sm:max-w-[600px] " : "sm:max-w-md ") +
+          "w-[calc(100vw-24px)] max-h-[calc(100dvh-32px)] p-0 gap-0 rounded-2xl overflow-hidden flex flex-col"
+        }
+      >
+        <DialogHeader className="shrink-0 px-5 pt-5 pb-4 border-b border-border/50 text-left space-y-1.5">
           {headerBadge && <div className="mb-1">{headerBadge}</div>}
-          <DialogTitle className="flex items-center gap-2">
-            <Wrench className="h-5 w-5" />
-            {task.title}
+          <DialogTitle className="flex items-start gap-2 text-base sm:text-lg leading-tight pr-10">
+            <Wrench className="h-5 w-5 shrink-0 mt-0.5" aria-hidden="true" />
+            <span className="line-clamp-2 safe-text">{task.title}</span>
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-xs sm:text-sm">
             {showCompletionForm ? 'Compléter la maintenance' : 'Détails de la tâche de maintenance'}
           </DialogDescription>
         </DialogHeader>
 
+        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4">
         {showCompletionForm ? (
           <MaintenanceCompletionForm
             task={task}
@@ -190,7 +196,11 @@ const MaintenanceTaskDetailDialog: React.FC<MaintenanceTaskDetailDialogProps> = 
             {/* Editable title */}
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground">Titre</label>
-              <Input value={localTitle} onChange={(e) => setLocalTitle(e.target.value)} />
+              <Input
+                value={localTitle}
+                onChange={(e) => setLocalTitle(e.target.value)}
+                className="h-11 text-base rounded-xl"
+              />
             </div>
 
             {/* Status & Priority */}
@@ -307,22 +317,28 @@ const MaintenanceTaskDetailDialog: React.FC<MaintenanceTaskDetailDialogProps> = 
                 onChange={(e) => setLocalNotes(e.target.value)}
                 rows={3}
                 placeholder="Aucune note"
-                className="text-sm resize-none"
+                className="text-sm resize-none min-h-[100px] max-h-[200px]"
               />
             </div>
+          </div>
+        )}
+        </div>
 
+        {!showCompletionForm && (hasChanges || task.status !== 'completed') && (
+          <div
+            className="shrink-0 border-t border-border/50 bg-background px-5 pt-3 flex flex-col gap-2"
+            style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
+          >
             {hasChanges && (
-              <Button onClick={handleSave} disabled={isSaving} className="w-full gap-2" variant="default">
+              <Button onClick={handleSave} disabled={isSaving} className="w-full gap-2 h-11" variant="default">
                 <Save className="h-4 w-4" /> {isSaving ? 'Enregistrement…' : 'Enregistrer'}
               </Button>
             )}
-
-            {/* Complete button */}
             {task.status !== 'completed' && (
               <Button
                 onClick={() => setShowCompletionForm(true)}
                 variant="outline"
-                className="w-full flex items-center gap-2"
+                className="w-full flex items-center gap-2 h-11"
               >
                 <CheckCircle className="h-4 w-4" />
                 Compléter cette maintenance
