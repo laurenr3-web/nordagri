@@ -78,29 +78,56 @@ const PriorityActionCard: React.FC<Props> = ({ equipment, onNavigateToTab }) => 
     important: items.filter((i) => i.kind === 'point-important').length,
   };
 
+  const titleId = 'priority-action-card-title';
+  const itemsListId = 'priority-action-card-items';
+  const moreBtnId = 'priority-action-card-more';
+
+  const itemAriaLabel = (it: Item) => {
+    const kindLabel =
+      it.kind === 'maintenance-overdue' ? 'Maintenance en retard'
+      : it.kind === 'maintenance-soon' ? 'Maintenance à venir'
+      : it.kind === 'point-critical' ? 'Point critique'
+      : 'Point important';
+    return `${kindLabel} : ${it.title}. ${it.meta}. Ouvrir le détail.`;
+  };
+
   return (
-    <Card className={cn(
-      'rounded-2xl border border-border/60 shadow-sm',
-      isOverdueTop ? 'bg-red-50/60 dark:bg-red-950/20'
-      : isCriticalTop ? 'bg-orange-50/60 dark:bg-orange-950/20'
-      : 'bg-card',
-    )}>
+    <Card
+      role="region"
+      aria-labelledby={titleId}
+      className={cn(
+        'rounded-2xl border border-border/60 shadow-sm',
+        isOverdueTop ? 'bg-red-50/60 dark:bg-red-950/20'
+        : isCriticalTop ? 'bg-orange-50/60 dark:bg-orange-950/20'
+        : 'bg-card',
+      )}
+    >
       <CardHeader className="pb-2 flex-row items-center justify-between space-y-0">
-        <CardTitle className="text-sm font-semibold">À faire sur cette machine</CardTitle>
+        <CardTitle id={titleId} className="text-sm font-semibold">À faire sur cette machine</CardTitle>
         {items.length > 0 && (
-          <span className="text-[11px] text-muted-foreground">{items.length} élément{items.length > 1 ? 's' : ''}</span>
+          <span className="text-[11px] text-muted-foreground" aria-label={`${items.length} élément${items.length > 1 ? 's' : ''} à traiter`}>
+            {items.length} élément{items.length > 1 ? 's' : ''}
+          </span>
         )}
       </CardHeader>
       <CardContent className="pt-0 space-y-2">
         {items.length === 0 ? (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground py-3">
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
+          <div
+            className="flex items-center gap-2 text-sm text-muted-foreground py-3"
+            role="status"
+            aria-live="polite"
+          >
+            <CheckCircle2 className="h-4 w-4 text-green-600" aria-hidden="true" />
             Rien à faire pour le moment.
           </div>
         ) : (
           <>
-            {(counts.overdue + counts.critical) > 0 && (
-              <div className="flex flex-wrap gap-1.5 pb-1">
+            {(counts.overdue + counts.critical + counts.important + counts.soon) > 0 && (
+              <div
+                className="flex flex-wrap gap-1.5 pb-1"
+                role="group"
+                aria-label="Résumé des éléments par priorité"
+              >
                 {counts.overdue > 0 && <Badge variant="destructive" className="text-[10px]">{counts.overdue} en retard</Badge>}
                 {counts.critical > 0 && <Badge className="bg-red-600 text-white text-[10px]">{counts.critical} critique{counts.critical > 1 ? 's' : ''}</Badge>}
                 {counts.important > 0 && <Badge className="bg-orange-500 text-white text-[10px]">{counts.important} important{counts.important > 1 ? 's' : ''}</Badge>}
@@ -108,7 +135,11 @@ const PriorityActionCard: React.FC<Props> = ({ equipment, onNavigateToTab }) => 
               </div>
             )}
 
-            <ul className="space-y-1.5">
+            <ul
+              id={itemsListId}
+              className="space-y-1.5"
+              aria-label={`Liste des ${items.length} élément${items.length > 1 ? 's' : ''} à traiter`}
+            >
               {visible.map((it, idx) => {
                 const isMaint = it.kind === 'maintenance-overdue' || it.kind === 'maintenance-soon';
                 const overdue = it.kind === 'maintenance-overdue';
@@ -117,23 +148,28 @@ const PriorityActionCard: React.FC<Props> = ({ equipment, onNavigateToTab }) => 
                 return (
                   <li key={`${it.kind}-${idx}`}>
                     <button
+                      type="button"
                       onClick={() => openItem(it)}
-                      className="w-full text-left flex items-center gap-3 rounded-xl bg-background/70 border border-border/40 p-2.5 hover:bg-accent/40 hover:border-primary/40 transition-colors"
+                      aria-label={itemAriaLabel(it)}
+                      className="w-full text-left flex items-center gap-3 rounded-xl bg-background/70 border border-border/40 p-2.5 hover:bg-accent/40 hover:border-primary/40 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     >
-                      <div className={cn(
-                        'h-8 w-8 rounded-lg flex items-center justify-center shrink-0',
-                        overdue ? 'bg-red-100 text-red-700'
-                        : critical ? 'bg-red-100 text-red-700'
-                        : isMaint ? 'bg-amber-100 text-amber-700'
-                        : 'bg-orange-100 text-orange-700',
-                      )}>
+                      <div
+                        aria-hidden="true"
+                        className={cn(
+                          'h-8 w-8 rounded-lg flex items-center justify-center shrink-0',
+                          overdue ? 'bg-red-100 text-red-700'
+                          : critical ? 'bg-red-100 text-red-700'
+                          : isMaint ? 'bg-amber-100 text-amber-700'
+                          : 'bg-orange-100 text-orange-700',
+                        )}
+                      >
                         {isMaint ? <Wrench className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium truncate">{it.title}</p>
                         <p className="text-[11px] text-muted-foreground truncate">{it.meta}</p>
                       </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
+                      <div className="flex items-center gap-1.5 shrink-0" aria-hidden="true">
                         {overdue && <Badge variant="destructive" className="text-[10px]">Retard</Badge>}
                         {critical && <Badge className="bg-red-600 text-white text-[10px]">Critique</Badge>}
                         {important && <Badge className="bg-orange-500 text-white text-[10px]">Important</Badge>}
@@ -148,22 +184,42 @@ const PriorityActionCard: React.FC<Props> = ({ equipment, onNavigateToTab }) => 
             <div className="flex items-center justify-between pt-1">
               {hidden > 0 ? (
                 <button
+                  type="button"
+                  id={moreBtnId}
                   onClick={() => setShowAll(true)}
-                  className="text-xs font-medium text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+                  aria-controls={itemsListId}
+                  aria-expanded={false}
+                  aria-label={`Afficher les ${hidden} élément${hidden > 1 ? 's' : ''} supplémentaire${hidden > 1 ? 's' : ''}`}
+                  className="text-xs font-medium text-muted-foreground hover:text-foreground inline-flex items-center gap-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
-                  Afficher {hidden} de plus <ChevronDown className="h-3.5 w-3.5" />
+                  Afficher {hidden} de plus <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>
               ) : items.length > COLLAPSED_LIMIT ? (
                 <button
+                  type="button"
+                  id={moreBtnId}
                   onClick={() => setShowAll(false)}
-                  className="text-xs font-medium text-muted-foreground hover:text-foreground"
+                  aria-controls={itemsListId}
+                  aria-expanded={true}
+                  aria-label="Réduire la liste des éléments"
+                  className="text-xs font-medium text-muted-foreground hover:text-foreground rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
                   Réduire
                 </button>
               ) : <span />}
               {onNavigateToTab && (
-                <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={seeAllLink}>
-                  Voir toutes les actions →
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={seeAllLink}
+                  aria-label={
+                    items.some((i) => i.kind === 'maintenance-overdue' || i.kind === 'maintenance-soon')
+                      ? 'Voir toutes les maintenances dans l\'onglet Maintenance'
+                      : 'Voir tous les points dans l\'onglet Points'
+                  }
+                >
+                  Voir toutes les actions <span aria-hidden="true">→</span>
                 </Button>
               )}
             </div>
