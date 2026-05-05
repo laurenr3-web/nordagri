@@ -104,7 +104,7 @@ const StatusCard: React.FC<StatusCardProps> = ({ equipment }) => {
                value={upcoming ? `${upcoming.title}` : 'Aucune planifiée'}
                sub={upcoming?.dueDate ? format(new Date(upcoming.dueDate), 'd MMM', { locale: fr }) : undefined} />
           <Row icon={<Eye className="h-3.5 w-3.5" />} label="Dernier point"
-               value={lastPoint ? lastPoint.title : 'Aucun point actif'}
+               value={lastPoint ? lastPoint.title : 'Aucun point'}
                sub={lastPoint?.priority ? lastPoint.priority : undefined} />
           <Row icon={<Activity className="h-3.5 w-3.5" />} label="Dernière intervention"
                value="Aucune intervention récente" />

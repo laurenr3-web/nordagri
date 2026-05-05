@@ -38,7 +38,7 @@ const SummaryStrip: React.FC<SummaryStripProps> = ({ equipment }) => {
   const maintSub = overdueCount > 0 ? 'À faire' : 'Aucune en retard';
 
   const pointsTitle = `${pointsCount} actif${pointsCount > 1 ? 's' : ''}`;
-  const pointsSub = pointsCount === 0 ? 'Aucun point actif' : 'À surveiller';
+  const pointsSub = pointsCount === 0 ? 'Aucun point' : 'À surveiller';
 
   const activityTitle = relativeDay(lastActivity);
   const activitySub = lastActivity ? 'Compteur ou maintenance' : 'Aucune activité';

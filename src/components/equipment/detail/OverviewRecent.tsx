@@ -98,7 +98,7 @@ const OverviewRecent: React.FC<Props> = ({ equipment, onNavigateToTab }) => {
         </CardHeader>
         <CardContent className="pt-0 space-y-2">
           {recentPoints.length === 0 ? (
-            <p className="text-xs text-muted-foreground py-2">Aucun point actif.</p>
+            <p className="text-xs text-muted-foreground py-2">Aucun point.</p>
           ) : recentPoints.map((p) => (
             <button key={p.id} onClick={() => setOpenPoint(p)} className="w-full text-left rounded-lg border border-border/40 p-2.5 hover:bg-accent/40 transition-colors">
               <div className="flex items-center gap-3 min-w-0">
