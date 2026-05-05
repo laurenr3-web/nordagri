@@ -41,7 +41,7 @@ const SummaryStrip: React.FC<SummaryStripProps> = ({ equipment }) => {
   const pointsSub = pointsCount === 0 ? 'Aucun point' : 'À surveiller';
 
   const activityTitle = relativeDay(lastActivity);
-  const activitySub = lastActivity ? 'Compteur ou maintenance' : 'Aucune activité';
+  const activitySub = lastActivity ? 'Compteur ou maintenance' : 'Aucune';
 
   return (
     <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
