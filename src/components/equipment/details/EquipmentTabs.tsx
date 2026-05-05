@@ -23,12 +23,12 @@ interface EquipmentTabsProps {
 }
 
 const tabs = [
-  { value: 'overview', label: "Vue d'ensemble", icon: LayoutDashboard },
-  { value: 'maintenance', label: 'Maintenance', icon: Wrench },
-  { value: 'points', label: 'Points', icon: Eye },
-  { value: 'history', label: 'Historique', icon: History },
-  { value: 'parts', label: 'Pièces', icon: Package },
-  { value: 'qrcode', label: 'QR code', icon: QrCode },
+  { value: 'overview', label: "Vue d'ensemble", shortLabel: 'Vue', icon: LayoutDashboard },
+  { value: 'maintenance', label: 'Maintenance', shortLabel: 'Entretien', icon: Wrench },
+  { value: 'points', label: 'Points', shortLabel: 'Points', icon: Eye },
+  { value: 'history', label: 'Historique', shortLabel: 'Histo.', icon: History },
+  { value: 'parts', label: 'Pièces', shortLabel: 'Pièces', icon: Package },
+  { value: 'qrcode', label: 'QR code', shortLabel: 'QR', icon: QrCode },
 ];
 
 const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment, activeTab: activeTabProp, onTabChange }) => {
@@ -80,7 +80,8 @@ const EquipmentTabs: React.FC<EquipmentTabsProps> = ({ equipment, activeTab: act
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
-              <span className="w-full text-center leading-tight">{tab.label}</span>
+              <span className="w-full text-center leading-tight sm:hidden">{tab.shortLabel}</span>
+              <span className="w-full text-center leading-tight hidden sm:inline">{tab.label}</span>
             </button>
           );
         })}
