@@ -66,7 +66,7 @@ describe('PriorityActionCard — accessibilité', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(2);
   });
 
-  it('chaque ligne est un bouton focusable avec un aria-label complet', () => {
+  it('chaque ligne est un bouton type="button" focusable avec un aria-label complet', () => {
     snapshotMock.mockReturnValue({
       ...baseSnap,
       overdueTasks: [{ id: 1, title: 'Vidange', dueDate: new Date(Date.now() - 86400000).toISOString() }],
@@ -75,23 +75,10 @@ describe('PriorityActionCard — accessibilité', () => {
     const btn = screen.getByRole('button', {
       name: /Maintenance en retard\s*:\s*Vidange.*Ouvrir le détail/i,
     }) as HTMLButtonElement;
-    expect(btn).toBeTruthy();
     expect(btn.tagName).toBe('BUTTON');
-    expect(btn.getAttribute('type')).toBe('a' /* sentinel */) // placeholder, real check below
-  });
-
-  it('chaque bouton de ligne porte type="button" et est atteignable au clavier', () => {
-    snapshotMock.mockReturnValue({
-      ...baseSnap,
-      overdueTasks: [{ id: 1, title: 'Vidange', dueDate: new Date(Date.now() - 86400000).toISOString() }],
-    });
-    render(<PriorityActionCard equipment={equipment} />);
-    const btn = screen.getByRole('button', { name: /Maintenance en retard/i }) as HTMLButtonElement;
     expect(btn.getAttribute('type')).toBe('button');
-    // tabIndex par défaut d'un bouton natif = 0 (focusable au Tab)
     btn.focus();
     expect(document.activeElement).toBe(btn);
-    // L'activation clavier passe par le handler onClick natif (Entrée/Espace)
     fireEvent.click(btn);
   });
 
