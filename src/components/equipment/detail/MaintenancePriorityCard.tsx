@@ -102,9 +102,9 @@ const MaintenancePriorityCard: React.FC<Props> = ({ equipment, canEdit = true })
                   }`}>
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        {od && <AlertTriangle className="h-3.5 w-3.5 text-destructive shrink-0" />}
-                        <span className="font-medium text-sm truncate">{t.title}</span>
+                      <div className="flex items-start gap-2 mb-0.5 min-w-0">
+                        {od && <AlertTriangle className="h-3.5 w-3.5 text-destructive shrink-0 mt-0.5" />}
+                        <span className="font-medium text-sm leading-snug line-clamp-2 break-words safe-text min-w-0">{t.title}</span>
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
                         {done ? (
