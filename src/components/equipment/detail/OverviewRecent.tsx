@@ -7,6 +7,7 @@ import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import MaintenanceTaskDetailDialog from '@/components/maintenance/dialogs/MaintenanceTaskDetailDialog';
 import { PointDetailDialog } from '@/components/points/PointDetailDialog';
 import { useEquipmentSnapshot } from './useEquipmentSnapshot';
+import { Button } from '@/components/ui/button';
 
 interface Props { equipment: EquipmentItem; onNavigateToTab?: (tab: string) => void; }
 
@@ -57,61 +58,80 @@ const OverviewRecent: React.FC<Props> = ({ equipment, onNavigateToTab }) => {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2"><Wrench className="h-4 w-4 text-amber-600" /> Maintenances récentes</CardTitle>
-          <button onClick={() => onNavigateToTab?.('maintenance')} className="text-xs text-primary hover:underline">Voir tout</button>
+    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+      <Card className="rounded-2xl border border-border/60 bg-card shadow-sm w-full min-w-0">
+        <CardHeader className="pb-2">
+          <div className="flex items-start justify-between gap-3 min-w-0">
+            <div className="flex items-start gap-2 min-w-0">
+              <Wrench className="h-4 w-4 text-amber-600 shrink-0 mt-1" />
+              <CardTitle className="text-sm font-semibold leading-snug line-clamp-2">Maintenances récentes</CardTitle>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => onNavigateToTab?.('maintenance')} className="shrink-0 whitespace-nowrap h-7 px-2 text-xs text-primary">Voir tout</Button>
+          </div>
         </CardHeader>
         <CardContent className="pt-0 space-y-2">
           {recentMaint.length === 0 ? (
-            <p className="text-xs text-muted-foreground py-3 text-center">Aucune maintenance.</p>
+            <p className="text-xs text-muted-foreground py-2">Aucune maintenance récente.</p>
           ) : recentMaint.map((t) => (
             <button key={t.id} onClick={() => setOpenTask(t)} className="w-full text-left rounded-lg border border-border/40 p-2.5 hover:bg-accent/40 transition-colors">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-medium truncate">{t.title}</p>
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium leading-snug line-clamp-2">{t.title}</p>
+                  <p className="text-[11px] text-muted-foreground line-clamp-1">{fmtDue(t)}</p>
+                </div>
                 <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
               </div>
-              <p className="text-[11px] text-muted-foreground">{fmtDue(t)}</p>
             </button>
           ))}
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2"><Eye className="h-4 w-4 text-blue-600" /> Points récents</CardTitle>
-          <button onClick={() => onNavigateToTab?.('points')} className="text-xs text-primary hover:underline">Voir tout</button>
+      <Card className="rounded-2xl border border-border/60 bg-card shadow-sm w-full min-w-0">
+        <CardHeader className="pb-2">
+          <div className="flex items-start justify-between gap-3 min-w-0">
+            <div className="flex items-start gap-2 min-w-0">
+              <Eye className="h-4 w-4 text-blue-600 shrink-0 mt-1" />
+              <CardTitle className="text-sm font-semibold leading-snug line-clamp-2">Points récents</CardTitle>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => onNavigateToTab?.('points')} className="shrink-0 whitespace-nowrap h-7 px-2 text-xs text-primary">Voir tout</Button>
+          </div>
         </CardHeader>
         <CardContent className="pt-0 space-y-2">
           {recentPoints.length === 0 ? (
-            <p className="text-xs text-muted-foreground py-3 text-center">Aucun point.</p>
+            <p className="text-xs text-muted-foreground py-2">Aucun point actif.</p>
           ) : recentPoints.map((p) => (
             <button key={p.id} onClick={() => setOpenPoint(p)} className="w-full text-left rounded-lg border border-border/40 p-2.5 hover:bg-accent/40 transition-colors">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-medium truncate">{p.title}</p>
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium leading-snug line-clamp-2">{p.title}</p>
+                  <p className="text-[11px] text-muted-foreground line-clamp-1 capitalize">{p.priority}</p>
+                </div>
                 <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
               </div>
-              <p className="text-[11px] text-muted-foreground capitalize">{p.priority}</p>
             </button>
           ))}
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2"><History className="h-4 w-4 text-muted-foreground" /> Historique récent</CardTitle>
-          <button onClick={() => onNavigateToTab?.('history')} className="text-xs text-primary hover:underline">Voir tout</button>
+      <Card className="rounded-2xl border border-border/60 bg-card shadow-sm w-full min-w-0">
+        <CardHeader className="pb-2">
+          <div className="flex items-start justify-between gap-3 min-w-0">
+            <div className="flex items-start gap-2 min-w-0">
+              <History className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
+              <CardTitle className="text-sm font-semibold leading-snug line-clamp-2">Historique récent</CardTitle>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => onNavigateToTab?.('history')} className="shrink-0 whitespace-nowrap h-7 px-2 text-xs text-primary">Voir tout</Button>
+          </div>
         </CardHeader>
         <CardContent className="pt-0 space-y-2">
           {history.length === 0 ? (
-            <p className="text-xs text-muted-foreground py-3 text-center">Aucun événement.</p>
+            <p className="text-xs text-muted-foreground py-2">Aucun événement récent.</p>
           ) : history.map((h, i) => (
-            <div key={i} className="flex items-start gap-2 rounded-lg p-2">
-              <div className="mt-0.5">{h.icon}</div>
+            <div key={i} className="flex items-start gap-2 rounded-lg p-2 min-w-0">
+              <div className="mt-0.5 shrink-0">{h.icon}</div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium truncate">{h.title}</p>
-                <p className="text-[11px] text-muted-foreground">{fmtDay(h.date)}</p>
+                <p className="text-xs font-medium leading-snug line-clamp-2">{h.title}</p>
+                <p className="text-[11px] text-muted-foreground line-clamp-1">{fmtDay(h.date)}</p>
               </div>
             </div>
           ))}
