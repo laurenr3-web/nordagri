@@ -7,6 +7,7 @@ import MaintenanceAlert from '../details/MaintenanceAlert';
 import { EquipmentImageFallback } from './EquipmentImageFallback';
 import SignedImage from '@/components/ui/SignedImage';
 import { Clock, Gauge } from 'lucide-react';
+import { getComputedWearValue, isDayUnit } from '../detail/statusHelpers';
 
 const variants = {
   hidden: { opacity: 0 },
@@ -24,6 +25,12 @@ const formatWearValue = (value: number, unit: string) => {
     case 'heures': return `${formatted} h`;
     case 'kilometres': return `${formatted} km`;
     case 'acres': return `${formatted} acres`;
+    case 'jours':
+    case 'jour':
+    case 'days':
+    case 'day':
+    case 'j':
+      return `${formatted} jour${value > 1 ? 's' : ''}`;
     default: return `${formatted} ${unit}`;
   }
 };
@@ -36,7 +43,8 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {equipment.map((item, index) => {
         const wearUnit = item.unite_d_usure || 'heures';
-        const wearValue = item.valeur_actuelle || item.usage?.hours || 0;
+        const computed = getComputedWearValue(item);
+        const wearValue = computed ?? item.usage?.hours ?? 0;
         
         return (
           <motion.div
