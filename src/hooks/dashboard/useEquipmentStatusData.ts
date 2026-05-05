@@ -26,7 +26,7 @@ export function useEquipmentStatusData() {
         // Fetch equipment data
         const { data: equipment, error: equipmentError } = await supabase
           .from('equipment')
-          .select('id, name, type, status, image, valeur_actuelle, unite_d_usure')
+          .select('id, name, type, status, image, valeur_actuelle, unite_d_usure, last_wear_update')
           .eq('owner_id', user.id)
           .order('name');
         
