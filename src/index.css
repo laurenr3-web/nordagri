@@ -295,4 +295,20 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;  /* Chrome, Safari and Opera */
   }
+
+  /* Robustesse texte ultra-long (références pièces, noms machines, URLs) :
+     coupe entre n'importe quels caractères au lieu de déborder. */
+  .break-anywhere {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  /* Empêche tout débordement horizontal au sein d'un conteneur tout en
+     autorisant la coupe propre des chaînes monolithiques. */
+  .safe-text {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    hyphens: auto;
+  }
 }
