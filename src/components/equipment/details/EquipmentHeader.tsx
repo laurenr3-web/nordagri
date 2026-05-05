@@ -57,7 +57,7 @@ const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({
 
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight truncate">{equipment.name}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight leading-snug line-clamp-2 break-words safe-text">{equipment.name}</h1>
           <MaintenanceAlert equipment={equipment} showLabel={true} />
         </div>
         <StatusBadge status={equipment.status} />
