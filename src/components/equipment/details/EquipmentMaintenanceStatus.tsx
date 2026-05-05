@@ -172,7 +172,7 @@ const EquipmentMaintenanceStatus: React.FC<EquipmentMaintenanceStatusProps> = ({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start gap-2 mb-1 min-w-0">
                         {overdue && <AlertTriangle className="h-3.5 w-3.5 text-destructive shrink-0 mt-0.5" />}
-                        <span className="font-medium text-sm leading-snug line-clamp-2 break-words safe-text min-w-0">{task.title}</span>
+                        <span className="eq-item-title">{task.title}</span>
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
                         {getStatusBadge(task.status)}
