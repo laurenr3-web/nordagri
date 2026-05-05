@@ -109,7 +109,7 @@ const StatusCard: React.FC<StatusCardProps> = ({ equipment }) => {
           <Row icon={<Activity className="h-3.5 w-3.5" />} label="Dernière intervention"
                value="Aucune intervention récente" />
           <Row icon={<Gauge className="h-3.5 w-3.5" />} label="Compteur"
-               value={formatCounter(equipment.valeur_actuelle, equipment.unite_d_usure)} />
+               value={formatCounter(equipment)} />
         </div>
       </CardContent>
     </Card>
