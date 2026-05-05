@@ -1,54 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Wrench, Eye, History, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
-import { maintenanceService } from '@/services/supabase/maintenanceService';
-import { supabase } from '@/integrations/supabase/client';
-import { useFarmId } from '@/hooks/useFarmId';
 import MaintenanceTaskDetailDialog from '@/components/maintenance/dialogs/MaintenanceTaskDetailDialog';
 import { PointDetailDialog } from '@/components/points/PointDetailDialog';
+import { useEquipmentSnapshot } from './useEquipmentSnapshot';
 
 interface Props { equipment: EquipmentItem; onNavigateToTab?: (tab: string) => void; }
 
 const OverviewRecent: React.FC<Props> = ({ equipment, onNavigateToTab }) => {
-  const { farmId } = useFarmId();
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [points, setPoints] = useState<any[]>([]);
+  const snap = useEquipmentSnapshot(equipment);
+  const tasks = snap.tasks;
+  const points = snap.points;
   const [openTask, setOpenTask] = useState<any>(null);
   const [openPoint, setOpenPoint] = useState<any>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const t = await maintenanceService.getTasksForEquipment(Number(equipment.id));
-        if (!cancelled) setTasks(Array.isArray(t) ? t : []);
-      } catch { /* noop */ }
-    })();
-    return () => { cancelled = true; };
-  }, [equipment.id]);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      if (!farmId) return;
-      try {
-        const eqIdStr = String(equipment.id);
-        let { data } = await supabase.from('points').select('*')
-          .eq('farm_id', farmId).eq('type', 'equipement')
-          .eq('entity_id', eqIdStr).order('last_event_at', { ascending: false }).limit(5);
-        if ((!data || !data.length) && equipment.name) {
-          const fb = await supabase.from('points').select('*')
-            .eq('farm_id', farmId).eq('type', 'equipement')
-            .ilike('entity_label', `%${equipment.name}%`).order('last_event_at', { ascending: false }).limit(5);
-          data = fb.data ?? [];
-        }
-        if (!cancelled) setPoints((data ?? []) as any[]);
-      } catch { /* noop */ }
-    })();
-  }, [farmId, equipment.id, equipment.name]);
 
   const recentMaint = tasks
     .filter((t) => t.status !== 'cancelled')
