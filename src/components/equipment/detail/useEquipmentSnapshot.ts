@@ -33,7 +33,16 @@ export function useEquipmentSnapshot(equipment: EquipmentItem) {
   return useQuery<EquipmentSnapshot>({
     queryKey: ['equipment-snapshot', farmId, eqId, cv],
     enabled: !!eqId,
+    // Snapshot considéré frais 5 min : tant qu'il l'est, aucun refetch sur
+    // remontage (changement d'onglet, navigation entre cartes, focus fenêtre).
     staleTime: 5 * 60 * 1000,
+    // Conservé 30 min en cache même si plus aucun composant ne l'utilise,
+    // pour qu'un retour rapide sur la fiche réutilise immédiatement les données.
+    gcTime: 30 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    placeholderData: (prev) => prev,
     queryFn: async () => {
       const [tasksRes, pointsByIdRes] = await Promise.all([
         maintenanceService.getTasksForEquipment(eqId).catch(() => []),
