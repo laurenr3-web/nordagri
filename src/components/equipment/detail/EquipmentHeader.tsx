@@ -91,8 +91,8 @@ const EquipmentHeader: React.FC<EquipmentHeaderProps> = ({
         </div>
 
         <div className="min-w-0 flex-1">
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight leading-snug line-clamp-2 break-words safe-text">{equipment.name}</h1>
-          <p className="text-sm text-muted-foreground line-clamp-1">{subtitle}</p>
+          <h1 className="eq-title-h1">{equipment.name}</h1>
+          <p className="eq-meta text-sm">{subtitle}</p>
           {chips.length > 0 && (
             <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
               {chips.map((c) => (
