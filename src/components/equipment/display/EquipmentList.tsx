@@ -6,6 +6,7 @@ import StatusBadge from '../details/StatusBadge';
 import MaintenanceAlert from '../details/MaintenanceAlert';
 import SignedImage from '@/components/ui/SignedImage';
 import { Clock, Gauge } from 'lucide-react';
+import { getComputedWearValue } from '../detail/statusHelpers';
 
 interface EquipmentListProps {
   equipment: Array<any>;
@@ -22,6 +23,12 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
       case 'heures': return `${formatted} h`;
       case 'kilometres': return `${formatted} km`;
       case 'acres': return `${formatted} acres`;
+      case 'jours':
+      case 'jour':
+      case 'days':
+      case 'day':
+      case 'j':
+        return `${formatted} jour${value > 1 ? 's' : ''}`;
       default: return `${formatted} ${unit}`;
     }
   };
@@ -99,7 +106,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
                   ) : (
                     <Clock className="h-3.5 w-3.5 text-muted-foreground" />
                   )}
-                  <span>{formatWearValue(item.valeur_actuelle || item.usage?.hours || 0, item.unite_d_usure || 'heures')}</span>
+                  <span>{formatWearValue(getComputedWearValue(item) ?? item.usage?.hours ?? 0, item.unite_d_usure || 'heures')}</span>
                 </div>
               </TableCell>
             </motion.tr>
