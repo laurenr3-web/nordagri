@@ -196,7 +196,11 @@ const MaintenanceTaskDetailDialog: React.FC<MaintenanceTaskDetailDialogProps> = 
             {/* Editable title */}
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground">Titre</label>
-              <Input value={localTitle} onChange={(e) => setLocalTitle(e.target.value)} />
+              <Input
+                value={localTitle}
+                onChange={(e) => setLocalTitle(e.target.value)}
+                className="h-11 text-base rounded-xl"
+              />
             </div>
 
             {/* Status & Priority */}
