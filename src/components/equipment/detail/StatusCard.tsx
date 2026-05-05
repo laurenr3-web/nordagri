@@ -6,7 +6,7 @@ import { EquipmentItem } from '../hooks/useEquipmentFilters';
 import { maintenanceService } from '@/services/supabase/maintenanceService';
 import { supabase } from '@/integrations/supabase/client';
 import { useFarmId } from '@/hooks/useFarmId';
-import { computeGlobalStatus, formatCounter, STATUS_MAP } from './statusHelpers';
+import { computeGlobalStatus, formatCounter, getComputedWearValue, STATUS_MAP } from './statusHelpers';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -49,7 +49,7 @@ const StatusCard: React.FC<StatusCardProps> = ({ equipment }) => {
     })();
   }, [farmId, equipment.name]);
 
-  const currentValue = equipment.valeur_actuelle ?? 0;
+  const currentValue = getComputedWearValue(equipment) ?? 0;
   const overdueTasks = tasks.filter((t: any) => {
     if (t.status === 'completed' || t.status === 'cancelled') return false;
     const th = t.triggerHours ?? t.trigger_hours;
