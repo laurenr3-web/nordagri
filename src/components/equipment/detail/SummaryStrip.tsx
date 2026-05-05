@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Card } from '@/components/ui/card';
 import { CheckCircle2, Wrench, Eye, Activity } from 'lucide-react';
 import { EquipmentItem } from '../hooks/useEquipmentFilters';
-import { maintenanceService } from '@/services/supabase/maintenanceService';
-import { supabase } from '@/integrations/supabase/client';
-import { useFarmId } from '@/hooks/useFarmId';
 import { translateRawStatus } from './statusHelpers';
+import { useEquipmentSnapshot } from './useEquipmentSnapshot';
 
 interface SummaryStripProps {
   equipment: EquipmentItem;
@@ -24,72 +22,10 @@ function relativeDay(d?: string | Date | null): string {
 }
 
 const SummaryStrip: React.FC<SummaryStripProps> = ({ equipment }) => {
-  const { farmId } = useFarmId();
-  const [overdueCount, setOverdueCount] = useState(0);
-  const [pointsCount, setPointsCount] = useState(0);
-  const [lastActivity, setLastActivity] = useState<string | null>(
-    typeof equipment.last_wear_update === 'string'
-      ? equipment.last_wear_update
-      : (equipment.last_wear_update as Date | null)?.toISOString?.() ?? null
-  );
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const t = await maintenanceService.getTasksForEquipment(Number(equipment.id));
-        if (cancelled) return;
-        const cv = equipment.valeur_actuelle ?? 0;
-        const isOverdue = (x: any) => {
-          if (x.status === 'completed' || x.status === 'cancelled') return false;
-          const th = x.triggerHours ?? x.trigger_hours;
-          const tk = x.triggerKilometers ?? x.trigger_kilometers;
-          if (x.trigger_unit === 'hours' && th != null) return cv >= th;
-          if (x.trigger_unit === 'kilometers' && tk != null) return cv >= tk;
-          return x.dueDate ? new Date(x.dueDate) < new Date() : false;
-        };
-        setOverdueCount((Array.isArray(t) ? t : []).filter(isOverdue).length);
-        const completed = (Array.isArray(t) ? t : [])
-          .filter((x) => x.status === 'completed' && (x.completedDate || x.dueDate))
-          .map((x) => new Date(x.completedDate || x.dueDate).getTime());
-        const maxCompleted = completed.length ? new Date(Math.max(...completed)).toISOString() : null;
-        setLastActivity((prev) => {
-          const candidates = [prev, maxCompleted].filter(Boolean) as string[];
-          if (!candidates.length) return null;
-          return candidates.sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0];
-        });
-      } catch { /* noop */ }
-    })();
-    return () => { cancelled = true; };
-  }, [equipment.id, equipment.valeur_actuelle]);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      if (!farmId) return;
-      try {
-        const eqIdStr = String(equipment.id);
-        let { data } = await supabase
-          .from('points')
-          .select('id')
-          .eq('farm_id', farmId)
-          .eq('type', 'equipement')
-          .neq('status', 'resolved')
-          .eq('entity_id', eqIdStr);
-        if ((!data || data.length === 0) && equipment.name) {
-          const fb = await supabase
-            .from('points')
-            .select('id')
-            .eq('farm_id', farmId)
-            .eq('type', 'equipement')
-            .neq('status', 'resolved')
-            .ilike('entity_label', `%${equipment.name}%`);
-          data = fb.data ?? [];
-        }
-        if (!cancelled) setPointsCount((data ?? []).length);
-      } catch { /* noop */ }
-    })();
-  }, [farmId, equipment.id, equipment.name]);
+  const snap = useEquipmentSnapshot(equipment);
+  const overdueCount = snap.overdueTasks.length;
+  const pointsCount = snap.activePoints.length;
+  const lastActivity = snap.lastActivity;
 
   const status = translateRawStatus(equipment.status);
   const statusSub =
