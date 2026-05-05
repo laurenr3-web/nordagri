@@ -61,6 +61,9 @@ const EquipmentMaintenanceStatus: React.FC<EquipmentMaintenanceStatusProps> = ({
     }
   };
 
+  const currentHours = getComputedWearValue(equipment) ?? 0;
+  const wearUnit = equipment.unite_d_usure || 'heures';
+
 
   // Normalize trigger fields (handle both camelCase and snake_case)
   const getTaskTriggerHours = (task: any) => task.triggerHours ?? task.trigger_hours ?? null;
