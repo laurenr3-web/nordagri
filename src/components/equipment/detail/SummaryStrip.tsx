@@ -35,7 +35,7 @@ const SummaryStrip: React.FC<SummaryStripProps> = ({ equipment }) => {
     : 'Hors service';
 
   const maintTitle = overdueCount > 0 ? `${overdueCount} en retard` : 'À jour';
-  const maintSub = overdueCount > 0 ? 'À faire dès que possible' : 'Aucune en retard';
+  const maintSub = overdueCount > 0 ? 'À faire' : 'Aucune en retard';
 
   const pointsTitle = `${pointsCount} actif${pointsCount > 1 ? 's' : ''}`;
   const pointsSub = pointsCount === 0 ? 'Aucun point actif' : 'À surveiller';
