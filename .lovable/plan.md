@@ -1,95 +1,112 @@
-# Refonte fiche équipement — implémentation
 
-## Approche
+## Objectif
 
-Refonte progressive en 2 phases sans toucher routes/tables/RLS/hooks de données. Réutilisation de tous les dialogs existants (`UpdateHoursDialog`, `MaintenanceCompletionDialog`, `NewPointDialog`, `QRCodeGenerator`).
+Transformer `/equipment/:id` en fiche compacte premium correspondant à l'image validée : header dense, bandeau résumé 4 indicateurs, deux cartes côte à côte (À faire / Actions rapides), onglets, et Vue d'ensemble en 3 mini-cartes.
 
-## Phase 1 — Structure & cartes principales
+Aucune nouvelle route, aucune migration, aucune RLS modifiée. Réutilisation des hooks et dialogs existants.
 
-### Nouveaux composants (`src/components/equipment/detail/`)
+## Layout cible
 
-1. **`StatusCard.tsx`** — carte dominante "État actuel"
-   - Calcule statut global : Hors service > Action requise (maintenance retard) > À surveiller (point critique actif) > Maintenance > Actif
-   - Affiche : badge couleur, phrase résumé, prochaine maintenance, dernier point, dernière intervention, compteur
-   - Données : `useEquipmentDetail` (déjà chargé) + requête points actifs
-   - Couleurs : vert / orange / violet / rouge via classes Tailwind sémantiques
+```text
+← Retour aux équipements
+┌──────────────────────────────────────────────────────────────┐
+│ [photo 96] Carrousel · Système de traite                     │
+│            GEA · 2018 · Système de traite                    │
+│            ● Actif    🕒 0 h Compteur     [Modifier] [⋯]     │
+└──────────────────────────────────────────────────────────────┘
+┌─ Statut ─┬─ Maintenance ─┬─ Points ─┬─ Dernière activité ───┐
+│ Actif    │ 1 en retard   │ 0 actif  │ Aujourd'hui            │
+└──────────┴───────────────┴──────────┴────────────────────────┘
+┌─ À faire sur cette machine ──┐ ┌─ Actions rapides ──────────┐
+│ Pousse vache — graisser      │ │ [Compteur][Maint][Pt][QR]  │
+│ Maintenance · Retard 1 j [Voir]│ │     Plus d'actions ▼       │
+└──────────────────────────────┘ └────────────────────────────┘
+[ Vue d'ensemble | Maintenance | Points | Historique | Pièces | QR ]
+┌─ Maint. récentes ─┐ ┌─ Points récents ─┐ ┌─ Historique ─┐
+└───────────────────┘ └──────────────────┘ └──────────────┘
+```
 
-2. **`CounterCard.tsx`** — extrait la zone compteur actuellement inline
-   - Valeur + unité (`unite_d_usure`: heures/km/acres) + `last_wear_update` formaté
-   - Bouton "Mettre à jour" → `UpdateHoursDialog`
-   - État vide : "Aucun compteur enregistré" + CTA
+Mobile : même ordre, 1 colonne, résumé 2x2, actions 2x2 (4 visibles) + Plus d'actions.
 
-3. **`MaintenancePriorityCard.tsx`** — top 5 maintenances triées
-   - En retard → dues bientôt → planifiées → 1-2 complétées récentes
-   - Actions : Voir / Marquer fait (réutilise `MaintenanceCompletionDialog`)
-   - Source : `useMaintenanceTasks` déjà chargé
+## Fichiers
 
-4. **`EquipmentPointsCard.tsx`** — points actifs liés
-   - Inspection préalable du modèle `Point` : utilise `entity_id` (vérifié dans `src/types/Point.ts`) avec `type='equipement'`
-   - Filtre `status != 'resolved'`, requête via le service points existant
-   - Actions : Voir / Marquer résolu (mutations existantes)
+### 1. `EquipmentHeader.tsx` (refonte)
+- Photo 96px à gauche, fallback `Tractor`.
+- Titre + sous-titre (type/catégorie). Chips outline `bg-muted/40` pour `manufacturer`, `year`, `type` (filtrer null/undefined/"Unknown").
+- Statut traduit via `translateRawStatus` rendu en chip inline avec point coloré (`● Actif`).
+- Compteur inline avec icône `Gauge` formaté via `formatCounter`.
+- Bouton `Modifier` (outline sm) + `DropdownMenu` "⋯" contenant **Supprimer** (via `DeleteEquipmentDialog`).
+- Header sur une seule ligne desktop ; sur mobile, actions reflowent sous le bloc texte.
 
-5. **`MachineJournalCard.tsx`** — journal agrégé client
-   - Sources : maintenances complétées, points créés, `last_wear_update`, fuel_logs, time entries, interventions
-   - Tri desc, groupé "Aujourd'hui / Hier / date", max 10 + "Voir plus" → onglet Historique
-   - Aucune nouvelle table
+### 2. Nouveau `SummaryStrip.tsx`
+- Une `Card` rounded-2xl, `grid grid-cols-2 sm:grid-cols-4 divide-x divide-border/60`.
+- 4 cellules : Statut / Maintenance / Points / Dernière activité.
+  - **Statut** : label traduit + sous-texte "Machine prête" / "À surveiller" / "Hors service".
+  - **Maintenance** : `useMaintenanceTasks` → compte `overdue` ; affiche "X en retard" + sous-texte. Si 0 : "À jour".
+  - **Points** : query `points` sur `farm_id` + `type='equipement'` + `entity_id = String(equipment.id)` (champ stable), fallback `entity_label ilike` si entity_id null. Statut ≠ resolved.
+  - **Dernière activité** : `equipment.last_wear_update` ou max(`created_at`) entre tasks/points ; format relatif "Aujourd'hui / Il y a N j".
+- Pas de noms de tâches ni listes — chiffres + libellés courts uniquement.
 
-6. **`LinkedPartsCard.tsx`** — top 3 pièces liées
-   - Réutilise les hooks de `EquipmentParts`
-   - Badge "Stock bas" si `quantity <= reorderPoint`
-   - CTA "Voir toutes" → onglet Pièces
+### 3. Nouveau `PriorityActionCard.tsx`
+- Réutilise les mêmes données que SummaryStrip (passées en props ou refait les requêtes via les hooks centralisés).
+- Sélectionne le **#1** selon : maintenance overdue > point critical > maintenance due bientôt > point important.
+- Affiche : icône colorée (Wrench/Eye), titre, méta ("Maintenance · Retard 1 jour" / "Point · Important"), badge "En retard"/"À surveiller", bouton "Voir".
+- "Voir" ouvre `MaintenanceTaskDetailDialog` (maintenance) ou `ObservationDetailsDialog` (point).
+- Si N>1 : pied de carte "+ N autres éléments" + lien "Voir toutes les actions à faire" qui appelle `setActiveTab('maintenance' | 'points')` exposé par le parent.
+- Fond légèrement teinté (`bg-red-50/60` si retard, `bg-amber-50/60` si à surveiller, sinon `bg-card`).
+- État vide propre : "Rien à faire pour le moment ✓".
 
-7. **`FuelSummaryCard.tsx`** — résumé carburant
-   - Dernier plein, total mois, coût ; bouton "Ajouter carburant"
-   - Réutilise `useEquipmentFuelLogs`
+### 4. `QuickActions.tsx` (refonte)
+- 4 actions visibles : **Compteur, Maintenance, Point, QR**.
+- Bouton secondaire "Plus d'actions ▼" qui déplie (`Collapsible`) 3 actions : **Pièce, Carburant, Performance** (Intervention retiré car `/interventions` redirige vers `/points` — éviter doublon avec Point).
+- Grille `grid-cols-2 sm:grid-cols-4`. Carburant ouvre l'onglet `fuel` ; Performance ouvre `performance`.
+- Props : on enlève `onAddIntervention` ; ajoute `onShowFuel`, `onShowPerformance`.
 
-8. **`QRCompactCard.tsx`** — wrapper compact autour de `QRCodeGenerator` avec actions Télécharger/Imprimer/Copier déjà supportées
+### 5. `EquipmentTabs.tsx` (refonte)
+- 6 onglets visibles : Vue d'ensemble, Maintenance, Points, Historique, Pièces, QR.
+- Carburant / Performance / Temps : conservés et accessibles via le menu Plus d'actions (qui change `activeTab`) — on garde leur rendu interne mais pas de bouton d'onglet visible. Ajouter un sous-menu compact en haut de l'onglet Historique : liens "Carburant · Performance · Temps".
+- Ajouter prop `activeTab` / `onTabChange` contrôlable depuis le parent (pour que QuickActions puisse forcer un onglet).
+- Nouvel onglet "Points" rendu via `EquipmentPointsList` (composant léger réutilisant la même requête que SummaryStrip — peut être colocalisé dans `OverviewRecent`).
+- Pas de scroll horizontal : `grid grid-cols-3 sm:grid-cols-6`.
 
-### Composants modifiés
+### 6. Nouveau `OverviewRecent.tsx`
+- Trois `Card` en `grid lg:grid-cols-3 gap-4` :
+  - **Maintenances récentes** : 3 dernières non en retard (in-progress / scheduled), tri par date due ; lien "Toutes les maintenances" → `setActiveTab('maintenance')`.
+  - **Points récents** : 2-3 derniers (resolved + active), tri `last_event_at` ; lien "Tous les points" → `setActiveTab('points')`.
+  - **Historique récent** : agrégé (3 lignes max) maintenances complétées + points créés/résolus + mise à jour compteur ; lien "Voir tout" → `setActiveTab('history')`.
+- Chaque ligne compacte : icône colorée + titre + heure relative.
+- Anti-doublon : exclure l'élément déjà affiché dans PriorityActionCard.
 
-- **`EquipmentDetailContent.tsx`** : nouveau layout
-  - Container `max-w-6xl` (desktop) / `max-w-[500px]` (mobile)
-  - Header pleine largeur
-  - Grille `lg:grid-cols-3 gap-6` ; col principale `lg:col-span-2`, col droite `lg:col-span-1`
-  - Mobile : ordre conforme à la spec (Header → État → Actions → Compteur → Maintenance → Points → Pièces → Journal → Carburant → QR → Onglets)
-  - Conserve toute la logique métier existante (mutations, dialogs, invalidations)
+### 7. `EquipmentDetailContent.tsx` (refonte du layout)
+- Supprime du rendu principal : `StatusCard`, `MaintenancePriorityCard`, `EquipmentPointsCard`, `MachineJournalCard`, `LinkedPartsCard`, `FuelSummaryCard`, `QRCompactCard`, `CounterCard` (les fichiers restent — non importés).
+- Nouvelle structure :
+  ```
+  <Header />
+  <SummaryStrip />
+  <div className="grid lg:grid-cols-2 gap-4">
+    <PriorityActionCard onNavigateToTab={setActiveTab} />
+    <QuickActions ... />
+  </div>
+  <EquipmentTabs activeTab={activeTab} onTabChange={setActiveTab}>
+    overview → <OverviewRecent onNavigateToTab={setActiveTab} />
+  </EquipmentTabs>
+  ```
+- État local `activeTab` remonté depuis EquipmentTabs vers le parent.
+- Conserve les dialogs déjà branchés (`UpdateHoursDialog`, `NewPointDialog`, `AddMaintenanceDialog`, `AddPartDialog`, `EditEquipmentDialog`).
 
-- **`EquipmentHeader.tsx`** : refonte premium
-  - Bouton retour `<ArrowLeft/>` (navigate -1)
-  - Mini photo 80×80 `rounded-2xl object-contain bg-muted/30` + fallback icône
-  - Nom, type/marque/modèle, compteur résumé
-  - Badge statut **traduit** : operational/active→Actif, maintenance→Maintenance, broken/out_of_service→Hors service, watch→À surveiller (avec couleurs)
-  - Boutons Modifier / Supprimer alignés à droite
+## Détails techniques
 
-- **`QuickActions.tsx`** : 6 actions
-  - Compteur → `UpdateHoursDialog`
-  - Maintenance → `/maintenance?equipment=:id` (route déjà supportée d'après mémoire)
-  - Point → `NewPointDialog` (déjà câblé dans `EquipmentDetailContent`)
-  - Intervention → vérification de la route `/interventions` ; si présente : `/interventions?equipment=:id`, sinon : ouverture du `NewPointDialog` avec type adapté (fallback)
-  - Lier pièce → scroll vers `LinkedPartsCard` + déclenche son CTA
-  - QR → scroll vers `QRCompactCard` (ancre)
-  - Grille `grid-cols-2 md:grid-cols-3 lg:grid-cols-2` selon contexte (col droite desktop)
-
-- **`EquipmentTabs.tsx`** : 6 onglets en `grid-cols-3 sm:grid-cols-6`
-  - Vue d'ensemble, Maintenance, Points (nouveau), Pièces, Historique (intègre Carburant + Performance + Temps en sous-sections), QR
-  - Aucune fonctionnalité existante supprimée
-
-## Phase 2 — Polish
-
-- Helpers de formatage avec fallback (`formatCounterValue`, `translateStatus`, `formatRelativeDate`)
-- Vérification absolue : aucun `undefined` / `null` / `Unknown` / `NaN` rendu
-- Couleurs statut centralisées dans `StatusCard` et réutilisées par `EquipmentHeader`
+- **Statuts** : toujours via `translateRawStatus` (déjà en place) — jamais "operational"/"broken" bruts.
+- **Compteur** : toujours via `formatCounter` ; jamais "0 jours".
+- **Points join** : utiliser `entity_id = String(equipment.id)` en priorité (champ Point.entity_id existe) avec fallback sur `entity_label ilike %name%` pour compatibilité historique.
+- **Routes** : `/interventions` est un alias `Navigate→/points` — on retire cette action pour éviter la confusion avec "Point". Aucune nouvelle route.
+- **Menu ⋯** : `DropdownMenu` (shadcn déjà disponible).
+- **Aucune modification** de `EquipmentOverview`, `EquipmentMaintenanceStatus`, `EquipmentParts`, `EquipmentFuelLogs`, `EquipmentPerformance`, `EquipmentTimeTracking`, `EquipmentQRCode`, `EquipmentMaintenanceHistory`, des hooks de données, des services, des types Supabase, des RLS.
 
 ## Validation
 
-- Préview testée à 390px / 854px / 1366px / 1440px
-- Aucun scroll horizontal (mémoire `mobile-optimization`)
-- `UpdateHoursDialog`, `MaintenanceCompletionDialog`, `NewPointDialog`, `QRCodeGenerator` fonctionnels
-- Build TypeScript propre
-- Liste `/equipment` intacte
-
-## Hors scope
-
-- Aucune nouvelle route, table, RLS, ni hook Supabase majeur
-- Aucun nouveau composant Settings ou navigation globale
-- Pas de changement aux services/mutations existants
+- Build TypeScript propre.
+- 390 / 768 / 1366 / 1440 px sans scroll horizontal, sans texte coupé.
+- Aucune route 404 (intervention retirée).
+- Aucun `undefined`/`null`/`Unknown` rendu (chips filtrées, fallbacks systématiques).
+- Toutes les anciennes sections restent accessibles via les onglets ou le menu Plus d'actions.
