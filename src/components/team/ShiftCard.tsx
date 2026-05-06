@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Pencil } from 'lucide-react';
+import { Pencil, Timer } from 'lucide-react';
 import type { TeamTodayCardVM } from '@/types/PlannedShift';
 
 interface Props {
@@ -28,10 +28,53 @@ function formatTime(t: string | null) {
   return t.slice(0, 5);
 }
 
+function formatHM(seconds: number): string {
+  if (!seconds || seconds < 0) return '0h00';
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  return `${h}h${String(m).padStart(2, '0')}`;
+}
+
+function formatTimeFromIso(iso: string | null): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+function formatGap(seconds: number): string {
+  const sign = seconds >= 0 ? '+' : '−';
+  const abs = Math.abs(seconds);
+  return `${sign}${formatHM(abs)}`;
+}
+
 export function ShiftCard({ vm, onEdit }: Props) {
   const start = formatTime(vm.startTime);
   const end = formatTime(vm.endTime);
   const range = start && end ? `${start} – ${end}` : start ? `dès ${start}` : 'Horaire libre';
+
+  const actualIn = formatTimeFromIso(vm.actualStartAt || null);
+  const actualOut = formatTimeFromIso(vm.actualEndAt || null);
+  const actualSeconds = vm.actualSeconds ?? 0;
+  const hasActual = !!vm.actualStartAt;
+  const actualRange = hasActual
+    ? vm.actualActive
+      ? `${actualIn} → en cours`
+      : actualOut
+        ? `${actualIn} – ${actualOut}`
+        : `${actualIn}`
+    : null;
+
+  const gapSeconds =
+    vm.plannedSeconds && hasActual ? actualSeconds - vm.plannedSeconds : null;
+  const gapTone =
+    gapSeconds == null
+      ? null
+      : Math.abs(gapSeconds) <= 15 * 60
+        ? 'success'
+        : gapSeconds < 0
+          ? 'warning'
+          : 'info';
 
   return (
     <Card className="p-3 flex flex-col gap-2 overflow-hidden">
@@ -41,6 +84,14 @@ export function ShiftCard({ vm, onEdit }: Props) {
           <div className="text-xs text-muted-foreground truncate">{range}</div>
           {vm.roleLabel && (
             <div className="text-xs text-muted-foreground truncate">{vm.roleLabel}</div>
+          )}
+          {(hasActual || actualSeconds > 0) && (
+            <div className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
+              <Timer className="h-3 w-3 shrink-0" />
+              <span className="truncate">
+                Réel : {actualRange || '—'} · {formatHM(actualSeconds)}
+              </span>
+            </div>
           )}
         </div>
         {onEdit && (
@@ -53,6 +104,14 @@ export function ShiftCard({ vm, onEdit }: Props) {
         {vm.shiftStatus && (
           <Badge variant={STATUS_VARIANT[vm.shiftStatus] || 'secondary'} className="text-[10px]">
             {STATUS_LABEL[vm.shiftStatus] || vm.shiftStatus}
+          </Badge>
+        )}
+        {vm.actualActive && (
+          <Badge variant="success" className="text-[10px]">En poste</Badge>
+        )}
+        {gapSeconds != null && (
+          <Badge variant={(gapTone || 'outline') as any} className="text-[10px]">
+            Écart {formatGap(gapSeconds)}
           </Badge>
         )}
         <Badge variant="outline" className="text-[10px]">

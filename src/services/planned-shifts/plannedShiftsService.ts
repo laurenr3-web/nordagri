@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { PlannedShift, UpsertPlannedShiftInput } from '@/types/PlannedShift';
+import type { WorkShift } from '@/services/work-shifts/types';
 
 function addDays(dateStr: string, days: number): string {
   const d = new Date(dateStr + 'T00:00:00');
@@ -65,5 +66,30 @@ export const plannedShiftsService = {
       .eq('id', id)
       .eq('farm_id', farmId);
     if (error) throw error;
+  },
+
+  /**
+   * Fetch real punch-in/out work_shifts for a set of users on a given local date.
+   * Used to compute the "prévu vs réel" gap on ShiftCard.
+   */
+  async listActualsForUsersOnDate(
+    farmId: string,
+    date: string,
+    userIds: string[],
+  ): Promise<WorkShift[]> {
+    if (!userIds.length) return [];
+    const start = new Date(date + 'T00:00:00');
+    const end = new Date(date + 'T00:00:00');
+    end.setDate(end.getDate() + 1);
+    const { data, error } = await supabase
+      .from('work_shifts')
+      .select('*')
+      .eq('farm_id', farmId)
+      .in('user_id', userIds)
+      .gte('punch_in_at', start.toISOString())
+      .lt('punch_in_at', end.toISOString())
+      .order('punch_in_at', { ascending: true });
+    if (error) throw error;
+    return (data || []) as WorkShift[];
   },
 };

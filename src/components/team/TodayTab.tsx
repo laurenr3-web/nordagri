@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { useFarmId } from '@/hooks/useFarmId';
 import { useTeamMembers } from '@/hooks/useTeamMembers';
 import { usePlanningTasks } from '@/hooks/planning/usePlanningTasks';
-import { usePlannedShiftsDay } from '@/hooks/planned-shifts';
+import { usePlannedShiftsDay, useActualShiftsForDay } from '@/hooks/planned-shifts';
 import { todayLocal } from '@/lib/dateLocal';
 import type { PlannedShift, TeamTodayCardVM } from '@/types/PlannedShift';
 import { ShiftCard } from './ShiftCard';
@@ -18,6 +18,12 @@ export function TodayTab() {
   const { teamMembers } = useTeamMembers();
   const { data: shifts = [] } = usePlannedShiftsDay(farmId, today);
   const { tasks } = usePlanningTasks(farmId, today, today);
+
+  const userIds = useMemo(
+    () => teamMembers.map((m) => m.user_id).filter((u): u is string => !!u),
+    [teamMembers]
+  );
+  const { data: actuals = [] } = useActualShiftsForDay(farmId, today, userIds);
 
   const [presenceOpen, setPresenceOpen] = useState(false);
   const [editingShift, setEditingShift] = useState<PlannedShift | null>(null);
@@ -38,6 +44,22 @@ export function TodayTab() {
     const byMemberShift = new Map<string, PlannedShift>();
     for (const s of shifts) byMemberShift.set(s.farm_member_id, s);
 
+    const actualsByUser = new Map<string, typeof actuals>();
+    for (const a of actuals) {
+      const arr = actualsByUser.get(a.user_id) || [];
+      arr.push(a);
+      actualsByUser.set(a.user_id, arr);
+    }
+    const now = Date.now();
+    const parsePlannedSeconds = (start: string | null, end: string | null): number | null => {
+      if (!start || !end) return null;
+      const [sh, sm] = start.split(':').map(Number);
+      const [eh, em] = end.split(':').map(Number);
+      if ([sh, sm, eh, em].some((n) => Number.isNaN(n))) return null;
+      const diff = (eh * 3600 + em * 60) - (sh * 3600 + sm * 60);
+      return diff > 0 ? diff : null;
+    };
+
     return teamMembers
       .filter((m) => m.user_id)
       .map((m) => {
@@ -48,6 +70,19 @@ export function TodayTab() {
           const p = t.manual_priority || t.computed_priority;
           return p === 'critical' || p === 'important';
         });
+        const userActuals = userId ? (actualsByUser.get(userId) || []) : [];
+        const sortedActuals = [...userActuals].sort((a, b) =>
+          a.punch_in_at.localeCompare(b.punch_in_at)
+        );
+        const firstIn = sortedActuals[0]?.punch_in_at || null;
+        const last = sortedActuals[sortedActuals.length - 1];
+        const lastOut = last?.punch_out_at || null;
+        const isActive = sortedActuals.some((s) => s.status === 'active');
+        const actualSeconds = sortedActuals.reduce((acc, s) => {
+          const inMs = new Date(s.punch_in_at).getTime();
+          const outMs = s.punch_out_at ? new Date(s.punch_out_at).getTime() : now;
+          return acc + Math.max(0, Math.floor((outMs - inMs) / 1000));
+        }, 0);
         return {
           shiftId: shift?.id || null,
           farmMemberId: m.id,
@@ -59,6 +94,11 @@ export function TodayTab() {
           shiftStatus: shift?.status || null,
           assignedCount: myTasks.length,
           urgentCount: urgent.length,
+          actualStartAt: firstIn,
+          actualEndAt: lastOut,
+          actualActive: isActive,
+          actualSeconds: userActuals.length ? actualSeconds : 0,
+          plannedSeconds: parsePlannedSeconds(shift?.start_time || null, shift?.end_time || null),
         };
       })
       .sort((a, b) => {
@@ -66,7 +106,7 @@ export function TodayTab() {
         if (!!a.shiftId !== !!b.shiftId) return a.shiftId ? -1 : 1;
         return (a.startTime || '99:99').localeCompare(b.startTime || '99:99');
       });
-  }, [teamMembers, shifts, todayTasks]);
+  }, [teamMembers, shifts, todayTasks, actuals]);
 
   return (
     <div className="grid gap-3">
