@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { z } from 'zod';
+import { useTranslation } from 'react-i18next';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useTeamMembers } from '@/hooks/useTeamMembers';
 import { useFarmId } from '@/hooks/useFarmId';
 import { useUpsertPlannedShift, useDeletePlannedShift } from '@/hooks/planned-shifts';
+import { plannedShiftsService } from '@/services/planned-shifts/plannedShiftsService';
 import { toast } from 'sonner';
 import type { PlannedShift, PlannedShiftStatus } from '@/types/PlannedShift';
 import { Trash2 } from 'lucide-react';
@@ -20,14 +23,18 @@ interface Props {
   defaultFarmMemberId?: string | null;
 }
 
-const STATUSES: { value: PlannedShiftStatus; label: string }[] = [
-  { value: 'scheduled', label: 'Planifié' },
-  { value: 'confirmed', label: 'Confirmé' },
-  { value: 'absent', label: 'Absent' },
-  { value: 'completed', label: 'Terminé' },
-];
+const STATUS_VALUES: PlannedShiftStatus[] = ['scheduled', 'confirmed', 'absent', 'completed'];
+
+const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+function toMinutes(t: string): number {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
 
 export function AddPresenceSheet({ open, onOpenChange, defaultDate, shift, defaultFarmMemberId }: Props) {
+  const { t } = useTranslation();
   const { farmId } = useFarmId();
   const { teamMembers } = useTeamMembers();
   const upsert = useUpsertPlannedShift();
@@ -41,6 +48,7 @@ export function AddPresenceSheet({ open, onOpenChange, defaultDate, shift, defau
   const [status, setStatus] = useState<PlannedShiftStatus>('scheduled');
   const [notes, setNotes] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -66,31 +74,117 @@ export function AddPresenceSheet({ open, onOpenChange, defaultDate, shift, defau
 
   const eligibleMembers = teamMembers.filter((m) => m.id);
 
+  const buildSchema = () =>
+    z
+      .object({
+        farmMemberId: z.string().trim().min(1, t('team.presence.error.member')),
+        date: z
+          .string()
+          .trim()
+          .min(1, t('team.presence.error.date'))
+          .regex(DATE_RE, t('team.presence.error.dateInvalid')),
+        startTime: z
+          .string()
+          .trim()
+          .refine((v) => v === '' || TIME_RE.test(v), t('team.presence.error.timeFormat')),
+        endTime: z
+          .string()
+          .trim()
+          .refine((v) => v === '' || TIME_RE.test(v), t('team.presence.error.timeFormat')),
+        role: z.string().trim().max(60, t('team.presence.error.roleTooLong')),
+        status: z.enum(STATUS_VALUES as [PlannedShiftStatus, ...PlannedShiftStatus[]], {
+          errorMap: () => ({ message: t('team.presence.error.status') }),
+        }),
+        notes: z.string().trim().max(500, t('team.presence.error.notesTooLong')),
+      })
+      .superRefine((val, ctx) => {
+        const hasStart = !!val.startTime;
+        const hasEnd = !!val.endTime;
+        if (hasStart !== hasEnd) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['endTime'],
+            message: t('team.presence.error.timesRequiredTogether'),
+          });
+        }
+        if (hasStart && hasEnd && toMinutes(val.startTime) >= toMinutes(val.endTime)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['endTime'],
+            message: t('team.presence.error.startBeforeEnd'),
+          });
+        }
+        if (val.status === 'absent' && (hasStart || hasEnd)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['status'],
+            message: t('team.presence.error.absentNoTimes'),
+          });
+        }
+      });
+
   const handleSubmit = async () => {
     setError(null);
     if (!farmId) return;
-    if (!farmMemberId) return setError('Sélectionnez un membre');
-    if (!date) return setError('Sélectionnez une date');
-    if (!status) return setError('Statut requis');
-    if (startTime && endTime && startTime >= endTime) {
-      return setError('Heure de début doit être avant heure de fin');
+
+    const parsed = buildSchema().safeParse({
+      farmMemberId,
+      date,
+      startTime,
+      endTime,
+      role,
+      status,
+      notes,
+    });
+    if (!parsed.success) {
+      setError(parsed.error.issues[0]?.message || t('team.presence.toast.failed'));
+      return;
     }
+
+    setSubmitting(true);
     try {
+      // Overlap check (only when times provided)
+      if (parsed.data.startTime && parsed.data.endTime) {
+        try {
+          const sameDay = await plannedShiftsService.listByDay(farmId, parsed.data.date);
+          const startMin = toMinutes(parsed.data.startTime);
+          const endMin = toMinutes(parsed.data.endTime);
+          const overlaps = sameDay.some((s) => {
+            if (s.id === shift?.id) return false;
+            if (s.farm_member_id !== parsed.data.farmMemberId) return false;
+            if (s.status === 'absent') return false;
+            if (!s.start_time || !s.end_time) return false;
+            const sStart = toMinutes(s.start_time.slice(0, 5));
+            const sEnd = toMinutes(s.end_time.slice(0, 5));
+            return startMin < sEnd && endMin > sStart;
+          });
+          if (overlaps) {
+            setError(t('team.presence.error.overlap'));
+            return;
+          }
+        } catch {
+          setError(t('team.presence.error.checkOverlapFailed'));
+          return;
+        }
+      }
+
       await upsert.mutateAsync({
         id: shift?.id,
         farm_id: farmId,
-        farm_member_id: farmMemberId,
-        shift_date: date,
-        start_time: startTime || null,
-        end_time: endTime || null,
-        role: role || null,
-        status,
-        notes: notes || null,
+        farm_member_id: parsed.data.farmMemberId,
+        shift_date: parsed.data.date,
+        start_time: parsed.data.startTime || null,
+        end_time: parsed.data.endTime || null,
+        role: parsed.data.role || null,
+        status: parsed.data.status,
+        notes: parsed.data.notes || null,
       });
-      toast.success(shift ? 'Présence mise à jour' : 'Présence ajoutée');
+      toast.success(shift ? t('team.presence.toast.updated') : t('team.presence.toast.added'));
       onOpenChange(false);
     } catch (e: any) {
-      toast.error(e?.message || 'Échec');
+      toast.error(e?.message || t('team.presence.toast.failed'));
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -98,10 +192,10 @@ export function AddPresenceSheet({ open, onOpenChange, defaultDate, shift, defau
     if (!shift || !farmId) return;
     try {
       await remove.mutateAsync({ id: shift.id, farmId });
-      toast.success('Présence supprimée');
+      toast.success(t('team.presence.toast.deleted'));
       onOpenChange(false);
     } catch (e: any) {
-      toast.error(e?.message || 'Échec');
+      toast.error(e?.message || t('team.presence.toast.failed'));
     }
   };
 
@@ -109,14 +203,16 @@ export function AddPresenceSheet({ open, onOpenChange, defaultDate, shift, defau
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="max-h-[90vh] overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>{shift ? 'Modifier la présence' : 'Ajouter une présence'}</SheetTitle>
+          <SheetTitle>
+            {shift ? t('team.presence.title.edit') : t('team.presence.title.add')}
+          </SheetTitle>
         </SheetHeader>
         <div className="grid gap-3 py-3">
           <div className="grid gap-1.5">
-            <Label>Membre *</Label>
+            <Label>{t('team.presence.field.member')} *</Label>
             <Select value={farmMemberId} onValueChange={setFarmMemberId}>
               <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un membre" />
+                <SelectValue placeholder={t('team.presence.error.member')} />
               </SelectTrigger>
               <SelectContent>
                 {eligibleMembers.map((m) => (
@@ -128,50 +224,55 @@ export function AddPresenceSheet({ open, onOpenChange, defaultDate, shift, defau
             </Select>
           </div>
           <div className="grid gap-1.5">
-            <Label>Date *</Label>
+            <Label>{t('team.presence.field.date')} *</Label>
             <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-1.5">
-              <Label>Début</Label>
+              <Label>{t('team.presence.field.start')}</Label>
               <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
             </div>
             <div className="grid gap-1.5">
-              <Label>Fin</Label>
+              <Label>{t('team.presence.field.end')}</Label>
               <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
             </div>
           </div>
           <div className="grid gap-1.5">
-            <Label>Rôle</Label>
-            <Input value={role} onChange={(e) => setRole(e.target.value)} placeholder="Ex. traite, champs" />
+            <Label>{t('team.presence.field.role')}</Label>
+            <Input
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              placeholder={t('team.presence.field.role.placeholder')}
+              maxLength={60}
+            />
           </div>
           <div className="grid gap-1.5">
-            <Label>Statut *</Label>
+            <Label>{t('team.presence.field.status')} *</Label>
             <Select value={status} onValueChange={(v) => setStatus(v as PlannedShiftStatus)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {STATUSES.map((s) => (
-                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                {STATUS_VALUES.map((s) => (
+                  <SelectItem key={s} value={s}>{t(`team.presence.status.${s}`)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="grid gap-1.5">
-            <Label>Notes</Label>
-            <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+            <Label>{t('team.presence.field.notes')}</Label>
+            <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={500} />
           </div>
           {error && <div role="alert" className="text-sm text-destructive">{error}</div>}
         </div>
         <div className="flex flex-col gap-2 pt-2">
-          <Button onClick={handleSubmit} disabled={upsert.isPending} className="w-full">
-            {shift ? 'Enregistrer' : 'Ajouter'}
+          <Button onClick={handleSubmit} disabled={submitting || upsert.isPending} className="w-full">
+            {shift ? t('team.presence.action.save') : t('team.presence.action.add')}
           </Button>
           {shift && (
             <Button onClick={handleDelete} disabled={remove.isPending} variant="ghost" className="w-full text-destructive">
               <Trash2 className="h-4 w-4 mr-2" />
-              Supprimer
+              {t('team.presence.action.delete')}
             </Button>
           )}
         </div>
