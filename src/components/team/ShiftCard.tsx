@@ -7,6 +7,7 @@ import type { TeamTodayCardVM } from '@/types/PlannedShift';
 interface Props {
   vm: TeamTodayCardVM;
   onEdit?: () => void;
+  onSelect?: () => void;
 }
 
 const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'success' | 'warning' | 'info' | 'outline'> = {
@@ -48,7 +49,7 @@ function formatGap(seconds: number): string {
   return `${sign}${formatHM(abs)}`;
 }
 
-export function ShiftCard({ vm, onEdit }: Props) {
+export function ShiftCard({ vm, onEdit, onSelect }: Props) {
   const start = formatTime(vm.startTime);
   const end = formatTime(vm.endTime);
   const range = start && end ? `${start} – ${end}` : start ? `dès ${start}` : 'Horaire libre';
@@ -77,7 +78,22 @@ export function ShiftCard({ vm, onEdit }: Props) {
           : 'info';
 
   return (
-    <Card className="p-3 flex flex-col gap-2 overflow-hidden">
+    <Card
+      className={`p-3 flex flex-col gap-2 overflow-hidden ${onSelect ? 'cursor-pointer hover:bg-accent/50 transition-colors' : ''}`}
+      role={onSelect ? 'button' : undefined}
+      tabIndex={onSelect ? 0 : undefined}
+      onClick={onSelect}
+      onKeyDown={
+        onSelect
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onSelect();
+              }
+            }
+          : undefined
+      }
+    >
       <div className="flex items-start justify-between gap-2 min-w-0">
         <div className="min-w-0 flex-1">
           <div className="font-medium truncate">{vm.displayName}</div>
@@ -95,7 +111,16 @@ export function ShiftCard({ vm, onEdit }: Props) {
           )}
         </div>
         {onEdit && (
-          <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0" onClick={onEdit} aria-label="Modifier">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 shrink-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
+            aria-label="Modifier"
+          >
             <Pencil className="h-4 w-4" />
           </Button>
         )}

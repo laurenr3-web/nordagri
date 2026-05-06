@@ -11,6 +11,7 @@ import type { PlannedShift, TeamTodayCardVM } from '@/types/PlannedShift';
 import { ShiftCard } from './ShiftCard';
 import { AddPresenceSheet } from './AddPresenceSheet';
 import { QuickAssignSheet } from './QuickAssignSheet';
+import { EmployeeDetailSheet } from './EmployeeDetailSheet';
 
 export function TodayTab() {
   const today = todayLocal();
@@ -29,6 +30,14 @@ export function TodayTab() {
   const [editingShift, setEditingShift] = useState<PlannedShift | null>(null);
   const [defaultMember, setDefaultMember] = useState<string | null>(null);
   const [assignOpen, setAssignOpen] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailTarget, setDetailTarget] = useState<{
+    farmMemberId: string;
+    userId: string | null;
+    displayName: string;
+    roleLabel: string | null;
+    shift: PlannedShift | null;
+  } | null>(null);
 
   const todayTasks = useMemo(
     () => (tasks || []).filter((t: any) => t.due_date === today && t.status !== 'done'),
@@ -143,6 +152,17 @@ export function TodayTab() {
                 setDefaultMember(vm.farmMemberId);
                 setPresenceOpen(true);
               }}
+              onSelect={() => {
+                const existing = shifts.find((s) => s.id === vm.shiftId) || null;
+                setDetailTarget({
+                  farmMemberId: vm.farmMemberId,
+                  userId: vm.userId,
+                  displayName: vm.displayName,
+                  roleLabel: vm.roleLabel,
+                  shift: existing,
+                });
+                setDetailOpen(true);
+              }}
             />
           ))}
         </div>
@@ -182,6 +202,22 @@ export function TodayTab() {
         onOpenChange={setAssignOpen}
         unassignedTasks={unassigned}
       />
+      {detailTarget && (
+        <EmployeeDetailSheet
+          open={detailOpen}
+          onOpenChange={(o) => {
+            setDetailOpen(o);
+            if (!o) setDetailTarget(null);
+          }}
+          farmMemberId={detailTarget.farmMemberId}
+          userId={detailTarget.userId}
+          displayName={detailTarget.displayName}
+          roleLabel={detailTarget.roleLabel}
+          shift={detailTarget.shift}
+          todayTasks={todayTasks as any}
+          unassignedTasks={unassigned as any}
+        />
+      )}
     </div>
   );
 }
