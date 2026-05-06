@@ -22,6 +22,7 @@ import Parts from '@/pages/Parts';
 import Points from '@/pages/Points';
 import TimeTracking from '@/pages/TimeTracking';
 import Planning from '@/pages/Planning';
+import Team from '@/pages/Team';
 import { OnboardingProvider } from '@/components/onboarding/OnboardingProvider';
 import { HelpCenterProvider } from '@/contexts/HelpCenterContext';
 import { HelpCenter } from '@/components/help/HelpCenter';
@@ -88,6 +89,11 @@ function App() {
                       <Route path="/planning" element={
                         <ProtectedRoute>
                           <Planning />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/team" element={
+                        <ProtectedRoute>
+                          <Team />
                         </ProtectedRoute>
                       } />
                       <Route path="/equipment" element={
