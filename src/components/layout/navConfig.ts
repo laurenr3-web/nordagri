@@ -8,6 +8,7 @@ import {
   Clock,
   BarChart3,
   Settings,
+  Users,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -53,6 +54,14 @@ export const navGroups: NavGroup[] = [
         mobileLabelKey: 'mobilemenu.planning',
         priority: 'primary',
         mobileQuick: true,
+      },
+      {
+        path: '/team',
+        icon: Users,
+        labelKey: 'navbar.team',
+        mobileLabelKey: 'mobilemenu.team',
+        priority: 'primary',
+        mobileQuick: false,
       },
       {
         path: '/points',

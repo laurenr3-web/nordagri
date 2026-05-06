@@ -1104,6 +1104,66 @@ export type Database = {
           },
         ]
       }
+      planned_shifts: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          end_time: string | null
+          farm_id: string
+          farm_member_id: string
+          id: string
+          notes: string | null
+          role: string | null
+          shift_date: string
+          start_time: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          end_time?: string | null
+          farm_id: string
+          farm_member_id: string
+          id?: string
+          notes?: string | null
+          role?: string | null
+          shift_date: string
+          start_time?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          end_time?: string | null
+          farm_id?: string
+          farm_member_id?: string
+          id?: string
+          notes?: string | null
+          role?: string | null
+          shift_date?: string
+          start_time?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planned_shifts_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planned_shifts_farm_member_id_fkey"
+            columns: ["farm_member_id"]
+            isOneToOne: false
+            referencedRelation: "farm_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       planning_category_importance: {
         Row: {
           category: string
