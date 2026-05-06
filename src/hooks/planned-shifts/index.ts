@@ -38,3 +38,18 @@ export function useDeletePlannedShift() {
     },
   });
 }
+
+export function useActualShiftsForDay(
+  farmId: string | null,
+  date: string,
+  userIds: string[],
+) {
+  const key = [...userIds].sort().join(',');
+  return useQuery({
+    queryKey: ['work-shifts-actuals', farmId, date, key],
+    queryFn: () => plannedShiftsService.listActualsForUsersOnDate(farmId!, date, userIds),
+    enabled: !!farmId && !!date && userIds.length > 0,
+    staleTime: 60_000,
+    refetchInterval: 60_000,
+  });
+}
