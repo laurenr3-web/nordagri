@@ -26,6 +26,16 @@ export interface TeamTodayCardVM {
   shiftStatus: PlannedShiftStatus | null;
   assignedCount: number;
   urgentCount: number;
+  /** Real punch-in timestamp (ISO) for the day, if any. */
+  actualStartAt?: string | null;
+  /** Real punch-out timestamp (ISO) for the day; null while still active. */
+  actualEndAt?: string | null;
+  /** True if the user currently has an active work_shift. */
+  actualActive?: boolean;
+  /** Total punched seconds on this day (sum across shifts; running shift uses now()). */
+  actualSeconds?: number;
+  /** Planned duration in seconds derived from start_time/end_time (null if unknown). */
+  plannedSeconds?: number | null;
 }
 
 export interface UpsertPlannedShiftInput {
