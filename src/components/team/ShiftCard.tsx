@@ -79,13 +79,16 @@ export function ShiftCard({ vm, onEdit, onSelect }: Props) {
 
   return (
     <Card
-      className={`p-3 flex flex-col gap-2 overflow-hidden ${onSelect ? 'cursor-pointer hover:bg-accent/50 transition-colors' : ''}`}
+      className={`p-3 flex flex-col gap-2 overflow-hidden ${onSelect ? 'cursor-pointer hover:bg-accent/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2' : ''}`}
       role={onSelect ? 'button' : undefined}
       tabIndex={onSelect ? 0 : undefined}
+      aria-label={onSelect ? `Voir le détail de ${vm.displayName}` : undefined}
       onClick={onSelect}
       onKeyDown={
         onSelect
           ? (e) => {
+              const target = e.target as HTMLElement;
+              if (target.closest('button')) return;
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 onSelect();
@@ -118,6 +121,11 @@ export function ShiftCard({ vm, onEdit, onSelect }: Props) {
             onClick={(e) => {
               e.stopPropagation();
               onEdit();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.stopPropagation();
+              }
             }}
             aria-label="Modifier"
           >
